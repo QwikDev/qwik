@@ -1,5 +1,6 @@
 import type {
   GetSyncData,
+  RequestEventAction,
   RequestEventLoader,
   RequestHandler,
 } from '@builder.io/qwik-city/middleware/request-handler';
@@ -77,11 +78,15 @@ export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<inf
  * @alpha
  */
 export interface ActionConstructor {
-  <O>(actionQrl: (form: JSONObject, event: RequestEventLoader) => ValueOrPromise<O>): Action<O>;
+  <O>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>): Action<O>;
   <O, B extends ZodReturn>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B
-  ): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
+  ): Action<
+    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
+    GetValidatorType<B>,
+    false
+  >;
 }
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
@@ -303,7 +308,7 @@ export type RequestHandlerBodyFunction<BODY> = () =>
 
 export interface EndpointResponse {
   status: number;
-  loaders: Record<string, Promise<any>>;
+  loaders: Record<string, unknown>;
   formData?: FormData;
   action?: string;
 }
@@ -347,14 +352,13 @@ export interface SimpleURL {
  */
 export interface ActionReturn<RETURN> {
   readonly status?: number;
-  readonly value: GetValueReturn<RETURN> | undefined;
-  readonly fail: GetFailReturn<RETURN> | undefined;
+  readonly value: GetValueReturn<RETURN>;
 }
 
 /**
  * @alpha
  */
-export interface ActionStore<RETURN, INPUT> {
+export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   /**
    * It's the "action" path that a native `<form>` should have in order to call the action.
    *
@@ -412,39 +416,31 @@ export interface ActionStore<RETURN, INPUT> {
   readonly value: GetValueReturn<RETURN> | undefined;
 
   /**
-   * Returned failed data of the action. This reactive property will contain the data returned inside the `action$` function using the `fail()` function.
-   *
-   * If `zod$()` is used, this property might contain also the validation errors.
-   *
-   * It's `undefined` before the action is first called.
-   */
-  readonly fail: GetFailReturn<RETURN> | undefined;
-
-  /**
    * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
    * in order to execute the action in the server.
    */
-  readonly run: QRL<(form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
+  readonly run: QRL<
+    OPTIONAL extends true
+      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+  >;
 }
 
 /**
  * @alpha
  */
 export type FailReturn<T> = T & {
-  __brand: 'fail';
+  failed: true;
 };
 
 /**
  * @alpha
  */
-export type GetValueReturn<T> = T extends FailReturn<{}> ? never : T;
-
-/**
- * @alpha
- */
-export type GetFailReturn<T> = T extends FailReturn<infer I>
-  ? I & { [key: string]: undefined }
-  : never;
+export type V<T> = T extends FailReturn<any> ? never : T;
+export type F<T> = T extends FailReturn<any> ? T : never;
+export type GetValueReturn<T> =
+  | (V<T> & Record<keyof F<T>, undefined>)
+  | (F<T> & Record<keyof V<T>, undefined>);
 
 /**
  * @alpha
@@ -476,19 +472,19 @@ export interface LoaderInternal extends Loader<any> {
 /**
  * @alpha
  */
-export interface Action<RETURN, INPUT = Record<string, any>> {
+export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
   readonly [isServerLoader]?: true;
 
   /**
    * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
    * Like all `use-` functions and methods, it can only be invokated within a `component$()`.
    */
-  use(): ActionStore<RETURN, INPUT>;
+  use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
 export interface ActionInternal extends Action<any, any> {
   readonly __brand: 'server_action';
-  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
+  __qrl: QRL<(form: FormData, event: RequestEventAction) => ValueOrPromise<any>>;
   __schema: ZodReturn | undefined;
 
   use(): ActionStore<any, any>;

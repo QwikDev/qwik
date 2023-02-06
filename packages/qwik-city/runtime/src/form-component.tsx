@@ -1,20 +1,12 @@
 import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
-import type { GetFailReturn, GetValueReturn, ActionStore } from './types';
+import type { ActionStore } from './types';
 
 /**
  * @alpha
  */
-export interface FormSubmitSuccessDetail<T> {
+export interface FormSubmitCompletedDetail<T> {
   status: number;
-  value: GetValueReturn<T>;
-}
-
-/**
- * @alpha
- */
-export interface FormSubmitFailDetail<T> {
-  status: number;
-  fail: GetFailReturn<T>;
+  value: T;
 }
 
 /**
@@ -25,7 +17,7 @@ export interface FormProps<O, I>
   /**
    * Reference to the action returned by `action.use()`.
    */
-  action: ActionStore<O, I>;
+  action: ActionStore<O, I, true | false>;
 
   /**
    * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
@@ -47,16 +39,8 @@ export interface FormProps<O, I>
   /**
    * Event handler executed right after the action is executed sucesfully and returns some data.
    */
-  onSubmitSuccess$?: (
-    event: CustomEvent<FormSubmitSuccessDetail<O>>,
-    form: HTMLFormElement
-  ) => ValueOrPromise<void>;
-
-  /**
-   * Event handler executed right after the action is executed and it returns some `failed` data, such as data passed to `fail()` or validation errors from `zod$()`.
-   */
-  onSubmitFail$?: (
-    event: CustomEvent<FormSubmitFailDetail<O>>,
+  onSubmitCompleted$?: (
+    event: CustomEvent<FormSubmitCompletedDetail<O>>,
     form: HTMLFormElement
   ) => ValueOrPromise<void>;
 }

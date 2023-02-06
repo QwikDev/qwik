@@ -65,10 +65,17 @@ import type { QRL } from '../qrl/qrl.public';
 /**
  * @internal
  */
-export const _serializeData = (data: any) => {
+export const _serializeData = async (data: any) => {
   const containerState = {} as any;
   const collector = createCollector(containerState);
   collectValue(data, collector, false);
+
+  // Wait for remaining promises
+  let promises: Promise<any>[];
+  while ((promises = collector.$promises$).length > 0) {
+    collector.$promises$ = [];
+    await Promise.all(promises);
+  }
 
   const objs = Array.from(collector.$objSet$.keys());
   let count = 0;
@@ -86,11 +93,21 @@ export const _serializeData = (data: any) => {
   }
 
   const mustGetObjId = (obj: any): string => {
+    let suffix = '';
+    if (isPromise(obj)) {
+      const { value, resolved } = getPromiseValue(obj);
+      obj = value;
+      if (resolved) {
+        suffix += '~';
+      } else {
+        suffix += '_';
+      }
+    }
     const key = objToId.get(obj);
     if (key === undefined) {
       throw qError(QError_missingObjectId, obj);
     }
-    return key;
+    return key + suffix;
   };
 
   const convertedObjs = objs.map((obj) => {
@@ -782,12 +799,12 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
             return;
           }
           seen.add(obj);
+          if (leaks) {
+            collectSubscriptions(getProxyManager(input)!, collector);
+          }
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
             return;
-          }
-          if (leaks) {
-            collectSubscriptions(getProxyManager(input)!, collector);
           }
         }
         const collected = collectDeps(obj, collector, leaks);

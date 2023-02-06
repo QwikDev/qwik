@@ -753,7 +753,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
 // @internal (undocumented)
-export const _serializeData: (data: any) => string;
+export const _serializeData: (data: any) => Promise<string>;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

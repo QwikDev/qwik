@@ -276,7 +276,7 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: 'is unknown, which is not serializable',
+      reason: 'is unknown, which could be serializable or not, please make the type for specific',
     };
   }
   const isAny = type.flags & ts.TypeFlags.Any;

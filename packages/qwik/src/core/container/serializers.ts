@@ -267,7 +267,6 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
       if (!manager.$isTreeshakeable$(obj.prop)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }
-      collectSubscriptions(manager, collector);
     }
     return obj;
   },

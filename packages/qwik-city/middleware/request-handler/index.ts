@@ -10,6 +10,7 @@ export type {
   GetSyncData,
   RequestEvent,
   RequestEventLoader,
+  RequestEventAction,
   RequestHandler,
   RequestEventCommon,
   ServerRequestMode,

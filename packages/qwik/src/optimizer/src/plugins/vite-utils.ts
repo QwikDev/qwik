@@ -1,9 +1,21 @@
 import type { OptimizerSystem } from '../types';
 
+export const filterStack = (stack: string, offset: number = 0) => {
+  return stack
+    .split('\n')
+    .slice(offset)
+    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
+    .join('\n');
+};
+
 export async function formatError(sys: OptimizerSystem, e: Error) {
   const err = e as any;
   let loc = err.loc;
+
   if (!err.frame && !err.plugin) {
+    if (typeof e.stack === 'string') {
+      e.stack = filterStack(e.stack);
+    }
     if (!loc) {
       loc = findLocation(err);
     }
@@ -84,15 +96,16 @@ const safeParseInt = (nu: string) => {
 const splitRE = /\r?\n/;
 const range: number = 2;
 
-function posToNumber(source: string, pos: number | { line: number; column: number }): number {
+export function posToNumber(
+  source: string,
+  pos: number | { line: number; column: number }
+): number {
   if (typeof pos === 'number') return pos;
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
-  for (let i = 0; i < line - 1; i++) {
-    if (lines[i]) {
-      start += lines[i].length + 1;
-    }
+  for (let i = 0; i < line - 1 && i < lines.length; i++) {
+    start += lines[i].length + 1;
   }
   return start + column;
 }

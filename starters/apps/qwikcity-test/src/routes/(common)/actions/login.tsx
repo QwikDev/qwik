@@ -50,8 +50,8 @@ export const SecretForm = component$(() => {
               placeholder="admin"
               value={action.formData?.get('username')}
             />
-            {action.fail?.fieldErrors?.username && (
-              <p class={styles.error}>{action.fail.fieldErrors.username}</p>
+            {action.value?.fieldErrors?.username && (
+              <p class={styles.error}>{action.value.fieldErrors.username}</p>
             )}
           </label>
         </div>
@@ -59,14 +59,14 @@ export const SecretForm = component$(() => {
           <label id="label-code">
             Code:
             <input type="text" name="code" placeholder="123" value={action.formData?.get('code')} />
-            {action.fail?.fieldErrors?.code && (
-              <p class={styles.error}>{action.fail.fieldErrors.code}</p>
+            {action.value?.fieldErrors?.code && (
+              <p class={styles.error}>{action.value.fieldErrors.code}</p>
             )}
           </label>
         </div>
-        {action.fail?.message && (
+        {action.value?.message && (
           <p id="form-error" class={styles.error}>
-            {action.fail.message}
+            {action.value.message}
           </p>
         )}
         {action.value?.secret && (
@@ -82,17 +82,12 @@ export const SecretForm = component$(() => {
       <button
         type="button"
         onClick$={async () => {
-          const { value, fail } = await action.run({
+          const { value } = await action.run({
             username: 'admin',
             code: 123,
           });
           console.warn(value?.secret);
-          if (value) {
-            message.value = value?.secret;
-          }
-          if (fail) {
-            message.value = fail?.message ?? 'Validation error';
-          }
+          message.value = value!.secret!;
         }}
       >
         I dont wanna to play

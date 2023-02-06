@@ -2,7 +2,6 @@ import type { ServerRequestEvent } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
-import { HttpStatus } from './http-status-codes';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
 
@@ -19,10 +18,6 @@ export function runQwikCity<T>(
   trailingSlash = true,
   basePathname = '/'
 ): QwikCityRun<T> {
-  if (requestHandlers.length === 0) {
-    throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
-  }
-
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(

@@ -1,4 +1,4 @@
-export type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
+export type { FormSubmitCompletedDetail as FormSubmitSuccessDetail } from './form-component';
 
 export type {
   MenuData,
@@ -36,7 +36,6 @@ export type {
   ZodReturn,
   StaticGenerate,
   RouteNavigate,
-  GetFailReturn,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';

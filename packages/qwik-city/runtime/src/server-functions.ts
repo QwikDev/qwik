@@ -10,7 +10,10 @@ import {
   useStore,
 } from '@builder.io/qwik';
 
-import type { RequestEventLoader } from '../../middleware/request-handler/types';
+import type {
+  RequestEventAction,
+  RequestEventLoader,
+} from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
@@ -18,7 +21,6 @@ import type {
   ActionOptions,
   Zod,
   JSONObject,
-  FailReturn,
   RouteActionResolver,
   RouteLocation,
   Action,
@@ -32,12 +34,12 @@ import type {
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
 import { isServer } from '@builder.io/qwik/build';
-import type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
+import type { FormSubmitCompletedDetail } from './form-component';
 
 class ActionImpl implements ActionInternal {
   readonly __brand = 'server_action';
   constructor(
-    public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>,
+    public __qrl: QRL<(form: FormData, event: RequestEventAction) => ValueOrPromise<any>>,
     public __schema: ZodReturn | undefined
   ) {}
   use(): ActionStore<any, any> {
@@ -49,7 +51,6 @@ class ActionImpl implements ActionInternal {
       isRunning: false,
       status: undefined,
       value: undefined,
-      fail: undefined,
       formData: undefined,
     };
     const state = useStore<Editable<ActionStore<any, any>>>(() => {
@@ -62,13 +63,7 @@ class ActionImpl implements ActionInternal {
         if (value.output) {
           const { status, result } = value.output;
           initialState.status = status;
-          if (isFail(result)) {
-            initialState.value = undefined;
-            initialState.fail = result;
-          } else {
-            initialState.value = result;
-            initialState.fail = undefined;
-          }
+          initialState.value = result;
         }
       }
       return initialState as ActionStore<any, any>;
@@ -101,24 +96,14 @@ Action.run() can only be called on the browser, for example when a user clicks a
       }).then(({ result, status }) => {
         state.isRunning = false;
         state.status = status;
-        const didFail = isFail(result);
-        if (didFail) {
-          state.value = undefined;
-          state.fail = result;
-        } else {
-          state.value = result;
-          state.fail = undefined;
-        }
+        state.value = result;
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
-          const eventName = didFail ? 'submitfail' : 'submitsuccess';
-          const detail = didFail
-            ? ({ status, fail: result } satisfies FormSubmitFailDetail<any>)
-            : ({ status, value: result } satisfies FormSubmitSuccessDetail<any>);
+          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
           form.dispatchEvent(
-            new CustomEvent(eventName, {
+            new CustomEvent('submitcompleted', {
               bubbles: false,
               cancelable: false,
               composed: false,
@@ -128,8 +113,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         }
         return {
           status: status,
-          value: !didFail ? result : undefined,
-          fail: didFail ? result : undefined,
+          value: result,
         };
       });
     });
@@ -188,10 +172,6 @@ export const loaderQrl = <RETURN, PLATFORM = unknown>(
  * @alpha
  */
 export const loader$ = implicit$FirstArg(loaderQrl);
-
-export const isFail = (value: any): value is FailReturn<any> => {
-  return value && typeof value === 'object' && value.__brand === 'fail';
-};
 
 /**
  * @alpha

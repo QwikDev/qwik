@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { pathToFileURL } from 'url';
 
-test.describe('loaders', () => {
+test.describe('actions', () => {
   test.describe('mpa', () => {
     test.use({ javaScriptEnabled: false });
     tests();

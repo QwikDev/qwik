@@ -19,7 +19,7 @@ export const Works = component$(({
         console.log(count, rest, hey, some);
     });
     return (
-        <div some={some} class={count} {...rest}>{count}</div>
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
     );
 });
 
@@ -73,6 +73,9 @@ export const Works = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         some: props.some ?? 3,
+        params: {
+            some: props.some ?? 3
+        },
         get class () {
             return props.count;
         },
@@ -113,7 +116,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(inlinedQrl(({ count , stuff =
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,wBAAW,SAKf;;;;;;;IACb,QAAQ,GAAG,OAFX,aAFA,QAAO;IAKP,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAPV;QAQI,QAAQ,GAAG,OARf,OAQuB,YALvB,aAFA,QAAO;;;;;IASP,qBACI,KAAC;QAAI,IAAI,QAVb,QAAO;YAUc;yBAXrB;;QAWoC,GAAG,IAAI;;;YAAtB,KAAK;;;AAE9B,mCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,wBAAW,SAKf;;;;;;;IACb,QAAQ,GAAG,OAFX,aAFA,QAAO;IAKP,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAPV;QAQI,QAAQ,GAAG,OARf,OAQuB,YALvB,aAFA,QAAO;;;;;IASP,qBACI,KAAC;QAAI,IAAI,QAVb,QAAO;QAUc,QAAQ;YAAE,IAAI,QAVnC,QAAO;QAU6B;YAAG;yBAXvC;;QAWsD,GAAG,IAAI;;;YAAtB,KAAK;;;AAEhD,mCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

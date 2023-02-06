@@ -3,13 +3,13 @@ import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 
 export default extendConfig(baseConfig, () => {
-  console.log(process.env.CF_PAGES_BRANCH);
   return {
     build: {
       ssr: true,
       rollupOptions: {
         input: ['src/entry.cloudflare-pages.tsx', '@qwik-city-plan'],
       },
+      minify: false,
     },
     plugins: [
       cloudflarePagesAdaptor({

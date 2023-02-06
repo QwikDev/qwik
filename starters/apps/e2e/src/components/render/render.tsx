@@ -27,6 +27,7 @@ export const Render = component$(() => {
       <Issue1475 />
       <Issue2563 />
       <Issue2608 />
+      <Issue2800 />
       <CounterToggle />
 
       <PropsDestructuring
@@ -228,5 +229,34 @@ export const Issue2608 = component$(() => {
         <input id="issue-2608-input" type="text" />
       </div>
     </>
+  );
+});
+
+export const Issue2800 = component$(() => {
+  const store = useStore<Record<string, number>>({
+    alpha: 1,
+    bravo: 2,
+    charlie: 3,
+  });
+
+  return (
+    <div>
+      <button
+        id="issue-2800-btn"
+        onClick$={() => {
+          const keys = Object.keys(store);
+          store[`extra${keys.length}`] = 1;
+        }}
+      >
+        Add key
+      </button>
+      <ul id="issue-2800-result">
+        {Object.entries(store).map(([key, value]) => (
+          <li>
+            {key} - {value}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 });

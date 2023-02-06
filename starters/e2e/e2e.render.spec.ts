@@ -143,4 +143,22 @@ test.describe('render', () => {
     await page.waitForTimeout(100);
     await expect(input).toHaveValue('some text');
   });
+
+  test('issue2800', async ({ page }) => {
+    const button = await page.locator('#issue-2800-btn');
+    const results = await page.locator('#issue-2800-result > li');
+
+    await expect(results).toHaveText(['alpha - 1', 'bravo - 2', 'charlie - 3']);
+
+    await button.click();
+    await expect(results).toHaveText(['alpha - 1', 'bravo - 2', 'charlie - 3', 'extra3 - 1']);
+    await button.click();
+    await expect(results).toHaveText([
+      'alpha - 1',
+      'bravo - 2',
+      'charlie - 3',
+      'extra3 - 1',
+      'extra4 - 1',
+    ]);
+  });
 });

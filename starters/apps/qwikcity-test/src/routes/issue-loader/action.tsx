@@ -13,7 +13,7 @@ export default component$(() => {
   return (
     <div>
       <Form action={other}>
-        <button>Submit</button>
+        <button id="submit">Submit</button>
       </Form>
     </div>
   );

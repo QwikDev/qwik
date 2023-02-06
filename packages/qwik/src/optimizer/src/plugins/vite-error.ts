@@ -87,13 +87,14 @@ export function getErrorMarkdown(err: RollupError): string {
 export const VITE_ERROR_OVERLAY_STYLES = `
 vite-error-overlay {
   --color-bright: rgba(255, 255, 255, 0.7);
+  --color-yellow: rgba(255,246,85,0.7);
   --qwik-dark-blue: #006ce9;
   --qwik-light-blue: #18b6f6;
   --qwik-light-purple: #ac7ff4;
   --qwik-dark-purple: #713fc2;
-  --yellow: var(--qwik-light-blue);
-  --purple: var(--color-bright);
-  --red: var(--qwik-light-blue);
+  --yellow: #fff;                   /* override vite yellow */
+  --purple: var(--color-bright);    /* override vite purple */
+  --red: var(--qwik-light-blue);    /* override vite red */
 
   --vertical-box-spacing: 15px;
   --box-padding: 20px;
@@ -135,6 +136,7 @@ vite-error-overlay::part(frame),
 vite-error-overlay::part(stack),
 vite-error-overlay::part(tip) {
   background: var(--box-background);
+  border-left: 5px solid transparent;
   border-radius: var(--box-border-radius);
   margin: var(--box-margin);
   min-height: 50px;
@@ -143,11 +145,12 @@ vite-error-overlay::part(tip) {
 }
 
 vite-error-overlay::part(file) {
-  color: var(--qwik-light-blue);
+  color: var(--color-bright);
 }
 
 vite-error-overlay::part(frame) {
-  color: var(--color-bright);
+  border-left-color: var(--color-yellow);
+  color: var(--color-yellow);
 }
 
 vite-error-overlay::part(tip) {

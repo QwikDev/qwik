@@ -30,7 +30,6 @@ export function formatError(e: any) {
           err.id = normalizePath(err.loc.file);
           try {
             const code = fs.readFileSync(err.loc.file, 'utf-8');
-            console.log(err.loc);
             err.frame = generateCodeFrame(code, err.loc);
           } catch {
             // nothing

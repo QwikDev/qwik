@@ -169,6 +169,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         } else {
           next(e);
         }
+        return;
       }
 
       // simple test if it's a static file

@@ -13,8 +13,8 @@ export const RouterOutlet = component$(() => {
       cmp = jsx(value[i].default, {
         children: cmp,
         [_IMMUTABLE]: {
-          children: false
-        }
+          children: false,
+        },
       });
     }
     return cmp;

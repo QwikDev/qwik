@@ -6,9 +6,7 @@ export default component$(() => {
   return (
     <div>
       <h1>Profile</h1>
-      <p id="issue2829-context">
-        context: {someContext.value}
-      </p>
+      <p id="issue2829-context">context: {someContext.value}</p>
     </div>
   );
 });

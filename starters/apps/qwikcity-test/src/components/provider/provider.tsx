@@ -1,10 +1,4 @@
-import {
-  component$,
-  createContext,
-  Slot,
-  useContextProvider,
-  useStore,
-} from '@builder.io/qwik';
+import { component$, createContext, Slot, useContextProvider, useStore } from '@builder.io/qwik';
 
 export type SomeContextType = {
   value: string;

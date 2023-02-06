@@ -165,3 +165,5 @@ export interface StaticGenerateResult {
   errors: number;
   staticPaths: string[];
 }
+
+export declare const Deno: any;

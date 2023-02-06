@@ -7,7 +7,7 @@ export async function generateNotFoundPages(
   opts: StaticGenerateOptions,
   routes: RouteData[]
 ) {
-  if (opts.emit404Pages !== false) {
+  if (opts.emit404Pages) {
     const basePathname = opts.basePathname || '/';
     const rootNotFoundPathname = basePathname + '404.html';
 

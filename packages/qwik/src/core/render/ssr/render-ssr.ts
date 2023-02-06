@@ -592,8 +592,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       } else {
         if (flags & IS_TABLE && !tableContent[tagName]) {
           throw createJSXError(
-            `The <table> element requires that its direct children to be '<tbody>' or '<thead>', instead, '<${tagName}>' was rendered.\n
-This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#table-content-2`,
+            `The <table> element requires that its direct children to be '<tbody>' or '<thead>', instead, '<${tagName}>' was rendered.`,
             node
           );
         }

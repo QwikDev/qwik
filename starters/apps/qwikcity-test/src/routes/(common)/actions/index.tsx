@@ -4,16 +4,10 @@ import { SecretForm } from './login';
 
 export const dateLoader = loader$(() => new Date());
 
-export const otherAction = action$((_, { fail }) => {
-  if (Math.random() > 0.5) {
-    return {
-      secret: 'this is the secret',
-      date: new Date(),
-    };
-  }
-  return fail(400, {
-    message: 'Invalid username or code',
-  });
+export const otherAction = action$(() => {
+  return {
+    success: true,
+  };
 });
 
 export default component$(() => {
@@ -29,9 +23,12 @@ export default component$(() => {
       <section>
         <div id="other-store">
           {String(other.isRunning)}:{other.formData?.get('username')}:{other.formData?.get('code')}:
-          {JSON.stringify(other.value)}:{JSON.stringify(other.value)}
+          {JSON.stringify(other.value)}
         </div>
-        <button onClick$={() => other.run()}>Run other</button>
+        <button id="other-button" onClick$={() => other.run()}>
+          Run other
+        </button>
+        {other.value?.success && <div id="other-success">Success</div>}
       </section>
     </div>
   );

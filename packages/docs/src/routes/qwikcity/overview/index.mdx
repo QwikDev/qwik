@@ -19,9 +19,9 @@ Learning Qwik and Qwik City are not two different things, Qwik City is built on 
 
 > Qwik¹ City²
 >
-> [**Qwik¹**](../../docs/overview/index.mdx): Core framework, stable, primitives, component model.
+> [**Qwik¹**](/docs/overview/index.mdx): Core framework, stable, primitives, component model.
 >
-> [**City²**](../directory-layout/index.mdx): Opinionated file-based router, build fast.
+> [**City²**](/qwikcity/routing/index.mdx): Opinionated file-based router, build fast.
 
 We call it a **meta-framework** for Qwik. Qwik City is to Qwik, what [Next.js](https://nextjs.org/) is to React, what [Nuxt](https://nuxtjs.org/) is to Vue, or [SvelteKit](https://kit.svelte.dev/) to Svelte.
 
@@ -45,16 +45,3 @@ By default, Qwik City sites are fast because they:
 - Are resumable
 - Download minimal JavaScript
 - Come with [Partytown](https://partytown.builder.io)
-
-To follow along with this guide, run the Qwik CLI in your command line:
-
-```shell
-npm create qwik@latest
-```
-
-When prompted, choose a name for your project and Basic as your starter.
-
-> Note: the `start` script attempts to launch the site in system’s browser,
-> which in headless environments (e.g., within a container)
-> could cause the command to fail with an error.
-> Edit `package.json` to remove the `--open` flag.

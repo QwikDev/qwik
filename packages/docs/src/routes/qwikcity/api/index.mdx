@@ -20,7 +20,7 @@ menu: ContentMenu | undefined;
 
 The `headings` array includes data about a markdown file's `<h1>` to `<h6>` [html heading elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements).
 
-Menus are contextual data declared with `menu.md` files. See [menus file definition](/qwikcity/content/menu/index.mdx) for more information on the file format and location.
+Menus are contextual data declared with `menu.md` files. See [menus file definition](/qwikcity/advanced/menu/index.mdx) for more information on the file format and location.
 
 ## `useDocumentHead()`
 
@@ -52,7 +52,7 @@ The return value of [`useLocation()`](/qwikcity/api/index.mdx#uselocation) is si
 
 ### Path Route Parameters
 
-`useLocation()` encodes the [Route Parameters](/qwikcity/routing/route-parameters/index.mdx) as params.
+`useLocation()` encodes the [Route Parameters](/qwikcity/routing/index.mdx) as params.
 
 Assume you have:
 
@@ -91,7 +91,7 @@ The above code would generate:
 
 The `useNavigate()` function allows to programatically navigate to the next page without involving a user click or causing a full-page reload. This is the API used by the `<Link>` component internally to support SPA navigation.
 
-While it looks a lot like `useLocation`, this API is **write-only**, you should never read the value, instead you can use it to write where you wanna navigate first.
+This function returns a `goto()` function that can be used to navigate to a new path.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -105,10 +105,19 @@ export default component$(() => {
       <button
         onClick$={() => {
           // this assigment causes SPA navigation
-          nav.path = '/dashboard';
+          nav('/dashboard');
         }}
       >
         Go to dashboard
+      </button>
+
+      <button
+        onClick$={() => {
+          // call without arguments to refresh the current page
+          nav();
+        }}
+      >
+        Refresh page
       </button>
     </>
   );
@@ -117,45 +126,32 @@ export default component$(() => {
 
 This component will have a button then when clicked, QwikCity will navigate to `/dashboard` without causing a page reload.
 
-## `useEndpoint()`
+> Notice that for SEO, and accesibility it's better to use the `<Link>` component instead of `useNavigate()` programatically to navigate to a new page after some user interaction.
 
-This is the main API to retrieve data from the server! It works like a RPC, calling the server and returning a [resource](/docs/components/resource/index.mdx), that will resolve to the actual data.
+## `loader$()`
 
-Please look at the [Data fetching](../data/overview/index.mdx) docs for more details, specifically the [retrieve](../data/retrieve/index.mdx) section.
+The `loader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. QwikCity will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
 
 ```tsx
-import { Resource, component$, useStore } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
-import { useEndpoint } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler<number> = async ({ params }) => {
-  // This code runs in the Server
-  const PI = computePIinServer();
-  return PI;
-};
-
+export const getTime = loader$(() => {
+  return { time: new Date() }
+});
 export default component$(() => {
-  const piResource = useEndpoint<number>();
+  const signal = getTime.use(); // Signal<{time: Date}>
+  console.log('Date': signal.value.time);
   return (
-    <Resource
-      value={piResource}
-      onResolved={(pi) => (
-        <>
-          <p>Number PI is: {pi}</p>
-        </>
-      )}
-    />
-  );
+    <div>{signal.value.time.toISOString()}</div>
+  )
 });
 ```
 
-Resulting in the following HTML:
+Please refer to the [Server Loaders](/qwikcity/loader/index.mdx) section for more information.
 
-```html
-<p>Number PI is: 3.14159</p>
-```
+## `action$()`
 
-> `useEndpoint()` abstracts away the need to run logic in the server and retrieve this data in the client, in a way that is SSR friendly!
+The `action$()` function is used to declare a new Server Action in the given page/endpoint or layout. QwikCity will execute only the invoked action after some user interaction (such as a button click or a form submit).
+
+Please refer to the [Server Actions](/qwikcity/action/index.mdx) section for more information.
 
 ## `<QwikCityProvider>`
 
@@ -187,6 +183,37 @@ export default function Root() {
 This component is the responsable for rendering the matched route at a given moment, it used internally the [`useContent()`](/qwikcity/api/index.mdx#usecontent) and to render the current page, as well as all the nested layouts.
 
 This component is usually located as a child of `<body>`, in most of the starters you will find it in the `src/root.tsx` file:
+
+## `<Form>`
+
+The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](/qwikcity/action/index.mdx).
+
+Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled, in addition, it enhances the native `<form>` element by captuing the `submit` event and preventing the default behaviour, so it will behave like a SPA (Single Page Navigation) instead of a full page reload.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form, action$ } from '@builder.io/qwik-city';
+
+// this action will be called when the form is submitted
+export const loginAction = action$((data, { cookies, redirect }) => {
+  if (validate(data.username, data.password)) {
+    cookies.set('auth', getAuthToken(data.username));
+    throw redirect(302, '/dashboard');
+  }
+});
+
+export default component$(() => {
+  const login = loginAction.use();
+
+  return (
+    <Form action={login}>
+      <input type="text" name="username" />
+      <input type="password" name="password" />
+      <button type="submit">Login</button>
+    </Form>
+  );
+});
+```
 
 ## `<Link>`
 

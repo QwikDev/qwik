@@ -13,6 +13,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
+
   const { VFile } = await import('vfile');
 
   const userMdxOpts = ctx.opts.mdx;

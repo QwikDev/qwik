@@ -1,0 +1,194 @@
+---
+title: Qwik City Prefetching
+contributors:
+  - ulic75
+  - mhevery
+  - adamdbradley
+---
+
+# Prefetching
+
+The goal of Qwik's prefetching is not to prefetch the entire application, but to have already prefetched and cached what's possible at that time. When the Qwik optimizer breaks apart the application, it's able to understand possible user interactions. And from this, it's just as important that it's able to understand what's not possible from user interaction.
+
+For example, an entire rendered application may only be able to click a button, but that also means the entire app could never re-render. Since Qwik is able to understand what's possible, and _not_ possible, it's able to best collect which bundles to prefetch.
+
+- [Prefetching and caching with a Service Worker](#ssg-vs-server-side-rendered-ssr)
+- [Caching Request and Response Pairs](#caching-request-and-response-pairs)
+- [Parallelizing Network Requests](#parallelizing-network-requests)
+
+### Prefetching Per Page
+
+Each page load will prefetch bundles that could be executed by the user. For example, let's say that the page has a click listener on a button. When the page loads, the very first thing the service worker does is ensure the bundle for that click listener is prefetched and waiting in the [cache](/qwikcity/advanced/prefetching/index.mdx#caching-request-and-response-pairs). When the user clicks the button, and Qwik makes a request to the event listener's bundle, the goal is the bundle is already sitting in the cache ready to execute.
+
+### Prefetching Per Interaction
+
+You can think of the page load as the first user interaction, which prefetches what the next user interaction could be. When a follow-up interaction happens, such as opening a modal, then Qwik will again emit another prefetch event with additional bundles that could be used since the last interaction happened. Prefetching not only happens on page load but continuously happens as users interact with the application.
+
+### Prefetch Event
+
+The recommended prefetching strategy is to use a [service worker](/qwikcity/advanced/prefetching/index.mdx#ssg-vs-server-side-rendered-ssr) to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the [prefetchEvent](../../../docs/advanced/prefetching/index.mdx) implementation, which will dispatch a prefetch event.
+
+The `qprefetch` event can contain various detailed data about what to prefetch, such as:
+
+| Data      | Description                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| `bundles` | An array of JavaScript bundle names to prefetch. A "bundle" is a collection of symbols.                         |
+| `symbols` | An array of symbols to prefetch. The service worker already understands which bundles each symbol is a part of. |
+| `links`   | _Experimental:_ An array of link `hrefs` to prefetch.                                                           |
+
+#### Dispatching a prefetch event
+
+Below is an example of a prefetch event being dispatched. These events are dispatched from Qwik itself and do not require developers to dispatch these events manually. Additionally, the [service worker](/qwikcity/advanced/prefetching/index/mdx#prefetching-and-caching-with-a-service-worker) will automatically add listeners for these events.
+
+```ts
+dispatchEvent(new CustomEvent("qprefetch", { detail: {
+  bundles: [...]
+}}));
+```
+
+## Prefetching and Caching with a Service Worker
+
+Traditionally, a service worker is used to prefetch most, or all, of the bundles an application uses. [Service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) are commonly seen only as a way to make an application work offline.
+
+Qwik City, however, uses service workers quite differently to provide a powerful prefetching and caching strategy. Instead, the goal is not to download the entire application, but rather to use the service worker to dynamically prefetch what's _possible_ to execute. By _not_ prefetching the entire application, this free's up resources to only request the small parts of the app a user _could_ use for what the user has on their screen at that time.
+
+### Background Task
+
+An advantage of using a service worker is that it's also an extension of a [worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API), which runs in a background thread.
+
+> Web Workers makes it possible to run a script operation in a background thread separate from the main execution thread of a web application. The advantage of this is that laborious processing can be performed in a separate thread, allowing the main (usually the UI) thread to run without being blocked/slowed down.
+
+By moving the prefetching and caching logic to a service worker (which is a worker), we're able to essentially run the code in a background task, in order to not interfere with the main UI thread. By not interfering with the main UI we're able to help improve the performance of the Qwik application for users.
+
+### Interactive Prefetching And Caching
+
+Qwik itself should be configured to use the [prefetchEvent](../../../docs/advanced/prefetching/index.mdx) implementation (which is also Qwik's default). When Qwik emits the [qprefetch](#prefetch-event) event, the service worker registration actively forwards the prefetch event data to the installed and active service worker.
+
+The service worker then prefetches and caches the requested bundles on demand. The main thread simply has to emit data of what bundles it may need, while the service worker is only focused on ensuring it has the bundles cached. To do this the service worker pre-populates the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
+
+1. If the browser already has it cached? Great, do nothing!
+2. If the browser hasn't already cached this bundle, then let's kick off the fetch request.
+
+Read more about [Caching Request and Response Pairs](/qwikcity/advanced/prefetching/index.mdx#caching-request-and-response-pairs).
+
+Additionally, the service worker ensures that multiple requests for the same bundle do not happen at the same time. More about this in the [Parallelizing Network Requests](#parallelizing-network-requests) documentation.
+
+### User Service Worker Code
+
+The service worker that is installed is still controlled entirely by the developer. For example, the source file `src/routes/service-worker.ts` becomes `/service-worker.js`, which is the script requested by the browser. Notice how it's place within `src/routes` still follows the same directory based routing pattern.
+
+Below is an example of a default `src/routes/service-worker.ts` source file:
+
+```ts
+import { setupServiceWorker } from '@builder.io/qwik-city/service-worker';
+
+setupServiceWorker();
+
+addEventListener('install', () => self.skipWaiting());
+
+addEventListener('activate', () => self.clients.claim());
+```
+
+The source code for `src/routes/service-worker.ts` can be modified by the developer however they'd like. This includes opting-in, or opting-out, of setting up Qwik City's service worker.
+
+Notice that the `setupServiceWorker()` function is imported from `@builder.io/qwik-city/service-worker` and executed at the top of the source file. If, and where, this function is called can be modified by the developer. For example, the developer may want to handle the fetch requests first, in which case they'd add their own fetch listener above `setupServiceWorker()`. Or if they didn't want to use Qwik City's service worker at all, they would just have to remove `setupServiceWorker()` from the file.
+
+Additionally, the default `src/routes/service-worker.ts` file comes with an [install](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/install_event) and [activate](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/activate_event) event listeners, each added at the bottom of the file. The callbacks provided are the recommended callbacks. However, the developer can modify these callbacks depending on their own app's requirements.
+
+Another important note is that Qwik City's request intercepting is _only_ for Qwik bundles, it does not attempt to handle any requests which are not a part of its build.
+
+So while Qwik City does provide a way to help prefetch and cache bundles, it does not take full control of the app's service worker. This still allows developers to add their service worker logic without conflicting with Qwik.
+
+## Caching Request and Response Pairs
+
+In many traditional frameworks, the preferred strategy is to use `<link>` with a `rel` attribute of `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](#known-issues-with-link) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../docs/advanced/prefetching/index.mdx)).
+
+Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](#known-issues-with-link).
+
+### Cache API
+
+The [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache) is often associated with service workers, as a way to store request and response pairs in order for an application to work offline. In addition to enabling applications to work without connectivity, the same Cache API provides an extremely powerful prefetching and caching mechanism available to Qwik.
+
+Using the installed and activated [service worker](/qwikcity/advanced/prefetching/index.mdx#ssg-vs-server-side-rendered-ssr) to intercept requests, Qwik is able to handle specific requests for _known_ bundles. In contrast to the common way service workers are used, the default does not attempt to handle all requests, but rather, only known bundles generated by Qwik.
+
+An advantage of Qwik's optimizer is it also generates a `q-manifest.json` file. The manifest provides a detailed module graph of not only how bundles are associated, but also which symbols are within each bundle. This same module graph data is provided to the service worker which allows for every network request for known bundles to be handled by the cache.
+
+### Dynamic Imports and Caching
+
+When Qwik requests a module it uses a dynamic `import()`. For example, let's say a user interaction happened, requiring Qwik to execute a dynamic import for `/build/q-abc.js`. The code to do so would look something like this:
+
+```ts
+const module = await import('/build/q-abc.js');
+```
+
+What's important is here that Qwik itself has no knowledge of a prefetching or caching strategy. It's simply making a request for a URL. However, because we've installed a service worker, and the service worker is intercepting requests, it's able to inspect the URL and say, "look, this is a request for `/build/q-abc.js`! This is one of our bundles! Let's first check to see if we already have this in the cache before we do an actual network request."
+
+This is where the power of the service worker and cache API comes in! Qwik first pre-populates the cache for modules the user may soon request within another thread. And better yet, if it's already cached, then there's no need for the browser to do anything.
+
+Other benefits include [Parallelizing Network Requests](#parallelizing-network-requests).
+
+### Known Issues with link
+
+The challenge with the link rel approach is the lack of support on _all_ devices, at least at the time of writing. Additionally, during development, it can be misleading that it works everywhere, while on mobile devices it is not easily visible that link prefetching is working correctly.
+
+> Prefetch is a feature that's supposed to help make our visitor's experiences faster but with the wrong combination of browser and CDN / server it can make experiences slower!
+>
+> \- <cite><a href="https://andydavies.me/blog/2020/07/08/rel-equals-prefetch-and-the-importance-of-effective-http-slash-2-prioritisation/">Rel=prefetch and the Importance of Effective HTTP/2 Prioritisation</a></cite>
+
+#### link rel="modulepreload"
+
+- Even though it's in the HTML spec, that doesn't mean your end-users are preloading your app correctly. [Can I Use: modulepreload](https://caniuse.com/link-rel-modulepreload)
+- Not supported by [Safari](https://bugs.webkit.org/show_bug.cgi?id=180574). This means that for iPhone and iPad users (those who may benefit the most from prefetching), modules would not get prefetched.
+- Not supported by [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1425310).
+
+#### Duplicate Requests
+
+It may be possible to fire off duplicate requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time or a very long time, we don't know), the user interacts with the app, which then decides to request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
+
+The service worker approach can [avoid this](#parallelizing-network-requests) by identifying a request that is already in flight, waiting on the first request for `module-a.js` to finish, and then cloning it for the second request. Meaning only one network request will happen, even though numerous modules and prefetches may call for the same request/response.
+
+## Parallelizing Network Requests
+
+In the [Caching Request and Response Pairs](/qwikcity/advanced/prefetching/index.mdx#caching-request-and-response-pairs) docs we explained the powerful combination of the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) and [Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker) APIs. However, we can take it even one step further by ensuring duplicate requests are not created for the same bundle, and we can prevent network waterfalls.
+
+### Avoiding Duplicate Requests
+
+For example, let's say an end-user currently has a slow 3G connection. When they first request the landing page, as fast as this slow network allows, the device downloads the HTML and renders the content (an area where Qwik really shines). On this slow connection, it'd be a shame if they'd have to also download a few more hundred kilobytes just to [make their app work and become interactive](https://www.builder.io/blog/hydration-is-pure-overhead).
+
+However, because the app was built with Qwik, the end-user doesn't need to download the entire application for it to become interactive. Instead, the end-user already downloaded the SSR rendered HTML app, and any interactive parts, such as an "Add to cart" button, can be prefetched immediately. Note that we're only prefetching the actual listener code, and _not_ the entire stack of the component tree render functions.
+
+In this extremely common real-world example of a device with a slow connection, the device immediately starts to prefetch for the possible interactions that are visible by the end-user. However, due to their slow connection, even though we started to prefetch as soon as possible in a [background thread](#ssg-vs-server-side-rendered-ssr), the prefetch request itself could still be in flight.
+
+For demo purposes, let's say the prefetching for this bundle takes two seconds. However, after one second of viewing the page, the user clicks on the button. In a traditional framework, there's a good chance that absolutely nothing would be happening! If the framework hasn't finished downloading, the app hasn't hydrated, the app hasn't re-rendered, and the event listener hasn't been added to the button yet. Sadly, the user's interaction would just be lost on a framework using hydration.
+
+However, with Qwik's prefetching and caching, if the user clicked the button, and we already started a request one second ago, and it has one second left until it's fully received, then the end-user only has to wait for one second. Remember, they're on a slow 3G connection for this demo. Luckily the user already received the full rendered landing page, so they're already looking at a completed page. Next, they're only prefetching the bits of the app they could interact with, and their slow connection is dedicated to just those bundle(s). This is in contrast to their slow connection downloading all of the apps, just to execute the one listener.
+
+Qwik is able to intercept requests for known bundles, and if a prefetch is already in flight, and then a user requests the same bundle, it'll ensure that the second request is able to re-use the initial one, which may already be done downloading. Doing any of this with the [link](/qwikcity/advanced/prefetching/index.mdx#caching-request-and-response-pairs#known-issues-with-link) also shows why Qwik preferred to not make it the default, but instead use the [Caching API](/qwikcity/advanced/prefetching/index.mdx#caching-request-and-response-pairs).
+
+### Reducing Network Waterfalls
+
+A network waterfall is when numerous requests happen one after another, like steps downstairs, rather than in parallel. A waterfall of network requests will usually hurt performance because it increases the time until all modules are downloaded, rather than each module starting to download at the same time.
+
+Below is an example with three modules: A, B and C. Module A imports B, and B imports C. The HTML document is what starts the waterfall by first requesting Module A.
+
+```ts
+import './b.js';
+console.log('Module A');
+```
+
+```ts
+import './c.js';
+console.log('Module B');
+```
+
+```ts
+console.log('Module C');
+```
+
+```html
+<script type="module" src="./a.js"></script>
+```
+
+In this example, when Module `A` is first requested, the browser has no idea that it should also start requesting Module `B` and `C`. It doesn't even know it needs to start requesting Module `B`, until AFTER Module `A` has finished downloading. It's a common problem in that the browser doesn't know ahead of time what it should start to request, until after each module has finished downloading.
+
+However, because our service worker contains a module graph generated from the manifest, we do know all of the modules which _will_ be requested next. So when either user interaction or a prefetch for a bundle happens, the browser initiates the request for all of the bundles that _will_ be requested. This allows us to drastically reduce the time it takes to request all bundles.

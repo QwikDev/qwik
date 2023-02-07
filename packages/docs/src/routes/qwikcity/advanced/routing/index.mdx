@@ -1,0 +1,201 @@
+# Advanced Routing
+
+## Non-200 Response
+
+At times it is necessary to respond with HTTP status codes other than 200. In such cases, response handler is the place to determine what status code should be returned.
+
+Assume this file layout.
+
+```
+src/
+└── routes/
+    └── product/
+        └── [skuId]/
+            └── index.tsx     # https://example.com/product/1234
+```
+
+## 404 - Not Found
+
+Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is in the request handler by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
+
+```tsx
+// File: src/routes/product/[skuId]/index.tsx
+import { component$ } from '@builder.io/qwik';
+
+type EndpointData = ProductData | null;
+
+interface ProductData {
+  skuId: string;
+  price: number;
+  description: string;
+}
+export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
+  const product = await loadProductFromDatabase(params.skuId);
+
+  if (!product) {
+    // Product data not found
+    // but the data is still given to the renderer to decide what to do
+    response.status = 404;
+    return null;
+  } else {
+    // ...
+  }
+};
+
+export default component$(() => {
+  const resource = useEndpoint<typeof onGet>(); //equivalent to useEndpoint<EndpointData>
+
+  if (resource.state == 'resolved' && !resource.resolved) {
+    // Early return for 404
+    return <div>404: Product not found!!!</div>;
+  }
+
+  // Normal rendering
+  return (
+    <Resource
+      value={resource}
+      onPending={() => <div>Loading...</div>}
+      onRejected={() => <div>Error</div>}
+      onResolved={() => (
+        <>
+          <h1>Product: {product.productId}</h1>
+          <p>Price: {product.price}</p>
+          <p>{product.description}</p>
+        </>
+      )}
+    />
+  );
+});
+```
+
+## Grouped Layouts
+
+Common purpose routes are often placed into directories so they can share layouts, and so related source files are logically grouped next to each other. However, it may be desirable that the directory, which was used to group similar files and share layouts, is excluded from the public-facing URL. This is where "grouped" layouts come in (also referred to as a "pathless" layout route).
+
+By surrounding any directory name with parentheses, such as `(name)`, then the directory name itself will not be included in the URL pathname.
+
+For example, let's say an app placed all _account_ routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within the `src/routes/(account)/` directory. However, the URL paths exclude `(account)/`.
+
+```
+src/
+└── routes/
+    └── (account)/             # Notice the parentheses
+        ├── layout.tsx         # Shared account layout
+        └── profile/
+            └── index.tsx      # https://example.com/profile
+        └── settings/
+            └── index.tsx      # https://example.com/settings
+```
+
+## Named Layout
+
+At times related routes need to have drastically different layouts from their siblings. It is possible to define multiple layouts for different sibling routes. A single default layout and any number of named layouts. The child route can then request a specific named-layout.
+
+Qwik City defines the convention that layouts are within `src/routes` and the filename starts with `layout`. That's why the default layout is named `layout.tsx`. A named layout also starts with `layout` followed by a dash `-` and a unique name, such as `layout-narrow.tsx`.
+
+```
+src/
+└── routes/
+    ├── contact/
+    │   └── index@narrow.tsx      # https://example.com/contact (Layout: layout-narrow.tsx)
+    ├── layout.tsx                # Default layout
+    ├── layout-narrow.tsx         # Default named layout
+    └── index.tsx                 # https://example.com/ (Layout: layout.tsx)
+```
+
+- `https://example.com/`
+  ```
+  ┌──────────────────────────────────────────────────┐
+  │       src/routes/layout.tsx                      │
+  │  ┌────────────────────────────────────────────┐  │
+  │  │    src/routes/index.tsx                    │  │
+  │  │                                            │  │
+  │  └────────────────────────────────────────────┘  │
+  │                                                  │
+  └──────────────────────────────────────────────────┘
+  ```
+- `https://example.com/contact`
+  ```
+  ┌──────────────────────────────────────────────────┐
+  │       src/routes/layout-narrow.tsx               │
+  │  ┌────────────────────────────────────────────┐  │
+  │  │    src/routes/contact/index@narrow.tsx     │  │
+  │  │                                            │  │
+  │  └────────────────────────────────────────────┘  │
+  │                                                  │
+  └──────────────────────────────────────────────────┘
+  ```
+
+## Nested Layout
+
+Most times it is desirable to nest layouts into each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
+
+```
+src/
+└── routes/
+    ├── layout.tsx           # Parent layout
+    └── about/
+        ├── layout.tsx       # Child layout
+        └── index.tsx        # https://example.com/about
+```
+
+In the above example, there are two layouts that apply themselves around the `/about` page component.
+
+1. `src/routes/layout.tsx`
+2. `src/routes/about/layout.tsx`
+
+In this case, the layouts will nest each other with the page within each of them.
+
+```
+┌────────────────────────────────────────────────┐
+│       src/routes/layout.tsx                    │
+│  ┌──────────────────────────────────────────┐  │
+│  │    src/routes/about/layout.tsx           │  │
+│  │  ┌────────────────────────────────────┐  │  │
+│  │  │ src/routes/about/index.tsx         │  │  │
+│  │  │                                    │  │  │
+│  │  └────────────────────────────────────┘  │  │
+│  │                                          │  │
+│  └──────────────────────────────────────────┘  │
+│                                                │
+└────────────────────────────────────────────────┘
+```
+
+```tsx
+// File: src/routes/layout.tsx
+export default component$(() => {
+  return (
+    <main>
+      <Slot /> {/* <== Child layout/route inserted here */}
+    </main>
+  );
+});
+```
+
+```tsx
+// File: src/routes/about/layout.tsx
+export default component$(() => {
+  return (
+    <section>
+      <Slot /> {/* <== Child layout/route inserted here */}
+    </section>
+  );
+});
+```
+
+```tsx
+// File: src/routes/about/index.tsx
+export default component$(() => {
+  return <h1>About</h1>;
+});
+```
+
+The above example would render the html:
+
+```html
+<main>
+  <section>
+    <h1>About</h1>
+  </section>
+</main>
+```

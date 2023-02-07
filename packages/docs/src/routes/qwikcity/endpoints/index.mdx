@@ -1,0 +1,152 @@
+---
+title: Qwik City - Page
+contributors:
+  - adamdbradley
+  - manucorporat
+  - Oyemade
+  - mhevery
+---
+
+# Endpoints
+
+Endpoints are `index.ts` files in the `src/routes` directory that does not export a `default` component. Instead, it exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
+
+The main use case for endpoints is to create a RESTful API for your application, or some HTTP handler that is rendered by Qwik.
+
+```ts
+// Called with every HTTP request (regardless of method)
+export const onRequest: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is POST
+export const onPost: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is PUT
+export const onPut: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is PATCH
+export const onPatch: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is DELETE
+export const onDelete: RequestHandler = async (ev) => { ... }
+```
+
+These functions are executed according to the [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) used for this route.
+
+## Raw Response Control
+
+Endpoints are routes that will not render any Qwik page, instead they allow you to have full control over the HTTP response. From changing the status code to adding headers, and even sending a raw response body.
+
+### Changing the status code
+
+```tsx
+export const onGet: RequestHandler = async ({ status }) => {
+  throw status(404);
+};
+```
+
+### Adding response headers
+
+```tsx
+export const onPost: RequestHandler = async ({ headers }) => {
+  headers.set('X-My-Custom-Header': 'Hello World');
+};
+```
+
+### Setting a cookie
+
+```tsx
+export const onGet: RequestHandler = async ({ cookies }) => {
+  cookies.set('my-cookie', 'Hello World');
+};
+```
+
+### Changing the cache-control header
+
+```tsx
+export const onGet: RequestHandler = async ({ cacheControl }) => {
+  cacheControl({
+    maxAge: 31536e3,
+    public: true,
+    immutable: true,
+    staleWhileRevalidate: 31536e3,
+  });
+};
+```
+
+### Sending a JSON body
+
+```tsx
+export const onGet: RequestHandler = async ({ json }) => {
+  json(200, { hello: 'world' });
+};
+```
+
+### Sending a Text body
+
+```tsx
+export const onGet: RequestHandler = async ({ text }) => {
+  text(200, 'Hello World');
+};
+```
+
+### Sending a RAW response
+
+```tsx
+export const onGet: RequestHandler = async ({ send }) => {
+  const response = new Response('Hello World', {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/plain',
+    },
+  });
+  send(response);
+};
+```
+
+### Create a reverse proxy using a fetch
+
+```tsx
+export const onGet: RequestHandler = async ({ send }) => {
+  const response = await fetch('https://example.com');
+  send(response);
+};
+```
+
+### Create a stream response manually
+
+```tsx
+export const onGet: RequestHandler = async ({ getWritableStream }) => {
+  const writableStream = getWritableStream();
+  const writer = writableStream.getWriter();
+  writer.write('Hello World');
+  await wait(100);
+  writer.write('After 100ms');
+  await wait(100);
+  writer.write('After 200ms');
+  await wait(100);
+  writer.write('END');
+  writer.close();
+};
+```
+
+### JSON GET Endpoint
+
+```ts
+// File: src/routes/product/[skuId]/index.ts
+import type { RequestHandler } from '@builder.io/qwik-city';
+
+interface ProductData {
+  skuId: string;
+  price: number;
+  description: string;
+}
+
+export const onGet: RequestHandler = async ({ json, params }) => {
+  // put your DB access here, we are hard coding a response for simplicity.
+  json(200, {
+    skuId: params.skuId,
+    price: 123.45,
+    description: `Description for ${params.skuId}`,
+  });
+};
+```

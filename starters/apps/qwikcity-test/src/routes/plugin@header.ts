@@ -12,7 +12,7 @@ export const rootLoader = loader$(() => {
 export const onRequest: RequestHandler = ({ headers, url, json }) => {
   headers.set('X-Qwik', 'handled');
   if (url.pathname === '/qwikcity-test/virtual/auth') {
-    throw json(200, {
+    json(200, {
       message: 'handled',
     });
   }

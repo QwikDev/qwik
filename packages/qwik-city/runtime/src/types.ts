@@ -457,7 +457,7 @@ export interface Loader<RETURN> {
 
   /**
    * Returns the `Signal` containing the data returned by the `loader$` function.
-   * Like all `use-` functions and methods, it can only be invokated within a `component$()`.
+   * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
    */
   use(): LoaderSignal<RETURN>;
 }
@@ -477,7 +477,7 @@ export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends bo
 
   /**
    * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
-   * Like all `use-` functions and methods, it can only be invokated within a `component$()`.
+   * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
    */
   use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }

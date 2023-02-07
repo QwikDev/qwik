@@ -94,13 +94,13 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 ## Does Qwik download JS when the user interacts?
 
-Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [prefetching](../../qwikcity/prefetching/overview/index.mdx) only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already downloaded.
+Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [prefetching](/qwikcity/advanced/prefetching/index.mdx) only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already downloaded.
 
 ## If Qwik prefetches JS, then what's the difference?
 
 Prefetching is not the same as parsing and executing JS, and Qwik does not execute JS until the user interacts.
 
-In addition, [prefetching](../../qwikcity/prefetching/overview/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
+In addition, [prefetching](/qwikcity/advanced/prefetching/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
 
 For example, the "buy now" button is more important than the "add to cart" button, so Qwik will prefetch the "buy now" button first, and then the "add to cart" button.
 
@@ -108,7 +108,7 @@ Qwik does not need to prefetch everything to start running, while other framewor
 
 ## Are Qwik apps slow on slow networks?
 
-Not at all! Thanks to [prefetching](../../qwikcity/prefetching/overview/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
+Not at all! Thanks to [prefetching](/qwikcity/advanced/prefetching/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
 
 ## Does Qwik generate too many small files?
 
@@ -133,7 +133,7 @@ Yes! [Qwik City](../../qwikcity/overview/index.mdx) includes a directory-based r
 
 You can easily deploy a Qwik App in any [serverless environment thanks to our adaptors](../../integrations/deployments/overview/index.mdx), we also support a [vanilla-node adaptor](../../integrations/deployments/node/index.mdx) for Nodejs-based servers, such as Express.
 
-You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG (Static Site Generation) adaptor](../../qwikcity/static-site-generation/overview/index.mdx).
+You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG (Static Site Generation) adaptor](/qwikcity/guides/static-site-generation/index.mdx).
 
 ## SPA (Single Page Application) or MPA (Multiple Page Application) is faster
 
@@ -152,7 +152,7 @@ MPA vs SPA is no longer an architectural decision taken at beginning of the proj
 
 ## Can Qwik do Static Site Generation (SSG)?
 
-Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](../../qwikcity/static-site-generation/overview/index.mdx).
+Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](/qwikcity/guides/static-site-generation/index.mdx).
 
 ## But... with other frameworks I can also do MPA and SPA
 

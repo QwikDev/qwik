@@ -7,10 +7,15 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
-
   return {
     plugins: [
-      qwikCity(),
+      qwikCity({
+        // mdx: {
+        //   remarkPlugins: [
+        //     remarkCodeSnippets()
+        //   ],
+        // }
+      }),
       qwikVite({
         entryStrategy: {
           type: 'smart',

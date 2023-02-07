@@ -1,15 +1,15 @@
 import {
   component$,
+  getLocale,
   JSXNode,
   noSerialize,
   Slot,
   useContextProvider,
-  useEnvData,
-  getLocale,
+  useServerData,
   useStore,
   useSignal,
-  $,
   useTask$,
+  $,
   _weakSerialize,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
@@ -72,7 +72,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     throw new Error(`Missing Qwik City Env Data`);
   }
 
-  const urlEnv = useEnvData<string>('url');
+  const urlEnv = useServerData<string>('url');
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
@@ -154,14 +154,13 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
           (navPath as any).untrackedValue = routeLocation.pathname;
           return;
         }
-        const newHref = pageData?.href;
-        if (newHref) {
-          const newURL = new URL(newHref, url.href);
-          if (newURL.pathname !== url.pathname) {
-            url = newURL;
-            loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
-          }
+        const newHref = pageData.href;
+        const newURL = new URL(newHref, url.href);
+        if (newURL.pathname !== url.pathname) {
+          url = newURL;
+          loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
         }
+
         // ensure correct trailing slash
         if (url.pathname.endsWith('/')) {
           if (!trailingSlash) {
@@ -172,6 +171,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         }
         loadedRoute = await loadRoutePromise;
       }
+
       if (loadedRoute) {
         const [params, mods, menu] = loadedRoute;
         const pathname = url.pathname;
@@ -187,7 +187,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         (navPath as any).untrackedValue = pathname;
 
         // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
+        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
 
         // Update content
         content.headings = pageModule.headings;

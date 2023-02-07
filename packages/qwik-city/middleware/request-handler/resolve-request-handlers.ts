@@ -131,7 +131,6 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
-
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
@@ -183,11 +182,14 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
 
     if (serverLoaders.length > 0) {
       await Promise.all(
-        serverLoaders.map(async (loader) => {
+        serverLoaders.map((loader) => {
           const loaderId = loader.__qrl.getHash();
-          const loaderResolved = await loader.__qrl(requestEv as any);
-          loaders[loaderId] =
-            typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
+          return (loaders[loaderId] = Promise.resolve()
+            .then(() => loader.__qrl(requestEv as any))
+            .then((loaderResolved) => {
+              return (loaders[loaderId] =
+                typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved);
+            }));
         })
       );
     }
@@ -360,7 +362,8 @@ export async function renderQData(requestEv: RequestEvent) {
     const writer = requestEv.getWritableStream().getWriter();
 
     // write just the page json data to the response body
-    writer.write(encoder.encode(_serializeData(qData)));
+    const data = await _serializeData(qData);
+    writer.write(encoder.encode(data));
     requestEv.sharedMap.set('qData', qData);
 
     writer.close();

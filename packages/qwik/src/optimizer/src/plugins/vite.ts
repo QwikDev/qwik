@@ -533,12 +533,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
-      return async () => {
+      const plugin = async () => {
         const opts = qwikPlugin.getOptions();
         const sys = qwikPlugin.getSys();
         const path = qwikPlugin.getPath();
         await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
       };
+      const isNEW = (globalThis as any).__qwikCityNew === true;
+      if (isNEW) {
+        return plugin;
+      } else {
+        plugin();
+      }
     },
 
     configurePreviewServer(server) {

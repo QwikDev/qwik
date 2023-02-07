@@ -1,7 +1,6 @@
 import { withLocale } from '@builder.io/qwik';
 import type {
   ContentModule,
-  GetData,
   RouteLocation,
   EndpointResponse,
   ResolvedDocumentHead,
@@ -10,17 +9,32 @@ import type {
   ClientPageData,
   LoaderInternal,
   Editable,
+  GetSyncData,
+  ActionInternal,
 } from './types';
 
 export const resolveHead = (
-  endpoint: EndpointResponse | ClientPageData | undefined | null,
+  endpoint: EndpointResponse | ClientPageData,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string
 ) => {
   const head = createDocumentHead();
-  const getData = ((loader: LoaderInternal) =>
-    endpoint?.loaders[loader.__qrl.getHash()]) as any as GetData;
+  const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
+    const id = loaderOrAction.__qrl.getHash();
+    if (loaderOrAction.__brand === 'server_loader') {
+      if (!(id in endpoint.loaders)) {
+        throw new Error(
+          'You can not get the returned data of a loader that has not been executed for this request.'
+        );
+      }
+    }
+    const data = endpoint.loaders[id];
+    if (data instanceof Promise) {
+      throw new Error('Loaders returning a function can not be refered to in the head function.');
+    }
+    return data;
+  }) as any as GetSyncData;
   const headProps: DocumentHeadProps = {
     head,
     withLocale: (fn) => withLocale(locale, fn),

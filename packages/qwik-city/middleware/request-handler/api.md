@@ -53,7 +53,7 @@ export interface CookieValue {
 // @alpha (undocumented)
 export interface GetData {
     // (undocumented)
-    <T>(loader: Loader<T>): Promise<T>;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
     <T>(loader: Action<T>): Promise<T | undefined>;
 }
@@ -64,16 +64,16 @@ export function getErrorHtml(status: number, e: any): string;
 // @alpha (undocumented)
 export interface GetSyncData {
     // (undocumented)
-    <T>(loader: Loader<T>): T;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
     // (undocumented)
-    <T>(loader: Action<T>): T | undefined;
+    <T>(action: Action<T>): Awaited<T> | undefined;
 }
 
 // @alpha (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
 
 // @alpha (undocumented)
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
     readonly cacheControl: (cacheControl: CacheControl) => void;
     // (undocumented)
@@ -86,7 +86,13 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
 }
 
 // @alpha (undocumented)
-export interface RequestEventCommon<PLATFORM = unknown> {
+export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+    // (undocumented)
+    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+}
+
+// @alpha (undocumented)
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -99,7 +105,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
     readonly json: (statusCode: number, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
     readonly method: string;
-    readonly params: Record<string, string>;
+    readonly params: Readonly<Record<string, string>>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;
@@ -117,15 +123,13 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 }
 
 // @alpha (undocumented)
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
-    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     getData: GetData;
 }
 
 // @alpha (undocumented)
-export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts
 //

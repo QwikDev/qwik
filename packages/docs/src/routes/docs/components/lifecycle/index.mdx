@@ -151,7 +151,7 @@ export const Cmp = component$(() => {
 - **Times:** at least once
 - **Platform:** browser only
 
-For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagarly, that means, without user interaction, but the eagerness can be configured!
+For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagerly\, that means, without user interaction, but the eagerness can be configured!
 
 ```tsx
 useClientEffect$(() => console.log('runs in the browser'), {

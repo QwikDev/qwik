@@ -8,7 +8,7 @@ contributors:
 
 Loaders allow data to flow from the server to the Qwik Components. For this reason, Qwik Loaders should be always understood in the context of **loading data in the server that is later consumed by a Qwik Component**, if you want to create a RESTful endpoint, please check the [endpoints](/qwikcity/endpoints/index.mdx) guide instead.
 
-The behave like RPC server-side functions that can be invokated by Qwik Components during rendering.
+They behave like RPC server-side functions that can be invoked by Qwik Components during rendering.
 
 ## Declaring a loader
 
@@ -32,7 +32,7 @@ export const getProductData = loader$(() => {
 
 ## Using a loader
 
-Loaders are consumed using the `.use()` method from within a Qwik Component. The `use()` return a `Signal` which value is the data returned by the loader function.
+Loaders are consumed using the `.use()` method from within a Qwik Component. The `use()` returns a `Signal` with the data returned by the loader function as it’s value.
 
 Loaders can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
@@ -58,7 +58,7 @@ export default component$(() => {
 });
 ```
 
-> The `.use()` retrives the loader data, but it does not execute the loader multiple times. Loaders execute eagarly at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+> The `.use()` retrieves the loader data, but it does not execute the loader multiple times. Loaders execute eagerly\ at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
 ## Multiple loaders
 
@@ -139,9 +139,9 @@ export default component$(() => {
 
 ## Loader context
 
-Just like request handlers such as `onRequest` and `onGet`, loaders have access to the `RequestEvent` object, that includes information about the current request.
+Just like request handlers such as `onRequest` and `onGet`, loaders have access to the `RequestEvent` object which includes information about the current request.
 
-This information comes handly when the loaders needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
+This information comes in handly when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
 
 ```tsx
 export const getServerTime = loader$((ev) => {
@@ -161,4 +161,4 @@ export const getServerTime = loader$((ev) => {
 
 A loader should be used when you need to provide some server-side data to your Qwik Components. For example, if you need to fetch some data from a database or an API, you can use a loader to do that.
 
-You should not use a loader to create a REST API, for that you better use a [Endpoint](/qwik-city/), which allows you to have tight control over the response headers and body.
+You should not use a loader to create a REST API, for that you’d be better off using an [Endpoint](/qwik-city/), which allows you to have tight control over the response headers and body.

@@ -3,7 +3,7 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestHandler } from '@builder.io/qwik-city';
+
 import {
   mergeHeadersCookies,
   requestHandler,
@@ -84,9 +84,4 @@ export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 /**
  * @alpha
  */
-export interface EventPluginContext extends Context {}
-
-/**
- * @alpha
- */
-export type RequestHandlerNetlify = RequestHandler<Omit<Context, 'next' | 'cookies'>>;
+export interface PlatformNetlify extends Omit<Context, 'next' | 'cookies'> {}

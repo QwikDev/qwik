@@ -16,9 +16,9 @@ export default component$(() => {
     list: PANELS,
   }));
 
+  const loc = useLocation();
   const store = useStore<ExamplesStore>(() => {
-    const { params } = useLocation();
-    const app = getExampleApp(params.id);
+    const app = getExampleApp(loc.params.id);
     const initStore: ExamplesStore = {
       appId: app ? app.id : '',
       buildId: 0,

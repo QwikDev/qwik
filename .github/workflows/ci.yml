@@ -52,6 +52,8 @@ jobs:
               - 'tsconfig.json'
               - 'pnpm-lock.yaml'
               - 'Cargo.yaml'
+              - '.github/workflows/*.yaml'
+              - 'scripts/*.ts'
       - name: Print fullbuild output
         run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 

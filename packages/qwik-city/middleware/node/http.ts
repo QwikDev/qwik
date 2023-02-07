@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Http2ServerRequest } from 'node:http2';
 import type {
   ServerRequestMode,
   ServerRequestEvent,
@@ -7,6 +8,9 @@ import type {
 const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER = 'host' } = process.env;
 
 function getOrigin(req: IncomingMessage) {
+  if (req instanceof Http2ServerRequest) {
+    return `${req.scheme}://${req.authority}`;
+  }
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||

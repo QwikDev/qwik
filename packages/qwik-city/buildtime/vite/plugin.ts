@@ -30,8 +30,8 @@ import {
   RESOLVED_NOT_FOUND_PATHS_ID,
   RESOLVED_STATIC_PATHS_ID,
   STATIC_PATHS_ID,
-} from '../../adaptors/shared/vite';
-import { postBuild } from '../../adaptors/shared/vite/post-build';
+} from '../../adapters/shared/vite';
+import { postBuild } from '../../adapters/shared/vite/post-build';
 
 /**
  * @alpha

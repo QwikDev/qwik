@@ -8,7 +8,7 @@ let integrations: IntegrationData[] | null = null;
 export async function loadIntegrations() {
   if (!integrations) {
     const loadingIntegrations: IntegrationData[] = [];
-    const integrationTypes: IntegrationType[] = ['app', 'feature', 'adaptor'];
+    const integrationTypes: IntegrationType[] = ['app', 'feature', 'adapter'];
 
     const integrationsDir = join(__dirname, 'starters');
     const integrationsDirNames = await fs.promises.readdir(integrationsDir);

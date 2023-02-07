@@ -129,6 +129,16 @@ In order to disable content escaping use '<script dangerouslySetInnerHTML={conte
         }
       });
     }
+    if (isString(type)) {
+      if ('className' in (props as any)) {
+        (props as any)['class'] = (props as any)['className'];
+        delete (props as any)['className'];
+        if (qDev && !warnClassname) {
+          warnClassname = true;
+          logWarn('jsx: `className` is deprecated. Use `class` instead.');
+        }
+      }
+    }
   }
 }
 

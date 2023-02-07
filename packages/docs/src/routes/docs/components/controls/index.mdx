@@ -1,0 +1,97 @@
+---
+title: Controls
+contributors:
+  - jdgamble555
+  - keuller
+  - mhevery 
+---
+
+# Control Flow
+
+Qwik provides a set of controls components, inspired to SolidJS' control flow components. In order to provide a concise and simple JSX code, Qwik comes with `If`, `For`, `Switch` and `Case` components.
+
+Qwik's controls API is made of 4 components, importable from `@builder/qwik`:
+
+- `For` has `each` attribute (an array or `undefined`) and `fallback?` attribute in case the array is empty or null.
+- `If` has an optional `else?` attribute
+- `Switch` has an optional `fallback?` attribute in case of any match.
+- `Case` must be inside `Switch` tag and has `where` attribute with logical statement
+
+### For Example
+```tsx
+import { For, useSignal } from '@builder/qwik';
+
+export const Card = component$<{ data: Person}>((props) => {
+  return (
+    <div class="card">
+      <h1>{props.data.name}</h1>
+    </div>
+  )
+});
+
+export default component$(() => {
+  const people = useSignal<Person[]>(data);
+  return (
+    <div class="card-list">
+      <For each={people.value} fallback={() => (<div>No people found</div>)}>
+        {(item, key) => <Card key={key} data={item} />}
+      </For>
+    </div>
+  );
+});
+```
+
+### If Example
+
+```tsx
+import { If, useSignal } from '@builder/qwik';
+
+export default component$(() => {
+  const toogle = useSignal<boolean>(false);
+
+  return(
+    <If condition={toogle.value} else={() => <div>No message!</div>}>
+      {() => <div>The message goes here!</div>}
+    </If>
+
+    <br/>
+
+    <button class="btn" type="button" onClick$={() => toogle.value = !toogle.value}>
+      {toogle.value ? 'Hide Message': 'Show Message'}
+    </button>
+  );
+});
+```
+
+### Switch Example
+
+```tsx
+import { Switch, Case, useSignal } from '@builder/qwik';
+
+export default component$(() => {
+  const option = useSignal<string>('1');
+
+  return(
+    <div>
+      <label>Which transport you want?</label>
+      <select onChange$={(ev) => option.value = ev.target.value} value={option.value}>
+        <option value="1">Car</option>
+        <option value="2">Airplane</option>
+        <option value="3">Train</option>
+      </select>
+      
+      <Switch fallback={<div>Invalid option</div>}>
+        <Case where={option.value === '1'}>
+          {() => <p>Option: 1 - Car</p>}
+        </Case>
+        <Case where={option.value === '2'}>
+          {() => <p>Option: 2 - Airplane</p>}
+        </Case>
+        <Case where={option.value === '3'}>
+          {() => <p>Option: 3 - Train</p>}
+        </Case>
+      </Switch>
+    </div>    
+  );
+});
+```

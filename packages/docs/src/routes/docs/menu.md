@@ -15,6 +15,7 @@
 - [Events](components/events/index.mdx)
 - [Lifecycle](components/lifecycle/index.mdx)
 - [Context](components/context/index.mdx)
+- [Controls](components/controls/index.mdx)
 - [Resource](components/resource/index.mdx)
 - [Slots](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)

@@ -93,6 +93,13 @@ export const Parent = component$(() => {
 
 > note: it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
 
+### `dangerouslySetInnerHTML`
+Qwik offers an attribute on HTML Elements called `dangerouslySetInnerHTML` as a replacement for calling `innerHTML` on the DOM. Due to cross-site-scripting (XSS) possibilities when rendering not trustworthy content, you must use this attribute to remind yourself that this operation might be dangerous.
+
+```tsx
+<div dangerouslySetInnerHTML={content}></div>
+```
+
 ## `render()` is async
 
 The above examples demonstrate why the rendering process must be asynchronous. It is important that the rendering pipeline can lazy load child components. Lazy loading is an asynchronous operation; therefore, rendering needs to be asynchronous. In practice, this means that the `render()` function returns a promise.

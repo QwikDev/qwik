@@ -136,8 +136,8 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': 0.17.5-dev20230207203251
-      '@builder.io/qwik-city': 0.1.0-beta14
+      '@builder.io/qwik': BuilderIO/qwik-build#eefc0f5b371770aeb1b64d690a9971e75a1d9f87
+      '@builder.io/qwik-city': BuilderIO/qwik-city-build#65431f514ff8ad2eabb0ce295874e3620a477c68
       '@builder.io/sdk-qwik': 0.1.6
       '@docsearch/css': 3.3.3
       '@types/node-fetch': 2.6.2
@@ -164,9 +164,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': 0.17.5-dev20230207203251_undici@5.18.0
-      '@builder.io/qwik-city': 0.1.0-beta14_sdd7nzxiiawhp5yazfhbiqm3ki
-      '@builder.io/sdk-qwik': 0.1.6_sdd7nzxiiawhp5yazfhbiqm3ki
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/eefc0f5b371770aeb1b64d690a9971e75a1d9f87_undici@5.18.0
+      '@builder.io/qwik-city': github.com/BuilderIO/qwik-city-build/65431f514ff8ad2eabb0ce295874e3620a477c68_@builder.io+qwik@0.17.5
+      '@builder.io/sdk-qwik': 0.1.6_@builder.io+qwik@0.17.5
       '@docsearch/css': 3.3.3
       '@types/node-fetch': 2.6.2
       '@types/prismjs': 1.26.0
@@ -435,37 +435,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-city/0.1.0-beta14_sdd7nzxiiawhp5yazfhbiqm3ki:
-    resolution: {integrity: sha512-ymz6r4ap0+KzBG4fKoxRURtbYEAkT4fLwDnrfRs7teWkpGAlvZmBUdZ3f/sYe/zga29vXU3F1BV+6elQg/rCaA==}
-    peerDependencies:
-      '@builder.io/qwik': '>=0.17.0'
-    dependencies:
-      '@builder.io/qwik': 0.17.5-dev20230207203251_undici@5.18.0
-      '@mdx-js/mdx': 2.2.1
-      '@types/mdx': 2.0.3
-      source-map: 0.7.4
-      vfile: 5.3.6
-      zod: 3.20.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@builder.io/qwik/0.17.5-dev20230207203251_undici@5.18.0:
-    resolution: {integrity: sha512-iPrIfrG4/nDZLAcAZxLjOZSRMowU1dOUd3S8PBTvHlC7X2FfMo9K8X1YULG2O8cgbPFF4TuoUAmexXGCBJ24ig==}
-    engines: {node: '>=16.8.0'}
-    hasBin: true
-    peerDependencies:
-      undici: ^5.14.0
-    dependencies:
-      undici: 5.18.0
-    dev: true
-
-  /@builder.io/sdk-qwik/0.1.6_sdd7nzxiiawhp5yazfhbiqm3ki:
+  /@builder.io/sdk-qwik/0.1.6_@builder.io+qwik@0.17.5:
     resolution: {integrity: sha512-epSQ5TggMAGzgnonK440gNwe2M2xRfMJf+i4JQZUu781ikhav+BI1eHl6WOMVakl07NkWSRCi53IQ01rBSTkSA==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.17.5-dev20230207203251_undici@5.18.0
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/eefc0f5b371770aeb1b64d690a9971e75a1d9f87_undici@5.18.0
     dev: true
 
   /@cloudflare/kv-asset-handler/0.2.0:
@@ -7458,3 +7433,34 @@ packages:
 
   /zwitch/2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+  github.com/BuilderIO/qwik-build/eefc0f5b371770aeb1b64d690a9971e75a1d9f87_undici@5.18.0:
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-build/tar.gz/eefc0f5b371770aeb1b64d690a9971e75a1d9f87}
+    id: github.com/BuilderIO/qwik-build/eefc0f5b371770aeb1b64d690a9971e75a1d9f87
+    name: '@builder.io/qwik'
+    version: 0.17.5
+    engines: {node: '>=16.8.0'}
+    hasBin: true
+    peerDependencies:
+      undici: ^5.14.0
+    dependencies:
+      undici: 5.18.0
+    dev: true
+
+  github.com/BuilderIO/qwik-city-build/65431f514ff8ad2eabb0ce295874e3620a477c68_@builder.io+qwik@0.17.5:
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-city-build/tar.gz/65431f514ff8ad2eabb0ce295874e3620a477c68}
+    id: github.com/BuilderIO/qwik-city-build/65431f514ff8ad2eabb0ce295874e3620a477c68
+    name: '@builder.io/qwik-city'
+    version: 0.1.0-beta14
+    peerDependencies:
+      '@builder.io/qwik': '>=0.17.0'
+    dependencies:
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/eefc0f5b371770aeb1b64d690a9971e75a1d9f87_undici@5.18.0
+      '@mdx-js/mdx': 2.2.1
+      '@types/mdx': 2.0.3
+      source-map: 0.7.4
+      vfile: 5.3.6
+      zod: 3.20.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true

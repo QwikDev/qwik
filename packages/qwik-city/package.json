@@ -12,37 +12,69 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
     },
+    "./adapters/azure-swa/vite": {
+      "import": "./lib/adapters/azure-swa/vite/index.mjs",
+      "require": "./lib/adapters/azure-swa/vite/index.cjs"
+    },
+    "./adapters/cloudflare-pages/vite": {
+      "import": "./lib/adapters/cloudflare-pages/vite/index.mjs",
+      "require": "./lib/adapters/cloudflare-pages/vite/index.cjs"
+    },
+    "./adapters/cloud-run/vite": {
+      "import": "./lib/adapters/cloud-run/vite/index.mjs",
+      "require": "./lib/adapters/cloud-run/vite/index.cjs"
+    },
+    "./adapters/express/vite": {
+      "import": "./lib/adapters/express/vite/index.mjs",
+      "require": "./lib/adapters/express/vite/index.cjs"
+    },
+    "./adapters/netlify-edge/vite": {
+      "import": "./lib/adapters/netlify-edge/vite/index.mjs",
+      "require": "./lib/adapters/netlify-edge/vite/index.cjs"
+    },
+    "./adapters/shared/vite": {
+      "import": "./lib/adapters/shared/vite/index.mjs",
+      "require": "./lib/adapters/shared/vite/index.cjs"
+    },
+    "./adapters/static/vite": {
+      "import": "./lib/adapters/static/vite/index.mjs",
+      "require": "./lib/adapters/static/vite/index.cjs"
+    },
+    "./adapters/vercel-edge/vite": {
+      "import": "./lib/adapters/vercel-edge/vite/index.mjs",
+      "require": "./lib/adapters/vercel-edge/vite/index.cjs"
+    },
     "./adaptors/azure-swa/vite": {
-      "import": "./lib/adaptors/azure-swa/vite/index.mjs",
-      "require": "./lib/adaptors/azure-swa/vite/index.cjs"
+      "import": "./lib/adapters/azure-swa/vite/index.mjs",
+      "require": "./lib/adapters/azure-swa/vite/index.cjs"
     },
     "./adaptors/cloudflare-pages/vite": {
-      "import": "./lib/adaptors/cloudflare-pages/vite/index.mjs",
-      "require": "./lib/adaptors/cloudflare-pages/vite/index.cjs"
+      "import": "./lib/adapters/cloudflare-pages/vite/index.mjs",
+      "require": "./lib/adapters/cloudflare-pages/vite/index.cjs"
     },
     "./adaptors/cloud-run/vite": {
-      "import": "./lib/adaptors/cloud-run/vite/index.mjs",
-      "require": "./lib/adaptors/cloud-run/vite/index.cjs"
+      "import": "./lib/adapters/cloud-run/vite/index.mjs",
+      "require": "./lib/adapters/cloud-run/vite/index.cjs"
     },
     "./adaptors/express/vite": {
-      "import": "./lib/adaptors/express/vite/index.mjs",
-      "require": "./lib/adaptors/express/vite/index.cjs"
+      "import": "./lib/adapters/express/vite/index.mjs",
+      "require": "./lib/adapters/express/vite/index.cjs"
     },
     "./adaptors/netlify-edge/vite": {
-      "import": "./lib/adaptors/netlify-edge/vite/index.mjs",
-      "require": "./lib/adaptors/netlify-edge/vite/index.cjs"
+      "import": "./lib/adapters/netlify-edge/vite/index.mjs",
+      "require": "./lib/adapters/netlify-edge/vite/index.cjs"
     },
     "./adaptors/shared/vite": {
-      "import": "./lib/adaptors/shared/vite/index.mjs",
-      "require": "./lib/adaptors/shared/vite/index.cjs"
+      "import": "./lib/adapters/shared/vite/index.mjs",
+      "require": "./lib/adapters/shared/vite/index.cjs"
     },
     "./adaptors/static/vite": {
-      "import": "./lib/adaptors/static/vite/index.mjs",
-      "require": "./lib/adaptors/static/vite/index.cjs"
+      "import": "./lib/adapters/static/vite/index.mjs",
+      "require": "./lib/adapters/static/vite/index.cjs"
     },
     "./adaptors/vercel-edge/vite": {
-      "import": "./lib/adaptors/vercel-edge/vite/index.mjs",
-      "require": "./lib/adaptors/vercel-edge/vite/index.cjs"
+      "import": "./lib/adapters/vercel-edge/vite/index.mjs",
+      "require": "./lib/adapters/vercel-edge/vite/index.cjs"
     },
     "./middleware/azure-swa": {
       "import": "./lib/middleware/azure-swa/index.mjs"

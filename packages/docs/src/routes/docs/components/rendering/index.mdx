@@ -102,3 +102,22 @@ Most current-generation frameworks have a synchronous `render()` process. Synchr
 ## DOM update buffering
 
 The asynchronous nature of `render()` means that users may see an intermediate rendering of the UI as components download. Seeing an intermediate state is undesirable; therefore, Qwik will buffer all DOM updates and only flush the DOM operations once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps.
+
+## `<RenderOnce>`
+
+Qwik provides a Component called `<RenderOnce>`. It prevents re-renderings of nested children. Values which are connected to a state will always get updated.
+
+```
+import { component$, RenderOnce } from '@builder.io/qwik';
+
+export const App = component$(() => {
+  return (
+    <div>
+      <RenderOnce>
+        <span>i'll be just rendered once</span>
+      </RenderOnce>
+      <span>i can re-render if i need to</span>
+    </div>
+  );
+});
+```

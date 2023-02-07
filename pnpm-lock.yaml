@@ -155,18 +155,9 @@ importers:
       tailwindcss: 3.2.4
       tsm: 2.3.0
       typescript: 4.9.5
-<<<<<<< HEAD
-      undici: 5.16.0
-      unified: 10.1.2
-      unist-util-visit: 4.1.1
-      uvu: 0.5.6
-      vfile: 5.3.6
-      vite: 4.0.4
-=======
       undici: 5.18.0
       uvu: 0.5.6
       vite: 4.1.1
->>>>>>> main
       wrangler: ^2.9.0
     devDependencies:
       '@algolia/autocomplete-core': 1.7.4
@@ -192,18 +183,9 @@ importers:
       tailwindcss: 3.2.4_postcss@8.4.21
       tsm: 2.3.0
       typescript: 4.9.5
-<<<<<<< HEAD
-      undici: 5.16.0
-      unified: 10.1.2
-      unist-util-visit: 4.1.1
-      uvu: 0.5.6
-      vfile: 5.3.6
-      vite: 4.0.4
-=======
       undici: 5.18.0
       uvu: 0.5.6
       vite: 4.1.1
->>>>>>> main
       wrangler: 2.9.0
 
   packages/eslint-plugin-qwik:
@@ -6942,14 +6924,6 @@ packages:
     dependencies:
       '@types/unist': 2.0.6
       unist-util-is: 5.2.0
-
-  /unist-util-visit/4.1.1:
-    resolution: {integrity: sha512-n9KN3WV9k4h1DxYR1LoajgN93wpEi/7ZplVe02IoB4gH5ctI1AaF2670BLHQYbwj+pY83gFtyeySFiyMHJklrg==}
-    dependencies:
-      '@types/unist': 2.0.6
-      unist-util-is: 5.2.0
-      unist-util-visit-parents: 5.1.3
-    dev: true
 
   /unist-util-visit/4.1.2:
     resolution: {integrity: sha512-MSd8OUGISqHdVvfY9TPhyK2VdUrPgxkUtWSuMHF6XAAFuL4LokseigBnZtPnJMu+FbynTkFNnFlyjxpVKujMRg==}

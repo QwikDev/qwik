@@ -1,0 +1,105 @@
+---
+title: QwikCity - Project Structure
+contributors:
+  - manucorporat
+---
+
+# Project Structure
+
+## Create a new project
+
+To follow along with this guide, run the Qwik CLI in your command line:
+
+```shell
+npm create qwik@latest
+```
+
+> Notice that you can also use the package manager of your choice, `yarn create qwik` or `pnpm create qwik`.
+
+When prompted, choose a name for your project and Basic as your starter.
+
+> Note: the `start` script attempts to launch the site in system’s browser,
+> which in headless environments (e.g., within a container)
+> could cause the command to fail with an error.
+> Edit `package.json` to remove the `--open` flag.
+
+The command will ask you a few questions and create a new project for you.
+
+## Project structure
+
+A typical Qwik project looks like this:
+
+```bash
+qwik-app-dfdf
+├── README.md
+├── package.json
+├── public
+│   └── favicon.svg
+├── src
+│   ├── components
+│   │   └── router-head
+│   │       └── router-head.tsx
+│   ├── entry.ssr.tsx
+│   ├── global.css
+│   ├── root.tsx
+│   └── routes
+│       ├── flower
+│       │   ├── flower.css
+│       │   └── index.tsx
+│       ├── index.tsx
+│       ├── layout.tsx
+│       └── service-worker.ts
+├── tsconfig.json
+└── vite.config.ts
+```
+
+## Project files
+
+### `src/routes/`
+
+The `src/routes/` directory is an special directory for QwikCity, since it's the directory where QwikCity will look for your pages. Folders and files inside this directory have an special meaning and they will be mapped to the URL of your app.
+
+- `src/routes/index.tsx` is the homepage of your app.
+- `src/routes/layout.tsx` is the root layout of your app, all pages will be rendered inside this layout.
+
+> Refer to the [Routing](/qwikcity/aanew/routing/overview) section for more information.
+
+### `src/components/`
+
+The `src/components/` directory is a directory by convention. All Qwik starters will have this directory, but you can change it if you want. This directory is where you should put your components, ie, reusable pieces of code that can be used in multiple places. They are not routes or layouts, but they can be used inside them.
+
+For example, a `Button` component should be inside `src/components/button/button.tsx`.
+
+### `public/`
+
+The `public/` directory contains static assets such as images, fonts, and icons. When you build your app, these files will be copied to the `dist/` directory and served at the root.
+
+Refer to [Vite configuration for more information](https://vitejs.dev/guide/build.html#public-base-path).
+
+### `src/entry.ssr.tsx`
+
+SSR entry point, in all cases the application is render outside the browser, this
+entry point will be the common one.
+
+- Server (express, cloudflare...)
+- npm run start
+- npm run preview
+- npm run build
+
+### `src/root.tsx`
+
+The `src/root.tsx` file is the entry point for the application tree. It's the first component that will be rendered. It's the root of the tree.
+
+### `src/global.css`
+
+The `src/global.css` file is a global CSS file, if you need to define some CSS that is used in multiple places in your app, you can define it here.
+
+The root component (`src/root.tsx`) imports this file by default.
+
+### `tsconfig.json`
+
+The `tsconfig.json` file contains the TypeScript compiler configuration. It's standard for any TypeScript project.
+
+### `vite.config.ts`
+
+Qwik uses Vite to build the project. The `vite.config.ts` file contains the Vite configuration. It's standard for any Vite project. Please refer to the [Vite documentation](https://vitejs.dev/config/) for more information.

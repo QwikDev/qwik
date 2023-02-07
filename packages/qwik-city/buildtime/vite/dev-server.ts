@@ -58,7 +58,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      //const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
       const url = getUrl(req);
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {

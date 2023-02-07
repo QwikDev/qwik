@@ -102,6 +102,16 @@ export default component$(() => {
         </tr>
         <tr>
           <td>
+            <code>npm run qwik add vercel-edge</code>
+          </td>
+          <td>
+            <a href="https://vercel.com/docs/concepts/get-started" target="_blank">
+              Vercel Edge Functions
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
             <code>npm run qwik add static</code>
           </td>
           <td>

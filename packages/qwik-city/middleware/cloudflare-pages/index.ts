@@ -2,7 +2,6 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestHandler } from '@builder.io/qwik-city';
 import {
   mergeHeadersCookies,
   requestHandler,
@@ -119,7 +118,9 @@ export interface EventPluginContext {
 /**
  * @alpha
  */
-export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;
+export interface PlatformCloudflarePages {
+  env: EventPluginContext['env'];
+}
 
 const resolved = Promise.resolve();
 

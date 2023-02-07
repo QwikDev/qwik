@@ -42,7 +42,7 @@ export interface IntegrationData {
   viteConfig?: ViteConfigUpdates;
 }
 
-export type IntegrationType = 'app' | 'feature' | 'adaptor';
+export type IntegrationType = 'app' | 'feature' | 'adapter';
 
 export interface Feature {
   id: string;

@@ -126,7 +126,7 @@
     "server.d.ts",
     "server-modules.d.ts",
     "server/package.json",
-    "starters/adaptors",
+    "starters/adapters",
     "starters/features",
     "testing/index.cjs",
     "testing/index.mjs",

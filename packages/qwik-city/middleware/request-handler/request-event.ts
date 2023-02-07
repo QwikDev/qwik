@@ -26,7 +26,7 @@ export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
-  requestHandlers: RequestHandler<unknown>[],
+  requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
   basePathname = '/',
   resolved: (response: any) => void

@@ -4,7 +4,6 @@
 
 ```ts
 
-import type { RequestHandler } from '@builder.io/qwik-city';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @alpha (undocumented)
@@ -23,13 +22,14 @@ export interface EventPluginContext {
 }
 
 // @alpha (undocumented)
-export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
+export interface PlatformCloudflarePages {
+    // (undocumented)
+    env: EventPluginContext['env'];
 }
 
 // @alpha (undocumented)
-export type RequestHandlerCloudflarePages = RequestHandler<{
-    env: EventPluginContext['env'];
-}>;
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
+}
 
 // (No @packageDocumentation comment for this package)
 

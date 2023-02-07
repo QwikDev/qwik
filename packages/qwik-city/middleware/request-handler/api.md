@@ -73,7 +73,7 @@ export interface GetSyncData {
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
 
 // @alpha (undocumented)
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
     readonly cacheControl: (cacheControl: CacheControl) => void;
     // (undocumented)
@@ -86,13 +86,13 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
 }
 
 // @alpha (undocumented)
-export interface RequestEventAction<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
     fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 // @alpha (undocumented)
-export interface RequestEventCommon<PLATFORM = unknown> {
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -123,13 +123,13 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 }
 
 // @alpha (undocumented)
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventAction<PLATFORM> {
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     getData: GetData;
 }
 
 // @alpha (undocumented)
-export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts
 //

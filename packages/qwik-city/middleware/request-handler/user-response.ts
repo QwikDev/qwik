@@ -14,7 +14,7 @@ export interface QwikCityRun<T> {
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
-  requestHandlers: RequestHandler<unknown>[],
+  requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
   basePathname = '/'
 ): QwikCityRun<T> {

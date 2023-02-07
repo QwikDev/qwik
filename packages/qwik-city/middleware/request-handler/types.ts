@@ -49,7 +49,7 @@ export interface ServerRenderOptions extends RenderOptions {
 /**
  * @alpha
  */
-export type RequestHandler<PLATFORM = unknown> = (
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (
   ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
 
@@ -66,7 +66,7 @@ export type RedirectCode = 301 | 302 | 303 | 307 | 308;
 /**
  * @alpha
  */
-export interface RequestEventCommon<PLATFORM = unknown> {
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
   /**
    * HTTP response status code. Sets the status code when called with an
    * argument. Always returns the status code, so calling `status()` without
@@ -263,7 +263,7 @@ export interface CacheControlOptions {
 /**
  * @alpha
  */
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
   readonly exited: boolean;
   readonly cacheControl: (cacheControl: CacheControl) => void;
@@ -277,17 +277,23 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
   readonly next: () => Promise<void>;
 }
 
+declare global {
+  interface QwikCityPlatform {}
+}
+
 /**
  * @alpha
  */
-export interface RequestEventAction<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEventAction<PLATFORM = QwikCityPlatform>
+  extends RequestEventCommon<PLATFORM> {
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 /**
  * @alpha
  */
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventAction<PLATFORM> {
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
+  extends RequestEventAction<PLATFORM> {
   getData: GetData;
 }
 

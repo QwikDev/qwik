@@ -146,6 +146,7 @@ importers:
       autoprefixer: 10.4.13
       fflate: 0.7.4
       gray-matter: 4.0.3
+      mdast: ^3.0.0
       node-fetch: 3.3.0
       postcss: 8.4.21
       prism-themes: 1.9.0
@@ -173,6 +174,7 @@ importers:
       autoprefixer: 10.4.13_postcss@8.4.21
       fflate: 0.7.4
       gray-matter: 4.0.3
+      mdast: 3.0.0
       node-fetch: 3.3.0
       postcss: 8.4.21
       prism-themes: 1.9.0
@@ -4945,6 +4947,11 @@ packages:
 
   /mdast-util-to-string/3.1.0:
     resolution: {integrity: sha512-n4Vypz/DZgwo0iMHLQL49dJzlp7YtAJP+N07MZHpjPf/5XJuHUWstviF4Mn2jEiR/GNmtnRRqnwsXExk3igfFA==}
+
+  /mdast/3.0.0:
+    resolution: {integrity: sha512-xySmf8g4fPKMeC07jXGz971EkLbWAJ83s4US2Tj9lEdnZ142UP5grN73H1Xd3HzrdbU5o9GYYP/y8F9ZSwLE9g==}
+    deprecated: '`mdast` was renamed to `remark`'
+    dev: true
 
   /media-typer/0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}

@@ -1,7 +1,7 @@
 {
 	"Qwik component (simple)": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:component",
+		"prefix": "qcomponent$",
 		"description": "Simple Qwik component",
 		"body": [
 			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}} = component$(() => {",
@@ -11,7 +11,7 @@
 	},
 	"Qwik component (props)": {
 		"scope": "typescriptreact",
-		"prefix": "q:component w/props",
+		"prefix": "qcomponent$ + props",
 		"description": "Qwik component w/ props",
 		"body": [
 			"export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}}Props {",
@@ -30,7 +30,7 @@
 	},
 	"Qwik signal": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useSignal",
+		"prefix": "quseSignal",
 		"description": "useSignal() declaration",
 		"body": [
 			"const ${1:foo} = useSignal($2);",
@@ -39,7 +39,7 @@
 	},
 	"Qwik store": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useStore",
+		"prefix": "quseStore",
 		"description": "useStore() declaration",
 		"body": [
 			"const ${1:state} = useStore({",
@@ -50,7 +50,7 @@
 	},
 	"$ hook": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:$",
+		"prefix": "q$",
 		"description": "$() function hook",
 		"body": [
 			"$(() => {",
@@ -61,7 +61,7 @@
 	},
 	"useClientEffect": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useClientEffect",
+		"prefix": "quseClientEffect",
 		"description": "useClientEffect$() function hook",
 		"body": [
 			"useClientEffect$(({ track }) => {",
@@ -72,7 +72,7 @@
 	},
 	"useTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useTask",
+		"prefix": "quseTask$",
 		"description": "useTask$() function hook",
 		"body": [
 			"useTask$(({ track }) => {",
@@ -84,21 +84,10 @@
 	},
 	"useResource": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useResource",
+		"prefix": "quseResource$",
 		"description": "useResource$() declaration",
 		"body": [
 			"const $1 = useResource$(({ track, cleanup }) => {",
-			"  $0",
-			"});",
-			""
-		]
-	},
-	"useServerMount": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useServerMount",
-		"description": "useServerMount$() function hook",
-		"body": [
-			"useServerMount$(() => {",
 			"  $0",
 			"});",
 			""

@@ -4,10 +4,10 @@ This starter site is configured to deploy to [Vercel Edge Functions](https://ver
 
 ## Installation
 
-The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, and a new entry file will be created, such as:
+The adaptor will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
 
 ```
-└── adaptors/
+└── adapters/
     └── vercel-edge/
         └── vite.config.ts
 └── src/
@@ -24,7 +24,7 @@ To build the application for production, use the `build` command, this command w
 npm run build
 ```
 
-[Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/adaptors/vercel-edge/README.md)
+[Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/adapters/vercel-edge/README.md)
 
 ## Dev deploy
 

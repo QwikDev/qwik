@@ -33,6 +33,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         }
       };
       const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+      const url = req.headers['x-ms-original-url']!;
       const options = {
         method: req.method,
         headers: req.headers,
@@ -42,14 +43,14 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
-        url: new URL(req.url),
+        url: new URL(url),
         platform: context,
         env: {
           get(key) {
             return process.env[key];
           },
         },
-        request: new Request(req.url, options as any),
+        request: new Request(url, options as any),
         getWritableStream: (status, headers, _cookies) => {
           res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));

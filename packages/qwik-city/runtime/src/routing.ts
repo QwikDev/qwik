@@ -101,15 +101,11 @@ export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) =
 
 export const getPathParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
   const params: PathParams = {};
-  let i: number;
-  let param: string;
-
   if (paramNames) {
-    for (i = 0; i < paramNames.length; i++) {
-      param = match ? match[i + 1] : '';
+    for (let i = 0; i < paramNames.length; i++) {
+      const param = match?.[i + 1] ?? '';
       params[paramNames[i]] = param.endsWith('/') ? param.slice(0, -1) : param;
     }
   }
-
   return params;
 };

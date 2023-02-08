@@ -42,6 +42,22 @@ routingTest('matches paths with patterns', () => {
     },
     {
       basenamePath: '/',
+      pattern: '/stuff/[...param]',
+      path: '/stuff/',
+      result: {
+        param: '',
+      },
+    },
+    {
+      basenamePath: '/',
+      pattern: '/stuff/[...param]',
+      path: '/stuff',
+      result: {
+        param: '',
+      },
+    },
+    {
+      basenamePath: '/',
       pattern: '/[...param]',
       path: '/thing/',
       result: {

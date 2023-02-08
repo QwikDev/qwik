@@ -17,18 +17,7 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
 
 export const createError = (message?: string) => {
   const err = new Error(message);
-  if (err.stack) {
-    err.stack = filterStack(err.stack);
-  }
   return err;
-};
-
-export const filterStack = (stack: string, offset: number = 0) => {
-  return stack
-    .split('\n')
-    .slice(offset)
-    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
-    .join('\n');
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {

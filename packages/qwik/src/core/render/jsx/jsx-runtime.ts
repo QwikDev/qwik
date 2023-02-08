@@ -1,7 +1,7 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { filterStack, logError, logWarn } from '../../util/log';
+import { logError, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
@@ -240,6 +240,14 @@ export const createJSXError = (message: string, node: JSXNode) => {
   error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
   ONCE_JSX.add(key);
   return error;
+};
+
+const filterStack = (stack: string, offset: number = 0) => {
+  return stack
+    .split('\n')
+    .slice(offset)
+    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
+    .join('\n');
 };
 
 export { jsx as jsxs };

@@ -13,7 +13,7 @@ import type {
 interface AzureResponse {
   status: number;
   headers: { [key: string]: any };
-  body?: string;
+  body?: string | Uint8Array;
 }
 
 /**
@@ -25,7 +25,6 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       status: 200,
       headers: {},
     });
-    const decoder = new TextDecoder();
     try {
       const getRequestBody = async function* () {
         for await (const chunk of req as any) {
@@ -54,17 +53,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         getWritableStream: (status, headers, _cookies) => {
           res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));
-          const writable = new WritableStream<Uint8Array>({
-            write(chunk) {
-              if (res.body) {
-                res.body += decoder.decode(chunk);
-              } else {
-                res.body = decoder.decode(chunk);
-              }
-            },
-            close() {},
-          });
-          return writable;
+          return new WritableStream(new AzureWritableStreamSink(res));
         },
       };
 
@@ -124,4 +113,24 @@ export interface EventPluginContext extends Context {}
  */
 export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
+}
+
+/**
+ * Aggregates the response to a `Uint8Array` and writes it to the Azure response.
+ */
+class AzureWritableStreamSink implements UnderlyingSink<Uint8Array> {
+  private buffer!: Uint8Array;
+  constructor(private res: AzureResponse) {}
+  start() {
+    this.buffer = new Uint8Array();
+  }
+  write(chunk: Uint8Array) {
+    const newBuffer = new Uint8Array(this.buffer.length + chunk.length);
+    newBuffer.set(this.buffer);
+    newBuffer.set(chunk, this.buffer.length);
+    this.buffer = newBuffer;
+  }
+  close() {
+    this.res.body = this.buffer;
+  }
 }

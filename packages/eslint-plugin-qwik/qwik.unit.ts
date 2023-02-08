@@ -251,9 +251,11 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
     method$: PropFunction<() => void>;
   }
 
-  export const HelloWorld = component$((props: Props) => {
-    return <div onClick$={async () => {
-      await props.method$();
+  export const HelloWorld = component$(({method$}: Props) => {
+    return <div
+     onKeydown$={method$}
+     onClick$={async () => {
+      await method$();
     }}></div>;
   });
       `,

@@ -178,6 +178,10 @@ export const validLexicalScope = createRule({
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
               if (!isTypeQRL(type)) {
+                const symbolName = type.symbol.name;
+                if (symbolName === 'PropFnInterface') {
+                  return;
+                }
                 context.report({
                   messageId: 'unvalidJsxDollar',
                   node: firstArg.expression,

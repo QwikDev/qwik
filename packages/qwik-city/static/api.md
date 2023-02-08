@@ -32,7 +32,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
     maxWorkers?: number;
     origin: string;
     outDir: string;
-    sitemapOutFile?: string;
+    sitemapOutFile?: string | null;
 }
 
 // @alpha (undocumented)

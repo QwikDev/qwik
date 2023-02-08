@@ -7,10 +7,11 @@ import { viteAdapter } from '../../shared/vite';
 export function staticAdapter(opts: StaticGenerateAdapterOptions): any {
   return viteAdapter({
     name: 'static-generate',
+    origin: opts.origin,
     ssg: {
       include: ['/*'],
+      ...opts,
     },
-    ...opts,
   });
 }
 

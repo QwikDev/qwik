@@ -13,8 +13,8 @@ export interface System {
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
-  getRouteFilePath: (staticRoute: StaticRoute) => string;
-  getDataFilePath: (staticRoute: StaticRoute) => string | null;
+  getRouteFilePath: (pathname: string, isHtml: boolean) => string;
+  getDataFilePath: (pathname: string) => string;
   getEnv: (key: string) => string | undefined;
   platform: { [key: string]: any };
 }
@@ -143,10 +143,7 @@ export interface StaticRenderInput extends StaticRoute {
 export interface StaticRoute {
   pathname: string;
   params: Record<string, string> | undefined;
-  staticRouteModule: StaticRouteModule;
 }
-
-export type StaticRouteModule = 'page' | 'endpoint';
 
 export interface WorkerCloseMessage {
   type: 'close';
@@ -159,6 +156,7 @@ export interface StaticWorkerRenderResult {
   ok: boolean;
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
+  contentType: string | null;
 }
 
 /**

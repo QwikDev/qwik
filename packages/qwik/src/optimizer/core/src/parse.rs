@@ -290,8 +290,12 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Replace const values
                     if let Some(is_server) = config.is_server {
-                        let mut const_replacer = ConstReplacerVisitor::new(is_server, &collect);
-                        main_module.visit_mut_with(&mut const_replacer);
+                        if config.mode != EmitMode::Lib {
+                            let is_dev = config.mode == EmitMode::Dev;
+                            let mut const_replacer =
+                                ConstReplacerVisitor::new(is_server, is_dev, &collect);
+                            main_module.visit_mut_with(&mut const_replacer);
+                        }
                     }
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
                         path_data: &path_data,

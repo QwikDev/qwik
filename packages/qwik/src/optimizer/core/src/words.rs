@@ -29,5 +29,6 @@ lazy_static! {
     pub static ref FRAGMENT: JsWord = JsWord::from("Fragment");
     pub static ref IS_SERVER: JsWord = JsWord::from("isServer");
     pub static ref IS_BROWSER: JsWord = JsWord::from("isBrowser");
+    pub static ref IS_DEV: JsWord = JsWord::from("isDev");
     pub static ref COMPONENT: JsWord = JsWord::from("component$");
 }

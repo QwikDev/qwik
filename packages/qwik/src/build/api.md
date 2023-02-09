@@ -8,6 +8,9 @@
 export const isBrowser: boolean;
 
 // @alpha
+export const isDev: boolean;
+
+// @alpha
 export const isServer: boolean;
 
 // (No @packageDocumentation comment for this package)

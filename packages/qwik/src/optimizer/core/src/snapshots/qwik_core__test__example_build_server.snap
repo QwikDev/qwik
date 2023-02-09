@@ -31,14 +31,14 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./s_ckepmxzlub0"), "s_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,oBAAM,0FAehB\"}")
-============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,oBAAM,kEAehB\"}")
+============================= s_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { mongodb } from "mondodb";
-export const App_component_ckEPmXZlub0 = ()=>{
+export const s_ckEPmXZlub0 = ()=>{
     useMount$(()=>{
         console.log('server', mongodb());
     });
@@ -52,15 +52,15 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAM8B,IAAM;IAChC,UAAU,IAAM;QAER,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,KAAI;;YACD,EAAc,GAAE,MAAM,EAAE,GAAG;;YAC3B,OAA4B;;QAChC,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAM8B,IAAM;IAChC,UAAU,IAAM;QAER,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,KAAI;;YACD,EAAc,GAAE,MAAM,EAAE,GAAG;;YAC3B,OAA4B;;QAChC,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "name": "s_ckEPmXZlub0",
   "entry": null,
   "displayName": "App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "s_ckepmxzlub0",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

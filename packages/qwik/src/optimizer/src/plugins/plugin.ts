@@ -646,9 +646,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
     const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
+    const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
+export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 

@@ -5,17 +5,16 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER = 'host' } = process.env;
+const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
 
 function getOrigin(req: IncomingMessage) {
-  if (req instanceof Http2ServerRequest) {
-    return `${req.scheme}://${req.authority}`;
-  }
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
     ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
-  const host = headers[HOST_HEADER];
+  const hostHeader = HOST_HEADER ?? (
+    req instanceof Http2ServerRequest ? ':authority' : 'host');
+  const host = headers[hostHeader];
 
   return `${protocol}://${host}`;
 }

@@ -6,12 +6,10 @@ import type { Signal } from '@builder.io/qwik';
 
 export const clientNavigate = (
   win: ClientHistoryWindow,
-  pathname: string,
+  newUrl: URL,
   routeNavigate: Signal<string>
 ) => {
   const currentUrl = win.location;
-  const newUrl = toUrl(pathname, currentUrl)!;
-
   if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
     // current browser url and route path are different
     // see if we should scroll to the hash after the url update

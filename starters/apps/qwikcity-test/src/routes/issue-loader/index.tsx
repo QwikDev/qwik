@@ -1,6 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 import ActionForm from './action';
+
 export const realDateLoader = loader$(() => {
   return [new Date().toISOString()];
 });

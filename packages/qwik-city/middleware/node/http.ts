@@ -12,8 +12,7 @@ function getOrigin(req: IncomingMessage) {
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
     ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
-  const hostHeader = HOST_HEADER ?? (
-    req instanceof Http2ServerRequest ? ':authority' : 'host');
+  const hostHeader = HOST_HEADER ?? (req instanceof Http2ServerRequest ? ':authority' : 'host');
   const host = headers[hostHeader];
 
   return `${protocol}://${host}`;

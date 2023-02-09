@@ -1,6 +1,11 @@
 {
   "routes": [
     {
+      "route": "*",
+      "methods": ["POST", "PUT", "DELETE"],
+      "rewrite": "/api/render"
+    },
+    {
       "route": "/",
       "rewrite": "/api/render"
     },

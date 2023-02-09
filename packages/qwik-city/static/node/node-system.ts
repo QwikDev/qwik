@@ -43,29 +43,32 @@ export async function createSystem(opts: StaticGenerateOptions) {
   const basePathname = opts.basePathname || '/';
   const basenameLen = basePathname.length;
 
-  const getFsDir = (pathname: string) => {
+  const getRouteFilePath = (pathname: string, isHtml: boolean) => {
     pathname = pathname.slice(basenameLen);
-    if (!pathname.endsWith('/')) {
-      pathname += '/';
-    }
-    return pathname;
-  };
-
-  const getPageFilePath = (pathname: string) => {
-    if (pathname.endsWith('.html')) {
-      pathname = pathname.slice(basenameLen);
+    if (isHtml) {
+      if (!pathname.endsWith('.html')) {
+        if (pathname.endsWith('/')) {
+          pathname += 'index.html';
+        } else {
+          pathname += '/index.html';
+        }
+      }
     } else {
-      pathname = getFsDir(pathname) + 'index.html';
+      if (pathname.endsWith('/')) {
+        pathname = pathname.slice(0, -1);
+      }
     }
     return join(outDir, pathname);
   };
 
   const getDataFilePath = (pathname: string) => {
-    if (!pathname.endsWith('.html')) {
-      pathname = getFsDir(pathname) + 'q-data.json';
-      return join(outDir, pathname);
+    pathname = pathname.slice(basenameLen);
+    if (pathname.endsWith('/')) {
+      pathname += 'q-data.json';
+    } else {
+      pathname += '/q-data.json';
     }
-    return null;
+    return join(outDir, pathname);
   };
 
   const sys: System = {
@@ -77,8 +80,9 @@ export async function createSystem(opts: StaticGenerateOptions) {
     createWriteStream,
     createTimer,
     access,
-    getPageFilePath,
+    getRouteFilePath,
     getDataFilePath,
+    getEnv: (key) => process.env[key],
     platform: {
       static: true,
       node: process.versions.node,

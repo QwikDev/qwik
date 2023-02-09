@@ -1,6 +1,7 @@
 import type {
   StaticGenerateHandlerOptions,
   StaticRoute,
+  StaticStreamWriter,
   StaticWorkerRenderResult,
   System,
 } from './types';
@@ -59,7 +60,7 @@ async function workerRender(
   };
 
   try {
-    let hasRouteWriter = false;
+    let routeWriter: StaticStreamWriter | null = null;
     let closeResolved: (v?: any) => void;
     const closePromise = new Promise((closePromiseResolve) => {
       closeResolved = closePromiseResolve;
@@ -90,28 +91,27 @@ async function workerRender(
         const isHtml = contentType.includes('text/html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
 
-        hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
+        const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
         const writeQDataEnabled = isHtml && opts.emitData !== false;
-
-        // create a write stream for the static file if enabled
-        const routeWriter = hasRouteWriter ? sys.createWriteStream(routeFilePath) : null;
-        if (routeWriter) {
-          routeWriter.on('error', (e) => {
-            console.error(e);
-            hasRouteWriter = false;
-            result.error = {
-              message: e.message,
-              stack: e.stack,
-            };
-            routeWriter.end();
-          });
-        }
 
         const stream = new WritableStream<Uint8Array>({
           async start() {
             if (isHtml && (hasRouteWriter || writeQDataEnabled)) {
               // for html pages or q-data.json, ensure the containing directory is created
               await sys.ensureDir(routeFilePath);
+            }
+
+            if (hasRouteWriter) {
+              // create a write stream for the static file if enabled
+              routeWriter = sys.createWriteStream(routeFilePath);
+              routeWriter.on('error', (e) => {
+                console.error(e);
+                routeWriter = null;
+                result.error = {
+                  message: e.message,
+                  stack: e.stack,
+                };
+              });
             }
           },
           write(chunk) {
@@ -156,7 +156,7 @@ async function workerRender(
                 new Promise<void>((resolve) => {
                   // set the static file path for the result
                   result.filePath = routeFilePath;
-                  routeWriter.end(resolve);
+                  routeWriter!.end(resolve);
                 }).finally(closeResolved)
               );
             }
@@ -174,7 +174,7 @@ async function workerRender(
       .then(async (rsp) => {
         if (rsp != null) {
           const r = await rsp.completion;
-          if (hasRouteWriter) {
+          if (routeWriter) {
             await closePromise;
           }
           return r;

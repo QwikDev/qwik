@@ -147,7 +147,15 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         clientPageData = env!.response;
       } else {
         const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
-        let loadRoutePromise = loadRoute(routes, menus, cacheModules, toPath(url));
+        // ensure correct trailing slash
+        if (url.pathname.endsWith('/')) {
+          if (!trailingSlash) {
+            url.pathname = url.pathname.slice(0, -1);
+          }
+        } else if (trailingSlash) {
+          url.pathname += '/';
+        }
+        let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
         const pageData = (clientPageData = await loadClientData(url.href, true, action));
         if (!pageData) {
           // Reset the path to the current path
@@ -158,16 +166,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         const newURL = new URL(newHref, url.href);
         if (newURL.pathname !== url.pathname) {
           url = newURL;
-          loadRoutePromise = loadRoute(routes, menus, cacheModules, toPath(url));
-        }
-
-        // ensure correct trailing slash
-        if (url.pathname.endsWith('/')) {
-          if (!trailingSlash) {
-            url.pathname = url.pathname.slice(0, -1);
-          }
-        } else if (trailingSlash) {
-          url.pathname += '/';
+          loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
         }
         loadedRoute = await loadRoutePromise;
       }
@@ -231,9 +230,9 @@ export const QwikCity = QwikCityProvider;
 
 /**
  * @alpha
- * @deprecated - The "Html" component has been renamed to "QwikCity".
+ * @deprecated - The "Html" component has been renamed to "QwikCityProvider".
  */
-export const Html = QwikCity;
+export const Html = QwikCityProvider;
 
 /**
  * @alpha

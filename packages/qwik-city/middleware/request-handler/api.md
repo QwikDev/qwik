@@ -55,7 +55,7 @@ export interface GetData {
     // (undocumented)
     <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
-    <T>(loader: Action<T>): Promise<T | undefined>;
+    <T>(action: Action<T>): Promise<T | undefined>;
 }
 
 // @alpha (undocumented)

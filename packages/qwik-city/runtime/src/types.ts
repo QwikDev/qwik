@@ -446,8 +446,8 @@ export type GetValueReturn<T> =
  * @alpha
  */
 export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B>
-  ? Signal<ValueOrPromise<B>>
-  : Signal<Awaited<T>>;
+  ? Readonly<Signal<ValueOrPromise<B>>>
+  : Readonly<Signal<Awaited<T>>>;
 
 /**
  * @alpha
@@ -467,7 +467,7 @@ declare const isServerLoader: unique symbol;
 export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): Signal<any>;
+  use(): LoaderSignal<any>;
 }
 /**
  * @alpha

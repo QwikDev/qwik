@@ -21,6 +21,18 @@ export const ContextSlot = createContext<ContextI>('slot');
 export const Unset = createContext<ContextI>('unset');
 
 export const ContextRoot = component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <button id="btn-rerender" onClick$={() => count.value++}>
+        Client Rerender
+      </button>
+      <ContextApp key={count.value} />
+    </div>
+  );
+});
+
+export const ContextApp = component$(() => {
   const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
   const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
 
@@ -43,6 +55,7 @@ export const ContextRoot = component$(() => {
 
       <Issue1971 />
       <Issue2087 />
+      <Issue2894 />
     </div>
   );
 });
@@ -206,4 +219,39 @@ export const Provider = component$(() => {
   const s = useStore({ t: 'yes' });
   useContextProvider(Ctx, s);
   return <Slot />;
+});
+
+export const CTX_2894 = createContext<{ foo: string }>('issue-2894');
+export const Issue2894 = component$(() => {
+  useContextProvider(CTX_2894, { foo: 'bar' });
+  return (
+    <>
+      <Issue2894_Projector>
+        <Issue2894_Consumer />
+      </Issue2894_Projector>
+    </>
+  );
+});
+
+export const Issue2894_Projector = component$(() => {
+  const signal = useSignal(false);
+  if (!signal.value) {
+    return (
+      <>
+        <button id="issue2894-button" onClick$={() => (signal.value = true)}>
+          Toggle visibility
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <Slot />
+    </>
+  );
+});
+
+export const Issue2894_Consumer = component$(() => {
+  const ctx = useContext(CTX_2894);
+  return <div id="issue2894-value">Value: {ctx.foo}</div>;
 });

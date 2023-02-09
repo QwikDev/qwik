@@ -1,6 +1,6 @@
 import type { ServerRequestEvent } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import { createRequestEvent } from './request-event';
+import { createRequestEvent, RequestEventInternal } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
@@ -35,7 +35,7 @@ export function runQwikCity<T>(
   };
 }
 
-async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
+async function runNext(requestEv: RequestEventInternal, resolve: (value: any) => void) {
   try {
     await requestEv.next();
   } catch (e) {
@@ -51,7 +51,9 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
       return e;
     }
   } finally {
-    resolve(null);
+    if (!requestEv.isDirty()) {
+      resolve(null);
+    }
   }
   return undefined;
 }

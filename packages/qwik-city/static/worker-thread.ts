@@ -96,8 +96,9 @@ async function workerRender(
 
         const stream = new WritableStream<Uint8Array>({
           async start() {
-            if (isHtml && (hasRouteWriter || writeQDataEnabled)) {
-              // for html pages or q-data.json, ensure the containing directory is created
+            if (hasRouteWriter || writeQDataEnabled) {
+              // for html pages, endpoints or q-data.json
+              // ensure the containing directory is created
               await sys.ensureDir(routeFilePath);
             }
 

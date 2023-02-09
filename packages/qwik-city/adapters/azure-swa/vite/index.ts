@@ -48,7 +48,7 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
             {
               type: 'http',
               direction: 'out',
-              name: 'response',
+              name: '$return',
             },
           ],
           scriptFile: azureSwaModulePath,

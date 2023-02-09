@@ -413,20 +413,20 @@ Context is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
 <docs code="./examples.tsx#context"/>
 @public
 
-# `createContext`
+# `createContextId`
 
 Create a context ID to be used in your application.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. a `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 

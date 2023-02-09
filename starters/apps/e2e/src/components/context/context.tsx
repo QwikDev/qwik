@@ -1,7 +1,7 @@
 import {
   useStore,
   component$,
-  createContext,
+  createContextId,
   useContextProvider,
   useContext,
   Slot,
@@ -14,11 +14,11 @@ export interface ContextI {
   count: number;
 }
 
-export const Context1 = createContext<ContextI>('ctx');
-export const Context2 = createContext<ContextI>('ctx1');
-export const Context3 = createContext<ContextI>('ctx2');
-export const ContextSlot = createContext<ContextI>('slot');
-export const Unset = createContext<ContextI>('unset');
+export const Context1 = createContextId<ContextI>('ctx');
+export const Context2 = createContextId<ContextI>('ctx1');
+export const Context3 = createContextId<ContextI>('ctx2');
+export const ContextSlot = createContextId<ContextI>('slot');
+export const Unset = createContextId<ContextI>('unset');
 
 export const ContextRoot = component$(() => {
   const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
@@ -129,7 +129,7 @@ export const Issue1971 = component$(() => {
   );
 });
 
-export const Issue1971Context = createContext<any>('issue-1971');
+export const Issue1971Context = createContextId<any>('issue-1971');
 
 export const Issue1971Provider = component$(() => {
   useContextProvider(Issue1971Context, {
@@ -156,7 +156,7 @@ export const Issue1971Consumer = component$(() => {
   return <div id="issue1971-value">Value: {ctx.value}</div>;
 });
 
-export const Ctx = createContext<{ t: string }>('issue-2087');
+export const Ctx = createContextId<{ t: string }>('issue-2087');
 
 export const Issue2087 = component$(() => {
   return (

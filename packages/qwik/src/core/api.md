@@ -97,8 +97,11 @@ export interface CorePlatform {
     raf: (fn: () => any) => Promise<any>;
 }
 
-// @public
+// @beta @deprecated (undocumented)
 export const createContext: <STATE extends object>(name: string) => Context<STATE>;
+
+// @public
+export const createContextId: <STATE extends object>(name: string) => Context<STATE>;
 
 // @internal (undocumented)
 export const _deserializeData: (data: string) => any;

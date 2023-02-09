@@ -19,7 +19,7 @@ import { invoke } from './use-core';
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for
+ * Use `createContextId()` to create a `Context`. `Context` is just a serializable identifier for
  * the context. It is not the context value itself. See `useContextProvider()` and `useContext()`
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
@@ -33,7 +33,7 @@ import { invoke } from './use-core';
  * }
  * // Create a Context ID (no data is saved here.)
  * // You will use this ID to both create and retrieve the Context.
- * export const TodosContext = createContext<TodosStore>('Todos');
+ * export const TodosContext = createContextId<TodosStore>('Todos');
  *
  * // Example of providing context to child components.
  * export const App = component$(() => {
@@ -74,15 +74,15 @@ export interface Context<STATE extends object> {
   readonly id: string;
 }
 
-// <docs markdown="../readme.md#createContext">
+// <docs markdown="../readme.md#createContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#createContext instead)
+// (edit ../readme.md#createContextId instead)
 /**
  * Create a context ID to be used in your application.
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for
+ * Use `createContextId()` to create a `Context`. `Context` is just a serializable identifier for
  * the context. It is not the context value itself. See `useContextProvider()` and `useContext()`
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
@@ -96,7 +96,7 @@ export interface Context<STATE extends object> {
  * }
  * // Create a Context ID (no data is saved here.)
  * // You will use this ID to both create and retrieve the Context.
- * export const TodosContext = createContext<TodosStore>('Todos');
+ * export const TodosContext = createContextId<TodosStore>('Todos');
  *
  * // Example of providing context to child components.
  * export const App = component$(() => {
@@ -127,11 +127,20 @@ export interface Context<STATE extends object> {
  * @public
  */
 // </docs>
-export const createContext = <STATE extends object>(name: string): Context<STATE> => {
+export const createContextId = <STATE extends object>(name: string): Context<STATE> => {
   assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
+};
+
+/**
+ * @beta
+ * @deprecated Please use `createContextId` instead.
+ */
+
+export const createContext = <STATE extends object>(name: string): Context<STATE> => {
+  return createContextId(name);
 };
 
 // <docs markdown="../readme.md#useContextProvider">
@@ -155,7 +164,7 @@ export const createContext = <STATE extends object>(name: string): Context<STATE
  * }
  * // Create a Context ID (no data is saved here.)
  * // You will use this ID to both create and retrieve the Context.
- * export const TodosContext = createContext<TodosStore>('Todos');
+ * export const TodosContext = createContextId<TodosStore>('Todos');
  *
  * // Example of providing context to child components.
  * export const App = component$(() => {
@@ -255,7 +264,7 @@ export interface UseContext {
  * }
  * // Create a Context ID (no data is saved here.)
  * // You will use this ID to both create and retrieve the Context.
- * export const TodosContext = createContext<TodosStore>('Todos');
+ * export const TodosContext = createContextId<TodosStore>('Todos');
  *
  * // Example of providing context to child components.
  * export const App = component$(() => {

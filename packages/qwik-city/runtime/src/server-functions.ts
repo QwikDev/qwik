@@ -115,7 +115,8 @@ Action.run() can only be called on the browser, for example when a user clicks a
     return state;
   }
   action.__brand = 'server_action';
-  action.__qrl = loaderQrl;
+  action.__schema = options;
+  action.__qrl = actionQrl;
   action.use = action;
   if (isServer) {
     if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {

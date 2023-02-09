@@ -26,17 +26,11 @@ interface AzureResponse {
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
-      const getRequestBody = async function* () {
-        for await (const chunk of req as any) {
-          yield chunk;
-        }
-      };
-      const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
       const url = new URL(req.headers['x-ms-original-url']!);
       const options = {
         method: req.method,
         headers: req.headers,
-        body: body as any,
+        body: req.body,
         duplex: 'half' as any,
       };
 

@@ -13,14 +13,16 @@ export interface System {
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
-  getPageFilePath: (pathname: string) => string;
-  getDataFilePath: (pathname: string) => string | null;
+  getRouteFilePath: (pathname: string, isHtml: boolean) => string;
+  getDataFilePath: (pathname: string) => string;
+  getEnv: (key: string) => string | undefined;
   platform: { [key: string]: any };
 }
 
 export interface StaticStreamWriter extends StreamWriter {
   write: (chunk: string | Buffer) => void;
   end(callback?: () => void): void;
+  on(event: 'error', callback: (err: Error) => void): void;
 }
 
 export interface MainContext {
@@ -154,6 +156,7 @@ export interface StaticWorkerRenderResult {
   ok: boolean;
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
+  contentType: string | null;
 }
 
 /**

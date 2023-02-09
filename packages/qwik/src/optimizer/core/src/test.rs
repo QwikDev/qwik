@@ -2077,6 +2077,7 @@ export const App = component$(() => {
 "#
         .to_string(),
         is_server: Some(true),
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }

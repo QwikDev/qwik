@@ -2,17 +2,17 @@ import { component$ } from '@builder.io/qwik';
 import { action$, DocumentHead, loader$ } from '@builder.io/qwik-city';
 import { SecretForm } from './login';
 
-export const dateLoader = loader$(() => new Date());
+export const useDateLoader = loader$(() => new Date());
 
-export const otherAction = action$(() => {
+export const useOtherAction = action$(() => {
   return {
     success: true,
   };
 });
 
 export default component$(() => {
-  const other = otherAction.use();
-  const date = dateLoader.use();
+  const other = useOtherAction();
+  const date = useDateLoader();
 
   return (
     <div class="actions">

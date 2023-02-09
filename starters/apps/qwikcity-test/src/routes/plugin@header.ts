@@ -1,6 +1,6 @@
 import { loader$, RequestHandler } from '@builder.io/qwik-city';
 
-export const rootLoader = loader$(() => {
+export const useRootLoader = loader$(() => {
   return {
     serverTime: new Date(),
     reg: new RegExp(''),

@@ -1,6 +1,6 @@
 import { component$, Resource } from '@builder.io/qwik';
 import { DocumentHead, loader$ } from '@builder.io/qwik-city';
-import { delay } from '../actions';
+import { delay } from '../actions/login';
 
 export const thing = loader$(() => {
   return async () => {
@@ -19,6 +19,7 @@ export const other = loader$(() => {
 export const another = loader$(() => {
   return { name: 'another' };
 });
+
 export default component$(() => {
   const resourceThing = thing.use();
   const resourceOther = other.use();
@@ -40,6 +41,10 @@ export default component$(() => {
     </div>
   );
 });
+
+// export const onGet: RequestHandler = async ({cacheControl}) => {
+//   cacheControl('static');
+// };
 
 export const head: DocumentHead = {
   title: 'About Us',

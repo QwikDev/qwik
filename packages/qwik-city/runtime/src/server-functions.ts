@@ -8,108 +8,72 @@ import {
   ValueOrPromise,
   _wrapSignal,
   useStore,
-  untrack,
-  SSRHint,
-  useRender,
-  jsx,
 } from '@builder.io/qwik';
 
-import type { RequestEventLoader } from '../../middleware/request-handler/types';
+import type {
+  RequestEventAction,
+  RequestEventLoader,
+} from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
-import type { RouteActionResolver, RouteLocation } from './types';
+import type {
+  ActionConstructor,
+  ActionOptions,
+  Zod,
+  JSONObject,
+  RouteActionResolver,
+  RouteLocation,
+  Action,
+  ActionInternal,
+  Loader,
+  LoaderInternal,
+  ZodReturn,
+  Editable,
+  ActionStore,
+} from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
 import { isServer } from '@builder.io/qwik/build';
-import type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
+import type { FormSubmitCompletedDetail } from './form-component';
 
-export type ServerActionExecute<RETURN, INPUT> = QRL<
-  (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
->;
-
-/**
- * @alpha
- */
-export interface ServerActionUse<RETURN, INPUT> {
-  readonly id: string;
-  readonly actionPath: string;
-  readonly isRunning: boolean;
-  readonly status?: number;
-  readonly formData: FormData | undefined;
-  readonly value: GetValueReturn<RETURN> | undefined;
-  readonly fail: GetFailReturn<RETURN> | undefined;
-  readonly run: ServerActionExecute<RETURN, INPUT>;
-}
-
-export type FailReturn<T> = T & {
-  __brand: 'fail';
-};
-
-export type GetValueReturn<T> = T extends FailReturn<{}> ? never : T;
-export type GetFailReturn<T> = T extends FailReturn<infer I>
-  ? I & { [key: string]: undefined }
-  : never;
-
-/**
- * @alpha
- */
-export interface ServerAction<RETURN, INPUT = Record<string, any>> {
-  readonly [isServerLoader]?: true;
-  use(): ServerActionUse<RETURN, INPUT>;
-}
-
-export interface ServerActionInternal extends ServerAction<any, any> {
-  readonly __brand: 'server_action';
-  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  __schema: ZodReturn | undefined;
-
-  use(): ServerActionUse<any, any>;
-}
-
-type Editable<T> = {
-  -readonly [P in keyof T]: T[P];
-};
-
-export class ServerActionImpl implements ServerActionInternal {
+class ActionImpl implements ActionInternal {
   readonly __brand = 'server_action';
   constructor(
-    public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>,
+    public __qrl: QRL<(form: FormData, event: RequestEventAction) => ValueOrPromise<any>>,
     public __schema: ZodReturn | undefined
   ) {}
-  use(): ServerActionUse<any, any> {
+  use(): ActionStore<any, any> {
     const loc = useLocation() as Editable<RouteLocation>;
+    const id = this.__qrl.getHash();
     const currentAction = useAction();
-    const initialState: Editable<Partial<ServerActionUse<any, any>>> = {
-      status: undefined,
+    const initialState: Editable<Partial<ActionStore<any, any>>> = {
+      actionPath: `?${QACTION_KEY}=${id}`,
       isRunning: false,
-      formData: currentAction.value?.data,
+      status: undefined,
+      value: undefined,
+      formData: undefined,
     };
-    const state = useStore<Editable<ServerActionUse<any, any>>>(() => {
-      return untrack(() => {
-        const id = this.__qrl.getHash();
-        if (currentAction.value?.output) {
-          const { status, result } = currentAction.value.output;
-          initialState.status = status;
-          if (isFail(result)) {
-            initialState.value = undefined;
-            initialState.fail = result;
-          } else {
-            initialState.value = result;
-            initialState.fail = undefined;
-          }
-        } else {
-          initialState.status = undefined;
-          initialState.value = undefined;
-          initialState.fail = undefined;
+    const state = useStore<Editable<ActionStore<any, any>>>(() => {
+      const value = currentAction.value;
+      if (value && value?.id === id) {
+        const data = value.data;
+        if (data instanceof FormData) {
+          initialState.formData = data;
         }
-        initialState.id = id;
-        initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
-        initialState.isRunning = false;
-        return initialState as ServerActionUse<any, any>;
-      });
+        if (value.output) {
+          const { status, result } = value.output;
+          initialState.status = status;
+          initialState.value = result;
+        }
+      }
+      return initialState as ActionStore<any, any>;
     });
 
-    initialState.run = $((input) => {
+    initialState.run = $((input: any | FormData | SubmitEvent = {}) => {
+      if (isServer) {
+        throw new Error(`Actions can not be invoked within the server during SSR.
+Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
+      }
       let data: any;
       let form: HTMLFormElement | undefined;
       if (input instanceof SubmitEvent) {
@@ -126,30 +90,20 @@ export class ServerActionImpl implements ServerActionInternal {
         loc.isNavigating = true;
         currentAction.value = {
           data,
-          id: state.id,
+          id,
           resolve: noSerialize(resolve),
         };
       }).then(({ result, status }) => {
         state.isRunning = false;
         state.status = status;
-        const didFail = isFail(result);
-        if (didFail) {
-          initialState.value = undefined;
-          initialState.fail = result;
-        } else {
-          initialState.value = result;
-          initialState.fail = undefined;
-        }
+        state.value = result;
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
-          const eventName = didFail ? 'submitfail' : 'submitsuccess';
-          const detail = didFail
-            ? ({ status, fail: result } satisfies FormSubmitFailDetail<any>)
-            : ({ status, value: result } satisfies FormSubmitSuccessDetail<any>);
+          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
           form.dispatchEvent(
-            new CustomEvent(eventName, {
+            new CustomEvent('submitcompleted', {
               bubbles: false,
               cancelable: false,
               composed: false,
@@ -157,52 +111,67 @@ export class ServerActionImpl implements ServerActionInternal {
             })
           );
         }
+        return {
+          status: status,
+          value: result,
+        };
       });
     });
     return state;
   }
 }
 
-type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
-
-type DefaultActionType = { [x: string]: JSONValue };
-
-type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
-  ? z.infer<z.ZodObject<TYPE>>
-  : never;
-
-interface Action {
-  <O>(
-    actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>
-  ): ServerAction<O>;
-  <O, B extends ZodReturn>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
-    options: B
-  ): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
-}
 /**
  * @alpha
  */
 export const actionQrl = <B, A>(
-  actionQrl: QRL<(form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<B>>,
+  actionQrl: QRL<(form: JSONObject, event: RequestEventLoader) => ValueOrPromise<B>>,
   options?: ZodReturn
-): ServerAction<B, A> => {
-  return new ServerActionImpl(actionQrl as any, options) as any;
+): Action<B, A> => {
+  const action = new ActionImpl(actionQrl as any, options) as any;
+  if (isServer) {
+    if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
+      (globalThis as any)._qwikActionsMap = new Map();
+    }
+    (globalThis as any)._qwikActionsMap.set(actionQrl.getHash(), action);
+  }
+  return action;
 };
 
 /**
  * @alpha
  */
-export const action$: Action = implicit$FirstArg(actionQrl) as any;
+export const action$: ActionConstructor = implicit$FirstArg(actionQrl) as any;
 
-type ActionOptions = z.ZodRawShape;
-
-type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
-
-interface Zod {
-  <T extends ActionOptions>(schema: T): ZodReturn<T>;
-  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): ZodReturn<T>;
+export class LoaderImpl implements LoaderInternal {
+  readonly __brand = 'server_loader';
+  constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
+  use(): Signal<any> {
+    return useContext(RouteStateContext, (state) => {
+      const hash = this.__qrl.getHash();
+      if (!(hash in state)) {
+        throw new Error(`Loader was used in a path where the 'loader$' was not declared.
+This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
+For more information check: https://qwik.builder.io/qwikcity/loader`);
+      }
+      return _wrapSignal(state, hash);
+    });
+  }
 }
+
+/**
+ * @alpha
+ */
+export const loaderQrl = <RETURN, PLATFORM = unknown>(
+  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => RETURN>
+): Loader<RETURN> => {
+  return new LoaderImpl(loaderQrl as any) as any;
+};
+
+/**
+ * @alpha
+ */
+export const loader$ = implicit$FirstArg(loaderQrl);
 
 /**
  * @alpha
@@ -224,75 +193,3 @@ export const zodQrl = async (
  * @alpha
  */
 export const zod$: Zod = implicit$FirstArg(zodQrl) as any;
-
-/**
- * @alpha
- */
-export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
-  ? Signal<ValueOrPromise<B>>
-  : Signal<Awaited<T>>;
-
-/**
- * @alpha
- */
-export interface ServerLoader<RETURN> {
-  readonly [isServerLoader]?: true;
-  use(): ServerLoaderUse<RETURN>;
-}
-
-declare const isServerLoader: unique symbol;
-
-export interface ServerLoaderInternal extends ServerLoader<any> {
-  readonly __brand?: 'server_loader';
-  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): Signal<any>;
-}
-
-export class ServerLoaderImpl implements ServerLoaderInternal {
-  readonly __brand = 'server_loader';
-  constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
-  use(): Signal<any> {
-    useRender(jsx(SSRHint, { dynamic: true }));
-
-    const state = useContext(RouteStateContext);
-    const hash = this.__qrl.getHash();
-    untrack(() => {
-      if (!(hash in state)) {
-        throw new Error(`Loader not found: ${hash}`);
-      }
-    });
-    return _wrapSignal(state, hash);
-  }
-}
-
-/**
- * @alpha
- */
-export const loaderQrl = <PLATFORM, B>(
-  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>
-): ServerLoader<B> => {
-  return new ServerLoaderImpl(loaderQrl as any) as any;
-};
-
-/**
- * @alpha
- */
-export const loader$ = implicit$FirstArg(loaderQrl);
-
-export const isFail = <T>(value: any): value is FailReturn<any> => {
-  return value && typeof value === 'object' && value.__brand === 'fail';
-};
-export function formDataFromObject(obj: Record<string, string | string[] | Blob | Blob[]>) {
-  const formData = new FormData();
-  for (const key in obj) {
-    const value = obj[key];
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        formData.append(key, item);
-      }
-    } else {
-      formData.append(key, value);
-    }
-  }
-  return formData;
-}

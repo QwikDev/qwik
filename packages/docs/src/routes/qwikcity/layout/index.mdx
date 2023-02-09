@@ -1,0 +1,102 @@
+---
+title: Qwik City - Layout & Middleware
+contributors:
+  - manucorporat
+  - adamdbradley
+  - Oyemade
+  - mhevery
+  - nnelgxorz
+---
+
+# Nested layouts
+
+Layouts provide **nested UI and request handling (middleware)** to a set of routes:
+
+- **Shared request handling**: Accomplished by adding an `onRequest` method.
+- **Shared UI**: Accomplished by `export default` a Qwik component.
+
+## Example
+
+Let's put together all the concepts we have learned so far to build a full app.
+
+In the proposed example, we have a site with 2 pages: `https://example.com` and `https://example.com/about`, and we want to add a common header and footer to all the pages, the only difference between the pages is the content in the middle.
+
+```
+┌───────────────────────────────────────────────────┐
+│ Header                                            │
+├─────────┬─────────────────────────────────────────┤
+│ Menu    │ <ROUTE_SPECIFIC_CONTENT>                │
+│ - home  │                                         │
+│ - about │                                         │
+│         │                                         │
+├─────────┴─────────────────────────────────────────┤
+│ Footer                                            │
+└───────────────────────────────────────────────────┘
+```
+
+First, we create three components: `<Header>`, `<Footer>`, and `<Menu>`.
+
+> The developer could copy-paste these components manually into each page component, but that is repetitive and error-prone, **instead, we can use layouts to automatically reuse common parts.**
+
+### Routes directory
+
+```
+src/
+├── components/
+│   ├── header.tsx         # Header component implementation
+│   ├── footer.tsx         # Footer component implementation
+│   └── menu.tsx           # Menu component implementation
+└── routes/
+    ├── layout.tsx         # Layout implementation using: <Header>, <Footer>, and <Menu>
+    ├── about/
+    │   └── index.tsx      # https://example.com/about
+    └── index.tsx          # https://example.com
+```
+
+### `src/routes/layout.tsx`
+
+It will be used for all routes under the `src/routes` directory. It will render the `Header`, `Menu`, and `Footer` components, and also render the nested routes under the `Slot` component.
+
+```tsx
+// File: src/routes/layout.tsx
+export default component$(() => {
+  return (
+    <>
+      <Header />
+      <Menu />
+      <Slot /> {/* <== This is where the route will be inserted */}
+      <Footer />
+    </>
+  );
+});
+```
+
+### `src/routes/index.tsx`
+
+This is the main route for the site. It will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
+
+```tsx
+// File: src/routes/index.tsx
+export default component$(() => {
+  return <>Home</>;
+});
+```
+
+### `src/routes/about/index.tsx`
+
+Same as the `src/routes/index.tsx` file, but for the `about` route, similary it will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
+
+```tsx
+// File: src/routes/about/index.tsx
+export default component$(() => {
+  return <>About</>;
+});
+```
+
+When we run the app, Qwik will render the `About` nested inside the `RootLayout`
+
+```tsx
+<RootLayout>
+  <AboutPage />
+</RootLayout>
+```

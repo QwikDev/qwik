@@ -22,6 +22,9 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
+/**
+ * @internal
+ */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
   return _verifySerializable(value, seen, '_', preMessage);
@@ -93,6 +96,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
   return value;
 };
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
+const weakSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
 export const shouldSerialize = (obj: any): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -101,8 +105,12 @@ export const shouldSerialize = (obj: any): boolean => {
   return true;
 };
 
-export const fastShouldSerialize = (obj: any): boolean => {
-  return !noSerializeSet.has(obj);
+export const fastSkipSerialize = (obj: any): boolean => {
+  return noSerializeSet.has(obj);
+};
+
+export const fastWeakSerialize = (obj: any): boolean => {
+  return weakSerializeSet.has(obj);
 };
 
 /**
@@ -137,6 +145,14 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   if (input != null) {
     noSerializeSet.add(input);
   }
+  return input as any;
+};
+
+/**
+ * @internal
+ */
+export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial<T> => {
+  weakSerializeSet.add(input);
   return input as any;
 };
 
@@ -338,6 +354,21 @@ export class LocalSubscriptionManager {
       }
       notifyChange(sub, this.$containerState$);
     }
+  }
+
+  $isTreeshakeable$(prop: string) {
+    const subs = this.$subs$;
+    const groups = this.$groupToManagers$;
+    for (const sub of subs) {
+      const compare = sub[sub.length - 1];
+      if (prop === compare) {
+        const group = groups.get(sub[1])!;
+        if (group.length > 1 && group.some((g) => g !== this && g.$subs$.some((s) => s[0] === 0))) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
 

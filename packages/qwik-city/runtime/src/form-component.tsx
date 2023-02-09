@@ -1,20 +1,12 @@
-import type { GetFailReturn, GetValueReturn, ServerActionUse } from './server-functions';
 import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
+import type { ActionStore } from './types';
 
 /**
  * @alpha
  */
-export interface FormSubmitSuccessDetail<T> {
+export interface FormSubmitCompletedDetail<T> {
   status: number;
-  value: GetValueReturn<T>;
-}
-
-/**
- * @alpha
- */
-export interface FormSubmitFailDetail<T> {
-  status: number;
-  fail: GetFailReturn<T>;
+  value: T;
 }
 
 /**
@@ -22,16 +14,33 @@ export interface FormSubmitFailDetail<T> {
  */
 export interface FormProps<O, I>
   extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
-  action: ServerActionUse<O, I>;
+  /**
+   * Reference to the action returned by `action.use()`.
+   */
+  action: ActionStore<O, I, true | false>;
+
+  /**
+   * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
+   */
   reloadDocument?: boolean;
+
+  /**
+   * When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.
+   *
+   * Defaults to `false`
+   */
   spaReset?: boolean;
+
+  /**
+   * Event handler executed right when the form is submitted.
+   */
   onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-  onSubmitSuccess$?: (
-    event: CustomEvent<FormSubmitSuccessDetail<O>>,
-    form: HTMLFormElement
-  ) => ValueOrPromise<void>;
-  onSubmitFail$?: (
-    event: CustomEvent<FormSubmitFailDetail<O>>,
+
+  /**
+   * Event handler executed right after the action is executed sucesfully and returns some data.
+   */
+  onSubmitCompleted$?: (
+    event: CustomEvent<FormSubmitCompletedDetail<O>>,
     form: HTMLFormElement
   ) => ValueOrPromise<void>;
 }

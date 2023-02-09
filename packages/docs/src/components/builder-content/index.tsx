@@ -3,17 +3,16 @@ import { useLocation } from '@builder.io/qwik-city';
 import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
 
 export default component$<{
-  html?: any;
   apiKey: string;
   model: string;
   tag: 'main' | 'div';
 }>((props) => {
   const location = useLocation();
-  const query = location.query;
-  const render =
-    typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
-  const isSDK = render === 'sdk';
   const builderContentRsrc = useResource$<any>(({ cache }) => {
+    const query = location.query;
+    const render =
+      typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
+    const isSDK = render === 'sdk';
     cache('immutable');
     if (isSDK) {
       return getCachedValue(
@@ -27,15 +26,12 @@ export default component$<{
         },
         getContent
       );
-    } else if (props.html) {
-      return { html: props.html };
     } else {
       return getCachedValue(
         {
           apiKey: props.apiKey,
           model: props.model,
           urlPath: location.pathname,
-          cacheBust: true,
         },
         getBuilderContent
       );

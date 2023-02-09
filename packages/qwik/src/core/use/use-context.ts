@@ -9,6 +9,7 @@ import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
 import { getContext, QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
+import { invoke } from './use-core';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -231,6 +232,7 @@ export const useContextBoundary = (...ids: Context<any>[]) => {
 };
 
 export interface UseContext {
+  <STATE extends object, T>(context: Context<STATE>, transformer: (value: STATE) => T): T;
   <STATE extends object, T>(context: Context<STATE>, defaultValue: T): STATE | T;
   <STATE extends object>(context: Context<STATE>): STATE;
 }
@@ -297,6 +299,9 @@ export const useContext: UseContext = <STATE extends object>(
   }
 
   const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  if (typeof defaultValue === 'function') {
+    return set(invoke(undefined, defaultValue, value));
+  }
   if (value !== undefined) {
     return set(value);
   }

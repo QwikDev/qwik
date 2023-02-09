@@ -2,7 +2,6 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestHandler } from '@builder.io/qwik-city';
 import {
   mergeHeadersCookies,
   requestHandler,
@@ -67,6 +66,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
+        handledResponse.completion.then((v) => {
+          console.error(v);
+        });
         const response = await handledResponse.response;
         if (response) {
           if (response.ok && cache && response.headers.has('Cache-Control')) {
@@ -116,7 +118,9 @@ export interface EventPluginContext {
 /**
  * @alpha
  */
-export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;
+export interface PlatformCloudflarePages {
+  env: EventPluginContext['env'];
+}
 
 const resolved = Promise.resolve();
 

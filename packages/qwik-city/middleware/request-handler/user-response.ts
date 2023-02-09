@@ -1,32 +1,28 @@
 import type { ServerRequestEvent } from './types';
-import type { PathParams, RequestEvent, RequestHandler } from '@builder.io/qwik-city';
+import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
-import { HttpStatus } from './http-status-codes';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { LoadedRoute } from '../../runtime/src/types';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
   requestEv: RequestEvent;
-  completion: Promise<RequestEvent>;
+  completion: Promise<unknown>;
 }
 
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
-  params: PathParams,
-  requestHandlers: RequestHandler<unknown>[],
+  loadedRoute: LoadedRoute | null,
+  requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
   basePathname = '/'
 ): QwikCityRun<T> {
-  if (requestHandlers.length === 0) {
-    throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
-  }
-
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(
     serverRequestEv,
-    params,
+    loadedRoute,
     requestHandlers,
     trailingSlash,
     basePathname,
@@ -46,20 +42,18 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
     if (e instanceof RedirectMessage) {
       requestEv.getWritableStream().close();
     } else if (e instanceof ErrorResponse) {
+      console.error(e);
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
         requestEv.html(e.status, html);
       }
-      console.error(e);
     } else if (!(e instanceof AbortMessage)) {
-      if (!requestEv.headersSent) {
-        requestEv.status(HttpStatus.InternalServerError);
-      }
-      throw e;
+      return e;
     }
+  } finally {
+    resolve(null);
   }
-  resolve(null);
-  return requestEv;
+  return undefined;
 }
 
 /**

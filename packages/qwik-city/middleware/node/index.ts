@@ -34,8 +34,11 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
       const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {
-        const requestEv = await handled.completion;
-        if (requestEv.headersSent) {
+        const err = await handled.completion;
+        if (err) {
+          throw err;
+        }
+        if (handled.requestEv.headersSent) {
           return;
         }
       }

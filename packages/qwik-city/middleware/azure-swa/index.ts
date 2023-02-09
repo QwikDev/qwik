@@ -13,7 +13,7 @@ import type {
 interface AzureResponse {
   status: number;
   headers: { [key: string]: any };
-  body?: string;
+  body?: string | Uint8Array;
 }
 
 /**
@@ -25,7 +25,6 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       status: 200,
       headers: {},
     });
-    const decoder = new TextDecoder();
     try {
       const getRequestBody = async function* () {
         for await (const chunk of req as any) {
@@ -33,6 +32,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         }
       };
       const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+      const url = req.headers['x-ms-original-url']!;
       const options = {
         method: req.method,
         headers: req.headers,
@@ -42,39 +42,31 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
-        url: new URL(req.url),
+        url: new URL(url),
         platform: context,
         env: {
           get(key) {
             return process.env[key];
           },
         },
-        request: new Request(req.url, options as any),
+        request: new Request(url, options as any),
         getWritableStream: (status, headers, _cookies) => {
           res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));
-          const writable = new WritableStream<Uint8Array>({
-            write(chunk) {
-              if (res.body) {
-                res.body += decoder.decode(chunk);
-              } else {
-                res.body = decoder.decode(chunk);
-              }
-            },
-            close() {},
-          });
-          return writable;
+          return new WritableStream(new AzureWritableStreamSink(res));
         },
       };
 
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
-      if (handledResponse !== null) {
+      if (handledResponse) {
+        handledResponse.completion.then((v) => {
+          console.error(v);
+        });
         const response = await handledResponse.response;
         if (response) {
           return response;
         }
-        await handledResponse.requestEv;
       }
 
       // qwik city did not have a route for this request
@@ -121,4 +113,24 @@ export interface EventPluginContext extends Context {}
  */
 export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
+}
+
+/**
+ * Aggregates the response to a `Uint8Array` and writes it to the Azure response.
+ */
+class AzureWritableStreamSink implements UnderlyingSink<Uint8Array> {
+  private buffer!: Uint8Array;
+  constructor(private res: AzureResponse) {}
+  start() {
+    this.buffer = new Uint8Array();
+  }
+  write(chunk: Uint8Array) {
+    const newBuffer = new Uint8Array(this.buffer.length + chunk.length);
+    newBuffer.set(this.buffer);
+    newBuffer.set(chunk, this.buffer.length);
+    this.buffer = newBuffer;
+  }
+  close() {
+    this.res.body = this.buffer;
+  }
 }

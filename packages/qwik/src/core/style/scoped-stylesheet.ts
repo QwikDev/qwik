@@ -31,6 +31,7 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
     DEBUG && console.log(css);
     DEBUG && console.log(new Array(idx).fill(' ').join('') + '^');
     DEBUG && console.log('MODE', ...stack.map(modeToString), modeToString(mode));
+    const chIdx = idx;
     let ch = css.charCodeAt(idx++);
     if (ch === BACKSLASH) {
       idx++;
@@ -109,7 +110,7 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
                 lastIdx = idx; // skip over ":global("
               } else if (newMode === pseudoElement) {
                 // We are entering pseudoElement `::foo`; insert scoping in front of it.
-                insertScopingSelector(idx - 2);
+                insertScopingSelector(chIdx);
               }
               mode = newMode;
               ch == SPACE; // Pretend not an identifier so that we don't flush again on elementClassIdSelector
@@ -304,7 +305,7 @@ const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
     /// rule
     [ANY, STAR, starSelector],
     [ANY, OPEN_BRACKET, attrSelector],
-    [ANY, COLON, pseudoElement, ':'],
+    [ANY, COLON, pseudoElement, ':', 'before', 'after', 'first-letter', 'first-line'],
     [ANY, COLON, pseudoGlobal, 'global'],
     [
       ANY,

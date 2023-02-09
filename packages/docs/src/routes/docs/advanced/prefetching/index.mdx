@@ -68,7 +68,7 @@ export default function (opts: RenderToStreamOptions) {
 
 ### Request/Response Cache and Service Workers
 
-The preferred caching strategy used by [Qwik City](../../../qwikcity/prefetching/overview/index.mdx), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
+The preferred caching strategy used by [Qwik City](/qwikcity/advanced/prefetching/index.mdx), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
 
 By using a service worker to intercept fetch requests from the browser, this approach allows fine-grain caching control, along with preventing duplicate requests for the same resource.
 

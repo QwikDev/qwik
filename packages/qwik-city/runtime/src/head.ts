@@ -1,25 +1,40 @@
 import { withLocale } from '@builder.io/qwik';
-import type { ServerLoaderInternal } from './server-functions';
 import type {
   ContentModule,
-  GetData,
   RouteLocation,
   EndpointResponse,
   ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
   ClientPageData,
+  LoaderInternal,
+  Editable,
+  GetSyncData,
+  ActionInternal,
 } from './types';
 
 export const resolveHead = (
-  endpoint: EndpointResponse | ClientPageData | undefined | null,
+  endpoint: EndpointResponse | ClientPageData,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string
 ) => {
   const head = createDocumentHead();
-  const getData = ((loader: ServerLoaderInternal) =>
-    endpoint?.loaders[loader.__qrl.getHash()]) as any as GetData;
+  const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
+    const id = loaderOrAction.__qrl.getHash();
+    if (loaderOrAction.__brand === 'server_loader') {
+      if (!(id in endpoint.loaders)) {
+        throw new Error(
+          'You can not get the returned data of a loader that has not been executed for this request.'
+        );
+      }
+    }
+    const data = endpoint.loaders[id];
+    if (data instanceof Promise) {
+      throw new Error('Loaders returning a function can not be refered to in the head function.');
+    }
+    return data;
+  }) as any as GetSyncData;
   const headProps: DocumentHeadProps = {
     head,
     withLocale: (fn) => withLocale(locale, fn),
@@ -45,19 +60,22 @@ export const resolveHead = (
 };
 
 const resolveDocumentHead = (
-  resolvedHead: ResolvedDocumentHead,
+  resolvedHead: Editable<ResolvedDocumentHead>,
   updatedHead: DocumentHeadValue
 ) => {
   if (typeof updatedHead.title === 'string') {
     resolvedHead.title = updatedHead.title;
   }
-  mergeArray(resolvedHead.meta, updatedHead.meta);
-  mergeArray(resolvedHead.links, updatedHead.links);
-  mergeArray(resolvedHead.styles, updatedHead.styles);
+  mergeArray(resolvedHead.meta as any, updatedHead.meta);
+  mergeArray(resolvedHead.links as any, updatedHead.links);
+  mergeArray(resolvedHead.styles as any, updatedHead.styles);
   Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
 };
 
-const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[] | undefined) => {
+const mergeArray = (
+  existingArr: { key?: string }[],
+  newArr: readonly { key?: string }[] | undefined
+) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
       if (typeof newItem.key === 'string') {

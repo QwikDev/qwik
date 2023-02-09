@@ -20,13 +20,13 @@ import {
 } from './visitor';
 
 export const setAttribute = (
-  ctx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext | undefined,
   el: QwikElement,
   prop: string,
   value: any
 ) => {
-  if (ctx) {
-    ctx.$operations$.push({
+  if (staticCtx) {
+    staticCtx.$operations$.push({
       $operation$: _setAttribute,
       $args$: [el, prop, value],
     });
@@ -45,13 +45,13 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
 };
 
 export const setProperty = (
-  ctx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext | undefined,
   node: any,
   key: string,
   value: any
 ) => {
-  if (ctx) {
-    ctx.$operations$.push({
+  if (staticCtx) {
+    staticCtx.$operations$.push({
       $operation$: _setProperty,
       $args$: [node, key, value],
     });
@@ -78,12 +78,12 @@ export const createElement = (doc: Document, expectTag: string, isSvg: boolean):
 };
 
 export const insertBefore = <T extends Node | VirtualElement>(
-  ctx: RenderStaticContext,
+  staticCtx: RenderStaticContext,
   parent: QwikElement,
   newChild: T,
   refChild: Node | VirtualElement | null | undefined
 ): T => {
-  ctx.$operations$.push({
+  staticCtx.$operations$.push({
     $operation$: directInsertBefore,
     $args$: [parent, newChild, refChild ? refChild : null],
   });
@@ -91,33 +91,33 @@ export const insertBefore = <T extends Node | VirtualElement>(
 };
 
 export const appendChild = <T extends Node | VirtualElement>(
-  ctx: RenderStaticContext,
+  staticCtx: RenderStaticContext,
   parent: QwikElement,
   newChild: T
 ): T => {
-  ctx.$operations$.push({
+  staticCtx.$operations$.push({
     $operation$: directAppendChild,
     $args$: [parent, newChild],
   });
   return newChild;
 };
 
-export const appendHeadStyle = (ctx: RenderStaticContext, styleTask: StyleAppend) => {
-  ctx.$containerState$.$styleIds$.add(styleTask.styleId);
-  ctx.$postOperations$.push({
+export const appendHeadStyle = (staticCtx: RenderStaticContext, styleTask: StyleAppend) => {
+  staticCtx.$containerState$.$styleIds$.add(styleTask.styleId);
+  staticCtx.$postOperations$.push({
     $operation$: _appendHeadStyle,
-    $args$: [ctx.$containerState$.$containerEl$, styleTask],
+    $args$: [staticCtx.$containerState$.$containerEl$, styleTask],
   });
 };
 
 export const setClasslist = (
-  ctx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext | undefined,
   elm: Element,
   toRemove: string[],
   toAdd: string[]
 ) => {
-  if (ctx) {
-    ctx.$operations$.push({
+  if (staticCtx) {
+    staticCtx.$operations$.push({
       $operation$: _setClasslist,
       $args$: [elm, toRemove, toAdd],
     });
@@ -151,17 +151,17 @@ export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) =
   }
 };
 
-export const prepend = (ctx: RenderStaticContext, parent: QwikElement, newChild: Node) => {
-  ctx.$operations$.push({
+export const prepend = (staticCtx: RenderStaticContext, parent: QwikElement, newChild: Node) => {
+  staticCtx.$operations$.push({
     $operation$: directInsertBefore,
     $args$: [parent, newChild, parent.firstChild],
   });
 };
 
-export const removeNode = (ctx: RenderStaticContext, el: Node | VirtualElement) => {
-  ctx.$operations$.push({
+export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
+  staticCtx.$operations$.push({
     $operation$: _removeNode,
-    $args$: [el, ctx],
+    $args$: [el, staticCtx],
   });
 };
 
@@ -187,11 +187,11 @@ export const createTemplate = (doc: Document, slotName: string) => {
   return template;
 };
 
-export const executeDOMRender = (ctx: RenderStaticContext) => {
-  for (const op of ctx.$operations$) {
+export const executeDOMRender = (staticCtx: RenderStaticContext) => {
+  for (const op of staticCtx.$operations$) {
     op.$operation$.apply(undefined, op.$args$);
   }
-  resolveSlotProjection(ctx);
+  resolveSlotProjection(staticCtx);
 };
 
 export const getKey = (el: QwikElement): string | null => {
@@ -204,19 +204,19 @@ export const setKey = (el: QwikElement, key: string | null) => {
   }
 };
 
-export const resolveSlotProjection = (ctx: RenderStaticContext) => {
+export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
   // Slots removed
-  const subsManager = ctx.$containerState$.$subsManager$;
-  for (const slotEl of ctx.$rmSlots$) {
+  const subsManager = staticCtx.$containerState$.$subsManager$;
+  for (const slotEl of staticCtx.$rmSlots$) {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
     const slotChildren = getChildren(slotEl, 'root');
     if (slotChildren.length > 0) {
       const sref = slotEl.getAttribute(QSlotRef);
-      const hostCtx = ctx.$roots$.find((r) => r.$id$ === sref);
+      const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
       if (hostCtx) {
-        const template = createTemplate(ctx.$doc$, key);
+        const template = createTemplate(staticCtx.$doc$, key);
         const hostElm = hostCtx.$element$;
         for (const child of slotChildren) {
           directAppendChild(template, child);
@@ -225,13 +225,13 @@ export const resolveSlotProjection = (ctx: RenderStaticContext) => {
       } else {
         // If slot content cannot be relocated, it means it's content is definively removed
         // Cleanup needs to be executed
-        cleanupTree(slotEl, ctx, subsManager, false);
+        cleanupTree(slotEl, staticCtx, subsManager, false);
       }
     }
   }
 
   // Slots added
-  for (const [slotEl, hostElm] of ctx.$addSlots$) {
+  for (const [slotEl, hostElm] of staticCtx.$addSlots$) {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
@@ -252,20 +252,20 @@ export const createTextNode = (doc: Document, text: string): Text => {
   return doc.createTextNode(text);
 };
 
-export const printRenderStats = (ctx: RenderStaticContext) => {
+export const printRenderStats = (staticCtx: RenderStaticContext) => {
   if (qDev) {
     if (typeof window !== 'undefined' && window.document != null) {
       const byOp: Record<string, number> = {};
-      for (const op of ctx.$operations$) {
+      for (const op of staticCtx.$operations$) {
         byOp[op.$operation$.name] = (byOp[op.$operation$.name] ?? 0) + 1;
       }
       const stats = {
         byOp,
-        roots: ctx.$roots$.map((ctx) => ctx.$element$),
-        hostElements: Array.from(ctx.$hostElements$),
-        operations: ctx.$operations$.map((v) => [v.$operation$.name, ...v.$args$]),
+        roots: staticCtx.$roots$.map((ctx) => ctx.$element$),
+        hostElements: Array.from(staticCtx.$hostElements$),
+        operations: staticCtx.$operations$.map((v) => [v.$operation$.name, ...v.$args$]),
       };
-      const noOps = ctx.$operations$.length === 0;
+      const noOps = staticCtx.$operations$.length === 0;
       logDebug('Render stats.', noOps ? 'No operations' : '', stats);
     }
   }

@@ -8,7 +8,7 @@ import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/reques
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
-import type { ClientPageData } from '../runtime/src/types';
+import { _serializeData } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -53,7 +53,6 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: true,
     filePath: null,
   };
 
@@ -98,16 +97,14 @@ async function workerRender(
               htmlWriter.write(Buffer.from(chunk.buffer));
             }
           },
-          close() {
-            const data: ClientPageData = requestEv.sharedMap.get('qData');
+          async close() {
+            const data: string = requestEv.sharedMap.get('qData');
 
             if (writeDataEnabled) {
               if (data) {
-                if (typeof data.isStatic === 'boolean') {
-                  result.isStatic = data.isStatic;
-                }
+                const serialized = await _serializeData(data);
                 const dataWriter = sys.createWriteStream(dataFilePath);
-                dataWriter.write(JSON.stringify(data));
+                dataWriter.write(serialized);
                 dataWriter.end();
               }
             }
@@ -133,17 +130,19 @@ async function workerRender(
           return rsp.completion;
         }
       })
-      .catch((e) => {
-        if (e) {
-          if (e.stack) {
-            result.error = String(e.stack);
-          } else if (e.message) {
-            result.error = String(e.message);
+      .then((e) => {
+        if (e !== undefined) {
+          if (e instanceof Error) {
+            result.error = {
+              message: e.message,
+              stack: e.stack,
+            };
           } else {
-            result.error = String(e);
+            result.error = {
+              message: String(e),
+              stack: undefined,
+            };
           }
-        } else {
-          result.error = `Error`;
         }
       })
       .finally(() => {
@@ -153,16 +152,16 @@ async function workerRender(
 
     pendingPromises.add(promise);
   } catch (e: any) {
-    if (e) {
-      if (e.stack) {
-        result.error = String(e.stack);
-      } else if (e.message) {
-        result.error = String(e.message);
-      } else {
-        result.error = String(e);
-      }
+    if (e instanceof Error) {
+      result.error = {
+        message: e.message,
+        stack: e.stack,
+      };
     } else {
-      result.error = `Error`;
+      result.error = {
+        message: String(e),
+        stack: undefined,
+      };
     }
     callback(result);
   }

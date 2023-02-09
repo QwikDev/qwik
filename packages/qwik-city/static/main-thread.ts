@@ -1,9 +1,14 @@
 import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
-import { msToString } from '../utils/format';
+import { createRouteTester } from './routes';
 import { generateNotFoundPages } from './not-found';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { msToString } from '../utils/format';
 import { pathToFileURL } from 'node:url';
+import { relative } from 'node:path';
+import color from 'kleur';
+import { formatError } from '../buildtime/vite/format-error';
+import { buildErrorMessage } from 'vite';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -11,6 +16,8 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess();
   const log = await sys.createLogger();
+  log.info('\n' + color.bold().green('Starting Qwik City SSG...'));
+
   const qwikCityPlan: QwikCityPlan = (await import(pathToFileURL(opts.qwikCityPlanModulePath).href))
     .default;
 
@@ -18,6 +25,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
+  const includeRoute = createRouteTester(opts.include, opts.exclude);
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
@@ -39,27 +47,26 @@ export async function mainThread(sys: System) {
 
         generatorResult.duration = timer();
 
-        log.info('\nSSG results');
-        if (generatorResult.rendered > 0) {
-          log.info(
-            `- Generated: ${generatorResult.rendered} page${
-              generatorResult.rendered === 1 ? '' : 's'
-            }`
-          );
+        if (generatorResult.errors === 0) {
+          log.info(`\n${color.green('SSG results')}`);
+          if (generatorResult.rendered > 0) {
+            log.info(
+              `- Generated: ${color.dim(
+                `${generatorResult.rendered} page${generatorResult.rendered === 1 ? '' : 's'}`
+              )}`
+            );
+          }
+
+          log.info(`- Duration: ${color.dim(msToString(generatorResult.duration))}`);
+
+          const total = generatorResult.rendered + generatorResult.errors;
+          if (total > 0) {
+            log.info(
+              `- Average: ${color.dim(msToString(generatorResult.duration / total) + ' per page')}`
+            );
+          }
+          log.info(``);
         }
-
-        if (generatorResult.errors > 0) {
-          log.info(`- Errors: ${generatorResult.errors}`);
-        }
-
-        log.info(`- Duration: ${msToString(generatorResult.duration)}`);
-
-        const total = generatorResult.rendered + generatorResult.errors;
-        if (total > 0) {
-          log.info(`- Average: ${msToString(generatorResult.duration / total)} per page`);
-        }
-
-        log.info(``);
 
         closePromise
           .then(() => {
@@ -102,27 +109,26 @@ export async function mainThread(sys: System) {
           active.delete(staticRoute.pathname);
 
           if (result.error) {
-            log.error(
-              `ERROR: SSG failed for path: ${staticRoute.pathname}\n`,
-              result.error,
-              '\n\n'
-            );
+            const err = new Error(result.error.message);
+            err.stack = result.error.stack;
+            log.error(`\n${color.bold().red('Error during SSG')}`);
+            log.error(color.red(err.message));
+            log.error(`  Pathname: ${color.magenta(staticRoute.pathname)}`);
+            Object.assign(formatError(err), {
+              plugin: 'qwik-ssg',
+            });
+            log.error(buildErrorMessage(err));
+
             generatorResult.errors++;
-          } else if (result.ok) {
-            generatorResult.rendered++;
-            if (result.isStatic) {
-              generatorResult.staticPaths.push(result.pathname);
-            }
           }
 
-          if (typeof opts.filter === 'function' && result.filePath != null) {
-            const keepStaticFile = opts.filter({
-              ...staticRoute,
-              isStatic: result.isStatic,
-            });
-            if (keepStaticFile === false) {
-              sys.removeFile(result.filePath);
-            }
+          if (result.filePath != null) {
+            generatorResult.rendered++;
+            generatorResult.staticPaths.push(result.pathname);
+            const base = opts.rootDir ?? opts.outDir;
+            const path = relative(base, result.filePath);
+            const lastSlash = path.lastIndexOf('/');
+            log.info(`${color.dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
           }
 
           flushQueue();
@@ -153,7 +159,7 @@ export async function mainThread(sys: System) {
             }
           }
 
-          if (!queue.some((s) => s.pathname === pathname)) {
+          if (includeRoute(pathname) && !queue.some((s) => s.pathname === pathname)) {
             queue.push({
               pathname,
               params,

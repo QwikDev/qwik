@@ -4,13 +4,15 @@
 
 ```ts
 
-import { QRL } from '@builder.io/qwik';
+import type { Action } from '@builder.io/qwik-city';
+import type { FailReturn } from '@builder.io/qwik-city';
+import type { GetSyncData as GetSyncData_2 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
-import { Signal } from '@builder.io/qwik';
-import { ValueOrPromise } from '@builder.io/qwik';
+import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -50,14 +52,10 @@ export interface CookieValue {
 
 // @alpha (undocumented)
 export interface GetData {
-    // Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    <T>(loader: ServerLoader<T>): Promise<T>;
-    // Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
-    //
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
-    <T>(loader: ServerAction<T>): Promise<T | undefined>;
+    <T>(action: Action<T>): Promise<T | undefined>;
 }
 
 // @alpha (undocumented)
@@ -66,16 +64,16 @@ export function getErrorHtml(status: number, e: any): string;
 // @alpha (undocumented)
 export interface GetSyncData {
     // (undocumented)
-    <T>(loader: ServerLoader<T>): T;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
     // (undocumented)
-    <T>(loader: ServerAction<T>): T | undefined;
+    <T>(action: Action<T>): Awaited<T> | undefined;
 }
 
 // @alpha (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
 
 // @alpha (undocumented)
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
     readonly cacheControl: (cacheControl: CacheControl) => void;
     // (undocumented)
@@ -88,7 +86,13 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
 }
 
 // @alpha (undocumented)
-export interface RequestEventCommon<PLATFORM = unknown> {
+export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+    // (undocumented)
+    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+}
+
+// @alpha (undocumented)
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -101,12 +105,13 @@ export interface RequestEventCommon<PLATFORM = unknown> {
     readonly json: (statusCode: number, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
     readonly method: string;
-    readonly params: Record<string, string>;
+    readonly params: Readonly<Record<string, string>>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;
+    // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
-    readonly redirect: (statusCode: number, url: string) => RedirectMessage;
+    readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
     readonly request: Request;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
@@ -118,17 +123,13 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 }
 
 // @alpha (undocumented)
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
-    // Warning: (ae-forgotten-export) The symbol "FailReturn" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     getData: GetData;
 }
 
 // @alpha (undocumented)
-export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts
 //

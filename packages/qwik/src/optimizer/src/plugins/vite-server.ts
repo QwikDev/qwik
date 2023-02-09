@@ -169,8 +169,10 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
-      server.ssrFixStacktrace(e);
-      await formatError(sys, e);
+      if (e instanceof Error) {
+        server.ssrFixStacktrace(e);
+        await formatError(sys, e);
+      }
       next(e);
     } finally {
       if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {

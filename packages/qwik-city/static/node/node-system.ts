@@ -19,10 +19,6 @@ export async function createSystem(opts: StaticGenerateOptions) {
     });
   };
 
-  const removeFile = (filePath: string) => {
-    return fs.promises.unlink(filePath);
-  };
-
   const NS_PER_SEC = 1e9;
   const MS_PER_NS = 1e-6;
 
@@ -78,7 +74,6 @@ export async function createSystem(opts: StaticGenerateOptions) {
     createLogger,
     getOptions: () => opts,
     ensureDir,
-    removeFile,
     createWriteStream,
     createTimer,
     access,

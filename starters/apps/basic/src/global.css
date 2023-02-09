@@ -101,8 +101,9 @@ footer a:hover {
   text-decoration: underline;
 }
 
-a.mindblow {
-  margin: 0 auto;
+a.mindblow,
+a.todolist {
+  margin: 10px auto;
   display: block;
   background: var(--qwik-dark-purple);
   padding: 10px 20px;
@@ -118,7 +119,8 @@ a.mindblow {
     auto; /*!emojicursor.app*/
 }
 
-a.mindblow:hover {
+a.mindblow:hover,
+a.todolist:hover {
   border-bottom-width: 0px;
   margin-bottom: 4px;
   transform: translateY(4px);

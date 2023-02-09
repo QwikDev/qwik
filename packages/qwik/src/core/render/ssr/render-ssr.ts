@@ -98,6 +98,7 @@ const IS_INVISIBLE = 1 << 4;
 const IS_PHASING = 1 << 5;
 const IS_ANCHOR = 1 << 6;
 const IS_BUTTON = 1 << 7;
+const IS_TABLE = 1 << 8;
 
 const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -106,9 +107,9 @@ const createDocument = () => {
 };
 
 /**
- * @alpha
+ * @internal
  */
-export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
+export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
@@ -586,6 +587,18 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
           );
         }
       }
+      if (tagName === 'table') {
+        flags |= IS_TABLE;
+      } else {
+        if (flags & IS_TABLE && !tableContent[tagName]) {
+          throw createJSXError(
+            `The <table> element requires that its direct children to be '<tbody>' or '<thead>', instead, '<${tagName}>' was rendered.`,
+            node
+          );
+        }
+        flags &= ~IS_TABLE;
+      }
+
       if (tagName === 'button') {
         if (flags & IS_BUTTON) {
           throw createJSXError(
@@ -978,6 +991,11 @@ const startPhasingContent: Record<string, true | undefined> = {
 const htmlContent: Record<string, true | undefined> = {
   head: true,
   body: true,
+};
+
+const tableContent: Record<string, true | undefined> = {
+  tbody: true,
+  thead: true,
 };
 
 const headContent: Record<string, true | undefined> = {

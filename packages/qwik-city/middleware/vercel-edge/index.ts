@@ -47,12 +47,15 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
           resolve(response);
           return writable;
         },
-        platform: process.env,
+        platform: {},
       };
 
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
+        handledResponse.completion.then((v) => {
+          console.error(v);
+        });
         const response = await handledResponse.response;
         if (response) {
           return response;

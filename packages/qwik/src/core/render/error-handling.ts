@@ -6,6 +6,9 @@ import { qDev } from '../util/qdev';
 import type { QwikElement } from './dom/virtual-element';
 import type { RenderContext } from './types';
 
+/**
+ * @alpha
+ */
 export interface ErrorBoundaryStore {
   error: any | undefined;
 }

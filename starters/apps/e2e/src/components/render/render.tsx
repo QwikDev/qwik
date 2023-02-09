@@ -27,6 +27,8 @@ export const Render = component$(() => {
       <Issue1475 />
       <Issue2563 />
       <Issue2608 />
+      <Issue2800 />
+      <Issue2889 />
       <CounterToggle />
 
       <PropsDestructuring
@@ -227,6 +229,63 @@ export const Issue2608 = component$(() => {
       <div>
         <input id="issue-2608-input" type="text" />
       </div>
+    </>
+  );
+});
+
+export const Issue2800 = component$(() => {
+  const store = useStore<Record<string, number>>({
+    alpha: 1,
+    bravo: 2,
+    charlie: 3,
+  });
+
+  return (
+    <div>
+      <button
+        id="issue-2800-btn"
+        onClick$={() => {
+          const keys = Object.keys(store);
+          store[`extra${keys.length}`] = 1;
+        }}
+      >
+        Add key
+      </button>
+      <ul id="issue-2800-result">
+        {Object.entries(store).map(([key, value]) => (
+          <li>
+            {key} - {value}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
+
+export const Issue2889 = component$(() => {
+  const appState = useStore(
+    {
+      events: [
+        { created: new Date(2022, 1, 15), count: 2 },
+        { created: new Date(2022, 1, 18), count: 8 },
+        { created: new Date(2022, 1, 21), count: 3 },
+        { created: new Date(2022, 1, 26), count: 6 },
+      ],
+    },
+    { deep: true }
+  );
+
+  const filteredEvents = useSignal<{ created: Date; count: number }[]>();
+
+  useTask$(({ track }) => {
+    const list = track(() => appState.events);
+    filteredEvents.value = list.filter((x) => x.created >= new Date(2022, 1, 20));
+  });
+
+  return (
+    <>
+      <h2 id="issue-2889-result1">Deeds: {appState.events.length}</h2>
+      <h2 id="issue-2889-result2">Filtered Deeds: {(filteredEvents.value || []).length}</h2>
     </>
   );
 });

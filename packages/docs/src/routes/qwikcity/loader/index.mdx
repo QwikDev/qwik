@@ -1,0 +1,164 @@
+---
+title: Qwik City - loader$()
+contributors:
+  - manucorporat
+---
+
+# `loader$()`
+
+Loaders allow data to flow from the server to the Qwik Components. For this reason, Qwik Loaders should be always understood in the context of **loading data in the server that is later consumed by a Qwik Component**, if you want to create a RESTful endpoint, please check the [endpoints](/qwikcity/endpoints/index.mdx) guide instead.
+
+They behave like RPC server-side functions that can be invoked by Qwik Components during rendering.
+
+## Declaring a loader
+
+Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+
+```tsx
+// src/routes/layout.tsx
+import { loader$ } from '@builder.io/qwik-city';
+
+export const getProductData = loader$(() => {
+  return {
+    product: {
+      name: 'Qwik City',
+      price: 100,
+    },
+  };
+});
+```
+
+> Loaders are not endpoints, it's an internal communication channel between the server and the Qwik Components. Also, loaders must return a JSON serializable value.
+
+## Using a loader
+
+Loaders are consumed using the `.use()` method from within a Qwik Component. The `use()` returns a `Signal` with the data returned by the loader function as it’s value.
+
+Loaders can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
+
+```tsx
+// src/routes/index.tsx
+import { loader$ } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+
+export const getServerTime = loader$(() => {
+  return {
+    time: Date.now();
+  }
+});
+
+export default component$(() => {
+  // Retrieve a reactive signal of the loader data
+  const signal = getServerTime.use(); // Signal<{time: number}>
+  return (
+    <div>
+      Server time: {signal.value.time}
+    </div>
+  );
+});
+```
+
+> The `.use()` retrieves the loader data, but it does not execute the loader multiple times. Loaders execute eagerly\ at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+
+## Multiple loaders
+
+Multiple loaders are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple loaders in the same file**.
+
+**File: `src/routes/layout.tsx`**
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { loader$ } from '@builder.io/qwik-city';
+import { Footer } from '../components/footer.tsx';
+
+export const getServerTime = loader$(() => {
+  return {
+    time: Date.now();
+  }
+});
+
+export default component$(() => {
+  const signal = getServerTime.use();
+  return (
+    <main>
+      <Slot>
+      <Footer />
+    </main>
+  );
+});
+```
+
+**File: `src/components/footer.tsx`**
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+
+// Import the loader from the layout
+import { getServerTime } from '../routes/layout.tsx';
+
+export const Footer = component$(() => {
+  // Consume the loader data
+  const signal = getServerTime.use();
+  return <footer>Server time: {signal.value.time}</footer>;
+});
+```
+
+**File: `src/routes/admin/index.tsx`**
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { loader$ } from '@builder.io/qwik-city';
+
+export const isLogged = loader$(({cookies}) => {
+  return {
+    logged: checkCookies(cookies);
+  }
+});
+
+export const getCurrentUser = loader$(({cookies}) => {
+  return {
+    user: currentUserFromCookies(cookies);
+  }
+});
+
+export default component$(() => {
+  const logged = isLogged.use();
+  const user = getCurrentUser.use();
+  return (
+    <section>
+      <h1>Admin</h1>
+      {logged.value.logged ? (
+        <p>Welcome {user.value.user.name}</p>
+      ) : (
+        <p>You are not logged in</p>
+      )}
+    </section>
+  );
+});
+```
+
+## Loader context
+
+Just like request handlers such as `onRequest` and `onGet`, loaders have access to the `RequestEvent` object which includes information about the current request.
+
+This information comes in handly when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
+
+```tsx
+export const getServerTime = loader$((ev) => {
+  console.log('Request headers:', ev.headers);
+  console.log('Request cookies:', ev.cookies);
+  console.log('Request url:', ev.url);
+  console.log('Request method:', ev.method);
+  console.log('Request params:', ev.params);
+
+  return {
+    time: Date.now();
+  }
+});
+```
+
+## When to use a loader?
+
+A loader should be used when you need to provide some server-side data to your Qwik Components. For example, if you need to fetch some data from a database or an API, you can use a loader to do that.
+
+You should not use a loader to create a REST API, for that you’d be better off using an [Endpoint](/qwik-city/), which allows you to have tight control over the response headers and body.

@@ -2,7 +2,6 @@ import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import type { MenuData, RouteModule } from '../../runtime/src/types';
-import { getErrorHtml } from './error-handler';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
@@ -18,7 +17,7 @@ export async function requestHandler<T = unknown>(
   const { routes, serverPlugins, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, trailingSlash);
-  const loadedRoute = await loadRequestHandlers(
+  const route = await loadRequestHandlers(
     serverPlugins,
     routes,
     menus,
@@ -27,10 +26,8 @@ export async function requestHandler<T = unknown>(
     serverRequestEv.request.method,
     render
   );
-  if (loadedRoute) {
-    return handleErrors(
-      runQwikCity(serverRequestEv, loadedRoute[0], loadedRoute[1], trailingSlash, basePathname)
-    );
+  if (route) {
+    return runQwikCity(serverRequestEv, route[0], route[1], trailingSlash, basePathname);
   }
   return null;
 }
@@ -52,39 +49,7 @@ async function loadRequestHandlers(
     renderQwikMiddleware(renderFn)
   );
   if (requestHandlers.length > 0) {
-    return [route?.[0] ?? {}, requestHandlers] as const;
+    return [route, requestHandlers] as const;
   }
   return null;
-}
-
-function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
-  const requestEv = run.requestEv;
-  return {
-    response: run.response,
-    requestEv: requestEv,
-    completion: run.completion
-      .then(
-        () => {
-          if (requestEv.headersSent) {
-            requestEv.getWritableStream();
-            // TODO
-            // if (!stream.locked) {
-            //   stream.getWriter().closed
-            //   return stream.close();
-            // }
-          }
-        },
-        (e) => {
-          console.error(e);
-          const status = requestEv.status();
-          const html = getErrorHtml(status, e);
-          if (!requestEv.headersSent) {
-            requestEv.html(status, html);
-          } else {
-            // STREAM CLOSED
-          }
-        }
-      )
-      .then(() => requestEv),
-  };
 }

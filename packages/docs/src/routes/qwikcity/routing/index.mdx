@@ -1,0 +1,188 @@
+---
+title: Qwik City - Routing
+contributors:
+  - manucorporat
+  - nnelgxorz
+  - the-r3aper7
+  - Oyemade
+  - mhevery
+  - adamdbradley
+---
+
+# Routing
+
+Routing in Qwik City is file-system based like [Next.js](https://nextjs.org/docs/routing/introduction), [SvelteKit](https://kit.svelte.dev/docs/routing), Solid Start or Remix. Files and directories in the `src/routes` have a role in the routing of your application.
+
+- **📂 Directories:** Describe the URL segments to match by the router.
+- **📄 index. files:** Page/endpoint.
+- **🖼️ layout. files:** Nested layout/middleware.
+
+## Directory-based routing
+
+Only the directory names are used to match the incoming requests to pages/endpoints.
+
+For example, if you have a file at `src/routes/some/path/index.tsx`, it will be mapped to the URL path `https://example.com/some/path`.
+
+```
+src/
+└── routes/
+    ├── contact/
+    │   └── index.mdx         # https://example.com/contact
+    ├── about/
+    │   └── index.md          # https://example.com/about
+    ├── docs/
+    │   └── [id]/
+    │       └── index.ts      # https://example.com/docs/1234
+    │                         # https://example.com/docs/anything
+    ├── [...catchall]/
+    │   └── index.tsx         # https://example.com/anything/else/that/didnt/match
+    │
+    └── layout.tsx            # This layout is used for all pages
+```
+
+- **`[id]`** is a directory that represents a dynamic route segment, in this example `id` is the param.
+- **`[...catchall]`** is a directory that represents a dynamic catch-all route, in this example `catchall` is the param.
+- **`index.ext` files** are the pages/endpoints.
+- **`layout.ext` files** are the layouts.
+
+### Dynamic route segments
+
+Special named directories with square brackets, such as `[paramName]` and `[...catchAll]` can be used to match route segments which are dynamic:
+
+```
+src/routes/blog/index.tsx → /blog/:slug (/blog/hello-world)
+src/routes/user/[username]/index.tsx → /user/:username/settings (/user/foo/)
+src/routes/post/[...all]/index.tsx → /post/* (/post/2020/id/title)
+```
+
+```
+src/
+└── routes/
+    ├── blog/
+    │   └── index.tsx         # https://example.com/blog
+    ├── post/
+    │   └── [...all]/
+    │       └── index.tsx     # https://example.com/post/2020/id/title/2020/12/03
+    └── user/
+        └── [username]/
+            └── index.tsx     # https://example.com/user/foo
+```
+
+> The folder `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Route Parameter (a part of the URL) that will be used to extract the `[skuId]`.
+
+## `index.` files
+
+Inside the `src/routes` directory, all files named `index` are considered pages/endpoints, Qwik supports the following extensions: `.ts`, `.tsx`, `.md` and `.mdx`.
+
+Pages/endpoints are the leaf nodes of the routing tree, ie, **the modules that will handle the request and return a HTTP response**.
+
+### Page `index.tsx`
+
+When `index.tsx` or `index.ts` exports a Qwik component as the default export, QwikCity will render the component and return a HTML response as a webpage.
+
+```tsx
+// src/routes/index.tsx
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <h1>Hello World</h1>;
+});
+```
+
+### Endpoint `index.tsx`
+
+A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending if you only want to handle a specific request given its HTTP method.
+
+```tsx
+// src/routes/index.ts
+import { component$ } from '@builder.io/qwik';
+
+export const onGet = ({ json }) => {
+  json(200, { message: 'Hello World' });
+};
+```
+
+> Notice that in the last example, there is not a default export. This is because we are not rendering a Qwik component, but rather we are handling the request directly, and returning a JSON response. This is useful to implement RESTful APIs or any other type of HTTP endpoint.
+
+### Page + Endpoint
+
+As you can see in Qwik City there is no a clear separation between pages and endpoints, in both cases it's a `index.tsx` file that exports a Qwik component or a `onRequest` method. However, it's possible to combine both approaches. For example, you can export a `onRequest` method that will handle the request, and then render a Qwik component.
+
+```tsx
+// src/routes/index.ts
+import { component$ } from '@builder.io/qwik';
+
+export const onRequest = ({ headers, query }) => {
+  headers.set('Cache-Control', 'private');
+  if (query.get('format') === 'json') {
+    json(200, { message: 'Hello World' });
+  }
+};
+
+export default component$(async () => {
+  return <h1>Hello World</h1>;
+});
+```
+
+> In this example, a request handle will always set the `Cache-Control` header to `private` and the page will be rendered as a HTML page, but if the request contains a `format=json` query param, the endpoint will return a JSON response instead.
+
+## `layout.` files
+
+Layout modules are very similar to `index` files, both can handle requests and render Qwik components, however, layouts are designed to work like a middleware, allowing to **share UI and request handling (middleware)** to a set of routes.
+
+Usually different pages need some common request handling, and share some UI. For example, picture a dashboard site where all the pages under the `/admin/*` directory:
+
+- **Shared request handling:** The request cookies need to be validated before even rendering the page, otherwise render a blank 401 page.
+- **Shared UI:** All pages share a common header showing the user's name and profile picture.
+
+Instead of repeating the same code in each route, we can use layouts to automatically reuse common parts, and also to add middleware to the route.
+
+Take this `src/routes` directory as an example:
+
+```
+src/
+└── routes/
+    ├── admin/
+    │   ├── layout.tsx  <-- This layout is used for all pages under /admin/*
+    │   └── index.tsx
+    ├── layout.tsx      <-- This layout is used for all pages
+    └── index.tsx
+```
+
+### Middleware layouts
+
+Since layouts can implement request handling with `onRequest` or `onGet`, `onPost`, `onPut`, `onDelete`, they can be used to implement middleware, for example, to validate the request cookies before rendering the page.
+
+For the route `https://example.com/admin`, the `onRequest` methods will be executed in the following order:
+
+1. `src/routes/layout.tsx`'s `onRequest`
+2. `src/routes/admin/layout.tsx`'s `onRequest`
+3. `src/routes/admin/index.tsx`'s component
+
+### Nested layouts
+
+Layouts also **provide a way to add common UI to the rendered page**. For example, if we want to add a common header to all the routes, we can add a `Header` component to the root layout.
+
+For the given example, the Qwik components will be rendered in the following order:
+
+1. `src/routes/layout.tsx`'s component
+2. `src/routes/admin/layout.tsx`'s component
+3. `src/routes/admin/index.tsx`'s component
+
+```tsx
+<RootLayout>
+  <AdminLayout>
+    <AdminPage />
+  </AdminLayout>
+</RootLayout>
+```
+
+## Advanced routing
+
+Qwik City also supports:
+
+- [Route Parameters](/qwikcity/advanced/routing/index.mdx)
+- [Nested layouts](/qwikcity/advanced/routing/index.mdx)
+- [Menus](/qwikcity/advanced/menu/index.mdx)
+
+These are discussed later.

@@ -8,7 +8,6 @@ export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/co
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { _pauseFromContexts } from './container/pause';
 export type {
   SnapshotState,
   SnapshotResult,
@@ -21,7 +20,7 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $ } from './qrl/qrl.public';
-export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV, _noopQrl } from './qrl/qrl';
+export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
@@ -58,11 +57,8 @@ export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/dom/render.public';
-export { renderSSR } from './render/ssr/render-ssr';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
-
 export type { RenderOptions } from './render/dom/render.public';
-export { _hW } from './render/dom/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -108,7 +104,7 @@ export { useMount$, useMountQrl } from './use/use-mount';
 export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
-export { useRender } from './use/use-render';
+export type { ErrorBoundaryStore } from './render/error-handling';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
@@ -116,10 +112,7 @@ export { useRender } from './use/use-render';
 export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
-export { _wrapSignal } from './state/signal';
-export { _restProps } from './state/store';
 export { noSerialize, mutable } from './state/common';
-export { _IMMUTABLE } from './state/constants';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -154,3 +147,5 @@ export type {
   QwikWheelEvent,
   QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
+
+export * from './internal';

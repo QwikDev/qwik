@@ -36,7 +36,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     console.log(``);
 
     const integrationChoices = [
-      ...integrations.filter((i) => i.type === 'adaptor'),
+      ...integrations.filter((i) => i.type === 'adapter'),
       ...integrations.filter((i) => i.type === 'feature'),
     ].map((f) => {
       return { title: f.name, value: f.id };

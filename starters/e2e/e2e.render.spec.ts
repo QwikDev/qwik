@@ -51,8 +51,8 @@ test.describe('render', () => {
   });
 
   test('issue1475', async ({ page }) => {
-    const button = await page.locator('#issue-1475-button');
-    const result = await page.locator('#issue-1475-result');
+    const button = page.locator('#issue-1475-button');
+    const result = page.locator('#issue-1475-result');
 
     await button.click();
     await page.waitForTimeout(100);
@@ -62,9 +62,9 @@ test.describe('render', () => {
   });
 
   test('counter toggle', async ({ page }) => {
-    const button = await page.locator('#counter-toggle-btn');
-    const show1 = await page.locator('#counter-toggle-show');
-    const show2 = await page.locator('#counter-toggle-show-2');
+    const button = page.locator('#counter-toggle-btn');
+    const show1 = page.locator('#counter-toggle-show');
+    const show2 = page.locator('#counter-toggle-show-2');
     await expect(show1).toHaveText('even');
     await expect(show2).toHaveText('true');
     await button.click();
@@ -81,14 +81,14 @@ test.describe('render', () => {
   test('handle props destructuring', async ({ page }) => {
     const button = page.locator('button#increment');
 
-    const message1 = await page.locator('#props-destructuring > span');
-    const renders1 = await page.locator('#props-destructuring > .renders');
+    const message1 = page.locator('#props-destructuring > span');
+    const renders1 = page.locator('#props-destructuring > .renders');
 
-    const message2 = await page.locator('#props-destructuring-no > span');
-    const renders2 = await page.locator('#props-destructuring-no > .renders');
+    const message2 = page.locator('#props-destructuring-no > span');
+    const renders2 = page.locator('#props-destructuring-no > .renders');
 
-    const message3 = await page.locator('#props-destructuring-count > span');
-    const renders3 = await page.locator('#props-destructuring-count > .renders');
+    const message3 = page.locator('#props-destructuring-count > span');
+    const renders3 = page.locator('#props-destructuring-count > .renders');
 
     await expect(message1).toHaveText('Hello 0');
     await expect(renders1).toHaveText('1');
@@ -120,9 +120,9 @@ test.describe('render', () => {
   });
 
   test('issue2563', async ({ page }) => {
-    const string = await page.locator('#issue-2563-string');
-    const obj = await page.locator('#issue-2563-obj');
-    const operation = await page.locator('#issue-2563-operation');
+    const string = page.locator('#issue-2563-string');
+    const obj = page.locator('#issue-2563-obj');
+    const operation = page.locator('#issue-2563-operation');
 
     await expect(string).toHaveText('4=4');
     await expect(obj).toHaveText('4=4');
@@ -130,8 +130,8 @@ test.describe('render', () => {
   });
 
   test('issue2608', async ({ page }) => {
-    const toggle = await page.locator('#issue-2608-btn');
-    const input = await page.locator('#issue-2608-input');
+    const toggle = page.locator('#issue-2608-btn');
+    const input = page.locator('#issue-2608-input');
 
     await expect(input).toHaveValue('');
     await input.fill('some text');
@@ -145,8 +145,8 @@ test.describe('render', () => {
   });
 
   test('issue2800', async ({ page }) => {
-    const button = await page.locator('#issue-2800-btn');
-    const results = await page.locator('#issue-2800-result > li');
+    const button = page.locator('#issue-2800-btn');
+    const results = page.locator('#issue-2800-result > li');
 
     await expect(results).toHaveText(['alpha - 1', 'bravo - 2', 'charlie - 3']);
 
@@ -160,5 +160,13 @@ test.describe('render', () => {
       'extra3 - 1',
       'extra4 - 1',
     ]);
+  });
+
+  test('issue2889', async ({ page }) => {
+    const result1 = page.locator('#issue-2889-result1');
+    const result2 = page.locator('#issue-2889-result2');
+
+    await expect(result1).toHaveText('Deeds: 4');
+    await expect(result2).toHaveText('Filtered Deeds: 2');
   });
 });

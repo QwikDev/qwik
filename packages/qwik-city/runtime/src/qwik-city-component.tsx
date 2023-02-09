@@ -147,18 +147,18 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         clientPageData = env!.response;
       } else {
         const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
-        let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+        let loadRoutePromise = loadRoute(routes, menus, cacheModules, toPath(url));
         const pageData = (clientPageData = await loadClientData(url.href, true, action));
         if (!pageData) {
           // Reset the path to the current path
-          (navPath as any).untrackedValue = routeLocation.pathname;
+          (navPath as any).untrackedValue = toPath(url);
           return;
         }
         const newHref = pageData.href;
         const newURL = new URL(newHref, url.href);
         if (newURL.pathname !== url.pathname) {
           url = newURL;
-          loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+          loadRoutePromise = loadRoute(routes, menus, cacheModules, toPath(url));
         }
 
         // ensure correct trailing slash
@@ -174,17 +174,16 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
       if (loadedRoute) {
         const [params, mods, menu] = loadedRoute;
-        const pathname = url.pathname;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Update route location
         routeLocation.href = url.href;
-        routeLocation.pathname = pathname;
+        routeLocation.pathname = url.pathname;
         routeLocation.params = { ...params };
         routeLocation.query = url.searchParams;
 
-        (navPath as any).untrackedValue = pathname;
+        (navPath as any).untrackedValue = toPath(url);
 
         // Needs to be done after routeLocation is updated
         const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
@@ -208,7 +207,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
           }
           CLIENT_DATA_CACHE.clear();
 
-          clientNavigate(window, pathname, navPath);
+          clientNavigate(window, url, navPath);
           routeLocation.isNavigating = false;
         }
       }

@@ -1,5 +1,11 @@
 import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
-import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
+import type {
+  StaticGenerateOptions,
+  StaticGenerateResult,
+  StaticRoute,
+  StaticRouteModule,
+  System,
+} from './types';
 import { createRouteTester } from './routes';
 import { generateNotFoundPages } from './not-found';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
@@ -138,7 +144,11 @@ export async function mainThread(sys: System) {
         }
       };
 
-      const addToQueue = (pathname: string | undefined | null, params: PathParams | undefined) => {
+      const addToQueue = (
+        pathname: string | undefined | null,
+        params: PathParams | undefined,
+        staticRouteModule: StaticRouteModule
+      ) => {
         if (pathname) {
           pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
 
@@ -163,6 +173,7 @@ export async function mainThread(sys: System) {
             queue.push({
               pathname,
               params,
+              staticRouteModule,
             });
             flushQueue();
           }
@@ -174,9 +185,17 @@ export async function mainThread(sys: System) {
         const modules = await Promise.all(loaders.map((loader) => loader()));
         const pageModule: PageModule = modules[modules.length - 1] as any;
 
-        if (pageModule.default) {
-          // page module (not an endpoint)
+        // if a module has a "default" export, it's a page module
+        // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation
+        const staticRouteModuleType: StaticRouteModule | null = pageModule
+          ? pageModule.default
+            ? 'page'
+            : pageModule.onGet || pageModule.onRequest
+            ? 'endpoint'
+            : null
+          : null;
 
+        if (staticRouteModuleType) {
           if (Array.isArray(paramNames) && paramNames.length > 0) {
             if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
               // dynamic route page module
@@ -188,13 +207,13 @@ export async function mainThread(sys: System) {
                     paramNames,
                     params
                   );
-                  addToQueue(pathname, params);
+                  addToQueue(pathname, params, staticRouteModuleType);
                 }
               }
             }
           } else {
             // static route page module
-            addToQueue(originalPathname, undefined);
+            addToQueue(originalPathname, undefined, staticRouteModuleType);
           }
         }
       };

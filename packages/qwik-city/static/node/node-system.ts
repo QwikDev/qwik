@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { StaticGenerateOptions, System } from '../types';
+import type { StaticGenerateOptions, StaticRoute, System } from '../types';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
@@ -51,16 +51,23 @@ export async function createSystem(opts: StaticGenerateOptions) {
     return pathname;
   };
 
-  const getPageFilePath = (pathname: string) => {
-    if (pathname.endsWith('.html')) {
-      pathname = pathname.slice(basenameLen);
+  const getRouteFilePath = ({ pathname, staticRouteModule }: StaticRoute) => {
+    if (staticRouteModule === 'page') {
+      if (pathname.endsWith('.html')) {
+        pathname = pathname.slice(basenameLen);
+      } else {
+        pathname = getFsDir(pathname) + 'index.html';
+      }
     } else {
-      pathname = getFsDir(pathname) + 'index.html';
+      pathname = pathname.slice(basenameLen);
+      if (pathname.endsWith('/')) {
+        pathname = pathname.slice(0, -1);
+      }
     }
     return join(outDir, pathname);
   };
 
-  const getDataFilePath = (pathname: string) => {
+  const getDataFilePath = ({ pathname }: StaticRoute) => {
     if (!pathname.endsWith('.html')) {
       pathname = getFsDir(pathname) + 'q-data.json';
       return join(outDir, pathname);
@@ -77,8 +84,9 @@ export async function createSystem(opts: StaticGenerateOptions) {
     createWriteStream,
     createTimer,
     access,
-    getPageFilePath,
+    getRouteFilePath,
     getDataFilePath,
+    getEnv: (key) => process.env[key],
     platform: {
       static: true,
       node: process.versions.node,

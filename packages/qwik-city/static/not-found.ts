@@ -13,7 +13,11 @@ export async function generateNotFoundPages(
 
     const hasRootNotFound = routes.some((r) => r[3] === rootNotFoundPathname);
     if (!hasRootNotFound) {
-      const filePath = sys.getPageFilePath(rootNotFoundPathname);
+      const filePath = sys.getRouteFilePath({
+        pathname: rootNotFoundPathname,
+        staticRouteModule: 'page',
+        params: undefined,
+      });
 
       const html = getErrorHtml(404, 'Resource Not Found');
 

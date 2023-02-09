@@ -56,14 +56,27 @@ async function workerRender(
     filePath: null,
   };
 
-  const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
-  const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+  const isHtmlPage = staticRoute.staticRouteModule === 'page';
 
-  const writeHtmlEnabled = opts.emitHtml !== false;
-  const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
+  // write enabled if it's an html page and emitHtml is not false
+  // or if it is and endpoint
+  // get the file path for where the page or endpoint will be written to
+  const routeFilePath =
+    (isHtmlPage && opts.emitHtml !== false) || staticRoute.staticRouteModule === 'endpoint'
+      ? sys.getRouteFilePath(staticRoute)
+      : null;
 
-  if (writeHtmlEnabled || writeDataEnabled) {
-    await sys.ensureDir(htmlFilePath);
+  // write data enabled if it's an html page and emitData is not false
+  // and there is a q-data.json file path
+  // get the file path for where the q-data.json file will be written to
+  // q-data.json file path is only needed for html pages and when enabled
+  const qDataFilePath =
+    isHtmlPage && opts.emitData !== false ? sys.getDataFilePath(staticRoute) : null;
+
+  if (routeFilePath) {
+    await sys.ensureDir(routeFilePath);
+  } else if (qDataFilePath) {
+    await sys.ensureDir(qDataFilePath);
   }
 
   try {
@@ -76,52 +89,75 @@ async function workerRender(
       request,
       env: {
         get(key) {
-          return process.env[key];
+          return sys.getEnv(key);
         },
       },
+      platform: sys.platform,
       getWritableStream: (status, headers, _, _r, requestEv) => {
-        result.ok =
-          status >= 200 &&
-          status <= 299 &&
-          (headers.get('Content-Type') || '').includes('text/html');
+        result.ok = status >= 200 && status <= 299;
+
+        if (isHtmlPage && !(headers.get('Content-Type') || '').includes('text/html')) {
+          // html page, but not correct content type
+          result.ok = false;
+        }
 
         if (!result.ok) {
+          // not ok, don't write anything
           return noopWriter;
         }
 
-        const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
+        // create a write stream for the static file if enabled
+        const staticWriter = routeFilePath ? sys.createWriteStream(routeFilePath) : null;
+        if (staticWriter) {
+          staticWriter.on('error', (e) => {
+            console.error(e);
+            result.error = {
+              message: e.message,
+              stack: e.stack,
+            };
+            staticWriter.end();
+          });
+        }
+
         const stream = new WritableStream<Uint8Array>({
           write(chunk) {
-            // page html writer
-            if (htmlWriter) {
-              htmlWriter.write(Buffer.from(chunk.buffer));
+            if (staticWriter) {
+              // write to the static file if enabled
+              staticWriter.write(Buffer.from(chunk.buffer));
             }
           },
           async close() {
-            const data: string = requestEv.sharedMap.get('qData');
-
-            if (writeDataEnabled) {
-              if (data) {
-                const serialized = await _serializeData(data);
-                const dataWriter = sys.createWriteStream(dataFilePath);
+            if (qDataFilePath) {
+              const qData = requestEv.sharedMap.get('qData');
+              if (qData) {
+                // write q-data.json file when enabled and qData is set
+                const serialized = await _serializeData(qData);
+                const dataWriter = sys.createWriteStream(qDataFilePath);
+                dataWriter.on('error', (e) => {
+                  console.error(e);
+                  result.error = {
+                    message: e.message,
+                    stack: e.stack,
+                  };
+                  dataWriter.end();
+                });
                 dataWriter.write(serialized);
                 dataWriter.end();
               }
             }
 
-            if (data) {
-              if (htmlWriter) {
-                return new Promise<void>((resolve) => {
-                  result.filePath = htmlFilePath;
-                  htmlWriter.end(resolve);
-                });
-              }
+            if (staticWriter) {
+              // close the static file if there is one
+              return new Promise<void>((resolve) => {
+                // set the static file path for the result
+                result.filePath = routeFilePath;
+                staticWriter.end(resolve);
+              });
             }
           },
         });
         return stream;
       },
-      platform: sys.platform,
     };
 
     const promise = requestHandler(requestCtx, opts)

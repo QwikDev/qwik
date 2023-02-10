@@ -12,11 +12,13 @@ export const loaderLocation: Rule.RuleModule = {
     },
     messages: {
       invalidLoaderLocation:
-        '{{fnName}}() can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the `src/routes` directory, instead it was declared in "{{path}}". Please check the docs: https://qwik.builder.io/qwikcity/loader',
+        '`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the `src/routes` directory, instead it was declared in "{{path}}".\nPlease check the docs: https://qwik.builder.io/qwikcity/loader',
       missingExport:
-        'The return of {{fnName}}() needs to be exported in the same module, like this:\n `export const {{id}} = {{fnName}}(() => { ... });`',
+        'The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```',
       wrongName:
-        'The named export of {{fnName}}() needs to be a `use*` function, ie, it must start with `use`, like this:\n `export const {{fixed}} = {{fnName}}(() => { ... });`\nInstead it was named `{{id}}`.',
+        'The named export of `{{fnName}}()` needs to follow the `use*` naming convention. It must start with `use`, like this:\n```\nexport const {{fixed}} = {{fnName}}(() => { ... });\n```\nInstead it was named:\n```\nexport const {{id}} = ...\n```',
+      recommendedValue:
+        'For `{{fnName}}()` it is recommended to inline the arrow function. Instead of:\n```\nexport const {{id}} = {{fnName}}({{arg}});\n```\nDo this:\n```\nexport const {{id}} = {{fnName}}(() => { ...logic here... });\n```\nThis will help the optimizer make sure that no server code is leaked to the client build.',
     },
   },
   create(context) {
@@ -69,7 +71,7 @@ export const loaderLocation: Rule.RuleModule = {
           });
           return;
         }
-        if (!/^use[A-Z]/.test(variableDeclarator.id.name)) {
+        if (!/^use/.test(variableDeclarator.id.name)) {
           const fixed =
             'use' +
             variableDeclarator.id.name[0].toUpperCase() +
@@ -92,6 +94,18 @@ export const loaderLocation: Rule.RuleModule = {
             data: {
               fnName,
               id: variableDeclarator.id.name,
+            },
+          });
+          return;
+        }
+        if (node.arguments.length > 0 && node.arguments[0].type === 'Identifier') {
+          context.report({
+            node: node.arguments[0],
+            messageId: 'recommendedValue',
+            data: {
+              fnName,
+              id: variableDeclarator.id.name,
+              arg: node.arguments[0].name,
             },
           });
           return;

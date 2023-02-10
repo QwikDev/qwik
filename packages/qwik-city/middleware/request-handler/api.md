@@ -126,6 +126,8 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     getData: GetData;
+    // (undocumented)
+    streaming: <T>(returnData: Promise<T> | (() => Promise<T>)) => StreamingReturn<T>;
 }
 
 // @alpha (undocumented)
@@ -169,6 +171,9 @@ export type ServerRequestMode = 'dev' | 'static' | 'server';
 //
 // @alpha (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
+
+// @alpha (undocumented)
+export type StreamingReturn<T> = () => Promise<T>;
 
 // (No @packageDocumentation comment for this package)
 

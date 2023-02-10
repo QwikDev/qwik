@@ -126,6 +126,10 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     getData: GetData;
+    // Warning: (ae-forgotten-export) The symbol "StreamingLoader" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    streaming: <T>(returnData: Promise<T> | (() => Promise<T>)) => StreamingLoader<T>;
 }
 
 // @alpha (undocumented)

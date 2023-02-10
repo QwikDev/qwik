@@ -162,11 +162,12 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
     }
 }
 
+type TransformPatReturn = (Option<Id>, Vec<(Id, JsWord, ast::Expr)>);
 fn transform_pat(
     new_ident: &ast::Ident,
     obj: &ast::ObjectPat,
     props_transform: &mut PropsDestructuing,
-) -> Option<(Option<Id>, Vec<(Id, JsWord, ast::Expr)>)> {
+) -> Option<TransformPatReturn> {
     let mut local = vec![];
     let mut skip = false;
     let mut rest_id = None;

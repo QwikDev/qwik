@@ -15,8 +15,7 @@ export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
     config() {
       return {
         ssr: {
-          target: 'webworker',
-          noExternal: true,
+          target: 'node',
         },
         build: {
           ssr: true,

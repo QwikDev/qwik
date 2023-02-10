@@ -120,7 +120,7 @@ const _resolveRequestHandlers = (
 };
 
 export const checkBrand = (obj: any, brand: string) => {
-  return obj && typeof obj === 'object' && obj.__brand === brand;
+  return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
 export function actionsMiddleware(serverLoaders: LoaderInternal[]) {

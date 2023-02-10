@@ -77,7 +77,7 @@ export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
-export type { Context } from './use/use-context';
+export type { ContextId, Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
 export type {

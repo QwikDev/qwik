@@ -7,15 +7,15 @@ contributors:
   - adamdbradley
 ---
 
-# Context
+# ContextId
 
 Qwik provides a context API, very similar to React's functional `useContext()`. In fact, Qwik's context API is the most efficient way to pass data down, reducing overhead, generating less code, and allowing Qwik to treeshake unused data more heavily.
 
 Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 
-- `createContextId(contextName: string): Context`
-- `useContextProvider(ctx: Context, value: VALUE): Context`
-- `useContext(ctx: Context): VALUE`
+- `createContextId(contextName: string): ContextId`
+- `useContextProvider(ctx: ContextId, value: VALUE): void`
+- `useContext(ctx: ContextId): VALUE`
 
 ### Example
 

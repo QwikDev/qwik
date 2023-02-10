@@ -554,6 +554,31 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 }
 
 #[test]
+fn example_use_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$((props) => {
+    const {value} = useSignal(0);
+    const {foo, ...rest} = useStore({foo: 0});
+    const {bar = 'hello', ...rest2} = useStore({foo: 0});
+    const {hello} = props;
+
+    return (
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
         code: r#"

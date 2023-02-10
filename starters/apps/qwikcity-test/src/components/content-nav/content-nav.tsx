@@ -24,7 +24,7 @@ export const ContentNav = component$(() => {
       </div>
       <div class="next">
         {next ? (
-          <Link href={next.href} prefetch={true}>
+          <Link href={next.href} prefetch>
             {next.text}
           </Link>
         ) : null}

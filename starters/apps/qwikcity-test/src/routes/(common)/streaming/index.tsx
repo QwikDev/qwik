@@ -2,27 +2,28 @@ import { component$, Resource } from '@builder.io/qwik';
 import { DocumentHead, loader$ } from '@builder.io/qwik-city';
 import { delay } from '../actions/login';
 
-export const thing = loader$(() => {
-  return async () => {
+export const useThing = loader$(({ streaming }) => {
+  return streaming(async () => {
     await delay(1000);
     return { name: 'thing' };
-  };
+  });
 });
 
-export const other = loader$(() => {
-  return async () => {
-    await delay(2000);
-    return { name: 'other' };
-  };
+export const useOther = loader$(({ streaming }) => {
+  return streaming(
+    delay(2000).then(() => {
+      return { name: 'other' };
+    })
+  );
 });
 
-export const another = loader$(() => {
+export const useAnother = loader$(() => {
   return { name: 'another' };
 });
 
 export default component$(() => {
-  const resourceThing = thing.use();
-  const resourceOther = other.use();
+  const resourceThing = useThing();
+  const resourceOther = useOther();
   return (
     <div>
       <h1>Streaming</h1>

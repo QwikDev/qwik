@@ -175,6 +175,10 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
+    streaming: (returnData) => {
+      return typeof returnData === 'function' ? returnData : () => returnData;
+    },
+
     fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
       requestEv[RequestEvStatus] = statusCode;

@@ -2,7 +2,7 @@ import { component$ } from '@builder.io/qwik';
 import { action$, Form } from '@builder.io/qwik-city';
 import { data } from './data';
 
-export const rootAction = action$((form, { redirect }) => {
+export const useRootAction = action$((form, { redirect }) => {
   const name = form.name as string;
   data.length = 0;
   data.push(name);
@@ -10,7 +10,7 @@ export const rootAction = action$((form, { redirect }) => {
 });
 
 export default component$(() => {
-  const action = rootAction.use();
+  const action = useRootAction();
   return (
     <Form action={action} spaReset>
       <input name="name" id="issue2644-input" />

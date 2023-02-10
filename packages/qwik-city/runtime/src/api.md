@@ -22,6 +22,7 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Signal } from '@builder.io/qwik';
+import { StreamingReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 
@@ -30,8 +31,8 @@ export const action$: ActionConstructor;
 
 // @alpha (undocumented)
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    // @deprecated (undocumented)
     use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
@@ -233,8 +234,8 @@ export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLo
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): LoaderSignal<RETURN>;
+    // @deprecated (undocumented)
     use(): LoaderSignal<RETURN>;
 }
 
@@ -351,6 +352,8 @@ export interface StaticGenerate {
 
 // @alpha (undocumented)
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+
+export { StreamingReturn }
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

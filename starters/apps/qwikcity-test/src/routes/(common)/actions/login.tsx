@@ -8,7 +8,7 @@ export function delay(nu: number) {
   });
 }
 
-export const secretAction = action$(
+export const useSecretAction = action$(
   async (payload, { fail, redirect }) => {
     if (payload.username === 'admin' && payload.code === 123) {
       await delay(2000);
@@ -30,7 +30,7 @@ export const secretAction = action$(
 );
 
 export const SecretForm = component$(() => {
-  const action = secretAction.use();
+  const action = useSecretAction();
   const message = useSignal('');
 
   return (

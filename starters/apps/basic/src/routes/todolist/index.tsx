@@ -7,11 +7,11 @@ interface ListItem {
 
 export const list: ListItem[] = [];
 
-export const listLoader = loader$(() => {
+export const useListLoader = loader$(() => {
   return list;
 });
 
-export const addToListAction = action$(
+export const useAddToListAction = action$(
   (item) => {
     list.push(item);
     return {
@@ -24,8 +24,8 @@ export const addToListAction = action$(
 );
 
 export default component$(() => {
-  const list = listLoader.use();
-  const action = addToListAction.use();
+  const list = useListLoader();
+  const action = useAddToListAction();
 
   return (
     <>

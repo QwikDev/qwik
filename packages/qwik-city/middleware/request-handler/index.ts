@@ -17,4 +17,5 @@ export type {
   ServerRenderOptions,
   ServerRequestEvent,
   ServerResponseHandler,
+  StreamingReturn,
 } from './types';

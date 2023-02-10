@@ -1,4 +1,4 @@
-import { assertDefined, assertEqual, assertTrue } from '../error/assert';
+import { assertDefined, assertEqual } from '../error/assert';
 import { getDocument } from '../util/dom';
 import {
   assertElement,
@@ -95,9 +95,12 @@ export const _serializeData = async (data: any) => {
   const mustGetObjId = (obj: any): string => {
     let suffix = '';
     if (isPromise(obj)) {
-      const { value, resolved } = getPromiseValue(obj);
-      obj = value;
-      if (resolved) {
+      const promiseValue = getPromiseValue(obj);
+      if (!promiseValue) {
+        throw qError(QError_missingObjectId, obj);
+      }
+      obj = promiseValue.value;
+      if (promiseValue.resolved) {
         suffix += '~';
       } else {
         suffix += '_';
@@ -333,9 +336,12 @@ export const _pauseFromContexts = async (
   const getObjId: GetObjID = (obj) => {
     let suffix = '';
     if (isPromise(obj)) {
-      const { value, resolved } = getPromiseValue(obj);
-      obj = value;
-      if (resolved) {
+      const promiseValue = getPromiseValue(obj);
+      if (!promiseValue) {
+        return null;
+      }
+      obj = promiseValue.value;
+      if (promiseValue.resolved) {
         suffix += '~';
       } else {
         suffix += '_';
@@ -769,8 +775,7 @@ const resolvePromise = (promise: Promise<any>) => {
   );
 };
 
-const getPromiseValue = (promise: Promise<any>): PromiseValue => {
-  assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously', promise);
+const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
   return (promise as any)[PROMISE_VALUE];
 };
 

@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { DocumentHead, Link, loader$, useLocation } from '@builder.io/qwik-city';
 
-export const weatherLoader = loader$(({ params, query }) => {
+export const useWeatherLoader = loader$(({ params, query }) => {
   return {
     city: params.city,
     country: params.country,
@@ -13,7 +13,7 @@ export const weatherLoader = loader$(({ params, query }) => {
 
 export default component$(() => {
   const loc = useLocation();
-  const weather = weatherLoader.use().value;
+  const weather = useWeatherLoader().value;
 
   return (
     <>
@@ -54,7 +54,7 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = ({ getData, params, query }) => {
-  const weather = getData(weatherLoader);
+  const weather = getData(useWeatherLoader);
   const forecast = query.get('forecast') || '10day';
 
   return {

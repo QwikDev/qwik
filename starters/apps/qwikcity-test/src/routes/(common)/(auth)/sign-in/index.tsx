@@ -6,13 +6,14 @@ import { component$ } from '@builder.io/qwik';
 import { DocumentHead, Form, RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 import { z } from 'zod';
+
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
     throw redirect(302, '/qwikcity-test/dashboard/');
   }
 };
 
-export const signinAction = action$(
+export const useSigninAction = action$(
   async (data, { cookie, redirect, status, fail }) => {
     const result = await signIn(data, cookie);
 
@@ -30,7 +31,7 @@ export const signinAction = action$(
   })
 );
 
-export const resetPasswordAction = action$(
+export const useResetPasswordAction = action$(
   ({ email }) => {
     console.warn('resetPasswordAction', email);
   },
@@ -40,8 +41,8 @@ export const resetPasswordAction = action$(
 );
 
 export default component$(() => {
-  const signIn = signinAction.use();
-  const resetPassword = resetPasswordAction.use();
+  const signIn = useSigninAction();
+  const resetPassword = useResetPasswordAction();
 
   return (
     <div>

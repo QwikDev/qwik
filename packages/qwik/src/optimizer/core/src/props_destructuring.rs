@@ -86,82 +86,151 @@ impl<'a> VisitMut for PropsDestructuing<'a> {
 fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuing) {
     if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
         let new_ident = private_ident!("props");
-        let mut local = vec![];
-        let mut skip = false;
-        let mut rest_id = None;
-        for prop in &obj.props {
-            match prop {
-                ast::ObjectPatProp::Assign(ref v) => {
-                    let access = ast::Expr::Member(ast::MemberExpr {
-                        obj: Box::new(ast::Expr::Ident(new_ident.clone())),
-                        prop: ast::MemberProp::Ident(v.key.clone()),
-                        span: DUMMY_SP,
-                    });
-                    if let Some(value) = &v.value {
-                        if is_immutable_expr(
-                            value.as_ref(),
-                            &COMPONENT,
-                            props_transform.global_collect,
-                            None,
-                        ) {
-                            local.push((
-                                id!(v.key),
-                                v.key.sym.clone(),
-                                ast::Expr::Bin(ast::BinExpr {
-                                    span: DUMMY_SP,
-                                    op: ast::BinaryOp::NullishCoalescing,
-                                    left: Box::new(access),
-                                    right: value.clone(),
-                                }),
-                            ));
-                        } else {
-                            skip = true;
+        if let Some((rest_id, local)) = transform_pat(&new_ident, obj, props_transform) {
+            if let Some(rest_id) = rest_id {
+                let props_id = id!(new_ident);
+                let omit_fn = props_transform
+                    .global_collect
+                    .import(_REST_PROPS.clone(), BUILDER_IO_QWIK.clone());
+                let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
+                transform_rest(arrow, &omit_fn, &rest_id, &props_id, omit);
+            }
+            for (id, _, expr) in local {
+                props_transform.identifiers.insert(id, expr);
+            }
+            arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
+        }
+    }
+    if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut arrow.body {
+        transform_component_body(body, props_transform);
+    }
+}
+
+fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut PropsDestructuing) {
+    let mut inserts = vec![];
+    for (index, stmt) in body.stmts.iter_mut().enumerate() {
+        if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
+            for decl in var_decl.decls.iter_mut() {
+                if let ast::Pat::Object(obj_pat) = &decl.name {
+                    let convert = match &decl.init {
+                        Some(box ast::Expr::Call(call_expr)) => {
+                            if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) =
+                                &call_expr.callee
+                            {
+                                if ident.sym.starts_with("use") {
+                                    Some(private_ident!(ident.sym[3..].to_lowercase()))
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
                         }
-                    } else {
-                        local.push((id!(v.key), v.key.sym.clone(), access));
-                    }
-                }
-                ast::ObjectPatProp::KeyValue(ref v) => {
-                    if let ast::PropName::Ident(ref key) = v.key {
-                        if let ast::Pat::Ident(ref ident) = *v.value {
-                            let access = ast::Expr::Member(ast::MemberExpr {
-                                obj: Box::new(ast::Expr::Ident(new_ident.clone())),
-                                prop: ast::MemberProp::Ident(key.clone()),
-                                span: DUMMY_SP,
-                            });
-                            local.push((id!(ident), key.sym.clone(), access));
-                        } else {
-                            skip = true;
+                        Some(box ast::Expr::Ident(ref ident)) => {
+                            Some(private_ident!(ident.sym.clone()))
                         }
-                    } else {
-                        skip = true;
-                    }
-                }
-                ast::ObjectPatProp::Rest(ast::RestPat { box arg, .. }) => {
-                    if let ast::Pat::Ident(ref ident) = arg {
-                        rest_id = Some(id!(&ident.id));
-                    } else {
-                        skip = true;
+                        _ => None,
+                    };
+                    if let Some(new_ident) = convert {
+                        if let Some((rest_id, local)) =
+                            transform_pat(&new_ident, obj_pat, props_transform)
+                        {
+                            if let Some(rest_id) = rest_id {
+                                let props_id = id!(new_ident);
+                                let omit_fn = props_transform
+                                    .global_collect
+                                    .import(_REST_PROPS.clone(), BUILDER_IO_QWIK.clone());
+                                let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
+
+                                let element =
+                                    create_omit_props(&omit_fn, &rest_id, &props_id, omit);
+                                inserts.push((index + 1 + inserts.len(), element));
+                            }
+                            for (id, _, expr) in local {
+                                props_transform.identifiers.insert(id, expr);
+                            }
+                            decl.name = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
+                        }
                     }
                 }
             }
         }
-        if skip || local.is_empty() {
-            return;
-        }
-        if let Some(rest_id) = rest_id {
-            let props_id = id!(new_ident);
-            let omit_fn = props_transform
-                .global_collect
-                .import(_REST_PROPS.clone(), BUILDER_IO_QWIK.clone());
-            let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
-            transform_rest(arrow, &omit_fn, &rest_id, &props_id, omit);
-        }
-        for (id, _, expr) in local {
-            props_transform.identifiers.insert(id, expr);
-        }
-        arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
     }
+
+    for (index, stmt) in inserts {
+        body.stmts.insert(index, stmt);
+    }
+}
+
+fn transform_pat(
+    new_ident: &ast::Ident,
+    obj: &ast::ObjectPat,
+    props_transform: &mut PropsDestructuing,
+) -> Option<(Option<Id>, Vec<(Id, JsWord, ast::Expr)>)> {
+    let mut local = vec![];
+    let mut skip = false;
+    let mut rest_id = None;
+    for prop in &obj.props {
+        match prop {
+            ast::ObjectPatProp::Assign(ref v) => {
+                let access = ast::Expr::Member(ast::MemberExpr {
+                    obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                    prop: ast::MemberProp::Ident(v.key.clone()),
+                    span: DUMMY_SP,
+                });
+                if let Some(value) = &v.value {
+                    if is_immutable_expr(
+                        value.as_ref(),
+                        &COMPONENT,
+                        props_transform.global_collect,
+                        None,
+                    ) {
+                        local.push((
+                            id!(v.key),
+                            v.key.sym.clone(),
+                            ast::Expr::Bin(ast::BinExpr {
+                                span: DUMMY_SP,
+                                op: ast::BinaryOp::NullishCoalescing,
+                                left: Box::new(access),
+                                right: value.clone(),
+                            }),
+                        ));
+                    } else {
+                        skip = true;
+                    }
+                } else {
+                    local.push((id!(v.key), v.key.sym.clone(), access));
+                }
+            }
+            ast::ObjectPatProp::KeyValue(ref v) => {
+                if let ast::PropName::Ident(ref key) = v.key {
+                    if let ast::Pat::Ident(ref ident) = *v.value {
+                        let access = ast::Expr::Member(ast::MemberExpr {
+                            obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                            prop: ast::MemberProp::Ident(key.clone()),
+                            span: DUMMY_SP,
+                        });
+                        local.push((id!(ident), key.sym.clone(), access));
+                    } else {
+                        skip = true;
+                    }
+                } else {
+                    skip = true;
+                }
+            }
+            ast::ObjectPatProp::Rest(ast::RestPat { box arg, .. }) => {
+                if let ast::Pat::Ident(ref ident) = arg {
+                    rest_id = Some(id!(&ident.id));
+                } else {
+                    skip = true;
+                }
+            }
+        }
+    }
+    if skip || local.is_empty() {
+        return None;
+    }
+    Some((rest_id, local))
 }
 
 fn transform_rest(

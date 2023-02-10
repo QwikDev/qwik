@@ -79,5 +79,29 @@ test.describe('loaders', () => {
 
       await expect(realDate).not.toHaveText(value!);
     });
+
+    test('serialization of loaders', async ({ page, javaScriptEnabled }) => {
+      await page.goto('/qwikcity-test/issue-loader-serialization/');
+      const loaderData = page.locator('.loader-data');
+
+      await expect(loaderData).toHaveText([
+        javaScriptEnabled ? 'loader-cmp1' : 'empty',
+        'empty',
+        'loader-cmp4',
+      ]);
+
+      if (javaScriptEnabled) {
+        await page.locator('#update-cmp2').click();
+        await expect(loaderData).toHaveText(['loader-cmp1', 'loader-cmp2', 'loader-cmp4']);
+
+        await page.locator('#update-cmp3').click();
+        await expect(loaderData).toHaveText([
+          'loader-cmp1',
+          'loader-cmp2',
+          'loader-cmp3',
+          'loader-cmp4',
+        ]);
+      }
+    });
   }
 });

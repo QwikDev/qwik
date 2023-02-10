@@ -174,9 +174,12 @@ export async function mainThread(sys: System) {
         const modules = await Promise.all(loaders.map((loader) => loader()));
         const pageModule: PageModule = modules[modules.length - 1] as any;
 
-        if (pageModule.default) {
-          // page module (not an endpoint)
+        // if a module has a "default" export, it's a page module
+        // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation
+        const isValidStaticModule =
+          pageModule && (pageModule.default || pageModule.onRequest || pageModule.onGet);
 
+        if (isValidStaticModule) {
           if (Array.isArray(paramNames) && paramNames.length > 0) {
             if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
               // dynamic route page module

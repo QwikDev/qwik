@@ -1,22 +1,16 @@
 {
   "routes": [
     {
-      "route": "/build/*"
+      "route": "*",
+      "methods": ["POST", "PUT", "DELETE"],
+      "rewrite": "/api/render"
     },
     {
-      "route": "/favicon.svg"
+      "route": "/",
+      "rewrite": "/api/render"
     },
     {
-      "route": "/manifest.json"
-    },
-    {
-      "route": "/service-worker.js"
-    },
-    {
-      "route": "/.auth/*"
-    },
-    {
-      "route": "/*",
+      "route": "/index.html",
       "rewrite": "/api/render"
     }
   ],

@@ -1,7 +1,7 @@
 import { component$, useClientEffect$, useSignal } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 
-export const getQuery = loader$(({ query }) => {
+export const useGetQuery = loader$(({ query }) => {
   return {
     query: query.get('query') ?? 'NONE',
     hash: query.get('hash') ?? 'NONE',
@@ -9,7 +9,7 @@ export const getQuery = loader$(({ query }) => {
 });
 export default component$(() => {
   const signal = useSignal({});
-  const data = getQuery.use();
+  const data = useGetQuery();
 
   useClientEffect$(() => {
     const url = new URL(window.location.href);

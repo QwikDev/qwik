@@ -43,6 +43,7 @@ import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
+import { routes, menus, cacheModules, trailingSlash } from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -123,6 +124,10 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
       navPath.value = value;
     }
+    const prefetchURL = new URL(navPath.value, routeLocation.href);
+    loadClientData(prefetchURL);
+    loadRoute(routes, menus, cacheModules, prefetchURL.pathname);
+
     actionState.value = undefined;
     routeLocation.isNavigating = true;
   });
@@ -146,7 +151,6 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
-        const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
         // ensure correct trailing slash
         if (url.pathname.endsWith('/')) {
           if (!trailingSlash) {
@@ -156,7 +160,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
           url.pathname += '/';
         }
         let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
-        const pageData = (clientPageData = await loadClientData(url.href, true, action));
+        const pageData = (clientPageData = await loadClientData(url, true, action));
         if (!pageData) {
           // Reset the path to the current path
           (navPath as any).untrackedValue = toPath(url);

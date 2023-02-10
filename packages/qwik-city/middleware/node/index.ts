@@ -51,13 +51,15 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
 
   const notFound = async (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => {
     try {
-      const url = getUrl(req);
-      const notFoundHtml = getNotFound(url.pathname);
-      res.writeHead(404, {
-        'Content-Type': 'text/html; charset=utf-8',
-        'X-Not-Found': url.pathname,
-      });
-      res.end(notFoundHtml);
+      if (!res.headersSent) {
+        const url = getUrl(req);
+        const notFoundHtml = getNotFound(url.pathname);
+        res.writeHead(404, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Not-Found': url.pathname,
+        });
+        res.end(notFoundHtml);
+      }
     } catch (e) {
       console.error(e);
       next(e);

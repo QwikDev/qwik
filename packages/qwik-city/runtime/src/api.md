@@ -9,6 +9,7 @@ import { Component } from '@builder.io/qwik';
 import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
+import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn as FailReturn_2 } from '@builder.io/qwik-city';
 import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
@@ -22,7 +23,6 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Signal } from '@builder.io/qwik';
-import { StreamingReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 
@@ -96,6 +96,8 @@ export { Cookie }
 export { CookieOptions }
 
 export { CookieValue }
+
+export { DeferReturn }
 
 // @alpha (undocumented)
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
@@ -352,8 +354,6 @@ export interface StaticGenerate {
 
 // @alpha (undocumented)
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
-
-export { StreamingReturn }
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

@@ -292,9 +292,15 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform>
 /**
  * @alpha
  */
+export type StreamingReturn<T> = () => Promise<T>;
+
+/**
+ * @alpha
+ */
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
   getData: GetData;
+  streaming: <T>(returnData: Promise<T> | (() => Promise<T>)) => StreamingReturn<T>;
 }
 
 /**

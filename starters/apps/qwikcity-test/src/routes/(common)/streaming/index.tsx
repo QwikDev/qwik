@@ -2,15 +2,15 @@ import { component$, Resource } from '@builder.io/qwik';
 import { DocumentHead, loader$ } from '@builder.io/qwik-city';
 import { delay } from '../actions/login';
 
-export const useThing = loader$(({ streaming }) => {
-  return streaming(async () => {
+export const useThing = loader$(({ defer }) => {
+  return defer(async () => {
     await delay(1000);
     return { name: 'thing' };
   });
 });
 
-export const useOther = loader$(({ streaming }) => {
-  return streaming(
+export const useOther = loader$(({ defer }) => {
+  return defer(
     delay(2000).then(() => {
       return { name: 'other' };
     })

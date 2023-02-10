@@ -17,7 +17,7 @@ export type {
   RequestHandler,
   RequestEventLoader,
   RequestEventCommon,
-  StreamingReturn,
+  DeferReturn,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {

@@ -332,8 +332,6 @@ export interface RouteLocation {
     readonly pathname: string;
     // (undocumented)
     readonly query: URLSearchParams;
-    // (undocumented)
-    readonly url: URL;
 }
 
 // @alpha (undocumented)

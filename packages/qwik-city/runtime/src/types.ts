@@ -54,13 +54,11 @@ export interface MenuModule {
  * @alpha
  */
 export interface RouteLocation {
-  readonly url: URL;
   readonly params: Readonly<Record<string, string>>;
-  readonly isNavigating: boolean;
-
-  readonly pathname: string;
   readonly href: string;
+  readonly pathname: string;
   readonly query: URLSearchParams;
+  readonly isNavigating: boolean;
 }
 
 /**

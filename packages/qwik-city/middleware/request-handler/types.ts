@@ -289,7 +289,10 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform>
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
-export type StreamingLoader<T> = () => Promise<T>;
+/**
+ * @alpha
+ */
+export type StreamingReturn<T> = () => Promise<T>;
 
 /**
  * @alpha
@@ -297,7 +300,7 @@ export type StreamingLoader<T> = () => Promise<T>;
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
   getData: GetData;
-  streaming: <T>(returnData: Promise<T> | (() => Promise<T>)) => StreamingLoader<T>;
+  streaming: <T>(returnData: Promise<T> | (() => Promise<T>)) => StreamingReturn<T>;
 }
 
 /**

@@ -2,38 +2,38 @@ import { component$, useClientEffect$, useSignal, useTask$ } from '@builder.io/q
 import { loader$ } from '@builder.io/qwik-city';
 import { isBrowser } from '@builder.io/qwik/build';
 
-export const cmp1 = loader$(() => {
+export const useCmp1 = loader$(() => {
   return {
     message: 'loader-cmp1',
   };
 });
 
-export const cmp2 = loader$(() => {
+export const useCmp2 = loader$(() => {
   return {
     message: 'loader-cmp2',
   };
 });
 
-export const cmp3 = loader$(() => {
+export const useCmp3 = loader$(() => {
   return {
     message: 'loader-cmp3',
   };
 });
 
-export const cmp4 = loader$(() => {
+export const useCmp4 = loader$(() => {
   return {
     message: 'loader-cmp4',
   };
 });
 
-export const cmp5 = loader$(() => {
+export const useCmp5 = loader$(() => {
   return {
     message: 'loader-cmp5',
   };
 });
 
 export const Cmp = component$(() => {
-  const date = cmp1.use();
+  const date = useCmp1();
   const ref = useSignal<HTMLElement>();
   useClientEffect$(() => {
     ref.value!.textContent = date.value.message;
@@ -48,7 +48,7 @@ export const Cmp = component$(() => {
 });
 
 export const Cmp2 = component$(() => {
-  const date = cmp2.use();
+  const date = useCmp2();
   const signal = useSignal(0);
   const ref = useSignal<HTMLElement>();
   useTask$(({ track }) => {
@@ -70,7 +70,7 @@ export const Cmp2 = component$(() => {
 });
 
 export const Cmp3 = component$(() => {
-  const date = cmp3.use();
+  const date = useCmp3();
   const signal = useSignal(0);
 
   return (
@@ -84,7 +84,7 @@ export const Cmp3 = component$(() => {
 });
 
 export const Cmp4 = component$(() => {
-  const date = cmp4.use();
+  const date = useCmp4();
 
   return (
     <div>

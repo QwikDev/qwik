@@ -2,10 +2,10 @@ import { component$, Resource } from '@builder.io/qwik';
 import { action$, DocumentHead, Form, Link, loader$, z, zod$ } from '@builder.io/qwik-city';
 import { delay } from '../../actions/login';
 
-export const dateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
+export const useDateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
-export const dependencyLoader = loader$(async ({ params, redirect, json, getData }) => {
-  const formData = await getData(form);
+export const useDependencyLoader = loader$(async ({ params, redirect, json, getData }) => {
+  const formData = await getData(useForm);
   await delay(100);
   if (params.id === 'redirect') {
     throw redirect(302, '/qwikcity-test/');
@@ -20,9 +20,9 @@ export const dependencyLoader = loader$(async ({ params, redirect, json, getData
   };
 });
 
-export const asyncLoader = loader$(async ({ getData }) => {
-  const p1 = getData(dateLoader);
-  const p2 = getData(dependencyLoader);
+export const useAsyncLoader = loader$(async ({ getData }) => {
+  const p1 = getData(useDateLoader);
+  const p2 = getData(useDependencyLoader);
   if (!(p1 instanceof Promise)) {
     throw new Error('Expected date to be a promise');
   }
@@ -44,27 +44,27 @@ export const asyncLoader = loader$(async ({ getData }) => {
   };
 });
 
-export const slowLoader = loader$(async () => {
+export const useSlowLoader = loader$(async () => {
   await delay(500);
   return {
     foo: 123,
   };
 });
 
-export const realDateLoader = loader$(() => {
+export const useRealDateLoader = loader$(() => {
   return [new Date().toISOString()];
 });
 
 export const DateCmp = component$(() => {
-  const date = realDateLoader.use();
+  const date = useRealDateLoader();
   return <p id="real-date">real-date: {date.value[0]}</p>;
 });
 
 export default component$(() => {
-  const date = dateLoader.use();
-  const slow = slowLoader.use();
-  const signal = asyncLoader.use();
-  const action = form.use();
+  const date = useDateLoader();
+  const slow = useSlowLoader();
+  const signal = useAsyncLoader();
+  const action = useForm();
   return (
     <div class="loaders">
       <h1>Loaders</h1>
@@ -114,7 +114,7 @@ export default component$(() => {
   );
 });
 
-export const form = action$(
+export const useForm = action$(
   async (stuff) => {
     return stuff;
   },
@@ -124,9 +124,9 @@ export const form = action$(
 );
 
 export const head: DocumentHead = ({ getData }) => {
-  const date = getData(dateLoader);
-  const dep = getData(dependencyLoader);
-  const action = getData(form);
+  const date = getData(useDateLoader);
+  const dep = getData(useDependencyLoader);
+  const action = getData(useForm);
   let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;

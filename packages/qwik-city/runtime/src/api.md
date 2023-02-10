@@ -30,8 +30,8 @@ export const action$: ActionConstructor;
 
 // @alpha (undocumented)
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    // @deprecated (undocumented)
     use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
@@ -233,8 +233,8 @@ export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLo
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): LoaderSignal<RETURN>;
+    // @deprecated (undocumented)
     use(): LoaderSignal<RETURN>;
 }
 

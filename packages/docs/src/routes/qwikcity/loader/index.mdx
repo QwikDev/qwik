@@ -41,7 +41,7 @@ Loaders can be used by any component in the application, as long as the loader i
 import { loader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const getServerTime = loader$(() => {
+export const useGetServerTime = loader$(() => {
   return {
     time: Date.now();
   }
@@ -49,7 +49,7 @@ export const getServerTime = loader$(() => {
 
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
-  const signal = getServerTime.use(); // Signal<{time: number}>
+  const signal = useGetServerTime(); // Signal<{time: number}>
   return (
     <div>
       Server time: {signal.value.time}
@@ -71,14 +71,14 @@ import { component$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 import { Footer } from '../components/footer.tsx';
 
-export const getServerTime = loader$(() => {
+export const useGetServerTime = loader$(() => {
   return {
     time: Date.now();
   }
 });
 
 export default component$(() => {
-  const signal = getServerTime.use();
+  const signal = useGetServerTime();
   return (
     <main>
       <Slot>
@@ -94,11 +94,11 @@ export default component$(() => {
 import { component$ } from '@builder.io/qwik';
 
 // Import the loader from the layout
-import { getServerTime } from '../routes/layout.tsx';
+import { useGetServerTime } from '../routes/layout.tsx';
 
 export const Footer = component$(() => {
   // Consume the loader data
-  const signal = getServerTime.use();
+  const signal = useGetServerTime();
   return <footer>Server time: {signal.value.time}</footer>;
 });
 ```
@@ -109,21 +109,21 @@ export const Footer = component$(() => {
 import { component$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 
-export const isLogged = loader$(({cookies}) => {
+export const useIsLogged = loader$(({cookies}) => {
   return {
     logged: checkCookies(cookies);
   }
 });
 
-export const getCurrentUser = loader$(({cookies}) => {
+export const useGetCurrentUser = loader$(({cookies}) => {
   return {
     user: currentUserFromCookies(cookies);
   }
 });
 
 export default component$(() => {
-  const logged = isLogged.use();
-  const user = getCurrentUser.use();
+  const logged = useIsLogged();
+  const user = useGetCurrentUser();
   return (
     <section>
       <h1>Admin</h1>

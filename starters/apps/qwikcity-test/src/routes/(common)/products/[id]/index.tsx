@@ -6,7 +6,7 @@ export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const product = productLoader.use();
+  const product = useProductLoader();
 
   return (
     <div>
@@ -91,7 +91,7 @@ export const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-export const productLoader = loader$(
+export const useProductLoader = loader$(
   async ({ headers, json, error, params, query, redirect, status }) => {
     // Serverside Endpoint
     // During SSR, this method is called directly on the server and returns the data object

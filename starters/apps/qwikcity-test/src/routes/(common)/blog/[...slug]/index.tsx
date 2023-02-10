@@ -2,7 +2,7 @@ import { component$ } from '@builder.io/qwik';
 import { DocumentHead, StaticGenerateHandler, loader$ } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const blog = loader.use();
+  const blog = useLoader();
 
   return (
     <div>
@@ -17,7 +17,7 @@ export interface BlogData {
   content: string;
 }
 
-export const loader = loader$(({ params, request }) => {
+export const useLoader = loader$(({ params, request }) => {
   return {
     title: `Blog: ${params.slug}`,
     content: `${params.slug}, ${request.url}`,
@@ -25,7 +25,7 @@ export const loader = loader$(({ params, request }) => {
 });
 
 export const head: DocumentHead = ({ getData }) => {
-  const data = getData(loader);
+  const data = getData(useLoader);
   return { title: data?.title };
 };
 

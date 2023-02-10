@@ -13,7 +13,7 @@ Actions are referenced using the `.use()` method from within a Qwik Component. T
 ```tsx
 // src/routes/layout.tsx
 import { action$ } from '@builder.io/qwik';
-export const addUser = action$((user) => {
+export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -22,7 +22,7 @@ export const addUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   // action.actionPath: string;
   // action.isRunning: boolean;
   // action.status?: number;
@@ -46,7 +46,7 @@ The best way to trigger an action is by using the `<Form/>` component exported i
 import { action$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const addUser = action$((user) => {
+export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -55,7 +55,7 @@ export const addUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" />
@@ -78,7 +78,7 @@ Actions can also be triggered programatically using the `action.run()` method, i
 import { action$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const addUser = action$((user) => {
+export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -87,7 +87,7 @@ export const addUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <div>
       <button
@@ -167,7 +167,7 @@ export const addUser = action$(
 );
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" />
@@ -211,7 +211,7 @@ Failures are stored in the `action.value` property, just like the success value.
 
 ```tsx
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" />
@@ -232,7 +232,7 @@ When an action is triggered, the previous state is stored in the `action.formDat
 ```tsx
 import { action$, Form } from '@builder.io/qwik-city';
 
-export const addUser = action$(
+export const useAddUser = action$(
   (user) => {
     // `user` is typed { name: string }
     const userID = db.users.add(user);
@@ -246,7 +246,7 @@ export const addUser = action$(
 );
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" value={action.formData?.get('name')} />

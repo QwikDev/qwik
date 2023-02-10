@@ -16,7 +16,7 @@ export const configs = {
     rules: {
       'qwik/no-use-after-await': 'error',
       'qwik/valid-lexical-scope': 'error',
-      'qwik/loader-location': 'error',
+      'qwik/loader-location': 'warn',
       'qwik/single-jsx-root': 'warn',
     },
   },

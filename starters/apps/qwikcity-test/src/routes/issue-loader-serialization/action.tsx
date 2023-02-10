@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { action$, Form } from '@builder.io/qwik-city';
 
-export const otherAction = action$(() => {
+export const useOtherAction = action$(() => {
   return {
     secret: 'this is the secret',
     date: new Date(),
@@ -9,7 +9,7 @@ export const otherAction = action$(() => {
 });
 
 export default component$(() => {
-  const other = otherAction.use();
+  const other = useOtherAction();
   return (
     <div>
       <Form action={other}>

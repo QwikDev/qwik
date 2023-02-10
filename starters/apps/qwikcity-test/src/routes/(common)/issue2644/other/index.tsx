@@ -2,19 +2,19 @@ import { component$ } from '@builder.io/qwik';
 import { action$, loader$, Form } from '@builder.io/qwik-city';
 import { data } from '../data';
 
-export const getData = loader$(() => {
+export const useGetData = loader$(() => {
   return data;
 });
 
-export const otherAction = action$((form) => {
+export const useOtherAction = action$((form) => {
   const name = form.name as string;
   data.push(name);
   return { success: true };
 });
 
 export default component$(() => {
-  const items = getData.use();
-  const action = otherAction.use();
+  const items = useGetData();
+  const action = useOtherAction();
   return (
     <div>
       <ul id="issue2644-list">

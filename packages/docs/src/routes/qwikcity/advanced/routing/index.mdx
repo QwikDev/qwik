@@ -1,69 +1,91 @@
 # Advanced Routing
 
-## Non-200 Response
+## 404 Page Handling
 
-At times it is necessary to respond with HTTP status codes other than 200. In such cases, response handler is the place to determine what status code should be returned.
+It's possible for any user to visit a URL that doesn't exist on your site. For example, if a user visits `https://example.com/does-not-exist`, then the server should respond with a [404 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404), and the page should have at least some sort of explanation, rather than just a blank page.
 
-Assume this file layout.
+For any given route, the Qwik City can choose how to best handle the 404 response for the user, whether it's with the default 404 page, a custom 404 page, or a dynamically generated 404 page.
+
+### Default 404 Page
+
+Rather than showing a blank page, by default Qwik City provides a generic 404 page. The default 404 page is rendered as a fallback when a custom 404 page was not found. Qwik City's default page is alright and all, but we recommend providing a custom 404 so the user can be given a better experience, such as providing the common header and navigation so the user can find the page they're looking for.
+
+### Custom 404 Page
+
+Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familar layouts as the rest of your site. 
+
+To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory. 
 
 ```
 src/
 └── routes/
-    └── product/
-        └── [skuId]/
-            └── index.tsx     # https://example.com/product/1234
+    ├── 404.tsx            # Custom 404
+    ├── layout.tsx         # Default layout
+    └── index.tsx          # https://example.com/
 ```
 
-## 404 - Not Found
+In the example above, the `404.tsx` page will also use the `layout.tsx` layout, since it is a sibling of the layout in the same directory.
 
-Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is in the request handler by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
+Additionally, using Qwik City's directory-based routing allows custom 404 pages to be created at different paths. For example, if `src/routes/account/404.tsx` was also added to the structure, then the custom account 404 page would only be used for the `/account/*` routes, while all other 404s would use the root `404.tsx` page.
+
+```
+src/
+└── routes/
+    ├── account/
+    │   └── 404.tsx        # Custom Account 404
+    │   └── index.tsx      # https://example.com/account/
+    ├── 404.tsx            # Custom 404
+    ├── layout.tsx         # Default layout
+    └── index.tsx          # https://example.com/
+```
+
+Also note that these 404 pages are statically generated at build-time, meaning they end up as static `404.html` page, rather than each being a server-side rendered page. Creating static `404.html` pages helps ensure your HTTP server isn't bothered server-side rendering 404 pages and eating up resources.
+
+### Dynamic 404 Page
+
+When rendering a page, the default is to always return a [200 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200), which tells the browser all is good and the route you went to exists. However, it's also possible to handle rendering the page, but manually setting the response status code other than 200, such as 404.
+
+For example, let's say we have a product page with a URL such as `https://example.com/product/abc`. The product page is rendered using the `src/routes/product/[id]/index.tsx` directory-based route and the `[id]` is a dynamic param.
+
+In this example, `id` is used as a key to load the product data from the database. When the product data is found, great, we'll correctly render data. However, if the product data is not found in the database, we can still handle rendering this page, but instead responding with a 404 HTTP status code.
 
 ```tsx
-// File: src/routes/product/[skuId]/index.tsx
-import { component$ } from '@builder.io/qwik';
+export const useProductLoader = loader$(async ({ params, status }) => {
+  // Example database call using the id param
+  // The database could return null if the product is not found
+  const data = await productDatabase.get(params.id);
 
-type EndpointData = ProductData | null;
-
-interface ProductData {
-  skuId: string;
-  price: number;
-  description: string;
-}
-export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
-  const product = await loadProductFromDatabase(params.skuId);
-
-  if (!product) {
-    // Product data not found
-    // but the data is still given to the renderer to decide what to do
-    response.status = 404;
-    return null;
-  } else {
-    // ...
+  if (!data) {
+    // Product data was not found
+    // Set the status code to 404
+    status(404);
   }
-};
+
+  // return the data (which may be null)
+  return data;
+});
 
 export default component$(() => {
-  const resource = useEndpoint<typeof onGet>(); //equivalent to useEndpoint<EndpointData>
+  // get the product data from the loader
+  const product = useProductLoader();
 
-  if (resource.state == 'resolved' && !resource.resolved) {
-    // Early return for 404
-    return <div>404: Product not found!!!</div>;
+  if (!product.value) {
+    // no product data found
+    // so render our own custom product 404
+    return (
+      <p>
+        Sorry, looks like we don't have this product.
+      </p>
+    )
   }
 
-  // Normal rendering
+  // product data was found, so let's render it
   return (
-    <Resource
-      value={resource}
-      onPending={() => <div>Loading...</div>}
-      onRejected={() => <div>Error</div>}
-      onResolved={() => (
-        <>
-          <h1>Product: {product.productId}</h1>
-          <p>Price: {product.price}</p>
-          <p>{product.description}</p>
-        </>
-      )}
-    />
+    <div>
+      <h1>{product.value.name}</h1>
+      <p>{product.value.price}</p>
+      <p>{product.value.description}</p>
+    </div>
   );
 });
 ```

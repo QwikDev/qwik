@@ -15,7 +15,7 @@ export interface FormSubmitCompletedDetail<T> {
 export interface FormProps<O, I>
   extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
   /**
-   * Reference to the action returned by `action.use()`.
+   * Reference to the action returned by `action()`.
    */
   action: ActionStore<O, I, true | false>;
 

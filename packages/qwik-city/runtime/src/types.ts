@@ -371,10 +371,10 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
    * ```tsx
    * import {action$, Form} from '@builder.io/qwik-city';
    *
-   * export const addUser = action$(() => { ... });
+   * export const useAddUser = action$(() => { ... });
    *
    * export default component$(() => {
-   *   const action = addUser.use()l
+   *   const action = useAddUser()l
    *   return (
    *     <Form action={action}/>
    *   );

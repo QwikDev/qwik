@@ -303,9 +303,7 @@ export default component$(() => {
             useMethod(foo);
             return <div></div>
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -319,9 +317,7 @@ export default component$(() => {
             });
             return <div></div>;
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -335,9 +331,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -349,9 +343,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("Stuff") can not be captured inside the scope (useTask$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -364,9 +356,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("stuff") can not be captured inside the scope (useTask$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -379,9 +369,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useTask$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -401,9 +389,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -418,9 +404,7 @@ export default component$(() => {
           });
           return <div></div>
         });`,
-        errors: [
-          'Identifier ("state") can not be captured inside the scope (useTask$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -466,9 +450,7 @@ export default component$(() => {
             <button onClick$={() => props.nonserializableTuple}></button>
           );
         });`,
-        errors: [
-          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
     ],
   });

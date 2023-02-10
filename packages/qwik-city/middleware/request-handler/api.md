@@ -51,11 +51,14 @@ export interface CookieValue {
 }
 
 // @alpha (undocumented)
+export type DeferReturn<T> = () => Promise<T>;
+
+// @alpha (undocumented)
 export interface GetData {
     // (undocumented)
     <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
-    <T>(loader: Action<T>): Promise<T | undefined>;
+    <T>(action: Action<T>): Promise<T | undefined>;
 }
 
 // @alpha (undocumented)
@@ -124,6 +127,8 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
 
 // @alpha (undocumented)
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
+    // (undocumented)
+    defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
     // (undocumented)
     getData: GetData;
 }

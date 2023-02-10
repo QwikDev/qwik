@@ -9,6 +9,7 @@ import { Component } from '@builder.io/qwik';
 import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
+import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn as FailReturn_2 } from '@builder.io/qwik-city';
 import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
@@ -30,8 +31,8 @@ export const action$: ActionConstructor;
 
 // @alpha (undocumented)
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    // @deprecated (undocumented)
     use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
@@ -95,6 +96,8 @@ export { Cookie }
 export { CookieOptions }
 
 export { CookieValue }
+
+export { DeferReturn }
 
 // @alpha (undocumented)
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
@@ -233,8 +236,8 @@ export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLo
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): LoaderSignal<RETURN>;
+    // @deprecated (undocumented)
     use(): LoaderSignal<RETURN>;
 }
 
@@ -242,7 +245,7 @@ export interface Loader<RETURN> {
 export const loaderQrl: <RETURN, PLATFORM = unknown>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => RETURN>) => Loader<RETURN>;
 
 // @alpha (undocumented)
-export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Signal<ValueOrPromise<B>> : Signal<Awaited<T>>;
+export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<Awaited<T>>>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

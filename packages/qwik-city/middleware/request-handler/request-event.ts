@@ -175,6 +175,10 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
+    defer: (returnData) => {
+      return typeof returnData === 'function' ? returnData : () => returnData;
+    },
+
     fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
       requestEv[RequestEvStatus] = statusCode;
@@ -202,6 +206,10 @@ export function createRequestEvent(
 
     send: send as any,
 
+    isDirty: () => {
+      return writableStream !== null;
+    },
+
     getWritableStream: () => {
       if (writableStream === null) {
         writableStream = serverRequestEv.getWritableStream(
@@ -227,6 +235,12 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvTrailingSlash]: boolean;
   [RequestEvBasePathname]: string;
   [RequestEvRoute]: LoadedRoute | null;
+  /**
+   * Check if this request is already written to.
+   *
+   * @returns true, if `getWritableStream()` has already been called.
+   */
+  isDirty(): boolean;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

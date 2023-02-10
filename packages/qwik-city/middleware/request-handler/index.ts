@@ -17,4 +17,5 @@ export type {
   ServerRenderOptions,
   ServerRequestEvent,
   ServerResponseHandler,
+  DeferReturn,
 } from './types';

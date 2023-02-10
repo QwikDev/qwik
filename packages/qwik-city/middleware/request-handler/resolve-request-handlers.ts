@@ -120,7 +120,7 @@ const _resolveRequestHandlers = (
 };
 
 export const checkBrand = (obj: any, brand: string) => {
-  return obj && typeof obj === 'object' && obj.__brand === brand;
+  return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
 export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
@@ -187,8 +187,9 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
           return (loaders[loaderId] = Promise.resolve()
             .then(() => loader.__qrl(requestEv as any))
             .then((loaderResolved) => {
-              return (loaders[loaderId] =
-                typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved);
+              loaders[loaderId] =
+                typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
+              return loaderResolved;
             }));
         })
       );

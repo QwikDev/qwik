@@ -495,7 +495,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const { pathId } = parseId(id);
     const { ext, dir, base } = path.parse(pathId);
 
-    if (TRANSFORM_EXTS[ext] || TRANSFORM_REGEX.test(pathId)) {
+    if (
+      TRANSFORM_EXTS[ext] ||
+      TRANSFORM_REGEX.test(pathId) ||
+      insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
+    ) {
       const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 
@@ -646,9 +650,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
     const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
+    const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
+export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 
@@ -679,6 +685,21 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     validateSource,
   };
 }
+
+const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
+  if (ext !== '.js') {
+    return false;
+  }
+  if (srcDir != null && dir.startsWith(srcDir)) {
+    return true;
+  }
+  for (const root of vendorRoots) {
+    if (dir.startsWith(root)) {
+      return true;
+    }
+  }
+  return false;
+};
 
 export function parseId(originalId: string) {
   const [pathId, query] = originalId.split('?');

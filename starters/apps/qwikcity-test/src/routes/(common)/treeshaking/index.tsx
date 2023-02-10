@@ -6,14 +6,14 @@ export const neverUsed = loader$(() => {
   return ['SHOULD NOT BE SERIALIZED'];
 });
 
-export const used = loader$(() => {
+export const useUsed = loader$(() => {
   // console.log('used');
 
   return ['USED, but not serialized'];
 });
 
 export default component$(() => {
-  const data = used.use();
+  const data = useUsed();
   const signal = useSignal(0);
 
   return (

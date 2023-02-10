@@ -292,9 +292,15 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform>
 /**
  * @alpha
  */
+export type DeferReturn<T> = () => Promise<T>;
+
+/**
+ * @alpha
+ */
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
   getData: GetData;
+  defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
 }
 
 /**
@@ -302,7 +308,7 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
  */
 export interface GetData {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
-  <T>(loader: Action<T>): Promise<T | undefined>;
+  <T>(action: Action<T>): Promise<T | undefined>;
 }
 
 /**

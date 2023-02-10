@@ -187,8 +187,9 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
           return (loaders[loaderId] = Promise.resolve()
             .then(() => loader.__qrl(requestEv as any))
             .then((loaderResolved) => {
-              return (loaders[loaderId] =
-                typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved);
+              loaders[loaderId] =
+                typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
+              return loaderResolved;
             }));
         })
       );

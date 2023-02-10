@@ -36,6 +36,7 @@ export type {
   ZodReturn,
   StaticGenerate,
   RouteNavigate,
+  StreamingReturn,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';

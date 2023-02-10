@@ -175,7 +175,7 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    streaming: (returnData) => {
+    defer: (returnData) => {
       return typeof returnData === 'function' ? returnData : () => returnData;
     },
 

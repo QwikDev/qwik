@@ -38,6 +38,41 @@ export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_componen
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,sBAAQ,8FAoBlB\"}")
+============================= child_component_useonvisibletask_nz6mf0opce0.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Child_component_useOnVisibleTask_nZ6mF0oPCE0 = ()=>{
+    const [state] = useLexicalScope();
+    const timer = setInterval(()=>{
+        state.count++;
+    }, 1000);
+    return ()=>{
+        clearInterval(timer);
+    };
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DASsB;;IACd,MAAM,QAAQ,YAAY,IAAM;QAChC,MAAM,KAAK;IACX,GAAG;IACH,OAAO,IAAM;QACb,cAAc;IACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useOnVisibleTask_nZ6mF0oPCE0",
+  "entry": null,
+  "displayName": "Child_component_useOnVisibleTask",
+  "hash": "nZ6mF0oPCE0",
+  "canonicalFilename": "child_component_useonvisibletask_nz6mf0opce0",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useOnVisibleTask$",
+  "captures": true,
+  "loc": [
+    234,
+    393
+  ]
+}
+*/
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -50,7 +85,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         count: 0
     });
     // Double count watch
-    useOnVisibleTaskQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g"), "Child_component_useOnVisibleTask_kYRT1iERt9g", [
+    useOnVisibleTaskQrl(qrl(()=>import("./child_component_useonvisibletask_nz6mf0opce0"), "Child_component_useOnVisibleTask_nZ6mF0oPCE0", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
@@ -74,43 +109,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    122,
-    463
-  ]
-}
-*/
-============================= child_component_useclienteffect_kyrt1iert9g.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@builder.io/qwik";
-export const Child_component_useOnVisibleTask_kYRT1iERt9g = ()=>{
-    const [state] = useLexicalScope();
-    const timer = setInterval(()=>{
-        state.count++;
-    }, 1000);
-    return ()=>{
-        clearInterval(timer);
-    };
-};
-export { _hW } from "@builder.io/qwik";
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2DASqB;;IACb,MAAM,QAAQ,YAAY,IAAM;QAChC,MAAM,KAAK;IACX,GAAG;IACH,OAAO,IAAM;QACb,cAAc;IACd\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_useOnVisibleTask_kYRT1iERt9g",
-  "entry": null,
-  "displayName": "Child_component_useOnVisibleTask",
-  "hash": "kYRT1iERt9g",
-  "canonicalFilename": "child_component_useclienteffect_kyrt1iert9g",
-  "extension": "js",
-  "parent": "Child_component_9GyF01GDKqw",
-  "ctxKind": "function",
-  "ctxName": "useOnVisibleTask$",
-  "captures": true,
-  "loc": [
-    232,
-    391
+    123,
+    465
   ]
 }
 */

@@ -1,7 +1,7 @@
 /* eslint-disable */
 import {
   component$,
-  useClientEffect$,
+  useOnVisibleTask$,
   useRef,
   useStore,
   useStyles$,
@@ -52,13 +52,13 @@ export const Timer = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     state.msg = 'run';
     container.current!.setAttribute('data-effect', 'true');
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     state.count = 10;
     const timer = setInterval(() => {
       state.count++;
@@ -84,7 +84,7 @@ export const Eager = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(
+  useOnVisibleTask$(
     () => {
       state.msg = 'run';
     },
@@ -110,7 +110,7 @@ export const ClientSide = component$(() => {
     text3: 'empty 3',
   });
 
-  useClientEffect$(
+  useOnVisibleTask$(
     () => {
       state.text1 = 'run';
     },
@@ -119,11 +119,11 @@ export const ClientSide = component$(() => {
     }
   );
 
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     state.text2 = 'run';
   });
 
-  useClientEffect$(
+  useOnVisibleTask$(
     () => {
       state.text3 = 'run';
     },
@@ -143,7 +143,7 @@ export const ClientSide = component$(() => {
 
 export const FancyName = component$(() => {
   console.log('Fancy Name');
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.log('Client effect fancy name');
   });
   return <Slot />;
@@ -152,7 +152,7 @@ export const FancyName = component$(() => {
 export const fancyName = 'Some';
 
 export const Issue1413 = component$(() => {
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.log(fancyName);
   });
   console.log('Root route');
@@ -167,7 +167,7 @@ export const Issue1413 = component$(() => {
 
 export function useDelay(value: string) {
   const ready = useSignal('---');
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     ready.value = value;
   });
   return ready;
@@ -204,19 +204,19 @@ export const Issue2015 = component$(() => {
     logs: [] as string[],
   });
 
-  useClientEffect$(async () => {
+  useOnVisibleTask$(async () => {
     state.logs.push('start 1');
     await delay(100);
     state.logs.push('finish 1');
   });
 
-  useClientEffect$(async () => {
+  useOnVisibleTask$(async () => {
     state.logs.push('start 2');
     await delay(100);
     state.logs.push('finish 2');
   });
 
-  useClientEffect$(async () => {
+  useOnVisibleTask$(async () => {
     state.logs.push('start 3');
     await delay(100);
     state.logs.push('finish 3');
@@ -236,7 +236,7 @@ export const Issue1955Helper = component$(() => {
 
 export const Issue1955 = component$(() => {
   const signal = useSignal('empty');
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     debugger;
     signal.value = 'run';
   });

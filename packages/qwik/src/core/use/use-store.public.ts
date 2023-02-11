@@ -73,7 +73,7 @@ export interface UseStoreOptions {
  *   const counterStore = useStore({
  *     value: 0,
  *   });
- *   useClientEffect$(() => {
+ *   useOnVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       counterStore.value += step;

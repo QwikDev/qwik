@@ -49,12 +49,12 @@
 			""
 		]
 	},
-	"useClientEffect": {
+	"useOnVisibleTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useClientEffect",
-		"description": "useClientEffect$() function hook",
+		"prefix": "q:useOnVisibleTask",
+		"description": "useOnVisibleTask$() function hook",
 		"body": [
-			"useClientEffect$(({ track }) => {",
+			"useOnVisibleTask$(({ track }) => {",
 			"  $0",
 			"});",
 			""

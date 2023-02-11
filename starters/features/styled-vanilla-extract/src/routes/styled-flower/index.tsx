@@ -1,4 +1,4 @@
-import { component$, FunctionComponent, useClientEffect$, useStore } from '@builder.io/qwik';
+import { component$, FunctionComponent, useOnVisibleTask$, useStore } from '@builder.io/qwik';
 import { DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { Host, odd, pride, Range, Square } from './flower.css';
 
@@ -34,7 +34,7 @@ export default component$(() => {
     number: 20,
   });
 
-  useClientEffect$(({ cleanup }) => {
+  useOnVisibleTask$(({ cleanup }) => {
     const timeout = setTimeout(() => (state.count = 1), 500);
     cleanup(() => clearTimeout(timeout));
 

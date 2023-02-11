@@ -891,12 +891,6 @@ export const useCleanup$: (first: () => void) => void;
 // @alpha @deprecated
 export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
 
-// @public
-export const useClientEffect$: (first: TaskFn, opts?: UseEffectOptions | undefined) => void;
-
-// @public
-export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: UseEffectOptions) => void;
-
 // @public @deprecated
 export const useClientMount$: <T>(first: MountFn<T>) => void;
 
@@ -941,6 +935,12 @@ export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void
 
 // @alpha
 export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+
+// @public
+export const useOnVisibleTask$: (first: TaskFn, opts?: UseEffectOptions | undefined) => void;
+
+// @public
+export const useOnVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: UseEffectOptions) => void;
 
 // @alpha
 export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;

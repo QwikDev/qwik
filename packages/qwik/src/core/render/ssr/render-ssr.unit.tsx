@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useOnVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -1045,7 +1045,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect()', async () => {
+renderSSRSuite('component useOnVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" class="qc📦">
@@ -1060,7 +1060,7 @@ renderSSRSuite('component useClientEffect()', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() without elements', async () => {
+renderSSRSuite('component useOnVisibleTask() without elements', async () => {
   await testSSR(
     <body>
       <UseEmptyClientEffect />
@@ -1078,7 +1078,7 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() inside <head>', async () => {
+renderSSRSuite('component useOnVisibleTask() inside <head>', async () => {
   await testSSR(
     <head>
       <UseEmptyClientEffect />
@@ -1536,10 +1536,10 @@ export const ContextConsumer = component$(() => {
 });
 
 export const UseClientEffect = component$((props: any) => {
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1551,10 +1551,10 @@ export const UseClientEffect = component$((props: any) => {
 });
 
 export const UseEmptyClientEffect = component$(() => {
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1565,7 +1565,7 @@ export const UseEmptyClientEffect = component$(() => {
 });
 
 export const HeadCmp = component$(() => {
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('client effect');
   });
   return (
@@ -1645,14 +1645,14 @@ export const NullCmp = component$(() => {
 });
 
 export const EffectTransparent = component$(() => {
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
-  useClientEffect$(() => {
+  useOnVisibleTask$(() => {
     console.warn('log');
   });
   return (

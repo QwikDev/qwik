@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useOnVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -13,7 +13,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useOnVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -43,14 +43,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-import { useClientEffectQrl } from "@builder.io/qwik";
+import { useOnVisibleTaskQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useClientEffectQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g"), "Child_component_useClientEffect_kYRT1iERt9g", [
+    useOnVisibleTaskQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g"), "Child_component_useOnVisibleTask_kYRT1iERt9g", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
@@ -82,7 +82,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= child_component_useclienteffect_kyrt1iert9g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
+export const Child_component_useOnVisibleTask_kYRT1iERt9g = ()=>{
     const [state] = useLexicalScope();
     const timer = setInterval(()=>{
         state.count++;
@@ -98,15 +98,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 /*
 {
   "origin": "test.tsx",
-  "name": "Child_component_useClientEffect_kYRT1iERt9g",
+  "name": "Child_component_useOnVisibleTask_kYRT1iERt9g",
   "entry": null,
-  "displayName": "Child_component_useClientEffect",
+  "displayName": "Child_component_useOnVisibleTask",
   "hash": "kYRT1iERt9g",
   "canonicalFilename": "child_component_useclienteffect_kyrt1iert9g",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
-  "ctxName": "useClientEffect$",
+  "ctxName": "useOnVisibleTask$",
   "captures": true,
   "loc": [
     232,

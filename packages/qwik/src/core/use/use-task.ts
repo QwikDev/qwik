@@ -355,9 +355,9 @@ export const useWatch$ = /*#__PURE__*/ useTask$;
  */
 export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
 
-// <docs markdown="../readme.md#useClientEffect">
+// <docs markdown="../readme.md#useOnVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useClientEffect instead)
+// (edit ../readme.md#useOnVisibleTask instead)
 /**
  * ```tsx
  * const Timer = component$(() => {
@@ -365,7 +365,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  *     count: 0,
  *   });
  *
- *   useClientEffect$(() => {
+ *   useOnVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       store.count++;
@@ -382,7 +382,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  * @public
  */
 // </docs>
-export const useClientEffectQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): void => {
+export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): void => {
   const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
   const eagerness = opts?.eagerness ?? 'visible';
   if (get) {
@@ -406,9 +406,9 @@ export const useClientEffectQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): v
   }
 };
 
-// <docs markdown="../readme.md#useClientEffect">
+// <docs markdown="../readme.md#useOnVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useClientEffect instead)
+// (edit ../readme.md#useOnVisibleTask instead)
 /**
  * ```tsx
  * const Timer = component$(() => {
@@ -416,7 +416,7 @@ export const useClientEffectQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): v
  *     count: 0,
  *   });
  *
- *   useClientEffect$(() => {
+ *   useOnVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       store.count++;
@@ -433,7 +433,9 @@ export const useClientEffectQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): v
  * @public
  */
 // </docs>
-export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQrl);
+export const useOnVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useOnVisibleTaskQrl);
+
+export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useOnVisibleTaskQrl);
 
 export type WatchDescriptor = DescriptorBase<TaskFn>;
 

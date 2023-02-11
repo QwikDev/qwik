@@ -4,11 +4,11 @@
 
 It's possible for any user to visit a URL that doesn't exist on your site. For example, if a user visits `https://example.com/does-not-exist`, then the server should respond with a [404 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404), and the page should have at least some sort of explanation, rather than just a blank page.
 
-For any given route, the Qwik City can choose how to best handle the 404 response for the user, whether it's with the default 404 page, a custom 404 page, or a dynamically generated 404 page.
+For any given route, Qwik City can choose how to best handle the 404 response for the user, whether it's with the default 404 page, a custom 404 page, or a dynamically generated 404 page.
 
 ### Default 404 Page
 
-Rather than showing a blank page, by default Qwik City provides a generic 404 page. The default 404 page is rendered as a fallback when a custom 404 page was not found. Qwik City's default page is alright and all, but we recommend providing a custom 404 so the user can be given a better experience, such as providing the common header and navigation so the user can find the page they're looking for.
+Rather than showing a blank page, by default Qwik City provides a generic 404 page for any route that isn't handled. The default 404 page is rendered as a fallback when a custom 404 page was not found. Qwik City's default page is alright and all, but we recommend providing a custom 404 so the user can be given a better experience, such as providing the common header and navigation so the user can find the page they're looking for.
 
 ### Custom 404 Page
 
@@ -26,7 +26,7 @@ src/
 
 In the example above, the `404.tsx` page will also use the `layout.tsx` layout, since it is a sibling of the layout in the same directory.
 
-Additionally, using Qwik City's directory-based routing allows custom 404 pages to be created at different paths. For example, if `src/routes/account/404.tsx` was also added to the structure, then the custom account 404 page would only be used for the `/account/*` routes, while all other 404s would use the root `404.tsx` page.
+Additionally, using Qwik City's directory-based routing allows for custom 404 pages to be created at different paths. For example, if `src/routes/account/404.tsx` was also added to the structure, then the custom account 404 page would only be applied to the `/account/*` routes, while all other 404s would use the root `404.tsx` page.
 
 ```
 src/
@@ -39,13 +39,13 @@ src/
     └── index.tsx          # https://example.com/
 ```
 
-Also note that these 404 pages are statically generated at build-time, meaning they end up as static `404.html` page, rather than each being a server-side rendered page. Creating static `404.html` pages helps ensure your HTTP server isn't bothered server-side rendering 404 pages and eating up resources.
+Also note that custom 404 pages are statically generated at build-time, meaning they end up as static `404.html` file, rather than each being a server-side rendered page. Creating static `404.html` pages helps ensure your HTTP server isn't bothered server-side rendering 404 pages and eating up resources.
 
 ### Dynamic 404 Page
 
-When rendering a page, the default is to always return a [200 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200), which tells the browser all is good and the route you went to exists. However, it's also possible to handle rendering the page, but manually setting the response status code other than 200, such as 404.
+When rendering a page, the default is to always respond with a [200 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200), which tells the browser all is good and the route you went to does exists. However, it's also possible to handle rendering the page, but manually setting the response status code to something other than 200, such as 404.
 
-For example, let's say we have a product page with a URL such as `https://example.com/product/abc`. The product page is rendered using the `src/routes/product/[id]/index.tsx` directory-based route and the `[id]` is a dynamic param.
+For example, let's say we have a product page with a URL such as `https://example.com/product/abc`. The product page would be handled using `src/routes/product/[id]/index.tsx` directory-based route, and `[id]` is a dynamic param in the URL.
 
 In this example, `id` is used as a key to load the product data from the database. When the product data is found, great, we'll correctly render data. However, if the product data is not found in the database, we can still handle rendering this page, but instead responding with a 404 HTTP status code.
 

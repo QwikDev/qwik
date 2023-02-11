@@ -717,7 +717,7 @@ export interface QwikVitePluginOptions {
     devInput?: string;
     /**
      * Output directory for the client build.
-     * Default `server`
+     * Default `dist`
      */
     outDir?: string;
     /**
@@ -738,7 +738,7 @@ export interface QwikVitePluginOptions {
     input?: string;
     /**
      * Output directory for the server build.
-     * Default `dist`
+     * Default `server`
      */
     outDir?: string;
     /**

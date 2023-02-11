@@ -449,11 +449,13 @@ export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOption
 export const useOnVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useOnVisibleTaskQrl);
 
 /**
+ * @alpha
  * @deprecated - use `useOnVisibleTask$()` instead
  */
 export const useClientEffectQrl = useOnVisibleTaskQrl;
 
 /**
+ * @alpha
  * @deprecated - use `useOnVisibleTask$()` instead
  */
 export const useClientEffect$ = useOnVisibleTask$;

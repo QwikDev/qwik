@@ -89,7 +89,7 @@ export const Eager = component$(() => {
       state.msg = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
@@ -115,7 +115,7 @@ export const ClientSide = component$(() => {
       state.text1 = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
@@ -128,7 +128,7 @@ export const ClientSide = component$(() => {
       state.text3 = 'run';
     },
     {
-      eagerness: 'idle',
+      strategy: 'document-idle',
     }
   );
 

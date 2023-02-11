@@ -5,7 +5,7 @@ import {
   useResource$,
   Resource,
   useTask$,
-  createContext,
+  createContextId,
   useContextProvider,
   useContext,
   useStyles$,
@@ -28,7 +28,7 @@ interface LogsContext {
   content: string;
 }
 
-export const LOGS = createContext<LogsContext>('qwik.logs.resource');
+export const LOGS = createContextId<LogsContext>('qwik.logs.resource');
 
 export const ResourceApp = component$(() => {
   const logs = {

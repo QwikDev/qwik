@@ -701,8 +701,8 @@ export interface QwikVitePluginOptions {
 
   client?: {
     /**
-     * The entry point for the client builds. Typically this would be
-     * the application's main component.
+     * The entry point for the client builds. This would be
+     * the application's root component typically.
      * Default `src/components/app/app.tsx`
      */
     input?: string[] | string;

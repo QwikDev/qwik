@@ -322,16 +322,18 @@ routeBundleNames: string[]
 
 // @alpha (undocumented)
 export interface RouteLocation {
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly href: string;
     // (undocumented)
     readonly isNavigating: boolean;
     // (undocumented)
     readonly params: Readonly<Record<string, string>>;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly pathname: string;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly query: URLSearchParams;
+    // (undocumented)
+    readonly url: URL;
 }
 
 // @alpha (undocumented)

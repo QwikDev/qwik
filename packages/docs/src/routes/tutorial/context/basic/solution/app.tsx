@@ -1,6 +1,6 @@
 import {
   component$,
-  createContextId,
+  createContext,
   useContextProvider,
   useContext,
   useStore,
@@ -9,7 +9,7 @@ import {
 interface TodosStore {
   items: string[];
 }
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const TodosContext = createContext<TodosStore>('Todos');
 export default component$(() => {
   useContextProvider(
     TodosContext,

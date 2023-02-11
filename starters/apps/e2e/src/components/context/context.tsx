@@ -221,7 +221,7 @@ export const Provider = component$(() => {
   return <Slot />;
 });
 
-export const CTX_2894 = createContext<{ foo: string }>('issue-2894');
+export const CTX_2894 = createContextId<{ foo: string }>('issue-2894');
 export const Issue2894 = component$(() => {
   useContextProvider(CTX_2894, { foo: 'bar' });
   return (

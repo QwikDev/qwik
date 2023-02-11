@@ -9,7 +9,7 @@ Use context to pass data to child components without explicitly passing it throu
 
 To use context you need three parts:
 
-- `createContext()`: this creates a serializable ID for the context. Make sure that this id is unique within your application.
+- `createContextId()`: this creates a serializable ID for the context. Make sure that this id is unique within your application.
 - `useContextProvider()`: At a parent component call this method to publish the context value. All children (and grandchildren) that are descendants of this component will be able to retrieve the context.
 - [`useContext()`](/docs/components/context/index.mdx#usecontext) to retrieve the context and use it in any component.
 

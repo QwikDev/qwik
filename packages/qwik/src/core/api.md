@@ -82,8 +82,12 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// @beta @deprecated (undocumented)
+export interface Context<STATE extends object> extends ContextId<STATE> {
+}
+
 // @public
-export interface Context<STATE extends object> {
+export interface ContextId<STATE extends object> {
     readonly __brand_context_type__: STATE;
     readonly id: string;
 }
@@ -97,8 +101,11 @@ export interface CorePlatform {
     raf: (fn: () => any) => Promise<any>;
 }
 
+// @beta @deprecated (undocumented)
+export const createContext: <STATE extends object>(name: string) => ContextId<STATE>;
+
 // @public
-export const createContext: <STATE extends object>(name: string) => Context<STATE>;
+export const createContextId: <STATE extends object>(name: string) => ContextId<STATE>;
 
 // @internal (undocumented)
 export const _deserializeData: (data: string) => any;
@@ -909,7 +916,7 @@ export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 export const useContext: UseContext;
 
 // @public
-export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
+export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
 export interface UseEffectOptions {

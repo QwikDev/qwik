@@ -68,7 +68,7 @@ export { useStore } from './use/use-store.public';
 export { useRef } from './use/use-ref';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
-export { useContext, useContextProvider, createContext } from './use/use-context';
+export { useContext, useContextProvider, createContextId, createContext } from './use/use-context';
 export { useServerData, useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
@@ -77,7 +77,7 @@ export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
-export type { Context } from './use/use-context';
+export type { ContextId, Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
 export type {

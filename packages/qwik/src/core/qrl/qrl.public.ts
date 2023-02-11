@@ -211,7 +211,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *
  * ```tsx
  *
- * import { createContext, useContext, useContextProvider } from './use/use-context';
+ * import { createContextId, useContext, useContextProvider } from './use/use-context';
  * import { useRef } from './use/use-ref';
  * import { Resource, useResource$ } from './use/use-resource';
  *

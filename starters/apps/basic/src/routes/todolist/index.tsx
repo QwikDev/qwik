@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, loader$, action$, zod$, z, Form } from '@builder.io/qwik-city';
+import { type DocumentHead, loader$, action$, zod$, z, Form } from '@builder.io/qwik-city';
 
 interface ListItem {
   text: string;

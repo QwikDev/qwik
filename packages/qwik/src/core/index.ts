@@ -83,7 +83,8 @@ export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
   TaskFn,
-  UseEffectOptions,
+  OnVisibleTaskOptions,
+  VisibleTaskStrategy,
   EagernessOptions,
   ResourceReturn,
   ResourceCtx,
@@ -100,6 +101,7 @@ export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useTask$, useTaskQrl } from './use/use-task';
 export { useOnVisibleTask$, useOnVisibleTaskQrl } from './use/use-task';
+export { useClientEffect$, useClientEffectQrl } from './use/use-task';
 export { useMount$, useMountQrl } from './use/use-mount';
 export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';

@@ -177,10 +177,23 @@ export type EagernessOptions = 'visible' | 'load' | 'idle';
 /**
  * @public
  */
-export interface UseEffectOptions {
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+
+/**
+ * @public
+ */
+export interface OnVisibleTaskOptions {
   /**
-   * - `visible`: run the effect when the element is visible.
-   * - `load`: eagerly run the effect when the application resumes.
+   * The strategy to use to determine when the "VisibleTask" should first execute.
+   *
+   * - `intersection-observer`: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API.
+   * - `document-ready`: the task will first execute when the document is ready, under the hood it uses the document `load` event.
+   * - `document-idle`: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.
+   */
+  strategy?: VisibleTaskStrategy;
+
+  /**
+   * @deprecated Use `strategy` instead.
    */
   eagerness?: EagernessOptions;
 }
@@ -382,9 +395,9 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  * @public
  */
 // </docs>
-export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): void => {
+export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
   const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
-  const eagerness = opts?.eagerness ?? 'visible';
+  const eagerness = opts?.strategy ?? opts?.eagerness ?? 'intersection-observer';
   if (get) {
     if (isServer()) {
       useRunWatch(get, eagerness);
@@ -435,7 +448,15 @@ export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): 
 // </docs>
 export const useOnVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useOnVisibleTaskQrl);
 
-export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useOnVisibleTaskQrl);
+/**
+ * @deprecated - use `useOnVisibleTask$()` instead
+ */
+export const useClientEffectQrl = useOnVisibleTaskQrl;
+
+/**
+ * @deprecated - use `useOnVisibleTask$()` instead
+ */
+export const useClientEffect$ = useOnVisibleTask$;
 
 export type WatchDescriptor = DescriptorBase<TaskFn>;
 
@@ -675,12 +696,15 @@ export const destroyWatch = (watch: SubscriberEffect) => {
   }
 };
 
-const useRunWatch = (watch: SubscriberEffect, eagerness: EagernessOptions | undefined) => {
-  if (eagerness === 'visible') {
+const useRunWatch = (
+  watch: SubscriberEffect,
+  eagerness: VisibleTaskStrategy | EagernessOptions | undefined
+) => {
+  if (eagerness === 'visible' || eagerness === 'intersection-observer') {
     useOn('qvisible', getWatchHandlerQrl(watch));
-  } else if (eagerness === 'load') {
+  } else if (eagerness === 'load' || eagerness === 'document-ready') {
     useOnDocument('qinit', getWatchHandlerQrl(watch));
-  } else if (eagerness === 'idle') {
+  } else if (eagerness === 'idle' || eagerness === 'document-idle') {
     useOnDocument('qidle', getWatchHandlerQrl(watch));
   }
 };

@@ -696,7 +696,10 @@ export interface QwikVitePluginOptions {
    * Default `src`
    */
   srcDir?: string;
-
+  /**
+   * List of directories to recursively search for Qwik components or Vendors.
+   * Default `[]`
+   */
   vendorRoots?: string[];
 
   client?: {
@@ -746,6 +749,10 @@ export interface QwikVitePluginOptions {
      */
     manifestInput?: QwikManifest;
   };
+  /**
+   * Options for the Qwik optimizer.
+   * Default `undefined`
+   */
   optimizerOptions?: OptimizerOptions;
   /**
    * Hook that's called after the build and provides all of the transformed

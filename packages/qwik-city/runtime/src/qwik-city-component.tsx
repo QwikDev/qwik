@@ -80,6 +80,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
     query: url.searchParams,
@@ -124,7 +125,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
       navPath.value = value;
     }
-    const prefetchURL = new URL(navPath.value, routeLocation.href);
+    const prefetchURL = new URL(navPath.value, routeLocation.url);
     loadClientData(prefetchURL);
     loadRoute(routes, menus, cacheModules, prefetchURL.pathname);
 
@@ -144,7 +145,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     async function run() {
       const [path, action] = track(() => [navPath.value, actionState.value]);
       const locale = getLocale('');
-      let url = new URL(path, routeLocation.href);
+      let url = new URL(path, routeLocation.url);
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
       if (isServer) {
@@ -181,6 +182,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Update route location
+        routeLocation.url = url;
         routeLocation.href = url.href;
         routeLocation.pathname = url.pathname;
         routeLocation.params = { ...params };
@@ -253,6 +255,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
     query: url.searchParams,

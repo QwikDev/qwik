@@ -266,7 +266,7 @@ export interface QwikRollupPluginOptions {
   forceFullBuild?: boolean;
   /**
    * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is use to recursively
+   * does not have a single input, the `srcDir` is used to recursively
    * find Qwik files.
    * Default `src`
    */

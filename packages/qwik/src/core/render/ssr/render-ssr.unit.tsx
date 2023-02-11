@@ -7,7 +7,7 @@ import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { $ } from '../../qrl/qrl.public';
-import { createContext, useContext, useContextProvider } from '../../use/use-context';
+import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
@@ -1472,9 +1472,9 @@ export const ComponentA = component$(() => {
   );
 });
 
-const CTX_INTERNAL = createContext<{ value: string }>('internal');
-const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
-const CTX_VALUE = createContext<{ value: string }>('value');
+const CTX_INTERNAL = createContextId<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContextId<{ value: string }>('qwikcity');
+const CTX_VALUE = createContextId<{ value: string }>('value');
 
 export const VariadicContext = component$(() => {
   return (

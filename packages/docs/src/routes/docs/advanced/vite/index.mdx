@@ -1,0 +1,219 @@
+---
+title: Vite
+contributors:
+  - zanettin
+---
+
+# Vite
+Qwik leverages [Vite](https://vitejs.dev/) to provide a fast development experience. Vite is a build tool that serves your code via native ES Modules during development. 
+This means that it doesn't need to bundle your code or transpile it to work in the browser. It also comes with lightning fast hot module replacement (HMR) that updates your browser instantly when you make changes to your code.
+
+## Configuration
+After scaffolding a new Qwik project, you'll find a `vite.config.js` file in the root of your project. This is where you can configure Vite.
+
+## Plugins
+Qwik comes with two plugins that make it easy to use Vite with Qwik and Qwik City.
+```js
+import { defineConfig } from "vite";
+import { qwikCity } from "@builder.io/qwik-city/vite";
+import { qwikVite } from "@builder.io/qwik/optimizer";
+import tsconfigPaths from "vite-tsconfig-paths";
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikCity(),
+      qwikVite(),
+      tsconfigPaths(),
+    ],
+  };
+});
+```
+
+### `qwikVite()`
+To modify the configuration, you can pass an object to the `qwikVite` function. Possible options are:
+
+#### `debug`
+```js
+/**
+ * Prints verbose Qwik plugin debug logs.
+ * Default `false`
+ */
+debug?: boolean;
+```
+
+#### `entryStrategy`
+```js
+/**
+ * The Qwik entry strategy to use while bundling for production.
+ * During development the type is always `hook`.
+ * Default `{ type: "smart" }`)
+ */
+entryStrategy?: EntryStrategy;
+```
+
+#### `srcDir`
+```js
+/**
+ * The source directory to find all the Qwik components. Since Qwik
+ * does not have a single input, the `srcDir` is use to recursively
+ * find Qwik files.
+ * Default `src`
+ */
+srcDir?: string;
+```
+
+#### `vendorRoots`
+```js
+/**
+ * List of directories to recursively search for Qwik components or Vendors.
+ * Default `[]`
+ */
+vendorRoots?: string[];
+```
+
+#### `client`
+```js
+client?: {
+    /**
+     * The entry point for the client builds. Typically this would be
+     * the application's main component.
+     * Default `src/components/app/app.tsx`
+     */
+    input?: string[] | string;
+    /**
+     * Entry input for client-side only development with hot-module reloading.
+     * This is for Vite development only and does not use SSR.
+     * Default `src/entry.dev.tsx`
+     */
+    devInput?: string;
+    /**
+     * Output directory for the client build.
+     * Default `dist`
+     */
+    outDir?: string;
+    /**
+     * The client build will create a manifest and this hook
+     * is called with the generated build data.
+     * Default `undefined`
+     */
+    manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
+};
+ ```
+
+#### `ssr`
+```js 
+ssr?: {
+    /**
+     * The entry point for the SSR renderer. This file should export
+     * a `render()` function. This entry point and `render()` export
+     * function is also used for Vite's SSR development and Nodejs
+     * debug mode.
+     * Default `src/entry.ssr.tsx`
+     */
+    input?: string;
+    /**
+     * Output directory for the server build.
+     * Default `dist`
+     */
+    outDir?: string;
+    /**
+     * The SSR build requires the manifest generated during the client build.
+     * By default, this plugin will wire the client manifest to the ssr build.
+     * However, the `manifestInput` option can be used to manually provide a manifest.
+     * Default `undefined`
+     */
+    manifestInput?: QwikManifest;
+};
+```
+
+#### `optimizer`
+```js
+/**
+ * Options for the Qwik optimizer.
+ * Default `undefined`
+ */
+optimizerOptions?: OptimizerOptions;
+```
+
+#### `transformedModuleOutput`
+```js
+/**
+ * Hook that's called after the build and provides all of the transformed
+ * modules that were used before bundling.
+ */
+transformedModuleOutput?:
+    | ((transformedModules: TransformModule[]) => Promise<void> | void)
+    | null;
+```
+
+#### `devTools`
+```js
+devTools?: {
+    /**
+     * Press-hold the defined keys to enable qwik dev inspector.
+     * By default the behavior is activated by pressing the left or right `Alt` key.
+     * If set to `false`, qwik dev inspector will be disabled.
+     * Valid values are `KeyboardEvent.code` values.
+     * Please note that the 'Left' and 'Right' suffixes are ignored.
+     */
+    clickToSource: string[] | false;
+};
+```
+
+### `qwikCity()`
+To modify the configuration, you can pass an object to the `qwikCity` function. Possible options are:
+
+#### `routesDir`
+```js
+/**
+ * Directory of the `routes`. Defaults to `src/routes`.
+ */
+routesDir?: string;
+```
+
+#### `serverPluginsDir`
+```js
+/**
+ * Directory of the `server plugins`. Defaults to `src/server-plugins`.
+ */
+serverPluginsDir?: string;
+```
+
+#### `clientPluginsDir`
+```js
+/**
+ * The base pathname is used to create absolute URL paths up to
+ * the `hostname`, and must always start and end with a
+ * `/`.  Defaults to `/`.
+ */
+basePathname?: string;
+```
+
+#### `trailingSlash`
+```js
+/**
+ * Ensure a trailing slash ends page urls. Defaults to `true`.
+ * (Note: Previous versions defaulted to `false`).
+ */
+trailingSlash?: boolean;
+```
+
+#### `mdxPlugins`
+```js
+/**
+ * Enable or disable MDX plugins included by default in qwik-city.
+ */
+mdxPlugins?: MdxPlugins;
+``` 
+
+#### `mdx`
+```js
+/**
+* MDX Options https://mdxjs.com/
+*/
+mdx?: any;
+```
+
+## Troubleshooting
+Before creating an issue on the Qwik repository please check the `Troubleshooting` section of the [Vite documentation](https://vitejs.dev/guide/troubleshooting.html) and make sure you're using the recommended version.

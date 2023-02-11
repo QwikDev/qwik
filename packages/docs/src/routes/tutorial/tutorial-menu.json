@@ -72,8 +72,8 @@
         "enableSsrOutput": false
       },
       {
-        "id": "inline",
-        "title": "Inline Components",
+        "id": "lite",
+        "title": "Lite Components",
         "enableHtmlOutput": true,
         "enableClientOutput": true,
         "enableSsrOutput": true

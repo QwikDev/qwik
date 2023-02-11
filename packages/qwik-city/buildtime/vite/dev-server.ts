@@ -24,7 +24,7 @@ import { updateBuildContext } from '../build';
 import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp } from '../../middleware/node/http';
+import { fromNodeHttp, getUrl } from '../../middleware/node/http';
 import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
 
@@ -58,7 +58,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+      const url = getUrl(req);
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();

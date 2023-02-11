@@ -315,7 +315,6 @@ export interface QwikVitePluginOptions {
         clickToSource: string[] | false;
     };
     entryStrategy?: EntryStrategy;
-    // (undocumented)
     optimizerOptions?: OptimizerOptions;
     srcDir?: string;
     // (undocumented)
@@ -325,7 +324,6 @@ export interface QwikVitePluginOptions {
         manifestInput?: QwikManifest;
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
-    // (undocumented)
     vendorRoots?: string[];
 }
 

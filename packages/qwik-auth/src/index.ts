@@ -1,7 +1,7 @@
 import { Auth, skipCSRFCheck } from '@auth/core';
 import type { AuthAction, AuthConfig, Session } from '@auth/core/types';
 import { implicit$FirstArg, QRL } from '@builder.io/qwik';
-import { action$, loader$, RequestEvent, RequestEventLoader, z, zod$ } from '@builder.io/qwik-city';
+import { action$, loader$, RequestEvent, RequestEventCommon, z, zod$ } from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 export interface QwikAuthConfig extends AuthConfig {}
@@ -18,7 +18,7 @@ const actions: AuthAction[] = [
 
 export async function authAction(
   body: URLSearchParams | undefined,
-  req: RequestEventLoader | RequestEvent,
+  req: RequestEventCommon,
   path: string,
   authOptions: QwikAuthConfig
 ) {
@@ -39,7 +39,7 @@ export async function authAction(
   return await res.json();
 }
 
-export const fixCookies = (req: RequestEvent | RequestEventLoader) => {
+export const fixCookies = (req: RequestEventCommon) => {
   req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
   const cookie = req.headers.get('set-cookie');
   if (cookie) {
@@ -51,10 +51,8 @@ export const fixCookies = (req: RequestEvent | RequestEventLoader) => {
   }
 };
 
-export function serverAuthQrl(
-  authOptions: QRL<(ev: RequestEventLoader | RequestEvent) => QwikAuthConfig>
-) {
-  const signup = action$(
+export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
+  const useAuthSignup = action$(
     async ({ provider, ...rest }, req) => {
       const auth = await authOptions(req);
       const body = new URLSearchParams();
@@ -71,13 +69,13 @@ export function serverAuthQrl(
     })
   );
 
-  const logout = action$(async (_, req) => {
+  const useAuthLogout = action$(async (_, req) => {
     const auth = await authOptions(req);
     const body = new URLSearchParams();
     return authAction(body, req, `/api/auth/logout`, auth);
   });
 
-  const getSession = loader$((req) => {
+  const useAuthSession = loader$((req) => {
     return req.sharedMap.get('session') as Session | null;
   });
 
@@ -104,9 +102,9 @@ export function serverAuthQrl(
   };
 
   return {
-    signup,
-    logout,
-    getSession,
+    useAuthSignup,
+    useAuthLogout,
+    useAuthSession,
     onRequest,
   };
 }

@@ -1,8 +1,8 @@
 {
-  "description": "Zero-cost CSS-in-JS for Qwik",
+  "description": "Authentication plugin for using battle-tested Auth.js (aka NextAuth)",
   "devDependencies": {
-    "auth-qwik": "^1.9.3",
-    "@auth/core": "^0.5.4"
+    "@builder.io/qwik-auth": "0.0.1",
+    "@auth/core": "^0.4.0"
   },
   "__qwik__": {
     "displayName": "Integration: Auth.js (authentication)",

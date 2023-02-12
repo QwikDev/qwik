@@ -206,13 +206,13 @@ importers:
 
   packages/qwik-auth:
     specifiers:
-      '@auth/core': '>=0.3.0'
+      '@auth/core': '>=0.4.0'
       '@builder.io/qwik': workspace:*
       '@builder.io/qwik-city': workspace:*
       '@types/set-cookie-parser': ^2.4.2
       set-cookie-parser: ^2.5.1
     devDependencies:
-      '@auth/core': 0.3.0
+      '@auth/core': 0.4.0
       '@builder.io/qwik': link:../qwik
       '@builder.io/qwik-city': link:../qwik-city
       '@types/set-cookie-parser': 2.4.2
@@ -408,10 +408,10 @@ packages:
       '@algolia/requester-common': 4.14.3
     dev: true
 
-  /@auth/core/0.3.0:
-    resolution: {integrity: sha512-4bmPzEiQKSXD825Jrcgj7igSFghBTpkSQ6U/jnYABJRQGhwnWJ/q9FHxEo6SGZWvYvpjOrvJOWhrP4Xng4CGUQ==}
+  /@auth/core/0.4.0:
+    resolution: {integrity: sha512-wHVljvVGPmKSjlxQUYZCOL4GGe26YqhT351sA2REE43YskaqRMYh1TVjBxpXcdG8/P8bw2DsHgl+aBEV3P5+KQ==}
     peerDependencies:
-      nodemailer: 6.8.0
+      nodemailer: ^6.8.0
     peerDependenciesMeta:
       nodemailer:
         optional: true

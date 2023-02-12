@@ -104,7 +104,9 @@ export const getPathParams = (paramNames: string[] | undefined, match: RegExpExe
   if (paramNames) {
     for (let i = 0; i < paramNames.length; i++) {
       const param = match?.[i + 1] ?? '';
-      params[paramNames[i]] = param.endsWith('/') ? param.slice(0, -1) : param;
+      let v = param.endsWith('/') ? param.slice(0, -1) : param;
+      try { v = decodeURIComponent(v); } catch (e) { }
+      params[paramNames[i]] = v;
     }
   }
   return params;

@@ -40,6 +40,18 @@ Before submitting a pull request, consider the following guidelines:
 
 > If you aren't sure your PR is ready, open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
 
+#### ⚠ Troubleshooting PR build issues on CI
+
+Every PR is being automatically merged with `main` before the CI Github actions run.
+That's why if the CI checks aren't passing your PR branch is probably not up to date.
+
+**For non documetntation PRs please do the following:**
+
+1. Merge `main` into your PR branch
+2. Run `pnpm api.update`
+3. Run `pnpm build.full`
+4. Commit and push any changes as a result of the above steps
+
 # Getting started
 
 There are several ways to set up your local environment so that you are ready to build, test and contribute to the Qwik project.

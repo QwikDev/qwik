@@ -4,8 +4,6 @@
 
 ```ts
 
-import type { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
-
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
@@ -84,8 +82,12 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// @beta @deprecated (undocumented)
+export interface Context<STATE extends object> extends ContextId<STATE> {
+}
+
 // @public
-export interface Context<STATE extends object> {
+export interface ContextId<STATE extends object> {
     readonly __brand_context_type__: STATE;
     readonly id: string;
 }
@@ -99,8 +101,14 @@ export interface CorePlatform {
     raf: (fn: () => any) => Promise<any>;
 }
 
+// @beta @deprecated (undocumented)
+export const createContext: <STATE extends object>(name: string) => ContextId<STATE>;
+
 // @public
-export const createContext: <STATE extends object>(name: string) => Context<STATE>;
+export const createContextId: <STATE extends object>(name: string) => ContextId<STATE>;
+
+// @internal (undocumented)
+export const _deserializeData: (data: string) => any;
 
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
@@ -115,6 +123,12 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
 
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
+
+// @alpha (undocumented)
+export interface ErrorBoundaryStore {
+    // (undocumented)
+    error: any | undefined;
+}
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -655,8 +669,8 @@ export interface RenderOptions {
     serverData?: Record<string, any>;
 }
 
-// @alpha (undocumented)
-export const renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+// @internal (undocumented)
+export const _renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
 
 // @alpha (undocumented)
 export interface RenderSSROptions {
@@ -744,6 +758,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 
 // @internal (undocumented)
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
+
+// @internal (undocumented)
+export const _serializeData: (data: any) => Promise<string>;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
@@ -899,7 +916,7 @@ export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 export const useContext: UseContext;
 
 // @public
-export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
+export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
 export interface UseEffectOptions {
@@ -909,8 +926,6 @@ export interface UseEffectOptions {
 // @alpha @deprecated (undocumented)
 export const useEnvData: typeof useServerData;
 
-// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 
@@ -939,9 +954,6 @@ export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) =
 
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
-
-// @alpha (undocumented)
-export const useRender: (jsx: JSXNode_2) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
@@ -1024,8 +1036,14 @@ export const useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
+// @internal (undocumented)
+export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
+
 // @public
 export const version: string;
+
+// @internal (undocumented)
+export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //

@@ -27,7 +27,10 @@ export interface Signal<T = any> {
  */
 export type ValueOrSignal<T> = T | Signal<T>;
 
-export const createSignal = <T>(
+/**
+ * @internal
+ */
+export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
   subcriptions?: Subscriptions[]

@@ -3,7 +3,7 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestHandler } from '@builder.io/qwik-city';
+
 import {
   mergeHeadersCookies,
   requestHandler,
@@ -48,6 +48,11 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
+        handledResponse.completion.then((v) => {
+          if (v) {
+            console.error(v);
+          }
+        });
         const response = await handledResponse.response;
         if (response) {
           return response;
@@ -81,9 +86,4 @@ export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 /**
  * @alpha
  */
-export interface EventPluginContext extends Context {}
-
-/**
- * @alpha
- */
-export type RequestHandlerNetlify = RequestHandler<Omit<Context, 'next' | 'cookies'>>;
+export interface PlatformNetlify extends Omit<Context, 'next' | 'cookies'> {}

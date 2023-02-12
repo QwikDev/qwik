@@ -237,7 +237,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             ? false
             : {
                 logLevel: 'error',
-                jsx: 'preserve',
+                jsx: 'automatic',
               },
         optimizeDeps: {
           exclude: [
@@ -532,11 +532,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
     },
 
-    async configureServer(server: ViteDevServer) {
-      const opts = qwikPlugin.getOptions();
-      const sys = qwikPlugin.getSys();
-      const path = qwikPlugin.getPath();
-      await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+    configureServer(server: ViteDevServer) {
+      const plugin = async () => {
+        const opts = qwikPlugin.getOptions();
+        const sys = qwikPlugin.getSys();
+        const path = qwikPlugin.getPath();
+        await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+      };
+      const isNEW = (globalThis as any).__qwikCityNew === true;
+      if (isNEW) {
+        return plugin;
+      } else {
+        plugin();
+      }
     },
 
     configurePreviewServer(server) {
@@ -676,25 +684,28 @@ export interface QwikVitePluginOptions {
    */
   debug?: boolean;
   /**
-   * The Qwik entry strategy to use while bunding for production.
+   * The Qwik entry strategy to use while building for production.
    * During development the type is always `hook`.
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
   /**
    * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is use to recursively
+   * does not have a single input, the `srcDir` is used to recursively
    * find Qwik files.
    * Default `src`
    */
   srcDir?: string;
-
+  /**
+   * List of directories to recursively search for Qwik components or Vendors.
+   * Default `[]`
+   */
   vendorRoots?: string[];
 
   client?: {
     /**
-     * The entry point for the client builds. Typically this would be
-     * the application's main component.
+     * The entry point for the client builds. This would be
+     * the application's root component typically.
      * Default `src/components/app/app.tsx`
      */
     input?: string[] | string;
@@ -727,7 +738,7 @@ export interface QwikVitePluginOptions {
     input?: string;
     /**
      * Output directory for the server build.
-     * Default `dist`
+     * Default `server`
      */
     outDir?: string;
     /**
@@ -738,6 +749,10 @@ export interface QwikVitePluginOptions {
      */
     manifestInput?: QwikManifest;
   };
+  /**
+   * Options for the Qwik optimizer.
+   * Default `undefined`
+   */
   optimizerOptions?: OptimizerOptions;
   /**
    * Hook that's called after the build and provides all of the transformed
@@ -777,6 +792,9 @@ export interface QwikVitePlugin {
   api: QwikVitePluginApi;
 }
 
+/**
+ * @alpha
+ */
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
   _qwikRenderResolve?: () => void;

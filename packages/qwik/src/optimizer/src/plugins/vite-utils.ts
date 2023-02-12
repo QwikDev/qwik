@@ -1,25 +1,24 @@
 import type { OptimizerSystem } from '../types';
 
-export async function formatError(sys: OptimizerSystem, e: any) {
-  if (e instanceof Error) {
-    const err = e as any;
-    let loc = err.loc;
-    if (!err.frame && !err.plugin) {
-      if (!loc) {
-        loc = findLocation(err);
-      }
-      if (loc) {
-        err.loc = loc;
-        if (loc.file) {
-          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          const { normalizePath }: typeof import('vite') = await sys.dynamicImport('vite');
-          err.id = normalizePath(err.loc.file);
-          try {
-            const code = fs.readFileSync(err.loc.file, 'utf-8');
-            err.frame = generateCodeFrame(code, err.loc);
-          } catch {
-            // nothing
-          }
+export async function formatError(sys: OptimizerSystem, e: Error) {
+  const err = e as any;
+  let loc = err.loc;
+
+  if (!err.frame && !err.plugin) {
+    if (!loc) {
+      loc = findLocation(err);
+    }
+    if (loc) {
+      err.loc = loc;
+      if (loc.file) {
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+        const { normalizePath }: typeof import('vite') = await sys.dynamicImport('vite');
+        err.id = normalizePath(err.loc.file);
+        try {
+          const code = fs.readFileSync(err.loc.file, 'utf-8');
+          err.frame = generateCodeFrame(code, err.loc);
+        } catch {
+          // nothing
         }
       }
     }
@@ -36,13 +35,16 @@ export interface Loc {
 export const findLocation = (e: Error): Loc | undefined => {
   const stack = e.stack;
   if (typeof stack === 'string') {
-    const lines = stack.split('\n');
+    const lines = stack
+      .split('\n')
+      .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'));
+
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
+      const line = lines[i].replace('file:///', '/');
       if (/^\s+at/.test(line)) {
-        const start = line.indexOf('(/') + 1;
+        const start = line.indexOf('/');
         const end = line.indexOf(')', start);
-        if (start > 0 && end > start) {
+        if (start > 0) {
           const path = line.slice(start, end);
           const parts = path.split(':');
           const nu0 = safeParseInt(parts[parts.length - 1]);
@@ -86,15 +88,16 @@ const safeParseInt = (nu: string) => {
 const splitRE = /\r?\n/;
 const range: number = 2;
 
-function posToNumber(source: string, pos: number | { line: number; column: number }): number {
+export function posToNumber(
+  source: string,
+  pos: number | { line: number; column: number }
+): number {
   if (typeof pos === 'number') return pos;
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
-  for (let i = 0; i < line - 1; i++) {
-    if (lines[i]) {
-      start += lines[i].length + 1;
-    }
+  for (let i = 0; i < line - 1 && i < lines.length; i++) {
+    start += lines[i].length + 1;
   }
   return start + column;
 }

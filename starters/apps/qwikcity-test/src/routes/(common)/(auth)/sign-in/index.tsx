@@ -6,13 +6,14 @@ import { component$ } from '@builder.io/qwik';
 import { DocumentHead, Form, RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 import { z } from 'zod';
+
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
     throw redirect(302, '/qwikcity-test/dashboard/');
   }
 };
 
-export const signinAction = action$(
+export const useSigninAction = action$(
   async (data, { cookie, redirect, status, fail }) => {
     const result = await signIn(data, cookie);
 
@@ -30,7 +31,7 @@ export const signinAction = action$(
   })
 );
 
-export const resetPasswordAction = action$(
+export const useResetPasswordAction = action$(
   ({ email }) => {
     console.warn('resetPasswordAction', email);
   },
@@ -40,27 +41,27 @@ export const resetPasswordAction = action$(
 );
 
 export default component$(() => {
-  const signIn = signinAction.use();
-  const resetPassword = resetPasswordAction.use();
+  const signIn = useSigninAction();
+  const resetPassword = useResetPasswordAction();
 
   return (
     <div>
       <h1>Sign In</h1>
 
       <Form action={signIn} spaReset>
-        {signIn.fail?.message && <p style="color:red">{signIn.fail.message}</p>}
+        {signIn.value?.message && <p style="color:red">{signIn.value.message}</p>}
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
-          {signIn.fail?.fieldErrors?.username && (
-            <p style="color:red">{signIn.fail?.fieldErrors?.username}</p>
+          {signIn.value?.fieldErrors?.username && (
+            <p style="color:red">{signIn.value?.fieldErrors?.username}</p>
           )}
         </label>
         <label>
           <span>Password</span>
           <input name="password" type="password" autoComplete="current-password" required />
-          {signIn.fail?.fieldErrors?.password && (
-            <p style="color:red">{signIn.fail?.fieldErrors?.password}</p>
+          {signIn.value?.fieldErrors?.password && (
+            <p style="color:red">{signIn.value?.fieldErrors?.password}</p>
           )}
         </label>
         <button data-test-sign-in>Sign In</button>

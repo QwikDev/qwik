@@ -46,10 +46,10 @@ Sometimes a component will be first mounted/rendered in the browser, for example
 Additionally, this task can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
 
 ```tsx
-useTask$(({track}) => {
+useTask$(({ track }) => {
   track(() => store.count);
   // will run when the component mounts and every time "store.count" changes
-})
+});
 ```
 
 **Notice that any subsequent execution will always happen in the browser**, because reactivity is a client-only thing.
@@ -151,7 +151,7 @@ export const Cmp = component$(() => {
 - **Times:** at least once
 - **Platform:** browser only
 
-For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagarly, that means, without user interaction, but the eagerness can be configured!
+For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagerly\, that means, without user interaction, but the eagerness can be configured!
 
 ```tsx
 useClientEffect$(() => console.log('runs in the browser'), {

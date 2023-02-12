@@ -2,18 +2,22 @@ import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
 interface AzureResponse {
   status: number;
   headers: { [key: string]: any };
-  body?: string;
+  body?: string | Uint8Array;
 }
 
 /**
@@ -21,74 +25,79 @@ interface AzureResponse {
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
-    const res: AzureResponse = (context.res = {
-      status: 200,
-      headers: {},
-    });
-    const decoder = new TextDecoder();
     try {
-      const getRequestBody = async function* () {
-        for await (const chunk of req as any) {
-          yield chunk;
-        }
-      };
-      const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+      const url = new URL(req.headers['x-ms-original-url']!);
       const options = {
         method: req.method,
         headers: req.headers,
-        body: body as any,
+        body: req.body,
         duplex: 'half' as any,
       };
+
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
-        url: new URL(req.url),
+        url,
         platform: context,
         env: {
           get(key) {
             return process.env[key];
           },
         },
-        request: new Request(req.url, options as any),
-        getWritableStream: (status, headers, _cookies) => {
-          res.status = status;
-          headers.forEach((value, key) => (res.headers[key] = value));
-          const writable = new WritableStream<Uint8Array>({
-            write(chunk) {
-              if (res.body) {
-                res.body += decoder.decode(chunk);
-              } else {
-                res.body = decoder.decode(chunk);
+        request: new Request(url, options as any),
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const response: AzureResponse = {
+            status,
+            body: new Uint8Array(),
+            headers: {},
+          };
+          mergeHeadersCookies(headers, cookies).forEach(
+            (value, key) => (response.headers[key] = value)
+          );
+          return new WritableStream({
+            write(chunk: Uint8Array) {
+              if (response.body instanceof Uint8Array) {
+                const newBuffer = new Uint8Array(response.body.length + chunk.length);
+                newBuffer.set(response.body);
+                newBuffer.set(chunk, response.body.length);
+                response.body = newBuffer;
               }
             },
-            close() {},
+            close() {
+              resolve(response);
+            },
           });
-          return writable;
         },
       };
 
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
-      if (handledResponse !== null) {
+      if (handledResponse) {
+        handledResponse.completion.then((err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
         const response = await handledResponse.response;
         if (response) {
           return response;
         }
-        await handledResponse.requestEv;
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      // const notFoundResponse = await notFoundHandler<void>(serverRequestEv);
-      // return notFoundResponse;
-      return res;
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+        body: notFoundHtml,
+      };
     } catch (e: any) {
       console.error(e);
-      context.res = {
+      return {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       };
-      return res;
     }
   }
 

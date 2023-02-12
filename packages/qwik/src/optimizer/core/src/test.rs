@@ -519,7 +519,7 @@ export const Works = component$(({
         console.log(count, rest, hey, some);
     });
     return (
-        <div some={some} class={count} {...rest}>{count}</div>
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
     );
 });
 
@@ -542,6 +542,31 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
     });
     return (
         <div class={count}>{count}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_use_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$((props) => {
+    const {value} = useSignal(0);
+    const {foo, ...rest} = useStore({foo: 0});
+    const {bar = 'hello', ...rest2} = useStore({foo: 0});
+    const {hello} = props;
+
+    return (
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
     );
 });
 "#
@@ -1436,9 +1461,10 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
+import { handler } from 'serverless';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1454,6 +1480,8 @@ export const Parent = component$(() => {
     serverStuff$(async () => {
         // should be removed too
     })
+
+    serverLoader$(handler);
 
     useTask$(() => {
         // Code
@@ -2074,6 +2102,7 @@ export const App = component$(() => {
 "#
         .to_string(),
         is_server: Some(true),
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }

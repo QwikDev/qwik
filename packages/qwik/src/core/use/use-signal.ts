@@ -1,5 +1,6 @@
-import { createSignal, Signal } from '../state/signal';
+import { _createSignal, Signal } from '../state/signal';
 import { isFunction } from '../util/types';
+import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**
@@ -20,8 +21,8 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
   }
 
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const value = isFunction(initialState) ? (initialState as Function)() : initialState;
-  const signal = createSignal(value, containerState, undefined) as Signal<STATE>;
+  const value = isFunction(initialState) ? invoke(undefined, initialState as any) : initialState;
+  const signal = _createSignal(value, containerState, undefined) as Signal<STATE>;
   set(signal);
   return signal;
 };

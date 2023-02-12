@@ -10,10 +10,12 @@ export type {
   GetSyncData,
   RequestEvent,
   RequestEventLoader,
+  RequestEventAction,
   RequestHandler,
   RequestEventCommon,
   ServerRequestMode,
   ServerRenderOptions,
   ServerRequestEvent,
   ServerResponseHandler,
+  DeferReturn,
 } from './types';

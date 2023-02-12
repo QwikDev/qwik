@@ -143,7 +143,7 @@ function getAppBundleId(appBundles: AppBundle[], bundleName: string) {
 }
 
 const SW_UNREGISTER = `
-navigator.serviceWorker.getRegistrations().then((regs) => {
+navigator.serviceWorker?.getRegistrations().then((regs) => {
   for (const reg of regs) {
     reg.unregister();
   }

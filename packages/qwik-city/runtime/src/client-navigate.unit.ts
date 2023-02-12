@@ -12,7 +12,7 @@ navTest('do not popstate if location is the same', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
   routeNav.value = '/page-a';
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.location.href, 'http://qwik.dev/page-a');
   win.firePopstate();
   win.firePopstate();
@@ -23,9 +23,9 @@ navTest('do not popstate if location is the same', () => {
 navTest('pushState, popstate', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   routeNav.value = '/page-a';
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   win.history.back();
   equal(win.historyPaths.length, 1);
   equal(win.historyPaths[0], '/');
@@ -36,11 +36,11 @@ navTest('pushState, popstate', () => {
 navTest('pushState for different path', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.historyPaths.length, 1);
   equal(routeNav.value, '/');
   routeNav.value = '/page-a';
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(routeNav.value, '/page-a');
   equal(win.historyPaths.length, 2);
   equal(win.historyPaths[1], '/page-a');
@@ -51,9 +51,9 @@ navTest('pushState for different path', () => {
 navTest('do not pushState for same path', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.historyPaths.length, 1);
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.historyPaths.length, 1);
   equal(routeNav.value, '/');
 });
@@ -61,9 +61,9 @@ navTest('do not pushState for same path', () => {
 navTest('add only one popstate listener', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.listeners.get('popstate')!.length, 1);
-  clientNavigate(win, routeNav.value, routeNav);
+  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.listeners.get('popstate')!.length, 1);
   equal(win[CLIENT_HISTORY_INITIALIZED], 1);
 });

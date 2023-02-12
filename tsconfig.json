@@ -30,23 +30,23 @@
       "@builder.io/qwik-city/service-worker": [
         "packages/qwik-city/runtime/src/service-worker/index.ts"
       ],
-      "@builder.io/qwik-city/adaptors/azure-swa/vite": [
-        "packages/qwik-city/adaptors/azure-swa/vite/index.ts"
+      "@builder.io/qwik-city/adapters/azure-swa/vite": [
+        "packages/qwik-city/adapters/azure-swa/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adaptors/cloudflare-pages/vite": [
-        "packages/qwik-city/adaptors/cloudflare-pages/vite/index.ts"
+      "@builder.io/qwik-city/adapters/cloudflare-pages/vite": [
+        "packages/qwik-city/adapters/cloudflare-pages/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adaptors/express/vite": [
-        "packages/qwik-city/adaptors/express/vite/index.ts"
+      "@builder.io/qwik-city/adapters/express/vite": [
+        "packages/qwik-city/adapters/express/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adaptors/netlify-edge/vite": [
-        "packages/qwik-city/adaptors/netlify-edge/vite/index.ts"
+      "@builder.io/qwik-city/adapters/netlify-edge/vite": [
+        "packages/qwik-city/adapters/netlify-edge/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adaptors/shared/vite": [
-        "packages/qwik-city/adaptors/shared/vite/index.ts"
+      "@builder.io/qwik-city/adapters/shared/vite": [
+        "packages/qwik-city/adapters/shared/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adaptors/static/vite": [
-        "packages/qwik-city/adaptors/static/vite/index.ts"
+      "@builder.io/qwik-city/adapters/static/vite": [
+        "packages/qwik-city/adapters/static/vite/index.ts"
       ],
       "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
       "@builder.io/qwik-city/middleware/request-handler": [

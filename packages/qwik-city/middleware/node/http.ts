@@ -83,6 +83,7 @@ export async function fromNodeHttp(
     },
     platform: {
       ssr: true,
+      incomingMessage: req,
       node: process.versions.node,
     },
     locale: undefined,

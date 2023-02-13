@@ -40,7 +40,8 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
-      requestEv.getWritableStream().close();
+      const stream = requestEv.getWritableStream();
+      await stream.close();
     } else if (e instanceof ErrorResponse) {
       console.error(e);
       if (!requestEv.headersSent) {

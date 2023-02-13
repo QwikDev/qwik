@@ -39,6 +39,23 @@ export async function workerThread(sys: System) {
   });
 }
 
+export async function createSingleThreadWorker(sys: System) {
+  const ssgOpts = sys.getOptions();
+  const pendingPromises = new Set<Promise<any>>();
+
+  const opts: StaticGenerateHandlerOptions = {
+    ...ssgOpts,
+    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
+    qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
+  };
+
+  return (staticRoute: StaticRoute) => {
+    return new Promise<StaticWorkerRenderResult>((resolve) => {
+      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
+    });
+  };
+}
+
 async function workerRender(
   sys: System,
   opts: StaticGenerateHandlerOptions,
@@ -84,7 +101,7 @@ async function workerRender(
 
         if (!result.ok) {
           // not ok, don't write anything
-          return noopWriter;
+          return noopWritableStream;
         }
 
         const contentType = (headers.get('Content-Type') || '').toLowerCase();
@@ -196,13 +213,14 @@ async function workerRender(
     };
 
     const promise = requestHandler(requestCtx, opts)
-      .then(async (rsp) => {
+      .then((rsp) => {
         if (rsp != null) {
-          const r = await rsp.completion;
-          if (routeWriter) {
-            await closePromise;
-          }
-          return r;
+          return rsp.completion.then((r) => {
+            if (routeWriter) {
+              return closePromise.then(() => r);
+            }
+            return r;
+          });
         }
       })
       .then((e) => {
@@ -242,7 +260,24 @@ async function workerRender(
   }
 }
 
-const noopWriter = /*#__PURE__*/ new WritableStream({
-  write() {},
-  close() {},
-});
+const noopWriter: WritableStreamDefaultWriter<any> = {
+  closed: Promise.resolve(undefined),
+  ready: Promise.resolve(undefined),
+  desiredSize: 0,
+  async close() {},
+  async abort() {},
+  async write() {},
+  releaseLock() {},
+};
+
+const noopWritableStream: WritableStream = {
+  get locked() {
+    return false;
+  },
+  set locked(_: boolean) {},
+  async abort() {},
+  async close() {},
+  getWriter() {
+    return noopWriter;
+  },
+};

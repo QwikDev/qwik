@@ -14,7 +14,7 @@ export async function mainThread(sys: System) {
   const opts = sys.getOptions();
   validateOptions(opts);
 
-  const main = await sys.createMainProcess();
+  const main = await sys.createMainProcess!();
   const log = await sys.createLogger();
   log.info('\n' + color.bold().green('Starting Qwik City SSG...'));
 

@@ -368,9 +368,9 @@ export const useWatch$ = /*#__PURE__*/ useTask$;
  */
 export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
 
-// <docs markdown="../readme.md#useOnVisibleTask">
+// <docs markdown="../readme.md#useBrowserVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useOnVisibleTask instead)
+// (edit ../readme.md#useBrowserVisibleTask instead)
 /**
  * ```tsx
  * const Timer = component$(() => {
@@ -378,7 +378,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  *     count: 0,
  *   });
  *
- *   useOnVisibleTask$(() => {
+ *   useBrowserVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       store.count++;
@@ -395,7 +395,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  * @public
  */
 // </docs>
-export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
+export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
   const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
   const eagerness = opts?.strategy ?? opts?.eagerness ?? 'intersection-observer';
   if (get) {
@@ -419,9 +419,9 @@ export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOption
   }
 };
 
-// <docs markdown="../readme.md#useOnVisibleTask">
+// <docs markdown="../readme.md#useBrowserVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useOnVisibleTask instead)
+// (edit ../readme.md#useBrowserVisibleTask instead)
 /**
  * ```tsx
  * const Timer = component$(() => {
@@ -429,7 +429,7 @@ export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOption
  *     count: 0,
  *   });
  *
- *   useOnVisibleTask$(() => {
+ *   useBrowserVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       store.count++;
@@ -446,19 +446,19 @@ export const useOnVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOption
  * @public
  */
 // </docs>
-export const useOnVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useOnVisibleTaskQrl);
+export const useBrowserVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useBrowserVisibleTaskQrl);
 
 /**
  * @alpha
- * @deprecated - use `useOnVisibleTask$()` instead
+ * @deprecated - use `useBrowserVisibleTask$()` instead
  */
-export const useClientEffectQrl = useOnVisibleTaskQrl;
+export const useClientEffectQrl = useBrowserVisibleTaskQrl;
 
 /**
  * @alpha
- * @deprecated - use `useOnVisibleTask$()` instead
+ * @deprecated - use `useBrowserVisibleTask$()` instead
  */
-export const useClientEffect$ = useOnVisibleTask$;
+export const useClientEffect$ = useBrowserVisibleTask$;
 
 export type WatchDescriptor = DescriptorBase<TaskFn>;
 

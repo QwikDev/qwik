@@ -899,6 +899,12 @@ export interface Tracker {
 // @alpha (undocumented)
 export const untrack: <T>(fn: () => T) => T;
 
+// @public
+export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @public
+export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
 // @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 
@@ -950,12 +956,6 @@ export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void
 
 // @alpha
 export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
-
-// @public
-export const useOnVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
-
-// @public
-export const useOnVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @alpha
 export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;

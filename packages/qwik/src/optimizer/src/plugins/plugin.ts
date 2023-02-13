@@ -343,7 +343,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClient', 'client', 'useOnVisibleTask'];
+        transformOpts.stripCtxName = ['useClient', 'client', 'useBrowserVisibleTask'];
         transformOpts.stripCtxKind = 'event';
         transformOpts.isServer = true;
       }

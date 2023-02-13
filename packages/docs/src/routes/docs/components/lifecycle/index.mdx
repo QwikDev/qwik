@@ -20,7 +20,7 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 - `VisibleTask` - runs after `Render` and when the component becomes visible
 
 ```
-  useTask$ ------> RENDER -----> useOnVisibleTask$
+  useTask$ ------> RENDER -----> useBrowserVisibleTask$
                             |
 | --- SERVER or BROWSER --- | ----- BROWSER ----- |
                             |
@@ -34,7 +34,7 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 **BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
 ```
-  useTask$ --> RENDER --> useOnVisibleTask$
+  useTask$ --> RENDER --> useBrowserVisibleTask$
 
 | ---------------- BROWSER --------------- |
 ```
@@ -151,23 +151,23 @@ export const Cmp = component$(() => {
 
 > But as mentioned above - for data fetching, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead.
 
-## `useOnVisibleTask$()`
+## `useBrowserVisibleTask$()`
 
 - **When:** once the component becomes visible on the browser, and when tracked state changes
 - **Times:** at least once
 - **Platform:** browser only
 
-`useOnVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
+`useBrowserVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
 
 ```tsx
-useOnVisibleTask$(({ track }) => {
+useBrowserVisibleTask$(({ track }) => {
   track(() => store.count);
   // will run when the component becomes visible and every time "store.count" changes
   console.log('runs in the browser');
 });
 ```
 
-Under the hood, `useOnVisibleTask$()` creates a DOM listener that uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to detect when the component becomes visible in the viewport.
+Under the hood, `useBrowserVisibleTask$()` creates a DOM listener that uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to detect when the component becomes visible in the viewport.
 
 However this `strategy` can be changed, and for example, run when the `document` is ready.
 
@@ -190,7 +190,7 @@ export const Timer = component$(() => {
   const store = useStore({
     count: 0,
   });
-  useOnVisibleTask$(() => {
+  useBrowserVisibleTask$(() => {
     // Only runs in the client
     const timer = setInterval(() => {
       store.count++;
@@ -203,13 +203,13 @@ export const Timer = component$(() => {
 });
 ```
 
-> **NOTE:** Don't abuse `useOnVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useOnVisibleTask$()` is probably not the right answer.
+> **NOTE:** Don't abuse `useBrowserVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useBrowserVisibleTask$()` is probably not the right answer.
 
-### When to use `useOnVisibleTask$()`
+### When to use `useBrowserVisibleTask$()`
 
-> **NOTE:** Don't abuse `useOnVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useOnVisibleTask$()` is probably not the right answer.
+> **NOTE:** Don't abuse `useBrowserVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useBrowserVisibleTask$()` is probably not the right answer.
 
-As the name implies, `useOnVisibleTask$()` is useful when you need to run some code when the component becomes visible in the viewport. This is useful for:
+As the name implies, `useBrowserVisibleTask$()` is useful when you need to run some code when the component becomes visible in the viewport. This is useful for:
 
 - Run code BEFORE user interaction, like animations, or other logic that needs to run before user interaction.
 - Read the DOM after rendering

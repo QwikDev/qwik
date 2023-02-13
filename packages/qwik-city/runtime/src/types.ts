@@ -16,6 +16,7 @@ export type {
   RequestEvent,
   RequestHandler,
   RequestEventLoader,
+  RequestEventAction,
   RequestEventCommon,
   DeferReturn,
 } from '@builder.io/qwik-city/middleware/request-handler';

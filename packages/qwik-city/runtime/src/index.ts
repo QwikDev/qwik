@@ -18,6 +18,7 @@ export type {
   RequestHandler,
   RequestEvent,
   RequestEventLoader,
+  RequestEventAction,
   RequestEventCommon,
   RouteParams,
   QwikCityPlan,

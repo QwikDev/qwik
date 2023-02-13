@@ -517,11 +517,9 @@ const renderContentProjection = (
   // Remove empty templates
   for (const key of Object.keys(slotMaps.templates)) {
     const templateEl = slotMaps.templates[key];
-    if (templateEl) {
-      if (!splittedNewChidren[key] || slotMaps.slots[key]) {
-        removeNode(staticCtx, templateEl);
-        slotMaps.templates[key] = undefined;
-      }
+    if (templateEl && !splittedNewChidren[key]) {
+      slotMaps.templates[key] = undefined;
+      removeNode(staticCtx, templateEl);
     }
   }
 
@@ -541,6 +539,10 @@ const renderContentProjection = (
       slotRctx.$slotCtx$ = slotCtx;
       slotCtx.$vdom$ = newVdom;
       newVdom.$elm$ = slotCtx.$element$;
+      const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotCtx.$element$);
+      if (index >= 0) {
+        staticCtx.$addSlots$.splice(index, 1);
+      }
       return smartUpdateChildren(slotRctx, oldVdom, newVdom, 'root', flags);
     })
   ) as any;

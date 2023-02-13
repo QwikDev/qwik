@@ -45,7 +45,7 @@ Before submitting a pull request, consider the following guidelines:
 Every PR is being automatically merged with `main` before the CI Github actions run.
 That's why if the CI checks aren't passing your PR branch is probably not up to date.
 
-**For non documetntation PRs please do the following:**
+**For non documentation PRs please do the following:**
 
 1. Merge `main` into your PR branch
 2. Run `pnpm api.update`

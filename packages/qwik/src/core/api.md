@@ -375,6 +375,13 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
+// @public (undocumented)
+export interface OnVisibleTaskOptions {
+    // @deprecated (undocumented)
+    eagerness?: EagernessOptions;
+    strategy?: VisibleTaskStrategy;
+}
+
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
@@ -892,17 +899,23 @@ export interface Tracker {
 // @alpha (undocumented)
 export const untrack: <T>(fn: () => T) => T;
 
+// @public
+export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @public
+export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
 // @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 
 // @alpha @deprecated
 export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
 
-// @public
-export const useClientEffect$: (first: TaskFn, opts?: UseEffectOptions | undefined) => void;
+// @alpha @deprecated (undocumented)
+export const useClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
-// @public
-export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: UseEffectOptions) => void;
+// @alpha @deprecated (undocumented)
+export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @public @deprecated
 export const useClientMount$: <T>(first: MountFn<T>) => void;
@@ -917,11 +930,6 @@ export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
-
-// @public (undocumented)
-export interface UseEffectOptions {
-    eagerness?: EagernessOptions;
-}
 
 // @alpha @deprecated (undocumented)
 export const useEnvData: typeof useServerData;
@@ -1041,6 +1049,9 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 
 // @public
 export const version: string;
+
+// @public (undocumented)
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;

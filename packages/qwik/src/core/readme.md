@@ -121,7 +121,7 @@ The `obs` passed into the `taskFn` is used to mark `state.count` as a property o
 
 @public
 
-# `useClientEffect`
+# `useBrowserVisibleTask`
 
 <docs code="./examples.tsx#use-client-effect"/>
 
@@ -206,7 +206,7 @@ Component styles allow Qwik to lazy load the style information for the component
 It can be used to release resources, abort network requests, stop timers...
 
 @alpha
-@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useClientEffect$()` instead.
+@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useBrowserVisibleTask$()` instead.
 
 # `useOn`
 

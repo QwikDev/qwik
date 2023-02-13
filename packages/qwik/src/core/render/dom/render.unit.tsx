@@ -4,7 +4,7 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useBrowserVisibleTask$, useTask$ } from '../../use/use-task';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -971,7 +971,7 @@ export const Transparent = component$(() => {
 });
 
 export const UseEvents = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('hello');
   });
   useOn(
@@ -1012,7 +1012,7 @@ export const Hooks = component$(() => {
     };
   });
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     effectDiv.current!.textContent = 'true';
     return () => {
       effectDestroyDiv.current!.textContent = 'true';

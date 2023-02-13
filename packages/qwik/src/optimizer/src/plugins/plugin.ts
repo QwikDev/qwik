@@ -343,7 +343,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClient', 'client'];
+        transformOpts.stripCtxName = ['useClient', 'client', 'useBrowser', 'browser'];
         transformOpts.stripCtxKind = 'event';
         transformOpts.isServer = true;
       }

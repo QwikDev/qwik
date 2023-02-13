@@ -1124,7 +1124,7 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -1132,7 +1132,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -1160,7 +1160,7 @@ export const Child = component$(() => {
 fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -1172,7 +1172,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         state.count = thing.doStuff() + import("./sibling");
     });
 

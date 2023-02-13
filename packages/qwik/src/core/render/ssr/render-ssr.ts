@@ -425,7 +425,7 @@ const renderSSRComponent = (
           }
           renderNodeElementSync('script', attributes, stream);
           logWarn(`Component has listeners attached, but it does not render any elements, injecting a new <script> element to attach listeners.
-          This is likely to the usage of useClientEffect$() in a component that renders no elements.`);
+          This is likely to the usage of useBrowserVisibleTask$() in a component that renders no elements.`);
         }
         if (beforeClose) {
           return then(renderQTemplates(rCtx, newSSrContext, stream), () => beforeClose(stream));

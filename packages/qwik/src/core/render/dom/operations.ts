@@ -153,9 +153,13 @@ export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) =
 
 export const prepend = (staticCtx: RenderStaticContext, parent: QwikElement, newChild: Node) => {
   staticCtx.$operations$.push({
-    $operation$: directInsertBefore,
-    $args$: [parent, newChild, parent.firstChild],
+    $operation$: directPrepend,
+    $args$: [parent, newChild],
   });
+};
+
+export const directPrepend = (parent: QwikElement, newChild: Node) => {
+  directInsertBefore(parent, newChild, parent.firstChild);
 };
 
 export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
@@ -216,12 +220,20 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       const sref = slotEl.getAttribute(QSlotRef);
       const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
       if (hostCtx) {
-        const template = createTemplate(staticCtx.$doc$, key);
         const hostElm = hostCtx.$element$;
-        for (const child of slotChildren) {
-          directAppendChild(template, child);
+        const hasTemplate = Array.from(hostElm.childNodes).some(
+          (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
+        );
+
+        if (!hasTemplate) {
+          const template = createTemplate(staticCtx.$doc$, key);
+          for (const child of slotChildren) {
+            directAppendChild(template, child);
+          }
+          directInsertBefore(hostElm, template, hostElm.firstChild);
+        } else {
+          cleanupTree(slotEl, staticCtx, subsManager, false);
         }
-        directInsertBefore(hostElm, template, hostElm.firstChild);
       } else {
         // If slot content cannot be relocated, it means it's content is definively removed
         // Cleanup needs to be executed

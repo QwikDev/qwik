@@ -413,7 +413,7 @@ interface TodosStore {
 }
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContext<TodosStore>('Todos');
+export const TodosContext = createContextId<TodosStore>('Todos');
 
 // Example of providing context to child components.
 export const App = component$(() => {
@@ -485,7 +485,7 @@ function doExtraStuff() {
 
 // <docs anchor="qrl-capturing-rules">
 
-import { createContext, useContext, useContextProvider } from './use/use-context';
+import { createContextId, useContext, useContextProvider } from './use/use-context';
 import { useRef } from './use/use-ref';
 import { Resource, useResource$ } from './use/use-resource';
 import { isServer, isBrowser } from '../build';

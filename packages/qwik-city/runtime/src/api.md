@@ -105,9 +105,9 @@ export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => Do
 // @alpha (undocumented)
 export interface DocumentHeadProps extends RouteLocation {
     // (undocumented)
-    readonly getData: GetSyncData;
-    // (undocumented)
     readonly head: ResolvedDocumentHead;
+    // (undocumented)
+    readonly resolveValue: GetSyncData;
     // (undocumented)
     readonly withLocale: <T>(fn: () => T) => T;
 }

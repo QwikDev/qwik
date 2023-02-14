@@ -24,8 +24,8 @@ export const useLoader = loader$(({ params, request }) => {
   };
 });
 
-export const head: DocumentHead = ({ getData }) => {
-  const data = getData(useLoader);
+export const head: DocumentHead = ({ resolveValue }) => {
+  const data = resolveValue(useLoader);
   return { title: data?.title };
 };
 

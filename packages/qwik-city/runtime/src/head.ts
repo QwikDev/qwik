@@ -38,7 +38,7 @@ export const resolveHead = (
   const headProps: DocumentHeadProps = {
     head,
     withLocale: (fn) => withLocale(locale, fn),
-    getData,
+    resolveValue: getData,
     ...routeLocation,
   };
 

@@ -208,7 +208,7 @@ export interface DocumentStyle {
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
   readonly withLocale: <T>(fn: () => T) => T;
-  readonly getData: GetSyncData;
+  readonly resolveValue: GetSyncData;
 }
 
 /**

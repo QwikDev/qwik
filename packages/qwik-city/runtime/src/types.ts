@@ -1,5 +1,5 @@
 import type {
-  GetSyncData,
+  ResolveSyncValue,
   RequestEventAction,
   RequestEventLoader,
   RequestHandler,
@@ -11,8 +11,8 @@ export type {
   Cookie,
   CookieOptions,
   CookieValue,
-  GetData,
-  GetSyncData,
+  ResolveValue,
+  ResolveSyncValue,
   RequestEvent,
   RequestHandler,
   RequestEventLoader,
@@ -208,7 +208,7 @@ export interface DocumentStyle {
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
   readonly withLocale: <T>(fn: () => T) => T;
-  readonly getData: GetSyncData;
+  readonly resolveValue: ResolveSyncValue;
 }
 
 /**

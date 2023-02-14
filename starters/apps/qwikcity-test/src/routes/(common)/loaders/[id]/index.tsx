@@ -4,8 +4,8 @@ import { delay } from '../../actions/login';
 
 export const useDateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
-export const useDependencyLoader = loader$(async ({ params, redirect, json, getData }) => {
-  const formData = await getData(useForm);
+export const useDependencyLoader = loader$(async ({ params, redirect, json, resolveValue }) => {
+  const formData = await resolveValue(useForm);
   await delay(100);
   if (params.id === 'redirect') {
     throw redirect(302, '/qwikcity-test/');
@@ -20,9 +20,9 @@ export const useDependencyLoader = loader$(async ({ params, redirect, json, getD
   };
 });
 
-export const useAsyncLoader = loader$(async ({ getData }) => {
-  const p1 = getData(useDateLoader);
-  const p2 = getData(useDependencyLoader);
+export const useAsyncLoader = loader$(async ({ resolveValue }) => {
+  const p1 = resolveValue(useDateLoader);
+  const p2 = resolveValue(useDependencyLoader);
   if (!(p1 instanceof Promise)) {
     throw new Error('Expected date to be a promise');
   }
@@ -123,10 +123,10 @@ export const useForm = action$(
   })
 );
 
-export const head: DocumentHead = ({ getData }) => {
-  const date = getData(useDateLoader);
-  const dep = getData(useDependencyLoader);
-  const action = getData(useForm);
+export const head: DocumentHead = ({ resolveValue }) => {
+  const date = resolveValue(useDateLoader);
+  const dep = resolveValue(useDependencyLoader);
+  const action = resolveValue(useForm);
   let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;

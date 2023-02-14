@@ -6,13 +6,13 @@
 
 import type { Action } from '@builder.io/qwik-city';
 import type { FailReturn } from '@builder.io/qwik-city';
-import type { GetSyncData as GetSyncData_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ResolveSyncValue as ResolveSyncValue_2 } from '@builder.io/qwik-city/middleware/request-handler';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -54,23 +54,7 @@ export interface CookieValue {
 export type DeferReturn<T> = () => Promise<T>;
 
 // @alpha (undocumented)
-export interface GetData {
-    // (undocumented)
-    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
-    // (undocumented)
-    <T>(action: Action<T>): Promise<T | undefined>;
-}
-
-// @alpha (undocumented)
 export function getErrorHtml(status: number, e: any): string;
-
-// @alpha (undocumented)
-export interface GetSyncData {
-    // (undocumented)
-    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
-    // (undocumented)
-    <T>(action: Action<T>): Awaited<T> | undefined;
-}
 
 // @alpha (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
@@ -130,7 +114,7 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends Request
     // (undocumented)
     defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
     // (undocumented)
-    getData: GetData;
+    resolveValue: ResolveValue;
 }
 
 // @alpha (undocumented)
@@ -140,6 +124,22 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLAT
 //
 // @alpha (undocumented)
 export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<T>, opts: ServerRenderOptions): Promise<QwikCityRun<T> | null>;
+
+// @alpha (undocumented)
+export interface ResolveSyncValue {
+    // (undocumented)
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    // (undocumented)
+    <T>(action: Action<T>): Awaited<T> | undefined;
+}
+
+// @alpha (undocumented)
+export interface ResolveValue {
+    // (undocumented)
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
+    // (undocumented)
+    <T>(action: Action<T>): Promise<T | undefined>;
+}
 
 // @alpha (undocumented)
 export interface ServerRenderOptions extends RenderOptions {

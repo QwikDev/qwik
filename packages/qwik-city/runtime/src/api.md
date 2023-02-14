@@ -11,7 +11,6 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn as FailReturn_2 } from '@builder.io/qwik-city';
-import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
 import type { Loader as Loader_2 } from '@builder.io/qwik-city';
 import { QRL } from '@builder.io/qwik';
@@ -22,6 +21,7 @@ import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
@@ -105,9 +105,9 @@ export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => Do
 // @alpha (undocumented)
 export interface DocumentHeadProps extends RouteLocation {
     // (undocumented)
-    readonly getData: GetSyncData;
-    // (undocumented)
     readonly head: ResolvedDocumentHead;
+    // (undocumented)
+    readonly resolveValue: ResolveSyncValue;
     // (undocumented)
     readonly withLocale: <T>(fn: () => T) => T;
 }

@@ -72,7 +72,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
   };
 
   const sys: System = {
-    createMainProcess: () => createNodeMainProcess(opts),
+    createMainProcess: null,
     createWorkerProcess: createNodeWorkerProcess,
     createLogger,
     getOptions: () => opts,
@@ -88,6 +88,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
       node: process.versions.node,
     },
   };
+  sys.createMainProcess = () => createNodeMainProcess(sys, opts);
 
   return sys;
 }

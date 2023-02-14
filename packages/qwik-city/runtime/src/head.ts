@@ -9,7 +9,7 @@ import type {
   ClientPageData,
   LoaderInternal,
   Editable,
-  GetSyncData,
+  ResolveSyncValue,
   ActionInternal,
 } from './types';
 
@@ -34,7 +34,7 @@ export const resolveHead = (
       throw new Error('Loaders returning a function can not be refered to in the head function.');
     }
     return data;
-  }) as any as GetSyncData;
+  }) as any as ResolveSyncValue;
   const headProps: DocumentHeadProps = {
     head,
     withLocale: (fn) => withLocale(locale, fn),

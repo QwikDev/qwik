@@ -5,7 +5,7 @@ import type {
   ServerRequestMode,
   RequestHandler,
   RequestEventCommon,
-  GetData,
+  ResolveValue,
 } from './types';
 import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
 import { Cookie } from './cookie';
@@ -128,7 +128,7 @@ export function createRequestEvent(
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
+    resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
       const id = loaderOrAction.__qrl.getHash();
       if (loaderOrAction.__brand === 'server_loader') {
@@ -140,7 +140,7 @@ export function createRequestEvent(
       }
 
       return loaders[id];
-    }) as GetData,
+    }) as ResolveValue,
 
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {

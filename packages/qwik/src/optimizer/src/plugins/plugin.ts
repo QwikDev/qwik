@@ -293,7 +293,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir);
       } catch (err) {
-        // Nothign
+        // Nothing
       }
     }
 

@@ -5,7 +5,7 @@ contributors:
   - adamdbradley
 ---
 
-Use `useSignal()` to store any single value similar to `useStore()`. `useSignal` is heavely optimized when it comes to re-rendering components. It is able to skip re-renderings of parent components even when the signal itself is defined in the parent. `useSignal` works with all [primitve types](https://developer.mozilla.org/en-US/docs/Glossary/Primitive) as well as with not nested / flat objects. If you need to store arrays or complex objects use [useStore](../../../docs/components/state/index.mdx) instead with the `{deep: true}` option.
+Use `useSignal()` to store any single value similar to `useStore()`. `useSignal` is heavily optimized when it comes to re-rendering components. It is able to skip re-renderings of parent components even when the signal itself is defined in the parent. `useSignal` works with all [primitive types](https://developer.mozilla.org/en-US/docs/Glossary/Primitive) as well as with not nested / flat objects. If you need to store arrays or complex objects use [useStore](../../../docs/components/state/index.mdx) instead with the `{deep: true}` option.
 
 Some examples would be:
 

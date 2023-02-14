@@ -482,7 +482,7 @@ ${DEV_QWIK_INSPECTOR(opts.devTools)}
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
   </head>
   <body>

@@ -314,7 +314,7 @@ At first glance, `QRL` serves the same purpose as `import()`. However, there are
 
 Let's assume that you intend to write code such as this:
 
-```typescript
+```tsx
 return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
 ```
 

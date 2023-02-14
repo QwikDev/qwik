@@ -16,7 +16,6 @@ export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
       return {
         ssr: {
           target: 'node',
-          noExternal: ['@builder.io/qwik-city'],
         },
         build: {
           ssr: true,

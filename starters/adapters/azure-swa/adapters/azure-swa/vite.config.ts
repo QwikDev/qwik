@@ -19,12 +19,6 @@ export default extendConfig(baseConfig, () => {
       target: 'webworker',
       noExternal: true,
     },
-    plugins: [
-      azureSwaAdapter({
-        ssg: {
-          include: ['/'],
-        },
-      }),
-    ],
+    plugins: [azureSwaAdapter()],
   };
 });

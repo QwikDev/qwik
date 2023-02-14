@@ -6,7 +6,7 @@ import {
   useStore,
   useSignal,
   Signal,
-  createContext,
+  createContextId,
   useContext,
   useContextProvider,
 } from '@builder.io/qwik';
@@ -91,7 +91,7 @@ export const GrandChild = component$((props: { state: State }) => {
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContext<{ value: string }>('link-path');
+export const LinkPath = createContextId<{ value: string }>('link-path');
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({

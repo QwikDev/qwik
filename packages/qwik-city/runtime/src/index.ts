@@ -18,6 +18,7 @@ export type {
   RequestHandler,
   RequestEvent,
   RequestEventLoader,
+  RequestEventAction,
   RequestEventCommon,
   RouteParams,
   QwikCityPlan,
@@ -36,7 +37,7 @@ export type {
   ZodReturn,
   StaticGenerate,
   RouteNavigate,
-  StreamingReturn,
+  DeferReturn,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';

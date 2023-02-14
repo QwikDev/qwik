@@ -9,6 +9,7 @@ import { Component } from '@builder.io/qwik';
 import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
+import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn as FailReturn_2 } from '@builder.io/qwik-city';
 import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
@@ -17,12 +18,11 @@ import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Signal } from '@builder.io/qwik';
-import { StreamingReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 
@@ -96,6 +96,8 @@ export { Cookie }
 export { CookieOptions }
 
 export { CookieValue }
+
+export { DeferReturn }
 
 // @alpha (undocumented)
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
@@ -298,6 +300,8 @@ export const QwikCityProvider: Component<QwikCityProps>;
 
 export { RequestEvent }
 
+export { RequestEventAction }
+
 export { RequestEventCommon }
 
 export { RequestEventLoader }
@@ -320,16 +324,18 @@ routeBundleNames: string[]
 
 // @alpha (undocumented)
 export interface RouteLocation {
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly href: string;
     // (undocumented)
     readonly isNavigating: boolean;
     // (undocumented)
     readonly params: Readonly<Record<string, string>>;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly pathname: string;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly query: URLSearchParams;
+    // (undocumented)
+    readonly url: URL;
 }
 
 // @alpha (undocumented)
@@ -352,8 +358,6 @@ export interface StaticGenerate {
 
 // @alpha (undocumented)
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
-
-export { StreamingReturn }
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

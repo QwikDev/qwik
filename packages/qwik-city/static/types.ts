@@ -3,7 +3,7 @@ import type { RenderOptions } from '@builder.io/qwik/server';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface System {
-  createMainProcess: () => Promise<MainContext>;
+  createMainProcess: (() => Promise<MainContext>) | null;
   createWorkerProcess: (
     onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
   ) => void;

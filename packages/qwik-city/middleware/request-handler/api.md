@@ -51,6 +51,9 @@ export interface CookieValue {
 }
 
 // @alpha (undocumented)
+export type DeferReturn<T> = () => Promise<T>;
+
+// @alpha (undocumented)
 export interface GetData {
     // (undocumented)
     <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
@@ -125,9 +128,9 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
 // @alpha (undocumented)
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
-    getData: GetData;
+    defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
     // (undocumented)
-    streaming: <T>(returnData: Promise<T> | (() => Promise<T>)) => StreamingReturn<T>;
+    getData: GetData;
 }
 
 // @alpha (undocumented)
@@ -171,9 +174,6 @@ export type ServerRequestMode = 'dev' | 'static' | 'server';
 //
 // @alpha (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
-
-// @alpha (undocumented)
-export type StreamingReturn<T> = () => Promise<T>;
 
 // (No @packageDocumentation comment for this package)
 

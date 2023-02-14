@@ -13,24 +13,30 @@ import diagram from './diagram2.svg';
 
 Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life and its lifecycle extend across server and browser. Sometimes the component will be first rendered in the server, sometimes it could be in the browser, however, in both cases the lifecycle will be the same, only its execution happens in different environments.
 
-Usually **the life of a component starts on the server** (during SSR or SSG), in that case, the hooks will run like this:
+**In Qwik, there is only 3 lifecycles stages:**
+
+- `Task` - runs before rendering and when tracked state changes
+- `Render` - runs after `TASK` and before `VisibleTask`
+- `VisibleTask` - runs after `Render` and when the component becomes visible
 
 ```
-  useTask$ --> RENDER --> useClientEffect$
-                       |
-| ------ SERVER ------ | ---- BROWSER ---- |
-                       |
-                  pause|resume
+  useTask$ ------> RENDER -----> useBrowserVisibleTask$
+                            |
+| --- SERVER or BROWSER --- | ----- BROWSER ----- |
+                            |
+                       pause|resume
 ```
+
+**SERVER**: Usually **the life of a component starts on the server** (during SSR or SSG), in that case, the `useTask$` and `RENDER` will run in the server, and then the `VisibleTask` will run in the browser, after the component is visible.
 
 > **Notice** that because the component was mounted in the server, **only useClientEffect$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
 
-Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
+**BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
 ```
-  useTask$ --> RENDER --> useClientEffect$
+  useTask$ --> RENDER --> useBrowserVisibleTask$
 
-| --------------- BROWSER --------------- |
+| ---------------- BROWSER --------------- |
 ```
 
 > **Notice** that the lifecycle is exactly the same, but this time all the hooks run in the browser, and non in the server.
@@ -145,25 +151,37 @@ export const Cmp = component$(() => {
 
 > But as mentioned above - for data fetching, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead.
 
-## `useClientEffect$()`
+## `useBrowserVisibleTask$()`
 
-- **When:** AFTER component's first render and on tracked state changes
+- **When:** once the component becomes visible on the browser, and when tracked state changes
 - **Times:** at least once
 - **Platform:** browser only
 
-For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagerly\, that means, without user interaction, but the eagerness can be configured!
+`useBrowserVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
+
+```tsx
+useBrowserVisibleTask$(({ track }) => {
+  track(() => store.count);
+  // will run when the component becomes visible and every time "store.count" changes
+  console.log('runs in the browser');
+});
+```
+
+Under the hood, `useBrowserVisibleTask$()` creates a DOM listener that uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to detect when the component becomes visible in the viewport.
+
+However this `strategy` can be changed, and for example, run when the `document` is ready.
 
 ```tsx
 useClientEffect$(() => console.log('runs in the browser'), {
-  eagerness: 'visible', // 'load' | 'visible' | 'idle'
+  strategy: 'document-ready', // 'load' | 'visible' | 'idle'
 });
 ```
 
 This is a unique feature of Qwik, any other frameworks would execute this and other code as part of hydration, but in Qwik, you can actually specify when it happens:
 
-- `"visible"`: (this is the default) when the component becomes visible in the viewport (uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) under the hood).
-- `"load"`: when the documents finish loading (the document's "load" event)
-- `"idle"`: after load the first moment the site becomes idle. It uses [`requestIdleCallback()`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) under the hood.
+- `"intersection-observer"`: (this is the default) when the component becomes visible in the viewport (uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) under the hood).
+- `"document-ready"`: when the documents finish loading (the document's "load" event)
+- `"document-idle"`: after load the first moment the site becomes idle. It uses [`requestIdleCallback()`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) under the hood.
 
 ### Example
 
@@ -172,7 +190,7 @@ export const Timer = component$(() => {
   const store = useStore({
     count: 0,
   });
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     // Only runs in the client
     const timer = setInterval(() => {
       store.count++;
@@ -185,23 +203,18 @@ export const Timer = component$(() => {
 });
 ```
 
-> **NOTE:** Don't abuse `useClientEffect$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useClientEffect$()` is probably not the right answer.
+> **NOTE:** Don't abuse `useBrowserVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useBrowserVisibleTask$()` is probably not the right answer.
 
-### When to use `useClientEffect$()`
+### When to use `useBrowserVisibleTask$()`
 
-Use this hook when you need to run JS right at loading time of the page, even if the user never interacts with the page.
+> **NOTE:** Don't abuse `useBrowserVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useBrowserVisibleTask$()` is probably not the right answer.
 
-For example:
+As the name implies, `useBrowserVisibleTask$()` is useful when you need to run some code when the component becomes visible in the viewport. This is useful for:
 
+- Run code BEFORE user interaction, like animations, or other logic that needs to run before user interaction.
 - Read the DOM after rendering
 - Initialize some animations
 - WebGL logic
-- Use DOM APIs like `localStorage`
-- Run some code without user interaction, like a setInterval()
-
-#### How does it compare with React's `useEffect()`?
-
-Both APIs share a lot of semantics, but while both run AFTER rendering, `useClientEffect$()` can run also independently from rendering.
 
 ## Use Method Rules
 

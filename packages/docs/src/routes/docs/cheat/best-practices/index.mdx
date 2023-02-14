@@ -14,7 +14,7 @@ Instead => `useOn()` methods
 
 **Best Practice**:
 
-```typescript!
+```ts
 useClientEffect$(()=> {
     const listener = (event)=> {
         const mouseEvent = event as MouseEvent
@@ -37,7 +37,7 @@ Not to mention it requires the extra effort for you to manually clean up the lis
 
 **Do this instead**:
 
-```typescript!
+```ts
 useOnDocument('mousemove', $((event)=> {
     const mouseEvent = event as MouseEvent;
     console.log(mouseEvent.x, mouseEvent.y)
@@ -60,7 +60,7 @@ Instead => `useLocation()`
 
 **Best Practice**:
 
-```typescript!
+```ts
 useClientEffect$(()=> {
     if (window.location.href).includes('foo') {
         //... do the thing
@@ -89,7 +89,7 @@ When using the `if typeof window !== "undefined"` pattern you'll soon find it wi
 
 **Do this instead**:
 
-```typescript!
+```ts
 const location = useLocation();
 
 if (location.href.includes('foo')) {

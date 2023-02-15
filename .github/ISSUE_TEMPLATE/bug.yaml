@@ -19,6 +19,7 @@ body:
         - Qwik React
         - Qwik City (routing)
         - Starters / CLI
+        - Qwik Playground
     validations:
       required: true
 

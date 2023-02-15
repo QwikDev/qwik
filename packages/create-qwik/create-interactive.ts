@@ -51,8 +51,8 @@ export async function runCreateInteractiveCli() {
         outDir
       )}" already exists. What would you like to do?`,
       options: [
-        { value: 'exit', title: 'Do not overwrite this directory and exit' },
-        { value: 'replace', title: 'Overwrite and replace this directory' },
+        { value: 'exit', label: 'Do not overwrite this directory and exit' },
+        { value: 'replace', label: 'Overwrite and replace this directory' },
       ],
     });
 
@@ -69,7 +69,7 @@ export async function runCreateInteractiveCli() {
   const starterIdAnswer = await select({
     message: 'Select a starter',
     options: apps.map((s) => {
-      return { title: s.name, value: s.id, hint: s.pkgJson?.description };
+      return { label: s.name, value: s.id, hint: s.pkgJson?.description };
     }),
   });
 

@@ -221,7 +221,7 @@ export const component$ = <PROPS extends {}>(onMount: OnRenderFn<PROPS>): Compon
 /**
  * @public
  */
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>
 
 export interface RenderFactoryOutput<PROPS> {
   renderQRL: QRL<OnRenderFn<PROPS>>;

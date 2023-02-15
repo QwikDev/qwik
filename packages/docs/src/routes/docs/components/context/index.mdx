@@ -57,7 +57,7 @@ export const Parent = component$(() => {
 
 export const Child = component$(() => {
   // Get reference to state using MyContext
-  const state = useContext<IMyContext>(MyContext);
+  const state = useContext(MyContext);
   return (
     <>
       <button onClick$={() => state.count++}>Increment</button>

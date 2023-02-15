@@ -49,7 +49,7 @@ function checkNodeVersion() {
 
 function printHeader() {
   // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
-  console.warn(
+  console.log(
     color.blue(`
       ............                                               :##+    ###-             
     .::: :--------:.                                                     ###-             

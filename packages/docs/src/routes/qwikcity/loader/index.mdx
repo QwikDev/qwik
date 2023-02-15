@@ -32,8 +32,6 @@ export const getProductData = loader$(() => {
 
 ## Using a loader
 
-Loaders are consumed using the `.use()` method from within a Qwik Component. The `use()` returns a `Signal` with the data returned by the loader function as it’s value.
-
 Loaders can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
 ```tsx
@@ -58,7 +56,7 @@ export default component$(() => {
 });
 ```
 
-> The `.use()` retrieves the loader data, but it does not execute the loader multiple times. Loaders execute eagerly\ at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+> The `useGetServerTime()` retrieves the loader data, but it does not execute the loader multiple times. Loaders execute eagerly\ at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
 ## Multiple loaders
 

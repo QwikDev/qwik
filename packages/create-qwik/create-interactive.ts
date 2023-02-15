@@ -11,7 +11,7 @@ import {
   spinner,
   isCancel,
   note,
-} from "@clack/prompts";
+} from '@clack/prompts';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
@@ -19,16 +19,15 @@ import { getPackageManager } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
-
   intro(`Let's create a Qwik App ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   const projectNameAnswer = await text({
-    message: "Where would you like to create your new project?",
-    placeholder: "./qwik-app",
+    message: 'Where would you like to create your new project?',
+    placeholder: './qwik-app',
   });
 
   if (isCancel(projectNameAnswer)) {
-    cancel("Operation cancelled.");
+    cancel('Operation cancelled.');
     process.exit(0);
   }
 
@@ -39,7 +38,7 @@ export async function runCreateInteractiveCli() {
   const baseApp = starterApps.find((a) => a.id === 'base')!;
   const apps = starterApps.filter((a) => a.id !== baseApp!.id);
 
-  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
+  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp, true);
 
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
@@ -47,15 +46,18 @@ export async function runCreateInteractiveCli() {
 
   if (fs.existsSync(outDir)) {
     const existingOutDirAnswer = await select({
-      message: `Directory "./${relative(process.cwd(), outDir)}" already exists. What would you like to do?`,
+      message: `Directory "./${relative(
+        process.cwd(),
+        outDir
+      )}" already exists. What would you like to do?`,
       options: [
-        {value: 'exit', title: 'Do not overwrite this directory and exit'},
-        {value: 'replace', title: 'Overwrite and replace this directory'},
-      ]
+        { value: 'exit', title: 'Do not overwrite this directory and exit' },
+        { value: 'replace', title: 'Overwrite and replace this directory' },
+      ],
     });
 
     if (isCancel(existingOutDirAnswer) || existingOutDirAnswer === 'exit') {
-      cancel("Operation cancelled.");
+      cancel('Operation cancelled.');
       process.exit(0);
     }
 
@@ -65,14 +67,14 @@ export async function runCreateInteractiveCli() {
   }
 
   const starterIdAnswer = await select({
-    message: "Select a starter",
+    message: 'Select a starter',
     options: apps.map((s) => {
       return { title: s.name, value: s.id, hint: s.pkgJson?.description };
     }),
   });
 
   if (isCancel(starterIdAnswer)) {
-    cancel("Operation cancelled.");
+    cancel('Operation cancelled.');
     process.exit(0);
   }
 
@@ -84,7 +86,7 @@ export async function runCreateInteractiveCli() {
   });
 
   if (isCancel(runInstallAnswer)) {
-    cancel("Operation cancelled.");
+    cancel('Operation cancelled.');
     process.exit(0);
   }
 
@@ -100,7 +102,7 @@ export async function runCreateInteractiveCli() {
   };
 
   const s = spinner();
-  
+
   s.start('Creating App');
   const result = await createApp(opts);
   s.stop('Created App 🐰');
@@ -112,7 +114,7 @@ export async function runCreateInteractiveCli() {
     s.stop('Installed dependencies 📦');
   }
 
-  note(logCreateAppResult(pkgManager, result, successfulDepsInstall),'Result');
+  note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
 
   outro('Happy coding! 🎉');
 

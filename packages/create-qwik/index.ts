@@ -3,7 +3,6 @@ import { createApp, runCreateCli } from './create-app';
 import { panic } from '../qwik/src/cli/utils/utils';
 import { runCreateInteractiveCli } from './create-interactive';
 import color from 'kleur';
-import gradient from "gradient-string";
 
 export async function runCli() {
   console.clear();
@@ -50,7 +49,8 @@ function checkNodeVersion() {
 
 function printHeader() {
   // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
-  console.warn(color.blue(`
+  console.warn(
+    color.blue(`
       ............                                               :##+    ###-             
     .::: :--------:.                                                     ###-             
    .::::  .:-------:.          -=+++++=-. .===.    -==.    .==-  :##+    ###-   .===.     
@@ -64,8 +64,8 @@ function printHeader() {
      ..::::::::::::                  +##:                                             
              ...::::                                                                   
     `),
-    "\n"
-  );    
+    '\n'
+  );
 }
 
 export { createApp, runCreateCli, runCreateInteractiveCli };

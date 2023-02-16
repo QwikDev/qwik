@@ -27,7 +27,8 @@ export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
-  mode: ServerRequestMode
+  mode: ServerRequestMode,
+  nonce?: string
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
@@ -87,6 +88,7 @@ export async function fromNodeHttp(
       node: process.versions.node,
     },
     locale: undefined,
+    nonce,
   };
 
   return serverRequestEv;

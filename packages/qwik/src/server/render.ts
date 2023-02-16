@@ -161,6 +161,7 @@ export async function renderToStream(
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
+          nonce: opts.nonce,
         }),
       ];
 
@@ -190,6 +191,7 @@ export async function renderToStream(
           jsx('script', {
             id: 'qwikloader',
             dangerouslySetInnerHTML: qwikLoaderScript,
+            nonce: opts.nonce,
           })
         );
       }
@@ -203,6 +205,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
+            nonce: opts.nonce,
           })
         );
       }

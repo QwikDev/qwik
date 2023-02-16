@@ -34,7 +34,8 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   const router = async (
     req: IncomingMessage,
     res: ServerResponse,
-    next: NodeRequestNextFunction
+    next: NodeRequestNextFunction,
+    nonce?: string
   ) => {
     try {
       const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');

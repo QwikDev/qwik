@@ -18,6 +18,7 @@ import { createCacheControl } from './cache-control';
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
+const RequestEvNonce = Symbol('RequestEvNonce');
 const RequestEvStatus = Symbol('RequestEvStatus');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
@@ -102,6 +103,7 @@ export function createRequestEvent(
     [RequestEvBasePathname]: basePathname,
     [RequestEvRoute]: loadedRoute,
     [RequestEvQwikSerializer]: qwikSerializer,
+    [RequestEvNonce]: serverRequestEv.nonce,
     cookie,
     headers,
     env,
@@ -234,6 +236,7 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, Promise<any>>;
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
+  [RequestEvNonce]: string | undefined;
   [RequestEvStatus]: number;
   [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
@@ -274,6 +277,10 @@ export function setRequestAction(requestEv: RequestEventCommon, id: string) {
 
 export function getRequestMode(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvMode];
+}
+
+export function getRequestNonce(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvNonce];
 }
 
 const ABORT_INDEX = 999999999;

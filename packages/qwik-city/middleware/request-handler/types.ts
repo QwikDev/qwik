@@ -20,6 +20,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  nonce?: string;
   getWritableStream: ServerResponseHandler<T>;
 }
 

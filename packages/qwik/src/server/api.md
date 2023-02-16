@@ -85,6 +85,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // @deprecated (undocumented)
     envData?: Record<string, any>;
     locale?: string | ((options: RenderOptions) => string);
+    nonce?: string | undefined;
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;

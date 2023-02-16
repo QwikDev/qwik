@@ -164,6 +164,8 @@ export interface ServerRequestEvent<T = any> {
     // (undocumented)
     mode: ServerRequestMode;
     // (undocumented)
+    nonce?: string;
+    // (undocumented)
     platform: any;
     // (undocumented)
     request: Request;

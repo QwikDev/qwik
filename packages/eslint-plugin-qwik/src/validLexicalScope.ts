@@ -102,8 +102,7 @@ export const validLexicalScope = createRule({
                 data: {
                   varName: ref.identifier.name,
                   dollarName: dollarIdentifier,
-                  reason:
-                    "it's declared at the root of the module and it is not exported. Add export",
+                  reason: `it's declared at the root of the module and it is not exported. Make sure "${ref.identifier.name}" is an exported identifier:\n\nexport const ${ref.identifier.name} = ...\n\n`,
                 },
               });
               return;

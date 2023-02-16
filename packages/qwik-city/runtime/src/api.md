@@ -9,18 +9,19 @@ import { Component } from '@builder.io/qwik';
 import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
+import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn as FailReturn_2 } from '@builder.io/qwik-city';
-import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
 import type { Loader as Loader_2 } from '@builder.io/qwik-city';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
@@ -30,8 +31,8 @@ export const action$: ActionConstructor;
 
 // @alpha (undocumented)
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    // @deprecated (undocumented)
     use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
@@ -96,15 +97,17 @@ export { CookieOptions }
 
 export { CookieValue }
 
+export { DeferReturn }
+
 // @alpha (undocumented)
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
 // @alpha (undocumented)
 export interface DocumentHeadProps extends RouteLocation {
     // (undocumented)
-    readonly getData: GetSyncData;
-    // (undocumented)
     readonly head: ResolvedDocumentHead;
+    // (undocumented)
+    readonly resolveValue: ResolveSyncValue;
     // (undocumented)
     readonly withLocale: <T>(fn: () => T) => T;
 }
@@ -233,8 +236,8 @@ export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLo
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
+    (): LoaderSignal<RETURN>;
+    // @deprecated (undocumented)
     use(): LoaderSignal<RETURN>;
 }
 
@@ -297,6 +300,8 @@ export const QwikCityProvider: Component<QwikCityProps>;
 
 export { RequestEvent }
 
+export { RequestEventAction }
+
 export { RequestEventCommon }
 
 export { RequestEventLoader }
@@ -319,16 +324,18 @@ routeBundleNames: string[]
 
 // @alpha (undocumented)
 export interface RouteLocation {
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly href: string;
     // (undocumented)
     readonly isNavigating: boolean;
     // (undocumented)
     readonly params: Readonly<Record<string, string>>;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly pathname: string;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly query: URLSearchParams;
+    // (undocumented)
+    readonly url: URL;
 }
 
 // @alpha (undocumented)

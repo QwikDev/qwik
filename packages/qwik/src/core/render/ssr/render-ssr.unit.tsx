@@ -7,12 +7,12 @@ import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { $ } from '../../qrl/qrl.public';
-import { createContext, useContext, useContextProvider } from '../../use/use-context';
+import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useBrowserVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -1045,7 +1045,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect()', async () => {
+renderSSRSuite('component useBrowserVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" class="qc📦">
@@ -1060,7 +1060,7 @@ renderSSRSuite('component useClientEffect()', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() without elements', async () => {
+renderSSRSuite('component useBrowserVisibleTask() without elements', async () => {
   await testSSR(
     <body>
       <UseEmptyClientEffect />
@@ -1078,7 +1078,7 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() inside <head>', async () => {
+renderSSRSuite('component useBrowserVisibleTask() inside <head>', async () => {
   await testSSR(
     <head>
       <UseEmptyClientEffect />
@@ -1472,9 +1472,9 @@ export const ComponentA = component$(() => {
   );
 });
 
-const CTX_INTERNAL = createContext<{ value: string }>('internal');
-const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
-const CTX_VALUE = createContext<{ value: string }>('value');
+const CTX_INTERNAL = createContextId<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContextId<{ value: string }>('qwikcity');
+const CTX_VALUE = createContextId<{ value: string }>('value');
 
 export const VariadicContext = component$(() => {
   return (
@@ -1536,10 +1536,10 @@ export const ContextConsumer = component$(() => {
 });
 
 export const UseClientEffect = component$((props: any) => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1551,10 +1551,10 @@ export const UseClientEffect = component$((props: any) => {
 });
 
 export const UseEmptyClientEffect = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1565,7 +1565,7 @@ export const UseEmptyClientEffect = component$(() => {
 });
 
 export const HeadCmp = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('client effect');
   });
   return (
@@ -1645,14 +1645,14 @@ export const NullCmp = component$(() => {
 });
 
 export const EffectTransparent = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('log');
   });
   return (

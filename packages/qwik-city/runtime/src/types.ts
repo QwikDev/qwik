@@ -1,5 +1,5 @@
 import type {
-  GetSyncData,
+  ResolveSyncValue,
   RequestEventAction,
   RequestEventLoader,
   RequestHandler,
@@ -11,12 +11,14 @@ export type {
   Cookie,
   CookieOptions,
   CookieValue,
-  GetData,
-  GetSyncData,
+  ResolveValue,
+  ResolveSyncValue,
   RequestEvent,
   RequestHandler,
   RequestEventLoader,
+  RequestEventAction,
   RequestEventCommon,
+  DeferReturn,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
@@ -54,8 +56,18 @@ export interface MenuModule {
  */
 export interface RouteLocation {
   readonly params: Readonly<Record<string, string>>;
+  readonly url: URL;
+  /**
+   * @deprecated Please use `url` instead of href
+   */
   readonly href: string;
+  /**
+   * @deprecated Please use `url` instead of pathname
+   */
   readonly pathname: string;
+  /**
+   * @deprecated Please use `url` instead of query
+   */
   readonly query: URLSearchParams;
   readonly isNavigating: boolean;
 }
@@ -196,7 +208,7 @@ export interface DocumentStyle {
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
   readonly withLocale: <T>(fn: () => T) => T;
-  readonly getData: GetSyncData;
+  readonly resolveValue: ResolveSyncValue;
 }
 
 /**
@@ -371,10 +383,10 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
    * ```tsx
    * import {action$, Form} from '@builder.io/qwik-city';
    *
-   * export const addUser = action$(() => { ... });
+   * export const useAddUser = action$(() => { ... });
    *
    * export default component$(() => {
-   *   const action = addUser.use()l
+   *   const action = useAddUser()l
    *   return (
    *     <Form action={action}/>
    *   );
@@ -453,31 +465,36 @@ export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B>
  * @alpha
  */
 export interface Loader<RETURN> {
-  readonly [isServerLoader]?: true;
-
   /**
    * Returns the `Signal` containing the data returned by the `loader$` function.
    * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
    */
+  (): LoaderSignal<RETURN>;
+
+  /**
+   * @deprecated - call as a function instead
+   */
   use(): LoaderSignal<RETURN>;
 }
-
-declare const isServerLoader: unique symbol;
 
 export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): LoaderSignal<any>;
+  (): LoaderSignal<any>;
 }
+
 /**
  * @alpha
  */
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
-  readonly [isServerLoader]?: true;
-
   /**
    * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
    * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
+   */
+  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+
+  /**
+   * @deprecated - call as a function instead
    */
   use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
@@ -487,7 +504,7 @@ export interface ActionInternal extends Action<any, any> {
   __qrl: QRL<(form: FormData, event: RequestEventAction) => ValueOrPromise<any>>;
   __schema: ZodReturn | undefined;
 
-  use(): ActionStore<any, any>;
+  (): ActionStore<any, any>;
 }
 
 export type Editable<T> = {

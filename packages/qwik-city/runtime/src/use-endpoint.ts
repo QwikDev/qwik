@@ -4,12 +4,7 @@ import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
 import { _deserializeData } from '@builder.io/qwik';
 
-export const loadClientData = async (
-  href: string,
-  clearCache?: boolean,
-  action?: RouteActionValue
-) => {
-  const url = new URL(href);
+export const loadClientData = async (url: URL, clearCache?: boolean, action?: RouteActionValue) => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
   const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
@@ -38,7 +33,7 @@ export const loadClientData = async (
         return rsp.text().then((text) => {
           const clientData = _deserializeData(text) as ClientPageData | null;
           if (!clientData) {
-            location.href = href;
+            location.href = url.href;
             return;
           }
           if (clearCache) {
@@ -53,7 +48,7 @@ export const loadClientData = async (
           return clientData;
         });
       } else {
-        location.href = href;
+        location.href = url.href;
         return undefined;
       }
     });

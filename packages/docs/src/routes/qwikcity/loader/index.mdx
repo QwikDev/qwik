@@ -32,8 +32,6 @@ export const getProductData = loader$(() => {
 
 ## Using a loader
 
-Loaders are consumed using the `.use()` method from within a Qwik Component. The `use()` returns a `Signal` with the data returned by the loader function as it’s value.
-
 Loaders can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
 ```tsx
@@ -41,7 +39,7 @@ Loaders can be used by any component in the application, as long as the loader i
 import { loader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const getServerTime = loader$(() => {
+export const useGetServerTime = loader$(() => {
   return {
     time: Date.now();
   }
@@ -49,7 +47,7 @@ export const getServerTime = loader$(() => {
 
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
-  const signal = getServerTime.use(); // Signal<{time: number}>
+  const signal = useGetServerTime(); // Signal<{time: number}>
   return (
     <div>
       Server time: {signal.value.time}
@@ -58,7 +56,7 @@ export default component$(() => {
 });
 ```
 
-> The `.use()` retrieves the loader data, but it does not execute the loader multiple times. Loaders execute eagerly\ at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+> The `useGetServerTime()` retrieves the loader data, but it does not execute the loader multiple times. Loaders execute eagerly\ at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
 ## Multiple loaders
 
@@ -71,14 +69,14 @@ import { component$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 import { Footer } from '../components/footer.tsx';
 
-export const getServerTime = loader$(() => {
+export const useGetServerTime = loader$(() => {
   return {
     time: Date.now();
   }
 });
 
 export default component$(() => {
-  const signal = getServerTime.use();
+  const signal = useGetServerTime();
   return (
     <main>
       <Slot>
@@ -94,11 +92,11 @@ export default component$(() => {
 import { component$ } from '@builder.io/qwik';
 
 // Import the loader from the layout
-import { getServerTime } from '../routes/layout.tsx';
+import { useGetServerTime } from '../routes/layout.tsx';
 
 export const Footer = component$(() => {
   // Consume the loader data
-  const signal = getServerTime.use();
+  const signal = useGetServerTime();
   return <footer>Server time: {signal.value.time}</footer>;
 });
 ```
@@ -109,21 +107,21 @@ export const Footer = component$(() => {
 import { component$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 
-export const isLogged = loader$(({cookies}) => {
+export const useIsLogged = loader$(({cookies}) => {
   return {
     logged: checkCookies(cookies);
   }
 });
 
-export const getCurrentUser = loader$(({cookies}) => {
+export const useGetCurrentUser = loader$(({cookies}) => {
   return {
     user: currentUserFromCookies(cookies);
   }
 });
 
 export default component$(() => {
-  const logged = isLogged.use();
-  const user = getCurrentUser.use();
+  const logged = useIsLogged();
+  const user = useGetCurrentUser();
   return (
     <section>
       <h1>Admin</h1>
@@ -161,4 +159,4 @@ export const getServerTime = loader$((ev) => {
 
 A loader should be used when you need to provide some server-side data to your Qwik Components. For example, if you need to fetch some data from a database or an API, you can use a loader to do that.
 
-You should not use a loader to create a REST API, for that you’d be better off using an [Endpoint](/qwik-city/), which allows you to have tight control over the response headers and body.
+You should not use a loader to create a REST API, for that you’d be better off using an [Endpoint](/qwikcity/endpoints/index.mdx), which allows you to have tight control over the response headers and body.

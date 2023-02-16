@@ -43,6 +43,7 @@ import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
+import { routes, menus, cacheModules, trailingSlash } from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -79,6 +80,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
     query: url.searchParams,
@@ -123,6 +125,10 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
       navPath.value = value;
     }
+    const prefetchURL = new URL(navPath.value, routeLocation.url);
+    loadClientData(prefetchURL);
+    loadRoute(routes, menus, cacheModules, prefetchURL.pathname);
+
     actionState.value = undefined;
     routeLocation.isNavigating = true;
   });
@@ -139,14 +145,13 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     async function run() {
       const [path, action] = track(() => [navPath.value, actionState.value]);
       const locale = getLocale('');
-      let url = new URL(path, routeLocation.href);
+      let url = new URL(path, routeLocation.url);
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
       if (isServer) {
         loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
-        const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
         // ensure correct trailing slash
         if (url.pathname.endsWith('/')) {
           if (!trailingSlash) {
@@ -156,7 +161,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
           url.pathname += '/';
         }
         let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
-        const pageData = (clientPageData = await loadClientData(url.href, true, action));
+        const pageData = (clientPageData = await loadClientData(url, true, action));
         if (!pageData) {
           // Reset the path to the current path
           (navPath as any).untrackedValue = toPath(url);
@@ -177,6 +182,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Update route location
+        routeLocation.url = url;
         routeLocation.href = url.href;
         routeLocation.pathname = url.pathname;
         routeLocation.params = { ...params };
@@ -249,6 +255,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
     query: url.searchParams,

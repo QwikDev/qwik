@@ -293,7 +293,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir);
       } catch (err) {
-        // Nothign
+        // Nothing
       }
     }
 
@@ -343,7 +343,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClient', 'client'];
+        transformOpts.stripCtxName = ['useClient', 'client', 'useBrowser', 'browser'];
         transformOpts.stripCtxKind = 'event';
         transformOpts.isServer = true;
       }
@@ -495,7 +495,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const { pathId } = parseId(id);
     const { ext, dir, base } = path.parse(pathId);
 
-    if (TRANSFORM_EXTS[ext] || TRANSFORM_REGEX.test(pathId)) {
+    if (
+      TRANSFORM_EXTS[ext] ||
+      TRANSFORM_REGEX.test(pathId) ||
+      insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
+    ) {
       const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 
@@ -681,6 +685,21 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     validateSource,
   };
 }
+
+const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
+  if (ext !== '.js') {
+    return false;
+  }
+  if (srcDir != null && dir.startsWith(srcDir)) {
+    return true;
+  }
+  for (const root of vendorRoots) {
+    if (dir.startsWith(root)) {
+      return true;
+    }
+  }
+  return false;
+};
 
 export function parseId(originalId: string) {
   const [pathId, query] = originalId.split('?');

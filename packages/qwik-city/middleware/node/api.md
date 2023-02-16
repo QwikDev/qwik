@@ -25,6 +25,16 @@ export interface NodeRequestNextFunction {
     (err?: any): void;
 }
 
+// @alpha (undocumented)
+export interface PlatformNode {
+    // (undocumented)
+    incomingMessage: IncomingMessage;
+    // (undocumented)
+    node: string;
+    // (undocumented)
+    ssr: true;
+}
+
 // @alpha @deprecated (undocumented)
 export function qwikCity(render: Render, opts?: RenderOptions): {
     router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;

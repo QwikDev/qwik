@@ -3,17 +3,13 @@ import {
   implicit$FirstArg,
   noSerialize,
   QRL,
-  Signal,
   useContext,
   ValueOrPromise,
   _wrapSignal,
   useStore,
 } from '@builder.io/qwik';
 
-import type {
-  RequestEventAction,
-  RequestEventLoader,
-} from '../../middleware/request-handler/types';
+import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
@@ -24,9 +20,7 @@ import type {
   RouteActionResolver,
   RouteLocation,
   Action,
-  ActionInternal,
   Loader,
-  LoaderInternal,
   ZodReturn,
   Editable,
   ActionStore,
@@ -36,15 +30,16 @@ import { z } from 'zod';
 import { isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
-class ActionImpl implements ActionInternal {
-  readonly __brand = 'server_action';
-  constructor(
-    public __qrl: QRL<(form: FormData, event: RequestEventAction) => ValueOrPromise<any>>,
-    public __schema: ZodReturn | undefined
-  ) {}
-  use(): ActionStore<any, any> {
+/**
+ * @alpha
+ */
+export const actionQrl = <B, A>(
+  actionQrl: QRL<(form: JSONObject, event: RequestEventLoader) => ValueOrPromise<B>>,
+  options?: ZodReturn
+): Action<B, A> => {
+  const id = actionQrl.getHash();
+  function action() {
     const loc = useLocation() as Editable<RouteLocation>;
-    const id = this.__qrl.getHash();
     const currentAction = useAction();
     const initialState: Editable<Partial<ActionStore<any, any>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
@@ -119,22 +114,17 @@ Action.run() can only be called on the browser, for example when a user clicks a
     });
     return state;
   }
-}
-
-/**
- * @alpha
- */
-export const actionQrl = <B, A>(
-  actionQrl: QRL<(form: JSONObject, event: RequestEventLoader) => ValueOrPromise<B>>,
-  options?: ZodReturn
-): Action<B, A> => {
-  const action = new ActionImpl(actionQrl as any, options) as any;
+  action.__brand = 'server_action';
+  action.__schema = options;
+  action.__qrl = actionQrl;
+  action.use = action;
   if (isServer) {
     if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
       (globalThis as any)._qwikActionsMap = new Map();
     }
     (globalThis as any)._qwikActionsMap.set(actionQrl.getHash(), action);
   }
+
   return action;
 };
 
@@ -143,29 +133,28 @@ export const actionQrl = <B, A>(
  */
 export const action$: ActionConstructor = implicit$FirstArg(actionQrl) as any;
 
-export class LoaderImpl implements LoaderInternal {
-  readonly __brand = 'server_loader';
-  constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
-  use(): Signal<any> {
-    return useContext(RouteStateContext, (state) => {
-      const hash = this.__qrl.getHash();
-      if (!(hash in state)) {
-        throw new Error(`Loader was used in a path where the 'loader$' was not declared.
-This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
-For more information check: https://qwik.builder.io/qwikcity/loader`);
-      }
-      return _wrapSignal(state, hash);
-    });
-  }
-}
-
 /**
  * @alpha
  */
 export const loaderQrl = <RETURN, PLATFORM = unknown>(
   loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => RETURN>
 ): Loader<RETURN> => {
-  return new LoaderImpl(loaderQrl as any) as any;
+  const hash = loaderQrl.getHash();
+  function loader() {
+    return useContext(RouteStateContext, (state) => {
+      if (!(hash in state)) {
+        throw new Error(`Loader was used in a path where the 'loader$' was not declared.
+    This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
+    For more information check: https://qwik.builder.io/qwikcity/loader`);
+      }
+      return _wrapSignal(state, hash);
+    });
+  }
+  loader.__brand = 'server_loader';
+  loader.__qrl = loaderQrl;
+  loader.use = loader;
+
+  return loader;
 };
 
 /**

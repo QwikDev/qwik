@@ -70,6 +70,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
         appType: 'custom',
         base: userOpts?.basePathname,
         optimizeDeps: {
+          include: ['zod'],
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {

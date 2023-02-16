@@ -51,12 +51,16 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
   return { abort, install };
 }
 
-export function startSpinner(msg: string) {
-  const spinner = ora(msg).start();
+export function startSpinner(msg: string, hideSpinner: boolean = false) {
+  const spinner = hideSpinner ? { succeed: () => {}, fail: () => {} } : ora(msg).start();
   return spinner;
 }
 
-export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
+export function backgroundInstallDeps(
+  pkgManager: string,
+  baseApp: IntegrationData,
+  hideSpinner = false
+) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
   const { install, abort } = installDeps(pkgManager, tmpInstallDir);
@@ -65,7 +69,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
     let success = false;
 
     if (runInstall) {
-      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`);
+      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`, hideSpinner);
       try {
         const installed = await install;
         if (installed) {

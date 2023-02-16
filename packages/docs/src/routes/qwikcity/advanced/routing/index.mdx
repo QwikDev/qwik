@@ -69,23 +69,16 @@ export default component$(() => {
   // get the product data from the loader
   const product = useProductLoader();
 
-  if (!product.value) {
-    // no product data found
-    // so render our own custom product 404
-    return (
-      <p>
-        Sorry, looks like we don't have this product.
-      </p>
-    )
-  }
-
-  // product data was found, so let's render it
   return (
-    <div>
-      <h1>{product.value.name}</h1>
-      <p>{product.value.price}</p>
-      <p>{product.value.description}</p>
-    </div>
+    (!product.value)
+      // no product data found so render our own custom product 404
+      ? <p>Sorry, looks like we don't have this product.</p>
+      // product data was found, so let's render it
+      : <div>
+          <h1>{product.value.name}</h1>
+          <p>{product.value.price}</p>
+          <p>{product.value.description}</p>
+        </div>
   );
 });
 ```

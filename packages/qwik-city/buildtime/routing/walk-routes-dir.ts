@@ -11,13 +11,16 @@ export async function walkRoutes(routesDir: string) {
 }
 
 async function walkRouteDir(sourceFiles: RouteSourceFile[], dirPath: string, dirName: string) {
-  try {
-    const dirItemNames = await fs.promises.readdir(dirPath);
+  const dirItemNames = await fs.promises.readdir(dirPath);
 
-    await Promise.all(
-      dirItemNames.map(async (itemName) => {
-        const itemPath = normalizePath(join(dirPath, itemName));
+  await Promise.all(
+    dirItemNames.map(async (itemName) => {
+      const itemPath = normalizePath(join(dirPath, itemName));
 
+      const stat = await fs.promises.stat(itemPath);
+      if (stat.isDirectory()) {
+        await walkRouteDir(sourceFiles, itemPath, itemName);
+      } else {
         const sourceFileName = getSourceFile(itemName);
         if (sourceFileName !== null) {
           sourceFiles.push({
@@ -27,12 +30,8 @@ async function walkRouteDir(sourceFiles: RouteSourceFile[], dirPath: string, dir
             dirName,
             dirPath,
           });
-        } else {
-          await walkRouteDir(sourceFiles, itemPath, itemName);
         }
-      })
-    );
-  } catch (e) {
-    // errors if the child fs item wasn't a directory, which is fine to ignore
-  }
+      }
+    })
+  );
 }

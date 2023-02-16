@@ -172,7 +172,7 @@ Under the hood, `useBrowserVisibleTask$()` creates a DOM listener that uses [Int
 However this `strategy` can be changed, and for example, run when the `document` is ready.
 
 ```tsx
-useClientEffect$(() => console.log('runs in the browser'), {
+useBrowserVisibleTask$(() => console.log('runs in the browser'), {
   strategy: 'document-ready', // 'load' | 'visible' | 'idle'
 });
 ```

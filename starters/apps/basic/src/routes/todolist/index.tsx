@@ -45,5 +45,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'Qwik Flower',
+  title: 'Qwik To-Do',
 };

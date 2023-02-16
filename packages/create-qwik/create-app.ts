@@ -71,13 +71,13 @@ export function logCreateAppResult(
   outString.push(``);
 
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
-  outString.push(`🔌 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  outString.push(`🤍 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
   outString.push(`   ${qwikAdd}`);
   outString.push(``);
 
   outString.push(logSuccessFooter(result.docs));
 
-  outString.push(`📺 ${color.cyan('Presentations, Podcasts and Videos:')}`);
+  outString.push(`👀 ${color.cyan('Presentations, Podcasts and Videos:')}`);
   outString.push(`   https://qwik.builder.io/media/`);
   outString.push(``);
 

@@ -1,22 +1,48 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
 import { relative } from 'node:path';
-import {
-  text,
-  select,
-  confirm,
-  intro,
-  outro,
-  cancel,
-  spinner,
-  isCancel,
-  note,
-} from '@clack/prompts';
+import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
+import color from 'kleur';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+
+// Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts
+function ansiRegex() {
+  const pattern = [
+    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))',
+  ].join('|');
+
+  return new RegExp(pattern, 'g');
+}
+
+const bar = '│';
+const strip = (str: string) => str.replace(ansiRegex(), '');
+const note = (message = '', title = '') => {
+  const lines = `\n${message}\n`.split('\n');
+  const len =
+    lines.reduce((sum, ln) => {
+      ln = strip(ln);
+      return ln.length > sum ? ln.length : sum;
+    }, 0) + 2;
+  const msg = lines
+    .map(
+      (ln) =>
+        `${color.gray(bar)}  ${color.white(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
+          bar
+        )}`
+    )
+    .join('\n');
+  process.stdout.write(
+    `${color.gray(bar)}\n${color.green('○')}  ${color.reset(title)} ${color.gray(
+      '─'.repeat(len - title.length - 1) + '╮'
+    )}\n${msg}\n${color.gray('├' + '─'.repeat(len + 2) + '╯')}\n`
+  );
+};
+// End of used code from clack
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a Qwik App ✨ (v${(globalThis as any).QWIK_VERSION})`);
@@ -111,12 +137,12 @@ export async function runCreateInteractiveCli() {
   if (runInstall) {
     s.start('Installing dependencies');
     successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
-    s.stop('Installed dependencies 📦');
+    s.stop('Installed dependencies 📋');
   }
 
   note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
 
-  outro('Happy coding! 🎉');
+  outro('');
 
   return result;
 }

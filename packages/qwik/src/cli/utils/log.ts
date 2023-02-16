@@ -6,7 +6,7 @@ export function logSuccessFooter(docs: string[]) {
   const outString = [];
 
   if (docs.length > 0) {
-    outString.push(`📚 ${color.cyan('Relevant docs:')}`);
+    outString.push(`📄 ${color.cyan('Relevant docs:')}`);
     docs.forEach((link) => {
       outString.push(`   ${link}`);
     });

@@ -13,7 +13,6 @@ import {
   getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
-  getRequestNonce,
   getRequestTrailingSlash,
   RequestEventInternal,
   RequestEvQwikSerializer,
@@ -349,7 +348,6 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       const result = await render({
         stream: stream,
         serverData: getQwikCityServerData(requestEv),
-        nonce: getRequestNonce(requestEv),
         containerAttributes: {
           ['q:render']: isStatic ? 'static' : '',
         },

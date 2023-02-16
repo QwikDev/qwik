@@ -47,7 +47,7 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
   return cleanedPkg;
 }
 
-export function dashToTitlelCase(str: string) {
+export function dashToTitleCase(str: string) {
   return str
     .toLocaleLowerCase()
     .split('-')

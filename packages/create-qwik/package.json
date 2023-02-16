@@ -28,10 +28,8 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "devDependencies": {
-    "@types/prompts": "2.4.2",
-    "kleur": "4.1.5",
-    "ora": "^6.1.2",
-    "prompts": "2.4.2"
+    "@clack/prompts": "^0.2.2",
+    "kleur": "4.1.5"
   },
   "engines": {
     "node": ">=16",

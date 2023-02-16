@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
 import { relative } from 'node:path';
-import prompts from 'prompts';
+import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
 import color from 'kleur';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
@@ -9,17 +9,53 @@ import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
-export async function runCreateInteractiveCli() {
-  console.log(``);
-  console.clear();
-  console.log(``);
+// Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts
+function ansiRegex() {
+  const pattern = [
+    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))',
+  ].join('|');
 
-  console.log(
-    `🐰 ${color.cyan(`Let's create a`)} ${color.bold(color.magenta(`Qwik`))} ${color.cyan(
-      `app`
-    )} 🐇   ${color.dim(`v${(globalThis as any).QWIK_VERSION}`)}`
+  return new RegExp(pattern, 'g');
+}
+
+const bar = '│';
+const strip = (str: string) => str.replace(ansiRegex(), '');
+const note = (message = '', title = '') => {
+  const lines = `\n${message}\n`.split('\n');
+  const len =
+    lines.reduce((sum, ln) => {
+      ln = strip(ln);
+      return ln.length > sum ? ln.length : sum;
+    }, 0) + 2;
+  const msg = lines
+    .map(
+      (ln) =>
+        `${color.gray(bar)}  ${color.white(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
+          bar
+        )}`
+    )
+    .join('\n');
+  process.stdout.write(
+    `${color.gray(bar)}\n${color.green('○')}  ${color.reset(title)} ${color.gray(
+      '─'.repeat(len - title.length - 1) + '╮'
+    )}\n${msg}\n${color.gray('├' + '─'.repeat(len + 2) + '╯')}\n`
   );
-  console.log(``);
+};
+// End of used code from clack
+
+export async function runCreateInteractiveCli() {
+  intro(`Let's create a Qwik App ✨ (v${(globalThis as any).QWIK_VERSION})`);
+
+  const projectNameAnswer = await text({
+    message: 'Where would you like to create your new project?',
+    placeholder: './qwik-app',
+  });
+
+  if (isCancel(projectNameAnswer)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
 
   const pkgManager = getPackageManager();
 
@@ -28,115 +64,85 @@ export async function runCreateInteractiveCli() {
   const baseApp = starterApps.find((a) => a.id === 'base')!;
   const apps = starterApps.filter((a) => a.id !== baseApp!.id);
 
-  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
+  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp, true);
 
-  const projectNameAnswer = await prompts(
-    {
-      type: 'text',
-      name: 'outDir',
-      message: 'Where would you like to create your new project?',
-      initial: './qwik-app',
-    },
-    {
-      onCancel: () => {
-        console.log('');
-        process.exit(1);
-      },
-    }
-  );
-  console.log(``);
-
-  const outDir: string = getOutDir(projectNameAnswer.outDir.trim());
+  const outDir: string = getOutDir(projectNameAnswer.trim());
 
   let removeExistingOutDirPromise: Promise<void> | null = null;
 
   if (fs.existsSync(outDir)) {
-    const existingOutDirAnswer = await prompts(
-      {
-        type: 'select',
-        name: 'outDirChoice',
-        message: `Directory "./${relative(
-          process.cwd(),
-          outDir
-        )}" already exists. What would you like to do?`,
-        choices: [
-          { title: 'Do not overwrite this directory and exit', value: 'exit' },
-          { title: 'Overwrite and replace this directory', value: 'replace' },
-        ],
-        hint: '(use ↓↑ arrows, hit enter)',
-      },
-      {
-        onCancel: async () => {
-          console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
-          await backgroundInstall.abort();
-          process.exit(1);
-        },
-      }
-    );
-    console.log(``);
-    if (existingOutDirAnswer.outDirChoice === 'replace') {
+    const existingOutDirAnswer = await select({
+      message: `Directory "./${relative(
+        process.cwd(),
+        outDir
+      )}" already exists. What would you like to do?`,
+      options: [
+        { value: 'exit', label: 'Do not overwrite this directory and exit' },
+        { value: 'replace', label: 'Overwrite and replace this directory' },
+      ],
+    });
+
+    if (isCancel(existingOutDirAnswer) || existingOutDirAnswer === 'exit') {
+      cancel('Operation cancelled.');
+      process.exit(0);
+    }
+
+    if (existingOutDirAnswer === 'replace') {
       removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
-    } else {
-      console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
-      await backgroundInstall.abort();
-      process.exit(1);
     }
   }
 
-  const starterIdAnswer = await prompts(
-    {
-      type: 'select',
-      name: 'starterId',
-      message: 'Select a starter',
-      choices: apps.map((s) => {
-        return { title: s.name, value: s.id, description: '└─' + s.pkgJson?.description };
-      }),
-      hint: '(use ↓↑ arrows, hit enter)',
-    },
-    {
-      onCancel: async () => {
-        console.log('');
-        await backgroundInstall.abort();
-        process.exit(1);
-      },
-    }
-  );
-  console.log(``);
-  const starterId = starterIdAnswer.starterId;
+  const starterIdAnswer = await select({
+    message: 'Select a starter',
+    options: apps.map((s) => {
+      return { label: s.name, value: s.id, hint: s.pkgJson?.description };
+    }),
+  });
 
-  const runInstallAnswer = await prompts(
-    {
-      type: 'confirm',
-      name: 'runInstall',
-      message: `Would you like to install ${pkgManager} dependencies?`,
-      initial: true,
-    },
-    {
-      onCancel: async () => {
-        console.log('');
-        await backgroundInstall.abort();
-        process.exit(1);
-      },
-    }
-  );
-  console.log(``);
+  if (isCancel(starterIdAnswer)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
+
+  const starterId = starterIdAnswer;
+
+  const runInstallAnswer = await confirm({
+    message: `Would you like to install ${pkgManager} dependencies?`,
+    initialValue: true,
+  });
+
+  if (isCancel(runInstallAnswer)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
 
   if (removeExistingOutDirPromise) {
     await removeExistingOutDirPromise;
   }
 
-  const runInstall: boolean = runInstallAnswer.runInstall;
+  const runInstall: boolean = runInstallAnswer;
 
   const opts: CreateAppOptions = {
     starterId,
     outDir,
   };
 
+  const s = spinner();
+
+  s.start('Creating App');
   const result = await createApp(opts);
+  s.stop('Created App 🐰');
 
-  const successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
+  let successfulDepsInstall = false;
+  if (runInstall) {
+    s.start('Installing dependencies');
+    successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
+    s.stop('Installed dependencies 📋');
+  }
 
-  logCreateAppResult(pkgManager, result, successfulDepsInstall);
+  note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
+
+  outro('');
 
   return result;
 }

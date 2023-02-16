@@ -3,26 +3,32 @@ import color from 'kleur';
 import type { NextSteps } from '../types';
 
 export function logSuccessFooter(docs: string[]) {
+  const outString = [];
+
   if (docs.length > 0) {
-    console.log(`📚 ${color.cyan('Relevant docs:')}`);
+    outString.push(`📄 ${color.cyan('Relevant docs:')}`);
     docs.forEach((link) => {
-      console.log(`   ${link}`);
+      outString.push(`   ${link}`);
     });
   }
-  console.log(``);
-  console.log(`💬 ${color.cyan('Questions? Start the conversation at:')}`);
-  console.log(`   https://qwik.builder.io/chat`);
-  console.log(`   https://twitter.com/QwikDev`);
-  console.log(``);
+  outString.push(``);
+  outString.push(`💬 ${color.cyan('Questions? Start the conversation at:')}`);
+  outString.push(`   https://qwik.builder.io/chat`);
+  outString.push(`   https://twitter.com/QwikDev`);
+  outString.push(``);
+
+  return outString.join('\n');
 }
 
 /**
  * Log the next STEPS *ACTION REQUIRED*
  */
 export function logNextStep(nextSteps: NextSteps | undefined) {
+  const outString = [];
   if (nextSteps) {
-    console.log(`🟣 ${color.bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`);
-    nextSteps.lines.forEach((step) => console.log(`   ${step}`));
-    console.log(``);
+    outString.push(`🟣 ${color.bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`);
+    nextSteps.lines.forEach((step) => outString.push(`   ${step}`));
+    outString.push(``);
   }
+  return outString.join('\n');
 }

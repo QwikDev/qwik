@@ -1,9 +1,14 @@
+/* eslint-disable no-console */
 import { createApp, runCreateCli } from './create-app';
 import { panic } from '../qwik/src/cli/utils/utils';
 import { runCreateInteractiveCli } from './create-interactive';
 import color from 'kleur';
 
 export async function runCli() {
+  console.clear();
+
+  printHeader();
+
   checkNodeVersion();
 
   try {
@@ -40,6 +45,27 @@ function checkNodeVersion() {
       );
     }
   }
+}
+
+function printHeader() {
+  // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
+  console.log(
+    color.blue(`
+      ............                                               :##+    ###-             
+    .::: :--------:.                                                     ###-             
+   .::::  .:-------:.          -=+++++=-. .===.    -==.    .==-  :##+    ###-   .===.     
+  .:::::.   .:-------.       .###=--=*##:  -##+   .###+    +##.  :##+    ###-  =##+.      
+  ::::::.     .:------.      +##-    +##:   =##:  =####:  :##+   :##+    ###- +##=        
+ ::::::.        :-----:      *##.    +##:    *#* .##-*#* :###.   :##+    ###=*##+         
+ ::::::.       .:-----.      +##:    +##:    -##-+#* :##:*##:    :##+    ###- =##+.       
+  :::::::.     .-----.       :###=--=###:     *####:  *####=     :##+    ###-  :###:      
+   ::::::::..   ---:.         .=+**+=*##:     .+++-   :+++=      :##+    ###-    =##:     
+    .:::::::::. :-:.                 +##:                                             
+     ..::::::::::::                  +##:                                             
+             ...::::                                                                   
+    `),
+    '\n'
+  );
 }
 
 export { createApp, runCreateCli, runCreateInteractiveCli };

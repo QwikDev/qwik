@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
 import color from 'kleur';
 import { runAddInteractive } from './run-add-interactive';

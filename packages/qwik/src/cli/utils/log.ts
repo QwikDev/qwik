@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import color from 'kleur';
 import type { NextSteps } from '../types';
 

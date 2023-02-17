@@ -414,7 +414,9 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+          {
+            messageId: 'invalidJsxDollar',
+          },
         ],
       },
       {
@@ -431,7 +433,9 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+          {
+            messageId: 'mutableIdentifier',
+          },
         ],
       },
       {

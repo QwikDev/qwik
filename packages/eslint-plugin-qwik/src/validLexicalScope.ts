@@ -87,24 +87,6 @@ export const validLexicalScope = createRule({
               return;
             }
             if (scopeType === 'module') {
-              const identifier =
-                declaredVariable.identifiers.length === 1
-                  ? declaredVariable.identifiers[0]
-                  : ref.identifier;
-              const tsNode = esTreeNodeToTSNodeMap.get(identifier);
-              const s = typeChecker.getSymbolAtLocation(tsNode);
-              if (s && exports.includes(s)) {
-                return;
-              }
-              context.report({
-                messageId: 'referencesOutside',
-                node: ref.identifier,
-                data: {
-                  varName: ref.identifier.name,
-                  dollarName: dollarIdentifier,
-                  reason: `it's declared at the root of the module and it is not exported. Make sure "${ref.identifier.name}" is an exported identifier:\n\nexport const ${ref.identifier.name} = ...\n\n`,
-                },
-              });
               return;
             }
             const identifier = ref.identifier;

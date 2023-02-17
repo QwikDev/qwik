@@ -293,18 +293,15 @@ export default component$(() => {
         );
       });
     `,
-    ],
-    invalid: [
-      {
-        code: `
+      `
           const useMethod = 12;
           export const HelloWorld = component$(() => {
             const foo = 'bar';
             useMethod(foo);
             return <div></div>
           });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
+    ],
+    invalid: [
       {
         code: `
           export const HelloWorld = component$(() => {

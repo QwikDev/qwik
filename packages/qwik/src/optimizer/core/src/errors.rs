@@ -1,8 +1,7 @@
 use swc_common::errors::DiagnosticId;
 
 pub enum Error {
-    RootLevelReference = 1,
-    FunctionReference,
+    FunctionReference = 2,
     CanNotCapture,
     DynamicImportInsideQhook,
     MissingQrlImplementation,

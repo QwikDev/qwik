@@ -446,21 +446,8 @@ impl<'a> QwikTransform<'a> {
 
         for id in &local_idents {
             if !self.options.global_collect.exports.contains_key(id) {
-                if let Some(span) = self.options.global_collect.root.get(id) {
-                    HANDLER.with(|handler| {
-                        handler
-                            .struct_span_err_with_code(
-                                *span,
-                                &format!(
-                                    "Reference to identifier declared at the root '{}'. It needs to be exported in order to be used inside a Qrl($) scope.",
-                                    id.0
-                                ),
-                                errors::get_diagnostic_id(errors::Error::RootLevelReference)
-                            )
-                            .emit();
-
-                    });
-                    // }
+                if self.options.global_collect.root.contains_key(id) {
+                    self.ensure_export(id);
                 }
                 if invalid_decl.contains(id) {
                     HANDLER.with(|handler| {

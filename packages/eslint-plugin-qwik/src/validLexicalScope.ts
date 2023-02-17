@@ -42,7 +42,7 @@ export const validLexicalScope = createRule({
     messages: {
       referencesOutside:
         'Seems like you are referencing "{{varName}}" inside a different $ scope ({{dollarName}}), when this happens, qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-      unvalidJsxDollar:
+      invalidJsxDollar:
         'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable. Try wrapping your function with $() to turn it into a QRL, like this:\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
         'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured bu the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
@@ -185,7 +185,7 @@ export const validLexicalScope = createRule({
                   return;
                 }
                 context.report({
-                  messageId: 'unvalidJsxDollar',
+                  messageId: 'invalidJsxDollar',
                   node: firstArg.expression,
                   data: {
                     varName: firstArg.expression.name,

@@ -418,7 +418,7 @@ export default component$(() => {
         });`,
         errors: [
           {
-            messageId: 'unvalidJsxDollar',
+            messageId: 'invalidJsxDollar',
           },
         ],
       },

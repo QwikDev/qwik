@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from './mime-types';
 import { patchGlobalThis } from './node-fetch';
-import { _deserializeData, _serializeData } from '@builder.io/qwik';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -26,6 +26,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
+    _verifySerializable,
   };
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');

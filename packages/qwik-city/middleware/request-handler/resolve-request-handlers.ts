@@ -135,6 +135,7 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
+    const qwikSerialize = requestEv[RequestEvQwikSerializer];
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
@@ -179,6 +180,7 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
           }
           if (!failed) {
             const actionResolved = await action.__qrl(data, requestEv);
+            qwikSerialize._verifySerializable(actionResolved, undefined, true);
             loaders[selectedAction] = actionResolved;
           }
         }
@@ -192,8 +194,12 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
           return (loaders[loaderId] = Promise.resolve()
             .then(() => loader.__qrl(requestEv as any))
             .then((loaderResolved) => {
-              loaders[loaderId] =
-                typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
+              if (typeof loaderResolved === 'function') {
+                loaders[loaderId] = loaderResolved();
+              } else {
+                qwikSerialize._verifySerializable(loaderResolved, undefined, true);
+                loaders[loaderId] = loaderResolved;
+              }
               return loaderResolved;
             }));
         })
@@ -242,7 +248,7 @@ async function pureServerFunction(ev: RequestEvent) {
         if (isQrl(qrl) && qrl.getHash() === fn) {
           const result = await qrl(ev, ...args);
           ev.headers.set('Content-Type', 'application/qwik-json');
-          ev.send(200, await qwikSerializer._serializeData(result));
+          ev.send(200, await qwikSerializer._serializeData(result, true));
           return;
         }
       }
@@ -393,7 +399,7 @@ export async function renderQData(requestEv: RequestEvent) {
     const writer = requestEv.getWritableStream().getWriter();
     const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];
     // write just the page json data to the response body
-    const data = await qwikSerializer._serializeData(qData);
+    const data = await qwikSerializer._serializeData(qData, true);
     writer.write(encoder.encode(data));
     requestEv.sharedMap.set('qData', qData);
 

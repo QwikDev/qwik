@@ -61,11 +61,12 @@ import {
 import { HOST_FLAG_DYNAMIC, QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
+import { isQrl } from '../qrl/qrl-class';
 
 /**
  * @internal
  */
-export const _serializeData = async (data: any) => {
+export const _serializeData = async (data: any, pureQRL?: boolean) => {
   const containerState = {} as any;
   const collector = createCollector(containerState);
   collectValue(data, collector, false);
@@ -79,6 +80,16 @@ export const _serializeData = async (data: any) => {
 
   const objs = Array.from(collector.$objSet$.keys());
   let count = 0;
+
+  if (pureQRL) {
+    for (const obj of objs) {
+      if (isQrl(obj) && obj.$captureRef$ && obj.$captureRef$.length > 0) {
+        throw new Error(
+          'For security reasons, we cannot serialize QRLs that capture lexical scope.'
+        );
+      }
+    }
+  }
   const objToId = new Map<any, string>();
   for (const obj of objs) {
     objToId.set(obj, intToStr(count));

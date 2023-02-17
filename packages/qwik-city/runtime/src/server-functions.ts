@@ -201,14 +201,6 @@ export interface Server {
  * @alpha
  */
 export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
-  if (isServer) {
-    const captured = qrl.getCaptured();
-    if (captured) {
-      for (let i = 0; i < captured.length; i++) {
-        captured[i] = undefined;
-      }
-    }
-  }
   function client() {
     return $(async (...args: any[]) => {
       if (isServer) {
@@ -223,13 +215,14 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
           return arg;
         });
         const path = `?qfunc=${qrl.getHash()}`;
+        const body = await _serializeData([qrl, ...filtered], false);
         const res = await fetch(path, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/qwik-json',
             'X-QRL': qrl.getHash(),
           },
-          body: await _serializeData([qrl, ...filtered]),
+          body,
         });
         if (!res.ok) {
           throw new Error(`Server function failed: ${res.statusText}`);

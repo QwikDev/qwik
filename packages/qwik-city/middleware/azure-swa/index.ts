@@ -11,7 +11,7 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
-import { _deserializeData, _serializeData } from '@builder.io/qwik';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -28,6 +28,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
+    _verifySerializable,
   };
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {

@@ -10,7 +10,7 @@ import {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserializeData, _serializeData } from '@builder.io/qwik';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -22,6 +22,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
+    _verifySerializable,
   };
   async function onNetlifyEdgeRequest(request: Request, context: Context) {
     try {

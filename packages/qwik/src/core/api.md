@@ -94,7 +94,7 @@ export interface ContextId<STATE extends object> {
 
 // @alpha
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
+    chunkForSymbol: (symbolName: string, chunk: string | null) => [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
@@ -775,7 +775,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
 // @internal (undocumented)
-export const _serializeData: (data: any) => Promise<string>;
+export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
@@ -1053,7 +1053,7 @@ export const useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @internal (undocumented)
-export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
+export const _verifySerializable: <T>(value: T, preMessage?: string, pureQrl?: boolean) => T;
 
 // @public
 export const version: string;

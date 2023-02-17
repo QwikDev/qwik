@@ -10,7 +10,7 @@ import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/reques
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
-import { _deserializeData, _serializeData } from '@builder.io/qwik';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -66,6 +66,7 @@ async function workerRender(
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
+    _verifySerializable,
   };
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
@@ -176,7 +177,7 @@ async function workerRender(
                     };
                   });
 
-                  const serialized = await _serializeData(qData);
+                  const serialized = await _serializeData(qData, true);
                   dataWriter.write(serialized);
 
                   writePromises.push(

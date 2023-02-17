@@ -37,8 +37,8 @@ export const createPlatform = (): CorePlatform => {
         });
       });
     },
-    chunkForSymbol() {
-      return undefined;
+    chunkForSymbol(symbolName, chunk) {
+      return [symbolName, chunk ?? '_'];
     },
   };
 };

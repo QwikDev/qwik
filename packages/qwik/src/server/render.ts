@@ -171,7 +171,8 @@ export async function renderToStream(
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             opts.prefetchStrategy,
-            prefetchResources
+            prefetchResources,
+            opts.serverData?.nonce
           );
           if (prefetchImpl) {
             children.push(prefetchImpl);

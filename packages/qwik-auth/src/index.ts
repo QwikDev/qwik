@@ -39,7 +39,7 @@ export async function authAction(
   return await res.json();
 }
 
-export const fixCookies = (req: RequestEventCommon) => {
+export function fixCookies (req: RequestEventCommon) {
   req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
   const cookie = req.headers.get('set-cookie');
   if (cookie) {
@@ -49,7 +49,7 @@ export const fixCookies = (req: RequestEventCommon) => {
       req.cookie.set(name, value, rest as any);
     });
   }
-};
+}
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignup = action$(

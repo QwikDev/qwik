@@ -20,5 +20,6 @@ export async function buildQwikAuth(config: BuildConfig) {
     join(config.dtsDir, 'packages', 'qwik-auth', 'src'),
     join(input, 'lib', 'types')
   );
+  // todo fix, maybe need to change a icon
   console.log(`⚛️  ${PACKAGE}`);
 }

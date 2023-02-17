@@ -259,3 +259,14 @@ export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
     return obj;
   }));
 };
+
+/**
+ * @internal
+ */
+export const _regSymbol = (symbol: any, hash: string) => {
+  if (typeof (globalThis as any).__qwik_reg_symbols === 'undefined') {
+    (globalThis as any).__qwik_reg_symbols = new Map<string, any>();
+  }
+  (globalThis as any).__qwik_reg_symbols.set(hash, symbol);
+  return symbol;
+};

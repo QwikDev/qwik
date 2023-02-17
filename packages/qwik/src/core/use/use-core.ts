@@ -1,6 +1,8 @@
+import { _getContainerState } from '../container/container';
 import type { QwikDocument } from '../document';
 import { assertDefined } from '../error/assert';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
+import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
@@ -48,6 +50,9 @@ export interface InvokeContext {
 
 let _context: InvokeContext | undefined;
 
+/**
+ * @alpha
+ */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -163,4 +168,16 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
  */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
+};
+
+/**
+ * @internal
+ */
+export const _getContextElement = (): unknown => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return (
+      iCtx.$element$ ?? iCtx.$hostElement$ ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined)
+    );
+  }
 };

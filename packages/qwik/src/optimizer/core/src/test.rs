@@ -10,6 +10,10 @@ macro_rules! test_input {
             .strip_exports
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
 
+        let reg_ctx_name: Option<Vec<JsWord>> = input
+            .reg_ctx_name
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let strip_ctx_name: Option<Vec<JsWord>> = input
             .strip_ctx_name
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
@@ -32,6 +36,7 @@ macro_rules! test_input {
             scope: input.scope,
             strip_exports,
             strip_ctx_name,
+            reg_ctx_name,
             strip_ctx_kind: input.strip_ctx_kind,
             is_server: input.is_server,
         });
@@ -578,6 +583,68 @@ export const Works = component$((props) => {
     });
 }
 
+#[test]
+fn example_reg_ctx_name_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_hoisted() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
@@ -2430,6 +2497,7 @@ export const Local = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        reg_ctx_name: None,
         is_server: None,
     });
     snapshot_res!(&res, "".into());
@@ -2504,6 +2572,7 @@ export const Greeter = component$(() => {
         transpile_jsx: true,
         preserve_filenames: false,
         scope: None,
+        reg_ctx_name: None,
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
@@ -2542,6 +2611,7 @@ export const Greeter = component$(() => {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            reg_ctx_name: None,
             is_server: None,
         });
 
@@ -2588,6 +2658,7 @@ struct TestInput {
     pub mode: EmitMode,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
+    pub reg_ctx_name: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
     pub strip_ctx_kind: Option<HookKind>,
     pub is_server: Option<bool>,
@@ -2609,6 +2680,7 @@ impl TestInput {
             snapshot: true,
             mode: EmitMode::Lib,
             scope: None,
+            reg_ctx_name: None,
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,

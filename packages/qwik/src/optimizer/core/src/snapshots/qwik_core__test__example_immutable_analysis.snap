@@ -44,10 +44,10 @@ export const App = component$((props) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,oBAAM,0FA8BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,oBAAM,wGA8BhB\"}")
 ============================= app_component__fragment_div_immutable4_qt1dno4izxo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -99,14 +99,14 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             }),
             /*#__PURE__*/ _jsx(Div, {
                 onClick$: props.onClick$,
-                transparent$: qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
+                transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
                 immutable1: "stuff",
                 immutable2: {
                     foo: 'bar',
                     baz: importedValue ? true : false
                 },
                 immutable3: 2,
-                immutable4$: qrl(()=>import("./app_component__fragment_div_immutable4_qt1dno4izxo"), "App_component__Fragment_Div_immutable4_QT1DNo4IZXo", [
+                immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_immutable4_qt1dno4izxo"), "App_component__Fragment_Div_immutable4_QT1DNo4IZXo", [
                     state
                 ]),
                 immutable5: [

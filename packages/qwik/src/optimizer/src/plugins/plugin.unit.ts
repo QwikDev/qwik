@@ -49,7 +49,7 @@ test('defaults (target: ssr)', async () => {
   const opts = plugin.normalizeOptions({ target: 'ssr' });
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, false);
   equal(opts.resolveQwikBuild, false);
   equal(opts.debug, false);
@@ -67,7 +67,7 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   const opts = plugin.normalizeOptions({ buildMode: 'production', target: 'ssr' });
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'production');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, false);
   equal(opts.resolveQwikBuild, false);
   equal(opts.debug, false);

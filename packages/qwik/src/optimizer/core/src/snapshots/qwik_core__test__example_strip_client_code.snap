@@ -42,19 +42,19 @@ import { inlinedQrl } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
-export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useClientMountQrl(_noopQrl("Parent_component_useClientMount_FX2jiJMePJA", [
+    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_FX2jiJMePJA", [
         state
     ]));
-    useTaskQrl(inlinedQrl(()=>{
+    useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
     // Code
     }, "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
+        onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
             state
         ]),
         children: _wrapSignal(state, "text")
@@ -62,7 +62,7 @@ export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,wBAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,sBAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,KAAC;QAAI,QAAQ;;;8BACR;;AAGb,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,KAAC;QAAI,QAAQ;;;8BACR;;AAGb,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

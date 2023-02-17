@@ -36,8 +36,10 @@ export interface Diagnostic {
 // @alpha (undocumented)
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
+// Warning: (ae-forgotten-export) The symbol "HoistEntryStrategy" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @alpha (undocumented)
 export interface GlobalInjections {
@@ -421,6 +423,8 @@ export interface TransformOptions {
     mode?: EmitMode;
     // (undocumented)
     preserveFilenames?: boolean;
+    // (undocumented)
+    regCtxName?: string[];
     // (undocumented)
     scope?: string;
     // (undocumented)

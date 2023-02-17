@@ -69,6 +69,7 @@ pub struct TransformFsOptions {
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub reg_ctx_name: Option<Vec<JsWord>>,
     pub is_server: Option<bool>,
 }
 
@@ -98,6 +99,7 @@ pub struct TransformModulesOptions {
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub reg_ctx_name: Option<Vec<JsWord>>,
     pub is_server: Option<bool>,
 }
 
@@ -105,8 +107,7 @@ pub struct TransformModulesOptions {
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
     let src_dir = Path::new(&config.src_dir);
     let mut paths = vec![];
-    let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
+    let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
     crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
 
     #[cfg(feature = "parallel")]
@@ -133,7 +134,8 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 scope: config.scope.as_ref(),
                 entry_policy,
                 mode: config.mode,
-                is_inline,
+                entry_strategy: config.entry_strategy,
+                reg_ctx_name: config.reg_ctx_name.as_deref(),
                 strip_exports: config.strip_exports.as_deref(),
                 strip_ctx_name: config.strip_ctx_name.as_deref(),
                 strip_ctx_kind: config.strip_ctx_kind,
@@ -149,8 +151,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
     let src_dir = std::path::Path::new(&config.src_dir);
-    let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
+    let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
     #[cfg(feature = "parallel")]
     let iterator = config.input.par_iter();
 
@@ -170,8 +171,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             entry_policy,
             mode: config.mode,
             scope: config.scope.as_ref(),
-            is_inline,
-
+            entry_strategy: config.entry_strategy,
+            reg_ctx_name: config.reg_ctx_name.as_deref(),
             strip_exports: config.strip_exports.as_deref(),
             strip_ctx_name: config.strip_ctx_name.as_deref(),
             strip_ctx_kind: config.strip_ctx_kind,

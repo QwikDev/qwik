@@ -54,7 +54,11 @@ export interface CorePlatform {
    * @returns A promise that resolves to the imported symbol.
    */
   // </docs>
-  importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+  importSymbol: (
+    containerEl: Element | undefined,
+    url: string | URL | undefined | null,
+    symbol: string
+  ) => ValueOrPromise<any>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit ./readme.md#CorePlatform.raf instead)
@@ -92,4 +96,9 @@ export interface CorePlatform {
    */
   // </docs>
   chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
+}
+
+export interface CorePlatformServer extends CorePlatform {
+  isServer: true;
+  regSymbol: (symbol: any, hash: string) => void;
 }

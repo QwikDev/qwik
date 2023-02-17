@@ -34,7 +34,7 @@ export const Bar = component$(({bar}) => {
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
     const arg0 = 20;
-    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
+    return /*#__PURE__*/ qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
         arg0,
         props
     ]);
@@ -65,7 +65,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@builder.io/qwik";
 export const Bar_component_L80pS8Hxf1Y = (props)=>{
-    return qrl(()=>import("./bar_component_1_0xsynsnvu3k"), "Bar_component_1_0xSyNSnVu3k", [
+    return /*#__PURE__*/ qrl(()=>import("./bar_component_1_0xsynsnvu3k"), "Bar_component_1_0xSyNSnVu3k", [
         props
     ]);
 };
@@ -164,11 +164,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(qrl(()=>import("./bar_component_l80ps8hxf1y"), "Bar_component_L80pS8Hxf1Y"));
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"));
+export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./bar_component_l80ps8hxf1y"), "Bar_component_L80pS8Hxf1Y"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAUjB;AAEF,OAAO,MAAM,oBAAM,0FAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAUjB;AAEF,OAAO,MAAM,oBAAM,wGAQjB\"}")
 == DIAGNOSTICS ==
 
 []

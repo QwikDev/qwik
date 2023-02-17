@@ -41,11 +41,11 @@ export const Cmp = component$((props) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
-export const Cmp = /*#__PURE__*/ componentQrl(qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAmBhB;AAEH,OAAO,MAAM,oBAAM,0FAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAmBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";

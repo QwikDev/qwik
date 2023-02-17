@@ -31,4 +31,5 @@ lazy_static! {
     pub static ref IS_BROWSER: JsWord = JsWord::from("isBrowser");
     pub static ref IS_DEV: JsWord = JsWord::from("isDev");
     pub static ref COMPONENT: JsWord = JsWord::from("component$");
+    pub static ref _REG_SYMBOL: JsWord = JsWord::from("_regSymbol");
 }

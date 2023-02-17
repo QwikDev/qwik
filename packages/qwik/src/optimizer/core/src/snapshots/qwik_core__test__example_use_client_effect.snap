@@ -69,10 +69,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,sBAAQ,8FAoBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,sBAAQ,4GAoBlB\"}")
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -85,7 +85,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         count: 0
     });
     // Double count watch
-    useBrowserVisibleTaskQrl(qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {

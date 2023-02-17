@@ -214,7 +214,7 @@ vite('command: build, --ssr entry.server.tsx', async () => {
 
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);

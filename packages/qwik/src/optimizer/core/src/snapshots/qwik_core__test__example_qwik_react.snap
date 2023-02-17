@@ -168,7 +168,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     let run;
     if (props['client:visible']) run = 'visible';
     else if (props['client:load'] || props['client:only']) run = 'load';
-    useTaskQrl(qrl(()=>import("./qwikifyqrl_component_usewatch_x04jc5xep1u.mjs"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./qwikifyqrl_component_usewatch_x04jc5xep1u.mjs"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
         hostElement,
         props,
         reactCmpQrl,
@@ -224,7 +224,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
+    return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {
         tagName: 'qwik-wrap'

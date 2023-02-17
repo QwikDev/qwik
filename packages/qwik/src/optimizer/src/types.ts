@@ -81,6 +81,7 @@ export interface TransformOptions {
   mode?: EmitMode;
   scope?: string;
   stripExports?: string[];
+  regCtxName?: string[];
   stripCtxName?: string[];
   stripCtxKind?: 'function' | 'event';
   isServer?: boolean;
@@ -191,6 +192,7 @@ export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
  */
 export type EntryStrategy =
   | InlineEntryStrategy
+  | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
   | ComponentEntryStrategy
@@ -211,6 +213,13 @@ export type EmitMode = 'dev' | 'prod' | 'lib';
  */
 export interface InlineEntryStrategy {
   type: 'inline';
+}
+
+/**
+ * @alpha
+ */
+export interface HoistEntryStrategy {
+  type: 'hoist';
 }
 
 /**

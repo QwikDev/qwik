@@ -1,3 +1,4 @@
+import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
 import { isObject } from '../util/types';
@@ -7,6 +8,12 @@ export const createPlatform = (): CorePlatform => {
   return {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
+      if (!url) {
+        throw qError(QError_qrlMissingChunk, symbolName);
+      }
+      if (!containerEl) {
+        throw qError(QError_qrlMissingContainer, url, symbolName);
+      }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
@@ -63,7 +70,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
   return new URL(url, base);
 };
 
-let _platform = createPlatform();
+let _platform = /* @__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -97,7 +104,7 @@ export const setPlatform = (plt: CorePlatform) => (_platform = plt);
  * @alpha
  */
 // </docs>
-export const getPlatform = () => {
+export const getPlatform = (): CorePlatform => {
   return _platform;
 };
 

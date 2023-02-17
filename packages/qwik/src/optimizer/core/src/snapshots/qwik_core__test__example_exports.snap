@@ -33,7 +33,7 @@ export const Footer = component$();
 
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return qrl(()=>import("./header_component_1_uwm1kg0igo0"), "Header_component_1_uWM1kg0IGO0");
+    return /*#__PURE__*/ qrl(()=>import("./header_component_1_uwm1kg0igo0"), "Header_component_1_uWM1kg0IGO0");
 };
 
 
@@ -69,11 +69,11 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {}
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,iGAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,+GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
 ============================= header_component_1_uwm1kg0igo0.tsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./project/test";

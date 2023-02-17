@@ -115,9 +115,15 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
+                  const defaultChunk = [symbolName, `/src/${symbolName.toLowerCase()}.js`] as [
+                    string,
+                    string
+                  ];
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
-                    return mapper[hash];
+                    return mapper[hash] ?? defaultChunk;
+                  } else {
+                    return defaultChunk;
                   }
                 },
             prefetchStrategy: null,

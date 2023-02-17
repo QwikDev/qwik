@@ -13,6 +13,7 @@ use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
+use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 
@@ -79,8 +80,9 @@ pub struct TransformCodeOptions<'a> {
     pub entry_policy: &'a dyn EntryPolicy,
     pub mode: EmitMode,
     pub scope: Option<&'a String>,
-    pub is_inline: bool,
+    pub entry_strategy: EntryStrategy,
 
+    pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
     pub strip_ctx_kind: Option<HookKind>,
@@ -306,7 +308,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         global_collect: collect,
                         scope: config.scope,
                         mode: config.mode,
-                        is_inline: config.is_inline,
+                        entry_strategy: config.entry_strategy,
+                        reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
                         strip_ctx_kind: config.strip_ctx_kind,
                     });

@@ -199,6 +199,7 @@ fn transform_todo_app(b: &mut Bencher) {
           entry_strategy: EntryStrategy::Single,
           mode: EmitMode::Prod,
           scope: None,
+          reg_ctx_name: None,
           strip_exports: None,
           strip_ctx_name: None,
           strip_ctx_kind: None,

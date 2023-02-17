@@ -13,10 +13,11 @@ lazy_static! {
 }
 
 // EntryStrategies
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Copy, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum EntryStrategy {
     Inline,
+    Hoist,
     Single,
     Hook,
     Component,
@@ -159,12 +160,12 @@ impl EntryPolicy for SmartStrategy {
 }
 
 pub fn parse_entry_strategy(
-    strategy: EntryStrategy,
+    strategy: &EntryStrategy,
     manual_chunks: Option<HashMap<String, JsWord>>,
 ) -> Box<dyn EntryPolicy> {
     match strategy {
         EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
-        EntryStrategy::Inline => Box::new(InlineStrategy::default()),
+        EntryStrategy::Inline | EntryStrategy::Hoist => Box::new(InlineStrategy::default()),
         EntryStrategy::Single => Box::new(SingleStrategy::new(manual_chunks)),
         EntryStrategy::Component => Box::new(PerComponentStrategy::new(manual_chunks)),
         EntryStrategy::Smart => Box::new(SmartStrategy::new(manual_chunks)),

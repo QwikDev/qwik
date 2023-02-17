@@ -26,7 +26,7 @@ import { _wrapSignal } from "@builder.io/qwik";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Works = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const signal = useSignal(0);
     const store = useStore({
         foo: 0
@@ -60,7 +60,7 @@ export const Works = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;AAEA,OAAO,MAAM,sBAAQ,wBAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAClD,MAAM,SAAU;IAEhB,qBACI,KAAC;YAAI;0BAHF;;YAGgB;0BANhB;;QAM6B,GAAG,SAJhC,OAAM;QAIiC,MAAM;QAAM,OAAO;;;YAAxD,KAAK;YAAS,IAAI;;;AAE/B,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAClD,MAAM,SAAU;IAEhB,qBACI,KAAC;YAAI;0BAHF;;YAGgB;0BANhB;;QAM6B,GAAG,SAJhC,OAAM;QAIiC,MAAM;QAAM,OAAO;;;YAAxD,KAAK;YAAS,IAAI;;;AAE/B,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

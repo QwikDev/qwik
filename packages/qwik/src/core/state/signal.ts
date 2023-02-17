@@ -27,7 +27,10 @@ export interface Signal<T = any> {
  */
 export type ValueOrSignal<T> = T | Signal<T>;
 
-export const createSignal = <T>(
+/**
+ * @internal
+ */
+export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
   subcriptions?: Subscriptions[]
@@ -70,7 +73,7 @@ export class SignalImpl<T> implements Signal<T> {
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logWarn(
-          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
+          'State mutation inside render function. Move mutation to useWatch(), useBrowserVisibleTask() or useServerMount()',
           invokeCtx.$hostElement$
         );
       }
@@ -131,7 +134,7 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   prop: P
 ): any => {
   if (!isObject(obj)) {
-    return undefined;
+    return obj[prop];
   }
   if (obj instanceof SignalImpl) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');

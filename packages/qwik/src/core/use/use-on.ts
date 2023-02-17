@@ -6,7 +6,7 @@ import { Listener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
-import { Watch, WatchFlagsIsCleanup } from './use-watch';
+import { Task, WatchFlagsIsCleanup } from './use-task';
 
 // <docs markdown="../readme.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -15,15 +15,15 @@ import { Watch, WatchFlagsIsCleanup } from './use-watch';
  * It can be used to release resources, abort network requests, stop timers...
  *
  * @alpha
- * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
- * `useClientEffect$()` instead.
+ * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
+ * `useBrowserVisibleTask$()` instead.
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
   const { get, set, i, elCtx } = useSequentialScope<boolean>();
   if (!get) {
     assertQrl(unmountFn);
-    const watch = new Watch(WatchFlagsIsCleanup, i, elCtx.$element$, unmountFn, undefined);
+    const watch = new Task(WatchFlagsIsCleanup, i, elCtx.$element$, unmountFn, undefined);
     set(true);
     if (!elCtx.$watches$) {
       elCtx.$watches$ = [];
@@ -39,8 +39,8 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
  * It can be used to release resources, abort network requests, stop timers...
  *
  * @alpha
- * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
- * `useClientEffect$()` instead.
+ * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
+ * `useBrowserVisibleTask$()` instead.
  */
 // </docs>
 export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);

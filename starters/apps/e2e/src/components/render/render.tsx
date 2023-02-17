@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore, useStylesScoped$, useWatch$ } from '@builder.io/qwik';
+import { component$, useSignal, useStore, useStylesScoped$, useTask$ } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 
 export const Render = component$(() => {
@@ -6,24 +6,46 @@ export const Render = component$(() => {
     counter: {
       count: 0,
     },
+    count: 0,
     children: [] as any[],
   };
   parent.children.push(parent);
 
-  const state = useStore(parent, { recursive: true });
+  const state = useStore(parent, { deep: true });
   return (
     <>
       <button
         id="increment"
         onClick$={() => {
           state.counter.count++;
+          state.count++;
         }}
       >
         Increment
       </button>
       <Child counter={state.counter}></Child>
       <Issue1475 />
+      <Issue2563 />
+      <Issue2608 />
+      <Issue2800 />
+      <Issue2889 />
       <CounterToggle />
+
+      <PropsDestructuring
+        message="Hello"
+        count={state.count}
+        id="props-destructuring"
+        aria-hidden="true"
+      />
+
+      <PropsDestructuringNo count={state.count} id="props-destructuring-no" aria-hidden="true" />
+
+      <PropsDestructuring
+        message="Count"
+        count={state.count}
+        id="props-destructuring-count"
+        aria-count={state.count}
+      />
     </>
   );
 });
@@ -45,7 +67,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
     const count = props.counter.count;
     return (
       <>
-        <span>Rerender {count}</span>
+        <span id="rerenders">Rerender {count}</span>
         <div id="attributes">
           <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
             Toggle attributes
@@ -57,7 +79,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
   const count = props.counter.count;
   return (
     <>
-      <span>Rerender {count}</span>
+      <span id="rerenders">Rerender {count}</span>
       <div
         id="attributes"
         preventdefault:click
@@ -108,7 +130,7 @@ export const Issue1475 = component$(() => {
 });
 
 export const LazyIssue1475 = component$(() => {
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(50);
   });
 
@@ -140,6 +162,130 @@ export const CounterToggleShow2 = component$((props: { cond: boolean }) => {
   return (
     <>
       <div id="counter-toggle-show-2">{String(props.cond)}</div>
+    </>
+  );
+});
+
+export const PropsDestructuring = component$(
+  ({ message, id, count: c, ...rest }: Record<string, any>) => {
+    const renders = useStore(
+      { renders: 0 },
+      {
+        reactive: false,
+      }
+    );
+    renders.renders++;
+    return (
+      <div id={id}>
+        <span {...rest}>
+          {message} {c}
+        </span>
+        <div class="renders">{renders.renders}</div>
+      </div>
+    );
+  }
+);
+
+export const PropsDestructuringNo = component$(
+  ({ message = 'Default', count, id, ...rest }: Record<string, any>) => {
+    const renders = useStore(
+      { renders: 0 },
+      {
+        reactive: false,
+      }
+    );
+    renders.renders++;
+    return (
+      <div id={id}>
+        <span {...rest}>
+          {message} {count}
+        </span>
+        <div class="renders">{renders.renders}</div>
+      </div>
+    );
+  }
+);
+
+export const Issue2563 = component$(() => {
+  const html = `hola`;
+  const obj = { length: 4 };
+  return (
+    <ul>
+      <li id="issue-2563-string">4={html.length}</li>
+      <li id="issue-2563-obj">4={obj.length}</li>
+      <li id="issue-2563-operation">4+1={html.length + 1}</li>
+    </ul>
+  );
+});
+
+export const Issue2608 = component$(() => {
+  const show = useSignal(false);
+  return (
+    <>
+      <button id="issue-2608-btn" onClick$={() => (show.value = !show.value)}>
+        Toggle
+      </button>
+      {show.value && <div>Content</div>}
+      <div>
+        <input id="issue-2608-input" type="text" />
+      </div>
+    </>
+  );
+});
+
+export const Issue2800 = component$(() => {
+  const store = useStore<Record<string, number>>({
+    alpha: 1,
+    bravo: 2,
+    charlie: 3,
+  });
+
+  return (
+    <div>
+      <button
+        id="issue-2800-btn"
+        onClick$={() => {
+          const keys = Object.keys(store);
+          store[`extra${keys.length}`] = 1;
+        }}
+      >
+        Add key
+      </button>
+      <ul id="issue-2800-result">
+        {Object.entries(store).map(([key, value]) => (
+          <li>
+            {key} - {value}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
+
+export const Issue2889 = component$(() => {
+  const appState = useStore(
+    {
+      events: [
+        { created: new Date(2022, 1, 15), count: 2 },
+        { created: new Date(2022, 1, 18), count: 8 },
+        { created: new Date(2022, 1, 21), count: 3 },
+        { created: new Date(2022, 1, 26), count: 6 },
+      ],
+    },
+    { deep: true }
+  );
+
+  const filteredEvents = useSignal<{ created: Date; count: number }[]>();
+
+  useTask$(({ track }) => {
+    const list = track(() => appState.events);
+    filteredEvents.value = list.filter((x) => x.created >= new Date(2022, 1, 20));
+  });
+
+  return (
+    <>
+      <h2 id="issue-2889-result1">Deeds: {appState.events.length}</h2>
+      <h2 id="issue-2889-result2">Filtered Deeds: {(filteredEvents.value || []).length}</h2>
     </>
   );
 });

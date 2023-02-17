@@ -2,11 +2,11 @@
 import {
   component$,
   useServerMount$,
-  useWatch$,
+  useTask$,
   useStore,
   useSignal,
   Signal,
-  createContext,
+  createContextId,
   useContext,
   useContextProvider,
 } from '@builder.io/qwik';
@@ -34,19 +34,19 @@ export const Watch = component$(() => {
   });
 
   // This watch should be treeshaken
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const path = track(() => nav.path);
     console.log(path);
   });
 
   // Double count watch
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const count = track(() => store.count);
     store.doubleCount = 2 * count;
   });
 
   // Debouncer watch
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const doubleCount = track(store, 'doubleCount');
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
@@ -91,7 +91,7 @@ export const GrandChild = component$((props: { state: State }) => {
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContext<{ value: string }>('link-path');
+export const LinkPath = createContextId<{ value: string }>('link-path');
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({
@@ -103,7 +103,7 @@ export const Issue1766Root = component$(() => {
   });
   useContextProvider(LinkPath, loc);
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const path = track(() => loc.value);
     final.value = path.toUpperCase();
   });
@@ -120,7 +120,7 @@ export const Issue1766 = component$(() => {
   const counter = useSignal(0);
   const second = useSignal('---');
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(counter);
     if (counter.value !== 0) {
       second.value = 'watch ran';

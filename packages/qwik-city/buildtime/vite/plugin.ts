@@ -14,38 +14,40 @@ import {
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
-import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalFetch } from '../../middleware/node/node-fetch';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
+import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
 import type { RollupError } from 'rollup';
-import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
   RESOLVED_STATIC_PATHS_ID,
   STATIC_PATHS_ID,
-} from '../../adaptors/shared/vite';
-import { postBuild } from '../../adaptors/shared/vite/post-build';
+} from '../../adapters/shared/vite';
+import { postBuild } from '../../adapters/shared/vite/post-build';
 
 /**
  * @alpha
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
-  patchGlobalFetch();
-
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
-  let ssrFormat = 'esm';
+  let ssrFormat: 'esm' | 'cjs' = 'esm';
   let outDir: string | null = null;
+
+  // Patch Stream APIs
+  patchGlobalThis();
+
+  (globalThis as any).__qwikCityNew = true;
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -62,11 +64,12 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     enforce: 'pre',
     api,
 
-    config() {
+    async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
         base: userOpts?.basePathname,
         optimizeDeps: {
+          include: ['zod'],
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {
@@ -102,20 +105,15 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     configureServer(server) {
-      if (ctx) {
+      return () => {
         // handles static files physically found in the dist directory
         server.middlewares.use(staticDistMiddleware(server));
-
-        // qwik city middleware injected BEFORE vite internal middlewares
-        // and BEFORE @builder.io/qwik/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
-      }
-
-      return () => {
-        // qwik city 404 middleware injected AFTER vite internal middlewares
-        // and no other middlewares have handled this request
-        server.middlewares.use(dev404Middleware());
+        if (ctx) {
+          // qwik city middleware injected BEFORE vite internal middlewares
+          // and BEFORE @builder.io/qwik/optimizer/vite middlewares
+          // handles only known user defined routes
+          server.middlewares.use(ssrDevMiddleware(ctx, server));
+        }
       };
     },
 
@@ -264,20 +262,35 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             }
           }
 
-          const { staticPathsCode, notFoundPathsCode } = await postBuild(
-            clientOutDir,
-            api.getBasePathname(),
-            [],
-            ssrFormat,
-            false
-          );
-
           if (outDir) {
-            await fs.promises.mkdir(outDir, { recursive: true });
+            const { staticPathsCode, notFoundPathsCode } = await postBuild(
+              clientOutDir,
+              api.getBasePathname(),
+              [],
+              ssrFormat,
+              false
+            );
 
-            // create server package.json to ensure mjs is used
+            await fs.promises.mkdir(outDir, { recursive: true });
             const serverPackageJsonPath = join(outDir, 'package.json');
-            const serverPackageJsonCode = `{"type":"module"}`;
+
+            let packageJson = {};
+
+            // we want to keep the content of an existing file:
+            if (fs.existsSync(serverPackageJsonPath)) {
+              const content = await fs.promises.readFile(serverPackageJsonPath, 'utf-8');
+              const contentAsJson = JSON.parse(content);
+              packageJson = {
+                ...contentAsJson,
+              };
+            }
+
+            const ssrFormat2pkgTypeMap = {
+              cjs: 'commonjs',
+              esm: 'module',
+            };
+            packageJson = { ...packageJson, type: ssrFormat2pkgTypeMap[ssrFormat] || 'module' };
+            const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
 
             await Promise.all([
               fs.promises.writeFile(join(outDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),

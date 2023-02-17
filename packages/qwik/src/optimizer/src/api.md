@@ -269,6 +269,14 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
+export interface QwikViteDevResponse {
+    // (undocumented)
+    _qwikEnvData?: Record<string, any>;
+    // (undocumented)
+    _qwikRenderResolve?: () => void;
+}
+
+// @alpha (undocumented)
 export interface QwikVitePlugin {
     // (undocumented)
     api: QwikVitePluginApi;
@@ -302,8 +310,11 @@ export interface QwikVitePluginOptions {
         manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     };
     debug?: boolean;
-    entryStrategy?: EntryStrategy;
     // (undocumented)
+    devTools?: {
+        clickToSource: string[] | false;
+    };
+    entryStrategy?: EntryStrategy;
     optimizerOptions?: OptimizerOptions;
     srcDir?: string;
     // (undocumented)
@@ -313,7 +324,6 @@ export interface QwikVitePluginOptions {
         manifestInput?: QwikManifest;
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
-    // (undocumented)
     vendorRoots?: string[];
 }
 
@@ -401,6 +411,8 @@ export interface TransformOptions {
     entryStrategy?: EntryStrategy;
     // (undocumented)
     explicitExtensions?: boolean;
+    // (undocumented)
+    isServer?: boolean;
     // (undocumented)
     minify?: MinifyMode;
     // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts

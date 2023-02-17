@@ -16,8 +16,8 @@ Functions passing across serializable boundaries must be done through QRLs. QRLs
 
 Qwik has convenience APIs which end in `$` that are equivalent to calling `$()` directly. These two lines are equivalent:
 
-- inline: `useWatch$(() => {...}/>`
-- explicit: `const callbackQrl = $(() => {...}); useWatchQrl(callbackQrl)`
+- inline: `useTask$(() => {...}/>`
+- explicit: `const callbackQrl = $(() => {...}); useTaskQrl(callbackQrl)`
 
 Most of the time we use the first form as it allows us to inline our callbacks directly into the API. But at times it is necessary to use the second form so that we can separate where the function is declared and where it is used.
 

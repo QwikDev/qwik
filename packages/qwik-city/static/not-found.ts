@@ -1,5 +1,5 @@
-import { getErrorHtml } from '../middleware/request-handler/error-handler';
-import type { RouteData } from '../runtime/src/types';
+import { getErrorHtml } from '@builder.io/qwik-city/middleware/request-handler';
+import type { RouteData } from '@builder.io/qwik-city';
 import type { StaticGenerateOptions, System } from './types';
 
 export async function generateNotFoundPages(
@@ -13,7 +13,7 @@ export async function generateNotFoundPages(
 
     const hasRootNotFound = routes.some((r) => r[3] === rootNotFoundPathname);
     if (!hasRootNotFound) {
-      const filePath = sys.getPageFilePath(rootNotFoundPathname);
+      const filePath = sys.getRouteFilePath(rootNotFoundPathname, true);
 
       const html = getErrorHtml(404, 'Resource Not Found');
 
@@ -22,7 +22,7 @@ export async function generateNotFoundPages(
       return new Promise<void>((resolve) => {
         const writer = sys.createWriteStream(filePath);
         writer.write(html);
-        writer.close(resolve);
+        writer.end(resolve);
       });
     }
   }

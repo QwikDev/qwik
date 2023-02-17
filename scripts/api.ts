@@ -1,7 +1,7 @@
-import { BuildConfig, panic } from './util';
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { join } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { BuildConfig, panic } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure
@@ -66,12 +66,17 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adaptors', 'cloudflare-pages', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'adapters', 'azure-swa', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'azure-swa', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adapters', 'cloudflare-pages', 'vite'),
     join(
       config.packagesDir,
       'qwik-city',
       'lib',
-      'adaptors',
+      'adapters',
       'cloudflare-pages',
       'vite',
       'index.d.ts'
@@ -79,23 +84,38 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adaptors', 'express', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'express', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'adapters', 'cloud-run', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'cloud-run', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adaptors', 'netlify-edge', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'netlify-edge', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'adapters', 'express', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'express', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adaptors', 'static', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'static', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'adapters', 'netlify-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'netlify-edge', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adaptors', 'vercel-edge', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'vercel-edge', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'adapters', 'shared', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'shared', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adapters', 'static', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'static', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adapters', 'vercel-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'vercel-edge', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'azure-swa'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
   );
   createTypesApi(
     config,
@@ -111,6 +131,11 @@ export function apiExtractor(config: BuildConfig) {
     config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'node'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'node', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'request-handler'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'request-handler', 'index.d.ts')
   );
   createTypesApi(
     config,
@@ -193,66 +218,20 @@ declare module '@qwik-city-plan' {
 function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
+/// <reference types="./core" />
 declare module '@qwik-client-manifest' {
   const manifest: QwikManifest;
   export { manifest };
 }
-// CSS
-declare module '*.css' {
-  /**
-   * @deprecated Use \`import style from './style.css?inline'\` instead.
-   */
-  const css: unknown
-  export default css
+// MD
+declare module '*.md' {
+  const node: FunctionComponent;
+  export default node;
 }
-declare module '*.scss' {
-  /**
-   * @deprecated Use \`import style from './style.scss?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.sass' {
-  /**
-   * @deprecated Use \`import style from './style.sass?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.less' {
-  /**
-   * @deprecated Use \`import style from './style.less?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.styl' {
-  /**
-   * @deprecated Use \`import style from './style.styl?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.stylus' {
-  /**
-   * @deprecated Use \`import style from './style.stylus?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.pcss' {
-  /**
-   * @deprecated Use \`import style from './style.pcss?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.sss' {
-  /**
-   * @deprecated Use \`import style from './style.sss?inline'\` instead.
-   */
-  const css: unknown
-  export default css
+// MDX
+declare module '*.mdx' {
+  const node: FunctionComponent;
+  export default node;
 }
 `;
 

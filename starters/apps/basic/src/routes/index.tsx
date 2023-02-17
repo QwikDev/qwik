@@ -24,78 +24,89 @@ export default component$(() => {
       <h2>Commands</h2>
 
       <table class="commands">
-        <tr>
-          <td>
-            <code>npm run dev</code>
-          </td>
-          <td>Start the dev server and watch for changes.</td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run preview</code>
-          </td>
-          <td>Production build and start preview server.</td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run build</code>
-          </td>
-          <td>Production build.</td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add</code>
-          </td>
-          <td>Select an integration to add.</td>
-        </tr>
+        <tbody>
+          <tr>
+            <td>
+              <code>npm run dev</code>
+            </td>
+            <td>Start the dev server and watch for changes.</td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run preview</code>
+            </td>
+            <td>Production build and start preview server.</td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run build</code>
+            </td>
+            <td>Production build.</td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run qwik add</code>
+            </td>
+            <td>Select an integration to add.</td>
+          </tr>
+        </tbody>
       </table>
 
       <h2>Add Integrations</h2>
 
       <table class="commands">
-        <tr>
-          <td>
-            <code>npm run qwik add cloudflare-pages</code>
-          </td>
-          <td>
-            <a href="https://developers.cloudflare.com/pages" target="_blank">
-              Cloudflare Pages Server
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add express</code>
-          </td>
-          <td>
-            <a href="https://expressjs.com/" target="_blank">
-              Nodejs Express Server
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add netlify-edge</code>
-          </td>
-          <td>
-            <a href="https://docs.netlify.com/" target="_blank">
-              Netlify Edge Functions
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add static</code>
-          </td>
-          <td>
-            <a
-              href="https://qwik.builder.io/qwikcity/static-site-generation/overview/"
-              target="_blank"
-            >
-              Static Site Generation (SSG)
-            </a>
-          </td>
-        </tr>
+        <tbody>
+          <tr>
+            <td>
+              <code>npm run qwik add azure-swa</code>
+            </td>
+            <td>
+              <a href="https://learn.microsoft.com/azure/static-web-apps/overview" target="_blank">
+                Azure Static Web Apps
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run qwik add cloudflare-pages</code>
+            </td>
+            <td>
+              <a href="https://developers.cloudflare.com/pages" target="_blank">
+                Cloudflare Pages Server
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run qwik add express</code>
+            </td>
+            <td>
+              <a href="https://expressjs.com/" target="_blank">
+                Nodejs Express Server
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run qwik add netlify-edge</code>
+            </td>
+            <td>
+              <a href="https://docs.netlify.com/" target="_blank">
+                Netlify Edge Functions
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>npm run qwik add vercel-edge</code>
+            </td>
+            <td>
+              <a href="https://vercel.com/docs/concepts/get-started" target="_blank">
+                Vercel Edge Functions
+              </a>
+            </td>
+          </tr>
+        </tbody>
       </table>
 
       <h2>Community</h2>
@@ -129,6 +140,9 @@ export default component$(() => {
       </ul>
       <Link class="mindblow" href="/flower/">
         Blow my mind 🤯
+      </Link>
+      <Link class="todolist" href="/todolist/">
+        TODO demo 📝
       </Link>
     </div>
   );

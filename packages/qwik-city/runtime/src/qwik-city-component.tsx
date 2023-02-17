@@ -1,29 +1,40 @@
 import {
   component$,
+  getLocale,
   JSXNode,
   noSerialize,
   Slot,
   useContextProvider,
-  useEnvData,
-  getLocale,
+  useServerData,
   useStore,
-  useWatch$,
+  useSignal,
+  useTask$,
+  $,
+  _weakSerialize,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
+  ClientPageData,
   ContentModule,
   ContentState,
   ContentStateInternal,
+  Editable,
+  EndpointResponse,
+  LoadedRoute,
   MutableRouteLocation,
   PageModule,
+  ResolvedDocumentHead,
+  RouteActionValue,
   RouteNavigate,
 } from './types';
 import {
   ContentContext,
   ContentInternalContext,
   DocumentHeadContext,
+  RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
+  RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -32,6 +43,7 @@ import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
+import { routes, menus, cacheModules, trailingSlash } from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -61,96 +73,155 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     throw new Error(`Missing Qwik City Env Data`);
   }
 
-  const urlEnv = useEnvData<string>('url');
+  const urlEnv = useServerData<string>('url');
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
 
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
-    query: Object.fromEntries(url.searchParams.entries()),
+    query: url.searchParams,
     params: env.params,
+    isNavigating: false,
   });
 
-  const routeNavigate = useStore<RouteNavigate>({
-    path: toPath(url),
-  });
-
-  const documentHead = useStore(createDocumentHead);
-  const content = useStore<ContentState>({
+  const loaderState = _weakSerialize(useStore(env.response.loaders));
+  const navPath = useSignal(toPath(url));
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
+  const content = useStore<Editable<ContentState>>({
     headings: undefined,
     menu: undefined,
   });
 
-  const contentInternal = useStore<ContentStateInternal>({
-    contents: undefined,
+  const contentInternal = useSignal<ContentStateInternal>();
+
+  const currentActionId = env.response.action;
+  const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
+  const actionState = useSignal<RouteActionValue>(
+    currentAction
+      ? {
+          id: currentActionId!,
+          data: env.response.formData,
+          output: {
+            result: currentAction,
+            status: env.response.status,
+          },
+        }
+      : undefined
+  );
+
+  const goto: RouteNavigate = $(async (path) => {
+    const value = navPath.value;
+    if (path) {
+      if (value === path) {
+        return;
+      }
+      navPath.value = path;
+    } else {
+      // force a change
+      navPath.value = '';
+      navPath.value = value;
+    }
+    const prefetchURL = new URL(navPath.value, routeLocation.url);
+    loadClientData(prefetchURL);
+    loadRoute(routes, menus, cacheModules, prefetchURL.pathname);
+
+    actionState.value = undefined;
+    routeLocation.isNavigating = true;
   });
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
-  useContextProvider(RouteNavigateContext, routeNavigate);
+  useContextProvider(RouteNavigateContext, goto);
+  useContextProvider(RouteStateContext, loaderState);
+  useContextProvider(RouteActionContext, actionState);
 
-  useWatch$(async ({ track }) => {
-    const locale = getLocale('');
-    const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
-    const path = track(() => routeNavigate.path);
-    const url = new URL(path, routeLocation.href);
-    const pathname = url.pathname;
-
-    const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
-
-    const endpointResponse = isServer ? env.response : loadClientData(url.href, true);
-
-    const loadedRoute = await loadRoutePromise;
-
-    if (loadedRoute) {
-      const [params, mods, menu] = loadedRoute;
-      const contentModules = mods as ContentModule[];
-      const pageModule = contentModules[contentModules.length - 1] as PageModule;
-
-      // ensure correct trailing slash
-      if (pathname.endsWith('/')) {
-        if (!trailingSlash) {
-          url.pathname = pathname.slice(0, -1);
-          routeNavigate.path = toPath(url);
+  useTask$(({ track }) => {
+    async function run() {
+      const [path, action] = track(() => [navPath.value, actionState.value]);
+      const locale = getLocale('');
+      let url = new URL(path, routeLocation.url);
+      let clientPageData: EndpointResponse | ClientPageData | undefined;
+      let loadedRoute: LoadedRoute | null = null;
+      if (isServer) {
+        loadedRoute = env!.loadedRoute;
+        clientPageData = env!.response;
+      } else {
+        // ensure correct trailing slash
+        if (url.pathname.endsWith('/')) {
+          if (!trailingSlash) {
+            url.pathname = url.pathname.slice(0, -1);
+          }
+        } else if (trailingSlash) {
+          url.pathname += '/';
+        }
+        let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+        const pageData = (clientPageData = await loadClientData(url, true, action));
+        if (!pageData) {
+          // Reset the path to the current path
+          (navPath as any).untrackedValue = toPath(url);
           return;
         }
-      } else if (trailingSlash) {
-        url.pathname += '/';
-        routeNavigate.path = toPath(url);
-        return;
+        const newHref = pageData.href;
+        const newURL = new URL(newHref, url.href);
+        if (newURL.pathname !== url.pathname) {
+          url = newURL;
+          loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+        }
+        loadedRoute = await loadRoutePromise;
       }
 
-      // Update route location
-      routeLocation.href = url.href;
-      routeLocation.pathname = pathname;
-      routeLocation.params = { ...params };
-      routeLocation.query = Object.fromEntries(url.searchParams.entries());
+      if (loadedRoute) {
+        const [params, mods, menu] = loadedRoute;
+        const contentModules = mods as ContentModule[];
+        const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
-      // Update content
-      content.headings = pageModule.headings;
-      content.menu = menu;
-      contentInternal.contents = noSerialize(contentModules);
+        // Update route location
+        routeLocation.url = url;
+        routeLocation.href = url.href;
+        routeLocation.pathname = url.pathname;
+        routeLocation.params = { ...params };
+        routeLocation.query = url.searchParams;
 
-      const clientPageData = await endpointResponse;
-      const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
+        (navPath as any).untrackedValue = toPath(url);
 
-      CLIENT_DATA_CACHE.clear();
+        // Needs to be done after routeLocation is updated
+        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
 
-      // Update document head
-      documentHead.links = resolvedHead.links;
-      documentHead.meta = resolvedHead.meta;
-      documentHead.styles = resolvedHead.styles;
-      documentHead.title = resolvedHead.title;
-      documentHead.frontmatter = resolvedHead.frontmatter;
+        // Update content
+        content.headings = pageModule.headings;
+        content.menu = menu;
+        contentInternal.value = noSerialize(contentModules);
 
-      if (isBrowser) {
-        clientNavigate(window, routeNavigate);
+        // Update document head
+        documentHead.links = resolvedHead.links;
+        documentHead.meta = resolvedHead.meta;
+        documentHead.styles = resolvedHead.styles;
+        documentHead.title = resolvedHead.title;
+        documentHead.frontmatter = resolvedHead.frontmatter;
+
+        if (isBrowser) {
+          const loaders = clientPageData?.loaders;
+          if (loaders) {
+            Object.assign(loaderState, loaders);
+          }
+          CLIENT_DATA_CACHE.clear();
+
+          clientNavigate(window, url, navPath);
+          routeLocation.isNavigating = false;
+        }
       }
+    }
+    const promise = run();
+    if (isServer) {
+      return promise;
+    } else {
+      return;
     }
   });
 
@@ -165,9 +236,9 @@ export const QwikCity = QwikCityProvider;
 
 /**
  * @alpha
- * @deprecated - The "Html" component has been renamed to "QwikCity".
+ * @deprecated - The "Html" component has been renamed to "QwikCityProvider".
  */
-export const Html = QwikCity;
+export const Html = QwikCityProvider;
 
 /**
  * @alpha
@@ -184,14 +255,18 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
-    query: Object.fromEntries(url.searchParams.entries()),
+    query: url.searchParams,
     params: props.params ?? {},
+    isNavigating: false,
   });
 
-  const routeNavigate = useStore<RouteNavigate>({
-    path: toPath(url),
+  const loaderState = useSignal({});
+
+  const goto: RouteNavigate = $(async (path) => {
+    throw new Error('Not implemented');
   });
 
   const documentHead = useStore(createDocumentHead);
@@ -201,15 +276,13 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     menu: undefined,
   });
 
-  const contentInternal = useStore<ContentStateInternal>({
-    contents: undefined,
-  });
+  const contentInternal = useSignal<ContentStateInternal>();
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
-  useContextProvider(RouteNavigateContext, routeNavigate);
-
+  useContextProvider(RouteNavigateContext, goto);
+  useContextProvider(RouteStateContext, loaderState);
   return <Slot />;
 });

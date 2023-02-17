@@ -41,6 +41,7 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
           build.onResolve({ filter: /^chalk$/ }, async (args) => {
             const result = await build.resolve('kleur', {
               resolveDir: args.resolveDir,
+              kind: 'import-statement',
             });
             if (result.errors.length > 0) {
               return { errors: result.errors };
@@ -113,7 +114,7 @@ export async function publishCreateQwikCli(
 export async function copyStartersDir(
   config: BuildConfig,
   distCliDir: string,
-  typeDirs: ('apps' | 'features' | 'adaptors')[]
+  typeDirs: ('apps' | 'features' | 'adapters')[]
 ) {
   const distStartersDir = join(distCliDir, 'starters');
   try {
@@ -200,13 +201,14 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
   setVersionFromRoot('node-fetch');
+  setVersionFromRoot('undici');
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);
 }
 
 function isValidFsItem(fsItemName: string) {
-  return !IGNORE[fsItemName] && !fsItemName.includes('.prod') && !fsItemName.endsWith('test');
+  return !IGNORE[fsItemName] && !fsItemName.includes('.prod') && !fsItemName.endsWith('-test');
 }
 
 const IGNORE: { [path: string]: boolean } = {

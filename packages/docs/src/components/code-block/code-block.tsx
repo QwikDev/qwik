@@ -1,6 +1,5 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import { highlight, languages } from 'prismjs';
-import styles from './code-block.css?inline';
 
 interface CodeBlockProps {
   path?: string;
@@ -9,8 +8,6 @@ interface CodeBlockProps {
 }
 
 export const CodeBlock = component$((props: CodeBlockProps) => {
-  useStyles$(styles);
-
   let language = props.language;
   if (!language && props.path && props.code) {
     const ext = props.path.split('.').pop();

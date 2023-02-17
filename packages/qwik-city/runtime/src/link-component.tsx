@@ -48,11 +48,12 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav.path = linkProps.href as any;
+          nav(linkProps.href);
         }
       }}
       data-prefetch={prefetchDataset}
       onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
+      onFocus$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
       onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement, true)}
     >
       <Slot />
@@ -72,7 +73,7 @@ export const prefetchLinkResources = (elm: HTMLAnchorElement, isOnVisible?: bool
     if (!isOnVisible || (isOnVisible && windowInnerWidth < 520)) {
       // either this is a mouseover event, probably on desktop
       // or the link is visible, and the viewport width is less than X
-      loadClientData(elm.href);
+      loadClientData(new URL(elm.href));
     }
   }
 };

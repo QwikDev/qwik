@@ -13,6 +13,24 @@ import { frontmatterAttrsToDocumentHead } from './frontmatter';
 import { isSameOriginUrl } from '../../utils/pathname';
 import { getMarkdownRelativeUrl } from './markdown-url';
 
+export function rehypeSlug(): Transformer {
+  return (ast) => {
+    const mdast = ast as Root;
+    const slugs = new Slugger();
+
+    visit(mdast, 'element', (node: any) => {
+      const level = headingRank(node);
+      if (level && node.properties) {
+        const text = toString(node);
+
+        if (!hasProperty(node, 'id')) {
+          node.properties.id = slugs.slug(text);
+        }
+      }
+    });
+  };
+}
+
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
@@ -61,23 +79,19 @@ function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {
 }
 
 function exportContentHeadings(mdast: Root) {
-  const slugs = new Slugger();
   const headings: ContentHeading[] = [];
 
   visit(mdast, 'element', (node: any) => {
     const level = headingRank(node);
     if (level && node.properties) {
-      const text = toString(node);
-
-      if (!hasProperty(node, 'id')) {
-        node.properties.id = slugs.slug(text);
+      if (hasProperty(node, 'id')) {
+        const text = toString(node);
+        headings.push({
+          text,
+          id: node.properties.id,
+          level,
+        });
       }
-
-      headings.push({
-        text,
-        id: node.properties.id,
-        level,
-      });
     }
   });
 

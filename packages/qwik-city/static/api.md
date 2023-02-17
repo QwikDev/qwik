@@ -4,7 +4,9 @@
 
 ```ts
 
-import type { RenderOptions } from '../../qwik/src/server';
+/// <reference types="node" />
+
+import type { RenderOptions } from '@builder.io/qwik/server';
 
 // @alpha
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
@@ -14,6 +16,8 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
     basePathname?: string;
     qwikCityPlanModulePath: string;
     renderModulePath: string;
+    // (undocumented)
+    rootDir?: string;
 }
 
 // @alpha (undocumented)
@@ -21,12 +25,14 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
     emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
+    exclude?: string[];
+    include?: string[];
     log?: 'debug';
     maxTasksPerWorker?: number;
     maxWorkers?: number;
     origin: string;
     outDir: string;
-    sitemapOutFile?: string;
+    sitemapOutFile?: string | null;
 }
 
 // @alpha (undocumented)

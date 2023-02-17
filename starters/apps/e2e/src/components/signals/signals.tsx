@@ -5,8 +5,8 @@ import {
   Signal,
   useSignal,
   useStore,
-  useClientEffect$,
-  useWatch$,
+  useBrowserVisibleTask$,
+  useTask$,
   Slot,
   useStyles$,
 } from '@builder.io/qwik';
@@ -42,7 +42,7 @@ export const Signals = component$(() => {
 
   const styles = useSignal('body { background: white}');
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     ref.current!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });
@@ -103,6 +103,7 @@ export const Signals = component$(() => {
       <Issue2245B />
       <ComplexClassSignals />
       <Issue2311 />
+      <Issue2344 />
     </div>
   );
 });
@@ -137,7 +138,7 @@ export const Child = component$((props: ChildProps) => {
         Stuff: {props.count}
       </div>
       <style>{props.styles}</style>
-      <textarea value={props.styles}></textarea>
+      <textarea id="textarea" value={props.styles}></textarea>
     </>
   );
 });
@@ -182,7 +183,7 @@ export const Issue1733 = component$(() => {
 
 export const SideEffect = component$(() => {
   const signal = useSignal('initial');
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(100);
     signal.value = 'set';
   });
@@ -525,7 +526,7 @@ export const Issue2311 = component$(() => {
     text: 'Hello',
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const v = track(() => store.condition);
     if (v) {
       store.text = 'Bye bye 👻';
@@ -564,5 +565,25 @@ export const Issue2311 = component$(() => {
         <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
       </div>
     </div>
+  );
+});
+
+export const Issue2344 = component$(() => {
+  const classSig = useSignal('abc');
+  return (
+    <>
+      <textarea id="issue-2344-results" value="Content" rows={5}></textarea>
+      {classSig.value + ''}
+      <p>
+        <button
+          id="issue-2344-btn"
+          onClick$={() => {
+            classSig.value = 'bar';
+          }}
+        >
+          Should not error
+        </button>
+      </p>
+    </>
   );
 });

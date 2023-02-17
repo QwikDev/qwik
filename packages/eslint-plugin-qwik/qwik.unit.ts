@@ -133,7 +133,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
       }
       export const HelloWorld = component$(() => {
         const state: Value = { value: 12, fn: getFn() };
-        useWatch$(() => {
+        useTask$(() => {
           console.log(state.value);
         });
         return <div></div>
@@ -158,7 +158,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             return 'value';
           }
           const useMethod = getMethod();
-          useWatch$(() => {
+          useTask$(() => {
             console.log(useMethod);
           });
           return <div></div>;
@@ -176,7 +176,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             };
           }
           const useMethod = getMethod();
-          useWatch$(() => {
+          useTask$(() => {
             console.log(useMethod);
           });
           return <div></div>;
@@ -191,13 +191,13 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           return <div></div>
         });`,
       `
-          import { useWatch$ } from '@builder.io/qwik';
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue(): number | string | null | undefined | { prop: string } {
               return window.aaa;
             }
             const a = getValue();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(a);
             });
             return <div></div>;
@@ -221,13 +221,13 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
                 s: true,
               }
             };
-            useWatch$(() => {
+            useTask$(() => {
               console.log(useMethod, obj);
             });
             return <div></div>;
           });`,
       `
-          import { useWatch$ } from '@builder.io/qwik';
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             async function getValue() {
               return 'ffg';
@@ -251,9 +251,11 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
     method$: PropFunction<() => void>;
   }
 
-  export const HelloWorld = component$((props: Props) => {
-    return <div onClick$={async () => {
-      await props.method$();
+  export const HelloWorld = component$(({method$}: Props) => {
+    return <div
+     onKeydown$={method$}
+     onClick$={async () => {
+      await method$();
     }}></div>;
   });
       `,
@@ -271,7 +273,7 @@ export default component$(() => {
 `,
       `
         import { component$ } from "@builder.io/qwik";
-        
+
         export interface Props {
           serializableTuple: [string, number, boolean];
         }
@@ -282,6 +284,15 @@ export default component$(() => {
           );
         });
       `,
+      `
+      import { component$ } from "@builder.io/qwik";
+
+      export const HelloWorld = component$(({onClick}: any) => {
+        return (
+          <button onClick$={onClick}></button>
+        );
+      });
+    `,
     ],
     invalid: [
       {
@@ -292,9 +303,7 @@ export default component$(() => {
             useMethod(foo);
             return <div></div>
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -303,14 +312,12 @@ export default component$(() => {
               return () => {};
             }
             const useMethod = getMethod();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(useMethod);
             });
             return <div></div>;
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -318,63 +325,55 @@ export default component$(() => {
             function useMethod() {
               console.log('stuff');
             };
-            useWatch$(() => {
+            useTask$(() => {
               console.log(useMethod);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
           export const HelloWorld = component$(() => {
             class Stuff { }
-            useWatch$(() => {
+            useTask$(() => {
               console.log(new Stuff(), useMethod);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("Stuff") can not be captured inside the scope (useWatch$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
           export const HelloWorld = component$(() => {
             class Stuff { }
             const stuff = new Stuff();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(stuff, useMethod);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("stuff") can not be captured inside the scope (useWatch$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
-          import { useWatch$ } from '@builder.io/qwik';
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             const a = Symbol();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(a);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useWatch$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
-          import { useWatch$ } from '@builder.io/qwik';
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue() {
               if (Math.random() < 0.5) {
@@ -384,15 +383,13 @@ export default component$(() => {
               }
             }
             const a = getValue();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(a);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -402,14 +399,12 @@ export default component$(() => {
         }
         export const HelloWorld = component$(() => {
           const state: Value = { value: () => console.log('thing') };
-          useWatch$(() => {
+          useTask$(() => {
             console.log(state.value);
           });
           return <div></div>
         });`,
-        errors: [
-          'Identifier ("state") can not be captured inside the scope (useWatch$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -439,13 +434,13 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
         code: `
         import { component$ } from "@builder.io/qwik";
-        
+
         export interface Props {
           nonserializableTuple: [string, number, boolean, Function];
         }
@@ -455,8 +450,30 @@ export default component$(() => {
             <button onClick$={() => props.nonserializableTuple}></button>
           );
         });`,
+        errors: [{ messageId: 'referencesOutside' }],
+      },
+    ],
+  });
+});
+
+test('single-jsx-root', () => {
+  ruleTester.run('my-rule', rules['single-jsx-root'] as any, {
+    valid: [``],
+    invalid: [
+      {
+        code: `export const HelloWorld = component$(async () => {
+            return isLoading ? <>Loading...</> : <div>The value is loaded</div>;
+          });`,
         errors: [
-          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
+        ],
+      },
+      {
+        code: `export const HelloWorld = component$(async () => {
+          return isLoading ? <div>Loading...</div> : <div>The value is loaded</div>
+          });`,
+        errors: [
+          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
         ],
       },
     ],

@@ -1,67 +1,55 @@
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from './types';
-import { endpointHandler } from './endpoint-handler';
-import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
-import { getRouteMatchPathname, loadUserResponse } from './user-response';
+import type { RouteData } from '@builder.io/qwik-city';
+import type { Render } from '@builder.io/qwik/server';
+import type { ServerRenderOptions, ServerRequestEvent } from './types';
+import type { MenuData, RouteModule } from '../../runtime/src/types';
+import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
-import { pageHandler } from './page-handler';
-import { RedirectResponse, redirectResponse } from './redirect-handler';
 
 /**
  * @alpha
  */
-export async function requestHandler<T = any>(
-  requestCtx: QwikCityRequestContext,
-  opts: QwikCityHandlerOptions
-): Promise<T | null> {
-  try {
-    const { render, qwikCityPlan } = opts;
-    const { routes, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
-
-    const matchPathname = getRouteMatchPathname(requestCtx.url.pathname, trailingSlash);
-    const loadedRoute = await loadRoute(routes, menus, cacheModules, matchPathname);
-    if (loadedRoute) {
-      // found and loaded the route for this pathname
-      const [params, mods, _, routeBundleNames] = loadedRoute;
-
-      // build endpoint response from each module in the hierarchy
-      const userResponse = await loadUserResponse(
-        requestCtx,
-        params,
-        mods,
-        trailingSlash,
-        basePathname
-      );
-      if (userResponse.aborted) {
-        return null;
-      }
-
-      // status and headers should be immutable in at this point
-      // body may not have resolved yet
-      if (userResponse.type === 'endpoint') {
-        const endpointResult = await endpointHandler(requestCtx, userResponse);
-        return endpointResult;
-      }
-
-      const pageResult = await pageHandler(
-        requestCtx,
-        userResponse,
-        render,
-        opts,
-        routeBundleNames
-      );
-      return pageResult;
-    }
-  } catch (e: any) {
-    if (e instanceof RedirectResponse) {
-      return redirectResponse(requestCtx, e);
-    }
-    if (e instanceof ErrorResponse) {
-      return errorResponse(requestCtx, e);
-    }
-    return errorHandler(requestCtx, e);
+export async function requestHandler<T = unknown>(
+  serverRequestEv: ServerRequestEvent<T>,
+  opts: ServerRenderOptions
+): Promise<QwikCityRun<T> | null> {
+  const { render, qwikCityPlan } = opts;
+  const { routes, serverPlugins, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
+  const pathname = serverRequestEv.url.pathname;
+  const matchPathname = getRouteMatchPathname(pathname, trailingSlash);
+  const route = await loadRequestHandlers(
+    serverPlugins,
+    routes,
+    menus,
+    cacheModules,
+    matchPathname,
+    serverRequestEv.request.method,
+    render
+  );
+  if (route) {
+    return runQwikCity(serverRequestEv, route[0], route[1], trailingSlash, basePathname);
   }
+  return null;
+}
 
-  // route not found, return null so other server middlewares
-  // have the chance to handle this request
+async function loadRequestHandlers(
+  serverPlugins: RouteModule[] | undefined,
+  routes: RouteData[] | undefined,
+  menus: MenuData[] | undefined,
+  cacheModules: boolean | undefined,
+  pathname: string,
+  method: string,
+  renderFn: Render
+) {
+  const route = await loadRoute(routes, menus, cacheModules, pathname);
+  const requestHandlers = resolveRequestHandlers(
+    serverPlugins,
+    route,
+    method,
+    renderQwikMiddleware(renderFn)
+  );
+  if (requestHandlers.length > 0) {
+    return [route, requestHandlers] as const;
+  }
   return null;
 }

@@ -33,6 +33,7 @@ macro_rules! test_input {
             strip_exports,
             strip_ctx_name,
             strip_ctx_kind: input.strip_ctx_kind,
+            is_server: input.is_server,
         });
         if input.snapshot {
             let input = input.code.to_string();
@@ -435,6 +436,30 @@ export const Bar = component$(({bar}) => {
 }
 
 #[test]
+fn example_dead_code() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { deps } from 'deps';
+
+export const Foo = component$(({foo}) => {
+    useMount$(() => {
+        if (false) {
+            deps();
+        }
+    });
+    return (
+        <div />
+    );
+})
+"#
+        .to_string(),
+        minify: MinifyMode::Simplify,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_with_tagname() {
     test_input!(TestInput {
         code: r#"
@@ -472,6 +497,83 @@ export const Foo = component$(() => {
 });
 "#
         .to_string(),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_props_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$(({
+    count,
+    some = 1+2,
+    hello = CONST,
+    stuff: hey,
+    ...rest}) => {
+    console.log(hey, some);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count, rest, hey, some);
+    });
+    return (
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
+    );
+});
+
+export const NoWorks2 = component$(({count, stuff: {hey}}) => {
+    console.log(hey);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count);
+    });
+    return (
+        <div class={count}>{count}</div>
+    );
+});
+
+export const NoWorks3 = component$(({count, stuff = hola()}) => {
+    console.log(stuff);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count);
+    });
+    return (
+        <div class={count}>{count}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_use_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$((props) => {
+    const {value} = useSignal(0);
+    const {foo, ...rest} = useStore({foo: 0});
+    const {bar = 'hello', ...rest2} = useStore({foo: 0});
+    const {hello} = props;
+
+    return (
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -1022,7 +1124,7 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -1030,7 +1132,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -1058,7 +1160,7 @@ export const Child = component$(() => {
 fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -1070,7 +1172,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         state.count = thing.doStuff() + import("./sibling");
     });
 
@@ -1249,7 +1351,7 @@ export const Child = component$(() => {
 fn example_manual_chunks() {
     test_input!(TestInput {
         code: r#"
-import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1259,7 +1361,7 @@ export const Parent = component$(() => {
     });
 
     // Double count watch
-    useWatch$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
         redis.set(state.text);
     });
@@ -1277,7 +1379,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useWatch$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
     });
 
@@ -1359,9 +1461,10 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
+import { handler } from 'serverless';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1374,7 +1477,13 @@ export const Parent = component$(() => {
         redis.set(state.text);
     });
 
-    useWatch$(() => {
+    serverStuff$(async () => {
+        // should be removed too
+    })
+
+    serverLoader$(handler);
+
+    useTask$(() => {
         // Code
     });
 
@@ -1389,7 +1498,58 @@ export const Parent = component$(() => {
         transpile_ts: true,
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Hook,
-        strip_ctx_name: Some(vec!["useServerMount$".into(),]),
+        strip_ctx_name: Some(vec!["useServerMount$".into(), "server".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_server_auth() {
+    test_input!(TestInput {
+        code: r#"
+import GitHub from '@auth/core/providers/github'
+import Facebook from 'next-auth/providers/facebook'
+import Google from 'next-auth/providers/google'
+import {serverAuth$, auth$} from '@auth/qwik';
+
+export const { onRequest, logout, getSession, signup } = serverAuth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: import.meta.env.FACEBOOK_ID,
+        clientSecret: import.meta.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+
+export const { onRequest, logout, getSession, signup } = auth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: process.env.FACEBOOK_ID,
+        clientSecret: process.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Hook,
         ..TestInput::default()
     });
 }
@@ -1398,7 +1558,7 @@ export const Parent = component$(() => {
 fn example_strip_client_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
@@ -1414,7 +1574,7 @@ export const Parent = component$(() => {
         redis.set(state.text);
     });
 
-    useWatch$(() => {
+    useTask$(() => {
         // Code
     });
 
@@ -1818,7 +1978,7 @@ export const App = component$((props: Stuff) => {
     return (
         <>
             <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
-            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value && <div></div>}<div></div></div>
             <div>{prop.value || <div></div>}</div>
             <div>{prop.value ?? <div></div>}</div>
             <div>Static {f ? 1 : 3}</div>
@@ -1915,6 +2075,39 @@ export const foo = () => console.log('foo');
 }
 
 #[test]
+fn example_build_server() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { mongodb } from 'mondodb';
+import { threejs } from 'threejs';
+
+export const App = component$(() => {
+    useMount$(() => {
+        if (isServer) {
+            console.log('server', mongodb());
+        }
+        if (isBrowser) {
+            console.log('browser', new threejs());
+        }
+    });
+    return (
+        <Cmp>
+            {isServer && <p>server</p>}
+            {isBrowser && <p>server</p>}
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        is_server: Some(true),
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_getter_generation() {
     test_input!(TestInput {
         code: r#"
@@ -1961,7 +2154,7 @@ export const Cmp = component$((props) => {
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -1973,7 +2166,7 @@ function qwikifyQrl(reactCmpQrl) {
         let run;
         if (props['client:visible']) run = 'visible';
         else if (props['client:load'] || props['client:only']) run = 'load';
-        useWatchQrl(inlinedQrl(async (track)=>{
+        useTaskQrl(inlinedQrl(async (track)=>{
             const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
             track(props);
             if (isBrowser) {
@@ -2064,7 +2257,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 fn example_qwik_react_inline() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -2076,7 +2269,7 @@ function qwikifyQrl(reactCmpQrl) {
         let run;
         if (props['client:visible']) run = 'visible';
         else if (props['client:load'] || props['client:only']) run = 'load';
-        useWatchQrl(inlinedQrl(async (track)=>{
+        useTaskQrl(inlinedQrl(async (track)=>{
             const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
             track(props);
             if (isBrowser) {
@@ -2237,6 +2430,7 @@ export const Local = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        is_server: None,
     });
     snapshot_res!(&res, "".into());
 }
@@ -2313,6 +2507,7 @@ export const Greeter = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        is_server: None,
     });
     let ref_hooks: Vec<_> = res
         .unwrap()
@@ -2347,6 +2542,7 @@ export const Greeter = component$(() => {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            is_server: None,
         });
 
         let hooks: Vec<_> = res
@@ -2394,6 +2590,7 @@ struct TestInput {
     pub strip_exports: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub is_server: Option<bool>,
 }
 
 impl TestInput {
@@ -2415,6 +2612,7 @@ impl TestInput {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            is_server: None,
         }
     }
 }

@@ -12,10 +12,25 @@ import type {
   TransformFsOptions,
   TransformModule,
   TransformModuleInput,
+  TransformModulesOptions,
   TransformOutput,
 } from '../types';
 import { createLinter, QwikLinter } from './eslint-plugin';
 import type { PluginContext } from 'rollup';
+
+const SERVER_STRIP_EXPORTS = [
+  'onGet',
+  'onPost',
+  'onPut',
+  'onRequest',
+  'onDelete',
+  'onHead',
+  'onOptions',
+  'onPatch',
+  'onStaticGenerate',
+];
+
+const SERVER_STRIP_CTX_NAME = ['server', 'useServer', 'action$', 'loader$', 'zod$'];
 
 export interface QwikPackages {
   id: string;
@@ -52,6 +67,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     transformedModuleOutput: null,
     vendorRoots: [],
     scope: null,
+    devTools: {
+      clickToSource: ['Alt'],
+    },
   };
 
   const init = async () => {
@@ -227,6 +245,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
     }
 
+    if (typeof updatedOpts.devTools === 'object') {
+      if ('clickToSource' in updatedOpts.devTools) {
+        opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
+      }
+    }
+
     return { ...opts };
   };
 
@@ -269,7 +293,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir);
       } catch (err) {
-        // Nothign
+        // Nothing
       }
     }
 
@@ -315,20 +339,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
 
       if (opts.target === 'client') {
-        transformOpts.stripCtxName = ['useServerMount$'];
-        transformOpts.stripExports = [
-          'onGet',
-          'onPost',
-          'onPut',
-          'onRequest',
-          'onDelete',
-          'onHead',
-          'onOptions',
-          'onPatch',
-        ];
+        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+        transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
+        transformOpts.stripCtxName = ['useClient', 'client', 'useBrowser', 'browser'];
         transformOpts.stripCtxKind = 'event';
+        transformOpts.isServer = true;
       }
 
       const result = await optimizer.transformFs(transformOpts);
@@ -457,7 +474,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         code,
         map: transformedModule[0].map,
-        moduleSideEffects: false,
         meta: {
           hook: transformedModule[0].hook,
         },
@@ -479,7 +495,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const { pathId } = parseId(id);
     const { ext, dir, base } = path.parse(pathId);
 
-    if (TRANSFORM_EXTS[ext] || TRANSFORM_REGEX.test(pathId)) {
+    if (
+      TRANSFORM_EXTS[ext] ||
+      TRANSFORM_REGEX.test(pathId) ||
+      insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
+    ) {
       const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 
@@ -490,24 +510,30 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const mode = opts.buildMode === 'development' ? 'dev' : 'prod';
-      const newOutput = optimizer.transformModulesSync({
+      const transformOpts: TransformModulesOptions = {
         input: [
           {
-            code,
+            code: code,
             path: filePath,
           },
         ],
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
-        sourceMaps: opts.buildMode === 'development',
+        sourceMaps: 'development' === opts.buildMode,
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
         preserveFilenames: true,
-        srcDir,
-        mode,
-        scope: opts.scope ? opts.scope : undefined,
-      });
+        srcDir: srcDir,
+        mode: mode,
+        scope: opts.scope ? opts.scope : void 0,
+      };
+      const isSSR = (ctx as any).ssr;
+      if (!isSSR) {
+        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+      }
+      const newOutput = optimizer.transformModulesSync(transformOpts);
 
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
@@ -624,9 +650,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
     const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
+    const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
+export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 
@@ -658,6 +686,21 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   };
 }
 
+const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
+  if (ext !== '.js') {
+    return false;
+  }
+  if (srcDir != null && dir.startsWith(srcDir)) {
+    return true;
+  }
+  for (const root of vendorRoots) {
+    if (dir.startsWith(root)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export function parseId(originalId: string) {
   const [pathId, query] = originalId.split('?');
   const queryStr = query || '';
@@ -684,7 +727,7 @@ const RESOLVE_EXTS: { [ext: string]: boolean } = {
   '.cjs': true,
 };
 
-const TRANSFORM_REGEX = /\.qwik\.(m|c)?js$/;
+const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@builder.io/qwik';
 
@@ -700,7 +743,7 @@ export const SRC_DIR_DEFAULT = 'src';
 
 export const CLIENT_OUT_DIR = 'dist';
 
-const SSR_OUT_DIR = 'server';
+export const SSR_OUT_DIR = 'server';
 
 const LIB_OUT_DIR = 'lib';
 
@@ -725,6 +768,9 @@ export interface QwikPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  devTools?: {
+    clickToSource?: string[] | false;
+  };
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

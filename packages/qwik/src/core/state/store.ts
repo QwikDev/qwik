@@ -1,18 +1,15 @@
 import { isString, isSymbol } from './../util/types';
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { qError, QError_immutableProps } from '../error/error';
-import { isQrl } from '../qrl/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
-import { isNode } from '../util/element';
-import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
-import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import type { SubscriberEffect, SubscriberHost } from '../use/use-task';
 import {
+  fastSkipSerialize,
   LocalSubscriptionManager,
-  shouldSerialize,
   Subscriptions,
   unwrapProxy,
   verifySerializable,
@@ -27,6 +24,7 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from './constants';
+import { logError } from '../util/log';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -78,6 +76,19 @@ export const setObjectFlags = (obj: object, flags: number) => {
 };
 
 export type TargetType = Record<string | symbol, any>;
+
+/**
+ * @internal
+ */
+export const _restProps = (props: Record<string, any>, omit: string[]) => {
+  const rest: Record<string, any> = {};
+  for (const key in props) {
+    if (!omit.includes(key)) {
+      rest[key] = props[key];
+    }
+  }
+  return rest;
+};
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
@@ -141,9 +152,8 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       verifySerializable(unwrappedNewValue);
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
-        logWarn(
-          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
-          invokeCtx.$hostElement$,
+        logError(
+          'State mutation inside render function. Move mutation to useWatch(), useBrowserVisibleTask() or useServerMount()',
           prop
         );
       }
@@ -176,13 +186,18 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
-    const invokeCtx = tryGetInvokeContext();
-    if (invokeCtx) {
-      subscriber = invokeCtx.$subscriber$;
-    }
-    if (subscriber) {
-      this.$manager$.$addSub$([0, subscriber, undefined]);
+    const flags = target[QObjectFlagsSymbol] ?? 0;
+    assertNumber(flags, 'flags must be an number');
+    const immutable = (flags & QObjectImmutable) !== 0;
+    if (!immutable) {
+      let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
+      const invokeCtx = tryGetInvokeContext();
+      if (invokeCtx) {
+        subscriber = invokeCtx.$subscriber$;
+      }
+      if (subscriber) {
+        this.$manager$.$addSub$([0, subscriber, undefined]);
+      }
     }
     if (isArray(target)) {
       return Reflect.ownKeys(target);
@@ -204,9 +219,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const wrap = <T>(value: T, containerState: ContainerState): T => {
-  if (isQrl(value)) {
-    return value;
-  }
   if (isObject(value)) {
     if (Object.isFrozen(value)) {
       return value;
@@ -216,18 +228,13 @@ const wrap = <T>(value: T, containerState: ContainerState): T => {
       // already a proxy return;
       return value;
     }
-    if (isNode(nakedValue)) {
+    if (fastSkipSerialize(nakedValue)) {
       return value;
     }
-    if (!shouldSerialize(nakedValue)) {
-      return value;
+    if (isSerializableObject(nakedValue) || isArray(nakedValue)) {
+      const proxy = containerState.$proxyMap$.get(nakedValue);
+      return proxy ? proxy : getOrCreateProxy(nakedValue as any, containerState, QObjectRecursive);
     }
-    if (qDev) {
-      verifySerializable<T>(value);
-    }
-    const proxy = containerState.$proxyMap$.get(value);
-    return proxy ? proxy : getOrCreateProxy(value as any, containerState, QObjectRecursive);
-  } else {
-    return value;
   }
+  return value;
 };

@@ -25,6 +25,7 @@
 
 - [Qwik vs React](cheat/qwik-react/index.mdx)
 - [Serialization](cheat/serialization/index.mdx)
+- [Best Practices](cheat/best-practices/index.mdx)
 
 ## Concepts
 
@@ -42,6 +43,7 @@
 - [Optimizer](advanced/optimizer/index.mdx)
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
 - [Internationalization](advanced/i18n/index.mdx)
+- [Vite](advanced/vite/index.mdx)
 
 ## Community
 

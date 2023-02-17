@@ -1,13 +1,13 @@
 /* eslint-disable */
 import {
   component$,
-  useClientEffect$,
+  useBrowserVisibleTask$,
   useRef,
   useStore,
   useStyles$,
   Slot,
   useSignal,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -24,6 +24,7 @@ export const EffectClient = component$(() => {
       <Issue1413 />
       <Issue1717 />
       <Issue2015 />
+      <Issue1955 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -51,13 +52,13 @@ export const Timer = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     state.msg = 'run';
     container.current!.setAttribute('data-effect', 'true');
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     state.count = 10;
     const timer = setInterval(() => {
       state.count++;
@@ -83,12 +84,12 @@ export const Eager = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(
+  useBrowserVisibleTask$(
     () => {
       state.msg = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
@@ -109,25 +110,25 @@ export const ClientSide = component$(() => {
     text3: 'empty 3',
   });
 
-  useClientEffect$(
+  useBrowserVisibleTask$(
     () => {
       state.text1 = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     state.text2 = 'run';
   });
 
-  useClientEffect$(
+  useBrowserVisibleTask$(
     () => {
       state.text3 = 'run';
     },
     {
-      eagerness: 'idle',
+      strategy: 'document-idle',
     }
   );
 
@@ -142,7 +143,7 @@ export const ClientSide = component$(() => {
 
 export const FancyName = component$(() => {
   console.log('Fancy Name');
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.log('Client effect fancy name');
   });
   return <Slot />;
@@ -151,7 +152,7 @@ export const FancyName = component$(() => {
 export const fancyName = 'Some';
 
 export const Issue1413 = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.log(fancyName);
   });
   console.log('Root route');
@@ -166,7 +167,7 @@ export const Issue1413 = component$(() => {
 
 export function useDelay(value: string) {
   const ready = useSignal('---');
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     ready.value = value;
   });
   return ready;
@@ -182,7 +183,7 @@ export const Issue1717 = component$(() => {
     { reactive: false }
   );
   const signal = useSignal(0);
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(500);
     signal.value = 10;
   });
@@ -203,19 +204,19 @@ export const Issue2015 = component$(() => {
     logs: [] as string[],
   });
 
-  useClientEffect$(async () => {
+  useBrowserVisibleTask$(async () => {
     state.logs.push('start 1');
     await delay(100);
     state.logs.push('finish 1');
   });
 
-  useClientEffect$(async () => {
+  useBrowserVisibleTask$(async () => {
     state.logs.push('start 2');
     await delay(100);
     state.logs.push('finish 2');
   });
 
-  useClientEffect$(async () => {
+  useBrowserVisibleTask$(async () => {
     state.logs.push('start 3');
     await delay(100);
     state.logs.push('finish 3');
@@ -223,4 +224,21 @@ export const Issue2015 = component$(() => {
   });
 
   return <div id="issue-2015-order">Order: {state.logs.join(' ')}</div>;
+});
+
+export const Issue1955Helper = component$(() => {
+  return (
+    <div id="issue-1955-results">
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue1955 = component$(() => {
+  const signal = useSignal('empty');
+  useBrowserVisibleTask$(() => {
+    debugger;
+    signal.value = 'run';
+  });
+  return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;
 });

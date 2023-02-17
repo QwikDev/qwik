@@ -1,14 +1,29 @@
 import { QObjectRecursive } from '../state/constants';
 import { getOrCreateProxy } from '../state/store';
 import { isFunction } from '../util/types';
+import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**
  * @public
  */
 export interface UseStoreOptions {
-  recursive?: boolean;
+  /**
+   * If `true` then all nested objects and arrays will be tracked as well.
+   * Default is `false`.
+   */
+  deep?: boolean;
+
+  /**
+   * If `false` then the object will not be tracked for changes.
+   * Default is `true`.
+   */
   reactive?: boolean;
+
+  /**
+   * @deprecated - use `deep` instead
+   */
+  recursive?: boolean;
 }
 
 // <docs markdown="../readme.md#useStore">
@@ -58,7 +73,7 @@ export interface UseStoreOptions {
  *   const counterStore = useStore({
  *     value: 0,
  *   });
- *   useClientEffect$(() => {
+ *   useBrowserVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       counterStore.value += step;
@@ -82,13 +97,13 @@ export const useStore = <STATE extends object>(
   if (get != null) {
     return get;
   }
-  const value = isFunction(initialState) ? (initialState as Function)() : initialState;
+  const value = isFunction(initialState) ? invoke(undefined, initialState) : initialState;
   if (opts?.reactive === false) {
     set(value);
     return value;
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const recursive = opts?.recursive ?? false;
+    const recursive = opts?.deep ?? opts?.recursive ?? false;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);
     set(newStore);

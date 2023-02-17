@@ -18,6 +18,8 @@ import type {
 import { createLinter, QwikLinter } from './eslint-plugin';
 import type { PluginContext } from 'rollup';
 
+const REG_CTX_NAME = ['server$'];
+
 const SERVER_STRIP_EXPORTS = [
   'onGet',
   'onPost',
@@ -31,7 +33,7 @@ const SERVER_STRIP_EXPORTS = [
 ];
 
 const SERVER_STRIP_CTX_NAME = ['server', 'useServer', 'action$', 'loader$', 'zod$'];
-
+const CLIENT_STRIP_CTX_NAME = ['useClient', 'client', 'useBrowser', 'browser'];
 export interface QwikPackages {
   id: string;
   path: string;
@@ -39,8 +41,12 @@ export interface QwikPackages {
 
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
+
   const results = new Map<string, TransformOutput>();
   const transformedOutputs = new Map<string, [TransformModule, string]>();
+
+  const ssrResults = new Map<string, TransformOutput>();
+  const ssrTransformedOutputs = new Map<string, [TransformModule, string]>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -125,7 +131,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
     if (!opts.entryStrategy) {
-      if (opts.target === 'ssr' || opts.target === 'lib') {
+      if (opts.target === 'ssr') {
+        opts.entryStrategy = { type: 'hoist' };
+      } else if (opts.target === 'lib') {
         opts.entryStrategy = { type: 'inline' };
       } else {
         if (opts.buildMode === 'production') {
@@ -160,14 +168,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.forceFullBuild = updatedOpts.forceFullBuild;
     } else {
       opts.forceFullBuild =
-        (opts.entryStrategy.type !== 'hook' && opts.entryStrategy.type !== 'inline') ||
+        (opts.entryStrategy.type !== 'hook' &&
+          opts.entryStrategy.type !== 'inline' &&
+          opts.entryStrategy.type !== 'hoist') ||
         !!updatedOpts.srcInputs;
     }
 
     if (
       opts.forceFullBuild === false &&
       opts.entryStrategy.type !== 'hook' &&
-      opts.entryStrategy.type !== 'inline'
+      opts.entryStrategy.type !== 'inline' &&
+      opts.entryStrategy.type !== 'hoist'
     ) {
       console.error(`forceFullBuild cannot be false with entryStrategy ${opts.entryStrategy.type}`);
       opts.forceFullBuild = true;
@@ -343,9 +354,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClient', 'client', 'useBrowser', 'browser'];
+        transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
         transformOpts.stripCtxKind = 'event';
         transformOpts.isServer = true;
+        transformOpts.regCtxName = REG_CTX_NAME;
       }
 
       const result = await optimizer.transformFs(transformOpts);
@@ -353,11 +365,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         const key = normalizePath(path.join(srcDir, output.path)!);
         log(`buildStart() add transformedOutput`, key, output.hook?.displayName);
         transformedOutputs.set(key, [output, key]);
+        ssrTransformedOutputs.set(key, [output, key]);
       }
 
       diagnosticsCallback(result.diagnostics, optimizer, srcDir);
 
       results.set('@buildStart', result);
+      ssrResults.set('@buildStart', result);
     }
   };
 
@@ -365,7 +379,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     _ctx: PluginContext,
     id: string,
     importer: string | undefined,
-    _resolveIdOpts?: { ssr?: boolean }
+    resolveIdOpts?: { ssr?: boolean }
   ) => {
     if (id.startsWith('\0')) {
       return;
@@ -423,7 +437,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         } else {
           importeePathId = normalizePath(path.resolve(dir, importeePathId));
         }
-        const transformedOutput = transformedOutputs.get(importeePathId);
+        const transformedOutput = resolveIdOpts?.ssr
+          ? ssrTransformedOutputs.get(importeePathId)
+          : transformedOutputs.get(importeePathId);
+
         if (transformedOutput) {
           log(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
           return {
@@ -458,7 +475,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = transformedOutputs.get(id);
+    const transformedModule = loadOpts?.ssr
+      ? ssrTransformedOutputs.get(id)
+      : transformedOutputs.get(id);
     if (transformedModule) {
       log(`load()`, 'Found', id);
 
@@ -483,7 +502,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const transform = async function (ctx: PluginContext, code: string, id: string) {
+  const transform = async function (
+    ctx: PluginContext,
+    code: string,
+    id: string,
+    ssrOpts: { ssr?: boolean } = {}
+  ) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;
@@ -528,26 +552,75 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode: mode,
         scope: opts.scope ? opts.scope : void 0,
       };
-      const isSSR = (ctx as any).ssr;
-      if (!isSSR) {
+      const isSSR = !!ssrOpts.ssr;
+      if (isSSR) {
+        transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
+        transformOpts.stripCtxKind = 'event';
+        transformOpts.entryStrategy = { type: 'hoist' };
+        transformOpts.regCtxName = REG_CTX_NAME;
+        transformOpts.isServer = true;
+      } else {
         transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+        transformOpts.isServer = false;
       }
       const newOutput = optimizer.transformModulesSync(transformOpts);
 
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
-      if (newOutput.diagnostics.length === 0 && linter) {
-        await linter.lint(ctx, code, id);
+      if (isSSR) {
+        if (newOutput.diagnostics.length === 0 && linter) {
+          await linter.lint(ctx, code, id);
+        }
+        ssrResults.set(normalizedID, newOutput);
+      } else {
+        results.set(normalizedID, newOutput);
       }
-
-      results.set(normalizedID, newOutput);
       const deps: string[] = [];
       for (const mod of newOutput.modules) {
         if (mod.isEntry) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          transformedOutputs.set(key, [mod, id]);
+          if (isSSR) {
+            ssrTransformedOutputs.set(key, [mod, id]);
+          } else {
+            transformedOutputs.set(key, [mod, id]);
+          }
           deps.push(key);
+        }
+      }
+      if (isSSR) {
+        const clientTransformOpts: TransformModulesOptions = {
+          input: [
+            {
+              code: code,
+              path: filePath,
+            },
+          ],
+          entryStrategy: opts.entryStrategy,
+          minify: 'simplify',
+          sourceMaps: 'development' === opts.buildMode,
+          transpileTs: true,
+          transpileJsx: true,
+          explicitExtensions: true,
+          preserveFilenames: true,
+          srcDir: srcDir,
+          mode: mode,
+          scope: opts.scope ? opts.scope : void 0,
+        };
+        clientTransformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+        clientTransformOpts.stripExports = SERVER_STRIP_EXPORTS;
+        clientTransformOpts.isServer = false;
+        const clientNewOutput = optimizer.transformModulesSync(clientTransformOpts);
+
+        diagnosticsCallback(clientNewOutput.diagnostics, optimizer, srcDir);
+
+        results.set(normalizedID, clientNewOutput);
+        for (const mod of clientNewOutput.modules) {
+          if (mod.isEntry) {
+            const key = normalizePath(path.join(srcDir, mod.path));
+            ctx.addWatchFile(key);
+            transformedOutputs.set(key, [mod, id]);
+          }
         }
       }
 

@@ -16,6 +16,12 @@ function createPlatform() {
   const testPlatform: TestPlatform = {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
+      if (!url) {
+        throw new Error('Missing URL');
+      }
+      if (!containerEl) {
+        throw new Error('Missing Container');
+      }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);
       const mod = moduleCache.get(importPath);

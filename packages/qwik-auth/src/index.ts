@@ -109,7 +109,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   };
 }
 
-export const serverAuth$ = implicit$FirstArg(serverAuthQrl);
+export const serverAuth$ = /*#__PURE__*/ implicit$FirstArg(serverAuthQrl);
 
 export const ensureAuthMiddleware = (req: RequestEvent) => {
   const isLoggedIn = req.sharedMap.has('session');

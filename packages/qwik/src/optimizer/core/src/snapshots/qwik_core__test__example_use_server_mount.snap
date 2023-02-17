@@ -48,11 +48,11 @@ export const Child = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,gFAgBnB;AAEH,OAAO,MAAM,sBAAQ,8EAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
 ============================= parent_component_0taidayhrlo.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -65,11 +65,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(qrl(()=>import("./entry_server"), "Parent_component_useServerMount_cQrQm0HrrM8", [
+    useServerMountQrl(/*#__PURE__*/ qrl(()=>import("./entry_server"), "Parent_component_useServerMount_cQrQm0HrrM8", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./entry_Parent"), "Parent_component_div_onClick_C5XE49Nqd3A"),
+        onClick$: /*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: _wrapSignal(state, "text")
     }, "u6_0");
 };
@@ -162,11 +162,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(qrl(()=>import("./entry_server"), "Child_component_useServerMount_lnE1dxU8z28", [
+    useServerMountQrl(/*#__PURE__*/ qrl(()=>import("./entry_server"), "Child_component_useServerMount_lnE1dxU8z28", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./entry_Child"), "Child_component_div_onClick_elliVSnAiOQ"),
+        onClick$: /*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_div_onClick_elliVSnAiOQ"),
         children: _wrapSignal(state, "text")
     }, "u6_1");
 };

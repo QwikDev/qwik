@@ -39,7 +39,7 @@ export async function authAction(
   return await res.json();
 }
 
-export function fixCookies (req: RequestEventCommon) {
+export function fixCookies(req: RequestEventCommon) {
   req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
   const cookie = req.headers.get('set-cookie');
   if (cookie) {

@@ -45,7 +45,7 @@ export const validLexicalScope = createRule({
       invalidJsxDollar:
         'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable. Try wrapping your function with $() to turn it into a QRL, like this:\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured bu the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured by the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {

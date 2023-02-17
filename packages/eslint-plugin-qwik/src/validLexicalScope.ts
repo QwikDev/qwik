@@ -3,6 +3,7 @@ import { ESLintUtils } from '@typescript-eslint/utils';
 import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
+import redent from 'redent';
 
 const createRule = ESLintUtils.RuleCreator((name) => `https://typescript-eslint.io/rules/${name}`);
 
@@ -40,11 +41,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Seems like you are referencing "{{varName}}" inside a different $ scope ({{dollarName}}), when this happens, qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       unvalidJsxDollar:
-        'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+        'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable. Try wrapping your function with $() to turn it into a QRL, like this:\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured bu the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {
@@ -130,6 +131,7 @@ export const validLexicalScope = createRule({
                   });
                 }
               }
+
               const reason = canCapture(typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
@@ -176,6 +178,7 @@ export const validLexicalScope = createRule({
             } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
+
               if (!isTypeQRL(type)) {
                 const symbolName = type.symbol.name;
                 if (symbolName === 'PropFnInterface') {
@@ -184,6 +187,13 @@ export const validLexicalScope = createRule({
                 context.report({
                   messageId: 'unvalidJsxDollar',
                   node: firstArg.expression,
+                  data: {
+                    varName: firstArg.expression.name,
+                    solution: `const ${firstArg.expression.name} = $(\n${getContent(
+                      type.symbol,
+                      context.getSourceCode().text
+                    )}\n);\n`,
+                  },
                 });
               }
             }
@@ -438,6 +448,16 @@ function getTypesOfTupleType(
 
 function isTypeQRL(type: ts.Type): boolean {
   return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
+}
+
+function getContent(symbol: ts.Symbol, sourceCode: string) {
+  if (symbol.declarations && symbol.declarations.length > 0) {
+    const decl = symbol.declarations[0];
+    // Remove empty lines
+    const text = sourceCode.slice(decl.pos, decl.end).replace(/^\s*$/gm, '');
+    return redent(text, 2);
+  }
+  return '';
 }
 
 const ALLOWED_CLASSES = {

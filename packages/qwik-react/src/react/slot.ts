@@ -113,7 +113,7 @@ export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = 
       useOn(opts?.event, activate);
     }
   }
-  return [signal, clientOnly] as const;
+  return [signal, clientOnly, activate] as const;
 };
 
 const HOST_PREFIX = 'host:';

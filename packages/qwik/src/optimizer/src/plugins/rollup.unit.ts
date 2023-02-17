@@ -153,7 +153,7 @@ rollup('rollup input, ssr/development default', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, true);
 });
 
@@ -169,7 +169,7 @@ rollup('rollup input, ssr/production default', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'production');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, true);
 });
 
@@ -202,7 +202,7 @@ rollup('rollup input, forceFullBuild true', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, true);
 });
 

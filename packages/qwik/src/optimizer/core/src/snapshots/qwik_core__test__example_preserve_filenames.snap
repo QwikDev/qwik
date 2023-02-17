@@ -20,18 +20,18 @@ export const App = component$((props: Stuff) => {
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App = /*#__PURE__*/ componentQrl(inlinedQrl((props: Stuff)=>{
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props: Stuff)=>{
     return /*#__PURE__*/ _jsx(Cmp, {
         children: /*#__PURE__*/ _jsx("p", {
             class: "stuff",
-            onClick$: inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto"),
+            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto"),
             children: "Hello Qwik"
         })
     }, "u6_0");
 }, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,oBAAM,wBAAW,CAAC,OAAO,QAAU;IAC5C,qBACI,KAAC;kBACG,cAAA,KAAC;YAAE,OAAM;YAAQ,QAAQ,aAAE,IAAM,QAAQ,GAAG,CAAC;sBAAS;;;AAGlE,iCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,oBAAM,sCAAW,CAAC,OAAO,QAAU;IAC5C,qBACI,KAAC;kBACG,cAAA,KAAC;YAAE,OAAM;YAAQ,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;sBAAS;;;AAGlE,iCAAG\"}")
 == DIAGNOSTICS ==
 
 []

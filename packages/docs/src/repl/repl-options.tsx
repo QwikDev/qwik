@@ -51,7 +51,7 @@ const StoreOption = (props: StoreOptionProps) => {
 
 export const BUILD_MODE_OPTIONS = ['development', 'production'];
 
-export const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', 'inline'];
+export const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', 'inline', 'hoist'];
 
 interface StoreOptionProps {
   label: string;

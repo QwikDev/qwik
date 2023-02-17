@@ -95,7 +95,7 @@ export interface ContextId<STATE extends object> {
 // @alpha
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -108,7 +108,7 @@ export const createContext: <STATE extends object>(name: string) => ContextId<ST
 export const createContextId: <STATE extends object>(name: string) => ContextId<STATE>;
 
 // @internal (undocumented)
-export const _deserializeData: (data: string) => any;
+export const _deserializeData: (data: string, element?: unknown) => any;
 
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
@@ -140,6 +140,9 @@ export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
     (props: P, key: string | null): JSXNode | null;
 }
+
+// @internal (undocumented)
+export const _getContextElement: () => unknown;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -661,6 +664,9 @@ export interface Ref<T = Element> {
     // (undocumented)
     current: T | undefined;
 }
+
+// @internal (undocumented)
+export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @alpha
 export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;

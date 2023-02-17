@@ -1,8 +1,7 @@
-import { isString } from './../util/types';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import { qDev } from '../util/qdev';
-import { isObject } from '../util/types';
+import { isObject, isString } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { isComment } from '../util/element';

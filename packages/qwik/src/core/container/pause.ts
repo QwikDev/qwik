@@ -26,7 +26,7 @@ import {
   QError_missingObjectId,
   QError_verifySerializable,
 } from '../error/error';
-import { isArray, isObject, isSerializableObject, isNumber } from '../util/types';
+import { isArray, isObject, isSerializableObject, isNumber, isNull } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
@@ -373,7 +373,7 @@ export const _pauseFromContexts = async (
 
   const mustGetObjId = (obj: any): string => {
     const key = getObjId(obj);
-    if (key === null) {
+    if (isNull(key)) {
       throw qError(QError_missingObjectId, obj);
     }
     return key;
@@ -448,7 +448,7 @@ export const _pauseFromContexts = async (
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
-    if (obj === null) {
+    if (isNull(obj)) {
       return null;
     }
     const typeObj = typeof obj;
@@ -780,7 +780,7 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
 };
 
 export const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
-  if (obj !== null) {
+  if (!isNull(obj)) {
     const objType = typeof obj;
     switch (objType) {
       case 'function':

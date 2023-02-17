@@ -1,4 +1,3 @@
-import { isObject } from './../util/types';
 import {
   qError,
   QError_qrlIsNotFunction,
@@ -16,7 +15,7 @@ import {
 } from '../use/use-core';
 import { then } from '../util/promises';
 import { qDev, qTest, seal } from '../util/qdev';
-import { isArray, isFunction, ValueOrPromise } from '../util/types';
+import { isArray, isFunction, ValueOrPromise, isObject, isNull } from '../util/types';
 import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
 
@@ -79,10 +78,10 @@ export const createQRL = <TYPE>(
     if (containerEl) {
       setContainer(containerEl);
     }
-    if (symbolRef !== null) {
+    if (!isNull(symbolRef)) {
       return symbolRef;
     }
-    if (symbolFn !== null) {
+    if (!isNull(symbolFn)) {
       return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
     } else {
       if (!chunk) {
@@ -99,7 +98,7 @@ export const createQRL = <TYPE>(
   };
 
   const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
-    return symbolRef !== null ? symbolRef : resolve(containerEl);
+    return !isNull(symbolRef) ? symbolRef : resolve(containerEl);
   };
 
   const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {

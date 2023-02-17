@@ -1,9 +1,8 @@
-import { isObject, isBoolean } from './../util/types';
 import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { isArray, isString, ValueOrPromise } from '../util/types';
+import { isArray, isString, ValueOrPromise, isObject, isBoolean } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';

@@ -1,3 +1,4 @@
+import { isNull } from './../../util/types';
 import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
@@ -203,7 +204,7 @@ export const getKey = (el: QwikElement): string | null => {
 };
 
 export const setKey = (el: QwikElement, key: string | null) => {
-  if (key !== null) {
+  if (!isNull(key)) {
     directSetAttribute(el, 'q:key', key);
   }
 };

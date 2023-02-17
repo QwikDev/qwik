@@ -1,11 +1,18 @@
-import { isBoolean, isNumber } from './../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { qDev, seal } from '../../util/qdev';
-import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
+import {
+  isArray,
+  isFunction,
+  isObject,
+  isString,
+  ValueOrPromise,
+  isBoolean,
+  isNumber,
+} from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';

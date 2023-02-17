@@ -1,9 +1,8 @@
-import { isString } from './../util/types';
 import { assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
 import { isDocument, isQwikElement } from '../util/element';
 import { seal } from '../util/qdev';
-import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
+import { isArray, isFunction, isObject, isSerializableObject, isString } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';

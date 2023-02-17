@@ -7,7 +7,7 @@ export const isHtmlElement = (node: any): node is Element => {
 
 export const isSerializableObject = (v: any) => {
   const proto = Object.getPrototypeOf(v);
-  return proto === Object.prototype || proto === null;
+  return proto === Object.prototype || isNull(proto);
 };
 
 export const isObject = (v: any): v is any => {
@@ -40,6 +40,10 @@ export const isSymbol = (v: any): v is symbol => {
 
 export const isDef = <T = any>(v: T | undefined): v is T => {
   return typeof v !== 'undefined';
+};
+
+export const isNull = (v: any): v is null => {
+  return v === null;
 };
 
 /**

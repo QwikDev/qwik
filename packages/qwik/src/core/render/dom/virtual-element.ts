@@ -1,3 +1,4 @@
+import { isNull } from './../../util/types';
 import { assertEqual, assertTrue } from '../../error/assert';
 import { isComment, isElement, isQwikElement, isVirtualElement } from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
@@ -254,7 +255,7 @@ export class VirtualElementImpl implements VirtualElement {
           return el;
         }
         const v = el.querySelector(query);
-        if (v !== null) {
+        if (!isNull(v)) {
           return v;
         }
       }

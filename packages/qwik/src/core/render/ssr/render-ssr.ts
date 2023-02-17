@@ -1,8 +1,15 @@
-import { isBoolean, isNumber } from './../../util/types';
 import { isPromise, then } from '../../util/promises';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
-import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
-import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
+import { isJSXNode, jsx } from '../jsx/jsx-runtime';
+import {
+  isArray,
+  isFunction,
+  isString,
+  ValueOrPromise,
+  isBoolean,
+  isNumber,
+  isNull,
+} from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
@@ -458,7 +465,7 @@ const renderQTemplates = (rCtx: RenderContext, ssrContext: SSRContext, stream: S
 
 const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
   const flatChildren = flatVirtualChildren(children, ssrCtx);
-  if (flatChildren === null) {
+  if (isNull(flatChildren)) {
     return undefined;
   }
   const slotMap: Record<string, any[]> = {};

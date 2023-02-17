@@ -1,10 +1,9 @@
-import { isString, isSymbol } from './../util/types';
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { qError, QError_immutableProps } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
 import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
-import { isArray, isObject, isSerializableObject } from '../util/types';
+import { isArray, isObject, isSerializableObject, isString, isSymbol } from '../util/types';
 import type { ContainerState } from '../container/container';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-task';
 import {

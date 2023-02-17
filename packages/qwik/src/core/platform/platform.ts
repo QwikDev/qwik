@@ -70,7 +70,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
   return new URL(url, base);
 };
 
-(globalThis as any)._qwik_platform = createPlatform();
+let _platform = /* @__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -86,7 +86,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
  * @alpha
  */
 // </docs>
-export const setPlatform = (plt: CorePlatform) => ((globalThis as any)._qwik_platform = plt);
+export const setPlatform = (plt: CorePlatform) => (_platform = plt);
 
 // <docs markdown="./readme.md#getPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -105,12 +105,12 @@ export const setPlatform = (plt: CorePlatform) => ((globalThis as any)._qwik_pla
  */
 // </docs>
 export const getPlatform = (): CorePlatform => {
-  return (globalThis as any)._qwik_platform;
+  return _platform;
 };
 
 export const isServer = () => {
   if (qDynamicPlatform) {
-    return (globalThis as any)._qwik_platform.isServer;
+    return _platform.isServer;
   }
   return false;
 };

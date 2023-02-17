@@ -61,7 +61,7 @@ export async function runBuildCommand(app: AppCommand) {
 
   let typecheck: Promise<Step> | null = null;
 
-  if (buildTypes && buildTypes.startsWith('tsc')) {
+  if (buildTypes) {
     let copyScript = buildTypes;
     if (!copyScript.includes('--pretty')) {
       // ensures colors flow throw when we console log the stdout

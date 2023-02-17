@@ -7,6 +7,8 @@ import {
   ValueOrPromise,
   _wrapSignal,
   useStore,
+  _serializeData,
+  _deserializeData,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -131,7 +133,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 /**
  * @alpha
  */
-export const action$: ActionConstructor = implicit$FirstArg(actionQrl) as any;
+export const action$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(actionQrl) as any;
 
 /**
  * @alpha
@@ -160,7 +162,7 @@ export const loaderQrl = <RETURN, PLATFORM = unknown>(
 /**
  * @alpha
  */
-export const loader$ = implicit$FirstArg(loaderQrl);
+export const loader$ = /*#__PURE__*/ implicit$FirstArg(loaderQrl);
 
 /**
  * @alpha
@@ -181,4 +183,46 @@ export const zodQrl = async (
 /**
  * @alpha
  */
-export const zod$: Zod = implicit$FirstArg(zodQrl) as any;
+export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
+
+/**
+ * @alpha
+ */
+export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
+  function client() {
+    return $(async (...args: any[]) => {
+      if (isServer) {
+        return qrl(...(args as any));
+      } else {
+        const filtered = args.map((arg) => {
+          if (arg instanceof Event) {
+            return null;
+          } else if (arg instanceof Node) {
+            return null;
+          }
+          return arg;
+        });
+        const path = `?qfunc=${qrl.getHash()}`;
+        const res = await fetch(path, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json, charset=utf-8',
+          },
+          body: await _serializeData([qrl, ...filtered]),
+        });
+        if (!res.ok) {
+          throw new Error(`Server function failed: ${res.statusText}`);
+        }
+        const str = await res.text();
+        const obj = await _deserializeData(str);
+        return obj;
+      }
+    }) as QRL<T>;
+  }
+  return client();
+};
+
+/**
+ * @alpha
+ */
+export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);

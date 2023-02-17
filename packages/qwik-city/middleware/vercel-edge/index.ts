@@ -8,6 +8,7 @@ import {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/vercel-edge
 
@@ -15,6 +16,10 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+  };
   async function onVercelEdgeRequest(request: Request) {
     try {
       const url = new URL(request.url);
@@ -51,7 +56,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
         handledResponse.completion.then((v) => {
           if (v) {

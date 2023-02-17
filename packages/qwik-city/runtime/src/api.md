@@ -348,6 +348,12 @@ export type RouteParams = Record<string, string>;
 export const RouterOutlet: Component<    {}>;
 
 // @alpha (undocumented)
+export const server$: <T extends (...args: any[]) => any>(first: T) => QRL<T>;
+
+// @alpha (undocumented)
+export const serverQrl: <T extends (...args: any[]) => any>(qrl: QRL<T>) => QRL<T>;
+
+// @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;
 
 // @alpha (undocumented)

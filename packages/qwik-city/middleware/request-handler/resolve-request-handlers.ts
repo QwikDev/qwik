@@ -15,13 +15,14 @@ import {
   getRequestMode,
   getRequestTrailingSlash,
   RequestEventInternal,
+  RequestEvQwikSerializer,
   setRequestAction,
 } from './request-event';
-import { QACTION_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import { RenderOptions, _serializeData } from '@builder.io/qwik';
+import type { QRL, RenderOptions, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
 
@@ -40,6 +41,9 @@ export const resolveRequestHandlers = (
 
   if (route) {
     if (isPageRoute) {
+      if (method === 'POST') {
+        requestHandlers.push(pureServerFunction);
+      }
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
@@ -224,6 +228,24 @@ const formToObj = (formData: FormData): Record<string, any> => {
   return obj;
 };
 
+async function pureServerFunction(ev: RequestEvent) {
+  const fn = ev.query.get(QFN_KEY);
+  if (fn) {
+    ev.exit();
+    const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
+    const data = qwikSerializer._deserializeData(await ev.request.text());
+    if (Array.isArray(data)) {
+      const [qrl, ...args] = data;
+      if (isQrl(qrl) && qrl.getHash() === fn) {
+        const result = await qrl(...args);
+        ev.headers.set('Content-Type', 'application/json, charset=utf-8');
+        ev.send(200, await qwikSerializer._serializeData(result));
+        return;
+      }
+    }
+    throw ev.error(500, 'Invalid request');
+  }
+}
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
   const basePathname = getRequestBasePathname(ev);
@@ -245,6 +267,10 @@ function fixTrailingSlash(ev: RequestEvent) {
     }
   }
 }
+
+export const isQrl = (value: any): value is QRL => {
+  return typeof value === 'function' && typeof value.getSymbol === 'function';
+};
 
 export function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];
@@ -361,9 +387,9 @@ export async function renderQData(requestEv: RequestEvent) {
       redirect: location ?? undefined,
     };
     const writer = requestEv.getWritableStream().getWriter();
-
+    const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];
     // write just the page json data to the response body
-    const data = await _serializeData(qData);
+    const data = await qwikSerializer._serializeData(qData);
     writer.write(encoder.encode(data));
     requestEv.sharedMap.set('qData', qData);
 

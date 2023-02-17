@@ -3,6 +3,7 @@ import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
+import type { _deserializeData, _serializeData } from '@builder.io/qwik';
 
 export interface EnvGetter {
   get(key: string): string | undefined;
@@ -402,6 +403,14 @@ export interface CookieValue {
   value: string;
   json: <T = unknown>() => T;
   number: () => number;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikSerializer {
+  _deserializeData: typeof _deserializeData;
+  _serializeData: typeof _serializeData;
 }
 
 /**

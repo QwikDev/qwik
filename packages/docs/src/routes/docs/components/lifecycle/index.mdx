@@ -203,8 +203,6 @@ export const Timer = component$(() => {
 });
 ```
 
-> **NOTE:** Don't abuse `useBrowserVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useBrowserVisibleTask$()` is probably not the right answer.
-
 ### When to use `useBrowserVisibleTask$()`
 
 > **NOTE:** Don't abuse `useBrowserVisibleTask$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useBrowserVisibleTask$()` is probably not the right answer.

@@ -20,7 +20,7 @@ import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
 import { isSignal, Signal } from '../state/signal';
-import { isObject } from '../util/types';
+import { isObject, isNil, isDef } from '../util/types';
 
 /**
  * Options to pass to `useResource$()`
@@ -99,7 +99,7 @@ export const useResourceQrl = <T>(
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
   const { get, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
-  if (get != null) {
+  if (!isNil(get)) {
     return get;
   }
   assertQrl(qrl);
@@ -280,7 +280,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
           throw resource._error;
         }
       }
-      if (untrack(() => resource._resolved) !== undefined) {
+      if (isDef(untrack(() => resource._resolved))) {
         return props.onResolved(resource._resolved!);
       }
     }

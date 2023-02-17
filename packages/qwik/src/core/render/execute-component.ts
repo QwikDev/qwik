@@ -2,7 +2,7 @@ import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { isArray, isString, ValueOrPromise, isObject, isBoolean } from '../util/types';
+import { isArray, isString, ValueOrPromise, isObject, isBoolean, isNil } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
@@ -150,7 +150,7 @@ export const stringifyStyle = (obj: any): string => {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          if (value != null) {
+          if (!isNil(value)) {
             const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
             chunks.push(normalizedKey + ':' + value);
           }

@@ -1,3 +1,4 @@
+import { isDef } from './../util/types';
 import { tryGetInvokeContext } from './use-core';
 
 let _locale: string | undefined = undefined;
@@ -11,12 +12,12 @@ let _locale: string | undefined = undefined;
  * @internal
  */
 export function getLocale(defaultLocale?: string): string {
-  if (_locale === undefined) {
+  if (!isDef(_locale)) {
     const ctx = tryGetInvokeContext();
     if (ctx && ctx.$locale$) {
       return ctx.$locale$;
     }
-    if (defaultLocale !== undefined) {
+    if (isDef(defaultLocale)) {
       return defaultLocale;
     }
     throw new Error('Reading `locale` outside of context.');

@@ -2,7 +2,7 @@ import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
 import { logError, logWarn } from '../../util/log';
-import { isArray, isFunction, isObject, isString } from '../../util/types';
+import { isArray, isFunction, isObject, isString, isNil } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
@@ -71,7 +71,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
           }
           const keys: Record<string, boolean> = {};
           flatChildren.forEach((child: any) => {
-            if (isJSXNode(child) && !isString(child.type) && child.key != null) {
+            if (isJSXNode(child) && !isString(child.type) && !isNil(child.key)) {
               if (keys[child.key]) {
                 const err = createJSXError(
                   `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,

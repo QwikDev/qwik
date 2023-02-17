@@ -1,3 +1,4 @@
+import { isNil } from './../util/types';
 import { getNextIndex } from '../render/execute-component';
 import { hashCode } from '../util/hash_code';
 import { useSequentialScope } from './use-sequential-scope';
@@ -7,7 +8,7 @@ import { useSequentialScope } from './use-sequential-scope';
  */
 export const useId = (): string => {
   const { get, set, elCtx, iCtx } = useSequentialScope<string>();
-  if (get != null) {
+  if (!isNil(get)) {
     return get;
   }
 

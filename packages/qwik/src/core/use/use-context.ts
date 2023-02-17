@@ -1,7 +1,7 @@
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import { qDev } from '../util/qdev';
-import { isObject, isString } from '../util/types';
+import { isObject, isString, isDef } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { isComment } from '../util/element';
@@ -208,7 +208,7 @@ export const useContextProvider = <STATE extends object>(
   newValue: STATE
 ) => {
   const { get, set, elCtx } = useSequentialScope<boolean>();
-  if (get !== undefined) {
+  if (isDef(get)) {
     return;
   }
   if (qDev) {
@@ -230,7 +230,7 @@ export const useContextProvider = <STATE extends object>(
  */
 export const useContextBoundary = (...ids: ContextId<any>[]) => {
   const { get, set, elCtx, iCtx } = useSequentialScope<boolean>();
-  if (get !== undefined) {
+  if (isDef(get)) {
     return;
   }
   let contexts = elCtx.$contexts$;
@@ -239,7 +239,7 @@ export const useContextBoundary = (...ids: ContextId<any>[]) => {
   }
   for (const c of ids) {
     const value = resolveContext(c, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
-    if (value !== undefined) {
+    if (isDef(value)) {
       contexts.set(c.id, value);
     }
   }
@@ -307,7 +307,7 @@ export const useContext: UseContext = <STATE extends object>(
   defaultValue?: any
 ) => {
   const { get, set, iCtx, elCtx } = useSequentialScope<STATE>();
-  if (get !== undefined) {
+  if (isDef(get)) {
     return get;
   }
   if (qDev) {
@@ -318,10 +318,10 @@ export const useContext: UseContext = <STATE extends object>(
   if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue, value));
   }
-  if (value !== undefined) {
+  if (isDef(value)) {
     return set(value);
   }
-  if (defaultValue !== undefined) {
+  if (isDef(defaultValue)) {
     return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
@@ -351,7 +351,7 @@ export const resolveContext = <STATE extends object>(
     }
     if ((hostElement as any).closest) {
       const value = queryContextFromDom(hostElement, containerState, contextID);
-      if (value !== undefined) {
+      if (isDef(value)) {
         return value;
       }
     }

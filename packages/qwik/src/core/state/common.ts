@@ -2,7 +2,14 @@ import { assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
 import { isDocument, isQwikElement } from '../util/element';
 import { seal } from '../util/qdev';
-import { isArray, isFunction, isObject, isSerializableObject, isString } from '../util/types';
+import {
+  isArray,
+  isFunction,
+  isObject,
+  isSerializableObject,
+  isString,
+  isNil,
+} from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
@@ -142,7 +149,7 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  */
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
-  if (input != null) {
+  if (!isNil(input)) {
     noSerializeSet.add(input);
   }
   return input as any;

@@ -1,5 +1,5 @@
 import { _createSignal, Signal } from '../state/signal';
-import { isFunction } from '../util/types';
+import { isFunction, isNil } from '../util/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
@@ -16,7 +16,7 @@ export interface UseSignal {
  */
 export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
   const { get, set, iCtx } = useSequentialScope<Signal<STATE>>();
-  if (get != null) {
+  if (!isNil(get)) {
     return get;
   }
 

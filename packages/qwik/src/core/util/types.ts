@@ -46,6 +46,10 @@ export const isNull = (v: any): v is null => {
   return v === null;
 };
 
+export const isNil = (value: any): value is null | undefined => {
+  return value === null || value === undefined;
+};
+
 /**
  * Type representing a value which is either resolve or a promise.
  * @public

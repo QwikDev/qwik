@@ -1,4 +1,4 @@
-import type { ValueOrPromise } from './types';
+import { isNil, ValueOrPromise } from './types';
 
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 
@@ -50,7 +50,7 @@ export const promiseAllLazy = <T extends readonly unknown[] | []>(
 };
 
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
-  return v != null;
+  return !isNil(v);
 };
 
 export const delay = (timeout: number) => {

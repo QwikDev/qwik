@@ -1,4 +1,4 @@
-import { isString } from './../../util/types';
+import { isString, isNil, isDef } from './../../util/types';
 import {
   ComponentStylesPrefixContent,
   ELEMENT_ID,
@@ -203,11 +203,11 @@ export const updateChildren = (
       oldEndVnode = oldCh[--oldEndIdx];
       newStartVnode = newCh[++newStartIdx];
     } else {
-      if (oldKeyToIdx === undefined) {
+      if (!isDef(oldKeyToIdx)) {
         oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
       }
       idxInOld = oldKeyToIdx[newStartVnode.$key$ as string];
-      if (idxInOld === undefined) {
+      if (!isDef(idxInOld)) {
         // New element
         const newElm = createElm(ctx, newStartVnode, flags, results);
         insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
@@ -448,7 +448,7 @@ export const patchVnode = (
       currentComponent.$slots$.push(newVnode);
       return;
     }
-    const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
+    const setsInnerHTML = isDef(props[dangerouslySetInnerHTML]);
     if (setsInnerHTML) {
       if (qDev && newVnode.$children$.length > 0) {
         logWarn('Node can not have children when innerHTML is set');
@@ -759,7 +759,7 @@ const createElm = (
     }
   }
 
-  const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
+  const setsInnerHTML = isDef(props[dangerouslySetInnerHTML]);
   if (setsInnerHTML) {
     if (qDev && vnode.$children$.length > 0) {
       logWarn('Node can not have children when innerHTML is set');
@@ -946,7 +946,7 @@ export const smartSetProperty = (
 ) => {
   // aria attribute value should be rendered as string
   if (isAriaAttribute(prop)) {
-    setAttribute(staticCtx, elm, prop, newValue != null ? String(newValue) : newValue);
+    setAttribute(staticCtx, elm, prop, !isNil(newValue) ? String(newValue) : newValue);
     return;
   }
 
@@ -1154,7 +1154,7 @@ const createKeyToOldIdx = (
   for (let i = beginIdx; i <= endIdx; ++i) {
     const child = children[i];
     const key = child.$key$;
-    if (key != null) {
+    if (!isNil(key)) {
       map[key as string] = i;
     }
   }

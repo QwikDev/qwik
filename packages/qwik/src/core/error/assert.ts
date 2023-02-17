@@ -1,4 +1,4 @@
-import { isNumber } from './../util/types';
+import { isNumber, isNil } from './../util/types';
 import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 
@@ -8,7 +8,7 @@ export function assertDefined<T>(
   ...parts: any[]
 ): asserts value is NonNullable<T> {
   if (qDev) {
-    if (value != null) return;
+    if (!isNil(value)) return;
     throw logErrorAndStop(text, ...parts);
   }
 }

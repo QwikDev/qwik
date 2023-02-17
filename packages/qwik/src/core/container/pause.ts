@@ -26,7 +26,7 @@ import {
   QError_missingObjectId,
   QError_verifySerializable,
 } from '../error/error';
-import { isArray, isObject, isSerializableObject, isNumber, isNull } from '../util/types';
+import { isArray, isObject, isSerializableObject, isNumber, isNull, isDef } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
@@ -107,7 +107,7 @@ export const _serializeData = async (data: any) => {
       }
     }
     const key = objToId.get(obj);
-    if (key === undefined) {
+    if (!isDef(key)) {
       throw qError(QError_missingObjectId, obj);
     }
     return key + suffix;
@@ -131,7 +131,7 @@ export const _serializeData = async (data: any) => {
         return obj;
     }
     const value = serializeValue(obj, mustGetObjId, containerState);
-    if (value !== undefined) {
+    if (isDef(value)) {
       return value;
     }
     if (typeObj === 'object') {
@@ -323,7 +323,7 @@ export const _pauseFromContexts = async (
 
   const getElementID = (el: QwikElement): string | null => {
     let id = elementToIndex.get(el);
-    if (id === undefined) {
+    if (!isDef(id)) {
       id = getQId(el);
       if (!id) {
         console.warn('Missing ID', el);
@@ -465,7 +465,7 @@ export const _pauseFromContexts = async (
         return obj;
     }
     const value = serializeValue(obj, mustGetObjId, containerState);
-    if (value !== undefined) {
+    if (isDef(value)) {
       return value;
     }
     if (typeObj === 'object') {
@@ -587,7 +587,7 @@ export const getNodesInScope = <T>(
 ): T[] => {
   const results: T[] = [];
   const v = predicate(parent);
-  if (v !== undefined) {
+  if (isDef(v)) {
     results.push(v);
   }
   const walker = parent.ownerDocument.createTreeWalker(parent, SHOW_ELEMENT | SHOW_COMMENT, {
@@ -596,7 +596,7 @@ export const getNodesInScope = <T>(
         return FILTER_REJECT;
       }
       const v = predicate(node);
-      if (v !== undefined) {
+      if (isDef(v)) {
         results.push(v);
       }
       return FILTER_SKIP;

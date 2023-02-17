@@ -10,7 +10,7 @@ import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
 import { _IMMUTABLE } from '../state/constants';
-import { isFunction } from '../util/types';
+import { isFunction, isDef } from '../util/types';
 
 /**
  * Infers `Props` from the component.
@@ -158,7 +158,7 @@ export const componentQrl = <PROPS extends {}>(
 };
 
 export const isQwikComponent = (component: any): component is Component<any> => {
-  return isFunction(component) && component[SERIALIZABLE_STATE] !== undefined;
+  return isFunction(component) && isDef(component[SERIALIZABLE_STATE]);
 };
 
 // <docs markdown="../readme.md#component">

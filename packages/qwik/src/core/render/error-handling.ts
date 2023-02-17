@@ -1,3 +1,4 @@
+import { isDef } from './../util/types';
 import { isServer } from '../platform/platform';
 import { tryGetContext } from '../state/context';
 import { createContextId, resolveContext } from '../use/use-context';
@@ -43,7 +44,7 @@ export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderCont
     throw err;
   } else {
     const errorStore = resolveContext(ERROR_CONTEXT, elCtx, rCtx.$static$.$containerState$);
-    if (errorStore === undefined) {
+    if (!isDef(errorStore)) {
       throw err;
     }
     errorStore.error = err;

@@ -1,4 +1,4 @@
-import { isFunction, isNumber } from './../util/types';
+import { isFunction, isNumber, isDef } from './../util/types';
 import { Component, componentQrl, isQwikComponent } from '../component/component.public';
 import { parseQRL, serializeQRL } from '../qrl/qrl';
 import { isQrl, QRLInternal } from '../qrl/qrl-class';
@@ -222,7 +222,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
 
 const PureFunctionSerializer: Serializer<Function> = {
   prefix: '\u0011',
-  test: (obj) => isFunction(obj) && obj.__qwik_serializable__ !== undefined,
+  test: (obj) => isFunction(obj) && isDef(obj.__qwik_serializable__),
   serialize: (obj) => {
     return obj.toString();
   },

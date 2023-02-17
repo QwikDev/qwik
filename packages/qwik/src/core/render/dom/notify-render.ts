@@ -1,3 +1,4 @@
+import { isDef } from './../../util/types';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getDocument } from '../../util/dom';
@@ -71,7 +72,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     return;
   }
   elCtx.$flags$ |= HOST_FLAG_DIRTY;
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
+  const activeRendering = isDef(containerState.$hostsRendering$);
   if (activeRendering) {
     assertDefined(
       containerState.$renderPromise$,
@@ -90,7 +91,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
 };
 
 const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerState): void => {
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
+  const activeRendering = isDef(containerState.$hostsRendering$);
   if (activeRendering) {
     assertDefined(
       containerState.$renderPromise$,
@@ -109,7 +110,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
   watch.$flags$ |= WatchFlagsIsDirty;
 
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
+  const activeRendering = isDef(containerState.$hostsRendering$);
   if (activeRendering) {
     assertDefined(
       containerState.$renderPromise$,
@@ -124,7 +125,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
 };
 
 const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
-  if (containerState.$renderPromise$ === undefined) {
+  if (!isDef(containerState.$renderPromise$)) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
   return containerState.$renderPromise$;

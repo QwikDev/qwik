@@ -9,6 +9,7 @@ import {
   isBoolean,
   isNumber,
   isNull,
+  isNil,
 } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
@@ -254,12 +255,12 @@ const renderNodeVirtual = (
   }
   let virtualComment = '<!--qv' + renderVirtualAttributes(props);
   const isSlot = QSlotS in props;
-  const key = node.key != null ? String(node.key) : null;
+  const key = !isNil(node.key) ? String(node.key) : null;
   if (isSlot) {
     assertDefined(rCtx.$cmpCtx$?.$id$, 'hostId must be defined for a slot');
     virtualComment += ' q:sref=' + rCtx.$cmpCtx$.$id$;
   }
-  if (key != null) {
+  if (!isNil(key)) {
     virtualComment += ' q:key=' + key;
   }
   virtualComment += '-->';
@@ -310,7 +311,7 @@ const renderAttributes = (attributes: Record<string, string>): string => {
       continue;
     }
     const value = attributes[prop];
-    if (value != null) {
+    if (!isNil(value)) {
       text += ' ' + (value === '' ? prop : prop + '="' + value + '"');
     }
   }
@@ -324,7 +325,7 @@ const renderVirtualAttributes = (attributes: Record<string, string>): string => 
       continue;
     }
     const value = attributes[prop];
-    if (value != null) {
+    if (!isNil(value)) {
       text += ' ' + (value === '' ? prop : prop + '=' + value + '');
     }
   }
@@ -344,7 +345,7 @@ const renderNodeElementSync = (
 
   // Render innerHTML
   const innerHTML = attributes.dangerouslySetInnerHTML;
-  if (innerHTML != null) {
+  if (!isNil(innerHTML)) {
     stream.write(innerHTML);
   }
   stream.write(`</${tagName}>`);
@@ -552,7 +553,7 @@ const renderNode = (
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
       }
       const attrValue = processPropValue(attrName, value);
-      if (attrValue != null) {
+      if (!isNil(attrValue)) {
         if (attrName === 'class') {
           classStr = attrValue;
         } else if (attrName === 'value' && tagName === 'textarea') {
@@ -672,7 +673,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
         addQwikEvent(eventName, rCtx.$static$.$containerState$);
       }
     }
-    if (key != null) {
+    if (!isNil(key)) {
       openingElement += ' q:key="' + key + '"';
     }
     if ('ref' in props || useSignal || listeners.length > 0) {
@@ -702,7 +703,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     }
 
     const innerHTML = props.dangerouslySetInnerHTML ?? htmlStr;
-    if (innerHTML != null) {
+    if (!isNil(innerHTML)) {
       stream.write(String(innerHTML));
       stream.write(`</${tagName}>`);
       return;
@@ -943,7 +944,7 @@ const processPropValue = (prop: string, value: any): string | null => {
     return serializeClass(value);
   }
   if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
-    return value != null ? String(value) : value;
+    return !isNil(value) ? String(value) : (value as null);
   }
   if (value === false || value == null) {
     return null;

@@ -1,7 +1,7 @@
 import { inflateQrl, parseQRL } from '../qrl/qrl';
 import { assertQrl, isQrl, QRLInternal } from '../qrl/qrl-class';
 import { $ } from '../qrl/qrl.public';
-import { isArray } from '../util/types';
+import { isArray, isNil } from '../util/types';
 import { assertTrue } from '../error/assert';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
@@ -51,7 +51,7 @@ export const setEvent = (
     if (isArray(input)) {
       const processed = input
         .flat(Infinity)
-        .filter((q) => q != null)
+        .filter((q) => !isNil(q))
         .map((q) => [prop, ensureQrl(q, containerEl)] as Listener);
       existingListeners.push(...processed);
     } else {

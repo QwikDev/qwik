@@ -12,6 +12,8 @@ import {
   ValueOrPromise,
   isBoolean,
   isNumber,
+  isNil,
+  isDef,
 } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
@@ -89,7 +91,7 @@ export const processNode = (
   node: JSXNode,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
-  const key = node.key != null ? String(node.key) : null;
+  const key = !isNil(node.key) ? String(node.key) : null;
   const nodeType = node.type;
   const props = node.props;
   const originalChildren = props.children;
@@ -105,9 +107,9 @@ export const processNode = (
     throw qError(QError_invalidJsxNodeType, nodeType);
   }
   let children: ProcessedJSXNode[] = EMPTY_ARRAY;
-  if (originalChildren != null) {
+  if (!isNil(originalChildren)) {
     return then(processData(originalChildren, invocationContext), (result) => {
-      if (result !== undefined) {
+      if (isDef(result)) {
         children = isArray(result) ? result : [result];
       }
       return new ProcessedJSXNodeImpl(textType, props, children, key);
@@ -121,7 +123,7 @@ export const wrapJSX = (
   element: QwikElement,
   input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
 ) => {
-  const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
+  const children = !isDef(input) ? EMPTY_ARRAY : isArray(input) ? input : [input];
   const node = new ProcessedJSXNodeImpl(':virtual', {}, children, null);
   node.$elm$ = element;
   return node;

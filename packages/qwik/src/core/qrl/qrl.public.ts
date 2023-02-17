@@ -142,7 +142,7 @@ export interface QRL<TYPE = any> {
    * Resolve the QRL and return the actual value.
    */
   resolve(): Promise<TYPE>;
-
+  getCaptured(): any[] | null;
   getSymbol(): string;
   getHash(): string;
 }

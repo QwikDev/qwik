@@ -416,6 +416,8 @@ export interface QRL<TYPE = any> {
     __brand__QRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
+    getCaptured(): any[] | null;
+    // (undocumented)
     getHash(): string;
     // (undocumented)
     getSymbol(): string;

@@ -31,6 +31,7 @@ export interface QRLInternalMethods<TYPE> {
   resolve(): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
+  getCaptured(): any[] | null;
   getFn(
     currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void
@@ -135,6 +136,7 @@ export const createQRL = <TYPE>(
   const methods: QRLInternalMethods<TYPE> = {
     getSymbol: () => resolvedSymbol,
     getHash: () => hash,
+    getCaptured: () => captureRef,
     resolve,
     $resolveLazy$: resolveLazy,
     $setContainer$: setContainer,

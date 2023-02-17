@@ -26,6 +26,7 @@ import type {
   ZodReturn,
   Editable,
   ActionStore,
+  RequestEvent,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -168,12 +169,14 @@ export const loader$ = /*#__PURE__*/ implicit$FirstArg(loaderQrl);
  * @alpha
  */
 export const zodQrl = async (
-  qrl: QRL<ActionOptions | ((z: typeof import('zod').z) => ActionOptions)>
+  qrl: QRL<ActionOptions | z.Schema | ((z: typeof import('zod').z) => ActionOptions)>
 ) => {
   if (isServer) {
     let obj = await qrl.resolve();
     if (typeof obj === 'function') {
       obj = obj(z);
+    } else if (obj instanceof z.Schema) {
+      return obj;
     }
     return z.object(obj);
   }
@@ -185,14 +188,31 @@ export const zodQrl = async (
  */
 export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
+export interface Server {
+  <T extends (ev: RequestEvent, ...args: any[]) => any>(fn: T): T extends (
+    ev: RequestEvent,
+    ...args: infer ARGS
+  ) => infer RETURN
+    ? QRL<(...args: ARGS) => RETURN>
+    : never;
+}
+
 /**
  * @alpha
  */
 export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
+  if (isServer) {
+    const captured = qrl.getCaptured();
+    if (captured) {
+      for (let i = 0; i < captured.length; i++) {
+        captured[i] = undefined;
+      }
+    }
+  }
   function client() {
     return $(async (...args: any[]) => {
       if (isServer) {
-        return qrl(...(args as any));
+        throw new Error(`Server functions can not be invoked within the server during SSR.`);
       } else {
         const filtered = args.map((arg) => {
           if (arg instanceof Event) {
@@ -206,7 +226,8 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
         const res = await fetch(path, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json, charset=utf-8',
+            'Content-Type': 'application/qwik-json',
+            'X-QRL': qrl.getHash(),
           },
           body: await _serializeData([qrl, ...filtered]),
         });
@@ -225,4 +246,4 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
 /**
  * @alpha
  */
-export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
+export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;

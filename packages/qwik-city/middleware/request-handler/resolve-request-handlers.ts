@@ -168,6 +168,7 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
                   result.error.issues
                 );
               }
+              requestEv.status(400);
               loaders[selectedAction] = {
                 __brand: 'fail',
                 ...result.error.flatten(),
@@ -230,17 +231,20 @@ const formToObj = (formData: FormData): Record<string, any> => {
 
 async function pureServerFunction(ev: RequestEvent) {
   const fn = ev.query.get(QFN_KEY);
-  if (fn) {
+  if (fn && ev.request.headers.get('Content-Type') === 'application/qwik-json') {
     ev.exit();
-    const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
-    const data = qwikSerializer._deserializeData(await ev.request.text());
-    if (Array.isArray(data)) {
-      const [qrl, ...args] = data;
-      if (isQrl(qrl) && qrl.getHash() === fn) {
-        const result = await qrl(...args);
-        ev.headers.set('Content-Type', 'application/json, charset=utf-8');
-        ev.send(200, await qwikSerializer._serializeData(result));
-        return;
+    const fnHeader = ev.request.headers.get('X-QRL');
+    if (fnHeader === fn) {
+      const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
+      const data = qwikSerializer._deserializeData(await ev.request.text());
+      if (Array.isArray(data)) {
+        const [qrl, ...args] = data;
+        if (isQrl(qrl) && qrl.getHash() === fn) {
+          const result = await qrl(ev, ...args);
+          ev.headers.set('Content-Type', 'application/qwik-json');
+          ev.send(200, await qwikSerializer._serializeData(result));
+          return;
+        }
       }
     }
     throw ev.error(500, 'Invalid request');

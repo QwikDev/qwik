@@ -92,4 +92,4 @@ export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 /**
  * @alpha
  */
-export interface PlatformNetlify extends Omit<Context, 'next' | 'cookies'> {}
+export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

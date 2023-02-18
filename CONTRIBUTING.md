@@ -69,8 +69,8 @@ You need to have these tools up and running in your local machine:
 
 #### Steps
 
-- Install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
-- Once installed you will be prompted to reopen the folder in a container. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+- Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
+- Once installed, you can run the `Dev Containers: Clone Repository in Container Volume` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and paste the url of your forked repository.
 
 ## Alternative way
 

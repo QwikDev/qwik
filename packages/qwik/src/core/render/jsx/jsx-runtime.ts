@@ -255,12 +255,7 @@ const filterStack = (stack: string, offset: number = 0) => {
   return stack
     .split('\n')
     .slice(offset)
-    .filter(
-      (l) =>
-        !l.includes('/node_modules/@builder.io/qwik') &&
-        !l.includes('(node:') &&
-        !l.includes('/qwik-city/lib/')
-    )
+    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
     .join('\n');
 };
 

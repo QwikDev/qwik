@@ -7,7 +7,7 @@ import type {
   LoaderInternal,
 } from '../../runtime/src/types';
 
-import type { RequestEvent, RequestHandler } from './types';
+import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
   getRequestAction,
   getRequestBasePathname,
@@ -25,6 +25,7 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, RenderOptions, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
+import { isDev } from '@builder.io/qwik/build';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -135,7 +136,7 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
-    const qwikSerialize = requestEv[RequestEvQwikSerializer];
+    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
@@ -180,7 +181,7 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
           }
           if (!failed) {
             const actionResolved = await action.__qrl(data, requestEv);
-            qwikSerialize._verifySerializable(actionResolved, undefined, true);
+            verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             loaders[selectedAction] = actionResolved;
           }
         }
@@ -197,7 +198,7 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
               if (typeof loaderResolved === 'function') {
                 loaders[loaderId] = loaderResolved();
               } else {
-                qwikSerialize._verifySerializable(loaderResolved, undefined, true);
+                verifySerializable(qwikSerializer, loaderResolved, loader.__qrl);
                 loaders[loaderId] = loaderResolved;
               }
               return loaderResolved;
@@ -247,6 +248,7 @@ async function pureServerFunction(ev: RequestEvent) {
         const [qrl, ...args] = data;
         if (isQrl(qrl) && qrl.getHash() === fn) {
           const result = await qrl(ev, ...args);
+          verifySerializable(qwikSerializer, result, qrl);
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(200, await qwikSerializer._serializeData(result, true));
           return;
@@ -274,6 +276,19 @@ function fixTrailingSlash(ev: RequestEvent) {
         // remove slash from existing pathname
         throw ev.redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
       }
+    }
+  }
+}
+
+export function verifySerializable(qwikSerializer: QwikSerializer, data: any, qrl: QRL) {
+  if (isDev) {
+    try {
+      qwikSerializer._verifySerializable(data, undefined);
+    } catch (e: any) {
+      if (e instanceof Error && qrl.dev) {
+        (e as any).loc = qrl.dev;
+      }
+      throw e;
     }
   }
 }

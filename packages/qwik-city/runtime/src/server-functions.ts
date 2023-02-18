@@ -9,6 +9,7 @@ import {
   useStore,
   _serializeData,
   _deserializeData,
+  _getContextElement,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -201,6 +202,12 @@ export interface Server {
  * @alpha
  */
 export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
+  if (isServer) {
+    const captured = qrl.getCaptured();
+    if (captured && captured.length > 0 && !_getContextElement()) {
+      throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
+    }
+  }
   function client() {
     return $(async (...args: any[]) => {
       if (isServer) {

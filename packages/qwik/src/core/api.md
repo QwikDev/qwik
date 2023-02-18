@@ -416,6 +416,8 @@ export interface QRL<TYPE = any> {
     __brand__QRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
+    dev: QRLDev | null;
+    // (undocumented)
     getCaptured(): any[] | null;
     // (undocumented)
     getHash(): string;
@@ -1053,7 +1055,7 @@ export const useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @internal (undocumented)
-export const _verifySerializable: <T>(value: T, preMessage?: string, pureQrl?: boolean) => T;
+export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 
 // @public
 export const version: string;

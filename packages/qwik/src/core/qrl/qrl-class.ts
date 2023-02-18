@@ -26,7 +26,7 @@ export interface QRLInternalMethods<TYPE> {
 
   $capture$: string[] | null;
   $captureRef$: any[] | null;
-  $dev$: QRLDev | null;
+  dev: QRLDev | null;
 
   resolve(): Promise<TYPE>;
   getSymbol(): string;
@@ -148,7 +148,7 @@ export const createQRL = <TYPE>(
 
     $capture$: capture,
     $captureRef$: captureRef,
-    $dev$: null,
+    dev: null,
   };
   const qrl = Object.assign(invokeQRL, methods);
   seal(qrl);

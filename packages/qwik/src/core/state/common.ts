@@ -25,18 +25,12 @@ export type TargetType = Record<string | symbol, any>;
 /**
  * @internal
  */
-export const verifySerializable = <T>(value: T, preMessage?: string, pureQrl?: boolean): T => {
+export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
-  return _verifySerializable(value, seen, '_', preMessage, pureQrl);
+  return _verifySerializable(value, seen, '_', preMessage);
 };
 
-const _verifySerializable = <T>(
-  value: T,
-  seen: Set<any>,
-  ctx: string,
-  preMessage?: string,
-  pureQrl?: boolean
-): T => {
+const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessage?: string): T => {
   const unwrapped = unwrapProxy(value);
   if (unwrapped == null) {
     return value;

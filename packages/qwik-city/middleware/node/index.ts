@@ -115,9 +115,9 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
  * @alpha
  */
 export interface PlatformNode {
-  ssr: true;
-  incomingMessage: IncomingMessage;
-  node: string;
+  ssr?: true;
+  incomingMessage?: IncomingMessage;
+  node?: string;
 }
 
 /**

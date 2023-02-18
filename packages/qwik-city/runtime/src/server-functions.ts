@@ -140,8 +140,8 @@ export const action$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(action
 /**
  * @alpha
  */
-export const loaderQrl = <RETURN, PLATFORM = unknown>(
-  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => RETURN>
+export const loaderQrl = <RETURN>(
+  loaderQrl: QRL<(event: RequestEventLoader) => RETURN>
 ): Loader<RETURN> => {
   const hash = loaderQrl.getHash();
   function loader() {

@@ -2,6 +2,7 @@
 import {
   component$,
   useBrowserVisibleTask$,
+  useClientEffect$,
   useRef,
   useStore,
   useStyles$,
@@ -236,8 +237,7 @@ export const Issue1955Helper = component$(() => {
 
 export const Issue1955 = component$(() => {
   const signal = useSignal('empty');
-  useBrowserVisibleTask$(() => {
-    debugger;
+  useClientEffect$(() => {
     signal.value = 'run';
   });
   return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;

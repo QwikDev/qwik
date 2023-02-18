@@ -37,7 +37,12 @@ export const findLocation = (e: Error): Loc | undefined => {
   if (typeof stack === 'string') {
     const lines = stack
       .split('\n')
-      .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'));
+      .filter(
+        (l) =>
+          !l.includes('/node_modules/@builder.io/qwik') &&
+          !l.includes('(node:') &&
+          !l.includes('/qwik-city/lib/')
+      );
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].replace('file:///', '/');
@@ -90,9 +95,10 @@ const range: number = 2;
 
 export function posToNumber(
   source: string,
-  pos: number | { line: number; column: number }
+  pos: number | { line: number; column: number; lo: number }
 ): number {
   if (typeof pos === 'number') return pos;
+  if (pos.lo != null) return pos.lo;
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
@@ -104,7 +110,7 @@ export function posToNumber(
 
 export function generateCodeFrame(
   source: string,
-  start: number | { line: number; column: number } = 0,
+  start: number | { line: number; column: number; lo: number } = 0,
   end?: number
 ): string {
   start = posToNumber(source, start);

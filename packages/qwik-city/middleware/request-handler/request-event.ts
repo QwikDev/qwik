@@ -6,6 +6,7 @@ import type {
   RequestHandler,
   RequestEventCommon,
   ResolveValue,
+  QwikSerializer,
 } from './types';
 import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
 import { Cookie } from './cookie';
@@ -19,6 +20,7 @@ const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
 const RequestEvRoute = Symbol('RequestEvRoute');
+export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvAction = Symbol('RequestEvAction');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
@@ -29,6 +31,7 @@ export function createRequestEvent(
   requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
   basePathname = '/',
+  qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
   const { request, platform, env } = serverRequestEv;
@@ -98,6 +101,7 @@ export function createRequestEvent(
     [RequestEvTrailingSlash]: trailingSlash,
     [RequestEvBasePathname]: basePathname,
     [RequestEvRoute]: loadedRoute,
+    [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
@@ -235,6 +239,8 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvTrailingSlash]: boolean;
   [RequestEvBasePathname]: string;
   [RequestEvRoute]: LoadedRoute | null;
+  [RequestEvQwikSerializer]: QwikSerializer;
+
   /**
    * Check if this request is already written to.
    *

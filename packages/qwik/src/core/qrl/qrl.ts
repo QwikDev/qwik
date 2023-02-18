@@ -26,6 +26,9 @@ const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 const announcedQRL = /*@__PURE__*/ new Set<string>();
 
+/**
+ * @alpha
+ */
 export interface QRLDev {
   file: string;
   lo: number;
@@ -129,7 +132,7 @@ export const qrlDEV = <T = any>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
-  newQrl.$dev$ = opts;
+  newQrl.dev = opts;
   return newQrl;
 };
 
@@ -143,7 +146,7 @@ export const inlinedQrlDEV = <T = any>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  qrl.$dev$ = opts;
+  qrl.dev = opts;
   return qrl;
 };
 
@@ -161,7 +164,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const platform = getPlatform();
 
   if (platform) {
-    const result = platform.chunkForSymbol(refSymbol);
+    const result = platform.chunkForSymbol(refSymbol, chunk);
     if (result) {
       chunk = result[1];
       if (!qrl.$refSymbol$) {

@@ -7,6 +7,9 @@ import {
   ValueOrPromise,
   _wrapSignal,
   useStore,
+  _serializeData,
+  _deserializeData,
+  _getContextElement,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -24,6 +27,7 @@ import type {
   ZodReturn,
   Editable,
   ActionStore,
+  RequestEvent,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -131,7 +135,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 /**
  * @alpha
  */
-export const action$: ActionConstructor = implicit$FirstArg(actionQrl) as any;
+export const action$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(actionQrl) as any;
 
 /**
  * @alpha
@@ -160,18 +164,20 @@ export const loaderQrl = <RETURN, PLATFORM = unknown>(
 /**
  * @alpha
  */
-export const loader$ = implicit$FirstArg(loaderQrl);
+export const loader$ = /*#__PURE__*/ implicit$FirstArg(loaderQrl);
 
 /**
  * @alpha
  */
 export const zodQrl = async (
-  qrl: QRL<ActionOptions | ((z: typeof import('zod').z) => ActionOptions)>
+  qrl: QRL<ActionOptions | z.Schema | ((z: typeof import('zod').z) => ActionOptions)>
 ) => {
   if (isServer) {
     let obj = await qrl.resolve();
     if (typeof obj === 'function') {
       obj = obj(z);
+    } else if (obj instanceof z.Schema) {
+      return obj;
     }
     return z.object(obj);
   }
@@ -181,4 +187,63 @@ export const zodQrl = async (
 /**
  * @alpha
  */
-export const zod$: Zod = implicit$FirstArg(zodQrl) as any;
+export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
+
+export interface Server {
+  <T extends (ev: RequestEvent, ...args: any[]) => any>(fn: T): T extends (
+    ev: RequestEvent,
+    ...args: infer ARGS
+  ) => infer RETURN
+    ? QRL<(...args: ARGS) => RETURN>
+    : never;
+}
+
+/**
+ * @alpha
+ */
+export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
+  if (isServer) {
+    const captured = qrl.getCaptured();
+    if (captured && captured.length > 0 && !_getContextElement()) {
+      throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
+    }
+  }
+  function client() {
+    return $(async (...args: any[]) => {
+      if (isServer) {
+        throw new Error(`Server functions can not be invoked within the server during SSR.`);
+      } else {
+        const filtered = args.map((arg) => {
+          if (arg instanceof Event) {
+            return null;
+          } else if (arg instanceof Node) {
+            return null;
+          }
+          return arg;
+        });
+        const path = `?qfunc=${qrl.getHash()}`;
+        const body = await _serializeData([qrl, ...filtered], false);
+        const res = await fetch(path, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/qwik-json',
+            'X-QRL': qrl.getHash(),
+          },
+          body,
+        });
+        if (!res.ok) {
+          throw new Error(`Server function failed: ${res.statusText}`);
+        }
+        const str = await res.text();
+        const obj = await _deserializeData(str);
+        return obj;
+      }
+    }) as QRL<T>;
+  }
+  return client();
+};
+
+/**
+ * @alpha
+ */
+export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;

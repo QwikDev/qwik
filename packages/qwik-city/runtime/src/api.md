@@ -347,6 +347,14 @@ export type RouteParams = Record<string, string>;
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
+// Warning: (ae-forgotten-export) The symbol "Server" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const server$: Server;
+
+// @alpha (undocumented)
+export const serverQrl: <T extends (...args: any[]) => any>(qrl: QRL<T>) => QRL<T>;
+
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;
 
@@ -381,20 +389,20 @@ export const zod$: Zod;
 // @alpha (undocumented)
 export interface Zod {
     // (undocumented)
-    <T extends ActionOptions>(schema: T): ZodReturn<T>;
+    <T extends ActionOptions>(schema: T): Promise<z.ZodObject<T>>;
     // (undocumented)
-    <T extends ActionOptions>(schema: (z: z) => T): ZodReturn<T>;
+    <T extends ActionOptions>(schema: (z: z) => T): Promise<z.ZodObject<T>>;
+    // (undocumented)
+    <T extends z.Schema>(schema: T): Promise<T>;
+    // (undocumented)
+    <T extends z.Schema>(schema: (z: z) => T): Promise<T>;
 }
 
 // @alpha (undocumented)
-export const zodQrl: (qrl: QRL<z.ZodRawShape | ((z: z) => ActionOptions)>) => Promise<z.ZodObject<z.ZodRawShape, "strip", z.ZodTypeAny, {
-    [x: string]: any;
-}, {
-    [x: string]: any;
-}> | undefined>;
+export const zodQrl: (qrl: QRL<z.ZodRawShape | z.ZodType<any, z.ZodTypeDef, any> | ((z: z) => ActionOptions)>) => Promise<z.ZodType<any, z.ZodTypeDef, any> | undefined>;
 
 // @alpha (undocumented)
-export type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
+export type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>>;
 
 // (No @packageDocumentation comment for this package)
 

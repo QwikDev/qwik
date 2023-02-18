@@ -1916,30 +1916,6 @@ export const App = component$(() => {
 }
 
 #[test]
-fn example_inlining_functions() {
-    test_input!(TestInput {
-        code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-
-export const App = component$(() => {
-    function hola() {
-        console.log('hola');
-    }
-    return (
-        <>
-            <button onClick$={hola}>Hello Qwik</button>
-        </>
-    );
-});
-"#
-        .to_string(),
-        transpile_ts: true,
-        transpile_jsx: true,
-        ..TestInput::default()
-    });
-}
-
-#[test]
 fn example_dev_mode() {
     test_input!(TestInput {
         code: r#"

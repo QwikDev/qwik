@@ -32,4 +32,5 @@ lazy_static! {
     pub static ref IS_DEV: JsWord = JsWord::from("isDev");
     pub static ref COMPONENT: JsWord = JsWord::from("component$");
     pub static ref _REG_SYMBOL: JsWord = JsWord::from("_regSymbol");
+    pub static ref _JSX_BRANCH: JsWord = JsWord::from("_jsxBranch");
 }

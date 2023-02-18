@@ -2044,10 +2044,16 @@ import { component$, useStore } from '@builder.io/qwik';
 export const App = component$((props: Stuff) => {
     return (
         <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+            <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+            <div>{prop.value || <Stuff></Stuff>}</div>
+            <div>{prop.value ?? <Stuff></Stuff>}</div>
+
             <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
             <div>{prop.value && <div></div>}<div></div></div>
             <div>{prop.value || <div></div>}</div>
             <div>{prop.value ?? <div></div>}</div>
+
             <div>Static {f ? 1 : 3}</div>
 
             <div>Static</div>

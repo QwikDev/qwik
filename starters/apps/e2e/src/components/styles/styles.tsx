@@ -1,8 +1,9 @@
 import { component$, useStylesScoped$, useStore, Slot, useSignal } from '@builder.io/qwik';
-import parent from './parent.css';
-import child from './child.css';
-import child2 from './child2.css';
-import empty from './empty.css';
+import parent from './parent.css?inline';
+import parent2 from './parent2.css?inline';
+import child from './child.css?inline';
+import child2 from './child2.css?inline';
+import empty from './empty.css?inline';
 
 export const Styles = component$(() => {
   const reload = useSignal(0);
@@ -18,6 +19,8 @@ export const Styles = component$(() => {
 
 export const StylesChildren = component$(() => {
   useStylesScoped$(parent);
+  useStylesScoped$(parent2);
+
   const store = useStore({
     count: 10,
   });

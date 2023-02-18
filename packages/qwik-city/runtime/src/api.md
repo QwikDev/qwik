@@ -232,7 +232,7 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @alpha (undocumented)
-export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLoader_2<PLATFORM>) => RETURN) => Loader<RETURN>;
+export const loader$: <RETURN>(first: (event: RequestEventLoader_2) => RETURN) => Loader<RETURN>;
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
@@ -242,7 +242,7 @@ export interface Loader<RETURN> {
 }
 
 // @alpha (undocumented)
-export const loaderQrl: <RETURN, PLATFORM = unknown>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => RETURN>) => Loader<RETURN>;
+export const loaderQrl: <RETURN>(loaderQrl: QRL<(event: RequestEventLoader_2) => RETURN>) => Loader<RETURN>;
 
 // @alpha (undocumented)
 export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<Awaited<T>>>;

@@ -14,7 +14,7 @@ import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/reque
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction;
 
 // @alpha (undocumented)
-export interface EventPluginContext extends Context {
+export interface PlatformAzure extends Partial<Context> {
 }
 
 // @alpha @deprecated (undocumented)

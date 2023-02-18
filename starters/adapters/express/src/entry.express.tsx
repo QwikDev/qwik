@@ -7,12 +7,17 @@
  * - https://qwik.builder.io/integrations/deployments/node/
  *
  */
-import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+
+declare global {
+  interface QwikCityPlatform extends PlatformNode {}
+}
+
 // import compression from 'compression';
 
 // Directories where the static assets are located

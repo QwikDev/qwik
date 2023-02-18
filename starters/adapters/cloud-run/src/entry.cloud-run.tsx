@@ -7,10 +7,14 @@
  * - https://qwik.builder.io/integrations/deployments/node/
  *
  */
-import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import { createServer } from 'node:http';
 import render from './entry.ssr';
+
+declare global {
+  interface QwikCityPlatform extends PlatformNode {}
+}
 
 /** The default headers used by helmet */
 const DEFAULT_HEADERS = {

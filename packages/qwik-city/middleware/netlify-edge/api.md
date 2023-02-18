@@ -11,7 +11,7 @@ import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/reque
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
 
 // @alpha (undocumented)
-export interface PlatformNetlify extends Omit<Context, 'next' | 'cookies'> {
+export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {
 }
 
 // @alpha (undocumented)

@@ -118,7 +118,7 @@ export interface QwikCityAzureOptions extends ServerRenderOptions {}
 /**
  * @alpha
  */
-export interface EventPluginContext extends Context {}
+export interface PlatformAzure extends Partial<Context> {}
 
 /**
  * @alpha

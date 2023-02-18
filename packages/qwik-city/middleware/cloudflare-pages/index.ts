@@ -126,7 +126,7 @@ export interface EventPluginContext {
  * @alpha
  */
 export interface PlatformCloudflarePages {
-  env: EventPluginContext['env'];
+  env?: EventPluginContext['env'];
 }
 
 const resolved = Promise.resolve();

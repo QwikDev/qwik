@@ -5,6 +5,7 @@
     "serve": "swa start"
   },
   "devDependencies": {
+    "@azure/functions": "^3.5.0",
     "@azure/static-web-apps-cli": "^1.0.3"
   },
   "__qwik__": {

@@ -22,7 +22,7 @@ export const useAddUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = useAddUser();
+  const action = useAddUser.use();
   // action.actionPath: string;
   // action.isRunning: boolean;
   // action.status?: number;
@@ -55,7 +55,7 @@ export const useAddUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = useAddUser();
+  const action = useAddUser.use();
   return (
     <Form action={action}>
       <input name="name" />
@@ -87,7 +87,7 @@ export const useAddUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = useAddUser();
+  const action = useAddUser.use();
   return (
     <div>
       <button
@@ -167,7 +167,7 @@ export const addUser = action$(
 );
 
 export default component$(() => {
-  const action = useAddUser();
+  const action = useAddUser.use();
   return (
     <Form action={action}>
       <input name="name" />
@@ -211,7 +211,7 @@ Failures are stored in the `action.value` property, just like the success value.
 
 ```tsx
 export default component$(() => {
-  const action = useAddUser();
+  const action = useAddUser.use();
   return (
     <Form action={action}>
       <input name="name" />
@@ -246,7 +246,7 @@ export const useAddUser = action$(
 );
 
 export default component$(() => {
-  const action = useAddUser();
+  const action = useAddUser.use();
   return (
     <Form action={action}>
       <input name="name" value={action.formData?.get('name')} />

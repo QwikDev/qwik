@@ -16,6 +16,7 @@ use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocati
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
+use swc_ecmascript::transforms::optimization::simplify::inlining::inlining;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -277,6 +278,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             top_level_mark,
                         ));
                     }
+
+                    // Resolve imports
+                    main_module.visit_mut_with(&mut inlining(Default::default()));
 
                     // Resolve with mark
                     main_module.visit_mut_with(&mut resolver(

@@ -33,6 +33,9 @@ function tests() {
     await page.focus('input[name="password"]');
     await page.keyboard.type('dev');
 
+    await page.focus('input[name="confirmPassword"]');
+    await page.keyboard.type('dev');
+
     /***********  Unsuccessful Sign In  ***********/
     await linkNavigate(ctx, '[data-test-sign-in]', 403);
 
@@ -41,6 +44,22 @@ function tests() {
     await page.keyboard.type('qwik');
 
     await page.focus('input[name="password"]');
+    await page.keyboard.type('dev');
+
+    await page.focus('input[name="confirmPassword"]');
+    await page.keyboard.type('deva');
+
+    /***********  Unsuccessful Sign In  ***********/
+    await linkNavigate(ctx, '[data-test-sign-in]', 400);
+
+    page = getPage(ctx);
+    await page.focus('input[name="username"]');
+    await page.keyboard.type('qwik');
+
+    await page.focus('input[name="password"]');
+    await page.keyboard.type('dev');
+
+    await page.focus('input[name="confirmPassword"]');
     await page.keyboard.type('dev');
 
     /***********  Successful Sign In, Dashboard  ***********/

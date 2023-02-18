@@ -33,15 +33,13 @@ export const Bar = component$(({bar}) => {
 
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
-    const arg0 = 20;
     return /*#__PURE__*/ qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
-        arg0,
         props
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,SAAW;IACrC,MAAM,OAAO;IACb;;;;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,SAAW;IAErC;;;AAQJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -95,18 +93,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const [arg0, props] = useLexicalScope();
+    const [props] = useLexicalScope();
     const fn = ({ aaa  })=>aaa;
     return <div >
 
-              {props.foo}{fn()}{arg0}
+              {props.foo}{fn()}{20}
 
             </div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACK,KAAI;;cACH,OANkB,KAMZ,MAAM,KAAK;;YACnB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACK,KAAI;;cACH,OANkB,KAMZ,MALH,GAKc;;YACnB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",

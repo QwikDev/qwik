@@ -1,4 +1,5 @@
 import { qRuntimeQrl } from '../util/qdev';
+import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 
 // <docs markdown="../readme.md#QRL">
@@ -142,9 +143,10 @@ export interface QRL<TYPE = any> {
    * Resolve the QRL and return the actual value.
    */
   resolve(): Promise<TYPE>;
-
+  getCaptured(): any[] | null;
   getSymbol(): string;
   getHash(): string;
+  dev: QRLDev | null;
 }
 
 /**

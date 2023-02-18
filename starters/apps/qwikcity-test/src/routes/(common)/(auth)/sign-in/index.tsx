@@ -25,10 +25,22 @@ export const useSigninAction = action$(
       message: ['Invalid username or password'],
     });
   },
-  zod$({
-    username: z.string(),
-    password: z.string(),
-  })
+  zod$(
+    z
+      .object({
+        username: z.string(),
+        password: z.string(),
+        confirmPassword: z.string(),
+      })
+      .superRefine(({ confirmPassword, password }, ctx) => {
+        if (confirmPassword !== password) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'The passwords did not match',
+          });
+        }
+      })
+  )
 );
 
 export const useResetPasswordAction = action$(
@@ -62,6 +74,13 @@ export default component$(() => {
           <input name="password" type="password" autoComplete="current-password" required />
           {signIn.value?.fieldErrors?.password && (
             <p style="color:red">{signIn.value?.fieldErrors?.password}</p>
+          )}
+        </label>
+        <label>
+          <span>Confirm password</span>
+          <input name="confirmPassword" type="password" autoComplete="current-password" required />
+          {signIn.value?.fieldErrors?.confirmPassword && (
+            <p style="color:red">{signIn.value?.fieldErrors?.confirmPassword}</p>
           )}
         </label>
         <button data-test-sign-in>Sign In</button>

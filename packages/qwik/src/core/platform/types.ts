@@ -95,7 +95,10 @@ export interface CorePlatform {
    * contains the symbol.
    */
   // </docs>
-  chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
+  chunkForSymbol: (
+    symbolName: string,
+    chunk: string | null
+  ) => [symbol: string, chunk: string] | undefined;
 }
 
 export interface CorePlatformServer extends CorePlatform {

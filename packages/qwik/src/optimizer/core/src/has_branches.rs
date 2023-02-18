@@ -93,6 +93,19 @@ impl<'a> Visit for HasBranches<'a> {
         self.under_conditional -= 1;
     }
 
+    fn visit_bin_expr(&mut self, node: &ast::BinExpr) {
+        if matches!(
+            node.op,
+            ast::BinaryOp::LogicalAnd | ast::BinaryOp::LogicalOr | ast::BinaryOp::NullishCoalescing
+        ) {
+            self.under_conditional += 1;
+            node.visit_children_with(self);
+            self.under_conditional -= 1;
+        } else {
+            node.visit_children_with(self);
+        }
+    }
+
     fn visit_call_expr(&mut self, node: &ast::CallExpr) {
         if self.under_conditional > 0 {
             if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {

@@ -186,11 +186,12 @@ export const _getContextElement = (): unknown => {
 /**
  * @internal
  */
-export const _jsxBranch = () => {
+export const _jsxBranch = (input?: any) => {
   const iCtx = tryGetInvokeContext();
   if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
     const hostElement = iCtx.$hostElement$;
     const elCtx = getContext(hostElement, iCtx.$renderCtx$.$static$.$containerState$);
     elCtx.$flags$ |= HOST_FLAG_DYNAMIC;
   }
+  return input;
 };

@@ -337,6 +337,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
+    const trailingSlash = getRequestTrailingSlash(requestEv);
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
     const pipe = readable.pipeTo(writableStream);
@@ -355,7 +356,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
         loaders: getRequestLoaders(requestEv),
         action: getRequestAction(requestEv),
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, true), // todo
+        href: getPathname(requestEv.url, trailingSlash),
       };
       if ((typeof result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -387,6 +388,7 @@ export async function renderQData(requestEv: RequestEvent) {
 
     const status = requestEv.status();
     const location = requestEv.headers.get('Location');
+    const trailingSlash = getRequestTrailingSlash(requestEv);
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
       const adaptedLocation = makeQDataPath(location);
@@ -408,7 +410,7 @@ export async function renderQData(requestEv: RequestEvent) {
       loaders: getRequestLoaders(requestEv),
       action: getRequestAction(requestEv),
       status: status !== 200 ? status : 200,
-      href: getPathname(requestEv.url, true), // todo
+      href: getPathname(requestEv.url, trailingSlash),
       redirect: location ?? undefined,
     };
     const writer = requestEv.getWritableStream().getWriter();

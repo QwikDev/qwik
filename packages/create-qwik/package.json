@@ -28,7 +28,7 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "devDependencies": {
-    "@clack/prompts": "^0.2.2",
+    "@clack/prompts": "^0.4.3",
     "kleur": "4.1.5"
   },
   "engines": {

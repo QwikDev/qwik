@@ -20,7 +20,9 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
-  nonce?: string;
+  contentSecurityPolicy?: ContentSecurityPolicy;
+  headers?: Record<string, string>;
+  nonce?: boolean;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -43,9 +45,52 @@ export type ServerResponseHandler<T = any> = (
 /**
  * @alpha
  */
+export interface ContentSecurityPolicy {
+  baseUri: string;
+  childSrc: string;
+  connectSrc: string;
+  defaultSrc: string;
+  fontSrc: string;
+  formAction: string;
+  frameAncestors: string;
+  frameSrc: string;
+  imgSrc: string;
+  manifestSrc: string;
+  mediaSrc: string;
+  navigateTo: string;
+  objectSrc: string;
+  pluginTypes: string;
+  prefetchSrc: string;
+  reportTo: string;
+  reportUri: string;
+  sandbox: string;
+  scriptSrc: string;
+  styleSrc: string;
+  workerSrc: string;
+  [key: string]: string;
+}
+
+/**
+ * @alpha
+ */
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
+
+  /**
+   * Add a CSP policy to every response
+   */
+  contentSecurityPolicy?: ContentSecurityPolicy;
+
+  /**
+   * Add headers to every response
+   */
+  headers?: Record<string, string>;
+
+  /**
+   * Sets a nonce value to the script-src Content-Security-Policy header if it exists
+   */
+  nonce?: boolean;
 }
 
 /**

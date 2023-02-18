@@ -169,11 +169,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
   locale?: string | ((options: RenderOptions) => string);
 
   /**
-   * A nonce value to be added to inlined scripts.
-   */
-  nonce?: string | undefined;
-
-  /**
    * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
    */
   qwikLoader?: QwikLoaderOptions;

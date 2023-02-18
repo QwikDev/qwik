@@ -14,11 +14,11 @@ import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
+import { randomBytes } from 'node:crypto';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
-const RequestEvNonce = Symbol('RequestEvNonce');
 const RequestEvStatus = Symbol('RequestEvStatus');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
@@ -35,11 +35,27 @@ export function createRequestEvent(
   qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
-  const { request, platform, env } = serverRequestEv;
+  const { request, platform, env, contentSecurityPolicy } = serverRequestEv;
 
   const cookie = new Cookie(request.headers.get('cookie'));
-  const headers = new Headers();
+  const headers = new Headers(serverRequestEv.headers);
   const url = new URL(request.url);
+  const nonce = serverRequestEv.nonce ? randomBytes(16).toString('base64') : undefined;
+
+  if (contentSecurityPolicy) {
+    const csp: string[] = [];
+
+    for (const key in contentSecurityPolicy) {
+      let value = contentSecurityPolicy[key];
+      const name = key.replace(/[A-Z]/g, (l) => '-' + l.toLowerCase());
+      if (nonce && key === 'scriptSrc') {
+        value += ` 'nonce-${nonce}'`;
+      }
+      csp.push(`${name} ${value}`);
+    }
+
+    headers.append('Content-Security-Policy', csp.join(';'));
+  }
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
@@ -92,6 +108,8 @@ export function createRequestEvent(
   };
 
   const loaders: Record<string, Promise<any>> = {};
+  const sharedMap = new Map();
+  sharedMap.set('@nonce', nonce);
 
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
@@ -103,7 +121,6 @@ export function createRequestEvent(
     [RequestEvBasePathname]: basePathname,
     [RequestEvRoute]: loadedRoute,
     [RequestEvQwikSerializer]: qwikSerializer,
-    [RequestEvNonce]: serverRequestEv.nonce,
     cookie,
     headers,
     env,
@@ -114,7 +131,7 @@ export function createRequestEvent(
     query: url.searchParams,
     request,
     url,
-    sharedMap: new Map(),
+    sharedMap,
     get headersSent() {
       return writableStream !== null;
     },
@@ -236,7 +253,6 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, Promise<any>>;
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
-  [RequestEvNonce]: string | undefined;
   [RequestEvStatus]: number;
   [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
@@ -277,10 +293,6 @@ export function setRequestAction(requestEv: RequestEventCommon, id: string) {
 
 export function getRequestMode(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvMode];
-}
-
-export function getRequestNonce(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvNonce];
 }
 
 const ABORT_INDEX = 999999999;

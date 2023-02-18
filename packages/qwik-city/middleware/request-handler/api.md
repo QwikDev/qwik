@@ -147,6 +147,14 @@ export interface ResolveValue {
 
 // @alpha (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
+    // Warning: (ae-forgotten-export) The symbol "ContentSecurityPolicy" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    contentSecurityPolicy?: ContentSecurityPolicy;
+    // (undocumented)
+    headers?: Record<string, string>;
+    // (undocumented)
+    nonce?: boolean;
     // (undocumented)
     qwikCityPlan: QwikCityPlan;
     // (undocumented)
@@ -156,15 +164,19 @@ export interface ServerRenderOptions extends RenderOptions {
 // @alpha
 export interface ServerRequestEvent<T = any> {
     // (undocumented)
+    contentSecurityPolicy?: ContentSecurityPolicy;
+    // (undocumented)
     env: EnvGetter;
     // (undocumented)
     getWritableStream: ServerResponseHandler<T>;
+    // (undocumented)
+    headers?: Record<string, string>;
     // (undocumented)
     locale: string | undefined;
     // (undocumented)
     mode: ServerRequestMode;
     // (undocumented)
-    nonce?: string;
+    nonce?: boolean;
     // (undocumented)
     platform: any;
     // (undocumented)

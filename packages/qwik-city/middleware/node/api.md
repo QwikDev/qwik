@@ -14,7 +14,7 @@ import type { ServerResponse } from 'node:http';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {
-    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction, nonce?: string) => Promise<void>;
+    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
     staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
 };
@@ -37,7 +37,7 @@ export interface PlatformNode {
 
 // @alpha @deprecated (undocumented)
 export function qwikCity(render: Render, opts?: RenderOptions): {
-    router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction, nonce?: string | undefined) => Promise<void>;
+    router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
     staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
 };

@@ -153,6 +153,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { SkipRerender } from "@builder.io/qwik";
+import { _jsxBranch } from "@builder.io/qwik";
 import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 import { isServer } from "@builder.io/qwik/build";
 import { jsx } from "@builder.io/qwik/jsx-runtime";
@@ -162,6 +163,7 @@ import { useLexicalScope } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
+    _jsxBranch();
     const [reactCmpQrl] = useLexicalScope();
     const hostElement = useHostElement();
     const store = useStore({});
@@ -199,7 +201,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;gDAMiD,CAAC,QAAQ;IAClD,MAAM,CAAC,YAAY,GAAG;IACtB,MAAM,cAAc;IACpB,MAAM,QAAQ,SAAS,CAAC;IACxB,IAAI;IACJ,IAAI,KAAK,CAAC,iBAAiB,EAAE,MAAM;SAC9B,IAAI,KAAK,CAAC,cAAc,IAAI,KAAK,CAAC,cAAc,EAAE,MAAM;IAC7D;;;;;QA4BI;QACA;IACJ;IACA,IAAI,YAAY,CAAC,KAAK,CAAC,cAAc,EAAE;QACnC,MAAM,QAAQ,QAAQ,GAAG,CAAC;YACtB,YAAY,OAAO;YACnB,MAAM,CAAC;SACV,EAAE,IAAI,CAAC,CAAC,CAAC,KAAK,OAAO,GAAG;YACrB,MAAM,OAAO,OAAO,MAAM,CAAC,KAAK,YAAY;YAC5C,OAAO,WAAW,GAAG,IAAI,MAAM;gBAC3B,yBAAyB;gBACzB,CAAC,WAAW,EAAE;oBACV;iBACH;YACL;QACJ;QACA,OAAO,WAAW,GAAG,IAAI,UAAU;YAC/B,UAAU;QACd;IACJ,CAAC;IACD,OAAO,WAAW,GAAG,IAAI,MAAM;QAC3B,UAAU,WAAW,GAAG,IAAI,cAAc,CAAC;IAC/C;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;gDAMiD,CAAC,QAAQ;;IAClD,MAAM,CAAC,YAAY,GAAG;IACtB,MAAM,cAAc;IACpB,MAAM,QAAQ,SAAS,CAAC;IACxB,IAAI;IACJ,IAAI,KAAK,CAAC,iBAAiB,EAAE,MAAM;SAC9B,IAAI,KAAK,CAAC,cAAc,IAAI,KAAK,CAAC,cAAc,EAAE,MAAM;IAC7D;;;;;QA4BI;QACA;IACJ;IACA,IAAI,YAAY,CAAC,KAAK,CAAC,cAAc,EAAE;QACnC,MAAM,QAAQ,QAAQ,GAAG,CAAC;YACtB,YAAY,OAAO;YACnB,MAAM,CAAC;SACV,EAAE,IAAI,CAAC,CAAC,CAAC,KAAK,OAAO,GAAG;YACrB,MAAM,OAAO,OAAO,MAAM,CAAC,KAAK,YAAY;YAC5C,OAAO,WAAW,GAAG,IAAI,MAAM;gBAC3B,yBAAyB;gBACzB,CAAC,WAAW,EAAE;oBACV;iBACH;YACL;QACJ;QACA,OAAO,WAAW,GAAG,IAAI,UAAU;YAC/B,UAAU;QACd;IACJ,CAAC;IACD,OAAO,WAAW,GAAG,IAAI,MAAM;QAC3B,UAAU,WAAW,GAAG,IAAI,cAAc,CAAC;IAC/C;AACJ\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",

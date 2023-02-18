@@ -10,13 +10,13 @@ macro_rules! id {
     };
 }
 
-pub fn is_conditional_jsx<'a>(expr: &ast::BlockStmtOrExpr, jsx_functions: &'a HashSet<Id>) -> bool {
+pub fn is_conditional_jsx(expr: &ast::BlockStmtOrExpr, jsx_functions: &HashSet<Id>) -> bool {
     let mut collector = HasBranches::new(jsx_functions);
     expr.visit_with(&mut collector);
     collector.conditional
 }
 
-pub fn is_conditional_jsx_block<'a>(expr: &ast::BlockStmt, jsx_functions: &'a HashSet<Id>) -> bool {
+pub fn is_conditional_jsx_block(expr: &ast::BlockStmt, jsx_functions: &HashSet<Id>) -> bool {
     let mut collector = HasBranches::new(jsx_functions);
     expr.visit_with(&mut collector);
     collector.conditional
@@ -95,21 +95,25 @@ impl<'a> Visit for HasBranches<'a> {
 
     fn visit_call_expr(&mut self, node: &ast::CallExpr) {
         if self.under_conditional > 0 {
-            match &node.callee {
-                ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
-                    if self.jsx_functions.contains(&id!(ident)) {
-                        let first_arg = node.args.first();
-                        if let Some(name) = first_arg {
-                            match &*name.expr {
-                                ast::Expr::Ident(_) => {
-                                    self.conditional = true;
-                                }
-                                _ => {}
-                            }
+            if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
+                if self.jsx_functions.contains(&id!(ident)) {
+                    let first_arg = node.args.first();
+                    if let Some(name) = first_arg {
+                        if let ast::Expr::Ident(_) = &*name.expr {
+                            self.conditional = true;
                         }
                     }
                 }
-                _ => {}
+            }
+            if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
+                if self.jsx_functions.contains(&id!(ident)) {
+                    let first_arg = node.args.first();
+                    if let Some(name) = first_arg {
+                        if let ast::Expr::Ident(_) = &*name.expr {
+                            self.conditional = true;
+                        }
+                    }
+                }
             }
         }
         node.visit_children_with(self);

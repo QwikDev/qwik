@@ -28,11 +28,11 @@ export interface NodeRequestNextFunction {
 // @alpha (undocumented)
 export interface PlatformNode {
     // (undocumented)
-    incomingMessage: IncomingMessage;
+    incomingMessage?: IncomingMessage;
     // (undocumented)
-    node: string;
+    node?: string;
     // (undocumented)
-    ssr: true;
+    ssr?: true;
 }
 
 // @alpha @deprecated (undocumented)

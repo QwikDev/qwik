@@ -972,19 +972,24 @@ renderSSRSuite('component useStylesScoped()', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
-        <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
+        <!--qv q:sstyle=⭐️1d-0|⭐️1e-1 q:id=0 q:key=sX:-->
         <style q:style="1d-0" hidden>
           .host.⭐️1d-0 {
             color: red;
           }
         </style>
-        <div class="⭐️1d-0 host">
-          <div class="⭐️1d-0 div">
+        <style q:style="1e-1" hidden>
+          .blue.⭐️1e-1 {
+            color: blue;
+          }
+        </style>
+        <div class="⭐️1d-0 ⭐️1e-1 host">
+          <div class="⭐️1d-0 ⭐️1e-1 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
             <!--/qv-->
-            <p class="⭐️1d-0">Que tal?</p>
+            <p class="⭐️1d-0 ⭐️1e-1">Que tal?</p>
           </div>
           <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
           <style q:style="f0gmsw-0" hidden>
@@ -1010,7 +1015,8 @@ renderSSRSuite('component useStylesScoped()', async () => {
         </div>
         <!--/qv-->
       </body>
-    </html>`
+    </html>
+    `
   );
 });
 
@@ -1422,6 +1428,7 @@ export const Styles = component$(() => {
 
 export const ScopedStyles1 = component$(() => {
   useStylesScopedQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+  useStylesScopedQrl(inlinedQrl('.blue {color: blue}', 'styles_scoped_2'));
 
   return (
     <div class="host">

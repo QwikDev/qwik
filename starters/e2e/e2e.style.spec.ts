@@ -24,28 +24,29 @@ test.describe('styles', () => {
 
       const addChild = page.locator('button#add-child');
 
-      await expect(parent).toHaveClass('⭐️k8e9w3-0 parent count-10');
+      await expect(parent).toHaveClass('⭐️k8e9w3-0 ⭐️yohuk3-1 parent count-10');
       await expect(parent).toHaveCSS('font-size', '200px');
       await expect(child2).toHaveCSS('font-size', '20px');
       await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
-      await expect(el.length).toBe(7);
+      await expect(el.length).toBe(8);
       await addChild.click();
       await page.waitForTimeout(100);
 
       const child10 = page.locator('text=Child 10');
       const inline10 = page.locator('text=Inline 10');
 
-      await expect(parent).toHaveClass('⭐️k8e9w3-0 parent count-11');
+      await expect(parent).toHaveClass('⭐️k8e9w3-0 ⭐️yohuk3-1 parent count-11');
       await expect(parent).toHaveCSS('font-size', '200px');
       await expect(child2).toHaveCSS('font-size', '20px');
       await expect(inline2).toHaveCSS('font-size', '40px');
       await expect(child10).toHaveCSS('font-size', '20px');
+      await expect(inline10).toHaveClass('⭐️k8e9w3-0 ⭐️yohuk3-1 parent-child');
       await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
-      await expect(el2.length).toBe(7);
+      await expect(el2.length).toBe(8);
     });
 
     test('issue 1945', async ({ page }) => {

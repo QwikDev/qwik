@@ -96,7 +96,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           if (host) {
             const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
             const styleIds = el.getAttribute(QScopedStyle);
-            elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+            elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
             if (renderQrl) {
               elCtx.$componentQrl$ = getObject(renderQrl);

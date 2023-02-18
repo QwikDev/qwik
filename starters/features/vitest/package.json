@@ -1,7 +1,7 @@
 {
   "description": "Use Vitest into your Qwik app",
   "devDependencies": {
-    "vitest": "^0.25.0"
+    "vitest": "^0.28.5"
   },
   "scripts": {
     "test.unit": "vitest components"

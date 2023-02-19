@@ -1,10 +1,19 @@
-import { component$, jsx, JSXNode, SkipRender, useContext, _IMMUTABLE } from '@builder.io/qwik';
+import {
+  component$,
+  jsx,
+  JSXNode,
+  SkipRender,
+  useContext,
+  _IMMUTABLE,
+  _jsxBranch,
+} from '@builder.io/qwik';
 import { ContentInternalContext } from './contexts';
 
 /**
  * @alpha
  */
 export const RouterOutlet = component$(() => {
+  _jsxBranch();
   const { value } = useContext(ContentInternalContext);
   if (value && value.length > 0) {
     const contentsLen = value.length;
@@ -12,9 +21,6 @@ export const RouterOutlet = component$(() => {
     for (let i = contentsLen - 1; i >= 0; i--) {
       cmp = jsx(value[i].default, {
         children: cmp,
-        [_IMMUTABLE]: {
-          children: false,
-        },
       });
     }
     return cmp;

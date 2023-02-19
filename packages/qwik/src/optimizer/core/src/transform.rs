@@ -3,7 +3,8 @@ use crate::collector::{
     collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
 use crate::entry_strategy::EntryPolicy;
-use crate::is_immutable::{is_immutable_children, is_immutable_expr};
+use crate::has_branches::{is_conditional_jsx, is_conditional_jsx_block};
+use crate::is_immutable::is_immutable_expr;
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
@@ -181,6 +182,7 @@ impl<'a> QwikTransform<'a> {
             hook_stack: Vec::with_capacity(16),
             // extra_top_items: BTreeMap::new(),
             extra_bottom_items: BTreeMap::new(),
+
             hooks_names: HashMap::new(),
             qcomponent_fn: options
                 .global_collect
@@ -364,6 +366,7 @@ impl<'a> QwikTransform<'a> {
                         folded,
                         ast::Expr::Lit(ast::Lit::Str(ast::Str::from(hook_data.hash.clone()))),
                     ],
+                    true,
                 ))
             } else {
                 folded
@@ -508,6 +511,7 @@ impl<'a> QwikTransform<'a> {
                         folded,
                         ast::Expr::Lit(ast::Lit::Str(ast::Str::from(hook_data.hash.clone()))),
                     ],
+                    true,
                 ))
             } else {
                 folded
@@ -769,7 +773,7 @@ impl<'a> QwikTransform<'a> {
             }))
         }
 
-        self.create_internal_call(fn_callee, args)
+        self.create_internal_call(fn_callee, args, true)
     }
 
     fn create_inline_qrl(
@@ -833,19 +837,24 @@ impl<'a> QwikTransform<'a> {
             }))
         }
 
-        self.create_internal_call(fn_callee, args)
+        self.create_internal_call(fn_callee, args, true)
     }
 
     pub fn create_internal_call(
         &mut self,
         fn_name: JsWord,
         exprs: Vec<ast::Expr>,
+        pure: bool,
     ) -> ast::CallExpr {
         let local = self.ensure_import(fn_name, BUILDER_IO_QWIK.clone());
-        let span = if let Some(comments) = self.options.comments {
-            let span = Span::dummy_with_cmt();
-            comments.add_pure_comment(span.lo);
-            span
+        let span = if pure {
+            if let Some(comments) = self.options.comments {
+                let span = Span::dummy_with_cmt();
+                comments.add_pure_comment(span.lo);
+                span
+            } else {
+                DUMMY_SP
+            }
         } else {
             DUMMY_SP
         };
@@ -959,16 +968,6 @@ impl<'a> QwikTransform<'a> {
                                         prop
                                     }
                                 } else if is_children {
-                                    if let Some(immutable) = is_immutable_children(&node.value) {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: node.key.clone(),
-                                                value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
-                                                    ast::Bool::from(immutable),
-                                                ))),
-                                            }),
-                                        )));
-                                    }
                                     if let Some(new_children) = self.convert_children(&node.value) {
                                         ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
                                             ast::KeyValueProp {
@@ -1157,7 +1156,7 @@ impl<'a> QwikTransform<'a> {
                     .collect(),
             }))
         }
-        self.create_internal_call(_NOOP_QRL.clone(), args)
+        self.create_internal_call(_NOOP_QRL.clone(), args, true)
     }
 }
 
@@ -1284,15 +1283,37 @@ impl<'a> Fold for QwikTransform<'a> {
         o
     }
 
+    fn fold_function(&mut self, node: ast::Function) -> ast::Function {
+        let mut node = node.fold_children_with(self);
+        if let Some(body) = &mut node.body {
+            let is_condition = is_conditional_jsx_block(body, &self.jsx_functions);
+            if is_condition {
+                body.stmts.insert(
+                    0,
+                    ast::Stmt::Expr(ast::ExprStmt {
+                        span: DUMMY_SP,
+                        expr: Box::new(ast::Expr::Call(self.create_internal_call(
+                            _JSX_BRANCH.clone(),
+                            vec![],
+                            false,
+                        ))),
+                    }),
+                );
+            }
+        }
+        node
+    }
+
     fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
         self.decl_stack.push(vec![]);
         let prev = self.root_jsx_mode;
         self.root_jsx_mode = true;
+
+        let is_condition = is_conditional_jsx(&node.body, &self.jsx_functions);
         let current_scope = self
             .decl_stack
             .last_mut()
             .expect("Declaration stack empty!");
-
         for param in &node.params {
             let mut identifiers = vec![];
             collect_from_pat(param, &mut identifiers);
@@ -1303,7 +1324,31 @@ impl<'a> Fold for QwikTransform<'a> {
             );
         }
 
-        let o = node.fold_children_with(self);
+        let mut o = node.fold_children_with(self);
+        if is_condition {
+            match &mut o.body {
+                ast::BlockStmtOrExpr::BlockStmt(block) => {
+                    block.stmts.insert(
+                        0,
+                        ast::Stmt::Expr(ast::ExprStmt {
+                            span: DUMMY_SP,
+                            expr: Box::new(ast::Expr::Call(self.create_internal_call(
+                                _JSX_BRANCH.clone(),
+                                vec![],
+                                false,
+                            ))),
+                        }),
+                    );
+                }
+                ast::BlockStmtOrExpr::Expr(expr) => {
+                    *expr = Box::new(ast::Expr::Call(self.create_internal_call(
+                        _JSX_BRANCH.clone(),
+                        vec![*expr.to_owned()],
+                        true,
+                    )));
+                }
+            }
+        }
         self.root_jsx_mode = prev;
         self.decl_stack.pop();
 

@@ -457,28 +457,4 @@ export default component$(() => {
   });
 });
 
-test('single-jsx-root', () => {
-  ruleTester.run('my-rule', rules['single-jsx-root'] as any, {
-    valid: [``],
-    invalid: [
-      {
-        code: `export const HelloWorld = component$(async () => {
-            return isLoading ? <>Loading...</> : <div>The value is loaded</div>;
-          });`,
-        errors: [
-          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
-        ],
-      },
-      {
-        code: `export const HelloWorld = component$(async () => {
-          return isLoading ? <div>Loading...</div> : <div>The value is loaded</div>
-          });`,
-        errors: [
-          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
-        ],
-      },
-    ],
-  });
-});
-
 export {};

@@ -6,6 +6,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
+import { getContext, HOST_FLAG_DYNAMIC } from '../state/context';
 import { QContainerSelector, QLocaleAttr, RenderEvent } from '../util/markers';
 import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
@@ -180,4 +181,17 @@ export const _getContextElement = (): unknown => {
       iCtx.$element$ ?? iCtx.$hostElement$ ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined)
     );
   }
+};
+
+/**
+ * @internal
+ */
+export const _jsxBranch = (input?: any) => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
+    const hostElement = iCtx.$hostElement$;
+    const elCtx = getContext(hostElement, iCtx.$renderCtx$.$static$.$containerState$);
+    elCtx.$flags$ |= HOST_FLAG_DYNAMIC;
+  }
+  return input;
 };

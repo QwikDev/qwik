@@ -26,6 +26,7 @@ pub struct HasBranches<'a> {
     under_conditional: i32,
     jsx_functions: &'a HashSet<Id>,
     conditional: bool,
+    found_return: bool,
 }
 
 impl<'a> HasBranches<'a> {
@@ -34,6 +35,7 @@ impl<'a> HasBranches<'a> {
             jsx_functions,
             under_conditional: 0,
             conditional: false,
+            found_return: false,
         }
     }
 }
@@ -44,6 +46,11 @@ impl<'a> Visit for HasBranches<'a> {
     fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
     fn visit_fn_expr(&mut self, _: &ast::FnExpr) {}
     fn visit_fn_decl(&mut self, _: &ast::FnDecl) {}
+
+    fn visit_return_stmt(&mut self, node: &ast::ReturnStmt) {
+        node.visit_children_with(self);
+        self.found_return = true;
+    }
 
     fn visit_for_in_stmt(&mut self, node: &ast::ForInStmt) {
         self.under_conditional += 1;
@@ -107,7 +114,7 @@ impl<'a> Visit for HasBranches<'a> {
     }
 
     fn visit_call_expr(&mut self, node: &ast::CallExpr) {
-        if self.under_conditional > 0 {
+        if self.under_conditional > 0 || self.found_return {
             if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
                 if self.jsx_functions.contains(&id!(ident)) {
                     let first_arg = node.args.first();

@@ -14,9 +14,16 @@ import {
 import { isDocument } from '../util/element';
 import { SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
-import { fastWeakSerialize, getProxyManager, Subscriptions } from '../state/common';
+import {
+  fastWeakSerialize,
+  getProxyManager,
+  LocalSubscriptionManager,
+  SubscriptionManager,
+  Subscriptions,
+} from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -49,7 +56,7 @@ export interface Serializer<T> {
   /**
    * Return of
    */
-  collect?: (obj: T, collector: Collector, leaks: boolean) => void;
+  collect?: (obj: T, collector: Collector, leaks: boolean | QwikElement) => void;
 
   /**
    * Deserialize the object.
@@ -238,7 +245,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   test: (v) => v instanceof SignalImpl,
   collect: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
-    if (leaks) {
+    if (leaks === true) {
       collectSubscriptions(obj[QObjectManagerSymbol], collector);
     }
     return obj;
@@ -263,8 +270,8 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   collect(obj, collector, leaks) {
     collectValue(obj.ref, collector, leaks);
     if (fastWeakSerialize(obj.ref)) {
-      const manager = getProxyManager(obj.ref)!;
-      if (leaks || !manager.$isTreeshakeable$(obj.prop)) {
+      const localManager = getProxyManager(obj.ref)!;
+      if (isTreeshakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }
     }
@@ -356,7 +363,7 @@ export const canSerialize = (obj: any): boolean => {
   return false;
 };
 
-export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectDeps = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
   for (const s of collectorSerializers) {
     if (s.test(obj)) {
       s.collect!(obj, collector, leaks);
@@ -441,3 +448,20 @@ export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: Contai
       return Promise.reject(obj);
     },
   };
+
+const isTreeshakeable = (
+  manager: SubscriptionManager,
+  target: LocalSubscriptionManager,
+  leaks: QwikElement | boolean
+) => {
+  if (typeof leaks === 'boolean') {
+    return leaks;
+  }
+  const localManager = manager.$groupToManagers$.get(leaks);
+  if (localManager && localManager.length > 0) {
+    if (localManager.length === 1) {
+      return localManager[0] !== target;
+    }
+  }
+  return false;
+};

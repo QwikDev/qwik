@@ -303,7 +303,7 @@ export const _pauseFromContexts = async (
   const canRender = collector.$elements$.length > 0;
   if (canRender) {
     for (const elCtx of collector.$deferElements$) {
-      collectElementData(elCtx, collector, false);
+      collectElementData(elCtx, collector, elCtx.$element$);
     }
 
     for (const ctx of allContexts) {
@@ -679,29 +679,33 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
       return;
     }
     collector.$elements$.push(ctx);
-    collectElementData(ctx, collector, false);
+    collectElementData(ctx, collector, el);
   }
 };
 
-export const collectElementData = (elCtx: QContext, collector: Collector, dynamic: boolean) => {
+export const collectElementData = (
+  elCtx: QContext,
+  collector: Collector,
+  dynamicCtx: QwikElement | boolean
+) => {
   if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
-    collectValue(elCtx.$props$, collector, dynamic);
+    collectValue(elCtx.$props$, collector, dynamicCtx);
   }
   if (elCtx.$componentQrl$) {
-    collectValue(elCtx.$componentQrl$, collector, dynamic);
+    collectValue(elCtx.$componentQrl$, collector, dynamicCtx);
   }
   if (elCtx.$seq$) {
     for (const obj of elCtx.$seq$) {
-      collectValue(obj, collector, dynamic);
+      collectValue(obj, collector, dynamicCtx);
     }
   }
   if (elCtx.$watches$) {
     for (const obj of elCtx.$watches$) {
-      collectValue(obj, collector, dynamic);
+      collectValue(obj, collector, dynamicCtx);
     }
   }
 
-  if (dynamic) {
+  if (dynamicCtx) {
     collectContext(elCtx, collector);
     if (elCtx.$dynamicSlots$) {
       for (const slotCtx of elCtx.$dynamicSlots$) {
@@ -780,7 +784,7 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-export const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectValue = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
   if (obj !== null) {
     const objType = typeof obj;
     switch (objType) {
@@ -805,7 +809,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
             return;
           }
           seen.add(obj);
-          if (leaks) {
+          if (leaks === true) {
             collectSubscriptions(getProxyManager(input)!, collector);
           }
           if (fastWeakSerialize(input)) {

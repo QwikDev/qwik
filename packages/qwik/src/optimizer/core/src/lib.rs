@@ -14,6 +14,7 @@ mod const_replace;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
+mod has_branches;
 mod is_immutable;
 mod package_json;
 mod parse;

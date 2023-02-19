@@ -297,6 +297,9 @@ const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends
 export { jsx }
 export { jsx as jsxs }
 
+// @internal (undocumented)
+export const _jsxBranch: (input?: any) => any;
+
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 

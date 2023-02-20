@@ -48,6 +48,8 @@ export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { action$, actionQrl } from './server-functions';
 export { loader$, loaderQrl } from './server-functions';
+export { server$, serverQrl } from './server-functions';
+
 export { zod$, zodQrl } from './server-functions';
 export { z } from 'zod';
 

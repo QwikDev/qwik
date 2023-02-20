@@ -24,7 +24,7 @@ export interface EventPluginContext {
 // @alpha (undocumented)
 export interface PlatformCloudflarePages {
     // (undocumented)
-    env: EventPluginContext['env'];
+    env?: EventPluginContext['env'];
 }
 
 // @alpha (undocumented)

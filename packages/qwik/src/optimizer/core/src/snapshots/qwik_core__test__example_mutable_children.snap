@@ -7,81 +7,203 @@ expression: output
 
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+
+export function Fn1(props: Stuff) {
     return (
         <>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
-            <div>{prop.value && <div></div>}<div></div></div>
-            <div>{prop.value || <div></div>}</div>
-            <div>{prop.value ?? <div></div>}</div>
-            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+}
 
+export function Fn2(props: Stuff) {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+}
+
+export function Fn3(props: Stuff) {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+}
+
+export function Fn4(props: Stuff) {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+}
+
+export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
+
+export const AppDynamic1 = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+});
+export const AppDynamic2 = component$((props: Stuff) => {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+});
+
+export const AppDynamic3 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+});
+
+export const AppDynamic4 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+});
+
+export const AppStatic = component$((props: Stuff) => {
+    return (
+        <>
+            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+
+            <div>{prop.value && <div></div>}<div></div></div>
+            <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
             <div>Static {stuff()}</div>
             <div>Static {stuff()}</div>
-
         </>
     );
 });
 
 ============================= test.js ==
 
+import { _jsxBranch } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,2GAgBhB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
-
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _IMMUTABLE } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { inlinedQrl } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = (props)=>{
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+export function Fn1(props) {
+    _jsxBranch();
+    return /*#__PURE__*/ _jsx(_Fragment, {
+        children: /*#__PURE__*/ _jsx("div", {
+            children: prop < 2 ? /*#__PURE__*/ _jsx("p", {
+                children: "1"
+            }) : /*#__PURE__*/ _jsx(Stuff, {
+                children: "2"
+            }, "u6_0")
+        })
+    }, "u6_1");
+}
+export function Fn2(props) {
+    _jsxBranch();
+    return /*#__PURE__*/ _jsxs("div", {
+        children: [
+            prop.value && /*#__PURE__*/ _jsx(Stuff, {}, "u6_2"),
+            /*#__PURE__*/ _jsx("div", {})
+        ]
+    }, "u6_3");
+}
+export function Fn3(props) {
+    _jsxBranch();
+    if (prop.value) return /*#__PURE__*/ _jsx(Stuff, {}, "u6_4");
+    return /*#__PURE__*/ _jsx("div", {}, "u6_5");
+}
+export function Fn4(props) {
+    _jsxBranch();
+    if (prop.value) return /*#__PURE__*/ _jsx("div", {}, "u6_6");
+    return /*#__PURE__*/ _jsx(Stuff, {}, "u6_7");
+}
+export const Arrow = (props)=>/*#__PURE__*/ _jsxBranch(/*#__PURE__*/ _jsx("div", {
+        children: prop < 2 ? /*#__PURE__*/ _jsx("p", {
+            children: "1"
+        }) : /*#__PURE__*/ _jsx(Stuff, {
+            children: "2"
+        }, "u6_8")
+    }, "u6_9"));
+const AppDynamic1_component_R00UJ05gbes = (props)=>{
+    _jsxBranch();
+    return /*#__PURE__*/ _jsx(_Fragment, {
+        children: /*#__PURE__*/ _jsx("div", {
+            children: prop < 2 ? /*#__PURE__*/ _jsx("p", {
+                children: "1"
+            }) : /*#__PURE__*/ _jsx(Stuff, {
+                children: "2"
+            }, "u6_10")
+        })
+    }, "u6_11");
+};
+export const AppDynamic1 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic1_component_R00UJ05gbes, "AppDynamic1_component_R00UJ05gbes"));
+const AppDynamic2_component_3EY2zm0v00A = (props)=>{
+    _jsxBranch();
+    return /*#__PURE__*/ _jsxs("div", {
+        children: [
+            prop.value && /*#__PURE__*/ _jsx(Stuff, {}, "u6_12"),
+            /*#__PURE__*/ _jsx("div", {})
+        ]
+    }, "u6_13");
+};
+export const AppDynamic2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic2_component_3EY2zm0v00A, "AppDynamic2_component_3EY2zm0v00A"));
+const AppDynamic3_component_FVq83NlbTDQ = (props)=>{
+    _jsxBranch();
+    if (prop.value) return /*#__PURE__*/ _jsx(Stuff, {}, "u6_14");
+    return /*#__PURE__*/ _jsx("div", {}, "u6_15");
+};
+export const AppDynamic3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic3_component_FVq83NlbTDQ, "AppDynamic3_component_FVq83NlbTDQ"));
+const AppDynamic4_component_IO0yr8UvWEI = (props)=>{
+    _jsxBranch();
+    if (prop.value) return /*#__PURE__*/ _jsx("div", {}, "u6_16");
+    return /*#__PURE__*/ _jsx(Stuff, {}, "u6_17");
+};
+export const AppDynamic4 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic4_component_IO0yr8UvWEI, "AppDynamic4_component_IO0yr8UvWEI"));
+const AppStatic_component_gYRXqF3G5nE = (props)=>{
     return /*#__PURE__*/ _jsxs(_Fragment, {
         children: [
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "Static ",
+                    f ? 1 : 3
+                ]
+            }),
             /*#__PURE__*/ _jsx("div", {
                 children: prop < 2 ? /*#__PURE__*/ _jsx("p", {
                     children: "1"
                 }) : /*#__PURE__*/ _jsx("p", {
                     children: "2"
-                }),
-                [_IMMUTABLE]: {
-                    children: false
-                }
+                })
             }),
             /*#__PURE__*/ _jsxs("div", {
                 children: [
-                    prop.value && /*#__PURE__*/ _jsx("div", {}, "u6_0"),
+                    prop.value && /*#__PURE__*/ _jsx("div", {}, "u6_18"),
                     /*#__PURE__*/ _jsx("div", {})
-                ],
-                [_IMMUTABLE]: {
-                    children: false
-                }
-            }),
-            /*#__PURE__*/ _jsx("div", {
-                children: prop.value || /*#__PURE__*/ _jsx("div", {}, "u6_1"),
-                [_IMMUTABLE]: {
-                    children: false
-                }
-            }),
-            /*#__PURE__*/ _jsx("div", {
-                children: prop.value ?? /*#__PURE__*/ _jsx("div", {}, "u6_2"),
-                [_IMMUTABLE]: {
-                    children: false
-                }
+                ]
             }),
             /*#__PURE__*/ _jsxs("div", {
                 children: [
                     "Static ",
                     f ? 1 : 3
-                ],
-                [_IMMUTABLE]: {
-                    children: false
-                }
+                ]
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: "Static"
@@ -105,30 +227,12 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 ]
             })
         ]
-    }, "u6_3");
+    }, "u6_19");
 };
+export const AppStatic = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppStatic_component_gYRXqF3G5nE, "AppStatic_component_gYRXqF3G5nE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,KAAC;0BAAK,OAAO,kBAAI,KAAC;8BAAE;mCAAQ,KAAC;8BAAE;kBAAK;;;;;0BACpC,MAAC;;oBAAK,KAAK,KAAK,kBAAI,KAAC;kCAAW,KAAC;;;;;;0BACjC,KAAC;0BAAK,KAAK,KAAK,kBAAI,KAAC;;;;;0BACrB,KAAC;0BAAK,KAAK,KAAK,kBAAI,KAAC;;;;;0BACrB,MAAC;;oBAAI;oBAAQ,IAAI,IAAI,CAAC;;;;;;0BAEtB,KAAC;0BAAI;;0BACL,MAAC;;oBAAI;gCAAQ;;;0BACb,MAAC;;oBAAI;oBAAQ;;;0BACb,MAAC;;oBAAI;oBAAQ;;;;;AAIzB\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
-  "entry": null,
-  "displayName": "App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    90,
-    572
-  ]
-}
-*/
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAGA,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,qBACI;kBACI,cAAA,KAAC;sBAAK,OAAO,kBAAI,KAAC;0BAAE;+BAAQ,KAAC;0BAAM;sBAAS;;;AAGxD,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,qBACI,MAAC;;YAAK,KAAK,KAAK,kBAAI,KAAC;0BAAe,KAAC;;;AAE7C,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,KAAC;IAGT,qBACI,KAAC;AAET,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,KAAC;IAGT,qBACI,KAAC;AAET,CAAC;AAED,OAAO,MAAM,QAAQ,CAAC,+CAAiB,KAAC;kBAAK,OAAO,kBAAI,KAAC;sBAAE;2BAAQ,KAAC;sBAAM;kBAAS;gBAAQ;0CAErD,CAAC,QAAiB;;IACpD,qBACI;kBACI,cAAA,KAAC;sBAAK,OAAO,kBAAI,KAAC;0BAAE;+BAAQ,KAAC;0BAAM;uBAAS;;;AAGxD;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC,QAAiB;;IACpD,qBACI,MAAC;;YAAK,KAAK,KAAK,kBAAI,KAAC;0BAAe,KAAC;;;AAE7C;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,KAAC;IAGT,qBACI,KAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,KAAC;IAGT,qBACI,KAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC,QAAiB;IAClD,qBACI;;0BACI,MAAC;;oBAAI;oBAAQ,IAAI,IAAI,CAAC;;;0BACtB,KAAC;0BAAK,OAAO,kBAAI,KAAC;8BAAE;mCAAQ,KAAC;8BAAE;kBAAK;;0BAEpC,MAAC;;oBAAK,KAAK,KAAK,kBAAI,KAAC;kCAAW,KAAC;;;0BACjC,MAAC;;oBAAI;oBAAQ,IAAI,IAAI,CAAC;;;0BACtB,KAAC;0BAAI;;0BACL,MAAC;;oBAAI;gCAAQ;;;0BACb,MAAC;;oBAAI;oBAAQ;;;0BACb,MAAC;;oBAAI;oBAAQ;;;;;AAGzB;AAdA,OAAO,MAAM,0BAAY,2GActB\"}")
 == DIAGNOSTICS ==
 
 []

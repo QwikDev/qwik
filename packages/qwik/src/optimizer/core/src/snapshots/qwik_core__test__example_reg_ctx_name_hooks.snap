@@ -23,14 +23,10 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,MAAM,sBAAQ,4GAKlB\"}")
 ============================= works_component_div_onclick_server_osnoefc5sm4.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-export const Works_component_div_onClick_server_OsNoEFc5SM4 = ()=>{
-    const [text] = useLexicalScope();
-    return console.log('in server', text);
-};
+export const Works_component_div_onClick_server_OsNoEFc5SM4 = ()=>console.log('in server', 'hola');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DAK+B;;WAAM,QAAQ,GAAG,CAAC,aAAa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAK+B,IAAM,QAAQ,GAAG,CAAC,aAFhC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,7 +39,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "parent": "Works_component_t45qL4vNGv0",
   "ctxKind": "function",
   "ctxName": "server$",
-  "captures": true,
+  "captures": false,
   "loc": [
     175,
     211
@@ -56,16 +52,13 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
 export const Works_component_t45qL4vNGv0 = (props)=>{
-    const text = 'hola';
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: serverQrl(/*#__PURE__*/ qrl(()=>import("./works_component_div_onclick_server_osnoefc5sm4"), "Works_component_div_onClick_server_OsNoEFc5SM4", [
-            text
-        ]))
+        onClick$: serverQrl(/*#__PURE__*/ qrl(()=>import("./works_component_div_onclick_server_osnoefc5sm4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
     }, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAEgC,CAAC,QAAU;IACvC,MAAM,OAAO;IACb,qBACI,KAAC;QAAI,UAAU;;;;AAEvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAEgC,CAAC,QAAU;IAEvC,qBACI,KAAC;QAAI,UAAU;;AAEvB\"}")
 /*
 {
   "origin": "test.tsx",

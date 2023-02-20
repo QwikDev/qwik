@@ -58,23 +58,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { hW } from "./test";
-import { handleWatch } from "./test";
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
-    const qwik = hW + handleWatch;
+    const qwik = 54;
     console.log(qwik);
-    const qrl1 = 23;
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
-            qrl1
-        ])
+        onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw")
     }, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IACZ,MAAM,OAAM;IACZ,qBACI,KAAC;QAAI,QAAQ;;;;AAErB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO;IACb,QAAQ,GAAG,CAAC;IAEZ,qBACI,KAAC;QAAI,QAAQ;;AAErB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -181,14 +176,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= foo_component_div_onclick_m48dyiidsjw.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-export const Foo_component_div_onClick_M48DYiidSJw = ()=>{
-    const [qrl] = useLexicalScope();
-    return console.log(qrl);
-};
+export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log(23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAgBuB;;WAAK,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAgBuB,IAAK,QAAQ,GAAG,CAFvB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -201,7 +192,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "event",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     416,
     437

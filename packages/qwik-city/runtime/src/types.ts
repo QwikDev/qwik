@@ -519,12 +519,16 @@ export type ActionOptions = z.ZodRawShape;
 /**
  * @alpha
  */
-export type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
+export type ZodReturn<T extends ActionOptions = any> = Promise<
+  z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>
+>;
 
 /**
  * @alpha
  */
 export interface Zod {
-  <T extends ActionOptions>(schema: T): ZodReturn<T>;
-  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): ZodReturn<T>;
+  <T extends ActionOptions>(schema: T): Promise<z.ZodObject<T>>;
+  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): Promise<z.ZodObject<T>>;
+  <T extends z.Schema>(schema: T): Promise<T>;
+  <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): Promise<T>;
 }

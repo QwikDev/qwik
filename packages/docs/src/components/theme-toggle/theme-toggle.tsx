@@ -40,6 +40,9 @@ export const ThemeToggle = component$(() => {
   const state = useContext(GlobalStore);
 
   const onClick$ = $(() => {
+    if (state.theme === 'auto') {
+      state.theme = getColorPreference();
+    }
     state.theme = state.theme === 'light' ? 'dark' : 'light';
     setPreference(state.theme);
   });

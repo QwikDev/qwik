@@ -785,7 +785,7 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
 };
 
 export const collectValue = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
-  if (!isNull(obj) {
+  if (!isNull(obj)) {
     const objType = typeof obj;
     switch (objType) {
       case 'function':

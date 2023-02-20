@@ -1,4 +1,4 @@
-import type { ServerRequestEvent } from './types';
+import type { QwikSerializer, ServerRequestEvent } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent, RequestEventInternal } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
@@ -16,7 +16,8 @@ export function runQwikCity<T>(
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
-  basePathname = '/'
+  basePathname = '/',
+  qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
@@ -26,6 +27,7 @@ export function runQwikCity<T>(
     requestHandlers,
     trailingSlash,
     basePathname,
+    qwikSerializer,
     resolve!
   );
   return {

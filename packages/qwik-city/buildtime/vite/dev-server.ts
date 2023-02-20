@@ -77,6 +77,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
+        const { _deserializeData, _serializeData, _verifySerializable } =
+          await server.ssrLoadModule('@builder.io/qwik');
+        const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+
         // use vite to dynamically load each layout/page module in this route's hierarchy
 
         const serverPlugins: RouteModule[] = [];
@@ -166,7 +170,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             loadedRoute,
             requestHandlers,
             ctx.opts.trailingSlash,
-            ctx.opts.basePathname
+            ctx.opts.basePathname,
+            qwikSerializer
           );
           const result = await completion;
           if (result != null) {

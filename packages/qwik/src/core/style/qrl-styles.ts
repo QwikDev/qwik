@@ -17,7 +17,7 @@ export const styleContent = (styleId: string): string => {
 };
 
 export const serializeSStyle = (scopeIds: string[]) => {
-  const value = scopeIds.join(' ');
+  const value = scopeIds.join('|');
   if (value.length > 0) {
     return value;
   }

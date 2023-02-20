@@ -80,11 +80,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,gFAgBnB;AAEH,OAAO,MAAM,sBAAQ,8EAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
 ============================= child_component_usetask_oh4n7zeqjku.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -127,11 +127,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(qrl(()=>import("./entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
+        onClick$: /*#__PURE__*/ qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: _wrapSignal(state, "text")
     }, "u6_0");
 };
@@ -194,11 +194,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(qrl(()=>import("./entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
+        onClick$: /*#__PURE__*/ qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
         children: _wrapSignal(state, "text")
     }, "u6_1");
 };

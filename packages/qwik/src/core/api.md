@@ -94,8 +94,8 @@ export interface ContextId<STATE extends object> {
 
 // @alpha
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    chunkForSymbol: (symbolName: string, chunk: string | null) => [symbol: string, chunk: string] | undefined;
+    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -108,7 +108,7 @@ export const createContext: <STATE extends object>(name: string) => ContextId<ST
 export const createContextId: <STATE extends object>(name: string) => ContextId<STATE>;
 
 // @internal (undocumented)
-export const _deserializeData: (data: string) => any;
+export const _deserializeData: (data: string, element?: unknown) => any;
 
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
@@ -140,6 +140,9 @@ export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
     (props: P, key: string | null): JSXNode | null;
 }
+
+// @internal (undocumented)
+export const _getContextElement: () => unknown;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -294,6 +297,9 @@ const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends
 export { jsx }
 export { jsx as jsxs }
 
+// @internal (undocumented)
+export const _jsxBranch: (input?: any) => any;
+
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 
@@ -412,6 +418,10 @@ export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+    // (undocumented)
+    dev: QRLDev | null;
+    // (undocumented)
+    getCaptured(): any[] | null;
     // (undocumented)
     getHash(): string;
     // (undocumented)
@@ -662,6 +672,9 @@ export interface Ref<T = Element> {
     current: T | undefined;
 }
 
+// @internal (undocumented)
+export const _regSymbol: (symbol: any, hash: string) => any;
+
 // @alpha
 export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
@@ -767,7 +780,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
 // @internal (undocumented)
-export const _serializeData: (data: any) => Promise<string>;
+export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

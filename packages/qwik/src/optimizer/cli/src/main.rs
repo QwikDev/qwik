@@ -141,6 +141,7 @@ fn optimize(
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        reg_ctx_name: None,
         is_server: None,
     })?;
 

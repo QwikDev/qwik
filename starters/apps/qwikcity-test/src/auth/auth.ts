@@ -16,7 +16,7 @@ export const signIn = async (
   { username, password }: Signin,
   cookie: Cookie
 ): Promise<AuthResult> => {
-  if (username == 'qwik' && password == 'dev') {
+  if (username === 'qwik' && password === 'dev') {
     // super secret username/password (Testing purposes only, DO NOT DO THIS!!)
     cookie.set(AUTHTOKEN_NAME, Math.round(Math.random() * 9999999), {
       httpOnly: true,

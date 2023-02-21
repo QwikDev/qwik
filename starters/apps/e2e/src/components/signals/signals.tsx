@@ -589,7 +589,7 @@ export const Issue2344 = component$(() => {
   );
 });
 
-export const Issue2333 = component$(() => {
+export const Issue2928 = component$(() => {
   const store = useStore(
     {
       controls: {

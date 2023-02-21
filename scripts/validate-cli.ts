@@ -88,7 +88,7 @@ async function validateStarter(
 
   const { execa } = await import('execa');
   console.log(`${emoji} ${starterId}: npm install`);
-  await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
+  await execa('npm', ['install', '--legacy-peer-deps'], { cwd: appDir, stdout: 'inherit' });
 
   // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
   // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');

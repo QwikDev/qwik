@@ -29,7 +29,7 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 
 **SERVER**: Usually **the life of a component starts on the server** (during SSR or SSG), in that case, the `useTask$` and `RENDER` will run in the server, and then the `VisibleTask` will run in the browser, after the component is visible.
 
-> **Notice** that because the component was mounted in the server, **only useClientEffect$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
+> **Notice** that because the component was mounted in the server, **only useBrowserVisibleTask$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
 
 **BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
@@ -106,13 +106,13 @@ export const Cmp = component$(() => {
 
 The example above uses the `track` function to watch changes in `() => store.count`. The callback will run once in the SSR when the component is mounted and every time `store.count` changes.
 
-> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useClientEffect$()` instead, which runs on the client after rendering.
+> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useBrowserVisibleTask$()` instead, which runs on the client after rendering.
 
 ### Use `useTask$()` when you need to
 
 - Run async tasks before rendering
 - Run code only once before component is first rendered
-- Compute derived state from tracked state (without causing potential re-rendering like in `useClientEffect$`)
+- Compute derived state from tracked state (without causing potential re-rendering like in `useBrowserVisibleTask$`)
 - Programmatically run code when state changes
 
 > Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.

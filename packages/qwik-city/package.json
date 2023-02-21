@@ -145,7 +145,7 @@
     "yaml": "2.2.1"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.17.0"
+    "@builder.io/qwik": ">=0.18.0"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

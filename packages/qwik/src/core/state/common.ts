@@ -209,7 +209,7 @@ type B = [
   signal: Record<string, any>,
   elm: QwikElement,
   prop: string,
-  key: string | undefined
+  key: string
 ];
 
 type C = [
@@ -218,7 +218,7 @@ type C = [
   signal: Record<string, any>,
   elm: Node,
   attribute: string,
-  key: string | undefined
+  key: string
 ];
 
 export type SubscriberSignal = B | C;

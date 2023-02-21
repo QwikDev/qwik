@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "QwikReact allows adding React components into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
@@ -27,7 +27,7 @@
     "vite": "4.1.2"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.1.11",
+    "@builder.io/qwik": ">=0.19.0",
     "@types/react": ">=18.0.1",
     "@types/react-dom": ">=18.0.0",
     "react": ">=18.0.0",

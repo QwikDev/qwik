@@ -51,7 +51,7 @@ export async function runCreateInteractiveCli() {
     message: 'Where would you like to create your new project?',
     initialValue: './qwik-app',
     validate(value) {
-      if (!value || value.length === 0) {
+      if (!value || value.trim().length === 0) {
         return 'Please enter a valid project name.';
       }
     },
@@ -71,7 +71,6 @@ export async function runCreateInteractiveCli() {
 
   const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp, true);
 
-  console.log(projectNameAnswer);
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
   let removeExistingOutDirPromise: Promise<void> | null = null;

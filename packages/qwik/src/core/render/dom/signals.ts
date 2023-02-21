@@ -9,7 +9,7 @@ export const executeSignalOperation = (
   staticCtx: RenderStaticContext,
   operation: SubscriberSignal
 ) => {
-  const prop = operation[5] ?? 'value';
+  const prop = operation[5];
   let value = operation[2][prop];
   switch (operation[0]) {
     case 1: {

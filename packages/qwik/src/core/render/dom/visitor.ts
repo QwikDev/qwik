@@ -306,12 +306,18 @@ export const getProps = (node: Element) => {
     assertDefined(attr, 'attribute must be defined');
 
     const name = attr.name;
-    if (!name.includes(':')) {
-      if (name === 'class') {
-        props[name] = parseDomClass(attr.value);
-      } else {
-        props[name] = attr.value;
+    if (name.includes(':')) {
+      continue;
+    }
+    if (qDev) {
+      if (name === 'data-qwik-inspector') {
+        continue;
       }
+    }
+    if (name === 'class') {
+      props[name] = parseDomClass(attr.value);
+    } else {
+      props[name] = attr.value;
     }
   }
   return props;

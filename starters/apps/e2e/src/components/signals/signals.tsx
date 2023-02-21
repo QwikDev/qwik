@@ -104,6 +104,7 @@ export const Signals = component$(() => {
       <ComplexClassSignals />
       <Issue2311 />
       <Issue2344 />
+      <Issue2928 />
     </div>
   );
 });
@@ -587,3 +588,53 @@ export const Issue2344 = component$(() => {
     </>
   );
 });
+
+export const Issue2928 = component$(() => {
+  const store = useStore(
+    {
+      controls: {
+        age: {
+          value: 1,
+          valid: true,
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+  const group = {
+    controls: store.controls,
+  };
+
+  return (
+    <div>
+      <button
+        onClick$={async (e) => {
+          group.controls.age.value++;
+          await delayZero();
+          group.controls.age.valid = false;
+        }}
+      >
+        Increment
+      </button>
+      <FormDebug ctrl={group.controls.age} />
+      {group.controls.age.value == 2 && <div>match!</div>}
+    </div>
+  );
+});
+
+export const FormDebug = component$<{ ctrl: any }>((props) => {
+  return (
+    <div>
+      value:{' this_breaks!! '} -<>{props.ctrl.value} </>
+      <>{props.ctrl.value + ''} </>
+    </div>
+  );
+});
+
+export const delayZero = () => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 1);
+  });
+};

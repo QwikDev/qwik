@@ -4,7 +4,6 @@ import type {
   ServerRequestMode,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { ContentSecurityPolicy } from '../request-handler/types';
 
 const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
 
@@ -28,10 +27,7 @@ export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
-  mode: ServerRequestMode,
-  headers?: Record<string, string>,
-  contentSecurityPolicy?: ContentSecurityPolicy,
-  nonce?: boolean
+  mode: ServerRequestMode
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
@@ -91,9 +87,6 @@ export async function fromNodeHttp(
       node: process.versions.node,
     },
     locale: undefined,
-    headers,
-    contentSecurityPolicy,
-    nonce,
   };
 
   return serverRequestEv;

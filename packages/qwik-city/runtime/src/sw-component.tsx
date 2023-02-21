@@ -4,4 +4,5 @@ import swRegister from '@qwik-city-sw-register';
 /**
  * @alpha
  */
-export const ServiceWorkerRegister = () => jsx('script', { dangerouslySetInnerHTML: swRegister });
+export const ServiceWorkerRegister = (props: { nonce?: string }) =>
+  jsx('script', { dangerouslySetInnerHTML: swRegister, nonce: props.nonce });

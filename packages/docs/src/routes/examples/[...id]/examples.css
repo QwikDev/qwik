@@ -1,8 +1,9 @@
 .examples {
   position: fixed;
   top: calc(var(--header-height) + var(--builder-bar-height));
-  width: 100%;
-  height: calc(100% - var(--header-height)-var(--builder-bar-height));
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .examples-menu-container {
@@ -56,7 +57,7 @@
 
   .examples .repl {
     grid-template-rows: 1fr 1fr 1fr;
-    grid-template-columns: auto;
+    grid-template-columns: minmax(auto, 100%);
     grid-template-areas:
       'repl-input-panel'
       'repl-output-panel'

@@ -97,7 +97,7 @@ Let's dig into every API involved:
 
 ### `createContextId()`
 
-This method is used to create a new `Context ID`.
+This method is used to create a new `ContextId`.
 
 ```tsx
 export interface GenericType {
@@ -119,7 +119,8 @@ Since, it does not hold any state, it's ok to call it and make it a singleton, e
 
 ### `useContextProvider()`
 
-- This method is used to provide a value to `Context` after using [`createContextId()`](#createContextId).
+- This method is used to create a Context for a specific component and its descendants, using the `ContextId` as the key identifier of the context.
+
 - As all [`use-`](/docs/components/lifecycle/index.mdx#use-method-rules) methods it is used at the root of the [`component$()`](/docs/components/overview/index.mdx#component).
 
 ```tsx
@@ -145,7 +146,8 @@ export const Parent = component$(() => {
 
 #### Parameters
 
-- `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter).   
+- `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter). 
+
 - `data`: you can provide any data type like Qwik's useStore, Array, Objects.
 
 #### Ceavets

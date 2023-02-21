@@ -74,11 +74,11 @@ export { onRequest } from '../server/entry.cloudflare-pages';
 
 - [Cloudflare Pages Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 - [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)
-- [Function Invocation Route Config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/)
+- [Function Invocation Route Config](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)
 
 ### Cloudflare Pages Function Invocation Routes
 
-Cloudflare Page's [function-invocation-routes config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/) can be used to include, or exclude, certain paths to be used by the worker functions. Having a `_routes.json` file gives developers more granular control over when your Function is invoked.
+Cloudflare Page's [function-invocation-routes config](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) can be used to include, or exclude, certain paths to be used by the worker functions. Having a `_routes.json` file gives developers more granular control over when your Function is invoked.
 
 This is useful to determine if a page response should be Server-Side Rendered (SSR) or if the response should use a static-site generated (SSG) `index.html` file instead.
 

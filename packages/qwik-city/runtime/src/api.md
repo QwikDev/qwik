@@ -356,7 +356,9 @@ export const server$: Server;
 export const serverQrl: <T extends (...args: any[]) => any>(qrl: QRL<T>) => QRL<T>;
 
 // @alpha (undocumented)
-export const ServiceWorkerRegister: () => JSXNode<"script">;
+export const ServiceWorkerRegister: (props: {
+    nonce?: string;
+}) => JSXNode<"script">;
 
 // @alpha (undocumented)
 export interface StaticGenerate {

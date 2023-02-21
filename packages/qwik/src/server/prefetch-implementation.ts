@@ -13,7 +13,8 @@ import type {
 
 export function applyPrefetchImplementation(
   prefetchStrategy: PrefetchStrategy | undefined,
-  prefetchResources: PrefetchResource[]
+  prefetchResources: PrefetchResource[],
+  nonce?: string
 ): JSXNode | null {
   // if prefetchStrategy is undefined, use defaults
   // set default if implementation wasn't provided
@@ -22,7 +23,7 @@ export function applyPrefetchImplementation(
   const prefetchNodes: JSXNode[] = [];
 
   if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(prefetchNodes, prefetchResources);
+    prefetchUrlsEvent(prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
@@ -30,9 +31,9 @@ export function applyPrefetchImplementation(
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl);
+    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl, nonce);
   } else if (prefetchImpl.workerFetchInsert === 'always') {
-    workerFetchImplementation(prefetchNodes, prefetchResources);
+    workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchNodes.length > 0) {
@@ -42,11 +43,16 @@ export function applyPrefetchImplementation(
   return null;
 }
 
-function prefetchUrlsEvent(prefetchNodes: JSXNode[], prefetchResources: PrefetchResource[]) {
+function prefetchUrlsEvent(
+  prefetchNodes: JSXNode[],
+  prefetchResources: PrefetchResource[],
+  nonce?: string
+) {
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
       dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+      nonce,
     })
   );
 }
@@ -85,7 +91,8 @@ function linkHtmlImplementation(
 function linkJsImplementation(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>
+  prefetchImpl: Required<PrefetchImplementation>,
+  nonce?: string
 ) {
   const rel = prefetchImpl.linkRel || 'prefetch';
   let s = ``;
@@ -127,13 +134,15 @@ function linkJsImplementation(
     jsx('script', {
       type: 'module',
       dangerouslySetInnerHTML: s,
+      nonce,
     })
   );
 }
 
 function workerFetchImplementation(
   prefetchNodes: JSXNode[],
-  prefetchResources: PrefetchResource[]
+  prefetchResources: PrefetchResource[],
+  nonce?: string
 ) {
   let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
   s += workerFetchScript();
@@ -142,6 +151,7 @@ function workerFetchImplementation(
     jsx('script', {
       type: 'module',
       dangerouslySetInnerHTML: s,
+      nonce,
     })
   );
 }

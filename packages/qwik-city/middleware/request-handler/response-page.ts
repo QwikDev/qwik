@@ -9,10 +9,12 @@ export function getQwikCityServerData(requestEv: RequestEvent) {
 
   const action = getRequestAction(requestEv);
   const formData = requestEv.sharedMap.get('actionFormData');
+  const nonce = requestEv.sharedMap.get('@nonce');
   return {
     url: new URL(url.pathname + url.search, url).href,
     requestHeaders,
     locale: locale(),
+    nonce,
     qwikcity: {
       // mode: getRequestMode(requestEv),
       params: { ...params },

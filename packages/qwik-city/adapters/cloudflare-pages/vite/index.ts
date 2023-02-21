@@ -65,7 +65,7 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
   /**
    * Determines if the build should generate the function invocation routes `_routes.json` file.
    *
-   * https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/
+   * https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes
    *
    * Defaults to `true`.
    */

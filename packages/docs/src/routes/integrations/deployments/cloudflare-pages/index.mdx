@@ -114,12 +114,13 @@ export const onRequest = async ({ platform }) => {
 };
 ```
 
-Additionally, you may import the `RequestHandlerCloudflarePages` type to have have type completions in your editor.
+Additionally, you may import the `RequestHandler` and `PlatformCloudflarePages` types to have have type completions in your editor.
 
 ```tsx
-import { type RequestHandlerCloudflarePages } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import { type RequestHandler } from "@builder.io/qwik-city";
+import { type PlatformCloudflarePages } from "@builder.io/qwik-city/middleware/cloudflare-pages";
 
-export const onGet: RequestHandlerCloudflarePages = ({ platform }) => {
+export const onGet: RequestHandler<PlatformCloudflarePages> = ({ platform }) => {
   //...
 };
 ```

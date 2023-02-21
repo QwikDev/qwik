@@ -57,6 +57,8 @@ In Qwik everything is lazy-loadable:
 
 Lazy-loading is a core property of the framework and not an afterthought.
 
+> The asynchronous nature of Qwik means that users may see an intermediate rendering of the UI as components download. Seeing an intermediate state is undesirable; therefore, Qwik will buffer all DOM updates and only flush the DOM operations once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps.
+
 ### Optimizer and `$`
 
 Let's look at our example again:

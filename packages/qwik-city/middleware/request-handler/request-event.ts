@@ -91,7 +91,6 @@ export function createRequestEvent(
   };
 
   const loaders: Record<string, Promise<any>> = {};
-  const sharedMap = new Map();
 
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
@@ -113,7 +112,7 @@ export function createRequestEvent(
     query: url.searchParams,
     request,
     url,
-    sharedMap,
+    sharedMap: new Map(),
     get headersSent() {
       return writableStream !== null;
     },

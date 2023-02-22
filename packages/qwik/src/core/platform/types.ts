@@ -98,10 +98,9 @@ export interface CorePlatform {
   chunkForSymbol: (
     symbolName: string,
     chunk: string | null
-  ) => [symbol: string, chunk: string] | undefined;
+  ) => readonly [symbol: string, chunk: string] | undefined;
 }
 
 export interface CorePlatformServer extends CorePlatform {
   isServer: true;
-  regSymbol: (symbol: any, hash: string) => void;
 }

@@ -18,7 +18,7 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.js",
+      "import": "./lib/index.mjs",
       "require": "./lib/index.cjs",
       "types": "./lib/types/index.d.ts"
     }
@@ -37,7 +37,7 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "type": "module",
-  "main": "./lib/index.js",
+  "main": "./lib/index.mjs", 
   "types": "./lib/types/index.d.ts",
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

@@ -318,7 +318,14 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*@__PURE__*/ new TextEncoder();
 
-export function securityMiddleware({ method, url, request, error }: RequestEvent) {
+export function securityMiddleware({
+  method,
+  url,
+  request,
+  error,
+  next,
+  getWritableStream,
+}: RequestEvent) {
   const forbidden =
     method === 'POST' &&
     request.headers.get('origin') !== url.origin &&
@@ -347,7 +354,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     const trailingSlash = getRequestTrailingSlash(requestEv);
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
-    const pipe = readable.pipeTo(writableStream);
+    const pipe = readable.pipeTo(writableStream, { preventClose: true });
     const stream = writable.getWriter();
     const status = requestEv.status();
     try {
@@ -376,6 +383,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       await stream.close();
       await pipe;
     }
+    await writableStream.close();
   };
 }
 

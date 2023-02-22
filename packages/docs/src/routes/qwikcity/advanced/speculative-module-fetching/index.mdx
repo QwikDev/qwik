@@ -1,14 +1,20 @@
 ---
-title: Qwik City Prefetching
+title: Qwik City Speculative Module Fetching
 contributors:
   - ulic75
   - mhevery
   - adamdbradley
 ---
 
-# Prefetching
+# Speculative Module Fetching
 
-The goal of Qwik's prefetching is not to prefetch the entire application, but to have already prefetched and cached what's possible at that time. When the Qwik optimizer breaks apart the application, it's able to understand possible user interactions. And from this, it's just as important that it's able to understand what's not possible from user interaction.
+Traditional pages
+
+Qwik's is able to load an entire page and become interactive extremely fast is due to its ability to startup _without_ JavaScript. 
+
+This is a powerful feature that allows Qwik to load and execute JavaScript bundles in parallel, which is a key part of Qwik's performance.
+
+The goal of Qwik is not to prefetch the entire application, but to have already prefetched and cached what's possible at that time. When the Qwik optimizer breaks apart the application, it's able to understand possible user interactions. And from this, it's just as important that it's able to understand what's not possible from user interaction.
 
 For example, an entire rendered application may only be able to click a button, but that also means the entire app could never re-render. Since Qwik is able to understand what's possible, and _not_ possible, it's able to best collect which bundles to prefetch.
 

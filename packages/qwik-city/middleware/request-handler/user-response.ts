@@ -56,7 +56,7 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
       try {
         if (!requestEv.headersSent) {
           requestEv.headers.set('content-type', 'text/html; charset=utf-8');
-          requestEv.cacheControl({noCache: true});
+          requestEv.cacheControl({ noCache: true });
           requestEv.status(500);
         }
         const stream = requestEv.getWritableStream();

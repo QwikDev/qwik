@@ -16,9 +16,9 @@ Let's start by looking at a simple `Counter` example:
 
 ```tsx
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 
@@ -32,8 +32,8 @@ const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 
 ```tsx
 export const Counter_onMount = () => {
-  const store = useStore({ count: 0 });
-  return <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>{store.count}</button>;
+  const count = useSignal(0);
+  return <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [count])}>{count.value}</button>;
 };
 ```
 

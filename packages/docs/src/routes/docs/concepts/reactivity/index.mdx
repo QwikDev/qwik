@@ -38,9 +38,9 @@ Because of the above constraints, Qwik uses proxies to keep track of the reactiv
 
 ```tsx
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 

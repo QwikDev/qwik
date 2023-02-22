@@ -20,7 +20,7 @@ Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 
 ### Example
 
-Let's make a global context which holds the state of the theme used by user and this can be accessed by any component down the component tree. Here, `root.tsx` file will act as the `Parent` component and other files/pages will be the `Child` component. 
+Let's make a global context which holds the state of the theme used by user and this can be accessed by any component down the component tree. Here, `root.tsx` file will act as the `Parent` component and other files/pages will be the `Child` component.
 
 At the same time, the Child component is rendering a button and `h2` tag, creating a reactive subscription that will re-render when the Child changes the value in the click handler: `<button onClick$={() => { themeStore.theme = 'dark' }}>`.
 
@@ -28,28 +28,24 @@ At the same time, the Child component is rendering a button and `h2` tag, creati
 // file: src/root.tsx
 import {
   component$,
-  useStore,
+  useSignal,
   useContext,
   useContextProvider,
   createContextId,
 } from '@builder.io/qwik';
 
-export interface Theme {
-  theme: 'dark' | 'light'
-}
+export type Theme = 'dark' | 'light';
 
 // Create a new context descriptor
 export const ThemeContext = createContextId<Theme>('io.builder.qwik.docs.theme-context');
 
 export default component$(() => {
-  // Creating reactive storage 
-  const themeStore = useStore<Theme>({
-    theme: 'dark'
-  })
-  
+  // Creating reactive storage
+  const themeStore = useSignal<Theme>('dark');
+
   // Assigning value (state) to the context (ThemeContext)
   useContextProvider(ThemeContext, themeStore)
-  
+
   return (
     // default config
     ...
@@ -60,7 +56,7 @@ export default component$(() => {
 export default component$(() => {
 
   // Get reference to state using ThemeContext
-  const themeStore = useContext(ThemeContext);
+  const theme = useContext(ThemeContext);
 
   useStylesScoped$(`
     .dark {
@@ -75,12 +71,14 @@ export default component$(() => {
 
   return (
     <>
-      <h1 class={themeStore.theme}>
-        {themeStore.theme === 'dark' ? 'Welcome to dark side' : 'This component is light themed'}
+      <h1 class={theme.value}>
+        {theme.value === 'dark' ? 'Welcome to dark side' : 'This component is light themed'}
       </h1>
       <button
         onClick$={() => {
-          themeStore.theme == 'light' ? (themeStore.theme = 'dark') : (themeStore.theme = 'light');
+          theme.value == 'light'
+            ? (theme.value = 'dark')
+            : (theme.value = 'light');
         }}
       >
         Change Theme
@@ -146,9 +144,9 @@ export const Parent = component$(() => {
 
 #### Parameters
 
-- `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter). 
+- `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter).
 
-- `data`: you can provide any data type like Qwik's useStore, Array, Objects.
+- `data`: you can provide any data type like Qwik's useSignal, useStore, Array, Objects.
 
 #### Ceavets
 

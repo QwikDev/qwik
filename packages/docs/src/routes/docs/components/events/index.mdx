@@ -21,9 +21,9 @@ Notice that `onClick$` ends with [`$`](todo/correct-link). This is a hint to bot
 
 ```tsx
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 
@@ -32,13 +32,13 @@ In a real applications, the listener may refer to complex code. By creating a la
 Another option is passing [`QRLs`](/docs/advanced/qrl/) as values for event listeners. For instance, the above example could also be written in the following way:
 
 ```tsx
-import { component$, useStore, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
-  const incrementCount = $(() => store.count++);
+  const count = useSignal(0);
+  const incrementCount = $(() => count.value++);
 
-  return <button onClick$={incrementCount}>{store.count}</button>;
+  return <button onClick$={incrementCount}>{count.value}</button>;
 });
 ```
 
@@ -72,24 +72,22 @@ So far, we have discussed how to listen to events that originate from elements. 
 
 ```tsx
 export const EventExample = component$(() => {
-  const store = useStore({
-    scroll: 0,
-    mouse: { x: 0, y: 0 },
-    clickCount: 0,
-  });
+  const scroll = useSignal(0);
+  const mouse = useSignal({ x: 0, y: 0 });
+  const clickCount = useSignal(0);
 
   return (
     <button
-      window:onScroll$={(e) => (store.scroll = window.scrollY)}
+      window:onScroll$={(e) => (scroll.value = window.scrollY)}
       document:onMouseMove$={(e) => {
         const { x, y } = e;
-        store.mouse = { x, y };
+        mouse.value = { x, y };
       }}
-      onClick$={() => store.clickCount++}
+      onClick$={() => clickCount.value++}
     >
-      scroll: {store.scroll}
-      mouseMove: {store.mouse.x}, {store.mouse.y}
-      click: {store.clickCount}
+      scroll: {scroll.value}
+      mouseMove: {mouse.value.x}, {mouse.value.y}
+      click: {clickCount.value}
     </button>
   );
 });
@@ -122,14 +120,14 @@ export const ClickableComponent = component$(() => {
 });
 
 export const HoverComponent = component$(() => {
-  const store = useStore({ isHover: false });
+  const isHover = useSignal(false);
   useOn(
     'mouseover',
     $(() => {
-      store.isHover = true;
+      isHover.value = true;
     })
   );
-  return <div>{store.isHover ? 'Now Hovering' : 'Not Hovering'}</div>;
+  return <div>{isHover.value ? 'Now Hovering' : 'Not Hovering'}</div>;
 });
 
 export default component$(() => {
@@ -174,14 +172,14 @@ export default component$(() => {
 
 ```tsx
 export const KeyBoard = component$(() => {
-  const store = useStore({ keyPressed: '' });
+  const keyPressed = useSignal('');
   useOnDocument(
     'keydown',
     $((event) => {
-      store.keyPressed = store.keyPressed + event.key;
+      keyPressed.value = keyPressed.value + event.key;
     })
   );
-  return <div>{store.keyPressed}</div>;
+  return <div>{keyPressed.value}</div>;
 });
 
 export default component$(() => {
@@ -267,9 +265,9 @@ The operation is asynchronous and therefore returns a promise, which we can reso
 
 ```tsx
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 

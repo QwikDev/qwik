@@ -77,13 +77,11 @@ useTask$(({ track }) => {
 The `useTask$()` function is used to observe the `state.count` property. Any changes to the `state.count` cause the arrow function to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
 ```tsx
-import { component$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
 export const Cmp = component$(() => {
-  const store = useStore({
-    count: 1,
-    doubleCount: 0,
-  });
+  const count = useSignal(1);
+  const doubleCount = useSignal(0);
 
   // this task will be called exactly once, either on the server or on the browser
   useTask$(() => {
@@ -92,19 +90,19 @@ export const Cmp = component$(() => {
 
   // this task will be called at mount and every time `store.count` changes
   useTask$(({ track }) => {
-    const count = track(() => store.count);
-    store.doubleCount = 2 * count;
+    const count = track(() => count.value);
+    doubleCount.value = 2 * count;
   });
 
   return (
     <div>
-      {store.count} / {store.doubleCount}
+      {count.value} / {doubleCount.value}
     </div>
   );
 });
 ```
 
-The example above uses the `track` function to watch changes in `() => store.count`. The callback will run once in the SSR when the component is mounted and every time `store.count` changes.
+The example above uses the `track` function to watch changes in `() => count.value`. The callback will run once in the SSR when the component is mounted and every time `count.value` changes.
 
 > Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useBrowserVisibleTask$()` instead, which runs on the client after rendering.
 
@@ -125,23 +123,21 @@ Sometimes it is required to only run code either in the server or in the client.
 import { isServer, isBrowser } from '@builder.io/qwik/build';
 
 export const Cmp = component$(() => {
-  const store = useStore({
-    users: [],
-  });
+  const users = useSignal([]);
   useTask$(async () => {
     if (isServer) {
       // If the component is mounted on the server, call DB directly.
-      store.users = await db.requestUsers();
+      users.value = await db.requestUsers();
     }
     if (isBrowser) {
       // If the component is mounted on the browser, fetch users through API.
-      store.users = await fetchGetUsers();
+      users.value = await fetchGetUsers();
     }
   });
 
   return (
     <>
-      {store.users.map((user) => (
+      {users.value.map((user) => (
         <User user={user} />
       ))}
     </>
@@ -187,19 +183,17 @@ This is a unique feature of Qwik, any other frameworks would execute this and ot
 
 ```tsx
 export const Timer = component$(() => {
-  const store = useStore({
-    count: 0,
-  });
+  const count = useSignal(0);
   useBrowserVisibleTask$(() => {
     // Only runs in the client
     const timer = setInterval(() => {
-      store.count++;
+      count.value++;
     }, 500);
     return () => {
       clearInterval(timer);
     };
   });
-  return <>{store.count}</>;
+  return <>{count.value}</>;
 });
 ```
 

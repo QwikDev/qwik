@@ -22,26 +22,24 @@ A component is a small, reusable piece of code that can be used to build a UI.
 In Qwik, they are declared using the `component$` method:
 
 ```tsx
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useSignal } from '@builder.io/qwik';
 
 export const MyCmp = component$((props: MyCmpProps) => {
   // Declare local state
-  const state = useStore({
-    count: 0,
-  });
+  const count = useSignal(0);
 
   // Returns JSX
   return (
     <>
       <span>
-        Hello, {props.name} {state.count}
+        Hello, {props.name} {count.value}
       </span>
-      <div>Times: {state.count}</div>
+      <div>Times: {count.value}</div>
       <button
         onClick$={() => {
           // This will update the local state and cause a re-render.
           // Reactivity is at Qwik's core!
-          state.count++;
+          count.value++;
         }}
       >
         Increment
@@ -112,29 +110,27 @@ For a detailed discussion of reactivity, see related discussion.
 Qwik provides the ability to store a reference to any component. To do so, you have to create a signal and pass the signal as `ref` attribute to the component. After the component was mounted, the reference has been stored on the signal. Have a look at the example below:
 
 ```tsx
-import { component$, useBrowserVisibleTask$, useSignal, useStore } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
-  const store = useStore({
-    width: 0,
-    height: 0,
-  });
+  const width = useSignal(0);
+  const height = useSignal(0);
   const outputRef = useSignal<Element>();
   useBrowserVisibleTask$(() => {
     if (outputRef.value) {
       const rect = outputRef.value.getBoundingClientRect();
-      store.width = Math.round(rect.width);
-      store.height = Math.round(rect.height);
+      width.value = Math.round(rect.width);
+      height.value = Math.round(rect.height);
     }
   });
 
   return (
     <div>
-      <div style={{ border: '1px solid red', width: '100px' }} ref={outputRef}>
+      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
         Change text value here to stretch the box.
       </div>
       <div>
-        The above red box is {store.height} pixels high and {store.width} pixels wide.
+        The above red box is {height.value} pixels high and {width.value} pixels wide.
       </div>
     </div>
   );
@@ -209,8 +205,8 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 ### State
 
+- [`useSignal(initialStateObject)`](../state/index.mdx#usesignal) - creates a reactive value
 - [`useStore(initialState)`](../state/index.mdx#usestore) - creates a reactive object that can be used to store state
-- [`useSignal(initialState)`](../state/index.mdx#usesignal) - creates a reactive value
 - [`createContextId(contextName)`](../context/index.mdx#createcontext) - creates a context reference
 - [`useContextProvider()`](../context/index.mdx#usecontextprovider) - provides a value to a given context
 - [`useContext()`](../context/index.mdx#usecontext) - reads the value of the current context

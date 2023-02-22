@@ -72,13 +72,11 @@ export function UseStateExample() {
 
 ```tsx
 export const Counter = component$(() => {
-  const state = useStore({
-    count: 0,
-  });
+  const count = useSignal(0);
   return (
     <>
-      <div>Value is: {state.count}</div>
-      <button onClick$={() => state.count++}>Increment</button>
+      <div>Value is: {count.value}</div>
+      <button onClick$={() => count.value++}>Increment</button>
     </>
   );
 });
@@ -104,17 +102,15 @@ export function Counter() {
 
 ```tsx
 export const Clock = component$(() => {
-  const state = useStore({
-    seconds: 0,
-  });
+  const seconds = useSignal(0);
   useClientEffect$(() => {
     const interval = setInterval(() => {
-      state.seconds++;
+      seconds.value++;
     }, 1000);
     return () => clearInterval(interval);
   });
 
-  return <div>Seconds: {state.seconds}</div>;
+  return <div>Seconds: {seconds.value}</div>;
 });
 ```
 
@@ -139,22 +135,20 @@ export function Clock() {
 
 ```tsx
 export const Fetch = component$(() => {
-  const state = useStore({
-    url: 'https://api.github.com/repos/qwikstart/qwikstart-docs',
-    responseJson: undefined,
-  });
+  const url = useSignal('https://api.github.com/repos/qwikstart/qwikstart-docs');
+  const responseJson = useSignal(undefined);
 
   useTask$(async ({ track }) => {
-    track(() => state.url);
-    const res = await fetch(state.url);
+    track(() => url.value);
+    const res = await fetch(url.value);
     const json = await res.json();
-    state.responseJson = json;
+    responseJson.value = json;
   });
 
   return (
     <>
-      <div>{state.responseJson?.name}</div>
-      <input name="url" onInput$={(ev) => (state.url = (ev.target as HTMLInputElement).value))} />
+      <div>{responseJson.value?.name}</div>
+      <input name="url" onInput$={(ev) => (url.value = (ev.target as HTMLInputElement).value))} />
     </>
   );
 });
@@ -188,10 +182,8 @@ export function Fetch() {
 export const MyContext = createContextId('my-context');
 
 export const Parent = component$(() => {
-  const state = useStore({
-    message: 'some example value',
-  });
-  useContextProvider(MyContext, state);
+  const message = useSignal('some example value');
+  useContextProvider(MyContext, message);
   return (
     <>
       <Child />
@@ -200,8 +192,8 @@ export const Parent = component$(() => {
 });
 
 export const Child = component$(() => {
-  const state = useContext(MyContext);
-  return <span>{state.message}</span>;
+  const message = useContext(MyContext);
+  return <span>{message.value}</span>;
 });
 ```
 
@@ -230,23 +222,21 @@ export const Child = () => {
 
 ```tsx
 export const DebouncedInput = component$(() => {
-  const state = useStore({
-    value: '',
-    debouncedValue: '',
-  });
+  const value = useSignal('');
+  const debouncedValue = useSignal('');
 
   useTask$(({ track }) => {
-    track(() => state.value);
+    track(() => value.value);
     const debounced = setTimeout(() => {
-      state.debouncedValue = state.value;
+      debouncedValue.value = value.value;
     }, 1000);
     return () => clearTimeout(debounced);
   });
 
   return (
     <>
-      <input value={state.value} onInput$={(ev) => (state.value = (ev.target as HTMLInputElement).value))} />
-      <span>{state.debouncedValue}</span>
+      <input value={value.value} onInput$={(ev) => (value.value = (ev.target as HTMLInputElement).value))} />
+      <span>{debouncedValue.value}</span>
     </>
   );
 });
@@ -282,23 +272,21 @@ export const DebouncedInput = () => {
 
 ```tsx
 export const DynamicBackground = component$(() => {
-  const state = useStore({
-    red: 0,
-    green: 0,
-    blue: 0,
-  });
+  const red = useSignal(0);
+  const green = useSignal(0);
+  const blue = useSignal(0);
 
   return (
     <div
       style={{
-        background: `rgb(${state.red}, ${state.green}, ${state.blue})`,
+        background: `rgb(${red.value}, ${green.value}, ${blue.value})`,
       }}
     >
       <button
         onClick$={() => {
-          state.red = Math.random() * 256;
-          state.green = Math.random() * 256;
-          state.blue = Math.random() * 256;
+          red.value = Math.random() * 256;
+          green.value = Math.random() * 256;
+          blue.value = Math.random() * 256;
         }}
       >
         Change background

@@ -1,8 +1,8 @@
-import { component$, useClientEffect$, useSignal } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const aHref = useSignal<Element>();
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     const handler = (event: Event) => {
       event.preventDefault();
       window.open('http://qwik.builder.io');

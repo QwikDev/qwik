@@ -31,13 +31,13 @@ let Thing;
     Thing[Thing["B"] = 1] = "B";
 })(Thing || (Thing = {}));
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
-export { Thing };
+export { Thing as _auto_Thing };
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;IAEA;UAAK,KAAK;IAAL,MAAA,MACD,OAAA,KAAA;IADC,MAAA,MAED,OAAA,KAAA;GAFC,UAAA;AAKL,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { Thing } from "./test";
+import { _auto_Thing as Thing } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const App_component_ckEPmXZlub0 = ()=>{

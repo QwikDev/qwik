@@ -1983,6 +1983,37 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_export_issue() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+const App = component$(() => {
+    return (
+        <div>hola</div>
+    );
+});
+
+
+export const Root = component$((props: Stuff) => {
+    return (
+        <App/>
+    );
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_jsx_keyed() {
     test_input!(TestInput {
         code: r#"

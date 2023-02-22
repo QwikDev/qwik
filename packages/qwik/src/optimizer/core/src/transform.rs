@@ -701,9 +701,14 @@ impl<'a> QwikTransform<'a> {
     }
 
     fn ensure_export(&mut self, id: &Id) {
-        if self.options.global_collect.add_export(id.clone(), None) {
+        let exported_name: Option<JsWord> = Some(format!("_auto_{}", id.0).into());
+        if self
+            .options
+            .global_collect
+            .add_export(id.clone(), exported_name.clone())
+        {
             self.extra_bottom_items
-                .insert(id.clone(), create_synthetic_named_export(id));
+                .insert(id.clone(), create_synthetic_named_export(id, exported_name));
         }
     }
 
@@ -1657,7 +1662,7 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>) {
     )));
 }
 
-pub fn create_synthetic_named_export(local: &Id) -> ast::ModuleItem {
+pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
         span: DUMMY_SP,
         type_only: false,
@@ -1666,7 +1671,8 @@ pub fn create_synthetic_named_export(local: &Id) -> ast::ModuleItem {
             span: DUMMY_SP,
             is_type_only: false,
             orig: ast::ModuleExportName::Ident(new_ident_from_id(local)),
-            exported: None,
+            exported: exported
+                .map(|name| ast::ModuleExportName::Ident(ast::Ident::new(name, DUMMY_SP))),
         })],
         src: None,
     }))

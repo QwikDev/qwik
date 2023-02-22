@@ -107,8 +107,9 @@ export async function configureDevServer(
             });
           });
 
-          const srcBase = opts.srcDir ?
-           path.relative(opts.rootDir,opts.srcDir).replace(/\\/g, '/') : 'src';
+          const srcBase = opts.srcDir
+            ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
+            : 'src';
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -118,10 +119,10 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
-                  const defaultChunk = [symbolName, `/${srcBase}/${symbolName.toLowerCase()}.js`] as [
-                    string,
-                    string
-                  ];
+                  const defaultChunk = [
+                    symbolName,
+                    `/${srcBase}/${symbolName.toLowerCase()}.js`,
+                  ] as [string, string];
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
                     return mapper[hash] ?? defaultChunk;

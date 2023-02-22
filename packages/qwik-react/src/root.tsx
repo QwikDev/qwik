@@ -1,8 +1,9 @@
+import { component$ } from '@builder.io/qwik';
 import { App } from './examples/app';
 
-export const Root = () => {
+export const Root = component$(() => {
   return (
-    <html>
+    <>
       <head>
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
@@ -18,7 +19,6 @@ export const Root = () => {
           `}
         </style>
       </head>
-
       <body>
         <box />
         <box />
@@ -33,6 +33,6 @@ export const Root = () => {
         <box />
         <App client:visible />
       </body>
-    </html>
+    </>
   );
-};
+});

@@ -92,7 +92,11 @@ export const createQRL = <TYPE>(
     return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
-  const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
+  function invokeFn(
+    this: any,
+    currentCtx?: InvokeContext | InvokeTuple,
+    beforeFn?: () => void | boolean
+  ) {
     return ((...args: any[]): any => {
       const start = now();
       const fn = resolveLazy() as TYPE;
@@ -107,12 +111,12 @@ export const createQRL = <TYPE>(
             $qrl$: QRL as QRLInternal<any>,
           };
           emitUsedSymbol(symbol, context.$element$, start);
-          return invoke(context, fn as any, ...args);
+          return invoke.call(this, context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
       });
     }) as any;
-  };
+  }
 
   const createInvokationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
@@ -124,8 +128,8 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const invokeQRL = async function (...args: any) {
-    const fn = invokeFn();
+  const invokeQRL = async function (this: any, ...args: any) {
+    const fn = invokeFn.call(this);
     const result = await fn(...args);
     return result;
   };

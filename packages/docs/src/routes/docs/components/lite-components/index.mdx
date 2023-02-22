@@ -39,16 +39,14 @@ lazy-loaded; instead they are bundled with their parent component. In this case:
 - `MyButton` will get bundled with the `MyApp` component.
 - Whenever `MyApp` is rendered, it will also guarantee that `MyButton` is
 rendered.
-- `MyButton` does not have a host element.
+- `MyButton` does not have a [host element](../../../integrations/integration/react/#host-element).
 
-[//]: # (TODO: Detemine if "host element" above is a well defined concept by
-this point in the docs)
 You can think of lightweight components as being inlined into the component where they are instantiated.
 
 ## Limitations
 Lite components come with some limitations that the standard `component$()`
 does not have. Lite components:
-- Cannot use `use` methods, such as `useSignal` or `useStore`.
+- Cannot use `use` methods such as `useSignal` or `useStore`.
 
 As the name implies, lite components are best used sparingly for
 lightweight pieces of markup since they offer the convenience of being

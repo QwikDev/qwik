@@ -6,6 +6,7 @@ contributors:
   - RATIU5
   - manucorporat
   - adamdbradley
+
 ---
 
 # Reactivity
@@ -14,24 +15,24 @@ Reactivity is a key component of Qwik. Reactivity allows Qwik to track which com
 
 ## Proxy
 
-Reactivity requires that the framework keeps track of the relationship between the state of the applications and the components. The framework must render the whole application at least once to build the reactivity graph. The build of reactive graph initially happens on the server and is serialized to HTML so that the browser can use the information without being forced to do a single pass through all components to rebuild the graph. (Qwik does not need to do hydration to register events or build up the reactivity graph.)
+Reactivity requires that the framework keeps track of the relationship between the state of the application and the components. The framework must render the whole application at least once to build the reactivity graph. The build of reactive graph initially happens on the server and is serialized to HTML so that the browser can use the information without being forced to do a single pass through all components to rebuild the graph. (Qwik does not need to do hydration to register events or build up the reactivity graph).
 
 Reactivity can be done in a few ways:
 
-1. using explicit registration of listeners using `.subscribe()` (for example, RxJS)
-2. using implicit registration using a compiler (for example, Svelte)
-3. using implicit registration using proxies.
+1. Using explicit registration of listeners using `.subscribe()` (for example, RxJS)
+2. Using implicit registration using a compiler (for example, Svelte)
+3. Using implicit registration using proxies.
 
 Qwik uses proxies for a few reasons:
 
-1. using explicit registration such as `.subscribe()` would require the system to serialize all of the subscribed listeners to avoid hydration. Serializing subscribed closures would not be possible as all the subscribe functions would have to be lazy-loaded and asynchronous (too expensive).
-2. using the compiler to create graphs implicitly would work, but only for components. Intra component communications would still require `.subscribe()` methods and hence suffer the issues described above.
+1. Using explicit registration such as `.subscribe()` would require the system to serialize all of the subscribed listeners to avoid hydration. Serializing subscribed closures would not be possible as all the subscribe functions would have to be lazy-loaded and asynchronous (too expensive).
+2. Using the compiler to create graphs implicitly would work, but only for components. Intra component communications would still require `.subscribe()` methods and hence suffer the issues described above.
 
 Because of the above constraints, Qwik uses proxies to keep track of the reactivity graph.
 
-- use [`useStore()`](/docs/components/state/index.mdx#usestore) to create a store proxy.
-- the proxy notices the reads and creates subscriptions that are serializable.
-- the proxy notices the writes and uses the subscription information to invalidate the relevant components.
+- Use [`useStore()`](/docs/components/state/index.mdx#usestore) to create a store proxy.
+- The proxy notices the reads and creates subscriptions that are serializable.
+- The proxy notices the writes and uses the subscription information to invalidate the relevant components.
 
 ## Counter Example
 
@@ -123,9 +124,9 @@ export const MyComp = component$(() => {
 
 ## Out-of-order rendering
 
-Qwik components can render out of order. A component can render without forcing a parent component to render first or a child components to render as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to a state change rather than re-rendering the whole component tree on a state change.
+Qwik components are rendered out of order. A component can be rendered without forcing a parent component to be rendered first or a child components to be rendered as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to a state change rather than re-rendering the whole component tree on a state change.
 
-When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See [serialization](../resumable/index.mdx#serialization) for an in-depth discussion on what is serializable)
+When components are rendered, they need to have access to their props. Parent components create props. The props must be [serializable](../resumable/index.mdx#serialization) for the component to render independently from the parent.
 
 ## Invalidating child components
 

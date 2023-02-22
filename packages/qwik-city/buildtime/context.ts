@@ -50,7 +50,7 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   opts.routesDir = normalizePath(opts.routesDir);
 
   if (typeof opts.serverPluginsDir !== 'string') {
-    opts.serverPluginsDir = resolve(rootDir, 'src', 'routes');
+    opts.serverPluginsDir = opts.routesDir;
   } else if (!isAbsolute(opts.serverPluginsDir)) {
     opts.serverPluginsDir = resolve(rootDir, opts.serverPluginsDir);
   }

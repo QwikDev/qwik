@@ -41,20 +41,29 @@ export interface ActionConstructor {
     // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>): Action<O>;
+    <O>(actionQrl: (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>, options?: ActionOptions): Action<O>;
     // Warning: (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O, B extends ZodReturn>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>, false>;
+    <O, B extends ZodReturn>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B | ActionOptionsWithValidation<B>): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>, false>;
 }
 
 // @alpha (undocumented)
-export type ActionOptions = z.ZodRawShape;
+export interface ActionOptions {
+    // (undocumented)
+    id?: string;
+}
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export const actionQrl: <B, A>(actionQrl: QRL<(form: JSONObject, event: RequestEventLoader_2) => ValueOrPromise<B>>, options?: ZodReturn) => Action<B, A, true>;
+export interface ActionOptionsWithValidation<B extends ZodReturn> extends ActionOptions {
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    validation: B;
+}
+
+// @alpha (undocumented)
+export const actionQrl: <B, A>(actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<B>>, options?: ActionOptionsWithValidation<ZodReturn> | ZodReturn) => Action<B, A, true>;
 
 // @alpha (undocumented)
 export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
@@ -231,8 +240,11 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "LoaderOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export const loader$: <RETURN>(first: (event: RequestEventLoader_2) => RETURN) => Loader<RETURN>;
+export const loader$: <RETURN>(first: (event: RequestEventLoader_2) => RETURN, options?: LoaderOptions | undefined) => Loader<RETURN>;
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
@@ -242,7 +254,7 @@ export interface Loader<RETURN> {
 }
 
 // @alpha (undocumented)
-export const loaderQrl: <RETURN>(loaderQrl: QRL<(event: RequestEventLoader_2) => RETURN>) => Loader<RETURN>;
+export const loaderQrl: <RETURN>(loaderQrl: QRL<(event: RequestEventLoader_2) => RETURN>, options?: LoaderOptions) => Loader<RETURN>;
 
 // @alpha (undocumented)
 export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<Awaited<T>>>;
@@ -391,9 +403,9 @@ export const zod$: Zod;
 // @alpha (undocumented)
 export interface Zod {
     // (undocumented)
-    <T extends ActionOptions>(schema: T): Promise<z.ZodObject<T>>;
+    <T extends z.ZodRawShape>(schema: T): Promise<z.ZodObject<T>>;
     // (undocumented)
-    <T extends ActionOptions>(schema: (z: z) => T): Promise<z.ZodObject<T>>;
+    <T extends z.ZodRawShape>(schema: (z: z) => T): Promise<z.ZodObject<T>>;
     // (undocumented)
     <T extends z.Schema>(schema: T): Promise<T>;
     // (undocumented)
@@ -401,10 +413,10 @@ export interface Zod {
 }
 
 // @alpha (undocumented)
-export const zodQrl: (qrl: QRL<z.ZodRawShape | z.ZodType<any, z.ZodTypeDef, any> | ((z: z) => ActionOptions)>) => Promise<z.ZodType<any, z.ZodTypeDef, any> | undefined>;
+export const zodQrl: (qrl: QRL<z.ZodRawShape | z.ZodType<any, z.ZodTypeDef, any> | ((z: z) => z.ZodRawShape)>) => Promise<z.ZodType<any, z.ZodTypeDef, any> | undefined>;
 
 // @alpha (undocumented)
-export type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>>;
+export type ZodReturn<T extends z.ZodRawShape = any> = Promise<z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>>;
 
 // (No @packageDocumentation comment for this package)
 

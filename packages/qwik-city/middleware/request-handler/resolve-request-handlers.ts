@@ -191,7 +191,14 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     if (serverLoaders.length > 0) {
       await Promise.all(
         serverLoaders.map((loader) => {
-          const loaderId = loader.__qrl.getHash();
+          const loaderId = loader.__id;
+          if (isDev) {
+            if (loaders[loaderId]) {
+              throw new Error(
+                `Duplicate loader id "${loaderId}" detected. Please ensure that all loader ids are unique.`
+              );
+            }
+          }
           return (loaders[loaderId] = Promise.resolve()
             .then(() => loader.__qrl(requestEv as any))
             .then((loaderResolved) => {

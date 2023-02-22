@@ -32,6 +32,7 @@ export type {
   LoaderSignal,
   ActionConstructor,
   ActionOptions,
+  ActionOptionsWithValidation,
   FailReturn,
   Zod,
   ZodReturn,

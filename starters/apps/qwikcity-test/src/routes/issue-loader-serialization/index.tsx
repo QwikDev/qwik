@@ -2,11 +2,16 @@ import { component$, useBrowserVisibleTask$, useSignal, useTask$ } from '@builde
 import { loader$ } from '@builder.io/qwik-city';
 import { isBrowser } from '@builder.io/qwik/build';
 
-export const useCmp1 = loader$(() => {
-  return {
-    message: 'loader-cmp1',
-  };
-});
+export const useCmp1 = loader$(
+  () => {
+    return {
+      message: 'loader-cmp1',
+    };
+  },
+  {
+    id: 'cmp-1',
+  }
+);
 
 export const useCmp2 = loader$(() => {
   return {

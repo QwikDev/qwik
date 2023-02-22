@@ -78,14 +78,18 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
         const { _deserializeData, _serializeData, _verifySerializable } =
-          await server.ssrLoadModule('@builder.io/qwik');
+          await server.ssrLoadModule('@qwik-serializer', {
+            fixStacktrace: false,
+          });
         const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
 
         const serverPlugins: RouteModule[] = [];
         for (const file of ctx.serverPlugins) {
-          const layoutModule = await server.ssrLoadModule(file.filePath);
+          const layoutModule = await server.ssrLoadModule(file.filePath, {
+            fixStacktrace: false,
+          });
           serverPlugins.push(layoutModule);
           routeModulePaths.set(layoutModule, file.filePath);
         }
@@ -101,11 +105,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // found a matching route
           for (const layout of route.layouts) {
-            const layoutModule = await server.ssrLoadModule(layout.filePath);
+            const layoutModule = await server.ssrLoadModule(layout.filePath, {
+              fixStacktrace: false,
+            });
             routeModules.push(layoutModule);
             routeModulePaths.set(layoutModule, layout.filePath);
           }
-          const endpointModule = await server.ssrLoadModule(route.filePath);
+          const endpointModule = await server.ssrLoadModule(route.filePath, {
+            fixStacktrace: false,
+          });
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
         }
@@ -138,7 +146,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         let menu: ContentMenu | undefined = undefined;
         const menus = ctx.menus.map((buildMenu) => {
           const menuLoader: MenuModuleLoader = async () => {
-            const m = await server.ssrLoadModule(buildMenu.filePath);
+            const m = await server.ssrLoadModule(buildMenu.filePath, {
+              fixStacktrace: false,
+            });
             const menuModule: MenuModule = {
               default: m.default,
             };

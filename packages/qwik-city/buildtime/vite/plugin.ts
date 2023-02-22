@@ -122,6 +122,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     resolveId(id) {
+      if (id === QWIK_SERIALIZER) {
+        return join(rootDir!, id);
+      }
       if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID) {
         return {
           id: join(rootDir!, id),
@@ -155,10 +158,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
           // @qwik-city-entries
           return generateQwikCityEntries(ctx);
         }
-
+        const isSerializer = id.endsWith(QWIK_SERIALIZER);
         const isCityPlan = id.endsWith(QWIK_CITY_PLAN_ID);
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
+        if (isSerializer) {
+          return `export {_deserializeData, _serializeData, _verifySerializable} from '@builder.io/qwik'`;
+        }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
@@ -315,6 +321,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   return plugin;
 }
 
+const QWIK_SERIALIZER = '@qwik-serializer';
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';

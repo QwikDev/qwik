@@ -260,4 +260,22 @@ test.describe('signals', () => {
     await btn.click();
     await expect(results).toHaveText('Content');
   });
+
+  test('issue 2930', async ({ page }) => {
+    const input = page.locator('#issue-2930-input');
+    const results = page.locator('.issue-2930-result');
+    await expect(results).toHaveText([
+      '{"controls":{"ctrl":{"value":""}}}',
+      '{"ctrl":{"value":""}}',
+      '{"value":""}',
+      '""',
+    ]);
+    await input.fill('test');
+    await expect(results).toHaveText([
+      '{"controls":{"ctrl":{"value":"test"}}}',
+      '{"ctrl":{"value":"test"}}',
+      '{"value":"test"}',
+      '"test"',
+    ]);
+  });
 });

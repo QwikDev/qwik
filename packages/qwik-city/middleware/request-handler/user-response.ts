@@ -1,9 +1,10 @@
 import type { QwikSerializer, ServerRequestEvent } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent, RequestEventInternal } from './request-event';
-import { ErrorResponse, getErrorHtml } from './error-handler';
+import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
+import { encoder } from './resolve-request-handlers';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -39,6 +40,7 @@ export function runQwikCity<T>(
 
 async function runNext(requestEv: RequestEventInternal, resolve: (value: any) => void) {
   try {
+    // Run all middlewares
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
@@ -51,6 +53,19 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
         requestEv.html(e.status, html);
       }
     } else if (!(e instanceof AbortMessage)) {
+      try {
+        if (!requestEv.headersSent) {
+          requestEv.headers.set('content-type', 'text/html; charset=utf-8');
+          requestEv.cacheControl({ noCache: true });
+          requestEv.status(500);
+        }
+        const stream = requestEv.getWritableStream();
+        const writer = stream.getWriter();
+        await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+        await writer.close();
+      } catch {
+        // nothing
+      }
       return e;
     }
   } finally {

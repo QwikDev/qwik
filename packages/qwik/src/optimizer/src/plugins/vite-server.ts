@@ -122,7 +122,7 @@ export async function configureDevServer(
                   const defaultChunk = [
                     symbolName,
                     `/${srcBase}/${symbolName.toLowerCase()}.js`,
-                  ] as [string, string];
+                  ] as const;
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
                     return mapper[hash] ?? defaultChunk;

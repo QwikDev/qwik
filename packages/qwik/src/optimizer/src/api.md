@@ -365,10 +365,10 @@ export interface SourceLocation {
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 // @alpha (undocumented)
-export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
 // @alpha (undocumented)
-export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => [symbol: string, chunk: string] | undefined;
+export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
 
 // @alpha (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';

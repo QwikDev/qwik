@@ -274,7 +274,7 @@ export interface QwikManifest {
 /**
  * @alpha
  */
-export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
 /**
  * @alpha
@@ -282,7 +282,7 @@ export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
 export type SymbolMapperFn = (
   symbolName: string,
   mapper: SymbolMapper | undefined
-) => [symbol: string, chunk: string] | undefined;
+) => readonly [symbol: string, chunk: string] | undefined;
 
 /**
  * @alpha

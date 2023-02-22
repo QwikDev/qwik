@@ -94,7 +94,7 @@ export interface ContextId<STATE extends object> {
 
 // @alpha
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string, chunk: string | null) => [symbol: string, chunk: string] | undefined;
+    chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;

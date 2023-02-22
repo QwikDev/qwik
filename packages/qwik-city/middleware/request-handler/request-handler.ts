@@ -1,6 +1,6 @@
 import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
-import type { ServerRenderOptions, ServerRequestEvent } from './types';
+import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
 import type { MenuData, RouteModule } from '../../runtime/src/types';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
@@ -11,13 +11,14 @@ import { loadRoute } from '../../runtime/src/routing';
  */
 export async function requestHandler<T = unknown>(
   serverRequestEv: ServerRequestEvent<T>,
-  opts: ServerRenderOptions
+  opts: ServerRenderOptions,
+  qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
   const { render, qwikCityPlan } = opts;
   const { routes, serverPlugins, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, trailingSlash);
-  const loadedRoute = await loadRequestHandlers(
+  const route = await loadRequestHandlers(
     serverPlugins,
     routes,
     menus,
@@ -26,13 +27,14 @@ export async function requestHandler<T = unknown>(
     serverRequestEv.request.method,
     render
   );
-  if (loadedRoute) {
+  if (route) {
     return runQwikCity(
       serverRequestEv,
-      loadedRoute[0],
-      loadedRoute[1],
+      route[0],
+      route[1],
       trailingSlash,
-      basePathname
+      basePathname,
+      qwikSerializer
     );
   }
   return null;
@@ -55,7 +57,7 @@ async function loadRequestHandlers(
     renderQwikMiddleware(renderFn)
   );
   if (requestHandlers.length > 0) {
-    return [route?.[0] ?? {}, requestHandlers] as const;
+    return [route, requestHandlers] as const;
   }
   return null;
 }

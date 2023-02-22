@@ -24,9 +24,9 @@ Simple counter-example:
 
 ```tsx
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 
@@ -52,13 +52,14 @@ Qwik lazy loads components on an as-needed basis. To minimize the number of comp
 
 ```tsx
 export const Parent = component$(() => {
-  const store = useStore({ count: 0, step: 1 });
+  const count = useSignal(0);
+  const step = useSignal(1);
 
   return (
     <>
-      <button onClick$={() => (store.step *= -1)}>direction</button>
-      <button onClick$={() => (store.count += store.step)}>{store.step}</button>
-      <Greeter name={'World_' + store.count} />
+      <button onClick$={() => (step.value *= -1)}>direction</button>
+      <button onClick$={() => (count.value += step.value)}>{step.value}</button>
+      <Greeter name={'World_' + count.value} />
     </>
   );
 });
@@ -92,6 +93,14 @@ export const Parent = component$(() => {
 ```
 
 > note: it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
+
+### `dangerouslySetInnerHTML`
+
+Qwik offers an attribute on HTML Elements called `dangerouslySetInnerHTML` as a replacement for calling `innerHTML` on the DOM. Due to cross-site-scripting (XSS) possibilities when rendering not trustworthy content, you must use this attribute to remind yourself that this operation might be dangerous.
+
+```tsx
+<div dangerouslySetInnerHTML={content}></div>
+```
 
 ## `render()` is async
 

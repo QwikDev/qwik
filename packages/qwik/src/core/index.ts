@@ -8,7 +8,6 @@ export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/co
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { _pauseFromContexts, _serializeData } from './container/pause';
 export type {
   SnapshotState,
   SnapshotResult,
@@ -16,8 +15,6 @@ export type {
   SnapshotMetaValue,
   SnapshotListener,
 } from './container/container';
-
-export { _deserializeData } from './container/resume';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
@@ -71,7 +68,7 @@ export { useStore } from './use/use-store.public';
 export { useRef } from './use/use-ref';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
-export { useContext, useContextProvider, createContext } from './use/use-context';
+export { useContext, useContextProvider, createContextId, createContext } from './use/use-context';
 export { useServerData, useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
@@ -80,13 +77,14 @@ export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
-export type { Context } from './use/use-context';
+export type { ContextId, Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
   TaskFn,
-  UseEffectOptions,
+  OnVisibleTaskOptions,
+  VisibleTaskStrategy,
   EagernessOptions,
   ResourceReturn,
   ResourceCtx,
@@ -102,13 +100,13 @@ export { useWatch$, useWatchQrl } from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useTask$, useTaskQrl } from './use/use-task';
+export { useBrowserVisibleTask$, useBrowserVisibleTaskQrl } from './use/use-task';
 export { useClientEffect$, useClientEffectQrl } from './use/use-task';
 export { useMount$, useMountQrl } from './use/use-mount';
 export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
-export { useRender } from './use/use-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

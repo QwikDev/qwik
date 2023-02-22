@@ -1,9 +1,9 @@
-import type { ServerRequestEvent } from './types';
-import type { PathParams, RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import { createRequestEvent } from './request-event';
+import type { QwikSerializer, ServerRequestEvent } from './types';
+import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
+import { createRequestEvent, RequestEventInternal } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
-import { HttpStatus } from './http-status-codes';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { LoadedRoute } from '../../runtime/src/types';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -13,23 +13,21 @@ export interface QwikCityRun<T> {
 
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
-  params: PathParams,
-  requestHandlers: RequestHandler<unknown>[],
+  loadedRoute: LoadedRoute | null,
+  requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
-  basePathname = '/'
+  basePathname = '/',
+  qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
-  if (requestHandlers.length === 0) {
-    throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
-  }
-
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(
     serverRequestEv,
-    params,
+    loadedRoute,
     requestHandlers,
     trailingSlash,
     basePathname,
+    qwikSerializer,
     resolve!
   );
   return {
@@ -39,12 +37,13 @@ export function runQwikCity<T>(
   };
 }
 
-async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
+async function runNext(requestEv: RequestEventInternal, resolve: (value: any) => void) {
   try {
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
-      requestEv.getWritableStream().close();
+      const stream = requestEv.getWritableStream();
+      await stream.close();
     } else if (e instanceof ErrorResponse) {
       console.error(e);
       if (!requestEv.headersSent) {
@@ -55,7 +54,9 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
       return e;
     }
   } finally {
-    resolve(null);
+    if (!requestEv.isDirty()) {
+      resolve(null);
+    }
   }
   return undefined;
 }

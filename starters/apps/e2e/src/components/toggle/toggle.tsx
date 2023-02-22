@@ -1,7 +1,7 @@
 /* eslint-disable */
 import {
   component$,
-  createContext,
+  createContextId,
   useStore,
   useCleanup$,
   useContextProvider,
@@ -11,9 +11,9 @@ import {
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
-export const CTX = createContext<{ message: string; count: number }>('toggle');
+export const CTX = createContextId<{ message: string; count: number }>('toggle');
 
-export const CTX_LOCAL = createContext<{ logs: string }>('logs');
+export const CTX_LOCAL = createContextId<{ logs: string }>('logs');
 
 export const Toggle = component$(() => {
   const store = useStore({

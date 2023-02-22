@@ -4,7 +4,7 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useBrowserVisibleTask$, useTask$ } from '../../use/use-task';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -453,6 +453,9 @@ renderSuite('should project multiple slot with same name', async () => {
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
       <!--qv q:key=sX:-->
+      <q:template q:slot="ignore" hidden="" aria-hidden="true">
+        <span q:slot="ignore">IGNORE</span>
+      </q:template>
       <section>
         <!--qv q:key q:sref=0 q:s-->
         <!--/qv-->
@@ -463,9 +466,6 @@ renderSuite('should project multiple slot with same name', async () => {
         <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>
-      <q:template q:slot="ignore" hidden="" aria-hidden="true">
-        <span q:slot="ignore">IGNORE</span>
-      </q:template>
       <!--/qv-->
     </host>
     `
@@ -971,7 +971,7 @@ export const Transparent = component$(() => {
 });
 
 export const UseEvents = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('hello');
   });
   useOn(
@@ -1012,7 +1012,7 @@ export const Hooks = component$(() => {
     };
   });
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     effectDiv.current!.textContent = 'true';
     return () => {
       effectDestroyDiv.current!.textContent = 'true';

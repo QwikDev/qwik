@@ -1,9 +1,8 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { filterStack, logError, logWarn } from '../../util/log';
+import { logError, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
-import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
 import { verifySerializable } from '../../state/common';
@@ -41,7 +40,12 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
       invoke(undefined, () => {
         const isQwikC = isQwikComponent(type);
         if (!isString(type) && !isFunction(type)) {
-          throw qError(QError_invalidJsxNodeType, String(type));
+          throw createJSXError(
+            `The <Type> of the JSX element must be either a string or a function. Instead, it's a "${typeof type}": ${String(
+              type
+            )}.`,
+            this as any
+          );
         }
         if (isArray((props as any).children)) {
           const flatChildren = (props as any).children.flat();
@@ -91,13 +95,18 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             const value = (props as any)[prop];
             if (prop.endsWith('$') && value) {
               if (!isQrl(value) && !Array.isArray(value)) {
-                throw qError(QError_invalidJsxNodeType, String(value));
+                throw createJSXError(
+                  `The value passed in ${prop}={...}> must be a QRL, instead you passed a "${typeof value}". Make sure your ${typeof value} is wrapped with $(...), so it can be serialized. Like this:\n$(${String(
+                    value
+                  )})`,
+                  this as any
+                );
               }
             }
             if (prop !== 'children' && isQwikC && value) {
               verifySerializable(
                 value,
-                `The value of the JSX property "${prop}" can not be serialized`
+                `The value of the JSX attribute "${prop}" can not be serialized`
               );
             }
           }
@@ -128,6 +137,16 @@ In order to disable content escaping use '<script dangerouslySetInnerHTML={conte
           }
         }
       });
+    }
+    if (isString(type)) {
+      if ('className' in (props as any)) {
+        (props as any)['class'] = (props as any)['className'];
+        delete (props as any)['className'];
+        if (qDev && !warnClassname) {
+          warnClassname = true;
+          logWarn('jsx: `className` is deprecated. Use `class` instead.');
+        }
+      }
     }
   }
 }
@@ -230,6 +249,14 @@ export const createJSXError = (message: string, node: JSXNode) => {
   error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
   ONCE_JSX.add(key);
   return error;
+};
+
+const filterStack = (stack: string, offset: number = 0) => {
+  return stack
+    .split('\n')
+    .slice(offset)
+    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
+    .join('\n');
 };
 
 export { jsx as jsxs };

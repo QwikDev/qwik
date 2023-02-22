@@ -121,7 +121,7 @@ The `obs` passed into the `taskFn` is used to mark `state.count` as a property o
 
 @public
 
-# `useClientEffect`
+# `useBrowserVisibleTask`
 
 <docs code="./examples.tsx#use-client-effect"/>
 
@@ -206,7 +206,7 @@ Component styles allow Qwik to lazy load the style information for the component
 It can be used to release resources, abort network requests, stop timers...
 
 @alpha
-@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useClientEffect$()` instead.
+@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useBrowserVisibleTask$()` instead.
 
 # `useOn`
 
@@ -314,7 +314,7 @@ At first glance, `QRL` serves the same purpose as `import()`. However, there are
 
 Let's assume that you intend to write code such as this:
 
-```typescript
+```tsx
 return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
 ```
 
@@ -407,26 +407,26 @@ NOTE: `useDocument` method can only be used in the synchronous portion of the ca
 
 @alpha
 
-# `Context`
+# `ContextId`
 
-Context is a typesafe ID for your context.
+ContextId is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
 <docs code="./examples.tsx#context"/>
 @public
 
-# `createContext`
+# `createContextId`
 
 Create a context ID to be used in your application.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. a `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 

@@ -38,7 +38,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 ============================= test.tsx ==
 
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
-export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const store = useStore({
         count: 0
     });
@@ -52,7 +52,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: inlinedQrl(()=>{
+                    onClick$: /*#__PURE__*/ inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "s_odz7eidI4GM", [
@@ -66,7 +66,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "s_Fh88JClhbC0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAE,IAAI,EAAE,GAAG,EAAE,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,wBAAwB,IAAI;IACzD,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IACA,OAAO,WAAW,GAAG,KAAK,OAAO;QAC7B,UAAU;YACN,WAAW,GAAG,KAAK,KAAK;gBACpB,UAAU;oBACN;oBACA,MAAM,KAAK;iBACd;YACL;YACA,WAAW,GAAG,IAAI,KAAK;gBACnB,UAAU,WAAW,GAAG,IAAI,UAAU;oBAClC,QAAQ,aAAa,IAAI;wBACrB,MAAM,CAAC,MAAM,GAAG;wBAChB,OAAO,MAAM,KAAK;oBACtB;;;oBAGA,UAAU;gBACd;YACJ;SACH;IACL;AACJ,qBAAiC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAE,IAAI,EAAE,GAAG,EAAE,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB,IAAI;IACzD,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IACA,OAAO,WAAW,GAAG,KAAK,OAAO;QAC7B,UAAU;YACN,WAAW,GAAG,KAAK,KAAK;gBACpB,UAAU;oBACN;oBACA,MAAM,KAAK;iBACd;YACL;YACA,WAAW,GAAG,IAAI,KAAK;gBACnB,UAAU,WAAW,GAAG,IAAI,UAAU;oBAClC,QAAQ,2BAAa,IAAI;wBACrB,MAAM,CAAC,MAAM,GAAG;wBAChB,OAAO,MAAM,KAAK;oBACtB;;;oBAGA,UAAU;gBACd;YACJ;SACH;IACL;AACJ,qBAAiC\"}")
 == DIAGNOSTICS ==
 
 []

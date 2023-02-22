@@ -1,4 +1,4 @@
-export type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
+export type { FormSubmitCompletedDetail as FormSubmitSuccessDetail } from './form-component';
 
 export type {
   MenuData,
@@ -18,6 +18,7 @@ export type {
   RequestHandler,
   RequestEvent,
   RequestEventLoader,
+  RequestEventAction,
   RequestEventCommon,
   RouteParams,
   QwikCityPlan,
@@ -25,18 +26,19 @@ export type {
   RouteData,
   RouteLocation,
   StaticGenerateHandler,
-  ServerAction,
-  ServerLoader,
-  ServerActionUse,
-  ServerLoaderUse,
   Action,
+  Loader,
+  ActionStore,
+  LoaderSignal,
+  ActionConstructor,
   ActionOptions,
+  ActionOptionsWithValidation,
   FailReturn,
   Zod,
   ZodReturn,
   StaticGenerate,
   RouteNavigate,
-  GetFailReturn,
+  DeferReturn,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';
@@ -47,6 +49,8 @@ export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { action$, actionQrl } from './server-functions';
 export { loader$, loaderQrl } from './server-functions';
+export { server$, serverQrl } from './server-functions';
+
 export { zod$, zodQrl } from './server-functions';
 export { z } from 'zod';
 

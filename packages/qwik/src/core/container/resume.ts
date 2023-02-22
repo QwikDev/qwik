@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isText } from '../util/element';
+import { isComment, isElement, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 
@@ -26,6 +26,7 @@ import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
 import { getContext } from '../state/context';
 import { domToVnode } from '../render/dom/visitor';
+import { getWrappingContainer } from '../use/use-core';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -51,15 +52,31 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
 /**
  * @internal
  */
-export const _deserializeData = (data: string) => {
-  const [mainID, convertedObjs] = JSON.parse(data);
-  const parser = createParser({} as any, {} as any);
-  reviveValues(convertedObjs, parser);
-  const getObject: GetObject = (id) => convertedObjs[strToInt(id)];
-  for (const obj of convertedObjs) {
+export const _deserializeData = (data: string, element?: unknown) => {
+  const obj = JSON.parse(data);
+  if (typeof obj !== 'object') {
+    return null;
+  }
+  const { _objs, _entry } = obj;
+  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
+    return null;
+  }
+  let doc = {} as Document;
+  let containerState = {} as any;
+  if (element && isQwikElement(element)) {
+    const containerEl = getWrappingContainer(element);
+    if (containerEl) {
+      containerState = _getContainerState(containerEl);
+      doc = containerEl.ownerDocument;
+    }
+  }
+  const parser = createParser(containerState, doc);
+  reviveValues(_objs, parser);
+  const getObject: GetObject = (id) => _objs[strToInt(id)];
+  for (const obj of _objs) {
     reviveNestedObjects(obj, getObject, parser);
   }
-  return getObject(mainID);
+  return getObject(_entry);
 };
 
 export const resumeContainer = (containerEl: Element) => {

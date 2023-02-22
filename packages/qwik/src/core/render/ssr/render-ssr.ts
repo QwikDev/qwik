@@ -98,6 +98,7 @@ const IS_INVISIBLE = 1 << 4;
 const IS_PHASING = 1 << 5;
 const IS_ANCHOR = 1 << 6;
 const IS_BUTTON = 1 << 7;
+const IS_TABLE = 1 << 8;
 
 const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -423,8 +424,6 @@ const renderSSRComponent = (
             addQwikEvent(eventName, rCtx.$static$.$containerState$);
           }
           renderNodeElementSync('script', attributes, stream);
-          logWarn(`Component has listeners attached, but it does not render any elements, injecting a new <script> element to attach listeners.
-          This is likely to the usage of useClientEffect$() in a component that renders no elements.`);
         }
         if (beforeClose) {
           return then(renderQTemplates(rCtx, newSSrContext, stream), () => beforeClose(stream));
@@ -494,14 +493,6 @@ const renderNode = (
 ) => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
-  const dynamicChildren = hasDynamicChildren(node);
-  if (dynamicChildren && hostCtx) {
-    hostCtx.$flags$ |= HOST_FLAG_DYNAMIC;
-    const slotCtx = rCtx.$slotCtx$;
-    if (slotCtx) {
-      addDynamicSlot(hostCtx, slotCtx);
-    }
-  }
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
@@ -586,6 +577,18 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
           );
         }
       }
+      if (tagName === 'table') {
+        flags |= IS_TABLE;
+      } else {
+        if (flags & IS_TABLE && !tableContent[tagName]) {
+          throw createJSXError(
+            `The <table> element requires that its direct children to be '<tbody>' or '<thead>', instead, '<${tagName}>' was rendered.`,
+            node
+          );
+        }
+        flags &= ~IS_TABLE;
+      }
+
       if (tagName === 'button') {
         if (flags & IS_BUTTON) {
           throw createJSXError(
@@ -718,10 +721,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     const elCtx = createSSRContext(111);
     elCtx.$parent$ = rCtx.$cmpCtx$;
     elCtx.$slotParent$ = rCtx.$slotCtx$;
-    if (dynamicChildren) {
-      if (hostCtx) {
-        addDynamicSlot(hostCtx, elCtx);
-      }
+    if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
+      addDynamicSlot(hostCtx, elCtx);
     }
     return renderNodeVirtual(
       node as JSXNode<typeof Virtual>,
@@ -980,6 +981,11 @@ const htmlContent: Record<string, true | undefined> = {
   body: true,
 };
 
+const tableContent: Record<string, true | undefined> = {
+  tbody: true,
+  thead: true,
+};
+
 const headContent: Record<string, true | undefined> = {
   meta: true,
   title: true,
@@ -1103,8 +1109,4 @@ const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
 
 const normalizeInvisibleEvents = (eventName: string) => {
   return eventName === 'on:qvisible' ? 'on-document:qinit' : eventName;
-};
-
-const hasDynamicChildren = (node: JSXNode) => {
-  return (node.props as any)[_IMMUTABLE]?.children === false;
 };

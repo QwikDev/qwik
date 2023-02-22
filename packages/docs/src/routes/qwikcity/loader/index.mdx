@@ -107,15 +107,15 @@ export const Footer = component$(() => {
 import { component$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 
-export const useIsLogged = loader$(({cookies}) => {
+export const useIsLogged = loader$(({cookie}) => {
   return {
-    logged: checkCookies(cookies);
+    logged: checkcookie(cookie);
   }
 });
 
-export const useGetCurrentUser = loader$(({cookies}) => {
+export const useGetCurrentUser = loader$(({cookie}) => {
   return {
-    user: currentUserFromCookies(cookies);
+    user: currentUserFromcookie(cookie);
   }
 });
 
@@ -144,7 +144,7 @@ This information comes in handly when the loader needs to conditionally return d
 ```tsx
 export const getServerTime = loader$((ev) => {
   console.log('Request headers:', ev.headers);
-  console.log('Request cookies:', ev.cookies);
+  console.log('Request cookies:', ev.cookie);
   console.log('Request url:', ev.url);
   console.log('Request method:', ev.method);
   console.log('Request params:', ev.params);

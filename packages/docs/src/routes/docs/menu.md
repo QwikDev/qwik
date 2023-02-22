@@ -17,7 +17,6 @@
 - [Context](components/context/index.mdx)
 - [Resource](components/resource/index.mdx)
 - [Slots](components/projection/index.mdx)
-- [Rendering](components/rendering/index.mdx)
 - [Styling](components/styles/index.mdx)
 - [Lite components](components/lite-components/index.mdx)
 
@@ -38,6 +37,7 @@
 - [The $ dollar sign](advanced/dollar/index.mdx)
 - [Containers](advanced/containers/index.mdx)
 - [Prefetching](advanced/prefetching/index.mdx)
+- [Rendering](advanced/rendering/index.mdx)
 - [QRL](advanced/qrl/index.mdx)
 - [Qwikloader](advanced/qwikloader/index.mdx)
 - [Optimizer](advanced/optimizer/index.mdx)

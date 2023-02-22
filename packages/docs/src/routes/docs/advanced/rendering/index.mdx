@@ -48,31 +48,3 @@ In the above example, there are two buttons:
 1. Clicking the first button changes the direction of the counter (`store.step` flips between `+1` and `-1`). Changing the `store` (the component's *state*) requires that the component be rerendered, with the second button then showing either `+1` or `-1`. However, since `<Greeter name={'World_' + store.count}/>` does not depend on the `store.step` state, Qwik will not download (or rerender) the `<Greeter>` component.
 2. Clicking the second button increments/decrements `store.count`. This in turn causes the props on `<Greeter name={'World_' + store.count}/>` to change. A change in props means that Qwik will download and render (or rerender) `<Greeter>`. However, it is possible that Qwik does not have a reference to the `<Greeter>` component. In that case, Qwik will lazy-load the component and continue the rendering once the component is available to be rendered.
 
-### Rendering with `.map()`
-
-In many cases you'll want to render components by mapping an array of data in the render function with `data.map()`. In these cases, it is required to provide a key to the root child of the mapping function.
-
-```tsx
-export const Parent = component$(() => {
-  return (
-    <>
-      {data.map(({ content, uniqueKey }) => (
-        <div key={uniqueKey}>
-          <p>{content}</p>
-        </div>
-      ))}
-    </>
-  );
-});
-```
-
-> **NOTE** It is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier derived from the data as the key.
-
-### `dangerouslySetInnerHTML`
-
-Qwik offers an attribute on HTML Elements called `dangerouslySetInnerHTML` as a replacement for calling `innerHTML` on the DOM. Due to cross-site-scripting (XSS) possibilities when rendering untrustworthy content, you must use this attribute to remind yourself that this operation might be dangerous.
-
-```tsx
-<div dangerouslySetInnerHTML={content}></div>
-```
-

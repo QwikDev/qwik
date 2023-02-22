@@ -1,0 +1,28 @@
+### Rendering with `.map()`
+
+In many cases you'll want to render components by mapping an array of data in the render function with `data.map()`. In these cases, it is required to provide a key to the root child of the mapping function.
+
+```tsx
+export const Parent = component$(() => {
+  return (
+    <>
+      {data.map(({ content, uniqueKey }) => (
+        <div key={uniqueKey}>
+          <p>{content}</p>
+        </div>
+      ))}
+    </>
+  );
+});
+```
+
+> **NOTE** It is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier derived from the data as the key.
+
+### `dangerouslySetInnerHTML`
+
+Qwik offers an attribute on HTML Elements called `dangerouslySetInnerHTML` as a replacement for calling `innerHTML` on the DOM. Due to cross-site-scripting (XSS) possibilities when rendering untrustworthy content, you must use this attribute to remind yourself that this operation might be dangerous.
+
+```tsx
+<div dangerouslySetInnerHTML={content}></div>
+```
+

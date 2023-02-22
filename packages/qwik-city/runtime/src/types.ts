@@ -89,11 +89,36 @@ export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<inf
 /**
  * @alpha
  */
+export interface ActionOptions {
+  id?: string;
+}
+
+/**
+ * @alpha
+ */
+export interface ActionOptionsWithValidation<B extends ZodReturn> extends ActionOptions {
+  id?: string;
+  validation: B;
+}
+
+/**
+ * @alpha
+ */
 export interface ActionConstructor {
-  <O>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>): Action<O>;
+  // Without validation
+  <O>(
+    actionQrl: (
+      form: JSONObject,
+      event: RequestEventAction,
+      options: ActionOptions
+    ) => ValueOrPromise<O>,
+    options?: ActionOptions
+  ): Action<O>;
+
+  // With validation
   <O, B extends ZodReturn>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B
+    options: B | ActionOptionsWithValidation<B>
   ): Action<
     O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
     GetValidatorType<B>,
@@ -480,6 +505,7 @@ export interface Loader<RETURN> {
 export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
+  __id: string;
   (): LoaderSignal<any>;
 }
 
@@ -501,7 +527,8 @@ export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends bo
 
 export interface ActionInternal extends Action<any, any> {
   readonly __brand: 'server_action';
-  __qrl: QRL<(form: FormData, event: RequestEventAction) => ValueOrPromise<any>>;
+  __id: string;
+  __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<any>>;
   __schema: ZodReturn | undefined;
 
   (): ActionStore<any, any>;
@@ -514,12 +541,7 @@ export type Editable<T> = {
 /**
  * @alpha
  */
-export type ActionOptions = z.ZodRawShape;
-
-/**
- * @alpha
- */
-export type ZodReturn<T extends ActionOptions = any> = Promise<
+export type ZodReturn<T extends z.ZodRawShape = any> = Promise<
   z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>
 >;
 
@@ -527,8 +549,8 @@ export type ZodReturn<T extends ActionOptions = any> = Promise<
  * @alpha
  */
 export interface Zod {
-  <T extends ActionOptions>(schema: T): Promise<z.ZodObject<T>>;
-  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): Promise<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(schema: T): Promise<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): Promise<z.ZodObject<T>>;
   <T extends z.Schema>(schema: T): Promise<T>;
   <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): Promise<T>;
 }

@@ -9,6 +9,7 @@ import {
   createContextId,
   useContext,
   useContextProvider,
+  $,
 } from '@builder.io/qwik';
 
 interface State {
@@ -70,6 +71,7 @@ export const WatchShell = component$(({ store }: { nav: any; store: State }) => 
         +
       </button>
       <Issue1766Root />
+      <Issue2972 />
     </div>
   );
 });
@@ -180,5 +182,22 @@ export const Link = component$((props: { href: string }) => {
     >
       Navigate
     </button>
+  );
+});
+
+export function foo(this: any) {
+  return this.value;
+}
+
+export const Issue2972 = component$(() => {
+  const message = useSignal('');
+  useTask$(async () => {
+    message.value = await $(foo).apply({ value: 'passed' });
+  });
+
+  return (
+    <>
+      <div id="issue-2972">{message.value}</div>
+    </>
   );
 });

@@ -100,21 +100,22 @@ export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undef
     return invoke(ctx, callback.bind(undefined, ...args));
   }) as T;
 };
-export const invoke = <ARGS extends any[] = any[], RET = any>(
+export function invoke<ARGS extends any[] = any[], RET = any>(
+  this: any,
   context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET => {
+): RET {
   const previousContext = _context;
   let returnValue: RET;
   try {
     _context = context;
-    returnValue = fn.apply(null, args);
+    returnValue = fn.apply(this, args);
   } finally {
     _context = previousContext;
   }
   return returnValue;
-};
+}
 
 export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
   const waitOn = ctx.$waitOn$;

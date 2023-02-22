@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { IncomingMessage } from 'http';
+
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
@@ -106,6 +107,8 @@ export async function configureDevServer(
             });
           });
 
+          const srcBase = opts.srcDir ?
+           path.relative(opts.rootDir,opts.srcDir).replace(/\\/g, '/') : 'src';
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -115,7 +118,7 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
-                  const defaultChunk = [symbolName, `/src/${symbolName.toLowerCase()}.js`] as [
+                  const defaultChunk = [symbolName, `/${srcBase}/${symbolName.toLowerCase()}.js`] as [
                     string,
                     string
                   ];

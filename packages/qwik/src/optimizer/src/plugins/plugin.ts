@@ -153,7 +153,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.rootDir = optimizer.sys.cwd();
     }
     opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
-
     let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
     if (typeof updatedOpts.srcDir === 'string') {
       opts.srcDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.srcDir));

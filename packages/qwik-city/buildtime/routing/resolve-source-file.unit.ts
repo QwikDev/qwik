@@ -48,7 +48,6 @@ test('resolveLayout', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: '/',
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

@@ -63,14 +63,14 @@ This is a simple hello world component.
 
 ```tsx
 // File: src/components/counter/counter.tsx
-import { component$, useStyles$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useSignal } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
   return (
-    <button class="counter" type="button" onClick$={() => store.count++}>
-      Increment {store.count}
+    <button class="counter" type="button" onClick$={() => count.value++}>
+      Increment {count.value}
     </button>
   );
 });

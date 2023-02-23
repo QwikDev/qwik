@@ -12,7 +12,6 @@ import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
 import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
-import type { PluginOptions } from '../packages/qwik-city/buildtime/types';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -140,11 +139,9 @@ export {
       qwikCityDistVite
     );
 
-    const pluginOptions: PluginOptions = {
-      basePathname: '/qwikcity-test/',
-    };
-    plugins.push(qwikCityVite.qwikCity(pluginOptions as any));
+    plugins.push(qwikCityVite.qwikCity());
   }
+
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
     mode: 'development',

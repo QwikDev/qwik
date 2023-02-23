@@ -1,4 +1,4 @@
-import { component$, useStore, useStyles$, useClientEffect$ } from '@builder.io/qwik';
+import { component$, useStore, useStyles$, useBrowserVisibleTask$ } from '@builder.io/qwik';
 import styles from './clock.css';
 
 export default component$(() => {
@@ -35,7 +35,7 @@ export const Clock = component$(() => {
     second: {},
   });
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     const getStyle = (deg: number) => ({ transform: `rotate(${deg}deg)` });
     const update = () => {
       const now = new Date();

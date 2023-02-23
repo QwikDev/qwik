@@ -1,19 +1,19 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStylesScoped$ } from '@builder.io/qwik';
 
 export interface GroupLinkProps {
   link: string;
 }
 
 export const CSS = `
-  .docs article a.group-link {
+  .docs article a {
     color: var(--secondary-text-color);
   }
 `
 
 export const GroupLink = component$((props: GroupLinkProps) => {
-  useStyles$(CSS);
+  useStylesScoped$(CSS);
   return (
-    <a class="group-link" href={props.link} target="_blank">
+    <a href={props.link} target="_blank">
       <Slot />
     </a>
   );

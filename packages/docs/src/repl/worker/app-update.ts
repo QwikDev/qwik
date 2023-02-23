@@ -4,10 +4,14 @@ import { appBundleClient } from './app-bundle-client';
 import { appBundleSsr } from './app-bundle-ssr';
 import { appSsrHtml } from './app-ssr-html';
 import { loadDependencies } from './repl-dependencies';
-import { sendMessageToReplServer } from './repl-messenger';
+import { sendMessageToReplServer, WindowClient } from './repl-messenger';
 import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 
-export const appUpdate = async (clientId: string, options: ReplInputOptions) => {
+export const appUpdate = async (
+  source: WindowClient,
+  clientId: string,
+  options: ReplInputOptions
+) => {
   const result: ReplResult = {
     type: 'result',
     clientId,
@@ -41,5 +45,5 @@ export const appUpdate = async (clientId: string, options: ReplInputOptions) => 
     console.error(e);
   }
 
-  await sendMessageToReplServer(result);
+  await sendMessageToReplServer(source, result);
 };

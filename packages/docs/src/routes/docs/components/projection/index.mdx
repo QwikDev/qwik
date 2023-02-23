@@ -175,14 +175,14 @@ An example of a collapsible component which conditionally projects its content.
 
 ```tsx
 export const Collapsible = component$(() => {
-  const store = useStore({ isOpen: true });
+  const isOpen = useSignal(true);
 
   return (
     <div class="collapsible">
-      <div class="title" onClick$={() => (store.isOpen = !store.isOpen)}>
+      <div class="title" onClick$={() => (isOpen.value = !isOpen.value)}>
         <Slot name="title"></Slot>
       </div>
-      {store.isOpen ? <Slot /> : null}
+      {isOpen.value ? <Slot /> : null}
     </div>
   );
 });

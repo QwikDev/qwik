@@ -45,7 +45,7 @@ const note = (message = '', title = '') => {
 // End of used code from clack
 
 export async function runCreateInteractiveCli() {
-  intro(`Let's create a Qwik App ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${color.bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   const defaultProjectName = './qwik-app';
   const projectNameAnswer =

@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --platform-binding-wasm-copy",
@@ -129,7 +129,7 @@
   ],
   "packageManager": "pnpm@7.25.1",
   "engines": {
-    "node": ">=16",
+    "node": ">=16.8.0 <18.0.0 || >=18.11",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=7.18.0"

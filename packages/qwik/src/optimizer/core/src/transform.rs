@@ -788,7 +788,8 @@ impl<'a> QwikTransform<'a> {
         symbol_name: JsWord,
         span: Span,
     ) -> ast::CallExpr {
-        let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline);
+        let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
+            || matches!(expr, ast::Expr::Ident(_));
         let inlined_expr = if should_inline {
             expr
         } else {

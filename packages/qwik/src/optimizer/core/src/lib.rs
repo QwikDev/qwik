@@ -8,6 +8,7 @@
 #[cfg(test)]
 mod test;
 
+mod add_side_effect;
 mod code_move;
 mod collector;
 mod const_replace;

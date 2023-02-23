@@ -383,6 +383,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       await stream.close();
       await pipe;
     }
+    // On success, close the stream
     await writableStream.close();
   };
 }

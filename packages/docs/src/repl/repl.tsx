@@ -82,7 +82,7 @@ export const Repl = component$((props: ReplProps) => {
     if (v.version) {
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = new URL(`/repl/~repl-server-host.html#${store.clientId}`, origin).href;
+      store.serverUrl = new URL(`/repl/~repl-server-host.html?${store.clientId}`, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     } else {
@@ -121,6 +121,7 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
   const msg: ReplMessage = ev.data;
   const type = msg?.type;
   const clientId = msg?.clientId;
+  console.log(type, clientId, store.clientId);
   if (clientId === store.clientId) {
     if (type === 'replready') {
       // keep a reference to the repl server window

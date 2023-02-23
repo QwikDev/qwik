@@ -105,7 +105,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   };
 
   return {
-    useAuthSignup,
+    useAuthSignin,
     useAuthSignout,
     useAuthSession,
     onRequest,

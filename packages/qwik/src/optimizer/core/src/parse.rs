@@ -279,15 +279,16 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         ));
                     }
 
-                    // Resolve imports
-                    main_module.visit_mut_with(&mut inlining(Default::default()));
-
                     // Resolve with mark
                     main_module.visit_mut_with(&mut resolver(
                         unresolved_mark,
                         top_level_mark,
                         is_type_script && !transpile_ts,
                     ));
+
+                    if transpile_ts {
+                        main_module.visit_mut_with(&mut inlining(Default::default()));
+                    }
 
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);

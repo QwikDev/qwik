@@ -5,7 +5,7 @@ import {
   useStyles$,
   useStore,
   useTask$,
-  useClientEffect$,
+  useBrowserVisibleTask$,
   $,
 } from '@builder.io/qwik';
 import { ReplInputPanel } from './repl-input-panel';
@@ -76,7 +76,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  useClientEffect$(async () => {
+  useBrowserVisibleTask$(async () => {
     // only run on the client
     const v = await getReplVersion(input.version);
     if (v.version) {

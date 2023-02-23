@@ -1,6 +1,6 @@
 import { getNextActiveItemId } from '@algolia/autocomplete-core/dist/esm/utils';
 import { getItemsCount } from '@algolia/autocomplete-shared';
-import { component$, Ref, useClientEffect$, useContext } from '@builder.io/qwik';
+import { component$, Ref, useBrowserVisibleTask$, useContext } from '@builder.io/qwik';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
@@ -33,7 +33,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
     cancelButtonAriaLabel = 'Cancel',
   } = props.translations ?? {};
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     if (props.autoFocus) {
       props.inputRef.current?.focus();
     }

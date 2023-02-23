@@ -14,6 +14,7 @@ import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 
 export interface SubscriptionManager {
+  $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
   $clearSub$: (sub: SubscriberEffect | SubscriberHost) => void;
 }
@@ -22,6 +23,9 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
+/**
+ * @internal
+ */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
   return _verifySerializable(value, seen, '_', preMessage);
@@ -93,6 +97,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
   return value;
 };
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
+const weakSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
 export const shouldSerialize = (obj: any): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -101,8 +106,12 @@ export const shouldSerialize = (obj: any): boolean => {
   return true;
 };
 
-export const fastShouldSerialize = (obj: any): boolean => {
-  return !noSerializeSet.has(obj);
+export const fastSkipSerialize = (obj: any): boolean => {
+  return noSerializeSet.has(obj);
+};
+
+export const fastWeakSerialize = (obj: any): boolean => {
+  return weakSerializeSet.has(obj);
 };
 
 /**
@@ -137,6 +146,14 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   if (input != null) {
     noSerializeSet.add(input);
   }
+  return input as any;
+};
+
+/**
+ * @internal
+ */
+export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial<T> => {
+  weakSerializeSet.add(input);
   return input as any;
 };
 
@@ -192,7 +209,7 @@ type B = [
   signal: Record<string, any>,
   elm: QwikElement,
   prop: string,
-  key: string | undefined
+  key: string
 ];
 
 type C = [
@@ -201,7 +218,7 @@ type C = [
   signal: Record<string, any>,
   elm: Node,
   attribute: string,
-  key: string | undefined
+  key: string
 ];
 
 export type SubscriberSignal = B | C;
@@ -256,6 +273,7 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
   const groupToManagers: GroupToManagersMap = new Map();
   const manager: SubscriptionManager = {
+    $groupToManagers$: groupToManagers,
     $createManager$: (initialMap?: Subscriptions[]) => {
       return new LocalSubscriptionManager(groupToManagers, containerState, initialMap);
     },

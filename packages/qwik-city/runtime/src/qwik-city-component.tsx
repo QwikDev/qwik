@@ -1,15 +1,17 @@
 import {
   component$,
+  getLocale,
   JSXNode,
   noSerialize,
   Slot,
   useContextProvider,
-  useEnvData,
-  getLocale,
+  useServerData,
   useStore,
   useSignal,
-  $,
   useTask$,
+  $,
+  _weakSerialize,
+  _getContextElement,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
@@ -17,9 +19,12 @@ import type {
   ContentModule,
   ContentState,
   ContentStateInternal,
+  Editable,
   EndpointResponse,
+  LoadedRoute,
   MutableRouteLocation,
   PageModule,
+  ResolvedDocumentHead,
   RouteActionValue,
   RouteNavigate,
 } from './types';
@@ -39,6 +44,7 @@ import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
+import * as qwikCity from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -68,13 +74,14 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     throw new Error(`Missing Qwik City Env Data`);
   }
 
-  const urlEnv = useEnvData<string>('url');
+  const urlEnv = useServerData<string>('url');
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
 
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
     query: url.searchParams,
@@ -82,10 +89,10 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     isNavigating: false,
   });
 
-  const loaderState = useStore(env.response.loaders);
+  const loaderState = _weakSerialize(useStore(env.response.loaders));
   const navPath = useSignal(toPath(url));
-  const documentHead = useStore(createDocumentHead);
-  const content = useStore<ContentState>({
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
+  const content = useStore<Editable<ContentState>>({
     headings: undefined,
     menu: undefined,
   });
@@ -98,7 +105,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     currentAction
       ? {
           id: currentActionId!,
-          data: undefined,
+          data: env.response.formData,
           output: {
             result: currentAction,
             status: env.response.status,
@@ -119,6 +126,12 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
       navPath.value = value;
     }
+    if (isBrowser) {
+      const prefetchURL = new URL(navPath.value, routeLocation.url);
+      loadClientData(prefetchURL, _getContextElement());
+      loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, prefetchURL.pathname);
+    }
+
     actionState.value = undefined;
     routeLocation.isNavigating = true;
   });
@@ -135,51 +148,64 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     async function run() {
       const [path, action] = track(() => [navPath.value, actionState.value]);
       const locale = getLocale('');
-      const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
-      let url = new URL(path, routeLocation.href);
-      let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+      let url = new URL(path, routeLocation.url);
       let clientPageData: EndpointResponse | ClientPageData | undefined;
+      let loadedRoute: LoadedRoute | null = null;
       if (isServer) {
+        loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
-        const pageData = (clientPageData = await loadClientData(url.href, true, action));
+        // ensure correct trailing slash
+        if (url.pathname.endsWith('/')) {
+          if (!qwikCity.trailingSlash) {
+            url.pathname = url.pathname.slice(0, -1);
+          }
+        } else if (qwikCity.trailingSlash) {
+          url.pathname += '/';
+        }
+        let loadRoutePromise = loadRoute(
+          qwikCity.routes,
+          qwikCity.menus,
+          qwikCity.cacheModules,
+          url.pathname
+        );
+        const element = _getContextElement();
+        const pageData = (clientPageData = await loadClientData(url, element, true, action));
         if (!pageData) {
+          // Reset the path to the current path
+          (navPath as any).untrackedValue = toPath(url);
           return;
         }
-        const newHref = pageData?.href;
-        if (newHref) {
-          const newURL = new URL(newHref, url.href);
-          if (newURL.pathname !== url.pathname) {
-            url = newURL;
-            loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
-          }
+        const newHref = pageData.href;
+        const newURL = new URL(newHref, url.href);
+        if (newURL.pathname !== url.pathname) {
+          url = newURL;
+          loadRoutePromise = loadRoute(
+            qwikCity.routes,
+            qwikCity.menus,
+            qwikCity.cacheModules,
+            url.pathname
+          );
         }
+        loadedRoute = await loadRoutePromise;
       }
-      // ensure correct trailing slash
-      if (url.pathname.endsWith('/')) {
-        if (!trailingSlash) {
-          url.pathname = url.pathname.slice(0, -1);
-        }
-      } else if (trailingSlash) {
-        url.pathname += '/';
-      }
-      const pathname = url.pathname;
-      const loadedRoute = await loadRoutePromise;
+
       if (loadedRoute) {
         const [params, mods, menu] = loadedRoute;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Update route location
+        routeLocation.url = url;
         routeLocation.href = url.href;
-        routeLocation.pathname = pathname;
+        routeLocation.pathname = url.pathname;
         routeLocation.params = { ...params };
         routeLocation.query = url.searchParams;
 
-        (navPath as any).untrackedValue = pathname;
+        (navPath as any).untrackedValue = toPath(url);
 
         // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
+        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
 
         // Update content
         content.headings = pageModule.headings;
@@ -200,7 +226,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
           }
           CLIENT_DATA_CACHE.clear();
 
-          clientNavigate(window, pathname, navPath);
+          clientNavigate(window, url, navPath);
           routeLocation.isNavigating = false;
         }
       }
@@ -224,9 +250,9 @@ export const QwikCity = QwikCityProvider;
 
 /**
  * @alpha
- * @deprecated - The "Html" component has been renamed to "QwikCity".
+ * @deprecated - The "Html" component has been renamed to "QwikCityProvider".
  */
-export const Html = QwikCity;
+export const Html = QwikCityProvider;
 
 /**
  * @alpha
@@ -243,6 +269,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
+    url,
     href: url.href,
     pathname: url.pathname,
     query: url.searchParams,

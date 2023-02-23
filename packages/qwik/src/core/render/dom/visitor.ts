@@ -34,7 +34,7 @@ import {
   setQId,
   stringifyStyle,
 } from '../execute-component';
-import { addQwikEvent, setRef } from '../../container/container';
+import { addQwikEvent, ContainerState, setRef } from '../../container/container';
 import {
   getRootNode,
   newVirtualElement,
@@ -85,7 +85,7 @@ type KeyToIndexMap = { [key: string]: number };
 
 const CHILDREN_PLACEHOLDER: ProcessedJSXNode[] = [];
 type PropHandler = (
-  ctx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext | undefined,
   el: HTMLElement,
   key: string,
   newValue: any,
@@ -306,12 +306,18 @@ export const getProps = (node: Element) => {
     assertDefined(attr, 'attribute must be defined');
 
     const name = attr.name;
-    if (!name.includes(':')) {
-      if (name === 'class') {
-        props[name] = parseDomClass(attr.value);
-      } else {
-        props[name] = attr.value;
+    if (name.includes(':')) {
+      continue;
+    }
+    if (qDev) {
+      if (name === 'data-qwik-inspector') {
+        continue;
       }
+    }
+    if (name === 'class') {
+      props[name] = parseDomClass(attr.value);
+    } else {
+      props[name] = attr.value;
     }
   }
   return props;
@@ -517,25 +523,32 @@ const renderContentProjection = (
   // Remove empty templates
   for (const key of Object.keys(slotMaps.templates)) {
     const templateEl = slotMaps.templates[key];
-    if (templateEl) {
-      if (!splittedNewChidren[key] || slotMaps.slots[key]) {
-        removeNode(staticCtx, templateEl);
-        slotMaps.templates[key] = undefined;
-      }
+    if (templateEl && !splittedNewChidren[key]) {
+      slotMaps.templates[key] = undefined;
+      removeNode(staticCtx, templateEl);
     }
   }
 
   // Render into slots
   return promiseAll(
-    Object.keys(splittedNewChidren).map((key) => {
-      const newVdom = splittedNewChidren[key];
-      const slotElm = getSlotElement(staticCtx, slotMaps, hostCtx.$element$, key);
-      const slotCtx = getContext(slotElm, rCtx.$static$.$containerState$);
+    Object.keys(splittedNewChidren).map((slotName) => {
+      const newVdom = splittedNewChidren[slotName];
+      const slotCtx = getSlotCtx(
+        staticCtx,
+        slotMaps,
+        hostCtx,
+        slotName,
+        rCtx.$static$.$containerState$
+      );
       const oldVdom = getVdom(slotCtx);
       const slotRctx = pushRenderContext(rCtx);
       slotRctx.$slotCtx$ = slotCtx;
       slotCtx.$vdom$ = newVdom;
-      newVdom.$elm$ = slotElm;
+      newVdom.$elm$ = slotCtx.$element$;
+      const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotCtx.$element$);
+      if (index >= 0) {
+        staticCtx.$addSlots$.splice(index, 1);
+      }
       return smartUpdateChildren(slotRctx, oldVdom, newVdom, 'root', flags);
     })
   ) as any;
@@ -561,7 +574,7 @@ const addVnodes = (
 };
 
 const removeVnodes = (
-  ctx: RenderStaticContext,
+  staticCtx: RenderStaticContext,
   nodes: ProcessedJSXNode[],
   startIdx: number,
   endIdx: number
@@ -570,29 +583,32 @@ const removeVnodes = (
     const ch = nodes[startIdx];
     if (ch) {
       assertDefined(ch.$elm$, 'vnode elm must be defined');
-      removeNode(ctx, ch.$elm$);
+      removeNode(staticCtx, ch.$elm$);
     }
   }
 };
 
-const getSlotElement = (
-  ctx: RenderStaticContext,
+const getSlotCtx = (
+  staticCtx: RenderStaticContext,
   slotMaps: SlotMaps,
-  parentEl: QwikElement,
-  slotName: string
-): QwikElement => {
+  hostCtx: QContext,
+  slotName: string,
+  containerState: ContainerState
+): QContext => {
   const slotEl = slotMaps.slots[slotName];
   if (slotEl) {
-    return slotEl;
+    return getContext(slotEl, containerState);
   }
   const templateEl = slotMaps.templates[slotName];
   if (templateEl) {
-    return templateEl;
+    return getContext(templateEl, containerState);
   }
-  const template = createTemplate(ctx.$doc$, slotName);
-  prepend(ctx, parentEl, template);
+  const template = createTemplate(staticCtx.$doc$, slotName);
+  const elCtx = createContext(template);
+  elCtx.$parent$ = hostCtx;
+  prepend(staticCtx, hostCtx.$element$, template);
   slotMaps.templates[slotName] = template;
-  return template;
+  return elCtx;
 };
 
 const getSlotName = (node: ProcessedJSXNode): string => {
@@ -686,13 +702,19 @@ const createElm = (
       const slotMap = getSlotMap(elCtx);
       const p: Promise<void>[] = [];
       for (const node of children) {
-        const slotEl = getSlotElement(staticCtx, slotMap, elm, getSlotName(node));
+        const slotCtx = getSlotCtx(
+          staticCtx,
+          slotMap,
+          elCtx,
+          getSlotName(node),
+          staticCtx.$containerState$
+        );
         const slotRctx = pushRenderContext(rCtx);
-        slotRctx.$slotCtx$ = getContext(slotEl, staticCtx.$containerState$);
+        slotRctx.$slotCtx$ = slotCtx;
         const nodeElm = createElm(slotRctx, node, flags, p);
         assertDefined(node.$elm$, 'vnode elm must be defined');
         assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
-        appendChild(staticCtx, slotEl, nodeElm);
+        appendChild(staticCtx, slotCtx.$element$, nodeElm);
       }
 
       return promiseAllLazy(p);
@@ -778,7 +800,7 @@ const getSlots = (elCtx: QContext): ProcessedJSXNode[] => {
   return slots;
 };
 
-const getSlotMap = (elCtx: QContext) => {
+const getSlotMap = (elCtx: QContext): SlotMaps => {
   const slotsArray = getSlots(elCtx);
   const slots: Record<string, QwikElement> = {};
   const templates: Record<string, Element | undefined> = {};

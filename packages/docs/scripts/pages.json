@@ -4,6 +4,10 @@
     "tags": "saas"
   },
   {
+    "href": "https://jose-aguilar.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
     "href": "https://shaunchander.me",
     "tags": "portfolio"
   },
@@ -98,5 +102,21 @@
   {
     "href": "https://puzzledbycsharp.com/",
     "tags": "site"
+  },
+  {
+    "href": "https://necatikcl.dev/",
+    "tags": "personal"
+  },
+  {
+    "href": "https://tatbiqit.com/",
+    "tags": "company"
+  },
+  {
+    "href": "https://keyboardz.co/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://travelcalc.pages.dev",
+    "tags": "app"
   }
 ]

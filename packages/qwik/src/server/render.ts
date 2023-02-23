@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
+import { _renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -142,7 +142,7 @@ export async function renderToStream(
   let snapshotTime = 0;
   let containsDynamic = false;
 
-  await renderSSR(rootNode, {
+  await _renderSSR(rootNode, {
     stream,
     containerTagName,
     containerAttributes,
@@ -161,6 +161,7 @@ export async function renderToStream(
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
+          nonce: opts.serverData?.nonce,
         }),
       ];
 
@@ -170,7 +171,8 @@ export async function renderToStream(
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             opts.prefetchStrategy,
-            prefetchResources
+            prefetchResources,
+            opts.serverData?.nonce
           );
           if (prefetchImpl) {
             children.push(prefetchImpl);
@@ -190,6 +192,7 @@ export async function renderToStream(
           jsx('script', {
             id: 'qwikloader',
             dangerouslySetInnerHTML: qwikLoaderScript,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -203,6 +206,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
+            nonce: opts.serverData?.nonce,
           })
         );
       }

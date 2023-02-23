@@ -27,7 +27,10 @@ export interface Signal<T = any> {
  */
 export type ValueOrSignal<T> = T | Signal<T>;
 
-export const createSignal = <T>(
+/**
+ * @internal
+ */
+export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
   subcriptions?: Subscriptions[]
@@ -70,7 +73,7 @@ export class SignalImpl<T> implements Signal<T> {
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logWarn(
-          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
+          'State mutation inside render function. Move mutation to useWatch(), useBrowserVisibleTask() or useServerMount()',
           invokeCtx.$hostElement$
         );
       }
@@ -95,15 +98,8 @@ interface AddSignal {
 export const addSignalSub: AddSignal = (type, hostEl, signal, elm, property) => {
   const subscription =
     signal instanceof SignalWrapper
-      ? [
-          type,
-          hostEl,
-          getProxyTarget(signal.ref),
-          elm as any,
-          property,
-          signal.prop === 'value' ? undefined : signal.prop,
-        ]
-      : [type, hostEl, signal, elm, property, undefined];
+      ? [type, hostEl, getProxyTarget(signal.ref), elm as any, property, signal.prop]
+      : [type, hostEl, signal, elm, property, 'value'];
   getProxyManager(signal)!.$addSub$(subscription as any);
 };
 

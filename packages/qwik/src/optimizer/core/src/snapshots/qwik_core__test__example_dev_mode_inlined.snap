@@ -20,11 +20,11 @@ export const App = component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrlDEV } from "@builder.io/qwik";
 import { jsxDEV as _jsxDEV } from "@builder.io/qwik/jsx-dev-runtime";
-export const App = /*#__PURE__*/ componentQrl(inlinedQrlDEV(()=>{
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     return /*#__PURE__*/ _jsxDEV(Cmp, {
         children: /*#__PURE__*/ _jsxDEV("p", {
             class: "stuff",
-            onClick$: inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
+            onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
                 file: "/user/qwik/src/test.tsx",
                 lo: 164,
                 hi: 189,
@@ -49,7 +49,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,oBAAM,2BAAW,IAAM;IAChC,qBACI,QAAC;kBACG,cAAA,QAAC;YAAE,OAAM;YAAQ,QAAQ,gBAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;sBAAS;;;;;;;;;;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,QAAC;kBACG,cAAA,QAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;sBAAS;;;;;;;;;;;AAGlE;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

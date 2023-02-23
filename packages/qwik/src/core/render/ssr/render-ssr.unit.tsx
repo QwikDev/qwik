@@ -7,17 +7,17 @@ import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { $ } from '../../qrl/qrl.public';
-import { createContext, useContext, useContextProvider } from '../../use/use-context';
+import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useBrowserVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
 import { jsx } from '../jsx/jsx-runtime';
-import { renderSSR, RenderSSROptions } from './render-ssr';
+import { _renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
 
@@ -972,19 +972,24 @@ renderSSRSuite('component useStylesScoped()', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
-        <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
+        <!--qv q:sstyle=⭐️1d-0|⭐️1e-1 q:id=0 q:key=sX:-->
         <style q:style="1d-0" hidden>
           .host.⭐️1d-0 {
             color: red;
           }
         </style>
-        <div class="⭐️1d-0 host">
-          <div class="⭐️1d-0 div">
+        <style q:style="1e-1" hidden>
+          .blue.⭐️1e-1 {
+            color: blue;
+          }
+        </style>
+        <div class="⭐️1d-0 ⭐️1e-1 host">
+          <div class="⭐️1d-0 ⭐️1e-1 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
             <!--/qv-->
-            <p class="⭐️1d-0">Que tal?</p>
+            <p class="⭐️1d-0 ⭐️1e-1">Que tal?</p>
           </div>
           <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
           <style q:style="f0gmsw-0" hidden>
@@ -1010,7 +1015,8 @@ renderSSRSuite('component useStylesScoped()', async () => {
         </div>
         <!--/qv-->
       </body>
-    </html>`
+    </html>
+    `
   );
 });
 
@@ -1045,7 +1051,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect()', async () => {
+renderSSRSuite('component useBrowserVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" class="qc📦">
@@ -1060,7 +1066,7 @@ renderSSRSuite('component useClientEffect()', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() without elements', async () => {
+renderSSRSuite('component useBrowserVisibleTask() without elements', async () => {
   await testSSR(
     <body>
       <UseEmptyClientEffect />
@@ -1078,7 +1084,7 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() inside <head>', async () => {
+renderSSRSuite('component useBrowserVisibleTask() inside <head>', async () => {
   await testSSR(
     <head>
       <UseEmptyClientEffect />
@@ -1422,6 +1428,7 @@ export const Styles = component$(() => {
 
 export const ScopedStyles1 = component$(() => {
   useStylesScopedQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+  useStylesScopedQrl(inlinedQrl('.blue {color: blue}', 'styles_scoped_2'));
 
   return (
     <div class="host">
@@ -1472,9 +1479,9 @@ export const ComponentA = component$(() => {
   );
 });
 
-const CTX_INTERNAL = createContext<{ value: string }>('internal');
-const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
-const CTX_VALUE = createContext<{ value: string }>('value');
+const CTX_INTERNAL = createContextId<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContextId<{ value: string }>('qwikcity');
+const CTX_VALUE = createContextId<{ value: string }>('value');
 
 export const VariadicContext = component$(() => {
   return (
@@ -1536,10 +1543,10 @@ export const ContextConsumer = component$(() => {
 });
 
 export const UseClientEffect = component$((props: any) => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1551,10 +1558,10 @@ export const UseClientEffect = component$((props: any) => {
 });
 
 export const UseEmptyClientEffect = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1565,7 +1572,7 @@ export const UseEmptyClientEffect = component$(() => {
 });
 
 export const HeadCmp = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('client effect');
   });
   return (
@@ -1608,7 +1615,7 @@ async function testSSR(
       chunks.push(chunk);
     },
   };
-  await renderSSR(node, {
+  await _renderSSR(node, {
     stream,
     containerTagName: 'html',
     containerAttributes: {},
@@ -1645,14 +1652,14 @@ export const NullCmp = component$(() => {
 });
 
 export const EffectTransparent = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     console.warn('log');
   });
   return (

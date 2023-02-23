@@ -107,7 +107,10 @@ export interface ContainerState {
 
 const CONTAINER_STATE = Symbol('ContainerState');
 
-export const getContainerState = (containerEl: Element): ContainerState => {
+/**
+ * @internal
+ */
+export const _getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
     assertTrue(!isServer(), 'Container state can only be created lazily on the browser');

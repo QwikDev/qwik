@@ -5,7 +5,7 @@ import {
   Signal,
   useSignal,
   useStore,
-  useClientEffect$,
+  useBrowserVisibleTask$,
   useTask$,
   Slot,
   useStyles$,
@@ -42,7 +42,7 @@ export const Signals = component$(() => {
 
   const styles = useSignal('body { background: white}');
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     ref.current!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });
@@ -104,6 +104,8 @@ export const Signals = component$(() => {
       <ComplexClassSignals />
       <Issue2311 />
       <Issue2344 />
+      <Issue2928 />
+      <Issue2930 />
     </div>
   );
 });
@@ -587,3 +589,98 @@ export const Issue2344 = component$(() => {
     </>
   );
 });
+
+export const Issue2928 = component$(() => {
+  const store = useStore(
+    {
+      controls: {
+        age: {
+          value: 1,
+          valid: true,
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+  const group = {
+    controls: store.controls,
+  };
+
+  return (
+    <div>
+      <button
+        onClick$={async (e) => {
+          group.controls.age.value++;
+          await delayZero();
+          group.controls.age.valid = false;
+        }}
+      >
+        Increment
+      </button>
+      <FormDebug ctrl={group.controls.age} />
+      {group.controls.age.value == 2 && <div>match!</div>}
+    </div>
+  );
+});
+
+export const FormDebug = component$<{ ctrl: any }>((props) => {
+  return (
+    <div>
+      value:{' this_breaks!! '} -<>{props.ctrl.value} </>
+      <>{props.ctrl.value + ''} </>
+    </div>
+  );
+});
+
+export const Issue2930 = component$(() => {
+  const group = useStore(
+    {
+      controls: {
+        ctrl: {
+          value: '',
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+
+  return (
+    <div>
+      <div>Type into input field:</div>
+      <input
+        id="issue-2930-input"
+        style="border: 1px solid black"
+        type="text"
+        value={group.controls.ctrl.value}
+        onInput$={(e) => {
+          const val = (e.target as HTMLInputElement).value;
+          group.controls.ctrl.value = val;
+        }}
+      />
+      <Stringify data={group} />
+
+      <Stringify data={group.controls} />
+
+      <Stringify data={group.controls.ctrl} />
+
+      <Stringify data={group.controls.ctrl.value} />
+    </div>
+  );
+});
+
+export const Stringify = component$<{
+  data: any;
+  style?: any;
+}>((props) => {
+  return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
+});
+
+export const delayZero = () => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 1);
+  });
+};

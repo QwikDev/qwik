@@ -16,3 +16,13 @@ export const isBrowser: boolean = /*#__PURE__*/ (() => (
  * @alpha
  */
 export const isServer: boolean = !isBrowser;
+
+
+/**
+ * True when build is in dev mode.
+ *
+ * @alpha
+ */
+export const isDev: boolean = /*#__PURE__*/ (() => {
+  return (globalThis as any).qDev === true
+})();

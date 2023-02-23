@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { IncomingMessage } from 'http';
+
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
@@ -106,6 +107,9 @@ export async function configureDevServer(
             });
           });
 
+          const srcBase = opts.srcDir
+            ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
+            : 'src';
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -115,9 +119,15 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
+                  const defaultChunk = [
+                    symbolName,
+                    `/${srcBase}/${symbolName.toLowerCase()}.js`,
+                  ] as const;
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
-                    return mapper[hash];
+                    return mapper[hash] ?? defaultChunk;
+                  } else {
+                    return defaultChunk;
                   }
                 },
             prefetchStrategy: null,
@@ -159,8 +169,10 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
-      server.ssrFixStacktrace(e);
-      await formatError(sys, e);
+      if (e instanceof Error) {
+        server.ssrFixStacktrace(e);
+        await formatError(sys, e);
+      }
       next(e);
     } finally {
       if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
@@ -480,7 +492,7 @@ ${DEV_QWIK_INSPECTOR(opts.devTools)}
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
   </head>
   <body>

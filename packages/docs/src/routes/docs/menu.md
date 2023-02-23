@@ -31,7 +31,7 @@
 
 - [Resumable](concepts/resumable/index.mdx)
 - [Progressive](concepts/progressive/index.mdx)
-- [Reactive](concepts/reactivity/index.mdx)
+- [Reactivity](concepts/reactivity/index.mdx)
 
 ## Advanced
 
@@ -43,6 +43,7 @@
 - [Optimizer](advanced/optimizer/index.mdx)
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
 - [Internationalization](advanced/i18n/index.mdx)
+- [Vite](advanced/vite/index.mdx)
 
 ## Community
 

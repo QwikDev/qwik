@@ -14,7 +14,7 @@ export async function mainThread(sys: System) {
   const opts = sys.getOptions();
   validateOptions(opts);
 
-  const main = await sys.createMainProcess();
+  const main = await sys.createMainProcess!();
   const log = await sys.createLogger();
   log.info('\n' + color.bold().green('Starting Qwik City SSG...'));
 
@@ -124,9 +124,7 @@ export async function mainThread(sys: System) {
 
           if (result.filePath != null) {
             generatorResult.rendered++;
-            if (result.isStatic) {
-              generatorResult.staticPaths.push(result.pathname);
-            }
+            generatorResult.staticPaths.push(result.pathname);
             const base = opts.rootDir ?? opts.outDir;
             const path = relative(base, result.filePath);
             const lastSlash = path.lastIndexOf('/');
@@ -176,9 +174,12 @@ export async function mainThread(sys: System) {
         const modules = await Promise.all(loaders.map((loader) => loader()));
         const pageModule: PageModule = modules[modules.length - 1] as any;
 
-        if (pageModule.default) {
-          // page module (not an endpoint)
+        // if a module has a "default" export, it's a page module
+        // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation
+        const isValidStaticModule =
+          pageModule && (pageModule.default || pageModule.onRequest || pageModule.onGet);
 
+        if (isValidStaticModule) {
           if (Array.isArray(paramNames) && paramNames.length > 0) {
             if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
               // dynamic route page module

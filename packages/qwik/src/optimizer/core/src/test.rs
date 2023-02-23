@@ -10,6 +10,10 @@ macro_rules! test_input {
             .strip_exports
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
 
+        let reg_ctx_name: Option<Vec<JsWord>> = input
+            .reg_ctx_name
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let strip_ctx_name: Option<Vec<JsWord>> = input
             .strip_ctx_name
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
@@ -32,6 +36,7 @@ macro_rules! test_input {
             scope: input.scope,
             strip_exports,
             strip_ctx_name,
+            reg_ctx_name,
             strip_ctx_kind: input.strip_ctx_kind,
             is_server: input.is_server,
         });
@@ -519,7 +524,7 @@ export const Works = component$(({
         console.log(count, rest, hey, some);
     });
     return (
-        <div some={some} class={count} {...rest}>{count}</div>
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
     );
 });
 
@@ -553,6 +558,93 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
     });
 }
 
+#[test]
+fn example_use_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$((props) => {
+    const {value} = useSignal(0);
+    const {foo, ...rest} = useStore({foo: 0});
+    const {bar = 'hello', ...rest2} = useStore({foo: 0});
+    const {hello} = props;
+
+    return (
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_hoisted() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
@@ -1099,7 +1191,7 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -1107,7 +1199,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -1135,7 +1227,7 @@ export const Child = component$(() => {
 fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -1147,7 +1239,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         state.count = thing.doStuff() + import("./sibling");
     });
 
@@ -1436,9 +1528,10 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
+import { handler } from 'serverless';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1454,6 +1547,8 @@ export const Parent = component$(() => {
     serverStuff$(async () => {
         // should be removed too
     })
+
+    serverLoader$(handler);
 
     useTask$(() => {
         // Code
@@ -1888,6 +1983,37 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_export_issue() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+const App = component$(() => {
+    return (
+        <div>hola</div>
+    );
+});
+
+
+export const Root = component$((props: Stuff) => {
+    return (
+        <App/>
+    );
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_jsx_keyed() {
     test_input!(TestInput {
         code: r#"
@@ -1946,25 +2072,98 @@ fn example_mutable_children() {
         code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+
+export function Fn1(props: Stuff) {
     return (
         <>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
-            <div>{prop.value && <div></div>}<div></div></div>
-            <div>{prop.value || <div></div>}</div>
-            <div>{prop.value ?? <div></div>}</div>
-            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+}
 
+export function Fn2(props: Stuff) {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+}
+
+export function Fn3(props: Stuff) {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+}
+
+export function Fn4(props: Stuff) {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+}
+
+export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
+
+export const AppDynamic1 = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+});
+export const AppDynamic2 = component$((props: Stuff) => {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+});
+
+export const AppDynamic3 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+});
+
+export const AppDynamic4 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+});
+
+export const AppStatic = component$((props: Stuff) => {
+    return (
+        <>
+            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+
+            <div>{prop.value && <div></div>}<div></div></div>
+            <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
             <div>Static {stuff()}</div>
             <div>Static {stuff()}</div>
-
         </>
     );
 });
 "#
         .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
         transpile_ts: true,
         transpile_jsx: true,
         explicit_extensions: true,
@@ -2074,6 +2273,7 @@ export const App = component$(() => {
 "#
         .to_string(),
         is_server: Some(true),
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
@@ -2401,6 +2601,7 @@ export const Local = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        reg_ctx_name: None,
         is_server: None,
     });
     snapshot_res!(&res, "".into());
@@ -2475,6 +2676,7 @@ export const Greeter = component$(() => {
         transpile_jsx: true,
         preserve_filenames: false,
         scope: None,
+        reg_ctx_name: None,
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
@@ -2513,6 +2715,7 @@ export const Greeter = component$(() => {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            reg_ctx_name: None,
             is_server: None,
         });
 
@@ -2559,6 +2762,7 @@ struct TestInput {
     pub mode: EmitMode,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
+    pub reg_ctx_name: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
     pub strip_ctx_kind: Option<HookKind>,
     pub is_server: Option<bool>,
@@ -2580,6 +2784,7 @@ impl TestInput {
             snapshot: true,
             mode: EmitMode::Lib,
             scope: None,
+            reg_ctx_name: None,
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,

@@ -14,25 +14,24 @@ import {
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
-import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
 import type { RollupError } from 'rollup';
-import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
   RESOLVED_STATIC_PATHS_ID,
   STATIC_PATHS_ID,
-} from '../../adaptors/shared/vite';
-import { postBuild } from '../../adaptors/shared/vite/post-build';
+} from '../../adapters/shared/vite';
+import { postBuild } from '../../adapters/shared/vite/post-build';
 
 /**
  * @alpha
@@ -42,11 +41,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
-  let ssrFormat = 'esm';
+  let ssrFormat: 'esm' | 'cjs' = 'esm';
   let outDir: string | null = null;
 
   // Patch Stream APIs
   patchGlobalThis();
+
+  (globalThis as any).__qwikCityNew = true;
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -68,6 +69,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
         appType: 'custom',
         base: userOpts?.basePathname,
         optimizeDeps: {
+          include: ['zod'],
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {
@@ -103,20 +105,15 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     configureServer(server) {
-      if (ctx) {
+      return () => {
         // handles static files physically found in the dist directory
         server.middlewares.use(staticDistMiddleware(server));
-
-        // qwik city middleware injected BEFORE vite internal middlewares
-        // and BEFORE @builder.io/qwik/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
-      }
-
-      return () => {
-        // qwik city 404 middleware injected AFTER vite internal middlewares
-        // and no other middlewares have handled this request
-        server.middlewares.use(dev404Middleware());
+        if (ctx) {
+          // qwik city middleware injected BEFORE vite internal middlewares
+          // and BEFORE @builder.io/qwik/optimizer/vite middlewares
+          // handles only known user defined routes
+          server.middlewares.use(ssrDevMiddleware(ctx, server));
+        }
       };
     },
 
@@ -125,7 +122,19 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     resolveId(id) {
-      if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID || id === QWIK_CITY_SW_REGISTER) {
+      if (id === QWIK_SERIALIZER) {
+        return join(rootDir!, id);
+      }
+      if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID) {
+        return {
+          id: join(rootDir!, id),
+          // user entries added in the routes, like src/routes/service-worker.ts
+          // are added as dynamic imports to the qwik-city-plan as a way to create
+          // a new entry point for the build. Ensure these are not treeshaked.
+          moduleSideEffects: 'no-treeshake',
+        };
+      }
+      if (id === QWIK_CITY_SW_REGISTER) {
         return join(rootDir!, id);
       }
       if (id === STATIC_PATHS_ID) {
@@ -149,10 +158,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
           // @qwik-city-entries
           return generateQwikCityEntries(ctx);
         }
-
+        const isSerializer = id.endsWith(QWIK_SERIALIZER);
         const isCityPlan = id.endsWith(QWIK_CITY_PLAN_ID);
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
+        if (isSerializer) {
+          return `export {_deserializeData, _serializeData, _verifySerializable} from '@builder.io/qwik'`;
+        }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
@@ -288,8 +300,11 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
               };
             }
 
-            // set to type module to ensure mjs is used
-            packageJson = { ...packageJson, type: 'module' };
+            const ssrFormat2pkgTypeMap = {
+              cjs: 'commonjs',
+              esm: 'module',
+            };
+            packageJson = { ...packageJson, type: ssrFormat2pkgTypeMap[ssrFormat] || 'module' };
             const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
 
             await Promise.all([
@@ -306,6 +321,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   return plugin;
 }
 
+const QWIK_SERIALIZER = '@qwik-serializer';
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';

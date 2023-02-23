@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isText } from '../util/element';
+import { isComment, isElement, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 
@@ -11,7 +11,7 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
-  getContainerState,
+  _getContainerState,
   GetObject,
   isContainer,
   SHOW_COMMENT,
@@ -26,6 +26,7 @@ import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
 import { getContext } from '../state/context';
 import { domToVnode } from '../render/dom/visitor';
+import { getWrappingContainer } from '../use/use-core';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -46,6 +47,36 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
     const data = (script.firstChild! as any).data;
     return JSON.parse(unescapeText(data) || '{}') as SnapshotState;
   }
+};
+
+/**
+ * @internal
+ */
+export const _deserializeData = (data: string, element?: unknown) => {
+  const obj = JSON.parse(data);
+  if (typeof obj !== 'object') {
+    return null;
+  }
+  const { _objs, _entry } = obj;
+  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
+    return null;
+  }
+  let doc = {} as Document;
+  let containerState = {} as any;
+  if (element && isQwikElement(element)) {
+    const containerEl = getWrappingContainer(element);
+    if (containerEl) {
+      containerState = _getContainerState(containerEl);
+      doc = containerEl.ownerDocument;
+    }
+  }
+  const parser = createParser(containerState, doc);
+  reviveValues(_objs, parser);
+  const getObject: GetObject = (id) => _objs[strToInt(id)];
+  for (const obj of _objs) {
+    reviveNestedObjects(obj, getObject, parser);
+  }
+  return getObject(_entry);
 };
 
 export const resumeContainer = (containerEl: Element) => {
@@ -71,7 +102,7 @@ export const resumeContainer = (containerEl: Element) => {
     logWarn('Skipping hydration qwik/json metadata was not found.');
     return;
   }
-  const containerState = getContainerState(containerEl);
+  const containerState = _getContainerState(containerEl);
   moveStyles(containerEl, containerState);
 
   // Collect all elements
@@ -296,7 +327,7 @@ const getTextNode = (mark: Comment) => {
 export const appendQwikDevTools = (containerEl: Element) => {
   (containerEl as any)['qwik'] = {
     pause: () => pauseContainer(containerEl),
-    state: getContainerState(containerEl),
+    state: _getContainerState(containerEl),
   };
 };
 

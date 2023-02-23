@@ -1,10 +1,19 @@
-import { component$, jsx, JSXNode, SkipRender, useContext } from '@builder.io/qwik';
+import {
+  component$,
+  jsx,
+  JSXNode,
+  SkipRender,
+  useContext,
+  _IMMUTABLE,
+  _jsxBranch,
+} from '@builder.io/qwik';
 import { ContentInternalContext } from './contexts';
 
 /**
  * @alpha
  */
 export const RouterOutlet = component$(() => {
+  _jsxBranch();
   const { value } = useContext(ContentInternalContext);
   if (value && value.length > 0) {
     const contentsLen = value.length;

@@ -1,24 +1,31 @@
-import type { ClientPageData, LoadedRoute, PageModule, RouteModule } from '../../runtime/src/types';
 import type {
-  ServerActionInternal,
-  ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
-import type { RequestEvent, RequestHandler } from './types';
+  ClientPageData,
+  LoadedRoute,
+  PageModule,
+  RouteModule,
+  ActionInternal,
+  LoaderInternal,
+} from '../../runtime/src/types';
+
+import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
   getRequestAction,
+  getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
+  getRequestTrailingSlash,
   RequestEventInternal,
+  RequestEvQwikSerializer,
   setRequestAction,
 } from './request-event';
-import { QACTION_KEY } from '../../runtime/src/constants';
-import { isQDataJson, QDATA_JSON } from './user-response';
-import { validateSerializable } from '../../utils/format';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
+import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
+import type { QRL, RenderOptions, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
+import { isDev } from '@builder.io/qwik/build';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -26,37 +33,25 @@ export const resolveRequestHandlers = (
   method: string,
   renderHandler: RequestHandler
 ) => {
-  const serverLoaders: ServerLoaderInternal[] = [];
-  const serverActions: ServerActionInternal[] = [];
+  const serverLoaders: LoaderInternal[] = [];
   const requestHandlers: RequestHandler[] = [];
   const isPageRoute = !!(route && isLastModulePageRoute(route[1]));
   if (serverPlugins) {
-    _resolveRequestHandlers(
-      serverLoaders,
-      serverActions,
-      requestHandlers,
-      serverPlugins,
-      isPageRoute,
-      method
-    );
+    _resolveRequestHandlers(serverLoaders, requestHandlers, serverPlugins, isPageRoute, method);
   }
 
   if (route) {
     if (isPageRoute) {
+      if (method === 'POST') {
+        requestHandlers.push(pureServerFunction);
+      }
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    _resolveRequestHandlers(
-      serverLoaders,
-      serverActions,
-      requestHandlers,
-      route[1],
-      isPageRoute,
-      method
-    );
+    _resolveRequestHandlers(serverLoaders, requestHandlers, route[1], isPageRoute, method);
     if (isPageRoute) {
       if (serverLoaders.length + actionsMiddleware.length > 0) {
-        requestHandlers.push(actionsMiddleware(serverLoaders, serverActions) as any);
+        requestHandlers.push(actionsMiddleware(serverLoaders) as any);
       }
       requestHandlers.push(renderHandler);
     }
@@ -68,8 +63,7 @@ export const resolveRequestHandlers = (
 };
 
 const _resolveRequestHandlers = (
-  serverLoaders: ServerLoaderInternal[],
-  serverActions: ServerActionInternal[],
+  serverLoaders: LoaderInternal[],
   requestHandlers: RequestHandler[],
   routeModules: RouteModule[],
   collectActions: boolean,
@@ -125,24 +119,16 @@ const _resolveRequestHandlers = (
         checkBrand(e, 'server_loader')
       ) as any[];
 
-      const actions = Object.values(routeModule).filter((e) =>
-        checkBrand(e, 'server_action')
-      ) as any[];
-
       serverLoaders.push(...loaders);
-      serverActions.push(...actions);
     }
   }
 };
 
 export const checkBrand = (obj: any, brand: string) => {
-  return obj && typeof obj === 'object' && obj.__brand === brand;
+  return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(
-  serverLoaders: ServerLoaderInternal[],
-  serverActions: ServerActionInternal[]
-) {
+export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
   return async (requestEv: RequestEventInternal) => {
     if (requestEv.headersSent) {
       requestEv.exit();
@@ -150,17 +136,24 @@ export function actionsMiddleware(
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
-
+    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
-      if (selectedAction) {
-        const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
+      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
+      if (selectedAction && serverActionsMap) {
+        const action = serverActionsMap.get(selectedAction);
         if (action) {
           setRequestAction(requestEv, selectedAction);
           const isForm = isFormContentType(requestEv.request.headers);
-          let data = isForm
-            ? formToObj(await requestEv.request.formData())
-            : await requestEv.request.json();
+          const req = requestEv.request.clone();
+          let data: any;
+          if (isForm) {
+            const formData = await req.formData();
+            requestEv.sharedMap.set('actionFormData', formData);
+            data = formToObj(formData);
+          } else {
+            data = await req.json();
+          }
 
           let failed = false;
           if (action.__schema) {
@@ -177,6 +170,7 @@ export function actionsMiddleware(
                   result.error.issues
                 );
               }
+              requestEv.status(400);
               loaders[selectedAction] = {
                 __brand: 'fail',
                 ...result.error.flatten(),
@@ -187,6 +181,7 @@ export function actionsMiddleware(
           }
           if (!failed) {
             const actionResolved = await action.__qrl(data, requestEv);
+            verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             loaders[selectedAction] = actionResolved;
           }
         }
@@ -194,25 +189,27 @@ export function actionsMiddleware(
     }
 
     if (serverLoaders.length > 0) {
-      const isDevMode = getRequestMode(requestEv) === 'dev';
-
       await Promise.all(
-        serverLoaders.map(async (loader) => {
-          const loaderId = loader.__qrl.getHash();
-          const loaderResolved = await loader.__qrl(requestEv as any);
-          loaders[loaderId] =
-            typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
-
-          if (isDevMode) {
-            try {
-              validateSerializable(loaderResolved);
-            } catch (e: any) {
-              throw Object.assign(e, {
-                id: 'DEV_SERIALIZE',
-                method,
-              });
+        serverLoaders.map((loader) => {
+          const loaderId = loader.__id;
+          if (isDev) {
+            if (loaders[loaderId]) {
+              throw new Error(
+                `Duplicate loader id "${loaderId}" detected. Please ensure that all loader ids are unique.`
+              );
             }
           }
+          return (loaders[loaderId] = Promise.resolve()
+            .then(() => loader.__qrl(requestEv as any))
+            .then((loaderResolved) => {
+              if (typeof loaderResolved === 'function') {
+                loaders[loaderId] = loaderResolved();
+              } else {
+                verifySerializable(qwikSerializer, loaderResolved, loader.__qrl);
+                loaders[loaderId] = loaderResolved;
+              }
+              return loaderResolved;
+            }));
         })
       );
     }
@@ -246,26 +243,66 @@ const formToObj = (formData: FormData): Record<string, any> => {
   return obj;
 };
 
-function fixTrailingSlash({ pathname, url, redirect }: RequestEvent) {
-  const trailingSlash = true;
-  const basePathname = '/';
+async function pureServerFunction(ev: RequestEvent) {
+  const fn = ev.query.get(QFN_KEY);
+  if (fn && ev.request.headers.get('Content-Type') === 'application/qwik-json') {
+    ev.exit();
+    const fnHeader = ev.request.headers.get('X-QRL');
+    if (fnHeader === fn) {
+      const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
+      const data = qwikSerializer._deserializeData(await ev.request.text());
+      if (Array.isArray(data)) {
+        const [qrl, ...args] = data;
+        if (isQrl(qrl) && qrl.getHash() === fn) {
+          const result = await qrl(ev, ...args);
+          verifySerializable(qwikSerializer, result, qrl);
+          ev.headers.set('Content-Type', 'application/qwik-json');
+          ev.send(200, await qwikSerializer._serializeData(result, true));
+          return;
+        }
+      }
+    }
+    throw ev.error(500, 'Invalid request');
+  }
+}
+function fixTrailingSlash(ev: RequestEvent) {
+  const trailingSlash = getRequestTrailingSlash(ev);
+  const basePathname = getRequestBasePathname(ev);
+  const { pathname, url } = ev;
   if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw redirect(HttpStatus.Found, pathname + '/' + url.search);
+        throw ev.redirect(HttpStatus.Found, pathname + '/' + url.search);
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        throw redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
+        throw ev.redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
       }
     }
   }
 }
+
+export function verifySerializable(qwikSerializer: QwikSerializer, data: any, qrl: QRL) {
+  if (isDev) {
+    try {
+      qwikSerializer._verifySerializable(data, undefined);
+    } catch (e: any) {
+      if (e instanceof Error && qrl.dev) {
+        (e as any).loc = qrl.dev;
+      }
+      throw e;
+    }
+  }
+}
+
+export const isQrl = (value: any): value is QRL => {
+  return typeof value === 'function' && typeof value.getSymbol === 'function';
+};
 
 export function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];
@@ -281,7 +318,14 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*@__PURE__*/ new TextEncoder();
 
-export function securityMiddleware({ method, url, request, error }: RequestEvent) {
+export function securityMiddleware({
+  method,
+  url,
+  request,
+  error,
+  next,
+  getWritableStream,
+}: RequestEvent) {
   const forbidden =
     method === 'POST' &&
     request.headers.get('origin') !== url.origin &&
@@ -307,9 +351,10 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
+    const trailingSlash = getRequestTrailingSlash(requestEv);
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
-    const pipe = readable.pipeTo(writableStream);
+    const pipe = readable.pipeTo(writableStream, { preventClose: true });
     const stream = writable.getWriter();
     const status = requestEv.status();
     try {
@@ -322,12 +367,10 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
         },
       });
       const qData: ClientPageData = {
-        __brand: 'qdata',
         loaders: getRequestLoaders(requestEv),
         action: getRequestAction(requestEv),
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, true), // todo
-        isStatic: result.isStatic,
+        href: getPathname(requestEv.url, trailingSlash),
       };
       if ((typeof result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -340,6 +383,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       await stream.close();
       await pipe;
     }
+    await writableStream.close();
   };
 }
 
@@ -359,6 +403,7 @@ export async function renderQData(requestEv: RequestEvent) {
 
     const status = requestEv.status();
     const location = requestEv.headers.get('Location');
+    const trailingSlash = getRequestTrailingSlash(requestEv);
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
       const adaptedLocation = makeQDataPath(location);
@@ -377,45 +422,21 @@ export async function renderQData(requestEv: RequestEvent) {
     requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
     const qData: ClientPageData = {
-      __brand: 'qdata',
       loaders: getRequestLoaders(requestEv),
       action: getRequestAction(requestEv),
       status: status !== 200 ? status : 200,
-      href: getPathname(requestEv.url, true), // todo
+      href: getPathname(requestEv.url, trailingSlash),
       redirect: location ?? undefined,
     };
     const writer = requestEv.getWritableStream().getWriter();
-
+    const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];
     // write just the page json data to the response body
-    writer.write(encoder.encode(serializeData(qData)));
+    const data = await qwikSerializer._serializeData(qData, true);
+    writer.write(encoder.encode(data));
     requestEv.sharedMap.set('qData', qData);
 
     writer.close();
   }
-}
-
-function serializeData(data: any) {
-  return JSON.stringify(data, (_, value) => {
-    if (value instanceof FormData) {
-      return {
-        __brand: 'formdata',
-        value: formDataToArray(value),
-      };
-    }
-    return value;
-  });
-}
-
-function formDataToArray(formData: FormData) {
-  const array: [string, string][] = [];
-  formData.forEach((value, key) => {
-    if (typeof value === 'string') {
-      array.push([key, value]);
-    } else {
-      array.push([key, value.name]);
-    }
-  });
-  return array;
 }
 
 function makeQDataPath(href: string) {
@@ -428,13 +449,4 @@ function makeQDataPath(href: string) {
   } else {
     return undefined;
   }
-}
-
-export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
-  return types.includes(type);
-}
-
-export function isFormContentType(headers: Headers) {
-  return isContentType(headers, 'application/x-www-form-urlencoded', 'multipart/form-data');
 }

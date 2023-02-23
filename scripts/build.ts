@@ -26,6 +26,7 @@ import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
+import { buildQwikAuth } from './qwik-auth';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -102,6 +103,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
+    }
+
+    if (config.qwikauth) {
+      await buildQwikAuth(config);
     }
 
     if (config.api) {

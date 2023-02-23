@@ -46,9 +46,9 @@ The developer writes code for a simple component.
 
 ```tsx
 export const Counter = component$((props: { step: number }) => {
-  const state = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => (state.count += props.step || 1)}>{state.count}</button>;
+  return <button onClick$={() => (count.value += props.step || 1)}>{count.value}</button>;
 });
 ```
 
@@ -62,8 +62,8 @@ const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 
 ```tsx
 export const Counter_onMount = (props) => {
-  const store = useStore({ count: 0 });
-  return qrl('./chunk-b.js', 'Counter_onRender', [store, props]);
+  const count = useSignal(0);
+  return qrl('./chunk-b.js', 'Counter_onRender', [count, props]);
 };
 ```
 
@@ -71,9 +71,9 @@ export const Counter_onMount = (props) => {
 
 ```tsx
 const Counter_onRender = () => {
-  const [store, props] = useLexicalScope();
+  const [count, props] = useLexicalScope();
   return (
-    <button onClick$={qrl('./chunk-c.js', 'Counter_onClick', [store, props])}>{store.count}</button>
+    <button onClick$={qrl('./chunk-c.js', 'Counter_onClick', [count, props])}>{count.value}</button>
   );
 };
 ```
@@ -82,8 +82,8 @@ const Counter_onRender = () => {
 
 ```tsx
 const Counter_onClick = () => {
-  const [store, props] = useLexicalScope();
-  return (store.count += props.step || 1);
+  const [count, props] = useLexicalScope();
+  return (count.value += props.step || 1);
 };
 ```
 

@@ -8,7 +8,6 @@ export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/co
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { _pauseFromContexts } from './container/pause';
 export type {
   SnapshotState,
   SnapshotResult,
@@ -21,7 +20,7 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $ } from './qrl/qrl.public';
-export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV, _noopQrl } from './qrl/qrl';
+export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
@@ -58,11 +57,8 @@ export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/dom/render.public';
-export { renderSSR } from './render/ssr/render-ssr';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
-
 export type { RenderOptions } from './render/dom/render.public';
-export { _hW } from './render/dom/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -72,7 +68,7 @@ export { useStore } from './use/use-store.public';
 export { useRef } from './use/use-ref';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
-export { useContext, useContextProvider, createContext } from './use/use-context';
+export { useContext, useContextProvider, createContextId, createContext } from './use/use-context';
 export { useServerData, useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
@@ -81,13 +77,14 @@ export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
-export type { Context } from './use/use-context';
+export type { ContextId, Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
   TaskFn,
-  UseEffectOptions,
+  OnVisibleTaskOptions,
+  VisibleTaskStrategy,
   EagernessOptions,
   ResourceReturn,
   ResourceCtx,
@@ -103,12 +100,13 @@ export { useWatch$, useWatchQrl } from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useTask$, useTaskQrl } from './use/use-task';
+export { useBrowserVisibleTask$, useBrowserVisibleTaskQrl } from './use/use-task';
 export { useClientEffect$, useClientEffectQrl } from './use/use-task';
 export { useMount$, useMountQrl } from './use/use-mount';
 export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
-export { useRender } from './use/use-render';
+export type { ErrorBoundaryStore } from './render/error-handling';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
@@ -116,10 +114,7 @@ export { useRender } from './use/use-render';
 export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
-export { _wrapSignal } from './state/signal';
-export { _restProps } from './state/store';
 export { noSerialize, mutable } from './state/common';
-export { _IMMUTABLE } from './state/constants';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -154,3 +149,5 @@ export type {
   QwikWheelEvent,
   QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
+
+export * from './internal';

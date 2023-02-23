@@ -1,4 +1,3 @@
-import type { PathParams } from '@builder.io/qwik-city';
 import type {
   RequestEvent,
   RequestEventLoader,
@@ -6,13 +5,10 @@ import type {
   ServerRequestMode,
   RequestHandler,
   RequestEventCommon,
+  ResolveValue,
+  QwikSerializer,
 } from './types';
-import type {
-  ServerAction,
-  ServerActionInternal,
-  ServerLoader,
-  ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
+import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
@@ -23,16 +19,19 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
+const RequestEvRoute = Symbol('RequestEvRoute');
+export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvAction = Symbol('RequestEvAction');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
-  params: PathParams,
-  requestHandlers: RequestHandler<unknown>[],
+  loadedRoute: LoadedRoute | null,
+  requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
   basePathname = '/',
+  qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
   const { request, platform, env } = serverRequestEv;
@@ -101,11 +100,13 @@ export function createRequestEvent(
     [RequestEvAction]: undefined,
     [RequestEvTrailingSlash]: trailingSlash,
     [RequestEvBasePathname]: basePathname,
+    [RequestEvRoute]: loadedRoute,
+    [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
     method: request.method,
-    params,
+    params: loadedRoute?.[0] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,
@@ -131,20 +132,19 @@ export function createRequestEvent(
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {
+    resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
-      const id = (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__qrl.getHash();
-
-      if (
-        (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__brand === 'server_loader'
-      ) {
-        if (id in loaders) {
-          throw new Error('Loader data does not exist');
+      const id = loaderOrAction.__id;
+      if (loaderOrAction.__brand === 'server_loader') {
+        if (!(id in loaders)) {
+          throw new Error(
+            'You can not get the returned data of a loader that has not been executed for this request.'
+          );
         }
       }
 
       return loaders[id];
-    },
+    }) as ResolveValue,
 
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
@@ -179,12 +179,16 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
+    defer: (returnData) => {
+      return typeof returnData === 'function' ? returnData : () => returnData;
+    },
+
     fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
       requestEv[RequestEvStatus] = statusCode;
       headers.delete('Cache-Control');
       return {
-        __brand: 'fail',
+        failed: true,
         ...data,
       };
     },
@@ -206,6 +210,10 @@ export function createRequestEvent(
 
     send: send as any,
 
+    isDirty: () => {
+      return writableStream !== null;
+    },
+
     getWritableStream: () => {
       if (writableStream === null) {
         writableStream = serverRequestEv.getWritableStream(
@@ -223,19 +231,39 @@ export function createRequestEvent(
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  [RequestEvLoaders]: Record<string, Promise<any>>;
+  [RequestEvLoaders]: Record<string, Promise<any> | undefined>;
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvStatus]: number;
   [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvBasePathname]: string;
+  [RequestEvRoute]: LoadedRoute | null;
+  [RequestEvQwikSerializer]: QwikSerializer;
+
+  /**
+   * Check if this request is already written to.
+   *
+   * @returns true, if `getWritableStream()` has already been called.
+   */
+  isDirty(): boolean;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
+export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
+}
+
+export function getRequestBasePathname(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvBasePathname];
+}
+
+export function getRequestRoute(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvRoute];
+}
 export function getRequestAction(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvAction];
 }

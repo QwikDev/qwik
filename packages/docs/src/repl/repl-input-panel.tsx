@@ -20,6 +20,7 @@ export const ReplInputPanel = ({
         {input.files.map((f) =>
           f.hidden ? null : (
             <ReplTabButton
+              key={f.path}
               text={formatFilePath(f.path)}
               isActive={store.selectedInputPath === f.path}
               onClick$={async () => {

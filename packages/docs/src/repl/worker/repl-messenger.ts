@@ -5,27 +5,16 @@ export const receiveMessageFromMain = (ev: MessageEvent) => {
   if (ev.data) {
     const msg: ReplMessage = JSON.parse(ev.data);
     if (msg.type === 'update') {
-      appUpdate(msg.clientId, msg.options);
+      appUpdate(ev.source as any as WindowClient, msg.clientId, msg.options);
     }
   }
 };
 
-export const sendMessageToReplServer = async (msg: ReplMessageBase) => {
-  const clients: WindowClient[] = await (self as any).clients.matchAll();
-
-  for (const client of clients) {
-    if (client && client.url) {
-      const url = new URL(client.url);
-      const clientId = url.hash.split('#')[1];
-      if (clientId && clientId === msg.clientId) {
-        client.postMessage(msg);
-        break;
-      }
-    }
-  }
+export const sendMessageToReplServer = async (source: WindowClient, msg: ReplMessageBase) => {
+  source.postMessage(msg);
 };
 
-interface WindowClient {
+export interface WindowClient {
   focused: boolean;
   frameType: 'nested';
   id: string;

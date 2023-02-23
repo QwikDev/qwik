@@ -8,7 +8,7 @@ export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
   return (
     <div class="detail-logs">
       {store.events.map((ev) => (
-        <ReplLog log={ev} />
+        <ReplLog log={ev} key={ev.start} />
       ))}
     </div>
   );

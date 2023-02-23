@@ -7,7 +7,11 @@ import { loadDependencies } from './repl-dependencies';
 import { sendMessageToReplServer, WindowClient } from './repl-messenger';
 import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 
-export const appUpdate = async (source: WindowClient, clientId: string, options: ReplInputOptions) => {
+export const appUpdate = async (
+  source: WindowClient,
+  clientId: string,
+  options: ReplInputOptions
+) => {
   const result: ReplResult = {
     type: 'result',
     clientId,

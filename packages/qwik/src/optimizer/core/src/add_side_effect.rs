@@ -22,14 +22,14 @@ impl<'a> SideEffectVisitor<'a> {
 
 impl<'a> VisitMut for SideEffectVisitor<'a> {
     fn visit_mut_import_decl(&mut self, node: &mut ast::ImportDecl) {
-        if node.src.value.starts_with(".") {
+        if node.src.value.starts_with('.') {
             self.imports.insert(node.src.value.clone());
         }
     }
     fn visit_mut_module(&mut self, node: &mut ast::Module) {
         node.visit_mut_children_with(self);
         for import in self.global_collector.imports.values() {
-            if import.source.starts_with(".") && !self.imports.contains(&import.source) {
+            if import.source.starts_with('.') && !self.imports.contains(&import.source) {
                 node.body.insert(
                     0,
                     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {

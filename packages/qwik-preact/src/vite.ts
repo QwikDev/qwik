@@ -1,8 +1,5 @@
 export function qwikReact(): any {
-  const OPTIMIZE_DEPS = [
-    'preact',
-    'preact/jsx-runtime',
-  ];
+  const OPTIMIZE_DEPS = ['preact', 'preact/jsx-runtime'];
   const DEDUPE = ['preact'];
 
   return {

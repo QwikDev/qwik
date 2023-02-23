@@ -12,11 +12,7 @@ export default defineConfig(() => {
         fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       rollupOptions: {
-        external: [
-          'preact',
-          'preact/jsx-runtime',
-          'preact-render-to-string'
-        ],
+        external: ['preact', 'preact/jsx-runtime', 'preact-render-to-string'],
       },
     },
     plugins: [qwikVite()],

@@ -212,13 +212,12 @@ export const zodQrl = async (
  */
 export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
+
+export interface ServerFunction {
+  (this: RequestEvent, ...args: any[]): any;
+}
 export interface Server {
-  <T extends (ev: RequestEvent, ...args: any[]) => any>(fn: T): T extends (
-    ev: RequestEvent,
-    ...args: infer ARGS
-  ) => infer RETURN
-    ? QRL<(...args: ARGS) => RETURN>
-    : never;
+  <T extends ServerFunction>(fn: T): QRL<T>;
 }
 
 export const getId = (qrl: QRL<any>, id?: string) => {
@@ -243,10 +242,11 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
   }
+
   function client() {
     return $(async (...args: any[]) => {
       if (isServer) {
-        throw new Error(`Server functions can not be invoked within the server during SSR.`);
+        return qrl(...args as any);
       } else {
         const filtered = args.map((arg) => {
           if (arg instanceof Event) {

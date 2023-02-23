@@ -254,7 +254,7 @@ async function pureServerFunction(ev: RequestEvent) {
       if (Array.isArray(data)) {
         const [qrl, ...args] = data;
         if (isQrl(qrl) && qrl.getHash() === fn) {
-          const result = await qrl(ev, ...args);
+          const result = await qrl.apply(ev, args);
           verifySerializable(qwikSerializer, result, qrl);
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(200, await qwikSerializer._serializeData(result, true));

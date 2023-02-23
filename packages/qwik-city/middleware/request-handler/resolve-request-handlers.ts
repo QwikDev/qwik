@@ -6,17 +6,16 @@ import type {
   ActionInternal,
   LoaderInternal,
 } from '../../runtime/src/types';
-
 import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
-  getRequestAction,
   getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
   RequestEventInternal,
   RequestEvQwikSerializer,
-  setRequestAction,
+  RequestEvSharedActionFormData,
+  RequestEvSharedActionId,
 } from './request-event';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
@@ -143,13 +142,14 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
       if (selectedAction && serverActionsMap) {
         const action = serverActionsMap.get(selectedAction);
         if (action) {
-          setRequestAction(requestEv, selectedAction);
+          requestEv.sharedMap.set(RequestEvSharedActionId, selectedAction);
+
           const isForm = isFormContentType(requestEv.request.headers);
           const req = requestEv.request.clone();
           let data: any;
           if (isForm) {
             const formData = await req.formData();
-            requestEv.sharedMap.set('actionFormData', formData);
+            requestEv.sharedMap.set(RequestEvSharedActionFormData, formData);
             data = formToObj(formData);
           } else {
             data = await req.json();
@@ -368,7 +368,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       });
       const qData: ClientPageData = {
         loaders: getRequestLoaders(requestEv),
-        action: getRequestAction(requestEv),
+        action: requestEv.sharedMap.get(RequestEvSharedActionId),
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url, trailingSlash),
       };
@@ -423,7 +423,7 @@ export async function renderQData(requestEv: RequestEvent) {
 
     const qData: ClientPageData = {
       loaders: getRequestLoaders(requestEv),
-      action: getRequestAction(requestEv),
+      action: requestEv.sharedMap.get(RequestEvSharedActionId),
       status: status !== 200 ? status : 200,
       href: getPathname(requestEv.url, trailingSlash),
       redirect: location ?? undefined,

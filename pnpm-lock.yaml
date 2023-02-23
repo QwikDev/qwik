@@ -132,7 +132,7 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': 0.19.1
+      '@builder.io/qwik': BuilderIO/qwik-build#8db8f9a63f9738c1d175a6341e4519605f5f2439
       '@builder.io/qwik-city': 0.4.0
       '@builder.io/sdk-qwik': 0.1.9
       '@docsearch/css': 3.3.3
@@ -158,9 +158,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': link:../qwik
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/8db8f9a63f9738c1d175a6341e4519605f5f2439_undici@5.20.0
       '@builder.io/qwik-city': link:../qwik-city
-      '@builder.io/sdk-qwik': 0.1.9_57atdkqjbkulndxrlkskqpl6yi
+      '@builder.io/sdk-qwik': 0.1.9_@builder.io+qwik@0.19.2
       '@docsearch/css': 3.3.3
       '@types/prismjs': 1.26.0
       algoliasearch: 4.14.3
@@ -459,12 +459,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/sdk-qwik/0.1.9_57atdkqjbkulndxrlkskqpl6yi:
+  /@builder.io/sdk-qwik/0.1.9_@builder.io+qwik@0.19.2:
     resolution: {integrity: sha512-lWilAv1pE+iQXHkzq5sTe2EGUGOjCN9xwR4vWt6vCvHirIJdYbkyirxs3NAVS6MbQZZ3H2chzE4L7OFRdvf7ww==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': link:packages/qwik
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/8db8f9a63f9738c1d175a6341e4519605f5f2439_undici@5.20.0
     dev: true
 
   /@clack/core/0.2.0:
@@ -7685,3 +7685,16 @@ packages:
 
   /zwitch/2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+  github.com/BuilderIO/qwik-build/8db8f9a63f9738c1d175a6341e4519605f5f2439_undici@5.20.0:
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-build/tar.gz/8db8f9a63f9738c1d175a6341e4519605f5f2439}
+    id: github.com/BuilderIO/qwik-build/8db8f9a63f9738c1d175a6341e4519605f5f2439
+    name: '@builder.io/qwik'
+    version: 0.19.2
+    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
+    hasBin: true
+    peerDependencies:
+      undici: ^5.14.0
+    dependencies:
+      undici: 5.20.0
+    dev: true

@@ -67,7 +67,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
-        base: userOpts?.basePathname,
+        base: userOpts?.basePathname, // TODO: Remove
         optimizeDeps: {
           include: ['zod'],
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
@@ -84,7 +84,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
 
       const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';
 
-      ctx = createBuildContext(rootDir!, userOpts, target);
+      ctx = createBuildContext(rootDir!, config.base, userOpts, target);
 
       ctx.isDevServer = config.command === 'serve';
       ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';

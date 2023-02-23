@@ -79,7 +79,6 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: '/',
     };
     equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);
   });

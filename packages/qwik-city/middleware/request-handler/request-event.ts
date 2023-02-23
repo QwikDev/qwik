@@ -18,12 +18,13 @@ import { createCacheControl } from './cache-control';
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
-const RequestEvStatus = Symbol('RequestEvStatus');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
-export const RequestEvAction = Symbol('RequestEvAction');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
+export const RequestEvSharedActionId = '@actionId';
+export const RequestEvSharedActionFormData = '@actionFormData';
+export const RequestEvSharedNonce = '@nonce';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -42,6 +43,7 @@ export function createRequestEvent(
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
+  let status = 200;
 
   const next = async () => {
     routeModuleIndex++;
@@ -65,14 +67,13 @@ export function createRequestEvent(
   const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
     if (typeof statusOrResponse === 'number') {
-      requestEv[RequestEvStatus] = statusOrResponse;
+      status = statusOrResponse;
       const writableStream = requestEv.getWritableStream();
       const writer = writableStream.getWriter();
       writer.write(typeof body === 'string' ? encoder.encode(body) : body);
       writer.close();
     } else {
-      const status = statusOrResponse.status;
-      requestEv[RequestEvStatus] = status;
+      status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
         headers.append(key, value);
       });
@@ -96,8 +97,6 @@ export function createRequestEvent(
     [RequestEvLoaders]: loaders,
     [RequestEvLocale]: serverRequestEv.locale,
     [RequestEvMode]: serverRequestEv.mode,
-    [RequestEvStatus]: 200,
-    [RequestEvAction]: undefined,
     [RequestEvTrailingSlash]: trailingSlash,
     [RequestEvBasePathname]: basePathname,
     [RequestEvRoute]: loadedRoute,
@@ -149,10 +148,10 @@ export function createRequestEvent(
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
         check();
-        requestEv[RequestEvStatus] = statusCode;
+        status = statusCode;
         return statusCode;
       }
-      return requestEv[RequestEvStatus];
+      return status;
     },
 
     locale: (locale?: string) => {
@@ -163,14 +162,14 @@ export function createRequestEvent(
     },
 
     error: (statusCode: number, message: string) => {
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.delete('Cache-Control');
       return new ErrorResponse(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {
       check();
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
       if (statusCode > 301) {
@@ -185,7 +184,7 @@ export function createRequestEvent(
 
     fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.delete('Cache-Control');
       return {
         failed: true,
@@ -217,7 +216,7 @@ export function createRequestEvent(
     getWritableStream: () => {
       if (writableStream === null) {
         writableStream = serverRequestEv.getWritableStream(
-          requestEv[RequestEvStatus],
+          status,
           headers,
           cookie,
           resolved,
@@ -227,15 +226,13 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return requestEv;
+  return Object.freeze(requestEv);
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, Promise<any> | undefined>;
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
-  [RequestEvStatus]: number;
-  [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvBasePathname]: string;
   [RequestEvRoute]: LoadedRoute | null;
@@ -263,13 +260,6 @@ export function getRequestBasePathname(requestEv: RequestEventCommon) {
 
 export function getRequestRoute(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvRoute];
-}
-export function getRequestAction(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvAction];
-}
-
-export function setRequestAction(requestEv: RequestEventCommon, id: string) {
-  (requestEv as RequestEventInternal)[RequestEvAction] = id;
 }
 
 export function getRequestMode(requestEv: RequestEventCommon) {

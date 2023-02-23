@@ -4,9 +4,13 @@ import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } 
 /**
  * @alpha
  */
-export interface QwikCityVitePluginOptions extends PluginOptions {
+export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
   mdxPlugins?: MdxPlugins;
   mdx?: MdxOptions;
+  /**
+   * @deprecated Please use the "base" property in vite config file.
+   */
+  basePathname?: string;
 }
 
 /**

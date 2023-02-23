@@ -30,7 +30,9 @@ export interface QwikCityPlugin {
 // Warning: (ae-forgotten-export) The symbol "PluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityVitePluginOptions extends PluginOptions {
+export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
+    // @deprecated (undocumented)
+    basePathname?: string;
     // (undocumented)
     mdx?: MdxOptions;
     // Warning: (ae-forgotten-export) The symbol "MdxPlugins" needs to be exported by the entry point index.d.ts

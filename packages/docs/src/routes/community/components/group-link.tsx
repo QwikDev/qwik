@@ -1,14 +1,20 @@
-import { component$, JSXNode, Slot } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 
 export interface GroupLinkProps {
   link: string;
-  socialLogo?: JSXNode;
 }
 
+export const CSS = `
+  .docs article a.group-link {
+    color: var(--secondary-text-color);
+  }
+`
+
 export const GroupLink = component$((props: GroupLinkProps) => {
+  useStyles$(CSS);
   return (
-    <a href={props.link}>
-      <Slot name="socialLogo" /> <Slot />
+    <a class="group-link" href={props.link} target="_blank">
+      <Slot />
     </a>
   );
 });

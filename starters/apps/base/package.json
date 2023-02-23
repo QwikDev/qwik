@@ -32,5 +32,8 @@
     "vite": "latest",
     "vite-tsconfig-paths": "3.5.0"
   },
+  "engines": {
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
+  },
   "private": true
 }

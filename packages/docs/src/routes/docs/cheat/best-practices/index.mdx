@@ -6,16 +6,16 @@ contributors:
 
 # No-Hydration Tips
 
-## Don't register events eagerly with `useClientEffect$()`
+## Don't register events eagerly with `useBrowserVisibleTask$()`
 
-> ⚠ Use `useClientEffect$()` with caution ⚠
+> ⚠ Use `useBrowserVisibleTask$()` with caution ⚠
 
 Instead => `useOn()` methods
 
 **Best Practice**:
 
 ```ts
-useClientEffect$(()=> {
+useBrowserVisibleTask$(()=> {
     const listener = (event)=> {
         const mouseEvent = event as MouseEvent
         console.log(mouseEvent.x, mouseEvent.y);
@@ -45,7 +45,7 @@ useOnDocument('mousemove', $((event)=> {
 }))
 ```
 
-> NOTE: Similar hooks exist for window and individual components.  
+> NOTE: Similar hooks exist for window and individual components.
 > `window` -> `useOnWindow` , component -> `useOn`
 >
 > - [useOn / useDocument / useWindow docs](https://qwik.builder.io/tutorial/hooks/use-on/)
@@ -61,7 +61,7 @@ Instead => `useLocation()`
 **Best Practice**:
 
 ```ts
-useClientEffect$(()=> {
+useBrowserVisibleTask$(()=> {
     if (window.location.href).includes('foo') {
         //... do the thing
     }

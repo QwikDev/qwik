@@ -297,7 +297,7 @@ export const App = component$(() => {
     monacoInstance: null,
   });
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     // Monaco is not serializable, so we can't store it in the state using `noSerialize()`
     state.monacoInstance = noSerialize(new Monaco());
   });

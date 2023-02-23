@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useClientEffect$ } from '@builder.io/qwik';
+import { component$, useStyles$, useContext, useBrowserVisibleTask$ } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -23,7 +23,7 @@ export const Header = component$(() => {
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().pathname;
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     globalStore.theme = getColorPreference();
     return colorSchemeChangeListener((isDark) => {
       globalStore.theme = isDark ? 'dark' : 'light';

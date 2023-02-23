@@ -107,7 +107,7 @@ export const Clock = component$(() => {
   const state = useStore({
     seconds: 0,
   });
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     const interval = setInterval(() => {
       state.seconds++;
     }, 1000);

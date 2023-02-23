@@ -54,7 +54,7 @@ export const fixCookies = (req: RequestEventCommon) => {
 };
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
-  const useAuthSignup = action$(
+  const useAuthSignin = action$(
     async ({ providerId, ...rest }, req) => {
       const auth = await authOptions(req);
       const body = new URLSearchParams();

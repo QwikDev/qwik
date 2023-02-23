@@ -21,7 +21,6 @@ const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
-export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
@@ -98,7 +97,6 @@ export function createRequestEvent(
     [RequestEvLocale]: serverRequestEv.locale,
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
-    [RequestEvBasePathname]: basePathname,
     [RequestEvRoute]: loadedRoute,
     [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
@@ -111,6 +109,7 @@ export function createRequestEvent(
     query: url.searchParams,
     request,
     url,
+    basePathname,
     sharedMap: new Map(),
     get headersSent() {
       return writableStream !== null;
@@ -234,7 +233,6 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvTrailingSlash]: boolean;
-  [RequestEvBasePathname]: string;
   [RequestEvRoute]: LoadedRoute | null;
   [RequestEvQwikSerializer]: QwikSerializer;
 
@@ -252,10 +250,6 @@ export function getRequestLoaders(requestEv: RequestEventCommon) {
 
 export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
-}
-
-export function getRequestBasePathname(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvBasePathname];
 }
 
 export function getRequestRoute(requestEv: RequestEventCommon) {

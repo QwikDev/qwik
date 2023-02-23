@@ -5,6 +5,7 @@ use std::hash::Hasher;
 use std::path::{Component, Path, PathBuf};
 use std::str;
 
+use crate::add_side_effect::SideEffectVisitor;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
@@ -326,6 +327,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         main_module = main_module.fold_with(&mut simplify::simplifier(
                             unresolved_mark,
                             Default::default(),
+                        ));
+                    }
+                    if matches!(
+                        config.entry_strategy,
+                        EntryStrategy::Inline | EntryStrategy::Hoist
+                    ) {
+                        main_module.visit_mut_with(&mut SideEffectVisitor::new(
+                            &qwik_transform.options.global_collect,
                         ));
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));

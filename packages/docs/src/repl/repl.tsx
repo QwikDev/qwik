@@ -121,7 +121,6 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
   const msg: ReplMessage = ev.data;
   const type = msg?.type;
   const clientId = msg?.clientId;
-  console.log(type, clientId, store.clientId);
   if (clientId === store.clientId) {
     if (type === 'replready') {
       // keep a reference to the repl server window

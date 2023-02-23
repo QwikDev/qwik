@@ -1,6 +1,6 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
-// import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
+import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
 
 export default component$<{
   apiKey: string;
@@ -14,30 +14,27 @@ export default component$<{
       typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
     const isSDK = render === 'sdk';
     cache('immutable');
-    // if (isSDK) {
-    //   return getCachedValue(
-    //     {
-    //       model: props.model!,
-    //       apiKey: props.apiKey!,
-    //       options: getBuilderSearchParams(location.query),
-    //       userAttributes: {
-    //         urlPath: location.pathname,
-    //       },
-    //     },
-    //     getContent
-    //   );
-    // } else {
-    //   return getCachedValue(
-    //     {
-    //       apiKey: props.apiKey,
-    //       model: props.model,
-    //       urlPath: location.pathname,
-    //     },
-    //     getBuilderContent
-    //   );
-    // }
-    return {
-      html: '',
+    if (isSDK) {
+      return getCachedValue(
+        {
+          model: props.model!,
+          apiKey: props.apiKey!,
+          options: getBuilderSearchParams(location.query),
+          userAttributes: {
+            urlPath: location.pathname,
+          },
+        },
+        getContent
+      );
+    } else {
+      return getCachedValue(
+        {
+          apiKey: props.apiKey,
+          model: props.model,
+          urlPath: location.pathname,
+        },
+        getBuilderContent
+      );
     }
   });
 
@@ -46,11 +43,11 @@ export default component$<{
       value={builderContentRsrc}
       onPending={() => <div>Loading...</div>}
       onResolved={(content) =>
-        <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
-        // content.html ? (
-        // ) : (
-        //   <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
-        // )
+        content.html ? (
+          <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
+        ) : (
+          <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
+        )
       }
     />
   );

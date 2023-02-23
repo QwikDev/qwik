@@ -136,14 +136,12 @@ importers:
       '@builder.io/qwik-city': 0.4.0
       '@builder.io/sdk-qwik': 0.1.9
       '@docsearch/css': 3.3.3
-      '@types/node-fetch': 2.6.2
       '@types/prismjs': ^1.26.0
       algoliasearch: 4.14.3
       autoprefixer: 10.4.13
       fflate: 0.7.4
       gray-matter: 4.0.3
       mdast: ^3.0.0
-      node-fetch: 3.3.0
       postcss: 8.4.21
       prism-themes: 1.9.0
       prismjs: 1.29.0
@@ -164,14 +162,12 @@ importers:
       '@builder.io/qwik-city': link:../qwik-city
       '@builder.io/sdk-qwik': 0.1.9_57atdkqjbkulndxrlkskqpl6yi
       '@docsearch/css': 3.3.3
-      '@types/node-fetch': 2.6.2
       '@types/prismjs': 1.26.0
       algoliasearch: 4.14.3
       autoprefixer: 10.4.13_postcss@8.4.21
       fflate: 0.7.4
       gray-matter: 4.0.3
       mdast: 3.0.0
-      node-fetch: 3.3.0
       postcss: 8.4.21
       prism-themes: 1.9.0
       prismjs: 1.29.0

@@ -45,12 +45,14 @@ const note = (message = '', title = '') => {
 // End of used code from clack
 
 export async function runCreateInteractiveCli() {
-  intro(`Let's create a Qwik App ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${color.bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
-  const projectNameAnswer = await text({
-    message: 'Where would you like to create your new project?',
-    placeholder: './qwik-app',
-  });
+  const defaultProjectName = './qwik-app';
+  const projectNameAnswer =
+    (await text({
+      message: 'Where would you like to create your new project?',
+      placeholder: defaultProjectName,
+    })) || defaultProjectName;
 
   if (isCancel(projectNameAnswer)) {
     cancel('Operation cancelled.');

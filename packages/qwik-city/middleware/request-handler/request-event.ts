@@ -134,7 +134,7 @@ export function createRequestEvent(
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
-      const id = loaderOrAction.__qrl.getHash();
+      const id = loaderOrAction.__id;
       if (loaderOrAction.__brand === 'server_loader') {
         if (!(id in loaders)) {
           throw new Error(
@@ -231,7 +231,7 @@ export function createRequestEvent(
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  [RequestEvLoaders]: Record<string, Promise<any>>;
+  [RequestEvLoaders]: Record<string, Promise<any> | undefined>;
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvStatus]: number;

@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-auth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Qwik Auth is powered by Next's Auth.js a battle tested library for authentication with 3rd party providers",
   "keywords": [
     "auth.js",
@@ -18,8 +18,8 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.js",
-      "require": "./lib/index.cjs",
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs",
       "types": "./lib/types/index.d.ts"
     }
   },
@@ -37,7 +37,8 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "type": "module",
-  "main": "./lib/index.js",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts",
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

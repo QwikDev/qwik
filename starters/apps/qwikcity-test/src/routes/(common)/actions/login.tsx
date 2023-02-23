@@ -23,10 +23,12 @@ export const useSecretAction = action$(
       message: 'Invalid username or code',
     });
   },
-  zod$({
-    username: z.string().min(3).max(10),
-    code: z.coerce.number(),
-  })
+  {
+    validation: zod$({
+      username: z.string().min(3).max(10),
+      code: z.coerce.number(),
+    }),
+  }
 );
 
 export const SecretForm = component$(() => {

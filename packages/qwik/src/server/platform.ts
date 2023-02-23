@@ -17,13 +17,16 @@ function createPlatform(
           const hash = getSymbolHash(symbolName);
           const result = mapper[hash];
           if (!result) {
+            const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
+            if (isRegistered) {
+              return [symbolName, '_'] as const;
+            }
             console.error('Cannot resolve symbol', symbolName, 'in', mapper);
           }
           return result;
         }
       };
 
-  const regSymbols = new Map<string, any>();
   const serverPlatform: CorePlatformServer = {
     isServer: true,
     async importSymbol(_containerEl, url, symbolName) {
@@ -55,9 +58,6 @@ function createPlatform(
           resolve(fn());
         });
       });
-    },
-    regSymbol(symbol: any, hash: string) {
-      regSymbols.set(hash, symbol);
     },
     chunkForSymbol(symbolName: string) {
       return mapperFn(symbolName, mapper);

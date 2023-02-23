@@ -6,30 +6,30 @@ contributors:
 
 # No-Hydration Tips
 
-## Don't register events eagerly with `useClientEffect$()`
+## Don't register events eagerly with `useBrowserVisibleTask$()`
 
-> ⚠ Use `useClientEffect$()` with caution ⚠
+> ⚠ Use `useBrowserVisibleTask$()` with caution ⚠
 
 Instead => `useOn()` methods
 
 **Best Practice**:
 
 ```ts
-useClientEffect$(()=> {
+useBrowserVisibleTask$(()=> {
     const listener = (event)=> {
         const mouseEvent = event as MouseEvent
         console.log(mouseEvent.x, mouseEvent.y);
     }
     document.addEventListener('mousemove', listener);
 
-    return ()=> {document.removeEventListener(listener)}
+    return ()=> {document.removeEventListener('mousemove', listener)}
 })
 ```
 
 **Why is above a problem**:
 This forces more javascript to eagerly load, rather than be surgically reactive to user events. More upfront javascript => slower app performance.
 
-It also requires you, the developer, to stay more aware of the server/client relationship (there's a reason you reached for `use >Client< Effect` after all).
+It also requires you, the developer, to stay more aware of the server/client relationship (there's a reason you reached for `use >BrowserVisible< Task` after all).
 
 While that's sometimes necessary, it should be the job of the framework to keep you from having to worry about it as much as possible.
 
@@ -61,7 +61,7 @@ Instead => `useLocation()`
 **Best Practice**:
 
 ```ts
-useClientEffect$(()=> {
+useBrowserVisibleTask$(()=> {
     if (window.location.href).includes('foo') {
         //... do the thing
     }

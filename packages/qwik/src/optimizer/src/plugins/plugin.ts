@@ -109,10 +109,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
+    updatedOpts.target === 'test';
     if (
       updatedOpts.target === 'ssr' ||
       updatedOpts.target === 'client' ||
-      updatedOpts.target === 'lib'
+      updatedOpts.target === 'lib' ||
+      updatedOpts.target === 'test'
     ) {
       opts.target = updatedOpts.target;
     } else {
@@ -131,7 +133,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
     if (!opts.entryStrategy) {
-      if (opts.target === 'ssr') {
+      if (opts.target === 'ssr' || opts.target === 'test') {
         opts.entryStrategy = { type: 'hoist' };
       } else if (opts.target === 'lib') {
         opts.entryStrategy = { type: 'inline' };
@@ -151,7 +153,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.rootDir = optimizer.sys.cwd();
     }
     opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
-
     let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
     if (typeof updatedOpts.srcDir === 'string') {
       opts.srcDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.srcDir));
@@ -211,6 +212,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else if (opts.target === 'lib') {
         // lib input default
         opts.input = [path.resolve(srcDir, 'index.ts')];
+      } else {
+        opts.input = [];
       }
     }
     opts.input = opts.input.reduce((inputs, i) => {
@@ -524,6 +527,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
+      const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 
@@ -553,17 +557,20 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         scope: opts.scope ? opts.scope : void 0,
       };
       const isSSR = !!ssrOpts.ssr;
-      if (isSSR) {
-        transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
-        transformOpts.stripCtxKind = 'event';
-        transformOpts.entryStrategy = { type: 'hoist' };
-        transformOpts.regCtxName = REG_CTX_NAME;
-        transformOpts.isServer = true;
-      } else {
-        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
-        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
-        transformOpts.isServer = false;
+      if (strip) {
+        if (isSSR) {
+          transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
+          transformOpts.stripCtxKind = 'event';
+          transformOpts.entryStrategy = { type: 'hoist' };
+          transformOpts.regCtxName = REG_CTX_NAME;
+          transformOpts.isServer = true;
+        } else {
+          transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+          transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+          transformOpts.isServer = false;
+        }
       }
+
       const newOutput = optimizer.transformModulesSync(transformOpts);
 
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
@@ -588,7 +595,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           deps.push(key);
         }
       }
-      if (isSSR) {
+      if (isSSR && strip) {
         const clientTransformOpts: TransformModulesOptions = {
           input: [
             {

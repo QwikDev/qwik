@@ -116,6 +116,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode,
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
+        srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
         resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,

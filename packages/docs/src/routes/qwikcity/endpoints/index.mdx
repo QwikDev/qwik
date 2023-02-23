@@ -55,8 +55,8 @@ export const onPost: RequestHandler = async ({ headers }) => {
 ### Setting a cookie
 
 ```tsx
-export const onGet: RequestHandler = async ({ cookies }) => {
-  cookies.set('my-cookie', 'Hello World');
+export const onGet: RequestHandler = async ({ cookie }) => {
+  cookie.set('my-cookie', 'Hello World');
 };
 ```
 

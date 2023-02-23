@@ -64,4 +64,9 @@ test.describe('watch', () => {
     await expect(loc).toHaveText('Loc: /PAGE');
     await expect(result).toHaveText('watch ran');
   });
+
+  test('issue-2972', async ({ page }) => {
+    const result = page.locator('#issue-2972');
+    await expect(result).toHaveText('passed');
+  });
 });

@@ -589,16 +589,21 @@ fn example_reg_ctx_name_hooks() {
     test_input!(TestInput {
         code: r#"
 import { $, component$, server$ } from '@builder.io/qwik';
+import { foo } from './foo';
 export const Works = component$((props) => {
     const text = 'hola';
     return (
+        <>
         <div onClick$={server$(() => console.log('in server', text))}></div>
+        <div onClick$={() => foo()}></div>
+        </>
     );
 });
 "#
         .to_string(),
-        entry_strategy: EntryStrategy::Hook,
+        entry_strategy: EntryStrategy::Inline,
         reg_ctx_name: Some(vec!["server".into()]),
+        strip_ctx_kind: Some(HookKind::Function),
         transpile_ts: true,
         transpile_jsx: true,
         ..TestInput::default()

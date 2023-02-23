@@ -4,7 +4,7 @@ export const FacebookLogo = component$(() => {
   return (
     <>
       <svg
-        class="fill-current text-blue-600 inline-block"
+        class="fill-current text-blue-600 inline-block mr-2"
         width="21"
         height="21"
         role="img"

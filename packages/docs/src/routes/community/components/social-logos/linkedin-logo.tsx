@@ -4,7 +4,7 @@ export const LinkedInLogo = component$(() => {
   return (
     <>
       <svg
-        class="fill-current text-blue-800 inline-block"
+        class="fill-current text-blue-800 inline-block mr-2"
         width="21"
         height="21"
         role="img"

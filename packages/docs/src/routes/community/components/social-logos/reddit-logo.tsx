@@ -4,7 +4,7 @@ export const RedditLogo = component$(() => {
   return (
     <>
       <svg
-        class="fill-current text-orange-500 inline-block"
+        class="fill-current text-orange-500 inline-block mr-2"
         xmlns="http://www.w3.org/2000/svg"
         width="21"
         height="21"

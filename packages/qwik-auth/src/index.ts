@@ -69,10 +69,10 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
     })
   );
 
-  const useAuthLogout = action$(async (_, req) => {
+  const useAuthSignout = action$(async (_, req) => {
     const auth = await authOptions(req);
     const body = new URLSearchParams();
-    return authAction(body, req, `/api/auth/logout`, auth);
+    return authAction(body, req, `/api/auth/signout`, auth);
   });
 
   const useAuthSession = loader$((req) => {
@@ -103,13 +103,13 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
   return {
     useAuthSignup,
-    useAuthLogout,
+    useAuthSignout,
     useAuthSession,
     onRequest,
   };
 }
 
-export const serverAuth$ = implicit$FirstArg(serverAuthQrl);
+export const serverAuth$ = /*#__PURE__*/ implicit$FirstArg(serverAuthQrl);
 
 export const ensureAuthMiddleware = (req: RequestEvent) => {
   const isLoggedIn = req.sharedMap.has('session');

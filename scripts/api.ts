@@ -10,41 +10,36 @@ import { BuildConfig, panic } from './util';
 export function apiExtractor(config: BuildConfig) {
   // core
   // Run the api extractor for each of the submodules
-  createTypesApi(
-    config,
-    join(config.srcDir, 'core'),
-    join(config.distPkgDir, 'core.d.ts'),
-    './core'
-  );
+  createTypesApi(config, join(config.srcDir, 'core'), join(config.distPkgDir, 'core.d.ts'), '.');
   createTypesApi(
     config,
     join(config.srcDir, 'jsx-runtime'),
     join(config.distPkgDir, 'jsx-runtime.d.ts'),
-    './core'
+    '.'
   );
   createTypesApi(
     config,
     join(config.srcDir, 'optimizer'),
     join(config.distPkgDir, 'optimizer.d.ts'),
-    './core'
+    '.'
   );
   createTypesApi(
     config,
     join(config.srcDir, 'server'),
     join(config.distPkgDir, 'server.d.ts'),
-    './core'
+    '.'
   );
   createTypesApi(
     config,
     join(config.srcDir, 'testing'),
     join(config.distPkgDir, 'testing', 'index.d.ts'),
-    '../core'
+    '..'
   );
   createTypesApi(
     config,
     join(config.srcDir, 'build'),
     join(config.distPkgDir, 'build', 'index.d.ts'),
-    '../core'
+    '..'
   );
   generateServerReferenceModules(config);
 
@@ -152,7 +147,12 @@ export function apiExtractor(config: BuildConfig) {
   console.log('🥶', 'submodule d.ts API files generated');
 }
 
-function createTypesApi(config: BuildConfig, inPath: string, outPath: string, corePath?: string) {
+function createTypesApi(
+  config: BuildConfig,
+  inPath: string,
+  outPath: string,
+  relativePath?: string
+) {
   const extractorConfigPath = join(inPath, 'api-extractor.json');
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {
@@ -179,7 +179,7 @@ function createTypesApi(config: BuildConfig, inPath: string, outPath: string, co
     );
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;
-  const content = fixDtsContent(config, srcPath, corePath);
+  const content = fixDtsContent(config, srcPath, relativePath);
   writeFileSync(outPath, content);
 }
 
@@ -220,7 +220,7 @@ function generateServerReferenceModules(config: BuildConfig) {
   const referenceDts = `/// <reference types="./server" />
 /// <reference types="./core" />
 declare module '@qwik-client-manifest' {
-  const manifest: QwikManifest;
+  const manifest: import('./optimizer').QwikManifest;
   export { manifest };
 }
 // MD
@@ -250,12 +250,12 @@ declare module '*.mdx' {
  * Fix up the generated dts content, and ensure it's using a relative
  * path to find the core.d.ts file, rather than node resolving it.
  */
-function fixDtsContent(config: BuildConfig, srcPath: string, corePath: string | undefined) {
+function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: string) {
   let dts = readFileSync(srcPath, 'utf-8');
 
   // ensure we're just using a relative path
-  if (corePath) {
-    dts = dts.replace(/@builder\.io\/qwik/g, corePath);
+  if (relativePath) {
+    dts = dts.replace(/'@builder\.io\/qwik(.*)'/g, `'${relativePath}$1'`);
   }
 
   // for some reason api-extractor is adding this in  ¯\_(ツ)_/¯

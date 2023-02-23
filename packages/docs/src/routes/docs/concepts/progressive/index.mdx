@@ -65,11 +65,11 @@ Let's look at our example again:
 // the `$` suffix for `component` indicates that the component should be
 // lazy-loaded.
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
   // the `$` suffix for `onClick` indicates that the implementation for
   // the handler should be lazy-loaded.
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 

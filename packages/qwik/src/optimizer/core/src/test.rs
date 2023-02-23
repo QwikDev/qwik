@@ -10,6 +10,10 @@ macro_rules! test_input {
             .strip_exports
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
 
+        let reg_ctx_name: Option<Vec<JsWord>> = input
+            .reg_ctx_name
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let strip_ctx_name: Option<Vec<JsWord>> = input
             .strip_ctx_name
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
@@ -32,6 +36,7 @@ macro_rules! test_input {
             scope: input.scope,
             strip_exports,
             strip_ctx_name,
+            reg_ctx_name,
             strip_ctx_kind: input.strip_ctx_kind,
             is_server: input.is_server,
         });
@@ -431,6 +436,7 @@ export const Bar = component$(({bar}) => {
 })
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -578,6 +584,72 @@ export const Works = component$((props) => {
     });
 }
 
+#[test]
+fn example_reg_ctx_name_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_hoisted() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
+
+export const Works = component$((props) => {
+    useStyle$(STYLES);
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+
+const STYLES = '.class {}';
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
@@ -767,6 +839,7 @@ export const Header = component$(() => {
 export const Footer = component$();
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -1262,6 +1335,9 @@ fn example_parsed_inlined_qrls() {
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+    useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+
     const store = useStore({
         count: 0
     });
@@ -1288,10 +1364,13 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     });
 }, "App_component_Fh88JClhbC0"));
 
+export const STYLES = ".red { color: red; }";
+
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
         mode: EmitMode::Prod,
+        transpile_ts: false,
         ..TestInput::default()
     });
 }
@@ -1916,6 +1995,37 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_export_issue() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+const App = component$(() => {
+    return (
+        <div>hola</div>
+    );
+});
+
+
+export const Root = component$((props: Stuff) => {
+    return (
+        <App/>
+    );
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_jsx_keyed() {
     test_input!(TestInput {
         code: r#"
@@ -1974,25 +2084,98 @@ fn example_mutable_children() {
         code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+
+export function Fn1(props: Stuff) {
     return (
         <>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
-            <div>{prop.value && <div></div>}<div></div></div>
-            <div>{prop.value || <div></div>}</div>
-            <div>{prop.value ?? <div></div>}</div>
-            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+}
 
+export function Fn2(props: Stuff) {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+}
+
+export function Fn3(props: Stuff) {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+}
+
+export function Fn4(props: Stuff) {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+}
+
+export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
+
+export const AppDynamic1 = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+});
+export const AppDynamic2 = component$((props: Stuff) => {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+});
+
+export const AppDynamic3 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+});
+
+export const AppDynamic4 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+});
+
+export const AppStatic = component$((props: Stuff) => {
+    return (
+        <>
+            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+
+            <div>{prop.value && <div></div>}<div></div></div>
+            <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
             <div>Static {stuff()}</div>
             <div>Static {stuff()}</div>
-
         </>
     );
 });
 "#
         .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
         transpile_ts: true,
         transpile_jsx: true,
         explicit_extensions: true,
@@ -2430,6 +2613,7 @@ export const Local = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        reg_ctx_name: None,
         is_server: None,
     });
     snapshot_res!(&res, "".into());
@@ -2504,6 +2688,7 @@ export const Greeter = component$(() => {
         transpile_jsx: true,
         preserve_filenames: false,
         scope: None,
+        reg_ctx_name: None,
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
@@ -2542,6 +2727,7 @@ export const Greeter = component$(() => {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            reg_ctx_name: None,
             is_server: None,
         });
 
@@ -2588,6 +2774,7 @@ struct TestInput {
     pub mode: EmitMode,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
+    pub reg_ctx_name: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
     pub strip_ctx_kind: Option<HookKind>,
     pub is_server: Option<bool>,
@@ -2609,6 +2796,7 @@ impl TestInput {
             snapshot: true,
             mode: EmitMode::Lib,
             scope: None,
+            reg_ctx_name: None,
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,

@@ -4,7 +4,12 @@ import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
 import { _deserializeData } from '@builder.io/qwik';
 
-export const loadClientData = async (url: URL, clearCache?: boolean, action?: RouteActionValue) => {
+export const loadClientData = async (
+  url: URL,
+  element: unknown,
+  clearCache?: boolean,
+  action?: RouteActionValue
+) => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
   const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
@@ -31,7 +36,7 @@ export const loadClientData = async (url: URL, clearCache?: boolean, action?: Ro
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const clientData = _deserializeData(text) as ClientPageData | null;
+          const clientData = _deserializeData(text, element) as ClientPageData | null;
           if (!clientData) {
             location.href = url.href;
             return;

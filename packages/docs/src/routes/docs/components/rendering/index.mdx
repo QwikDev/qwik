@@ -24,9 +24,9 @@ Simple counter-example:
 
 ```tsx
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const count = useSignal(0);
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 
@@ -52,13 +52,14 @@ Qwik lazy loads components on an as-needed basis. To minimize the number of comp
 
 ```tsx
 export const Parent = component$(() => {
-  const store = useStore({ count: 0, step: 1 });
+  const count = useSignal(0);
+  const step = useSignal(1);
 
   return (
     <>
-      <button onClick$={() => (store.step *= -1)}>direction</button>
-      <button onClick$={() => (store.count += store.step)}>{store.step}</button>
-      <Greeter name={'World_' + store.count} />
+      <button onClick$={() => (step.value *= -1)}>direction</button>
+      <button onClick$={() => (count.value += step.value)}>{step.value}</button>
+      <Greeter name={'World_' + count.value} />
     </>
   );
 });

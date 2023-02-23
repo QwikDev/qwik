@@ -90,9 +90,10 @@ const range: number = 2;
 
 export function posToNumber(
   source: string,
-  pos: number | { line: number; column: number }
+  pos: number | { line: number; column: number; lo: number }
 ): number {
   if (typeof pos === 'number') return pos;
+  if (pos.lo != null) return pos.lo;
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
@@ -104,7 +105,7 @@ export function posToNumber(
 
 export function generateCodeFrame(
   source: string,
-  start: number | { line: number; column: number } = 0,
+  start: number | { line: number; column: number; lo: number } = 0,
   end?: number
 ): string {
   start = posToNumber(source, start);

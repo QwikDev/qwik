@@ -73,7 +73,7 @@ export const prefetchLinkResources = (elm: HTMLAnchorElement, isOnVisible?: bool
     if (!isOnVisible || (isOnVisible && windowInnerWidth < 520)) {
       // either this is a mouseover event, probably on desktop
       // or the link is visible, and the viewport width is less than X
-      loadClientData(new URL(elm.href));
+      loadClientData(new URL(elm.href), elm);
     }
   }
 };

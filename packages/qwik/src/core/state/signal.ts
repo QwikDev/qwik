@@ -98,15 +98,8 @@ interface AddSignal {
 export const addSignalSub: AddSignal = (type, hostEl, signal, elm, property) => {
   const subscription =
     signal instanceof SignalWrapper
-      ? [
-          type,
-          hostEl,
-          getProxyTarget(signal.ref),
-          elm as any,
-          property,
-          signal.prop === 'value' ? undefined : signal.prop,
-        ]
-      : [type, hostEl, signal, elm, property, undefined];
+      ? [type, hostEl, getProxyTarget(signal.ref), elm as any, property, signal.prop]
+      : [type, hostEl, signal, elm, property, 'value'];
   getProxyManager(signal)!.$addSub$(subscription as any);
 };
 

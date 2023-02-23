@@ -424,8 +424,6 @@ const renderSSRComponent = (
             addQwikEvent(eventName, rCtx.$static$.$containerState$);
           }
           renderNodeElementSync('script', attributes, stream);
-          logWarn(`Component has listeners attached, but it does not render any elements, injecting a new <script> element to attach listeners.
-          This is likely to the usage of useBrowserVisibleTask$() in a component that renders no elements.`);
         }
         if (beforeClose) {
           return then(renderQTemplates(rCtx, newSSrContext, stream), () => beforeClose(stream));
@@ -495,14 +493,6 @@ const renderNode = (
 ) => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
-  const dynamicChildren = hasDynamicChildren(node);
-  if (dynamicChildren && hostCtx) {
-    hostCtx.$flags$ |= HOST_FLAG_DYNAMIC;
-    const slotCtx = rCtx.$slotCtx$;
-    if (slotCtx) {
-      addDynamicSlot(hostCtx, slotCtx);
-    }
-  }
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
@@ -731,10 +721,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     const elCtx = createSSRContext(111);
     elCtx.$parent$ = rCtx.$cmpCtx$;
     elCtx.$slotParent$ = rCtx.$slotCtx$;
-    if (dynamicChildren) {
-      if (hostCtx) {
-        addDynamicSlot(hostCtx, elCtx);
-      }
+    if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
+      addDynamicSlot(hostCtx, elCtx);
     }
     return renderNodeVirtual(
       node as JSXNode<typeof Virtual>,
@@ -1121,8 +1109,4 @@ const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
 
 const normalizeInvisibleEvents = (eventName: string) => {
   return eventName === 'on:qvisible' ? 'on-document:qinit' : eventName;
-};
-
-const hasDynamicChildren = (node: JSXNode) => {
-  return (node.props as any)[_IMMUTABLE]?.children === false;
 };

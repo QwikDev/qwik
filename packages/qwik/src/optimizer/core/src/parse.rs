@@ -13,8 +13,10 @@ use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
+use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
+use swc_ecmascript::transforms::optimization::simplify::inlining::inlining;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -79,8 +81,9 @@ pub struct TransformCodeOptions<'a> {
     pub entry_policy: &'a dyn EntryPolicy,
     pub mode: EmitMode,
     pub scope: Option<&'a String>,
-    pub is_inline: bool,
+    pub entry_strategy: EntryStrategy,
 
+    pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
     pub strip_ctx_kind: Option<HookKind>,
@@ -283,6 +286,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         is_type_script && !transpile_ts,
                     ));
 
+                    if transpile_ts {
+                        main_module.visit_mut_with(&mut inlining(Default::default()));
+                    }
+
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
 
@@ -306,7 +313,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         global_collect: collect,
                         scope: config.scope,
                         mode: config.mode,
-                        is_inline: config.is_inline,
+                        entry_strategy: config.entry_strategy,
+                        reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
                         strip_ctx_kind: config.strip_ctx_kind,
                     });
@@ -679,5 +687,8 @@ pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
     if matches!(ctx_kind, HookKind::Event) {
         return false;
     }
-    matches!(ctx_name, "useTask$" | "useBrowserVisibleTask$" | "$")
+    matches!(
+        ctx_name,
+        "useTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
+    )
 }

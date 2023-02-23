@@ -31,7 +31,7 @@
 
 - [Resumable](concepts/resumable/index.mdx)
 - [Progressive](concepts/progressive/index.mdx)
-- [Reactive](concepts/reactivity/index.mdx)
+- [Reactivity](concepts/reactivity/index.mdx)
 
 ## Advanced
 

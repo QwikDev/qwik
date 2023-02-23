@@ -70,10 +70,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,gGA0BnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,8GA0BnB\"}")
 ============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -90,14 +90,14 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(_noopQrl("Parent_component_useServerMount_cQrQm0HrrM8", [
+    useServerMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useServerMount_cQrQm0HrrM8", [
         state
     ]));
-    serverStuffQrl(_noopQrl("Parent_component_serverStuff_r1qAHX7Opp0"));
-    serverLoaderQrl(_noopQrl("Parent_component_serverLoader_k1L0DiPQV1I"));
-    useTaskQrl(qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
+    serverStuffQrl(/*#__PURE__*/ _noopQrl("Parent_component_serverStuff_r1qAHX7Opp0"));
+    serverLoaderQrl(/*#__PURE__*/ _noopQrl("Parent_component_serverLoader_k1L0DiPQV1I"));
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
+        onClick$: /*#__PURE__*/ qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: _wrapSignal(state, "text")
     }, "u6_0");
 };

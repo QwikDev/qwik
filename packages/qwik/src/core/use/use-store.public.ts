@@ -1,8 +1,30 @@
 import { QObjectRecursive } from '../state/constants';
 import { getOrCreateProxy } from '../state/store';
-import { isFunction } from '../util/types';
+import { DeepReadonly, isFunction } from '../util/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
+
+// Only the top-level fields are mutable for non-deep stores
+type ShallowStore<STATE extends object> = { [K in keyof STATE]: DeepReadonly<STATE[K]> };
+
+type StateInit<STATE extends object> = STATE | (() => STATE);
+
+type UseStore = {
+  <STATE extends object>(
+    init: StateInit<STATE>,
+    opts: UseStoreOptions & { reactive: false } // TODO: Do we like this?
+  ): STATE;
+  <STATE extends object>(init: StateInit<STATE>, opts: UseStoreOptions & { deep: true }): STATE;
+  <STATE extends object>(
+    init: StateInit<STATE>,
+    opts: UseStoreOptions & { deep: false }
+  ): ShallowStore<STATE>;
+  <STATE extends object>(
+    init: StateInit<STATE>,
+    opts: Omit<UseStoreOptions, 'deep'> & { deep?: undefined; recursive: true }
+  ): STATE;
+  <STATE extends object>(init: StateInit<STATE>, opts?: UseStoreOptions): ShallowStore<STATE>;
+};
 
 /**
  * @public
@@ -89,7 +111,7 @@ export interface UseStoreOptions {
  * @public
  */
 // </docs>
-export const useStore = <STATE extends object>(
+export const useStore: UseStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {

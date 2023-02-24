@@ -201,9 +201,12 @@ export const Issue1717 = component$(() => {
 });
 
 export const Issue2015 = component$(() => {
-  const state = useStore({
-    logs: [] as string[],
-  });
+  const state = useStore(
+    {
+      logs: [] as string[],
+    },
+    { deep: true }
+  );
 
   useBrowserVisibleTask$(async () => {
     state.logs.push('start 1');

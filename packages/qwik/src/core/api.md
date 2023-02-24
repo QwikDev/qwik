@@ -1005,8 +1005,10 @@ export interface UseSignal {
 // @alpha (undocumented)
 export const useSignal: UseSignal;
 
+// Warning: (ae-forgotten-export) The symbol "UseStore" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE;
+export const useStore: UseStore;
 
 // @public (undocumented)
 export interface UseStoreOptions {

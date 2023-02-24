@@ -47,5 +47,7 @@ export interface Ref<T = Element> {
  */
 // </docs>
 export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {
-  return useStore({ current });
+  // Since Ref.current is a mutable element but useStore returns a readonly,
+  // this casting is needed (based on the current implementation)
+  return useStore({ current }) as Ref<T>;
 };

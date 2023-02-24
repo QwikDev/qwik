@@ -163,7 +163,7 @@ export const head: DocumentHead = ({ params, resolveValue }) => {
 
 ### Nested layouts and head
 
-An advanced case is that a [layout](/qwikcity/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `Bar` to the title, so that when rendered, the title will be `Foo Bar`. Every layout in the stack has the opportunity to return a new value.
+An advanced case is that a [layout](/qwikcity/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
 
 ```
 ──src/

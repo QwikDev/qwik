@@ -1,4 +1,5 @@
 import {
+  $,
   component$,
   getLocale,
   JSXNode,
@@ -6,13 +7,26 @@ import {
   Slot,
   useContextProvider,
   useServerData,
-  useStore,
   useSignal,
+  useStore,
   useTask$,
-  $,
-  _weakSerialize,
   _getContextElement,
+  _weakSerialize,
 } from '@builder.io/qwik';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+import * as qwikCity from '@qwik-city-plan';
+import { clientNavigate } from './client-navigate';
+import { CLIENT_DATA_CACHE } from './constants';
+import {
+  ContentContext,
+  ContentInternalContext,
+  DocumentHeadContext,
+  RouteActionContext,
+  RouteLocationContext,
+  RouteNavigateContext,
+  RouteStateContext,
+} from './contexts';
+import { createDocumentHead, resolveHead } from './head';
 import { loadRoute } from './routing';
 import type {
   ClientPageData,
@@ -28,23 +42,9 @@ import type {
   RouteActionValue,
   RouteNavigate,
 } from './types';
-import {
-  ContentContext,
-  ContentInternalContext,
-  DocumentHeadContext,
-  RouteActionContext,
-  RouteLocationContext,
-  RouteNavigateContext,
-  RouteStateContext,
-} from './contexts';
-import { createDocumentHead, resolveHead } from './head';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
-import { useQwikCityEnv } from './use-functions';
-import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
+import { useQwikCityEnv } from './use-functions';
 import { toPath } from './utils';
-import { CLIENT_DATA_CACHE } from './constants';
-import * as qwikCity from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -114,18 +114,16 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       : undefined
   );
 
-  const goto: RouteNavigate = $(async (path) => {
+  const goto: RouteNavigate = $(async (path, forceReload) => {
     const value = navPath.value;
-    if (path) {
-      if (value === path) {
-        return;
-      }
-      navPath.value = path;
-    } else {
-      // force a change
+
+    if (forceReload || path === undefined) {
       navPath.value = '';
-      navPath.value = value;
+    } else if (value === path) {
+      return;
     }
+    navPath.value = value;
+
     if (isBrowser) {
       const prefetchURL = new URL(navPath.value, routeLocation.url);
       loadClientData(prefetchURL, _getContextElement());

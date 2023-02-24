@@ -1,9 +1,9 @@
+import { $, component$, QwikIntrinsicElements, Slot, useOnDocument } from '@builder.io/qwik';
 import type { ClientHistoryWindow } from './client-navigate';
-import { component$, Slot, QwikIntrinsicElements, $, useOnDocument } from '@builder.io/qwik';
 import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
-import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
+import { getClientNavPath, getPrefetchDataset } from './utils';
 
 /**
  * @alpha
@@ -48,7 +48,7 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav(linkProps.href);
+          nav(linkProps.href, linkProps.reload);
         }
       }}
       data-prefetch={prefetchDataset}
@@ -87,4 +87,5 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
  */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
+  reload?: boolean;
 }

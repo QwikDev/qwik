@@ -18,7 +18,7 @@ import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
-import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
+import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
@@ -251,11 +251,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
       async handler() {
         if (ctx?.target === 'ssr') {
           // ssr build
-          // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-          const manifest: QwikManifest =
-            (globalThis as any).QWIK_MANIFEST || qwikPlugin!.api.getManifest();
-          const clientOutDir: string =
-            (globalThis as any).QWIK_CLIENT_OUT_DIR || qwikPlugin!.api.getClientOutDir();
+          const manifest = qwikPlugin!.api.getManifest();
+          const clientOutDir = qwikPlugin!.api.getClientOutDir();
 
           if (manifest && clientOutDir) {
             for (const swEntry of ctx.serviceWorkers) {
@@ -277,7 +274,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             }
           }
 
-          if (outDir) {
+          if (outDir && clientOutDir) {
             const { staticPathsCode, notFoundPathsCode } = await postBuild(
               clientOutDir,
               api.getBasePathname(),

@@ -179,7 +179,7 @@ export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: R
 
 function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
-  const chunkFileName = pathname.slice(1);
+  const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
     id: createFileId(opts.routesDir, sourceFile.filePath),

@@ -9,7 +9,6 @@ import type {
 } from '../../runtime/src/types';
 import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
-  getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
@@ -22,7 +21,7 @@ import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QRL, RenderOptions, _deserializeData, _serializeData } from '@builder.io/qwik';
+import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
 import { isDev } from '@builder.io/qwik/build';
@@ -239,8 +238,7 @@ async function pureServerFunction(ev: RequestEvent) {
 
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const basePathname = getRequestBasePathname(ev);
-  const { pathname, url } = ev;
+  const { basePathname, pathname, url } = ev;
   if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
@@ -290,14 +288,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*@__PURE__*/ new TextEncoder();
 
-export function securityMiddleware({
-  method,
-  url,
-  request,
-  error,
-  next,
-  getWritableStream,
-}: RequestEvent) {
+export function securityMiddleware({ method, url, request, error }: RequestEvent) {
   const forbidden =
     method === 'POST' &&
     request.headers.get('origin') !== url.origin &&
@@ -306,7 +297,7 @@ export function securityMiddleware({
     throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
   }
 }
-export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
+export function renderQwikMiddleware(render: Render) {
   return async (requestEv: RequestEvent) => {
     if (requestEv.headersSent) {
       return;
@@ -332,6 +323,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     try {
       const isStatic = getRequestMode(requestEv) === 'static';
       const result = await render({
+        base: requestEv.basePathname + 'build/',
         stream: stream,
         serverData: getQwikCityServerData(requestEv),
         containerAttributes: {

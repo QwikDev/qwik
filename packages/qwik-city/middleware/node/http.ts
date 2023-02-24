@@ -20,7 +20,7 @@ function getOrigin(req: IncomingMessage) {
 
 export function getUrl(req: IncomingMessage) {
   const origin = ORIGIN ?? getOrigin(req);
-  return new URL(req.url || '/', origin);
+  return new URL((req as any).originalUrl || req.url || '/', origin);
 }
 
 export async function fromNodeHttp(

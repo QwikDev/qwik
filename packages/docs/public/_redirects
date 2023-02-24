@@ -1,15 +1,18 @@
 /chat https://discord.gg/bNVSQmPzqy 307
 /chat/ https://discord.gg/bNVSQmPzqy 307
-/docs /docs/overview 307
-/docs/ /docs/overview 307
-/examples /examples/introduction/hello-world 307
-/examples/ /examples/introduction/hello-world 307
-/guide /docs/overview 307
-/guide/ /docs/overview 307
-/tutorial /tutorial/welcome/overview 307
-/tutorial/ /tutorial/welcome/overview 307
-/tutorials /tutorial/welcome/overview 307
-/tutorials/ /tutorial/welcome/overview 307
+
+/docs /docs/overview/ 307
+/docs/ /docs/overview/ 307
+/examples /examples/introduction/hello-world/ 307
+/examples/ /examples/introduction/hello-world/ 307
+/guide /docs/overview/ 307
+/guide/ /docs/overview/ 307
+/tutorial /tutorial/welcome/overview/ 307
+/tutorial/ /tutorial/welcome/overview/ 307
+/tutorials /tutorial/welcome/overview/ 307
+/tutorials/ /tutorial/welcome/overview/ 307
+
+/tutorial/hooks/use-client-effect/ /tutorial/hooks/use-browser-visible-task/ 307
 
 /qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
 

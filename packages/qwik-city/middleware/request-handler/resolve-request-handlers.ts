@@ -8,7 +8,6 @@ import type {
 } from '../../runtime/src/types';
 import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
-  getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
@@ -267,8 +266,7 @@ async function pureServerFunction(ev: RequestEvent) {
 }
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const basePathname = getRequestBasePathname(ev);
-  const { pathname, url } = ev;
+  const { basePathname, pathname, url } = ev;
   if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {

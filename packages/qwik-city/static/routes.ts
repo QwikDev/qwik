@@ -1,4 +1,5 @@
 export function createRouteTester(
+  basePathname: string,
   includeRoutes: string[] | undefined,
   excludeRoutes: string[] | undefined
 ) {
@@ -9,6 +10,12 @@ export function createRouteTester(
     if (pathname.endsWith('404.html')) {
       // always static render 404.html routes
       return true;
+    }
+
+    if (basePathname !== '/') {
+      // the "include" and "exclude" routes are relative to the file system
+      // routes directory, and should not involve the URL base pathname
+      pathname = pathname.slice(basePathname.length - 1);
     }
 
     for (const exclude of excludes) {

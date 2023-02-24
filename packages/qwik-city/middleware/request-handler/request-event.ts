@@ -8,12 +8,13 @@ import type {
   ResolveValue,
   QwikSerializer,
 } from './types';
-import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
+import type { ActionInternal, JSONValue, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
+import { isFormContentType } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -43,6 +44,8 @@ export function createRequestEvent(
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
+  let requestData: Promise<JSONValue> | undefined = undefined;
+
   let status = 200;
 
   const next = async () => {
@@ -202,6 +205,13 @@ export function createRequestEvent(
       return send(statusCode, html);
     },
 
+    requestData: async () => {
+      if (requestData) {
+        return requestData;
+      }
+      return requestData = parseRequest(requestEv.request);
+    },
+
     json: (statusCode: number, data: any) => {
       headers.set('Content-Type', 'application/json; charset=utf-8');
       return send(statusCode, JSON.stringify(data));
@@ -267,3 +277,42 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 }
 
 const ABORT_INDEX = 999999999;
+
+const parseRequest = async (request: Request): Promise<JSONValue> => {
+  const isForm = isFormContentType(request.headers);
+  const req = request.clone();
+  if (isForm) {
+    const formData = await req.formData();
+    // requestEv.sharedMap.set(RequestEvSharedActionFormData, formData);
+    return formToObj(formData);
+  } else {
+    return await req.json();
+  }
+}
+
+const formToObj = (formData: FormData): Record<string, any> => {
+  // Convert FormData to object
+  // Handle nested form input using dot notation
+  // Handle array input using square bracket notation
+  const obj: any = {};
+  formData.forEach((value, key) => {
+    const keys = key.split('.').filter((k) => k);
+    let current = obj;
+    for (let i = 0; i < keys.length; i++) {
+      let k = keys[i];
+      // Last key
+      if (i === keys.length - 1) {
+        if (k.endsWith('[]')) {
+          k = k.slice(0, -2);
+          current[k] = current[k] || [];
+          current[k].push(value);
+        } else {
+          current[k] = value;
+        }
+      } else {
+        current = current[k] = {};
+      }
+    }
+  });
+  return obj;
+};

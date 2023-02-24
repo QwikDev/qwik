@@ -23,7 +23,6 @@ import type {
   RouteLocation,
   Action,
   Loader,
-  ZodReturn,
   Editable,
   ActionStore,
   RequestEvent,
@@ -31,6 +30,8 @@ import type {
   LoaderInternal,
   RequestEventAction,
   ActionOptionsWithValidation,
+  ValidatorInternal,
+  ValidatorFromSchema,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -40,12 +41,13 @@ import type { FormSubmitCompletedDetail } from './form-component';
 /**
  * @alpha
  */
-export const actionQrl = <B, A>(
+export const routeActionQrl = <B>(
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<B>>,
-  options?: ActionOptionsWithValidation<ZodReturn> | ZodReturn
-): Action<B, A> => {
+  options?: ActionOptionsWithValidation<ValidatorFromSchema> | ValidatorFromSchema,
+  ...rest: ValidatorFromSchema[]
+): ActionInternal => {
   let _id: string | undefined;
-  let schema: ZodReturn | undefined;
+  let validators: ValidatorInternal | undefined;
   if (options && typeof options === 'object') {
     if (options instanceof Promise) {
       schema = options;
@@ -132,24 +134,38 @@ Action.run() can only be called on the browser, for example when a user clicks a
     return state;
   }
   action.__brand = 'server_action' as const;
-  action.__schema = schema;
+  action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
   action.use = action;
+
+  return action;
+};
+
+export const globalActionQrl = <B, A>(
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<B>>,
+  options?: ActionOptionsWithValidation<ZodReturn> | ZodReturn
+): Action<B, A> => {
+  const action = routeActionQrl(actionQrl, options);
   if (isServer) {
     if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
       (globalThis as any)._qwikActionsMap = new Map();
     }
-    (globalThis as any)._qwikActionsMap.set(id, action);
+    (globalThis as any)._qwikActionsMap.set(action.__id, action);
   }
-
-  return action satisfies ActionInternal;
-};
+  return action;
+}
 
 /**
  * @alpha
  */
-export const action$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(actionQrl) as any;
+export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(routeActionQrl) as any;
+
+/**
+ * @alpha
+ */
+export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(globalActionQrl) as any;
+
 
 /**
  * @alpha
@@ -161,7 +177,7 @@ export interface LoaderOptions {
 /**
  * @alpha
  */
-export const loaderQrl = <RETURN>(
+export const routeLoaderQrl = <RETURN>(
   loaderQrl: QRL<(event: RequestEventLoader) => RETURN>,
   options?: LoaderOptions
 ): Loader<RETURN> => {
@@ -187,24 +203,48 @@ export const loaderQrl = <RETURN>(
 /**
  * @alpha
  */
-export const loader$ = /*#__PURE__*/ implicit$FirstArg(loaderQrl);
+export const routeLoader$ = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
 /**
  * @alpha
  */
 export const zodQrl = async (
   qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
-) => {
+): Promise<ValidatorInternal> => {
   if (isServer) {
     let obj = await qrl.resolve();
+    let schema: z.Schema;
     if (typeof obj === 'function') {
       obj = obj(z);
-    } else if (obj instanceof z.Schema) {
-      return obj;
     }
-    return z.object(obj);
+    if (obj instanceof z.Schema) {
+      schema = obj;
+    } else {
+      schema = z.object(obj);
+    }
+    return {
+      async validate(ev, inputData) {
+        const data = inputData ?? await ev.requestData()
+        const result = await schema.safeParseAsync(data);
+        if (result.success) {
+          return result;
+        } else {
+          if (isDev) {
+            console.error(
+        '\nVALIDATION ERROR\naction$() zod validated failed',
+        '\n  - Issues:',
+        result.error.issues
+      );
+          }
+          return {
+            success: false,
+            error: result.error.flatten(),
+          }
+        }
+      }
+    }
   }
-  return undefined;
+  return undefined as any;
 };
 
 /**
@@ -219,19 +259,6 @@ export interface ServerFunction {
 export interface Server {
   <T extends ServerFunction>(fn: T): QRL<T>;
 }
-
-export const getId = (qrl: QRL<any>, id?: string) => {
-  if (typeof id === 'string') {
-    if (isDev) {
-      if (!/^[\w/.-]+$/.test(id)) {
-        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
-      }
-    }
-    return `id_${id}`;
-  }
-  return qrl.getHash();
-};
-
 /**
  * @alpha
  */
@@ -283,3 +310,40 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
  * @alpha
  */
 export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;
+
+export const getId = (qrl: QRL<any>, id?: string) => {
+  if (typeof id === 'string') {
+    if (isDev) {
+      if (!/^[\w/.-]+$/.test(id)) {
+        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
+      }
+    }
+    return `id_${id}`;
+  }
+  return qrl.getHash();
+};
+
+
+/**
+ * @alpha
+ * @deprecated - use `globalAction$()` instead
+ */
+export const actionQrl = globalActionQrl;
+
+/**
+ * @alpha
+ * @deprecated - use `globalAction$()` instead
+ */
+export const action$ = globalAction$;
+
+/**
+ * @alpha
+ * @deprecated - use `routeLoader$()` instead
+ */
+export const loaderQrl = routeLoaderQrl;
+
+/**
+ * @alpha
+ * @deprecated - use `routeLoader$()` instead
+ */
+export const loader$ = routeLoader$;

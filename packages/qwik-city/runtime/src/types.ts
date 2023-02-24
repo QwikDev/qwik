@@ -1,5 +1,6 @@
 import type {
   ResolveSyncValue,
+  RequestEvent,
   RequestEventAction,
   RequestEventLoader,
   RequestHandler,
@@ -82,8 +83,8 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
  */
 export type JSONObject = { [x: string]: JSONValue };
 
-export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
-  ? z.infer<z.ZodObject<TYPE>>
+export type GetValidatorType<B extends ValidatorFromSchema> = B extends ValidatorFromSchema<infer TYPE>
+  ? z.infer<TYPE>
   : never;
 
 /**
@@ -96,7 +97,7 @@ export interface ActionOptions {
 /**
  * @alpha
  */
-export interface ActionOptionsWithValidation<B extends ZodReturn> extends ActionOptions {
+export interface ActionOptionsWithValidation<B extends ValidatorFromSchema> extends ActionOptions {
   id?: string;
   validation: B;
 }
@@ -116,9 +117,20 @@ export interface ActionConstructor {
   ): Action<O>;
 
   // With validation
-  <O, B extends ZodReturn>(
+  <O, B extends ValidatorFromSchema>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B | ActionOptionsWithValidation<B>
+  ): Action<
+    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // With multiple validators
+  <O, B extends ValidatorFromSchema>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B,
+    ...rest: Array<ActionOptionsWithValidation<B>>
   ): Action<
     O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
     GetValidatorType<B>,
@@ -529,7 +541,7 @@ export interface ActionInternal extends Action<any, any> {
   readonly __brand: 'server_action';
   __id: string;
   __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<any>>;
-  __schema: ZodReturn | undefined;
+  __validators: ValidatorInternal[] | undefined;
 
   (): ActionStore<any, any>;
 }
@@ -541,16 +553,41 @@ export type Editable<T> = {
 /**
  * @alpha
  */
-export type ZodReturn<T extends z.ZodRawShape = any> = Promise<
-  z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>
->;
+export interface DataValidator<RETURN extends z.SafeParseReturnType<any, any> = any> {
+  validate(ev: RequestEvent, data: unknown): Promise<RETURN>;
+}
+
+
+export interface ValidatorReturn {
+  success: boolean;
+  data?: any;
+  error?: any;
+}
+/**
+ * @alpha
+ */
+export interface ValidatorInternal {
+  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn>;
+}
+
+export type ValidatorFromShape<T extends z.ZodRawShape, ZodObject extends z.ZodObject<any> = z.ZodObject<T>> = ValidatorFromSchema<ZodObject>
+
+export type ValidatorFromSchema<T extends z.Schema = any> = Promise<DataValidator<z.SafeParseReturnType<z.input<T>, z.output<T>>>>;
+
+
+// /**
+//  * @alpha
+//  */
+// export type ZodReturn<T extends z.ZodRawShape = any> = Promise<
+//   z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>
+// >;
 
 /**
  * @alpha
  */
 export interface Zod {
-  <T extends z.ZodRawShape>(schema: T): Promise<z.ZodObject<T>>;
-  <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): Promise<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): Promise<T>;
-  <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): Promise<T>;
+  <T extends z.ZodRawShape>(schema: T): ValidatorFromShape<T>;
+  <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): ValidatorFromShape<T>;
+  <T extends z.Schema>(schema: T): ValidatorFromSchema<T>;
+  <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): ValidatorFromSchema<T>;
 }

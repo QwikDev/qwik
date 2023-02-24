@@ -4,6 +4,7 @@ import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { JSONValue } from 'packages/qwik-city/runtime/src/types';
 
 export interface EnvGetter {
   get(key: string): string | undefined;
@@ -268,7 +269,7 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
   readonly headersSent: boolean;
   readonly exited: boolean;
   readonly cacheControl: (cacheControl: CacheControl) => void;
-
+  readonly requestData: () => Promise<JSONValue>;
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.

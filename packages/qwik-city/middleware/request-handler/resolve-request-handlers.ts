@@ -5,6 +5,7 @@ import type {
   RouteModule,
   ActionInternal,
   LoaderInternal,
+  JSONObject,
 } from '../../runtime/src/types';
 import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
@@ -32,11 +33,13 @@ export const resolveRequestHandlers = (
   method: string,
   renderHandler: RequestHandler
 ) => {
-  const serverLoaders: LoaderInternal[] = [];
+  const routeLoaders: LoaderInternal[] = [];
+  const routeActions: ActionInternal[] = [];
+
   const requestHandlers: RequestHandler[] = [];
   const isPageRoute = !!(route && isLastModulePageRoute(route[1]));
   if (serverPlugins) {
-    _resolveRequestHandlers(serverLoaders, requestHandlers, serverPlugins, isPageRoute, method);
+    _resolveRequestHandlers(routeLoaders, routeActions, requestHandlers, serverPlugins, isPageRoute, method);
   }
 
   if (route) {
@@ -47,10 +50,10 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    _resolveRequestHandlers(serverLoaders, requestHandlers, route[1], isPageRoute, method);
+    _resolveRequestHandlers(routeLoaders, routeActions, requestHandlers, route[1], isPageRoute, method);
     if (isPageRoute) {
-      if (serverLoaders.length + actionsMiddleware.length > 0) {
-        requestHandlers.push(actionsMiddleware(serverLoaders) as any);
+      if (routeLoaders.length + actionsMiddleware.length > 0) {
+        requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
       }
       requestHandlers.push(renderHandler);
     }
@@ -62,7 +65,8 @@ export const resolveRequestHandlers = (
 };
 
 const _resolveRequestHandlers = (
-  serverLoaders: LoaderInternal[],
+  routeLoaders: LoaderInternal[],
+  routeActions: ActionInternal[],
   requestHandlers: RequestHandler[],
   routeModules: RouteModule[],
   collectActions: boolean,
@@ -117,8 +121,12 @@ const _resolveRequestHandlers = (
       const loaders = Object.values(routeModule).filter((e) =>
         checkBrand(e, 'server_loader')
       ) as any[];
+      routeLoaders.push(...loaders);
 
-      serverLoaders.push(...loaders);
+      const actions = Object.values(routeModule).filter((e) =>
+        checkBrand(e, 'server_action')
+      ) as any[];
+      routeActions.push(...actions);
     }
   }
 };
@@ -127,7 +135,10 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
+export function actionsMiddleware(
+  routeLoaders: LoaderInternal[],
+  routeActions: ActionInternal[],
+) {
   return async (requestEv: RequestEventInternal) => {
     if (requestEv.headersSent) {
       requestEv.exit();
@@ -140,47 +151,34 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
       if (selectedAction && serverActionsMap) {
-        const action = serverActionsMap.get(selectedAction);
+        const action = routeActions.find((action) => action.__id === selectedAction) ?? serverActionsMap.get(selectedAction);
         if (action) {
           requestEv.sharedMap.set(RequestEvSharedActionId, selectedAction);
 
-          const isForm = isFormContentType(requestEv.request.headers);
-          const req = requestEv.request.clone();
-          let data: any;
-          if (isForm) {
-            const formData = await req.formData();
-            requestEv.sharedMap.set(RequestEvSharedActionFormData, formData);
-            data = formToObj(formData);
-          } else {
-            data = await req.json();
-          }
-
           let failed = false;
-          if (action.__schema) {
-            const validator = await action.__schema;
-            const result = await validator.safeParseAsync(data);
-            if (!result.success) {
-              failed = true;
-              if ((globalThis as any).qDev) {
-                console.error(
-                  '\nVALIDATION ERROR\naction$() zod validated failed',
-                  '\n\n  - Received:',
-                  data,
-                  '\n  - Issues:',
-                  result.error.issues
-                );
+          let data = await requestEv.requestData();
+          if (!data || typeof data !== 'object') {
+            throw new Error('Expected request data to be an object');
+          }
+          const validators = action.__validators;
+          if (validators) {
+            for (const validator of validators) {
+              const result = await validator.validate(requestEv, undefined);
+              if (!result.success) {
+                failed = true;
+                requestEv.status(400);
+                loaders[selectedAction] = {
+                  __brand: 'fail',
+                  ...result.error.flatten(),
+                } as any;
+              } else {
+                data = result.data;
               }
-              requestEv.status(400);
-              loaders[selectedAction] = {
-                __brand: 'fail',
-                ...result.error.flatten(),
-              } as any;
-            } else {
-              data = result.data;
+
             }
           }
           if (!failed) {
-            const actionResolved = await action.__qrl(data, requestEv);
+            const actionResolved = await action.__qrl(data as JSONObject, requestEv);
             verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             loaders[selectedAction] = actionResolved;
           }
@@ -188,9 +186,9 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
       }
     }
 
-    if (serverLoaders.length > 0) {
+    if (routeLoaders.length > 0) {
       await Promise.all(
-        serverLoaders.map((loader) => {
+        routeLoaders.map((loader) => {
           const loaderId = loader.__id;
           if (isDev) {
             if (loaders[loaderId]) {
@@ -216,33 +214,6 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
   };
 }
 
-const formToObj = (formData: FormData): Record<string, any> => {
-  // Convert FormData to object
-  // Handle nested form input using dot notation
-  // Handle array input using square bracket notation
-  const obj: any = {};
-  formData.forEach((value, key) => {
-    const keys = key.split('.').filter((k) => k);
-    let current = obj;
-    for (let i = 0; i < keys.length; i++) {
-      let k = keys[i];
-      // Last key
-      if (i === keys.length - 1) {
-        if (k.endsWith('[]')) {
-          k = k.slice(0, -2);
-          current[k] = current[k] || [];
-          current[k].push(value);
-        } else {
-          current[k] = value;
-        }
-      } else {
-        current = current[k] = {};
-      }
-    }
-  });
-  return obj;
-};
-
 async function pureServerFunction(ev: RequestEvent) {
   const fn = ev.query.get(QFN_KEY);
   if (fn && ev.request.headers.get('Content-Type') === 'application/qwik-json') {
@@ -265,6 +236,7 @@ async function pureServerFunction(ev: RequestEvent) {
     throw ev.error(500, 'Invalid request');
   }
 }
+
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
   const basePathname = getRequestBasePathname(ev);

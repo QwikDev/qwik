@@ -166,7 +166,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
 
     const result = await ssgWorker.render(staticRoute);
 
-    if (sitemapOutFile && result.ok) {
+    if (sitemapOutFile && result.ok && result.resourceType === 'page') {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
         if (sitemapPromise) {

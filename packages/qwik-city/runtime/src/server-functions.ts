@@ -234,6 +234,7 @@ export const zodQrl = (
           }
           return {
             success: false,
+            status: 400,
             error: result.error.flatten(),
           };
         }

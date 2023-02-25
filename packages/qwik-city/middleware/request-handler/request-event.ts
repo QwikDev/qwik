@@ -283,7 +283,7 @@ const parseRequest = async (
   qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
   const req = request.clone();
-  const type = request.headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
     const formData = await req.formData();
     sharedMap.set(RequestEvSharedActionFormData, formData);

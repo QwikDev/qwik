@@ -99,4 +99,3 @@ export const isQDataJson = (pathname: string) => {
 
 export const QDATA_JSON = '/q-data.json';
 const QDATA_JSON_LEN = QDATA_JSON.length;
-

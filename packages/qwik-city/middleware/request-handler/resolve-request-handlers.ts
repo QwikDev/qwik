@@ -308,8 +308,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 export const encoder = /*@__PURE__*/ new TextEncoder();
 
 export function securityMiddleware({ url, request, error }: RequestEvent) {
-  const forbidden =
-    request.headers.get('origin') !== url.origin;
+  const forbidden = request.headers.get('origin') !== url.origin;
   if (forbidden) {
     throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
   }

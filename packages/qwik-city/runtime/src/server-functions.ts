@@ -32,6 +32,7 @@ import type {
   ValidatorInternal,
   CommonLoaderActionOptions,
   DataValidator,
+  ValidatorReturn,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -249,6 +250,25 @@ export const zodQrl = (
  */
 export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
+/**
+ * @alpha
+ */
+export const validatorQrl = (
+  validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
+): ValidatorInternal => {
+  if (isServer) {
+    return {
+      validate: validator,
+    };
+  }
+  return undefined as any;
+};
+
+/**
+ * @alpha
+ */
+export const validator$: Zod = /*#__PURE__*/ implicit$FirstArg(validatorQrl) as any;
+
 export interface ServerFunction {
   (this: RequestEvent, ...args: any[]): any;
 }
@@ -307,18 +327,6 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
  */
 export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;
 
-export const getId = (qrl: QRL<any>, id?: string) => {
-  if (typeof id === 'string') {
-    if (isDev) {
-      if (!/^[\w/.-]+$/.test(id)) {
-        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
-      }
-    }
-    return `id_${id}`;
-  }
-  return qrl.getHash();
-};
-
 /**
  * @alpha
  * @deprecated - use `globalAction$()` instead
@@ -344,7 +352,7 @@ export const loaderQrl = routeLoaderQrl;
 export const loader$ = routeLoader$;
 
 const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {
-  let _id: string | undefined;
+  let id: string | undefined;
   const validators: ValidatorInternal[] = [];
   if (rest.length === 1) {
     const options = rest[0];
@@ -352,7 +360,7 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
       if ('validate' in options) {
         validators.push(options);
       } else {
-        _id = options.id;
+        id = options.id;
         if (options.validation) {
           validators.push(...options.validation);
         }
@@ -361,8 +369,19 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   } else if (rest.length > 1) {
     validators.push(...(rest.filter((v) => !!v) as any));
   }
+
+  if (typeof id === 'string') {
+    if (isDev) {
+      if (!/^[\w/.-]+$/.test(id)) {
+        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
+      }
+    }
+    id = `id_${id}`;
+  } else {
+    id = qrl.getHash();
+  }
   return {
     validators: validators.reverse(),
-    id: getId(qrl, _id),
+    id,
   };
 };

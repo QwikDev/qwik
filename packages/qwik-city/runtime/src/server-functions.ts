@@ -23,14 +23,15 @@ import type {
   RouteLocation,
   Action,
   Loader,
-  ZodReturn,
   Editable,
   ActionStore,
   RequestEvent,
   ActionInternal,
   LoaderInternal,
   RequestEventAction,
-  ActionOptionsWithValidation,
+  ValidatorInternal,
+  CommonLoaderActionOptions,
+  DataValidator,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -40,21 +41,11 @@ import type { FormSubmitCompletedDetail } from './form-component';
 /**
  * @alpha
  */
-export const actionQrl = <B, A>(
+export const routeActionQrl = <B>(
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<B>>,
-  options?: ActionOptionsWithValidation<ZodReturn> | ZodReturn
-): Action<B, A> => {
-  let _id: string | undefined;
-  let schema: ZodReturn | undefined;
-  if (options && typeof options === 'object') {
-    if (options instanceof Promise) {
-      schema = options;
-    } else {
-      _id = options.id;
-      schema = options.validation;
-    }
-  }
-  const id = getId(actionQrl, _id);
+  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+): ActionInternal => {
+  const { id, validators } = getValidators(rest, actionQrl);
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
@@ -132,24 +123,44 @@ Action.run() can only be called on the browser, for example when a user clicks a
     return state;
   }
   action.__brand = 'server_action' as const;
-  action.__schema = schema;
+  action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
   action.use = action;
-  if (isServer) {
-    if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
-      (globalThis as any)._qwikActionsMap = new Map();
-    }
-    (globalThis as any)._qwikActionsMap.set(id, action);
-  }
 
-  return action satisfies ActionInternal;
+  return action;
 };
 
 /**
  * @alpha
  */
-export const action$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(actionQrl) as any;
+export const globalActionQrl = <B, A>(
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<B>>,
+  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+): Action<B, A> => {
+  const action = routeActionQrl(actionQrl, ...rest);
+  if (isServer) {
+    if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
+      (globalThis as any)._qwikActionsMap = new Map();
+    }
+    (globalThis as any)._qwikActionsMap.set(action.__id, action);
+  }
+  return action;
+};
+
+/**
+ * @alpha
+ */
+export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
+  routeActionQrl
+) as any;
+
+/**
+ * @alpha
+ */
+export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
+  globalActionQrl
+) as any;
 
 /**
  * @alpha
@@ -161,11 +172,11 @@ export interface LoaderOptions {
 /**
  * @alpha
  */
-export const loaderQrl = <RETURN>(
+export const routeLoaderQrl = <RETURN>(
   loaderQrl: QRL<(event: RequestEventLoader) => RETURN>,
-  options?: LoaderOptions
+  ...rest: (CommonLoaderActionOptions | DataValidator)[]
 ): Loader<RETURN> => {
-  const id = getId(loaderQrl, options?.id);
+  const { id, validators } = getValidators(rest, loaderQrl);
   function loader() {
     return useContext(RouteStateContext, (state) => {
       if (!(id in state)) {
@@ -178,6 +189,7 @@ export const loaderQrl = <RETURN>(
   }
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;
+  loader.__validators = validators;
   loader.__id = id;
   loader.use = loader;
 
@@ -187,24 +199,49 @@ export const loaderQrl = <RETURN>(
 /**
  * @alpha
  */
-export const loader$ = /*#__PURE__*/ implicit$FirstArg(loaderQrl);
+export const routeLoader$ = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
 /**
  * @alpha
  */
-export const zodQrl = async (
+export const zodQrl = (
   qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
-) => {
+): ValidatorInternal => {
   if (isServer) {
-    let obj = await qrl.resolve();
-    if (typeof obj === 'function') {
-      obj = obj(z);
-    } else if (obj instanceof z.Schema) {
-      return obj;
-    }
-    return z.object(obj);
+    const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
+      if (typeof obj === 'function') {
+        obj = obj(z);
+      }
+      if (obj instanceof z.Schema) {
+        return obj;
+      } else {
+        return z.object(obj);
+      }
+    });
+    return {
+      async validate(ev, inputData) {
+        const data = inputData ?? (await ev.parseBody());
+        const result = await (await schema).safeParseAsync(data);
+        if (result.success) {
+          return result;
+        } else {
+          if (isDev) {
+            console.error(
+              '\nVALIDATION ERROR\naction$() zod validated failed',
+              '\n  - Issues:',
+              result.error.issues
+            );
+          }
+          return {
+            success: false,
+            status: 400,
+            error: result.error.flatten(),
+          };
+        }
+      },
+    };
   }
-  return undefined;
+  return undefined as any;
 };
 
 /**
@@ -212,27 +249,12 @@ export const zodQrl = async (
  */
 export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
-export interface Server {
-  <T extends (ev: RequestEvent, ...args: any[]) => any>(fn: T): T extends (
-    ev: RequestEvent,
-    ...args: infer ARGS
-  ) => infer RETURN
-    ? QRL<(...args: ARGS) => RETURN>
-    : never;
+export interface ServerFunction {
+  (this: RequestEvent, ...args: any[]): any;
 }
-
-export const getId = (qrl: QRL<any>, id?: string) => {
-  if (typeof id === 'string') {
-    if (isDev) {
-      if (!/^[\w/.-]+$/.test(id)) {
-        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
-      }
-    }
-    return `id_${id}`;
-  }
-  return qrl.getHash();
-};
-
+export interface Server {
+  <T extends ServerFunction>(fn: T): QRL<T>;
+}
 /**
  * @alpha
  */
@@ -243,10 +265,11 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
   }
+
   function client() {
     return $(async (...args: any[]) => {
       if (isServer) {
-        throw new Error(`Server functions can not be invoked within the server during SSR.`);
+        return qrl(...(args as any));
       } else {
         const filtered = args.map((arg) => {
           if (arg instanceof Event) {
@@ -283,3 +306,63 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
  * @alpha
  */
 export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;
+
+export const getId = (qrl: QRL<any>, id?: string) => {
+  if (typeof id === 'string') {
+    if (isDev) {
+      if (!/^[\w/.-]+$/.test(id)) {
+        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
+      }
+    }
+    return `id_${id}`;
+  }
+  return qrl.getHash();
+};
+
+/**
+ * @alpha
+ * @deprecated - use `globalAction$()` instead
+ */
+export const actionQrl = globalActionQrl;
+
+/**
+ * @alpha
+ * @deprecated - use `globalAction$()` instead
+ */
+export const action$ = globalAction$;
+
+/**
+ * @alpha
+ * @deprecated - use `routeLoader$()` instead
+ */
+export const loaderQrl = routeLoaderQrl;
+
+/**
+ * @alpha
+ * @deprecated - use `routeLoader$()` instead
+ */
+export const loader$ = routeLoader$;
+
+const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {
+  let _id: string | undefined;
+  const validators: ValidatorInternal[] = [];
+  if (rest.length === 1) {
+    const options = rest[0];
+    if (options && typeof options === 'object') {
+      if ('validate' in options) {
+        validators.push(options);
+      } else {
+        _id = options.id;
+        if (options.validation) {
+          validators.push(...options.validation);
+        }
+      }
+    }
+  } else if (rest.length > 1) {
+    validators.push(...(rest.filter((v) => !!v) as any));
+  }
+  return {
+    validators: validators.reverse(),
+    id: getId(qrl, _id),
+  };
+};

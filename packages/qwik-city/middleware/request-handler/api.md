@@ -97,6 +97,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly locale: (local?: string) => string;
     readonly method: string;
     readonly params: Readonly<Record<string, string>>;
+    readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;

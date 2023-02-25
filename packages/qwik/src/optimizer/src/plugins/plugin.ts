@@ -32,7 +32,16 @@ const SERVER_STRIP_EXPORTS = [
   'onStaticGenerate',
 ];
 
-const SERVER_STRIP_CTX_NAME = ['useServer', 'server', 'action$', 'loader$', 'zod$'];
+const SERVER_STRIP_CTX_NAME = [
+  'useServer',
+  'route',
+  'server',
+  'action$',
+  'loader$',
+  'zod$',
+  'validator$',
+  'globalAction$',
+];
 const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'client', 'browser'];
 export interface QwikPackages {
   id: string;

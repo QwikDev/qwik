@@ -1,6 +1,5 @@
 import type { QPrefetchData } from './service-worker/types';
 import type { SimpleURL } from './types';
-import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
 import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
 import type { Signal } from '@builder.io/qwik';
 
@@ -19,9 +18,9 @@ export const clientNavigate = (
     win.history.pushState('', '', toPath(newUrl));
   }
 
-  if (!win[CLIENT_HISTORY_INITIALIZED]) {
+  if (!win._qCityHistory) {
     // only add event listener once
-    win[CLIENT_HISTORY_INITIALIZED] = 1;
+    win._qCityHistory = 1;
 
     win.addEventListener('popstate', () => {
       // history pop event has happened
@@ -36,7 +35,7 @@ export const clientNavigate = (
       }
     });
 
-    win.removeEventListener('popstate', win[POPSTATE_FALLBACK_INITIALIZED]!);
+    win.removeEventListener('popstate', win._qCityPopstateFallback!);
   }
 };
 
@@ -102,6 +101,6 @@ export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
 };
 
 export interface ClientHistoryWindow extends Window {
-  [CLIENT_HISTORY_INITIALIZED]?: 1;
-  [POPSTATE_FALLBACK_INITIALIZED]?: () => void;
+  _qCityHistory?: 1;
+  _qCityPopstateFallback?: () => void;
 }

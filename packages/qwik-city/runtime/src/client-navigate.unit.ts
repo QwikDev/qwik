@@ -2,7 +2,6 @@ import type { Signal } from '@builder.io/qwik';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { ClientHistoryWindow, clientNavigate } from './client-navigate';
-import { CLIENT_HISTORY_INITIALIZED } from './constants';
 import type { SimpleURL } from './types';
 import { toPath } from './utils';
 
@@ -65,7 +64,7 @@ navTest('add only one popstate listener', () => {
   equal(win.listeners.get('popstate')!.length, 1);
   clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
   equal(win.listeners.get('popstate')!.length, 1);
-  equal(win[CLIENT_HISTORY_INITIALIZED], 1);
+  equal(win._qCityHistory, 1);
 });
 
 navTest('test mock window', () => {

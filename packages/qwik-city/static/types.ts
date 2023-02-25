@@ -159,6 +159,7 @@ export interface StaticWorkerRenderResult {
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
   contentType: string | null;
+  resourceType: 'page' | '404' | null;
 }
 
 /**

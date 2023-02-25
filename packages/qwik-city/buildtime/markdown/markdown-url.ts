@@ -18,8 +18,8 @@ export function getMarkdownRelativeUrl(
   const querySplit = url.split('?');
   const hashSplit = url.split('#');
   const strippedUrl = url.split('?')[0].split('#')[0];
-
-  if (isMarkdownExt(getExtension(strippedUrl))) {
+  const extension = getExtension(strippedUrl);
+  if (isMarkdownExt(extension)) {
     const isAbsolute = strippedUrl.startsWith('/');
     const parts = normalizePath(strippedUrl)
       .split('/')
@@ -46,6 +46,14 @@ export function getMarkdownRelativeUrl(
         pathname += '#' + hashSplit[1];
       }
       return pathname;
+    }
+  } else if (extension === '') {
+    if (url.endsWith('/')) {
+      if (!opts.trailingSlash) {
+        url = url.slice(0, -1);
+      }
+    } else if (opts.trailingSlash) {
+      url += '/';
     }
   }
 

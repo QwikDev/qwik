@@ -1,6 +1,18 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
-import type { CallExpression } from 'estree';
+
+export const ROUTE_FNS: Record<string, boolean> = {
+  loader$: true,
+  routeLoader$: true,
+  routeAction$: true,
+  routeHandler$: true,
+};
+
+export const LINTER_FNS: Record<string, boolean> = {
+  ...ROUTE_FNS,
+  action$: true,
+  globalAction$: true,
+};
 
 export const loaderLocation: Rule.RuleModule = {
   meta: {
@@ -34,10 +46,10 @@ export const loaderLocation: Rule.RuleModule = {
           return;
         }
         const fnName = node.callee.name;
-        if (fnName !== 'loader$' && fnName !== 'action$') {
+        if (!LINTER_FNS[fnName]) {
           return;
         }
-        if (!canContainLoader && fnName === 'loader$') {
+        if (!canContainLoader && ROUTE_FNS[fnName]) {
           context.report({
             node: node.callee,
             messageId: 'invalidLoaderLocation',

@@ -60,11 +60,13 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
           requestEv.status(500);
         }
         const stream = requestEv.getWritableStream();
-        const writer = stream.getWriter();
-        await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
-        await writer.close();
+        if (!stream.locked) {
+          const writer = stream.getWriter();
+          await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+          await writer.close();
+        }
       } catch {
-        // nothing
+        console.error('Unable to render error page');
       }
       return e;
     }
@@ -97,12 +99,3 @@ export const isQDataJson = (pathname: string) => {
 
 export const QDATA_JSON = '/q-data.json';
 const QDATA_JSON_LEN = QDATA_JSON.length;
-
-export function isFormContentType(headers: Headers) {
-  return isContentType(headers, 'application/x-www-form-urlencoded', 'multipart/form-data');
-}
-
-export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
-  return types.includes(type);
-}

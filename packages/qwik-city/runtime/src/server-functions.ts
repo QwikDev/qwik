@@ -347,16 +347,18 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   const validators: ValidatorInternal[] = [];
   if (rest.length === 1) {
     const options = rest[0];
-    if ('validate' in options) {
-      validators.push(options);
-    } else {
-      _id = options.id;
-      if (options.validation) {
-        validators.push(...options.validation);
+    if (options && typeof options === 'object') {
+      if ('validate' in options) {
+        validators.push(options);
+      } else {
+        _id = options.id;
+        if (options.validation) {
+          validators.push(...options.validation);
+        }
       }
     }
   } else if (rest.length > 1) {
-    validators.push(...(rest as any));
+    validators.push(...(rest.filter((v) => !!v) as any));
   }
   return {
     validators: validators.reverse(),

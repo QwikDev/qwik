@@ -115,17 +115,18 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   );
 
   const goto: RouteNavigate = $(async (path, forceReload) => {
-    const value = navPath.value;
-
-    if (forceReload || path === undefined) {
+    if (path === undefined) {
+      path = navPath.value;
       navPath.value = '';
-    } else if (value === path) {
+    } else if (forceReload) {
+      navPath.value = '';
+    } else if (navPath.value === path) {
       return;
     }
-    navPath.value = value;
+    navPath.value = path;
 
     if (isBrowser) {
-      const prefetchURL = new URL(navPath.value, routeLocation.url);
+      const prefetchURL = new URL(path, routeLocation.url);
       loadClientData(prefetchURL, _getContextElement());
       loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, prefetchURL.pathname);
     }

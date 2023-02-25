@@ -4,7 +4,9 @@ import { implicit$FirstArg, QRL } from '@builder.io/qwik';
 import { action$, loader$, RequestEvent, RequestEventCommon, z, zod$ } from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
+
 export interface QwikAuthConfig extends AuthConfig {}
+
 const actions: AuthAction[] = [
   'providers',
   'session',
@@ -52,20 +54,21 @@ export const fixCookies = (req: RequestEventCommon) => {
 };
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
-  const useAuthSignup = action$(
-    async ({ provider, ...rest }, req) => {
+  const useAuthSignin = action$(
+    async ({ providerId, ...rest }, req) => {
       const auth = await authOptions(req);
       const body = new URLSearchParams();
       Object.entries(rest).forEach(([key, value]) => {
         body.set(key, String(value));
       });
-      const data = await authAction(body, req, `/api/auth/signin/${provider}`, auth);
+      const pathname = '/api/auth/signin' + (providerId ? `/${providerId}` : '');
+      const data = await authAction(body, req, pathname, auth);
       if (data.url) {
         throw req.redirect(301, data.url);
       }
     },
     zod$({
-      provider: z.string(),
+      providerId: z.string().optional(),
     })
   );
 
@@ -102,7 +105,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   };
 
   return {
-    useAuthSignup,
+    useAuthSignin,
     useAuthSignout,
     useAuthSession,
     onRequest,

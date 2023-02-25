@@ -8,7 +8,12 @@ import type {
   ResolveValue,
   QwikSerializer,
 } from './types';
-import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
+import type {
+  ActionInternal,
+  JSONValue,
+  LoadedRoute,
+  LoaderInternal,
+} from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
@@ -42,6 +47,8 @@ export function createRequestEvent(
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
+  let requestData: Promise<JSONValue | undefined> | undefined = undefined;
+
   let status = 200;
 
   const next = async () => {
@@ -92,6 +99,7 @@ export function createRequestEvent(
 
   const loaders: Record<string, Promise<any>> = {};
 
+  const sharedMap = new Map();
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvLocale]: serverRequestEv.locale,
@@ -110,7 +118,7 @@ export function createRequestEvent(
     request,
     url,
     basePathname,
-    sharedMap: new Map(),
+    sharedMap,
     get headersSent() {
       return writableStream !== null;
     },
@@ -201,6 +209,13 @@ export function createRequestEvent(
       return send(statusCode, html);
     },
 
+    parseBody: async () => {
+      if (requestData !== undefined) {
+        return requestData;
+      }
+      return (requestData = parseRequest(requestEv.request, sharedMap, qwikSerializer));
+    },
+
     json: (statusCode: number, data: any) => {
       headers.set('Content-Type', 'application/json; charset=utf-8');
       return send(statusCode, JSON.stringify(data));
@@ -261,3 +276,55 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 }
 
 const ABORT_INDEX = 999999999;
+
+const parseRequest = async (
+  request: Request,
+  sharedMap: Map<string, any>,
+  qwikSerializer: QwikSerializer
+): Promise<JSONValue | undefined> => {
+  const req = request.clone();
+  const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
+  if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
+    const formData = await req.formData();
+    sharedMap.set(RequestEvSharedActionFormData, formData);
+    return formToObj(formData);
+  } else if (type === 'application/json') {
+    const data = await req.json();
+    return data;
+  } else if (type === 'application/qwik-json') {
+    return qwikSerializer._deserializeData(await req.text());
+  }
+  return undefined;
+};
+
+const formToObj = (formData: FormData): Record<string, any> => {
+  // Convert FormData to object
+  // Handle nested form input using dot notation
+  // Handle array input using square bracket notation
+  const obj: any = {};
+  formData.forEach((value, key) => {
+    const keys = key.split('.').filter((k) => k);
+    let current = obj;
+    for (let i = 0; i < keys.length; i++) {
+      let k = keys[i];
+      // Last key
+      if (i === keys.length - 1) {
+        if (k.endsWith('[]')) {
+          k = k.slice(0, -2);
+          current[k] = current[k] || [];
+          current[k].push(value);
+        } else {
+          current[k] = value;
+        }
+      } else {
+        current = current[k] = {};
+      }
+    }
+  });
+  return obj;
+};
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  return types.includes(type);
+}

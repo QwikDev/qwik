@@ -21,7 +21,6 @@ import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
-const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
@@ -48,7 +47,7 @@ export function createRequestEvent(
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
   let requestData: Promise<JSONValue | undefined> | undefined = undefined;
-
+  let locale = serverRequestEv.locale;
   let status = 200;
 
   const next = async () => {
@@ -102,7 +101,6 @@ export function createRequestEvent(
   const sharedMap = new Map();
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
-    [RequestEvLocale]: serverRequestEv.locale,
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
     [RequestEvRoute]: loadedRoute,
@@ -161,11 +159,11 @@ export function createRequestEvent(
       return status;
     },
 
-    locale: (locale?: string) => {
+    locale: (_locale?: string) => {
       if (typeof locale === 'string') {
-        requestEv[RequestEvLocale] = locale;
+        locale = _locale;
       }
-      return requestEv[RequestEvLocale] || '';
+      return locale || '';
     },
 
     error: (statusCode: number, message: string) => {
@@ -245,7 +243,6 @@ export function createRequestEvent(
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, Promise<any> | undefined>;
-  [RequestEvLocale]: string | undefined;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;

@@ -579,6 +579,7 @@ export interface TypedDataValidator<T extends z.ZodType = any> {
 
 export interface ValidatorReturn {
   success: boolean;
+  status?: number;
   data?: any;
   error?: any;
 }

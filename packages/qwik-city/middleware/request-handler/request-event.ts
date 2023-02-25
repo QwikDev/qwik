@@ -19,7 +19,6 @@ import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
-import { isContentType } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -100,6 +99,7 @@ export function createRequestEvent(
 
   const loaders: Record<string, Promise<any>> = {};
 
+  const sharedMap = new Map();
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvLocale]: serverRequestEv.locale,
@@ -118,7 +118,7 @@ export function createRequestEvent(
     request,
     url,
     basePathname,
-    sharedMap: new Map(),
+    sharedMap,
     get headersSent() {
       return writableStream !== null;
     },
@@ -213,7 +213,7 @@ export function createRequestEvent(
       if (requestData !== undefined) {
         return requestData;
       }
-      return (requestData = parseRequest(requestEv.request, qwikSerializer));
+      return (requestData = parseRequest(requestEv.request, sharedMap, qwikSerializer));
     },
 
     json: (statusCode: number, data: any) => {
@@ -279,17 +279,19 @@ const ABORT_INDEX = 999999999;
 
 const parseRequest = async (
   request: Request,
+  sharedMap: Map<string, any>,
   qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
   const req = request.clone();
-  if (isContentType(request.headers, 'application/x-www-form-urlencoded', 'multipart/form-data')) {
-    const data = await req.formData();
-    // requestEv.sharedMap.set(RequestEvSharedActionFormData, formData);
-    return formToObj(data);
-  } else if (isContentType(request.headers, 'application/json')) {
+  const type = request.headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
+    const formData = await req.formData();
+    sharedMap.set(RequestEvSharedActionFormData, formData);
+    return formToObj(formData);
+  } else if (type === 'application/json') {
     const data = await req.json();
     return data;
-  } else if (isContentType(request.headers, 'application/qwik-json')) {
+  } else if (type === 'application/qwik-json') {
     return qwikSerializer._deserializeData(await req.text());
   }
   return undefined;
@@ -321,3 +323,8 @@ const formToObj = (formData: FormData): Record<string, any> => {
   });
   return obj;
 };
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  return types.includes(type);
+}

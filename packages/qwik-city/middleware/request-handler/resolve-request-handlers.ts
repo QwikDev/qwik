@@ -19,7 +19,7 @@ import {
   RequestEvSharedActionId,
 } from './request-event';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
-import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
+import { isQDataJson, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
@@ -165,25 +165,15 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
           serverActionsMap.get(selectedAction);
         if (action) {
           requestEv.sharedMap.set(RequestEvSharedActionId, selectedAction);
-
-          let failed = false;
-          let data = await requestEv.parseBody();
+          const data = await requestEv.parseBody();
           if (!data || typeof data !== 'object') {
             throw new Error('Expected request data to be an object');
           }
           const result = await runValidators(requestEv, action.__validators, data);
           if (!result.success) {
-            failed = true;
-            requestEv.status(400);
-            loaders[selectedAction] = {
-              __brand: 'fail',
-              ...result.error,
-            } as any;
+            loaders[selectedAction] = requestEv.fail(result.status ?? 500, result.error);
           } else {
-            data = result.data;
-          }
-          if (!failed) {
-            const actionResolved = await action.__qrl(data as JSONObject, requestEv);
+            const actionResolved = await action.__qrl(result.data as JSONObject, requestEv);
             verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             loaders[selectedAction] = actionResolved;
           }
@@ -319,7 +309,7 @@ export const encoder = /*@__PURE__*/ new TextEncoder();
 
 export function securityMiddleware({ url, request, error }: RequestEvent) {
   const forbidden =
-    request.headers.get('origin') !== url.origin && isFormContentType(request.headers);
+    request.headers.get('origin') !== url.origin;
   if (forbidden) {
     throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
   }

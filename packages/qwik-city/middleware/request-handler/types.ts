@@ -4,7 +4,6 @@ import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
-import type { JSONValue } from 'packages/qwik-city/runtime/src/types';
 
 export interface EnvGetter {
   get(key: string): string | undefined;
@@ -201,6 +200,14 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
    * the shared map. The shared map is useful for sharing data between request handlers.
    */
   readonly sharedMap: Map<string, any>;
+
+  /**
+   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
+   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+   *
+   * If the `Content-Type` header is not set, it will return `null`.
+   */
+  readonly parseBody: () => Promise<unknown>;
 }
 
 /**
@@ -275,7 +282,6 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
   readonly headersSent: boolean;
   readonly exited: boolean;
   readonly cacheControl: (cacheControl: CacheControl) => void;
-  readonly requestData: () => Promise<JSONValue>;
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.

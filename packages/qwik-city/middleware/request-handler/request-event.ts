@@ -8,13 +8,18 @@ import type {
   ResolveValue,
   QwikSerializer,
 } from './types';
-import type { ActionInternal, JSONValue, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
+import type {
+  ActionInternal,
+  JSONValue,
+  LoadedRoute,
+  LoaderInternal,
+} from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
-import { isFormContentType } from './user-response';
+import { isContentType } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -43,7 +48,7 @@ export function createRequestEvent(
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
-  let requestData: Promise<JSONValue> | undefined = undefined;
+  let requestData: Promise<JSONValue | undefined> | undefined = undefined;
 
   let status = 200;
 
@@ -204,11 +209,11 @@ export function createRequestEvent(
       return send(statusCode, html);
     },
 
-    requestData: async () => {
-      if (requestData) {
+    parseBody: async () => {
+      if (requestData !== undefined) {
         return requestData;
       }
-      return requestData = parseRequest(requestEv.request);
+      return (requestData = parseRequest(requestEv.request, qwikSerializer));
     },
 
     json: (statusCode: number, data: any) => {
@@ -272,17 +277,23 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 
 const ABORT_INDEX = 999999999;
 
-const parseRequest = async (request: Request): Promise<JSONValue> => {
-  const isForm = isFormContentType(request.headers);
+const parseRequest = async (
+  request: Request,
+  qwikSerializer: QwikSerializer
+): Promise<JSONValue | undefined> => {
   const req = request.clone();
-  if (isForm) {
-    const formData = await req.formData();
+  if (isContentType(request.headers, 'application/x-www-form-urlencoded', 'multipart/form-data')) {
+    const data = await req.formData();
     // requestEv.sharedMap.set(RequestEvSharedActionFormData, formData);
-    return formToObj(formData);
-  } else {
-    return await req.json();
+    return formToObj(data);
+  } else if (isContentType(request.headers, 'application/json')) {
+    const data = await req.json();
+    return data;
+  } else if (isContentType(request.headers, 'application/qwik-json')) {
+    return qwikSerializer._deserializeData(await req.text());
   }
-}
+  return undefined;
+};
 
 const formToObj = (formData: FormData): Record<string, any> => {
   // Convert FormData to object

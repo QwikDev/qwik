@@ -83,7 +83,9 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
  */
 export type JSONObject = { [x: string]: JSONValue };
 
-export type GetValidatorType<B extends ValidatorFromSchema> = B extends ValidatorFromSchema<infer TYPE>
+export type GetValidatorType<B extends TypedDataValidator> = B extends TypedDataValidator<
+  infer TYPE
+>
   ? z.infer<TYPE>
   : never;
 
@@ -91,15 +93,24 @@ export type GetValidatorType<B extends ValidatorFromSchema> = B extends Validato
  * @alpha
  */
 export interface ActionOptions {
-  id?: string;
+  readonly id?: string;
 }
 
 /**
  * @alpha
  */
-export interface ActionOptionsWithValidation<B extends ValidatorFromSchema> extends ActionOptions {
-  id?: string;
-  validation: B;
+export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
+  extends ActionOptions {
+  readonly id?: string;
+  readonly validation: [val: B, ...a: DataValidator[]];
+}
+
+/**
+ * @alpha
+ */
+export interface CommonLoaderActionOptions {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
 }
 
 /**
@@ -117,7 +128,7 @@ export interface ActionConstructor {
   ): Action<O>;
 
   // With validation
-  <O, B extends ValidatorFromSchema>(
+  <O, B extends TypedDataValidator>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B | ActionOptionsWithValidation<B>
   ): Action<
@@ -127,10 +138,10 @@ export interface ActionConstructor {
   >;
 
   // With multiple validators
-  <O, B extends ValidatorFromSchema>(
+  <O, B extends TypedDataValidator>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B,
-    ...rest: Array<ActionOptionsWithValidation<B>>
+    ...rest: DataValidator[]
   ): Action<
     O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
     GetValidatorType<B>,
@@ -518,6 +529,7 @@ export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
   __id: string;
+  __validators: ValidatorInternal[] | undefined;
   (): LoaderSignal<any>;
 }
 
@@ -553,10 +565,17 @@ export type Editable<T> = {
 /**
  * @alpha
  */
-export interface DataValidator<RETURN extends z.SafeParseReturnType<any, any> = any> {
-  validate(ev: RequestEvent, data: unknown): Promise<RETURN>;
+export interface DataValidator {
+  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn>;
 }
 
+/**
+ * @alpha
+ */
+export interface TypedDataValidator<T extends z.ZodType = any> {
+  __zod: z.ZodSchema<T>;
+  validate(ev: RequestEvent, data: unknown): Promise<z.SafeParseReturnType<T, T>>;
+}
 
 export interface ValidatorReturn {
   success: boolean;
@@ -570,10 +589,7 @@ export interface ValidatorInternal {
   validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn>;
 }
 
-export type ValidatorFromShape<T extends z.ZodRawShape, ZodObject extends z.ZodObject<any> = z.ZodObject<T>> = ValidatorFromSchema<ZodObject>
-
-export type ValidatorFromSchema<T extends z.Schema = any> = Promise<DataValidator<z.SafeParseReturnType<z.input<T>, z.output<T>>>>;
-
+export type ValidatorFromShape<T extends z.ZodRawShape> = TypedDataValidator<z.ZodObject<T>>;
 
 // /**
 //  * @alpha
@@ -588,6 +604,6 @@ export type ValidatorFromSchema<T extends z.Schema = any> = Promise<DataValidato
 export interface Zod {
   <T extends z.ZodRawShape>(schema: T): ValidatorFromShape<T>;
   <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): ValidatorFromShape<T>;
-  <T extends z.Schema>(schema: T): ValidatorFromSchema<T>;
-  <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): ValidatorFromSchema<T>;
+  <T extends z.Schema>(schema: T): TypedDataValidator<T>;
+  <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): TypedDataValidator<T>;
 }

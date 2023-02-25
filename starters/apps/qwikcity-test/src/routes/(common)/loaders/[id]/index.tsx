@@ -1,7 +1,6 @@
 import { component$, Resource } from '@builder.io/qwik';
 import { action$, DocumentHead, Form, Link, loader$, z, zod$ } from '@builder.io/qwik-city';
 import { delay } from '../../actions/login';
-import { isLoginValidator } from '../../plugin@auth';
 
 export const useDateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
@@ -50,9 +49,7 @@ export const useSlowLoader = loader$(async () => {
   return {
     foo: 123,
   };
-},
-isLoginValidator
-);
+});
 
 export const useRealDateLoader = loader$(() => {
   return [new Date().toISOString()];
@@ -124,7 +121,7 @@ export const useForm = action$(
 
   zod$({
     name: z.string(),
-  }),
+  })
 );
 
 export const head: DocumentHead = ({ resolveValue }) => {

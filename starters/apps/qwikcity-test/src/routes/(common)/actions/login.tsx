@@ -1,5 +1,5 @@
 import { component$, useSignal } from '@builder.io/qwik';
-import { action$, zod$, z, Form } from '@builder.io/qwik-city';
+import { action$, zod$, z, Form, globalAction$ } from '@builder.io/qwik-city';
 import styles from './actions.module.css';
 
 export function delay(nu: number) {
@@ -8,7 +8,7 @@ export function delay(nu: number) {
   });
 }
 
-export const useSecretAction = action$(
+export const useSecretAction = globalAction$(
   async (payload, { fail, redirect }) => {
     if (payload.username === 'admin' && payload.code === 123) {
       await delay(2000);
@@ -26,7 +26,7 @@ export const useSecretAction = action$(
   zod$({
     username: z.string().min(3).max(10),
     code: z.coerce.number(),
-  }),
+  })
 );
 
 export const SecretForm = component$(() => {

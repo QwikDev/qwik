@@ -94,13 +94,14 @@ export type GetValidatorType<B extends TypedDataValidator> = B extends TypedData
  */
 export interface ActionOptions {
   readonly id?: string;
+  readonly validation?: DataValidator[];
+
 }
 
 /**
  * @alpha
  */
-export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
-  extends ActionOptions {
+export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
   readonly id?: string;
   readonly validation: [val: B, ...a: DataValidator[]];
 }
@@ -117,6 +118,27 @@ export interface CommonLoaderActionOptions {
  * @alpha
  */
 export interface ActionConstructor {
+    // With validation
+    <O, B extends TypedDataValidator>(
+      actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+      options: B | ActionOptionsWithValidation<B>
+    ): Action<
+      O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
+      GetValidatorType<B>,
+      false
+    >;
+
+    // With multiple validators
+    <O, B extends TypedDataValidator>(
+      actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+      options: B,
+      ...rest: DataValidator[]
+    ): Action<
+      O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
+      GetValidatorType<B>,
+      false
+    >;
+
   // Without validation
   <O>(
     actionQrl: (
@@ -127,26 +149,16 @@ export interface ActionConstructor {
     options?: ActionOptions
   ): Action<O>;
 
-  // With validation
-  <O, B extends TypedDataValidator>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B | ActionOptionsWithValidation<B>
-  ): Action<
-    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
-    GetValidatorType<B>,
-    false
-  >;
-
-  // With multiple validators
-  <O, B extends TypedDataValidator>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B,
+  // Without validation
+  <O>(
+    actionQrl: (
+      form: JSONObject,
+      event: RequestEventAction,
+    ) => ValueOrPromise<O>,
     ...rest: DataValidator[]
-  ): Action<
-    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
-    GetValidatorType<B>,
-    false
-  >;
+  ): Action<O>;
+
+
 }
 export type LoaderStateHolder = Record<string, Signal<any>>;
 

@@ -267,7 +267,7 @@ export const validatorQrl = (
 /**
  * @alpha
  */
-export const validator$: Zod = /*#__PURE__*/ implicit$FirstArg(validatorQrl) as any;
+export const validator$ = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
 export interface ServerFunction {
   (this: RequestEvent, ...args: any[]): any;

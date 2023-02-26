@@ -592,7 +592,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         results.set(normalizedID, newOutput);
       }
-      const deps: string[] = [];
+      const deps = new Set();
       for (const mod of newOutput.modules) {
         if (mod.isEntry) {
           const key = normalizePath(path.join(srcDir, mod.path));
@@ -601,7 +601,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           } else {
             transformedOutputs.set(key, [mod, id]);
           }
-          deps.push(key);
+          deps.add(key);
         }
       }
       if (isSSR && strip) {
@@ -636,6 +636,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             const key = normalizePath(path.join(srcDir, mod.path));
             ctx.addWatchFile(key);
             transformedOutputs.set(key, [mod, id]);
+            deps.add(key);
           }
         }
       }
@@ -646,7 +647,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         map: module.map,
         meta: {
           hook: module.hook,
-          qwikdeps: deps,
+          qwikdeps: Array.from(deps),
         },
       };
     }

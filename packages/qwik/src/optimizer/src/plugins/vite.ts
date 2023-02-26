@@ -116,6 +116,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode,
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
+        srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
         resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
@@ -212,10 +213,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       ssrOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
       );
-
-      // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-      (globalThis as any).QWIK_MANIFEST = manifestInput;
-      (globalThis as any).QWIK_CLIENT_OUT_DIR = clientOutDir;
 
       if (typeof qwikViteOpts.client?.devInput === 'string') {
         clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);

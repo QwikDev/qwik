@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.2.1",
+  "version": "0.4.0",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
@@ -141,11 +141,11 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
-    "vite": "4.1.2",
+    "vite": "4.1.4",
     "yaml": "2.2.1"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.17.0"
+    "@builder.io/qwik": ">=0.19.0"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",
@@ -156,6 +156,9 @@
   },
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "engines": {
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "private": true,
   "publishConfig": {

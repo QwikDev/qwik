@@ -436,6 +436,7 @@ export const Bar = component$(({bar}) => {
 })
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -588,16 +589,21 @@ fn example_reg_ctx_name_hooks() {
     test_input!(TestInput {
         code: r#"
 import { $, component$, server$ } from '@builder.io/qwik';
+import { foo } from './foo';
 export const Works = component$((props) => {
     const text = 'hola';
     return (
+        <>
         <div onClick$={server$(() => console.log('in server', text))}></div>
+        <div onClick$={() => foo()}></div>
+        </>
     );
 });
 "#
         .to_string(),
-        entry_strategy: EntryStrategy::Hook,
+        entry_strategy: EntryStrategy::Inline,
         reg_ctx_name: Some(vec!["server".into()]),
+        strip_ctx_kind: Some(HookKind::Function),
         transpile_ts: true,
         transpile_jsx: true,
         ..TestInput::default()
@@ -629,13 +635,17 @@ export const Works = component$((props) => {
 fn example_reg_ctx_name_hooks_hoisted() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, server$ } from '@builder.io/qwik';
+import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
+
 export const Works = component$((props) => {
+    useStyle$(STYLES);
     const text = 'hola';
     return (
         <div onClick$={server$(() => console.log('in server', text))}></div>
     );
 });
+
+const STYLES = '.class {}';
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Hoist,
@@ -834,6 +844,7 @@ export const Header = component$(() => {
 export const Footer = component$();
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -1329,6 +1340,9 @@ fn example_parsed_inlined_qrls() {
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+    useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+
     const store = useStore({
         count: 0
     });
@@ -1355,10 +1369,13 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     });
 }, "App_component_Fh88JClhbC0"));
 
+export const STYLES = ".red { color: red; }";
+
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
         mode: EmitMode::Prod,
+        transpile_ts: false,
         ..TestInput::default()
     });
 }
@@ -1978,6 +1995,37 @@ export const App = component$((props: Stuff) => {
         transpile_ts: false,
         transpile_jsx: true,
         explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_export_issue() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+const App = component$(() => {
+    return (
+        <div>hola</div>
+    );
+});
+
+
+export const Root = component$((props: Stuff) => {
+    return (
+        <App/>
+    );
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }

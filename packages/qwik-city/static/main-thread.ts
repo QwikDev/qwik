@@ -25,7 +25,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
-  const includeRoute = createRouteTester(opts.include, opts.exclude);
+  const includeRoute = createRouteTester(opts.basePathname || '/', opts.include, opts.exclude);
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {

@@ -83,6 +83,7 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 
 // @alpha (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+    readonly basePathname: string;
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -96,6 +97,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly locale: (local?: string) => string;
     readonly method: string;
     readonly params: Readonly<Record<string, string>>;
+    readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;

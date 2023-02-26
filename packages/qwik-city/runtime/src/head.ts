@@ -21,7 +21,7 @@ export const resolveHead = (
 ) => {
   const head = createDocumentHead();
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
-    const id = loaderOrAction.__qrl.getHash();
+    const id = loaderOrAction.__id;
     if (loaderOrAction.__brand === 'server_loader') {
       if (!(id in endpoint.loaders)) {
         throw new Error(

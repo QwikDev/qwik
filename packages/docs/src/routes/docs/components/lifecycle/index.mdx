@@ -29,7 +29,7 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 
 **SERVER**: Usually **the life of a component starts on the server** (during SSR or SSG), in that case, the `useTask$` and `RENDER` will run in the server, and then the `VisibleTask` will run in the browser, after the component is visible.
 
-> **Notice** that because the component was mounted in the server, **only useClientEffect$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
+> **Notice** that because the component was mounted in the server, **only useBrowserVisibleTask$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
 
 **BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
@@ -39,7 +39,7 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 | ---------------- BROWSER --------------- |
 ```
 
-> **Notice** that the lifecycle is exactly the same, but this time all the hooks run in the browser, and non in the server.
+> **Notice** that the lifecycle is exactly the same, but this time all the hooks run in the browser, and not in the server.
 
 ## `useTask$()`
 
@@ -77,13 +77,11 @@ useTask$(({ track }) => {
 The `useTask$()` function is used to observe the `state.count` property. Any changes to the `state.count` cause the arrow function to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
 ```tsx
-import { component$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
 export const Cmp = component$(() => {
-  const store = useStore({
-    count: 1,
-    doubleCount: 0,
-  });
+  const count = useSignal(1);
+  const doubleCount = useSignal(0);
 
   // this task will be called exactly once, either on the server or on the browser
   useTask$(() => {
@@ -92,27 +90,27 @@ export const Cmp = component$(() => {
 
   // this task will be called at mount and every time `store.count` changes
   useTask$(({ track }) => {
-    const count = track(() => store.count);
-    store.doubleCount = 2 * count;
+    const count = track(() => count.value);
+    doubleCount.value = 2 * count;
   });
 
   return (
     <div>
-      {store.count} / {store.doubleCount}
+      {count.value} / {doubleCount.value}
     </div>
   );
 });
 ```
 
-The example above uses the `track` function to watch changes in `() => store.count`. The callback will run once in the SSR when the component is mounted and every time `store.count` changes.
+The example above uses the `track` function to watch changes in `() => count.value`. The callback will run once in the SSR when the component is mounted and every time `count.value` changes.
 
-> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useClientEffect$()` instead, which runs on the client after rendering.
+> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useBrowserVisibleTask$()` instead, which runs on the client after rendering.
 
 ### Use `useTask$()` when you need to
 
 - Run async tasks before rendering
 - Run code only once before component is first rendered
-- Compute derived state from tracked state (without causing potential re-rendering like in `useClientEffect$`)
+- Compute derived state from tracked state (without causing potential re-rendering like in `useBrowserVisibleTask$`)
 - Programmatically run code when state changes
 
 > Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
@@ -125,23 +123,21 @@ Sometimes it is required to only run code either in the server or in the client.
 import { isServer, isBrowser } from '@builder.io/qwik/build';
 
 export const Cmp = component$(() => {
-  const store = useStore({
-    users: [],
-  });
+  const users = useSignal([]);
   useTask$(async () => {
     if (isServer) {
       // If the component is mounted on the server, call DB directly.
-      store.users = await db.requestUsers();
+      users.value = await db.requestUsers();
     }
     if (isBrowser) {
       // If the component is mounted on the browser, fetch users through API.
-      store.users = await fetchGetUsers();
+      users.value = await fetchGetUsers();
     }
   });
 
   return (
     <>
-      {store.users.map((user) => (
+      {users.value.map((user) => (
         <User user={user} />
       ))}
     </>
@@ -187,19 +183,17 @@ This is a unique feature of Qwik, any other frameworks would execute this and ot
 
 ```tsx
 export const Timer = component$(() => {
-  const store = useStore({
-    count: 0,
-  });
+  const count = useSignal(0);
   useBrowserVisibleTask$(() => {
     // Only runs in the client
     const timer = setInterval(() => {
-      store.count++;
+      count.value++;
     }, 500);
     return () => {
       clearInterval(timer);
     };
   });
-  return <>{store.count}</>;
+  return <>{count.value}</>;
 });
 ```
 

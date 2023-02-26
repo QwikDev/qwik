@@ -6,13 +6,13 @@ contributors:
 
 # `action$()`
 
-Actions can be declared using the `action$()` function anywhere. Actions are similar to [loaders](/docs/qwik-city/loader$) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
+Actions can be declared using the `action$()` function anywhere. Actions are similar to [loaders](/qwikcity/loader/) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
 
 Actions are referenced using the `.use()` method from within a Qwik Component. The `use()` method returns `ActionStore` object with methods to trigger the action and get its state.
 
 ```tsx
 // src/routes/layout.tsx
-import { action$ } from '@builder.io/qwik';
+import { action$ } from '@builder.io/qwik-city';
 export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
@@ -94,8 +94,7 @@ export default component$(() => {
         onClick={async () => {
           const { value } = await action.run({ name: 'John' });
           console.log(value);
-        }}
-      >
+        }}>
         Add user
       </button>
       {action.value?.success && <div>User added successfully</div>}
@@ -257,5 +256,3 @@ export default component$(() => {
 ```
 
 The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, allowing to have a full SPA experience, even with JS disabled.
-
-## Action

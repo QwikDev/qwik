@@ -1,25 +1,25 @@
+import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
 import type {
-  ResolveSyncValue,
   RequestEvent,
   RequestEventAction,
   RequestEventLoader,
   RequestHandler,
+  ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
 import type { z } from 'zod';
 
 export type {
   Cookie,
   CookieOptions,
   CookieValue,
-  ResolveValue,
-  ResolveSyncValue,
+  DeferReturn,
   RequestEvent,
-  RequestHandler,
-  RequestEventLoader,
   RequestEventAction,
   RequestEventCommon,
-  DeferReturn,
+  RequestEventLoader,
+  RequestHandler,
+  ResolveSyncValue,
+  ResolveValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
@@ -153,7 +153,7 @@ export type LoaderStateHolder = Record<string, Signal<any>>;
 /**
  * @alpha
  */
-export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
+export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
 
 export type RouteAction = Signal<RouteActionValue>;
 

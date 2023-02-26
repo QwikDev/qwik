@@ -251,6 +251,8 @@ export const Link: Component<LinkProps>;
 export interface LinkProps extends AnchorAttributes {
     // (undocumented)
     prefetch?: boolean;
+    // (undocumented)
+    reload?: boolean;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
@@ -377,7 +379,7 @@ export interface RouteLocation {
 }
 
 // @alpha (undocumented)
-export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
+export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
 
 // @alpha @deprecated (undocumented)
 export type RouteParams = Record<string, string>;

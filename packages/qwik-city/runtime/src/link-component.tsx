@@ -22,7 +22,7 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav(linkProps.href);
+          nav(linkProps.href, linkProps.reload);
         }
       }}
       data-prefetch={prefetchDataset}
@@ -61,4 +61,5 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
  */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
+  reload?: boolean;
 }

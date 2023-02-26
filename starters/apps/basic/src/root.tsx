@@ -15,9 +15,9 @@ export default component$(() => {
   return (
     <QwikCityProvider>
       <head>
-        <title>Qwik app</title>
         <meta charSet="utf-8" />
         <link rel="manifest" href="/manifest.json" />
+        {/* <RouterHead> contains <title> element, please ignore the editor hint */}
         <RouterHead />
       </head>
       <body lang="en">

@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from '../qwik';
-import type { DocumentHead } from '../qwik-city';
+import { component$, useStyles$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
 // A helper for defining Youtube Media Entries

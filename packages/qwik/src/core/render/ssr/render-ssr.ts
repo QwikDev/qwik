@@ -1,6 +1,6 @@
 import { isPromise, then } from '../../util/promises';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
-import { isJSXNode, jsx } from '../jsx/jsx-runtime';
+import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
 import {
   isArray,
   isFunction,

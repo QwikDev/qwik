@@ -121,5 +121,5 @@ export const isServerPlatform = () => {
   if (qDynamicPlatform) {
     return _platform.isServer;
   }
-  return isServer;
+  return false;
 };

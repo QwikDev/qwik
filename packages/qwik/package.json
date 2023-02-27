@@ -51,8 +51,8 @@
       }
     },
     "./build": {
-      "import": "./dist/build/index.mjs",
-      "require": "./dist/build/index.cjs"
+      "import": "./src/build/index.ts",
+      "require": "./src/build/index.ts"
     },
     "./loader": {
       "import": "./dist/loader/index.mjs",

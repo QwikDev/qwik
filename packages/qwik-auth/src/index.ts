@@ -29,6 +29,7 @@ export async function authAction(
     headers: req.request.headers,
     body: body,
   });
+  request.headers.set('content-type', 'application/x-www-form-urlencoded');
   const res = await Auth(request, {
     ...authOptions,
     skipCSRFCheck,
@@ -57,11 +58,14 @@ export const fixCookies = (req: RequestEventCommon) => {
   }
 };
 
+export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('/q-')[0];
+
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignin = action$(
-    async ({ providerId, ...rest }, req) => {
+    async ({ providerId, callbackUrl, ...rest }, req) => {
+      callbackUrl ??= getCurrentPageForAction(req);
       const auth = await authOptions(req);
-      const body = new URLSearchParams();
+      const body = new URLSearchParams({ callbackUrl });
       Object.entries(rest).forEach(([key, value]) => {
         body.set(key, String(value));
       });
@@ -73,14 +77,21 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
     },
     zod$({
       providerId: z.string().optional(),
+      callbackUrl: z.string().optional(),
     })
   );
 
-  const useAuthSignout = action$(async (_, req) => {
-    const auth = await authOptions(req);
-    const body = new URLSearchParams();
-    await authAction(body, req, `/api/auth/signout`, auth);
-  });
+  const useAuthSignout = action$(
+    async ({ callbackUrl }, req) => {
+      callbackUrl ??= getCurrentPageForAction(req);
+      const auth = await authOptions(req);
+      const body = new URLSearchParams({ callbackUrl });
+      await authAction(body, req, `/api/auth/signout`, auth);
+    },
+    zod$({
+      callbackUrl: z.string().optional(),
+    })
+  );
 
   const useAuthSession = loader$((req) => {
     return req.sharedMap.get('session') as Session | null;

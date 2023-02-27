@@ -58,6 +58,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
         styles: [],
         links: [],
         frontmatter: {},
+        scripts: [],
       };
 
       for (const attrName of attrNames) {

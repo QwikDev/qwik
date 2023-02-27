@@ -199,6 +199,10 @@ export interface DocumentHeadValue {
    * meta names (such as title, description, author, etc...), are stored in this property.
    */
   readonly frontmatter?: Readonly<Record<string, any>>;
+  /**
+   *  Used to manually append `<script>` elements to the `<head>`.
+   */
+  readonly scripts?: DocumentScript[];
 }
 
 /**
@@ -239,6 +243,25 @@ export interface DocumentLink {
   title?: string;
   type?: string;
   key?: string;
+}
+
+/**
+ * @alpha
+ */
+export interface DocumentScript {
+  async?: string;
+  crossorigin?: string;
+  defer?: string;
+  fectpriority?: string;
+  integrity?: string;
+  nomodule?: string;
+  nonce?: string;
+  referrerpolicy?: string;
+  src?: string;
+  type?: string;
+  importmap?: string;
+  blocking?: string;
+  id?: string;
 }
 
 /**

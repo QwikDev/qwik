@@ -53,7 +53,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_host_ondocumentscroll_zip7mifsjry",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
@@ -116,7 +116,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_host_onclick_cpeh970jbey",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "host:onClick$",
   "captures": false,
   "loc": [
@@ -186,7 +186,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_host_ondocumentscroll_1_em1lspk7jvg",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
@@ -211,7 +211,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_custom_pyhnxab17ms",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "custom$",
   "captures": false,
   "loc": [
@@ -236,7 +236,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_ondocument_scroll_1q0sgr8te3g",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onDocument-scroLL$",
   "captures": false,
   "loc": [
@@ -261,7 +261,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_ondocumentscroll_1_cwneogpmtzi",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onDocumentScroll$",
   "captures": false,
   "loc": [
@@ -286,7 +286,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_on_click_ioasjw8vyjc",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "on-cLick$",
   "captures": false,
   "loc": [
@@ -311,7 +311,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_onclick_m48dyiidsjw",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
@@ -336,7 +336,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_ondocumentscroll_rwfftfivukc",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onDocumentScroll$",
   "captures": false,
   "loc": [
@@ -387,7 +387,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_ondocument_scroll_5vnik61pzom",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onDocument-sCroll$",
   "captures": false,
   "loc": [

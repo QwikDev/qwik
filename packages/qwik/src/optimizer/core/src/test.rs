@@ -37,7 +37,7 @@ macro_rules! test_input {
             strip_exports,
             strip_ctx_name,
             reg_ctx_name,
-            strip_ctx_kind: input.strip_ctx_kind,
+            strip_event_handlers: input.strip_event_handlers,
             is_server: input.is_server,
         });
         if input.snapshot {
@@ -603,7 +603,7 @@ export const Works = component$((props) => {
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
         reg_ctx_name: Some(vec!["server".into()]),
-        strip_ctx_kind: Some(HookKind::Function),
+        strip_event_handlers: true,
         transpile_ts: true,
         transpile_jsx: true,
         ..TestInput::default()
@@ -1663,7 +1663,14 @@ export const Parent = component$(() => {
     });
 
     return (
-        <div onClick$={() => console.log('parent', state, threejs)}>
+        <div
+            shouldRemove$={() => state.text}
+            onClick$={() => console.log('parent', state, threejs)}
+        >
+            <Div
+                onClick$={() => console.log('keep')}
+                render$={() => state.text}
+            />
             {state.text}
         </div>
     );
@@ -1674,7 +1681,7 @@ export const Parent = component$(() => {
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Inline,
         strip_ctx_name: Some(vec!["useClientMount$".into(),]),
-        strip_ctx_kind: Some(HookKind::Event),
+        strip_event_handlers: true,
         ..TestInput::default()
     });
 }
@@ -2617,7 +2624,7 @@ export const Local = component$(() => {
         scope: None,
         strip_exports: None,
         strip_ctx_name: None,
-        strip_ctx_kind: None,
+        strip_event_handlers: false,
         reg_ctx_name: None,
         is_server: None,
     });
@@ -2696,7 +2703,7 @@ export const Greeter = component$(() => {
         reg_ctx_name: None,
         strip_exports: None,
         strip_ctx_name: None,
-        strip_ctx_kind: None,
+        strip_event_handlers: false,
         is_server: None,
     });
     let ref_hooks: Vec<_> = res
@@ -2731,7 +2738,7 @@ export const Greeter = component$(() => {
             scope: None,
             strip_exports: None,
             strip_ctx_name: None,
-            strip_ctx_kind: None,
+            strip_event_handlers: false,
             reg_ctx_name: None,
             is_server: None,
         });
@@ -2781,7 +2788,7 @@ struct TestInput {
     pub strip_exports: Option<Vec<String>>,
     pub reg_ctx_name: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
     pub is_server: Option<bool>,
 }
 
@@ -2804,7 +2811,7 @@ impl TestInput {
             reg_ctx_name: None,
             strip_exports: None,
             strip_ctx_name: None,
-            strip_ctx_kind: None,
+            strip_event_handlers: false,
             is_server: None,
         }
     }

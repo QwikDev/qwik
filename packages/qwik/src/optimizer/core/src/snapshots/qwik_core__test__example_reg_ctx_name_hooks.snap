@@ -21,11 +21,26 @@ export const Works = component$((props) => {
 
 import "./foo";
 import { componentQrl } from "@builder.io/qwik";
+import { serverQrl } from "@builder.io/qwik";
+import { _regSymbol } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
 import { _noopQrl } from "@builder.io/qwik";
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0"));
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    return /*#__PURE__*/ _jsxs(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsx("div", {
+                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "07DGQ0fITXs"), "Works_component__Fragment_div_onClick_server_07DGQ0fITXs"))
+            }),
+            /*#__PURE__*/ _jsx("div", {
+                onClick$: /*#__PURE__*/ _noopQrl("Works_component__Fragment_div_onClick_YhOCqfqU0Rc")
+            })
+        ]
+    }, "u6_0");
+}, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,sBAAQ,oEAQlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAEvC,qBACI;;0BACA,KAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,KAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

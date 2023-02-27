@@ -1,4 +1,12 @@
-import { component$, useSignal, useStore, useStylesScoped$, useTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  JSXNode,
+  PropFunction,
+  useSignal,
+  useStore,
+  useStylesScoped$,
+  useTask$,
+} from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 
 export const Render = component$(() => {
@@ -29,6 +37,7 @@ export const Render = component$(() => {
       <Issue2608 />
       <Issue2800 />
       <Issue2889 />
+      <Issue3116 />
       <CounterToggle />
 
       <PropsDestructuring
@@ -286,6 +295,26 @@ export const Issue2889 = component$(() => {
     <>
       <h2 id="issue-2889-result1">Deeds: {appState.events.length}</h2>
       <h2 id="issue-2889-result2">Filtered Deeds: {(filteredEvents.value || []).length}</h2>
+    </>
+  );
+});
+
+type Product = string;
+
+export type ProductRelationProps = {
+  render$: PropFunction<(products: Product[]) => JSXNode>;
+};
+
+export const ProductRelations = component$((props: ProductRelationProps) => {
+  return <div>{props.render$(['this comes from render$'])}</div>;
+});
+
+export const Issue3116 = component$(() => {
+  return (
+    <>
+      <ProductRelations
+        render$={(products) => <div id="issue-3116-result">{products.join('hi')}</div>}
+      />
     </>
   );
 });

@@ -169,4 +169,10 @@ test.describe('render', () => {
     await expect(result1).toHaveText('Deeds: 4');
     await expect(result2).toHaveText('Filtered Deeds: 2');
   });
+
+  test('issue3116', async ({ page }) => {
+    const result = page.locator('#issue-3116-result');
+
+    await expect(result).toHaveText('this comes from render$');
+  });
 });

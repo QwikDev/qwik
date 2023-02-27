@@ -83,6 +83,7 @@ pub struct TransformCodeOptions<'a> {
     pub mode: EmitMode,
     pub scope: Option<&'a String>,
     pub entry_strategy: EntryStrategy,
+    pub core_module: JsWord,
 
     pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
@@ -294,7 +295,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
 
-                    transform_props_destructuring(&mut main_module, &mut collect);
+                    transform_props_destructuring(
+                        &mut main_module,
+                        &mut collect,
+                        &config.core_module,
+                    );
 
                     // Replace const values
                     if let Some(is_server) = config.is_server {
@@ -314,6 +319,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         global_collect: collect,
                         scope: config.scope,
                         mode: config.mode,
+                        core_module: config.core_module,
                         entry_strategy: config.entry_strategy,
                         reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
@@ -359,6 +365,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             need_transform: h.data.need_transform,
                             explicit_extensions: qwik_transform.options.explicit_extensions,
                             global: &qwik_transform.options.global_collect,
+                            core_module: &qwik_transform.options.core_module,
                             need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),

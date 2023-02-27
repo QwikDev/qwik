@@ -6,7 +6,7 @@
 
 import type { AzureFunction } from '@azure/functions';
 import type { Context } from '@azure/functions';
-import type { Render } from '@builder.io/qwik/server';
+import { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 

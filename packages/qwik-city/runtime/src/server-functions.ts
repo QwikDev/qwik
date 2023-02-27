@@ -167,7 +167,6 @@ export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
-
 /**
  * @alpha
  */
@@ -198,9 +197,7 @@ export const routeLoaderQrl = ((
 /**
  * @alpha
  */
-export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(
-  routeLoaderQrl
-);
+export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
 /**
  * @alpha
@@ -219,9 +216,7 @@ export const validatorQrl = ((
 /**
  * @alpha
  */
-export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(
-  validatorQrl
-);
+export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
 /**
  * @alpha
@@ -322,7 +317,6 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
  * @alpha
  */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
-
 
 const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {
   let id: string | undefined;

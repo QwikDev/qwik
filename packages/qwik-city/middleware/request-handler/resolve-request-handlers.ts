@@ -194,12 +194,12 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
           }
           return (loaders[loaderId] = runValidators(requestEv, loader.__validators, undefined)
             .then((res) => {
-                if (res.success) {
-                  return loader.__qrl(requestEv as any);
-                } else {
-                  return requestEv.fail(res.status ?? 500, res.error);
-                }
-              })
+              if (res.success) {
+                return loader.__qrl(requestEv as any);
+              } else {
+                return requestEv.fail(res.status ?? 500, res.error);
+              }
+            })
             .then((loaderResolved) => {
               if (typeof loaderResolved === 'function') {
                 loaders[loaderId] = loaderResolved();

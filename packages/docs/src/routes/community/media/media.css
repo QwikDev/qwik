@@ -1,19 +1,19 @@
-.media {
+.media.media-section {
   margin: 10px auto;
   padding: 0 20px;
   max-width: 960px;
 }
 
-.media h1 {
+.media.media-section h1 {
   font-size: 28px;
   font-weight: bold;
 }
 
-.media section {
+.media.media-section {
   margin: 40px 0;
 }
 
-.media h2 {
+.media.media-section h2 {
   font-size: 24px;
   font-weight: bold;
   margin: 0 0 15px 0;
@@ -21,13 +21,19 @@
   border-bottom: 1px solid var(--media-separator-color);
 }
 
-.media .thumbnails {
+.media h2 a {
+  text-decoration: none;
+  color: var(--text-color);
+  position: static;
+}
+
+.media.media-section .thumbnails {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 30px;
 }
 
-.media li img {
+.media.media-section li img {
   display: inline-block;
   margin: 0 0 10px 0;
   border-radius: 5px;
@@ -36,45 +42,49 @@
   box-shadow: var(--qwik-purple) 2px 2px 2px 0px;
 }
 
-.media li a {
+.media.media-section li a {
   color: var(--interactive-text-color);
   display: block;
   font-size: 0.9em;
 }
 
-.media li a:hover {
+.media.media-section li a:hover {
   color: var(--qwik-purple);
 }
 
-.media li a:hover img {
+.media.media-section li a:hover img {
   opacity: 0.9;
   box-shadow: var(--media-video-shadow-color) 2px 2px 2px 0px;
 }
 
-.media .edit-page {
+.media.media-section .edit-page {
   font-weight: 400;
   display: inline-block;
   padding: 12px 0;
   color: var(--interactive-text-color);
 }
 
-.media .edit-page:hover {
+.media.media-section .edit-page:hover {
   text-decoration: underline;
 }
 
+.docs article p {
+  color: var(--interactive-text-color);
+}
+
 @media screen and (max-width: 540px) {
-  .media .thumbnails {
+  .media.media-section .thumbnails {
     grid-template-columns: repeat(2, 1fr);
     grid-gap: 20px;
   }
 }
 
-.media .bullets {
+.media.media-section .bullets {
   margin: 20px 0 20px 30px;
   list-style: square;
 }
 
-.media .bullets {
+.media.media-section .bullets {
   margin: 20px 0 20px 30px;
   list-style: square;
 }

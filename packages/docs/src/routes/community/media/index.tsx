@@ -222,7 +222,7 @@ export const Section = component$(
 export default component$(() => {
   useStyles$(styles);
   return (
-    <article class="media">
+    <article class="media media-section">
       <h1>Qwik Presentations, Talks, Videos and Podcasts</h1>
 
       <Section id="videos" listStyle="thumbnails" imgLoading="eager" />
@@ -240,7 +240,7 @@ export default component$(() => {
         <p>This page missing any great resources or in need of an update?</p>
         <p>
           <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/media/index.tsx"
+            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/community/media/index.tsx"
             target="_blank"
             class="edit-page"
           >

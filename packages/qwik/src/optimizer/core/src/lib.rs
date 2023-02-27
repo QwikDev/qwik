@@ -30,6 +30,7 @@ use rayon::prelude::*;
 #[cfg(feature = "parallel")]
 use anyhow::Context;
 use transform::HookKind;
+use words::BUILDER_IO_QWIK;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -68,6 +69,7 @@ pub struct TransformFsOptions {
     pub mode: EmitMode,
     pub scope: Option<String>,
 
+    pub core_module: Option<String>,
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
     pub strip_ctx_kind: Option<HookKind>,
@@ -98,6 +100,7 @@ pub struct TransformModulesOptions {
     pub mode: EmitMode,
     pub scope: Option<String>,
 
+    pub core_module: Option<String>,
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
     pub strip_ctx_kind: Option<HookKind>,
@@ -107,6 +110,9 @@ pub struct TransformModulesOptions {
 
 #[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
+    let core_module = config
+        .core_module
+        .map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
     let src_dir = Path::new(&config.src_dir);
     let mut paths = vec![];
     let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
@@ -136,6 +142,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 scope: config.scope.as_ref(),
                 entry_policy,
                 mode: config.mode,
+                core_module: core_module.clone(),
                 entry_strategy: config.entry_strategy,
                 reg_ctx_name: config.reg_ctx_name.as_deref(),
                 strip_exports: config.strip_exports.as_deref(),
@@ -147,11 +154,14 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output, config.explicit_extensions)?;
+    final_output = generate_entries(final_output, &core_module, config.explicit_extensions)?;
     Ok(final_output)
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
+    let core_module = config
+        .core_module
+        .map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
     let src_dir = std::path::Path::new(&config.src_dir);
     let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
     #[cfg(feature = "parallel")]
@@ -173,6 +183,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             entry_policy,
             mode: config.mode,
             scope: config.scope.as_ref(),
+            core_module: core_module.clone(),
             entry_strategy: config.entry_strategy,
             reg_ctx_name: config.reg_ctx_name.as_deref(),
             strip_exports: config.strip_exports.as_deref(),
@@ -192,7 +203,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
     let mut final_output = final_output?;
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output, config.explicit_extensions)?;
+    final_output = generate_entries(final_output, &core_module, config.explicit_extensions)?;
 
     Ok(final_output)
 }

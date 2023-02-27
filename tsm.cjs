@@ -21,7 +21,7 @@ if (
 module.exports = {
   common: {
     minifyWhitespace: true,
-    target: 'es2020'
+    target: 'es2020',
   },
   config: {
     '.tsx': {

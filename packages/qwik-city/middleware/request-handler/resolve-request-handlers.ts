@@ -6,8 +6,8 @@ import type {
   ActionInternal,
   LoaderInternal,
   JSONObject,
-  ValidatorInternal,
   ValidatorReturn,
+  DataValidator,
 } from '../../runtime/src/types';
 import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
@@ -192,8 +192,14 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
               );
             }
           }
-          return (loaders[loaderId] = Promise.resolve()
-            .then(() => loader.__qrl(requestEv as any))
+          return (loaders[loaderId] = runValidators(requestEv, loader.__validators, undefined)
+            .then((res) => {
+              if (res.success) {
+                return loader.__qrl(requestEv as any);
+              } else {
+                return requestEv.fail(res.status ?? 500, res.error);
+              }
+            })
             .then((loaderResolved) => {
               if (typeof loaderResolved === 'function') {
                 loaders[loaderId] = loaderResolved();
@@ -211,7 +217,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
 
 async function runValidators(
   requestEv: RequestEvent,
-  validators: ValidatorInternal[] | undefined,
+  validators: DataValidator[] | undefined,
   data: unknown
 ) {
   let lastResult: ValidatorReturn = {

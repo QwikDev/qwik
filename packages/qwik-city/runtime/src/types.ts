@@ -76,83 +76,6 @@ export interface RouteLocation {
 /**
  * @alpha
  */
-export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
-
-/**
- * @alpha
- */
-export type JSONObject = { [x: string]: JSONValue };
-
-export type GetValidatorType<B extends TypedDataValidator> = B extends TypedDataValidator<
-  infer TYPE
->
-  ? z.infer<TYPE>
-  : never;
-
-/**
- * @alpha
- */
-export interface ActionOptions {
-  readonly id?: string;
-}
-
-/**
- * @alpha
- */
-export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
-  extends ActionOptions {
-  readonly id?: string;
-  readonly validation: [val: B, ...a: DataValidator[]];
-}
-
-/**
- * @alpha
- */
-export interface CommonLoaderActionOptions {
-  readonly id?: string;
-  readonly validation?: DataValidator[];
-}
-
-/**
- * @alpha
- */
-export interface ActionConstructor {
-  // Without validation
-  <O>(
-    actionQrl: (
-      form: JSONObject,
-      event: RequestEventAction,
-      options: ActionOptions
-    ) => ValueOrPromise<O>,
-    options?: ActionOptions
-  ): Action<O>;
-
-  // With validation
-  <O, B extends TypedDataValidator>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B | ActionOptionsWithValidation<B>
-  ): Action<
-    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
-    GetValidatorType<B>,
-    false
-  >;
-
-  // With multiple validators
-  <O, B extends TypedDataValidator>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B,
-    ...rest: DataValidator[]
-  ): Action<
-    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
-    GetValidatorType<B>,
-    false
-  >;
-}
-export type LoaderStateHolder = Record<string, Signal<any>>;
-
-/**
- * @alpha
- */
 export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
 
 export type RouteAction = Signal<RouteActionValue>;
@@ -407,12 +330,198 @@ export interface SimpleURL {
   hash: string;
 }
 
+export type Editable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
+type UnionKeys<T> = T extends T ? keyof T : never;
+type StrictUnionHelper<T, TAll> = T extends any
+  ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, never>>
+  : never;
+
+type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+
+type Prettify<T> = {
+  [K in keyof T]?: T[K];
+} & {};
+
+/**
+ * @alpha
+ */
+export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
+/**
+ * @alpha
+ */
+export type JSONObject = { [x: string]: JSONValue };
+
+export type GetValidatorType<B extends TypedDataValidator> = B extends TypedDataValidator<
+  infer TYPE
+>
+  ? z.infer<TYPE>
+  : never;
+
+/**
+ * @alpha
+ */
+export interface ActionOptions {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+}
+
+/**
+ * @alpha
+ */
+export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
+  readonly id?: string;
+  readonly validation: [val: B, ...a: DataValidator[]];
+}
+
+/**
+ * @alpha
+ */
+export interface CommonLoaderActionOptions {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+}
+
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
+  infer ERROR
+>[]
+  ? ERROR
+  : never;
+
+/**
+ * @alpha
+ */
+export interface ActionConstructor {
+  // With validation
+  <O, B extends TypedDataValidator>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B | ActionOptionsWithValidation<B>
+  ): Action<
+    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // With multiple validators
+  <O, B extends TypedDataValidator, REST extends DataValidator[]>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B,
+    ...rest: REST
+  ): Action<
+    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // Without validation
+  <O>(
+    actionQrl: (
+      form: JSONObject,
+      event: RequestEventAction,
+      options: ActionOptions
+    ) => ValueOrPromise<O>,
+    options?: ActionOptions
+  ): Action<O>;
+
+  // Without validation
+  <O, REST extends DataValidator[]>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
+    ...rest: REST
+  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+/**
+ * @alpha
+ */
+export interface ActionConstructorQRL {
+  // With validation
+  <O, B extends TypedDataValidator>(
+    actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
+    options: B | ActionOptionsWithValidation<B>
+  ): Action<
+    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // With multiple validators
+  <O, B extends TypedDataValidator, REST extends DataValidator[]>(
+    actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
+    options: B,
+    ...rest: REST
+  ): Action<
+    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // Without validation
+  <O>(
+    actionQrl: QRL<
+      (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>
+    >,
+    options?: ActionOptions
+  ): Action<O>;
+
+  // Without validation
+  <O, REST extends DataValidator[]>(
+    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>,
+    ...rest: REST
+  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+/**
+ * @alpha
+ */
+export interface LoaderOptions {
+  id?: string;
+}
+
+/**
+ * @alpha
+ */
+export interface LoaderConstructor {
+  // Without validation
+  <O>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    options?: LoaderOptions
+  ): Loader<O>;
+
+  // With validation
+  <O, REST extends readonly DataValidator[]>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    ...rest: REST
+  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+/**
+ * @alpha
+ */
+export interface LoaderConstructorQRL {
+  // Without validation
+  <O>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+    options?: LoaderOptions
+  ): Loader<O>;
+
+  // With validation
+  <O, REST extends readonly DataValidator[]>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+    ...rest: REST
+  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+export type LoaderStateHolder = Record<string, Signal<any>>;
+
 /**
  * @alpha
  */
 export interface ActionReturn<RETURN> {
   readonly status?: number;
-  readonly value: GetValueReturn<RETURN>;
+  readonly value: RETURN;
 }
 
 /**
@@ -473,7 +582,7 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
    *
    * It's `undefined` before the action is first called.
    */
-  readonly value: GetValueReturn<RETURN> | undefined;
+  readonly value: RETURN | undefined;
 
   /**
    * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
@@ -496,18 +605,9 @@ export type FailReturn<T> = T & {
 /**
  * @alpha
  */
-export type V<T> = T extends FailReturn<any> ? never : T;
-export type F<T> = T extends FailReturn<any> ? T : never;
-export type GetValueReturn<T> =
-  | (V<T> & Record<keyof F<T>, undefined>)
-  | (F<T> & Record<keyof V<T>, undefined>);
-
-/**
- * @alpha
- */
-export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B>
+export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
   ? Readonly<Signal<ValueOrPromise<B>>>
-  : Readonly<Signal<Awaited<T>>>;
+  : Readonly<Signal<T>>;
 
 /**
  * @alpha
@@ -529,7 +629,7 @@ export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
   __id: string;
-  __validators: ValidatorInternal[] | undefined;
+  __validators: DataValidator[] | undefined;
   (): LoaderSignal<any>;
 }
 
@@ -553,20 +653,31 @@ export interface ActionInternal extends Action<any, any> {
   readonly __brand: 'server_action';
   __id: string;
   __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<any>>;
-  __validators: ValidatorInternal[] | undefined;
+  __validators: DataValidator[] | undefined;
 
   (): ActionStore<any, any>;
 }
 
-export type Editable<T> = {
-  -readonly [P in keyof T]: T[P];
-};
+export type ValidatorReturn<T extends Record<string, any> = {}> =
+  | ValidatorReturnSuccess
+  | ValidatorReturnFail<T>;
+
+export interface ValidatorReturnSuccess {
+  readonly success: true;
+  readonly data?: any;
+}
+
+export interface ValidatorReturnFail<T extends Record<string, any> = {}> {
+  readonly success: false;
+  readonly error: T;
+  readonly status?: number;
+}
 
 /**
  * @alpha
  */
-export interface DataValidator {
-  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn>;
+export interface DataValidator<T extends Record<string, any> = {}> {
+  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
 }
 
 /**
@@ -577,34 +688,46 @@ export interface TypedDataValidator<T extends z.ZodType = any> {
   validate(ev: RequestEvent, data: unknown): Promise<z.SafeParseReturnType<T, T>>;
 }
 
-export interface ValidatorReturn {
-  success: boolean;
-  status?: number;
-  data?: any;
-  error?: any;
-}
-/**
- * @alpha
- */
-export interface ValidatorInternal {
-  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn>;
+export interface ValidatorConstructor {
+  <T extends ValidatorReturn>(
+    validator: (ev: RequestEvent, data: unknown) => ValueOrPromise<T>
+  ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 }
 
-export type ValidatorFromShape<T extends z.ZodRawShape> = TypedDataValidator<z.ZodObject<T>>;
-
-// /**
-//  * @alpha
-//  */
-// export type ZodReturn<T extends z.ZodRawShape = any> = Promise<
-//   z.ZodObject<T> | z.ZodEffects<z.ZodObject<T>>
-// >;
+export interface ValidatorConstructorQRL {
+  <T extends ValidatorReturn>(
+    validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<T>>
+  ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
+}
 
 /**
  * @alpha
  */
-export interface Zod {
-  <T extends z.ZodRawShape>(schema: T): ValidatorFromShape<T>;
-  <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): ValidatorFromShape<T>;
+export interface ZodConstructor {
+  <T extends z.ZodRawShape>(schema: T): TypedDataValidator<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): TypedDataValidator<
+    z.ZodObject<T>
+  >;
   <T extends z.Schema>(schema: T): TypedDataValidator<T>;
   <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): TypedDataValidator<T>;
+}
+
+/**
+ * @alpha
+ */
+export interface ZodConstructorQRL {
+  <T extends z.ZodRawShape>(schema: QRL<T>): TypedDataValidator<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(schema: QRL<(z: typeof import('zod').z) => T>): TypedDataValidator<
+    z.ZodObject<T>
+  >;
+  <T extends z.Schema>(schema: QRL<T>): TypedDataValidator<T>;
+  <T extends z.Schema>(schema: QRL<(z: typeof import('zod').z) => T>): TypedDataValidator<T>;
+}
+
+export interface ServerFunction {
+  (this: RequestEvent, ...args: any[]): any;
+}
+
+export interface ServerConstructorQRL {
+  <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
 }

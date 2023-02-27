@@ -1,8 +1,8 @@
 import { component$ } from '@builder.io/qwik';
-import { action$, Form } from '@builder.io/qwik-city';
+import { Form, routeAction$ } from '@builder.io/qwik-city';
 import { data } from './data';
 
-export const useRootAction = action$(
+export const useRootAction = routeAction$(
   (form, { redirect }) => {
     const name = form.name as string;
     data.length = 0;

@@ -34,7 +34,7 @@ export type {
   ActionOptions,
   ActionOptionsWithValidation,
   FailReturn,
-  Zod,
+  ZodConstructor as Zod,
   StaticGenerate,
   RouteNavigate,
   DeferReturn,
@@ -51,6 +51,8 @@ export { globalAction$, globalActionQrl } from './server-functions';
 export { loader$, loaderQrl, routeLoader$, routeLoaderQrl } from './server-functions';
 export { server$, serverQrl } from './server-functions';
 export { zod$, zodQrl } from './server-functions';
+export { validator$, validatorQrl } from './server-functions';
+
 export { z } from 'zod';
 
 export { Form } from './form-component';

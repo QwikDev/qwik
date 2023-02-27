@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import fs from 'node:fs';
 import { relative } from 'node:path';
 import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';

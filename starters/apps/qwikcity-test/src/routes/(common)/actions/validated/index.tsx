@@ -1,3 +1,4 @@
+import { component$ } from '@builder.io/qwik';
 import { routeAction$, routeLoader$, validator$, z, zod$ } from '@builder.io/qwik-city';
 import type { JSONObject } from 'packages/qwik-city/runtime/src/types';
 
@@ -50,7 +51,22 @@ export const useAction2 = routeAction$(
 //   ]
 // });
 
-// export default component$(() => {
-//   const loader = useLoader();
-//   loader.value;
-// });
+export default component$(() => {
+  const loader = useLoader();
+  return (
+    <div>
+      <h1>Validated</h1>
+      {loader.value.failed ? (
+        <div>
+          <p>Failed</p>
+          <p>{loader.value.message}</p>
+        </div>
+      ) : (
+        <div>
+          <p>Success</p>
+          <p>{loader.value.stuff}</p>
+        </div>
+      )}
+    </div>
+  )
+});

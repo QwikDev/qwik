@@ -12,7 +12,7 @@ import { processData, wrapJSX } from './render-dom';
 import { ContainerState, _getContainerState } from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
-import { executeDOMRender, printRenderStats } from './operations';
+import { executeDOMRender, printRenderStats, removeNode, removeNodeSync } from './operations';
 import { logError } from '../../util/log';
 import { appendQwikDevTools } from '../../container/resume';
 
@@ -24,22 +24,31 @@ export interface RenderOptions {
 }
 
 /**
+ * @alpha
+ */
+export interface RenderCleanupFn {
+  (): void;
+}
+
+/**
  * Render JSX.
  *
  * Use this method to render JSX. This function does reconciling which means
  * it always tries to reuse what is already in the DOM (rather then destroy and
  * recreate content.)
+ * It returns a cleanup function you could use for cleaning up subscriptions.
  *
  * @param parent - Element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
+ * @returns An async cleanup function
  * @alpha
  */
 export const render = async (
   parent: Element | Document,
   jsxNode: JSXNode | FunctionComponent<any>,
   opts?: RenderOptions
-): Promise<void> => {
+): Promise<RenderCleanupFn> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
@@ -72,6 +81,10 @@ export const render = async (
 
   const renderCtx = await containerState.$renderPromise$;
   await postRendering(containerState, renderCtx);
+
+  return function cleanup() {
+    removeNodeSync(renderCtx.$static$, containerEl);
+  };
 };
 
 const renderRoot = async (

@@ -6,8 +6,8 @@ import type {
   ActionInternal,
   LoaderInternal,
   JSONObject,
-  ValidatorInternal,
   ValidatorReturn,
+  DataValidator,
 } from '../../runtime/src/types';
 import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
 import {
@@ -217,7 +217,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
 
 async function runValidators(
   requestEv: RequestEvent,
-  validators: ValidatorInternal[] | undefined,
+  validators: DataValidator[] | undefined,
   data: unknown
 ) {
   let lastResult: ValidatorReturn = {

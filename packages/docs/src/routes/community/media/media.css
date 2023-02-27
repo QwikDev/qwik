@@ -1,3 +1,4 @@
+
 .media.media-section {
   margin: 10px auto;
   padding: 0 20px;
@@ -68,7 +69,7 @@
   text-decoration: underline;
 }
 
-.docs article p {
+.thumbnails .media-thumbnail-link {
   color: var(--interactive-text-color);
 }
 

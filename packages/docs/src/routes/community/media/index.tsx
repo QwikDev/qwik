@@ -176,7 +176,7 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
           decoding={props.imgLoading === 'eager' ? undefined : 'async'}
           aria-hidden="true"
         />
-        <p>{props.entry.title}</p>
+        <p class="media-thumbnail-link">{props.entry.title}</p>
       </a>
     </li>
   );

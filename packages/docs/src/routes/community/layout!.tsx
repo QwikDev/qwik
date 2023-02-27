@@ -6,17 +6,19 @@ import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import type { RequestHandler } from '@builder.io/qwik-city';
+import { CommunityNavbar } from './components/community-navbar/community-navbar';
 import styles from '../docs.css?inline';
 
 export default component$(() => {
   const loc = useLocation();
-  const noRightMenu = ['/community/showcase/', "/community/media/"].includes(loc.pathname);
+  const noRightMenu = ['/community/showcase/', "/community/media/"].includes(loc.url.pathname);
   useStyles$(styles);
 
   return (
     <div class="docs fixed-header">
       <Header />
       <SideBar />
+        {/* <CommunityNavbar/> */}
       <main
           class={{
             'no-right-menu': noRightMenu,

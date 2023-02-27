@@ -23,6 +23,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
+    external: ['@builder.io/qwik/build'],
     plugins: [
       {
         name: 'setVersion',
@@ -60,7 +61,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const cjsOutput: OutputOptions = {
     dir: join(config.distPkgDir),
-    format: 'umd',
+    format: 'cjs',
     name: 'qwikCore',
     entryFileNames: 'core.cjs',
     sourcemap: true,
@@ -177,6 +178,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     outdir: config.distPkgDir,
     bundle: true,
     sourcemap: 'external',
+    external: ['@builder.io/qwik/build'],
     target,
     define: {
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

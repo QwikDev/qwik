@@ -1,5 +1,5 @@
 import { qError, QError_invalidRefValue } from '../error/error';
-import { isServer } from '../platform/platform';
+import { isServerPlatform } from '../platform/platform';
 import type { Ref } from '../use/use-ref';
 import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { logWarn } from '../util/log';
@@ -113,7 +113,7 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export const _getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    assertTrue(!isServer(), 'Container state can only be created lazily on the browser');
+    assertTrue(!isServerPlatform(), 'Container state can only be created lazily on the browser');
     (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
       containerEl,
       directGetAttribute(containerEl, 'q:base') ?? '/'
@@ -168,7 +168,7 @@ export const setRef = (value: any, elm: Element) => {
 
 export const addQwikEvent = (prop: string, containerState: ContainerState) => {
   const eventName = getEventName(prop);
-  if (!qTest && !isServer()) {
+  if (!qTest && !isServerPlatform()) {
     try {
       const qwikevents = ((globalThis as any).qwikevents ||= []);
       qwikevents.push(eventName);

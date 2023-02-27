@@ -38,14 +38,11 @@ export async function authAction(
   });
   fixCookies(req);
 
-  let parsedRes;
   try {
-    parsedRes = await res.json();
+    return await res.json();
   } catch (error) {
-    parsedRes = await res.text();
+    return await res.text();
   }
-
-  return parsedRes;
 }
 
 export const fixCookies = (req: RequestEventCommon) => {

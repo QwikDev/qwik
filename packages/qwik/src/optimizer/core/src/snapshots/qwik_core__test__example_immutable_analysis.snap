@@ -68,7 +68,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component__fragment_div_immutable4_qt1dno4izxo",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "immutable4$",
   "captures": true,
   "loc": [
@@ -189,7 +189,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component__fragment_div_transparent_jtd8sctndsg",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "transparent$",
   "captures": false,
   "loc": [

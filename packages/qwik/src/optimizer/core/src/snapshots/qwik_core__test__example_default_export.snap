@@ -41,7 +41,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "canonicalFilename": "_____slug___component_div_onclick_oesymv0so3o",
   "extension": "js",
   "parent": "_____slug___component_vgk6N3QaQd4",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [

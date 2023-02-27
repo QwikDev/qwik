@@ -23,7 +23,7 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"
   "canonicalFilename": "app_component_div_p_button_onclick_8dwua0cjar4",
   "extension": "js",
   "parent": "App_component_AkbU84a8zes",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [

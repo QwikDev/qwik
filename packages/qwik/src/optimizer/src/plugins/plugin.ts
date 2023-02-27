@@ -367,7 +367,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
         transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
-        transformOpts.stripCtxKind = 'event';
+        transformOpts.stripEventHandlers = true;
         transformOpts.isServer = true;
         transformOpts.regCtxName = REG_CTX_NAME;
       }
@@ -569,7 +569,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (strip) {
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
-          transformOpts.stripCtxKind = 'event';
+          transformOpts.stripEventHandlers = true;
           transformOpts.entryStrategy = { type: 'hoist' };
           transformOpts.regCtxName = REG_CTX_NAME;
           transformOpts.isServer = true;

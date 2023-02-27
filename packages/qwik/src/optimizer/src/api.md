@@ -432,9 +432,9 @@ export interface TransformOptions {
     // (undocumented)
     srcDir: string;
     // (undocumented)
-    stripCtxKind?: 'function' | 'event';
-    // (undocumented)
     stripCtxName?: string[];
+    // (undocumented)
+    stripEventHandlers?: boolean;
     // (undocumented)
     stripExports?: string[];
     // (undocumented)

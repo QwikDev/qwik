@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "canonicalFilename": "_404_component_div_onclick_oimo9dvew9q",
   "extension": "tsx",
   "parent": "_404_component_zRvoWc98eqo",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [

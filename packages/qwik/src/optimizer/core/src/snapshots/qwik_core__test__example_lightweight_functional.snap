@@ -85,7 +85,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "buttonarrow_button_onclick_9npo43figik",
   "extension": "tsx",
   "parent": null,
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -114,7 +114,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "button_button_onclick_nsm0jyv00jw",
   "extension": "tsx",
   "parent": null,
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [

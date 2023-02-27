@@ -155,7 +155,7 @@ fn optimize(
         manual_chunks: None,
         strip_exports: None,
         strip_ctx_name: None,
-        strip_ctx_kind: None,
+        strip_event_handlers: false,
         reg_ctx_name: None,
         is_server: None,
     })?;

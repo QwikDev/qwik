@@ -83,7 +83,7 @@ export interface TransformOptions {
   stripExports?: string[];
   regCtxName?: string[];
   stripCtxName?: string[];
-  stripCtxKind?: 'function' | 'event';
+  stripEventHandlers?: boolean;
   isServer?: boolean;
 }
 

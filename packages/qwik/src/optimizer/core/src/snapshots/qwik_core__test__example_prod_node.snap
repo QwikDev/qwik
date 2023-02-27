@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "s_9dcjc0ujddo",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
@@ -94,7 +94,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "s_w9ptfrbvk1e",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
@@ -119,7 +119,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "s_rjqdy8i0mxc",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [

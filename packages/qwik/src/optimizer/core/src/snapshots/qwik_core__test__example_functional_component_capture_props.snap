@@ -49,7 +49,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component_div_onclick_1cgetmfzx0g",
   "extension": "js",
   "parent": "App_component_1_w0t0o3QMovU",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [

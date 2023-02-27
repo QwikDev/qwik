@@ -88,7 +88,7 @@ pub struct TransformCodeOptions<'a> {
     pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
     pub is_server: Option<bool>,
 }
 
@@ -323,7 +323,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         entry_strategy: config.entry_strategy,
                         reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
-                        strip_ctx_kind: config.strip_ctx_kind,
+                        strip_event_handlers: config.strip_event_handlers,
                     });
 
                     // Run main transform
@@ -700,7 +700,7 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 }
 
 pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
-    if matches!(ctx_kind, HookKind::Event) {
+    if !matches!(ctx_kind, HookKind::Function) {
         return false;
     }
     matches!(

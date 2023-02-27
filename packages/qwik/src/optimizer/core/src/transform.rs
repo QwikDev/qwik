@@ -46,7 +46,8 @@ macro_rules! id_eq {
 #[serde(rename_all = "camelCase")]
 pub enum HookKind {
     Function,
-    Event,
+    EventHandler,
+    JSXProp,
 }
 
 #[derive(Debug, Clone)]
@@ -121,7 +122,7 @@ pub struct QwikTransformOptions<'a> {
     pub entry_strategy: EntryStrategy,
     pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
 }
 
 fn convert_signal_word(id: &JsWord) -> Option<JsWord> {
@@ -287,7 +288,7 @@ impl<'a> QwikTransform<'a> {
             last_stack
         };
         let ctx_kind = if ctx_name.starts_with("on") {
-            HookKind::Event
+            HookKind::JSXProp
         } else {
             HookKind::Function
         };
@@ -680,7 +681,7 @@ impl<'a> QwikTransform<'a> {
                     Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
                         span: DUMMY_SP,
                         expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
-                            self.create_synthetic_qhook(*expr, HookKind::Event, ctx_name, None),
+                            self.create_synthetic_qhook(*expr, HookKind::JSXProp, ctx_name, None),
                         ))),
                     }))
                 } else {
@@ -963,7 +964,11 @@ impl<'a> QwikTransform<'a> {
                                                 value: Box::new(ast::Expr::Call(
                                                     self.create_synthetic_qhook(
                                                         *node.value.clone(),
-                                                        HookKind::Event,
+                                                        if is_fn {
+                                                            HookKind::JSXProp
+                                                        } else {
+                                                            HookKind::EventHandler
+                                                        },
                                                         key_word.clone(),
                                                         None,
                                                     ),
@@ -1138,10 +1143,8 @@ impl<'a> QwikTransform<'a> {
                 return false;
             }
         }
-        if let Some(strip_ctx_kind) = self.options.strip_ctx_kind {
-            if strip_ctx_kind == hook_data.ctx_kind {
-                return false;
-            }
+        if self.options.strip_event_handlers && hook_data.ctx_kind == HookKind::EventHandler {
+            return false;
         }
         true
     }

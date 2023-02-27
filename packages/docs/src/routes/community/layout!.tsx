@@ -1,5 +1,5 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import {useLocation} from "@builder.io/qwik-city";
+import { useLocation } from '@builder.io/qwik-city';
 import { SideBar } from '../../components/sidebar/sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
@@ -11,18 +11,18 @@ import styles from '../docs.css?inline';
 
 export default component$(() => {
   const loc = useLocation();
-  const noRightMenu = ['/community/showcase/', "/community/media/"].includes(loc.url.pathname);
+  const noRightMenu = ['/community/showcase/', '/community/media/'].includes(loc.url.pathname);
   useStyles$(styles);
 
   return (
     <div class="docs fixed-header">
       <Header />
       <SideBar />
-        {/* <CommunityNavbar/> */}
+      {/* <CommunityNavbar/> */}
       <main
-          class={{
-            'no-right-menu': noRightMenu,
-          }}
+        class={{
+          'no-right-menu': noRightMenu,
+        }}
       >
         <div class="docs-container">
           <article>

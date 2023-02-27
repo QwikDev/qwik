@@ -38,29 +38,35 @@ export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends bo
 
 // @alpha (undocumented)
 export interface ActionConstructor {
+    // Warning: (ae-forgotten-export) The symbol "TypedDataValidator" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "StrictUnion" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    <O, B extends TypedDataValidator>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B | ActionOptionsWithValidation<B>): Action<StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>, GetValidatorType<B>, false>;
+    // Warning: (ae-forgotten-export) The symbol "DataValidator" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FailOfRest" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    <O, B extends TypedDataValidator, REST extends DataValidator[]>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: REST): Action<StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>, GetValidatorType<B>, false>;
     // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     <O>(actionQrl: (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>, options?: ActionOptions): Action<O>;
-    // Warning: (ae-forgotten-export) The symbol "TypedDataValidator" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    <O, B extends TypedDataValidator>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B | ActionOptionsWithValidation<B>): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>, false>;
-    // Warning: (ae-forgotten-export) The symbol "DataValidator" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    <O, B extends TypedDataValidator>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: DataValidator[]): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>, false>;
+    <O, REST extends DataValidator[]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>, ...rest: REST): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 }
 
 // @alpha (undocumented)
 export interface ActionOptions {
     // (undocumented)
     readonly id?: string;
+    // (undocumented)
+    readonly validation?: DataValidator[];
 }
 
 // @alpha (undocumented)
-export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> extends ActionOptions {
+export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
     // (undocumented)
     readonly id?: string;
     // (undocumented)
@@ -80,8 +86,7 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
     // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
     readonly run: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
     readonly status?: number;
-    // Warning: (ae-forgotten-export) The symbol "GetValueReturn" needs to be exported by the entry point index.d.ts
-    readonly value: GetValueReturn<RETURN> | undefined;
+    readonly value: RETURN | undefined;
 }
 
 // @alpha @deprecated (undocumented)
@@ -255,10 +260,10 @@ export interface LinkProps extends AnchorAttributes {
     reload?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
 //
 // @alpha @deprecated (undocumented)
-export const loader$: <RETURN>(first: (event: RequestEventLoader_2) => RETURN, ...rest: (DataValidator | CommonLoaderActionOptions)[]) => Loader<RETURN>;
+export const loader$: LoaderConstructor;
 
 // @alpha (undocumented)
 export interface Loader<RETURN> {
@@ -267,11 +272,13 @@ export interface Loader<RETURN> {
     use(): LoaderSignal<RETURN>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
+//
 // @alpha @deprecated (undocumented)
 export const loaderQrl: <RETURN>(loaderQrl: QRL<(event: RequestEventLoader_2) => RETURN>, ...rest: (CommonLoaderActionOptions | DataValidator)[]) => Loader<RETURN>;
 
 // @alpha (undocumented)
-export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<Awaited<T>>>;
+export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<T>>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //
@@ -357,7 +364,7 @@ routeBundleNames: string[]
 ];
 
 // @alpha (undocumented)
-export const routeLoader$: <RETURN>(first: (event: RequestEventLoader_2) => RETURN, ...rest: (DataValidator | CommonLoaderActionOptions)[]) => Loader<RETURN>;
+export const routeLoader$: LoaderConstructor;
 
 // @alpha (undocumented)
 export const routeLoaderQrl: <RETURN>(loaderQrl: QRL<(event: RequestEventLoader_2) => RETURN>, ...rest: (CommonLoaderActionOptions | DataValidator)[]) => Loader<RETURN>;
@@ -387,10 +394,10 @@ export type RouteParams = Record<string, string>;
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
-// Warning: (ae-forgotten-export) The symbol "Server" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ServerConstructor" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const server$: Server;
+export const server$: ServerConstructor;
 
 // @alpha (undocumented)
 export const serverQrl: <T extends (...args: any[]) => any>(qrl: QRL<T>) => QRL<T>;
@@ -423,6 +430,17 @@ export const useLocation: () => RouteLocation;
 // @alpha (undocumented)
 export const useNavigate: () => RouteNavigate;
 
+// Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const validator$: ValidatorConstructor;
+
+// Warning: (ae-forgotten-export) The symbol "ValidatorReturn" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ValidatorInternal" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const validatorQrl: (validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>) => ValidatorInternal;
+
 export { z }
 
 // @alpha (undocumented)
@@ -442,10 +460,8 @@ export interface Zod {
     <T extends z.Schema>(schema: (z: z) => T): TypedDataValidator<T>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ValidatorInternal" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export const zodQrl: (qrl: QRL<z.ZodType<any, z.ZodTypeDef, any> | z.ZodRawShape | ((z: z) => z.ZodRawShape)>) => ValidatorInternal;
+export const zodQrl: (qrl: QRL<z.ZodRawShape | z.ZodType<any, z.ZodTypeDef, any> | ((z: z) => z.ZodRawShape)>) => ValidatorInternal;
 
 // (No @packageDocumentation comment for this package)
 

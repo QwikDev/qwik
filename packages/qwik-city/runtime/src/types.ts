@@ -7,6 +7,7 @@ import type {
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { z } from 'zod';
+import type { LoaderOptions } from './server-functions';
 
 export type {
   Cookie,
@@ -95,7 +96,6 @@ export type GetValidatorType<B extends TypedDataValidator> = B extends TypedData
 export interface ActionOptions {
   readonly id?: string;
   readonly validation?: DataValidator[];
-
 }
 
 /**
@@ -114,30 +114,36 @@ export interface CommonLoaderActionOptions {
   readonly validation?: DataValidator[];
 }
 
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
+  infer ERROR
+>[]
+  ? ERROR
+  : never;
+
 /**
  * @alpha
  */
 export interface ActionConstructor {
-    // With validation
-    <O, B extends TypedDataValidator>(
-      actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-      options: B | ActionOptionsWithValidation<B>
-    ): Action<
-      O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
-      GetValidatorType<B>,
-      false
-    >;
+  // With validation
+  <O, B extends TypedDataValidator>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B | ActionOptionsWithValidation<B>
+  ): Action<
+    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>,
+    GetValidatorType<B>,
+    false
+  >;
 
-    // With multiple validators
-    <O, B extends TypedDataValidator>(
-      actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-      options: B,
-      ...rest: DataValidator[]
-    ): Action<
-      O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
-      GetValidatorType<B>,
-      false
-    >;
+  // With multiple validators
+  <O, B extends TypedDataValidator, REST extends DataValidator[]>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B,
+    ...rest: REST
+  ): Action<
+    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    GetValidatorType<B>,
+    false
+  >;
 
   // Without validation
   <O>(
@@ -150,16 +156,41 @@ export interface ActionConstructor {
   ): Action<O>;
 
   // Without validation
-  <O>(
-    actionQrl: (
-      form: JSONObject,
-      event: RequestEventAction,
-    ) => ValueOrPromise<O>,
-    ...rest: DataValidator[]
-  ): Action<O>;
-
-
+  <O, REST extends DataValidator[]>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
+    ...rest: REST
+  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 }
+
+type UnionKeys<T> = T extends T ? keyof T : never;
+type StrictUnionHelper<T, TAll> = T extends any
+  ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, never>>
+  : never;
+
+type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+
+type Prettify<T> = {
+  [K in keyof T]?: T[K];
+} & {};
+
+// type Prettify<A> = A;
+/**
+ * @alpha
+ */
+export interface LoaderConstructor {
+  // Without validation
+  <O>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    options?: LoaderOptions
+  ): Loader<O>;
+
+  // With validation
+  <O, REST extends readonly DataValidator[]>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    ...rest: REST
+  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
 /**
@@ -424,7 +455,7 @@ export interface SimpleURL {
  */
 export interface ActionReturn<RETURN> {
   readonly status?: number;
-  readonly value: GetValueReturn<RETURN>;
+  readonly value: RETURN;
 }
 
 /**
@@ -485,7 +516,7 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
    *
    * It's `undefined` before the action is first called.
    */
-  readonly value: GetValueReturn<RETURN> | undefined;
+  readonly value: RETURN | undefined;
 
   /**
    * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
@@ -508,18 +539,9 @@ export type FailReturn<T> = T & {
 /**
  * @alpha
  */
-export type V<T> = T extends FailReturn<any> ? never : T;
-export type F<T> = T extends FailReturn<any> ? T : never;
-export type GetValueReturn<T> =
-  | (V<T> & Record<keyof F<T>, undefined>)
-  | (F<T> & Record<keyof V<T>, undefined>);
-
-/**
- * @alpha
- */
-export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B>
+export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
   ? Readonly<Signal<ValueOrPromise<B>>>
-  : Readonly<Signal<Awaited<T>>>;
+  : Readonly<Signal<T>>;
 
 /**
  * @alpha
@@ -577,8 +599,8 @@ export type Editable<T> = {
 /**
  * @alpha
  */
-export interface DataValidator {
-  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn>;
+export interface DataValidator<T extends Record<string, any> = {}> {
+  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
 }
 
 /**
@@ -589,12 +611,21 @@ export interface TypedDataValidator<T extends z.ZodType = any> {
   validate(ev: RequestEvent, data: unknown): Promise<z.SafeParseReturnType<T, T>>;
 }
 
-export interface ValidatorReturn {
-  success: boolean;
-  status?: number;
-  data?: any;
-  error?: any;
+export type ValidatorReturn<T extends Record<string, any> = {}> =
+  | ValidatorReturnSuccess
+  | ValidatorReturnFail<T>;
+
+export interface ValidatorReturnSuccess {
+  readonly success: true;
+  readonly data?: any;
 }
+
+export interface ValidatorReturnFail<T extends Record<string, any> = {}> {
+  readonly success: false;
+  readonly error: T;
+  readonly status?: number;
+}
+
 /**
  * @alpha
  */
@@ -619,4 +650,18 @@ export interface Zod {
   <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): ValidatorFromShape<T>;
   <T extends z.Schema>(schema: T): TypedDataValidator<T>;
   <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): TypedDataValidator<T>;
+}
+
+export interface ValidatorConstructor {
+  <T extends ValidatorReturn>(
+    validator: (ev: RequestEvent, data: unknown) => ValueOrPromise<T>
+  ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
+}
+
+export interface ServerFunction {
+  (this: RequestEvent, ...args: any[]): any;
+}
+
+export interface ServerConstructor {
+  <T extends ServerFunction>(fn: T): QRL<T>;
 }

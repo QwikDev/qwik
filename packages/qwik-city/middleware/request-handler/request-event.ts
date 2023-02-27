@@ -19,6 +19,7 @@ import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
+import type { ValueOrPromise } from '@builder.io/qwik';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -242,7 +243,7 @@ export function createRequestEvent(
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  [RequestEvLoaders]: Record<string, Promise<any> | undefined>;
+  [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;

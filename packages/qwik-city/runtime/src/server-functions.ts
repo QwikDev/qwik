@@ -33,6 +33,9 @@ import type {
   CommonLoaderActionOptions,
   DataValidator,
   ValidatorReturn,
+  LoaderConstructor,
+  ServerConstructor,
+  ValidatorConstructor,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -200,7 +203,9 @@ export const routeLoaderQrl = <RETURN>(
 /**
  * @alpha
  */
-export const routeLoader$ = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
+export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(
+  routeLoaderQrl
+) as any;
 
 /**
  * @alpha
@@ -267,14 +272,10 @@ export const validatorQrl = (
 /**
  * @alpha
  */
-export const validator$ = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
+export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(
+  validatorQrl
+) as any;
 
-export interface ServerFunction {
-  (this: RequestEvent, ...args: any[]): any;
-}
-export interface Server {
-  <T extends ServerFunction>(fn: T): QRL<T>;
-}
 /**
  * @alpha
  */
@@ -325,7 +326,7 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
 /**
  * @alpha
  */
-export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;
+export const server$: ServerConstructor = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;
 
 /**
  * @alpha

@@ -9,6 +9,7 @@
  */
 import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
+import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
@@ -28,7 +29,7 @@ const buildDir = join(distDir, 'build');
 const PORT = process.env.PORT ?? 3000;
 
 // Create the Qwik City express middleware
-const { router, notFound } = createQwikCity({ render, qwikCityPlan });
+const { router, notFound } = createQwikCity({ render, qwikCityPlan, manifest });
 
 // Create the express server
 // https://expressjs.com/

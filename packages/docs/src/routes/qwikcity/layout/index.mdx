@@ -59,6 +59,8 @@ It will be used for all routes under the `src/routes` directory. It will render 
 
 ```tsx
 // File: src/routes/layout.tsx
+import { component$ } from '@builder.io/qwik';
+
 export default component$(() => {
   return (
     <>
@@ -77,6 +79,8 @@ This is the main route for the site. It will be rendered under the `Slot` compon
 
 ```tsx
 // File: src/routes/index.tsx
+import { component$ } from '@builder.io/qwik';
+
 export default component$(() => {
   return <>Home</>;
 });
@@ -88,6 +92,8 @@ Same as the `src/routes/index.tsx` file, but for the `about` route, similary it 
 
 ```tsx
 // File: src/routes/about/index.tsx
+import { component$ } from '@builder.io/qwik';
+
 export default component$(() => {
   return <>About</>;
 });

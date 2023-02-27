@@ -12,6 +12,7 @@ Actions are referenced using the `.use()` method from within a Qwik Component. T
 
 ```tsx
 // src/routes/layout.tsx
+import { component$ } from '@builder.io/qwik';
 import { action$ } from '@builder.io/qwik-city';
 export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
@@ -149,7 +150,8 @@ export const addUser = action$(
 When submitting data to an action, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.fail` property.
 
 ```tsx
-import { action$, Form } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { action$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const addUser = action$(
   (user) => {
@@ -185,7 +187,7 @@ Please refer to the [Zod documentation](https://zod.dev/) for more information o
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx
-import { action$, Form } from '@builder.io/qwik-city';
+import { action$, zod$, z } from '@builder.io/qwik-city';
 
 export const addUser = action$(
   (user, { fail }) => {
@@ -209,6 +211,9 @@ export const addUser = action$(
 Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+
 export default component$(() => {
   const action = useAddUser();
   return (
@@ -229,7 +234,8 @@ Thanks to Typescript type discrimination, you can use the `action.value.failed` 
 When an action is triggered, the previous state is stored in the `action.formData` property. This is useful to display a loading state while the action is running.
 
 ```tsx
-import { action$, Form } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { action$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = action$(
   (user) => {

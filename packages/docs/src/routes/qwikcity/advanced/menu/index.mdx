@@ -94,6 +94,8 @@ The example above will return:
 While [`useContent()`](/qwikcity/api/index.mdx#usecontent) can be invoked from any component that is part of the current route. It is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { useLocation, useContent } from '@builder.io/qwik-city';
 export default component$(() => {
   const { menu } = useContent();
   const { pathname } = useLocation();

@@ -72,6 +72,8 @@ For a Javascript project, it's quite common for the build's runtime to be built 
 ## Dynamic SSG Routes
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
 import type { StaticGenerateHandler } from '@builder.io/qwik-city';
 
 export default component$(() => {

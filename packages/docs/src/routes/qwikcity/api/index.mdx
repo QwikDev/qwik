@@ -168,6 +168,9 @@ This component will have a button then when clicked, QwikCity will navigate to `
 The `loader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. QwikCity will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { loader$ } from '@builder.io/qwik-city';
+
 export const useGetTime = loader$(() => {
   return { time: new Date() }
 });
@@ -259,6 +262,9 @@ The `Link` component works like the `<a>` anchor element, but instead of causing
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/qwikcity/api/index.mdx#usenavigate) API and prevents the default behaviour of the native `<a>`:
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { useNavigate } from '@builder.io/qwik-city';
+
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
 

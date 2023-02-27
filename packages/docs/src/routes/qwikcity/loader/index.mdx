@@ -142,6 +142,8 @@ Just like request handlers such as `onRequest` and `onGet`, loaders have access 
 This information comes in handly when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
 
 ```tsx
+import { loader$ } from '@builder.io/qwik-city';
+
 export const getServerTime = loader$((ev) => {
   console.log('Request headers:', ev.headers);
   console.log('Request cookies:', ev.cookie);

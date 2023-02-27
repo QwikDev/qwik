@@ -88,3 +88,7 @@
   margin: 20px 0 20px 30px;
   list-style: square;
 }
+
+.media-section.media-section .thumbnails {
+  list-style: none;
+}

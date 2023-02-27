@@ -51,6 +51,11 @@ export async function runCreateInteractiveCli() {
     (await text({
       message: 'Where would you like to create your new project?',
       placeholder: defaultProjectName,
+      validate(value) {
+        if (value.trim() === '.' || value.trim() === './') {
+          return "Please don't use '.' or './' and let qwik create the directory for you.";
+        }
+      },
     })) || defaultProjectName;
 
   if (isCancel(projectNameAnswer)) {

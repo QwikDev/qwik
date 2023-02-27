@@ -14,16 +14,19 @@ struct PropsDestructuing<'a> {
     component_ident: Option<Id>,
     pub identifiers: HashMap<Id, ast::Expr>,
     pub global_collect: &'a mut GlobalCollect,
+    pub core_module: &'a JsWord,
 }
 
 pub fn transform_props_destructuring(
     main_module: &mut ast::Module,
     global_collect: &mut GlobalCollect,
+    core_module: &JsWord,
 ) {
     main_module.visit_mut_with(&mut PropsDestructuing {
-        component_ident: global_collect.get_imported_local(&COMPONENT, &BUILDER_IO_QWIK),
+        component_ident: global_collect.get_imported_local(&COMPONENT, core_module),
         identifiers: HashMap::new(),
         global_collect,
+        core_module,
     });
 }
 
@@ -91,7 +94,7 @@ fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut P
                 let props_id = id!(new_ident);
                 let omit_fn = props_transform
                     .global_collect
-                    .import(_REST_PROPS.clone(), BUILDER_IO_QWIK.clone());
+                    .import(_REST_PROPS.clone(), props_transform.core_module.clone());
                 let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
                 transform_rest(arrow, &omit_fn, &rest_id, &props_id, omit);
             }
@@ -137,9 +140,10 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                         {
                             if let Some(rest_id) = rest_id {
                                 let props_id = id!(new_ident);
-                                let omit_fn = props_transform
-                                    .global_collect
-                                    .import(_REST_PROPS.clone(), BUILDER_IO_QWIK.clone());
+                                let omit_fn = props_transform.global_collect.import(
+                                    _REST_PROPS.clone(),
+                                    props_transform.core_module.clone(),
+                                );
                                 let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
 
                                 let element =

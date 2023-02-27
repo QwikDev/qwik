@@ -48,3 +48,6 @@
 /qwikcity/prefetching/service-worker-prefetching/ /qwikcity/advanced/prefetching/ 308
 /qwikcity/prefetching/request-response-cache/ /qwikcity/advanced/prefetching/ 308
 /qwikcity/prefetching/parallelizing-network-requests/ /qwikcity/advanced/prefetching/ 308
+
+/media/ /community/media/ 308
+/showcase/ /community/showcase 308

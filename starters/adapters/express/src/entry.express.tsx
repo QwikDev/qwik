@@ -1,7 +1,7 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the  entry point for the express server when building for production.
+ * It's the entry point for the express server when building for production.
  *
  * Learn more about the cloudflare integration here:
  * - https://qwik.builder.io/integrations/deployments/node/

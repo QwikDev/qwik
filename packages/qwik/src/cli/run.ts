@@ -62,7 +62,7 @@ export async function runCli() {
 }
 
 async function runCommand(app: AppCommand) {
-  for (let value of COMMANDS) {
+  for (const value of COMMANDS) {
     if (value.value === app.task && typeof value.run === 'function') {
       await value.run(app);
       return;

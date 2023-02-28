@@ -83,7 +83,7 @@ export function bye() {
 }
 
 export function printHeader() {
-  // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
+  /* eslint-disable no-console */
   console.log(
     blue(`
       ${magenta('............')}

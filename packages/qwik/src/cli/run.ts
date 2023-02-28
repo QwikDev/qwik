@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import color from 'kleur';
+import { red, bgMagenta, cyan, dim } from 'kleur/colors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
 import { panic, pmRunCmd } from './utils/utils';
@@ -39,7 +39,7 @@ async function runCommand(app: AppCommand) {
   }
 
   if (typeof app.task === 'string') {
-    console.log(color.red(`Unrecognized qwik command: ${app.task}`) + '\n');
+    console.log(red(`Unrecognized qwik command: ${app.task}`) + '\n');
   }
 
   await printHelp();
@@ -49,20 +49,14 @@ async function runCommand(app: AppCommand) {
 async function printHelp() {
   const pmRun = pmRunCmd();
   console.log(``);
-  console.log(color.bgMagenta(` Qwik Help `));
+  console.log(bgMagenta(` Qwik Help `));
   console.log(``);
+  console.log(`  ${pmRun} qwik ${cyan(`add`)}            ${dim(`Add an integration to this app`)}`);
   console.log(
-    `  ${pmRun} qwik ${color.cyan(`add`)}            ${color.dim(`Add an integration to this app`)}`
+    `  ${pmRun} qwik ${cyan(`build`)}          ${dim(`Parallelize builds and type checking`)}`
   );
   console.log(
-    `  ${pmRun} qwik ${color.cyan(`build`)}          ${color.dim(
-      `Parallelize builds and type checking`
-    )}`
-  );
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`build preview`)}  ${color.dim(
-      `Same as "build", but for preview server`
-    )}`
+    `  ${pmRun} qwik ${cyan(`build preview`)}  ${dim(`Same as "build", but for preview server`)}`
   );
   console.log(``);
 }

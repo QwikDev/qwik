@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import color from 'kleur';
+import { dim, cyan, bgMagenta, magenta, } from 'kleur/colors';
 import type { AppCommand } from '../utils/app-command';
 import { execaCommand } from 'execa';
 import { getPackageManager, pmRunCmd } from '../utils/utils';
@@ -55,7 +55,7 @@ export async function runBuildCommand(app: AppCommand) {
 
   console.log(``);
   for (const script of scripts) {
-    console.log(color.dim(script!));
+    console.log(dim(script!));
   }
   console.log(``);
 
@@ -92,7 +92,7 @@ export async function runBuildCommand(app: AppCommand) {
     });
 
     console.log(``);
-    console.log(`${color.cyan('✓')} Built client modules`);
+    console.log(`${cyan('✓')} Built client modules`);
   }
 
   const step2: Promise<Step>[] = [];
@@ -227,16 +227,16 @@ export async function runBuildCommand(app: AppCommand) {
           console.log('');
           console.log(step.stdout);
         }
-        console.log(`${color.cyan('✓')} ${step.title}`);
+        console.log(`${cyan('✓')} ${step.title}`);
       });
 
       if (!isPreviewBuild && !buildServerScript && !buildStaticScript && !isLibraryBuild) {
         const pmRun = pmRunCmd()
         console.log(``);
-        console.log(`${color.bgMagenta(' Missing an integration ')}`);
+        console.log(`${bgMagenta(' Missing an integration ')}`);
         console.log(``);
-        console.log(`${color.magenta('・')} Use ${color.magenta(pmRun + ' qwik add')} to add an integration`);
-        console.log(`${color.magenta('・')} Use ${color.magenta(pmRun + ' preview')} to preview the build`);
+        console.log(`${magenta('・')} Use ${magenta(pmRun + ' qwik add')} to add an integration`);
+        console.log(`${magenta('・')} Use ${magenta(pmRun + ' preview')} to preview the build`);
       }
 
       if (isPreviewBuild && buildStaticScript && runSsgScript) {

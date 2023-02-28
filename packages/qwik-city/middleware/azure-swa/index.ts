@@ -1,6 +1,6 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
-import type { Render } from '@builder.io/qwik/server';
+import { Render, setServerPlatform } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
 import {
   mergeHeadersCookies,
@@ -30,6 +30,9 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
     _serializeData,
     _verifySerializable,
   };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
       const url = new URL(req.headers['x-ms-original-url']!);

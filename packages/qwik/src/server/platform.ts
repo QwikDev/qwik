@@ -5,7 +5,7 @@ import type { CorePlatformServer } from '../core/platform/types';
 
 declare const require: (module: string) => Record<string, any>;
 
-function createPlatform(
+export function createPlatform(
   opts: SerializeDocumentOptions,
   resolvedManifest: ResolvedManifest | undefined
 ) {

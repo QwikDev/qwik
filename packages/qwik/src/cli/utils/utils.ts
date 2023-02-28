@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import color from 'kleur';
+import { red } from 'kleur/colors';
 import detectPackageManager from 'which-pm-runs';
 import type { IntegrationPackageJson } from '../types';
 
@@ -72,6 +72,6 @@ export function pmRunCmd() {
 }
 
 export function panic(msg: string) {
-  console.error(`\n❌ ${color.red(msg)}\n`);
+  console.error(`\n❌ ${red(msg)}\n`);
   process.exit(1);
 }

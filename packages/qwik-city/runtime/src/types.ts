@@ -6,7 +6,7 @@ import type {
   RequestHandler,
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { z } from 'zod';
+import type * as zod from 'zod';
 
 export type {
   Cookie,
@@ -358,7 +358,7 @@ export type JSONObject = { [x: string]: JSONValue };
 export type GetValidatorType<B extends TypedDataValidator> = B extends TypedDataValidator<
   infer TYPE
 >
-  ? z.infer<TYPE>
+  ? zod.infer<TYPE>
   : never;
 
 /**
@@ -400,7 +400,7 @@ export interface ActionConstructor {
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B | ActionOptionsWithValidation<B>
   ): Action<
-    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>,
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
     GetValidatorType<B>,
     false
   >;
@@ -411,7 +411,7 @@ export interface ActionConstructor {
     options: B,
     ...rest: REST
   ): Action<
-    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
     GetValidatorType<B>,
     false
   >;
@@ -442,7 +442,7 @@ export interface ActionConstructorQRL {
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: B | ActionOptionsWithValidation<B>
   ): Action<
-    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>,
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
     GetValidatorType<B>,
     false
   >;
@@ -453,7 +453,7 @@ export interface ActionConstructorQRL {
     options: B,
     ...rest: REST
   ): Action<
-    StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
     GetValidatorType<B>,
     false
   >;
@@ -683,9 +683,9 @@ export interface DataValidator<T extends Record<string, any> = {}> {
 /**
  * @alpha
  */
-export interface TypedDataValidator<T extends z.ZodType = any> {
-  __zod: z.ZodSchema<T>;
-  validate(ev: RequestEvent, data: unknown): Promise<z.SafeParseReturnType<T, T>>;
+export interface TypedDataValidator<T extends zod.ZodType = any> {
+  __zod: zod.ZodSchema<T>;
+  validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;
 }
 
 export interface ValidatorConstructor {
@@ -704,24 +704,22 @@ export interface ValidatorConstructorQRL {
  * @alpha
  */
 export interface ZodConstructor {
-  <T extends z.ZodRawShape>(schema: T): TypedDataValidator<z.ZodObject<T>>;
-  <T extends z.ZodRawShape>(schema: (z: typeof import('zod').z) => T): TypedDataValidator<
-    z.ZodObject<T>
-  >;
-  <T extends z.Schema>(schema: T): TypedDataValidator<T>;
-  <T extends z.Schema>(schema: (z: typeof import('zod').z) => T): TypedDataValidator<T>;
+  <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
 }
 
 /**
  * @alpha
  */
 export interface ZodConstructorQRL {
-  <T extends z.ZodRawShape>(schema: QRL<T>): TypedDataValidator<z.ZodObject<T>>;
-  <T extends z.ZodRawShape>(schema: QRL<(z: typeof import('zod').z) => T>): TypedDataValidator<
-    z.ZodObject<T>
+  <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.ZodRawShape>(schema: QRL<(zs: typeof zod) => T>): TypedDataValidator<
+    zod.ZodObject<T>
   >;
-  <T extends z.Schema>(schema: QRL<T>): TypedDataValidator<T>;
-  <T extends z.Schema>(schema: QRL<(z: typeof import('zod').z) => T>): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: QRL<T>): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: QRL<(z: typeof zod) => T>): TypedDataValidator<T>;
 }
 
 export interface ServerFunction {

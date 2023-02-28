@@ -343,7 +343,7 @@ type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 type Prettify<T> = {
   [K in keyof T]?: T[K];
-} & {};
+} | {};
 
 /**
  * @alpha

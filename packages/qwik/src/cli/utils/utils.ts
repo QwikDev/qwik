@@ -75,3 +75,60 @@ export function panic(msg: string) {
   console.error(`\n❌ ${color.red(msg)}\n`);
   process.exit(1);
 }
+
+export function printHeader() {
+  // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
+  console.log(
+    color.blue(`
+      ${color.magenta('............')}
+    .::: ${color.magenta(':--------:.')}
+   .::::  ${color.magenta('.:-------:.')}
+  .:::::.   ${color.magenta('.:-------.')}
+  ::::::.     ${color.magenta('.:------.')}
+ ::::::.        ${color.magenta(':-----:')}
+ ::::::.       ${color.magenta('.:-----.')}
+  :::::::.     ${color.magenta('.-----.')}
+   ::::::::..   ${color.magenta('---:.')}
+    .:::::::::. ${color.magenta(':-:.')}
+     ..::::::::::::
+             ...::::
+    `),
+    '\n'
+  );
+}
+
+// Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts
+function ansiRegex() {
+  const pattern = [
+    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))',
+  ].join('|');
+
+  return new RegExp(pattern, 'g');
+}
+
+const bar = '│';
+const strip = (str: string) => str.replace(ansiRegex(), '');
+
+export const note = (message = '', title = '') => {
+  const lines = `\n${message}\n`.split('\n');
+  const len =
+    lines.reduce((sum, ln) => {
+      ln = strip(ln);
+      return ln.length > sum ? ln.length : sum;
+    }, 0) + 2;
+  const msg = lines
+    .map(
+      (ln) =>
+        `${color.gray(bar)}  ${color.white(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
+          bar
+        )}`
+    )
+    .join('\n');
+  process.stdout.write(
+    `${color.gray(bar)}\n${color.green('○')}  ${color.reset(title)} ${color.gray(
+      '─'.repeat(len - title.length - 1) + '╮'
+    )}\n${msg}\n${color.gray('├' + '─'.repeat(len + 2) + '╯')}\n`
+  );
+};
+// End of used code from clack

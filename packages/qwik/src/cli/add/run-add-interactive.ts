@@ -11,10 +11,6 @@ import { logSuccessFooter, logNextStep } from '../utils/log';
 import { runInPkg, startSpinner } from '../utils/install-deps';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
-  console.log(``);
-  console.clear();
-  console.log(``);
-
   const pkgManager = getPackageManager();
   const integrations = await loadIntegrations();
   let integration: IntegrationData | undefined;

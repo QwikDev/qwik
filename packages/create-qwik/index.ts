@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { createApp, runCreateCli } from './create-app';
-import { panic } from '../qwik/src/cli/utils/utils';
+import { panic, printHeader } from '../qwik/src/cli/utils/utils';
 import { runCreateInteractiveCli } from './create-interactive';
 import color from 'kleur';
 
@@ -53,27 +53,6 @@ function checkNodeVersion() {
       );
     }
   }
-}
-
-function printHeader() {
-  // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
-  console.log(
-    color.blue(`
-      ${color.magenta('............')}
-    .::: ${color.magenta(':--------:.')}
-   .::::  ${color.magenta('.:-------:.')}
-  .:::::.   ${color.magenta('.:-------.')}
-  ::::::.     ${color.magenta('.:------.')}
- ::::::.        ${color.magenta(':-----:')}
- ::::::.       ${color.magenta('.:-----.')}
-  :::::::.     ${color.magenta('.-----.')}
-   ::::::::..   ${color.magenta('---:.')}
-    .:::::::::. ${color.magenta(':-:.')}
-     ..::::::::::::
-             ...::::
-    `),
-    '\n'
-  );
 }
 
 export { createApp, runCreateCli, runCreateInteractiveCli };

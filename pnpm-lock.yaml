@@ -5,6 +5,7 @@ importers:
   .:
     specifiers:
       '@builder.io/partytown': 0.7.5
+      '@clack/prompts': ^0.6.1
       '@microsoft/api-extractor': 7.34.4
       '@napi-rs/cli': 2.12.1
       '@napi-rs/triples': 1.1.0
@@ -62,6 +63,7 @@ importers:
       zod: ^3.20.6
     devDependencies:
       '@builder.io/partytown': 0.7.5
+      '@clack/prompts': 0.6.1
       '@microsoft/api-extractor': 7.34.4_@types+node@18.14.0
       '@napi-rs/cli': 2.12.1
       '@napi-rs/triples': 1.1.0
@@ -120,10 +122,8 @@ importers:
 
   packages/create-qwik:
     specifiers:
-      '@clack/prompts': ^0.5.0
       kleur: 4.1.5
     devDependencies:
-      '@clack/prompts': 0.5.0
       kleur: 4.1.5
 
   packages/docs:
@@ -467,17 +467,17 @@ packages:
       '@builder.io/qwik': github.com/BuilderIO/qwik-build/8db8f9a63f9738c1d175a6341e4519605f5f2439_undici@5.20.0
     dev: true
 
-  /@clack/core/0.2.0:
-    resolution: {integrity: sha512-fFGxlUXCHGnfSVevr40991AEhuI0r+krziqWzGty5bx/9tfFDV22+z2WeNzf74VSlzbjI8bOu5KIbaQyDBGFWQ==}
+  /@clack/core/0.3.0:
+    resolution: {integrity: sha512-ujw1888RciTArxUvwLOf24XSygRX7F4qiCPI7WLH3zCTZJuqKPMcTS7Wqjz0x/AuMpwGPlzhKln4+sCuQqYxzA==}
     dependencies:
       picocolors: 1.0.0
       sisteransi: 1.0.5
     dev: true
 
-  /@clack/prompts/0.5.0:
-    resolution: {integrity: sha512-4XZeJ65dgpXk6k+KtJ6aWNu0uuwHatAp0nXacfBZM9hTrScv3OvqXzaEavz9fq10lrTXHvqLBJIaZJ/IjwGEwA==}
+  /@clack/prompts/0.6.1:
+    resolution: {integrity: sha512-7KuMST/5zB7KpvfR00kcnbOaXmfN6tkJmkLpAyV2Iv2SJ7oxFbhNFvR5OQJynSKDhU8oOp/eFMK6Q0k/DXsq8A==}
     dependencies:
-      '@clack/core': 0.2.0
+      '@clack/core': 0.3.0
       picocolors: 1.0.0
       sisteransi: 1.0.5
     dev: true

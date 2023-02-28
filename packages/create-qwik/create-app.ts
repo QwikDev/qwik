@@ -1,6 +1,6 @@
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 import fs from 'node:fs';
-import color from 'kleur';
+import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,
@@ -50,17 +50,17 @@ export function logCreateAppResult(
   const outString = [];
 
   if (isCwdDir) {
-    outString.push(`🦄 ${color.bgMagenta(' Success! ')}`);
+    outString.push(`🦄 ${bgMagenta(' Success! ')}`);
   } else {
     outString.push(
-      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
-        color.magenta(relativeProjectPath)
-      )} ${color.cyan(`directory`)}`
+      `🦄 ${bgMagenta(' Success! ')} ${cyan(`Project created in`)} ${bold(
+        magenta(relativeProjectPath)
+      )} ${cyan(`directory`)}`
     );
   }
   outString.push(``);
 
-  outString.push(`🐰 ${color.cyan(`Next steps:`)}`);
+  outString.push(`🐰 ${cyan(`Next steps:`)}`);
   if (!isCwdDir) {
     outString.push(`   cd ${relativeProjectPath}`);
   }
@@ -71,13 +71,13 @@ export function logCreateAppResult(
   outString.push(``);
 
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
-  outString.push(`🤍 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
   outString.push(`   ${qwikAdd}`);
   outString.push(``);
 
   outString.push(logSuccessFooter(result.docs));
 
-  outString.push(`👀 ${color.cyan('Presentations, Podcasts and Videos:')}`);
+  outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
   outString.push(`   https://qwik.builder.io/media/`);
   outString.push(``);
 

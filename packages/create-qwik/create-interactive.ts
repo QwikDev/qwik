@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { relative } from 'node:path';
 import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
-import color from 'kleur';
+import { gray, white, green, reset, bgBlue } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
@@ -30,21 +30,21 @@ const note = (message = '', title = '') => {
   const msg = lines
     .map(
       (ln) =>
-        `${color.gray(bar)}  ${color.white(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
+        `${gray(bar)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(
           bar
         )}`
     )
     .join('\n');
   process.stdout.write(
-    `${color.gray(bar)}\n${color.green('○')}  ${color.reset(title)} ${color.gray(
+    `${gray(bar)}\n${green('○')}  ${reset(title)} ${gray(
       '─'.repeat(len - title.length - 1) + '╮'
-    )}\n${msg}\n${color.gray('├' + '─'.repeat(len + 2) + '╯')}\n`
+    )}\n${msg}\n${gray('├' + '─'.repeat(len + 2) + '╯')}\n`
   );
 };
 // End of used code from clack
 
 export async function runCreateInteractiveCli() {
-  intro(`Let's create a ${color.bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   const defaultProjectName = './qwik-app';
   const projectNameAnswer =

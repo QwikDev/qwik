@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import color from 'kleur';
+import { red, blue, magenta, white, gray, reset, green } from 'kleur/colors';
 import { outro } from '@clack/prompts';
 import detectPackageManager from 'which-pm-runs';
 import type { IntegrationPackageJson } from '../types';
@@ -73,7 +73,7 @@ export function pmRunCmd() {
 }
 
 export function panic(msg: string) {
-  console.error(`\n❌ ${color.red(msg)}\n`);
+  console.error(`\n❌ ${red(msg)}\n`);
   process.exit(1);
 }
 
@@ -85,17 +85,17 @@ export function bye() {
 export function printHeader() {
   // const qwikGradient = gradient(["rgb(24, 182, 246)", "rgb(172, 127, 244)"]);
   console.log(
-    color.blue(`
-      ${color.magenta('............')}
-    .::: ${color.magenta(':--------:.')}
-   .::::  ${color.magenta('.:-------:.')}
-  .:::::.   ${color.magenta('.:-------.')}
-  ::::::.     ${color.magenta('.:------.')}
- ::::::.        ${color.magenta(':-----:')}
- ::::::.       ${color.magenta('.:-----.')}
-  :::::::.     ${color.magenta('.-----.')}
-   ::::::::..   ${color.magenta('---:.')}
-    .:::::::::. ${color.magenta(':-:.')}
+    blue(`
+      ${magenta('............')}
+    .::: ${magenta(':--------:.')}
+   .::::  ${magenta('.:-------:.')}
+  .:::::.   ${magenta('.:-------.')}
+  ::::::.     ${magenta('.:------.')}
+ ::::::.        ${magenta(':-----:')}
+ ::::::.       ${magenta('.:-----.')}
+  :::::::.     ${magenta('.-----.')}
+   ::::::::..   ${magenta('---:.')}
+    .:::::::::. ${magenta(':-:.')}
      ..::::::::::::
              ...::::
     `),
@@ -124,17 +124,12 @@ export const note = (message = '', title = '') => {
       return ln.length > sum ? ln.length : sum;
     }, 0) + 2;
   const msg = lines
-    .map(
-      (ln) =>
-        `${color.gray(bar)}  ${color.white(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
-          bar
-        )}`
-    )
+    .map((ln) => `${gray(bar)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(bar)}`)
     .join('\n');
   process.stdout.write(
-    `${color.gray(bar)}\n${color.green('○')}  ${color.reset(title)} ${color.gray(
+    `${gray(bar)}\n${green('○')}  ${reset(title)} ${gray(
       '─'.repeat(len - title.length - 1) + '╮'
-    )}\n${msg}\n${color.gray('├' + '─'.repeat(len + 2) + '╯')}\n`
+    )}\n${msg}\n${gray('├' + '─'.repeat(len + 2) + '╯')}\n`
   );
 };
 // End of used code from clack

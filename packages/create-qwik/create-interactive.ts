@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { relative } from 'node:path';
 import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
-import color from 'kleur';
+import { bgBlue } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
@@ -9,13 +9,18 @@ import { getPackageManager, note } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
-  intro(`Let's create a ${color.bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   const defaultProjectName = './qwik-app';
   const projectNameAnswer =
     (await text({
       message: 'Where would you like to create your new project?',
       placeholder: defaultProjectName,
+      validate(value) {
+        if (value.trim() === '.' || value.trim() === './') {
+          return "Please don't use '.' or './' and let qwik create the directory for you.";
+        }
+      },
     })) || defaultProjectName;
 
   if (isCancel(projectNameAnswer)) {

@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.3.0",
+  "version": "0.4.2",
   "description": "QwikReact allows adding React components into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",

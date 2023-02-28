@@ -1,9 +1,13 @@
 .header-container {
-  height: calc(var(--header-height) + var(--builder-bar-height));
+  height: var(--header-height);
   margin-bottom: 6px;
   background: var(--bg-color);
   position: relative;
   z-index: 100;
+}
+
+.header-container.builder-bar {
+  height: calc(var(--header-height) + var(--builder-bar-height));
 }
 
 @media (min-width: 1024px) {

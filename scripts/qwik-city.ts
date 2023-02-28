@@ -789,6 +789,7 @@ const ADAPTER_EXTERNALS = [
   'fs',
   'path',
   '@builder.io/qwik',
+  '@builder.io/qwik/server',
   '@builder.io/qwik/optimizer',
   '@builder.io/qwik-city',
   '@builder.io/qwik-city/static',
@@ -798,6 +799,7 @@ const ADAPTER_EXTERNALS = [
 const MIDDLEWARE_EXTERNALS = [
   '@builder.io/qwik',
   '@builder.io/qwik/optimizer',
+  '@builder.io/qwik/server',
   '@builder.io/qwik-city',
   '@builder.io/qwik-city/static',
   '@qwik-city-plan',

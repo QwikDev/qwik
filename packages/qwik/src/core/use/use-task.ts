@@ -2,7 +2,7 @@ import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
-import { isServer } from '../platform/platform';
+import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
@@ -287,7 +287,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   }
   elCtx.$watches$.push(watch);
   waitAndRun(iCtx, () => runSubscriber(watch, containerState, iCtx.$renderCtx$));
-  if (isServer()) {
+  if (isServerPlatform()) {
     useRunWatch(watch, opts?.eagerness);
   }
 };
@@ -399,7 +399,7 @@ export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskO
   const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
   const eagerness = opts?.strategy ?? opts?.eagerness ?? 'intersection-observer';
   if (get) {
-    if (isServer()) {
+    if (isServerPlatform()) {
       useRunWatch(get, eagerness);
     }
     return;
@@ -413,7 +413,7 @@ export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskO
   elCtx.$watches$.push(watch);
   set(watch);
   useRunWatch(watch, eagerness);
-  if (!isServer()) {
+  if (!isServerPlatform()) {
     qrl.$resolveLazy$(containerState.$containerEl$);
     notifyWatch(watch, containerState);
   }
@@ -579,7 +579,7 @@ export const runResource = <T>(
   // Execute mutation inside empty invokation
   invoke(invocationContext, () => {
     resource._state = 'pending';
-    resource.loading = !isServer();
+    resource.loading = !isServerPlatform();
     resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;

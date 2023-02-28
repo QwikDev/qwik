@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import color from 'kleur';
+import { magenta, cyan, dim } from 'kleur/colors';
 import { loadIntegrations } from '../utils/integrations';
 import { pmRunCmd, note, bye } from '../utils/utils';
 import { confirm, intro, isCancel } from '@clack/prompts';
@@ -25,7 +25,7 @@ export async function printAddHelp(app: AppCommand) {
   const features = integrations.filter((i) => i.type === 'feature');
   const pmRun = pmRunCmd();
 
-  intro(`${pmRun} qwik ${color.magenta(`add`)} [integration]`);
+  intro(`${pmRun} qwik ${magenta(`add`)} [integration]`);
 
   note(renderIntegration(adapters), 'Adapters');
   note(renderIntegration(features), 'Features');

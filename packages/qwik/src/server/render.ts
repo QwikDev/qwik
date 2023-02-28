@@ -11,15 +11,13 @@ import type {
   StreamWriter,
   RenderOptions,
 } from './types';
+import { isDev } from '@builder.io/qwik/build';
 import { getQwikLoaderScript } from './scripts';
 import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
 import type { SymbolMapper } from '../optimizer/src/types';
-import { qDev } from '../core/util/qdev';
-import { EMPTY_OBJ } from '../core/util/flyweight';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
-import { assertDefined } from '../core/error/assert';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -133,7 +131,7 @@ export async function renderToStream(
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
-    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
+    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
     : undefined;
 
   const renderTimer = createTimer();
@@ -156,7 +154,7 @@ export async function renderToStream(
       containsDynamic = dynamic;
       snapshotResult = await _pauseFromContexts(contexts, containerState);
 
-      const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
+      const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
@@ -225,9 +223,7 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
-  assertDefined(snapshotResult, 'snapshotResult must be defined');
-
-  const isDynamic = containsDynamic || snapshotResult.resources.some((r) => r._cache !== Infinity);
+  const isDynamic = containsDynamic || snapshotResult!.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,

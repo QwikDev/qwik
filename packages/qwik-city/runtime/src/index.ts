@@ -34,7 +34,7 @@ export type {
   ActionOptions,
   ActionOptionsWithValidation,
   FailReturn,
-  ZodConstructor as Zod,
+  ZodConstructor,
   StaticGenerate,
   RouteNavigate,
   DeferReturn,

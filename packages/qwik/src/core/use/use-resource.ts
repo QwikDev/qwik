@@ -12,7 +12,7 @@ import {
 } from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { isServer } from '../platform/platform';
+import { isServerPlatform } from '../platform/platform';
 import { untrack, useBindInvokeContext } from './use-core';
 
 import type { ContainerState, GetObjID } from '../container/container';
@@ -259,7 +259,7 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
-  const isBrowser = !isServer();
+  const isBrowser = !isServerPlatform();
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   let promise: Promise<T> | undefined;
   if (isResourceReturn(resource)) {
@@ -306,7 +306,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
   const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
     value: undefined as never,
-    loading: isServer() ? false : true,
+    loading: isServerPlatform() ? false : true,
     _resolved: undefined as never,
     _error: undefined as never,
     _state: 'pending',

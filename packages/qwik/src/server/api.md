@@ -172,6 +172,9 @@ export interface SerializeDocumentOptions {
 }
 
 // @alpha (undocumented)
+export function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined): Promise<void>;
+
+// @alpha (undocumented)
 export interface StreamingOptions {
     // (undocumented)
     inOrder?: InOrderStreaming;

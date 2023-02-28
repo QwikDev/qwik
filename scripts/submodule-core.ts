@@ -23,6 +23,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
+    external: ['@builder.io/qwik/build'],
     plugins: [
       {
         name: 'setVersion',
@@ -60,7 +61,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const cjsOutput: OutputOptions = {
     dir: join(config.distPkgDir),
-    format: 'umd',
+    format: 'cjs',
     name: 'qwikCore',
     entryFileNames: 'core.cjs',
     sourcemap: true,
@@ -74,57 +75,92 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
 
-  let esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
-  const esmMinifyResult = await minify(esmCode, {
-    module: true,
-    compress: {
-      global_defs: {
-        // special global that when set to false will remove all dev code entirely
-        // developer production builds could use core.min.js directly, or setup
-        // their own build tools to define the globa `qwikDev` to false
-        'globalThis.qDev': false,
-        'globalThis.qInspector': false,
-        'globalThis.qSerialize': false,
-        'globalThis.qDynamicPlatform': false,
-        'globalThis.qTest': false,
-        'globalThis.qRuntimeQrl': false,
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+  const inputMin: InputOptions = {
+    input: join(config.distPkgDir, 'core.mjs'),
+    onwarn: rollupOnWarn,
+    plugins: [
+      {
+        name: 'build',
+        resolveId(id) {
+          if (id === '@builder.io/qwik/build') {
+            return id;
+          }
+        },
+        load(id) {
+          if (id === '@builder.io/qwik/build') {
+            return `
+              export const isServer = false;
+              export const isBrowser = true;
+              export const isDev = false;
+            `;
+          }
+        },
       },
-      ecma: 2020,
-      passes: 3,
-    },
-    mangle: {
-      toplevel: true,
-      properties: {
-        regex: '^\\$.+\\$$',
+    ],
+  };
+  const buildMin = await rollup(inputMin);
+  await buildMin.write({
+    dir: join(config.distPkgDir),
+    format: 'es',
+    entryFileNames: 'core.min.mjs',
+    plugins: [
+      {
+        name: 'minify',
+        async renderChunk(code) {
+          const esmMinifyResult = await minify(code, {
+            module: true,
+            compress: {
+              global_defs: {
+                // special global that when set to false will remove all dev code entirely
+                // developer production builds could use core.min.js directly, or setup
+                // their own build tools to define the globa `qwikDev` to false
+                'globalThis.qDev': false,
+                'globalThis.qInspector': false,
+                'globalThis.qSerialize': false,
+                'globalThis.qDynamicPlatform': false,
+                'globalThis.qTest': false,
+                'globalThis.qRuntimeQrl': false,
+                'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+              },
+              ecma: 2020,
+              passes: 3,
+            },
+            mangle: {
+              toplevel: true,
+              properties: {
+                regex: '^\\$.+\\$$',
+              },
+            },
+            format: {
+              comments: /__PURE__/,
+              preserve_annotations: true,
+              preamble: getBanner('@builder.io/qwik', config.distVersion),
+              ecma: 2020,
+            },
+          });
+          const esmMinCode = esmMinifyResult.code!;
+          const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
+
+          const selfIdx = esmCleanCode.indexOf('self');
+          const indx = Math.max(selfIdx);
+          if (indx !== -1) {
+            throw new Error(
+              `"core.min.mjs" should not have any global references, and should have been removed for a production minified build\n` +
+                esmCleanCode.substring(indx, indx + 20)
+            );
+          }
+          return {
+            code: esmCleanCode,
+          };
+        },
       },
-    },
-    format: {
-      comments: /__PURE__/,
-      preserve_annotations: true,
-      preamble: getBanner('@builder.io/qwik', config.distVersion),
-      ecma: 2020,
-    },
+    ],
   });
 
-  const esmMinFile = join(config.distPkgDir, 'core.min.mjs');
-  const esmMinCode = esmMinifyResult.code!;
-  await writeFile(esmMinFile, esmMinCode);
-  const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
-
-  const selfIdx = esmCleanCode.indexOf('self');
-  const indx = Math.max(selfIdx);
-  if (indx !== -1) {
-    throw new Error(
-      `"${esmMinFile}" should not have any global references, and should have been removed for a production minified build\n` +
-        esmCleanCode.substring(indx, indx + 20)
-    );
-  }
-  console.log('🐭 core.min.mjs:', await fileSize(esmMinFile));
-
-  await writeFile(join(config.distPkgDir, 'core.mjs'), esmCode);
+  console.log('🐭 core.min.mjs:', await fileSize(join(config.distPkgDir, 'core.min.mjs')));
 
   // always set the cjs version (probably imported serverside) to dev mode
+  let esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
   let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
   await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
 
@@ -177,6 +213,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     outdir: config.distPkgDir,
     bundle: true,
     sourcemap: 'external',
+    external: ['@builder.io/qwik/build'],
     target,
     define: {
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

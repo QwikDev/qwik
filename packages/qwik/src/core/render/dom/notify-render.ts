@@ -21,7 +21,7 @@ import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
-import { getPlatform, isServer } from '../../platform/platform';
+import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
 import { isQwikElement } from '../../util/element';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
@@ -56,7 +56,7 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
  *
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const server = isServer();
+  const server = isServerPlatform();
   if (!server) {
     resumeIfNeeded(containerState.$containerEl$);
   }

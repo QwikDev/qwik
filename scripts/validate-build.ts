@@ -196,6 +196,7 @@ async function validateModuleTreeshake(
   const bundle = await rollup({
     input: virtualInputId,
     treeshake: true,
+    external: ['@builder.io/qwik/build'],
     plugins: [
       {
         name: 'resolver',

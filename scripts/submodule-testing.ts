@@ -16,6 +16,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
+    external: ['@builder.io/qwik/build'],
     platform: 'node',
     // external: [...nodeBuiltIns],
   };

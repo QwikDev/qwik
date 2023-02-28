@@ -1,4 +1,4 @@
-import { isServer } from '../platform/platform';
+import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
@@ -38,7 +38,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   if (get) {
     return;
   }
-  if (isServer()) {
+  if (isServerPlatform()) {
     assertQrl(mountQrl);
     mountQrl.$resolveLazy$(iCtx.$renderCtx$.$static$.$containerState$.$containerEl$);
     waitAndRun(iCtx, mountQrl);
@@ -96,7 +96,7 @@ export const useClientMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   if (get) {
     return;
   }
-  if (!isServer()) {
+  if (!isServerPlatform()) {
     assertQrl(mountQrl);
     mountQrl.$resolveLazy$(iCtx.$renderCtx$.$static$.$containerState$.$containerEl$);
     waitAndRun(iCtx, mountQrl);

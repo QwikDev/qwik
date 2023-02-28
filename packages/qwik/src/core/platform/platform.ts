@@ -1,4 +1,6 @@
+import { isServer } from '@builder.io/qwik/build';
 import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
+import { getSymbolHash } from '../qrl/qrl-class';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
 import { isObject } from '../util/types';
@@ -6,8 +8,15 @@ import type { CorePlatform } from './types';
 
 export const createPlatform = (): CorePlatform => {
   return {
-    isServer: false,
+    isServer,
     importSymbol(containerEl, url, symbolName) {
+      if (isServer) {
+        const hash = getSymbolHash(symbolName);
+        const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+        if (regSym) {
+          return regSym;
+        }
+      }
       if (!url) {
         throw qError(QError_qrlMissingChunk, symbolName);
       }
@@ -108,7 +117,7 @@ export const getPlatform = (): CorePlatform => {
   return _platform;
 };
 
-export const isServer = () => {
+export const isServerPlatform = () => {
   if (qDynamicPlatform) {
     return _platform.isServer;
   }

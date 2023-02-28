@@ -1,7 +1,7 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import type { Render } from '@builder.io/qwik/server';
+import { Render, setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import qwikCityPlan from '@qwik-city-plan';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -28,6 +28,9 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     _serializeData,
     _verifySerializable,
   };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 

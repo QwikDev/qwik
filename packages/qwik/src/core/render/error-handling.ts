@@ -1,4 +1,4 @@
-import { isServer } from '../platform/platform';
+import { isServerPlatform } from '../platform/platform';
 import { tryGetContext } from '../state/context';
 import { createContextId, resolveContext } from '../use/use-context';
 import { isVirtualElement } from '../util/element';
@@ -19,7 +19,7 @@ export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderCont
   const elCtx = tryGetContext(hostElement)!;
   if (qDev) {
     // Clean vdom
-    if (!isServer() && typeof document !== 'undefined' && isVirtualElement(hostElement)) {
+    if (!isServerPlatform() && typeof document !== 'undefined' && isVirtualElement(hostElement)) {
       elCtx.$vdom$ = null;
       const errorDiv = document.createElement('errored-host');
       if (err && err instanceof Error) {
@@ -39,7 +39,7 @@ export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderCont
       throw err;
     }
   }
-  if (isServer()) {
+  if (isServerPlatform()) {
     throw err;
   } else {
     const errorStore = resolveContext(ERROR_CONTEXT, elCtx, rCtx.$static$.$containerState$);

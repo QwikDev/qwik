@@ -1,5 +1,5 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
-import { getPlatform, isServer } from '../platform/platform';
+import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
 import {
   InvokeContext,
@@ -184,7 +184,7 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
 };
 
 export const emitEvent = (eventName: string, detail: any) => {
-  if (!qTest && !isServer() && typeof document === 'object') {
+  if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
@@ -195,7 +195,7 @@ export const emitEvent = (eventName: string, detail: any) => {
 };
 
 const now = () => {
-  if (qTest || isServer()) {
+  if (qTest || isServerPlatform()) {
     return 0;
   }
   if (typeof performance === 'object') {

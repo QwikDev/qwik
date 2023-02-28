@@ -51,7 +51,7 @@
       }
     },
     "./build": {
-      "import": "./src/build/indexdfdf.ts",
+      "import": "./src/build/index.ts",
       "require": "./dist/build/index.cjs"
     },
     "./loader": {

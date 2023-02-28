@@ -22,6 +22,7 @@ import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-
 import type { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
+import type * as zod from 'zod';
 
 // @alpha @deprecated (undocumented)
 export const action$: ActionConstructor;
@@ -40,12 +41,12 @@ export interface ActionConstructor {
     // Warning: (ae-forgotten-export) The symbol "StrictUnion" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O, B extends TypedDataValidator>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B | ActionOptionsWithValidation<B>): Action<StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>>, GetValidatorType<B>, false>;
+    <O, B extends TypedDataValidator>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B | ActionOptionsWithValidation<B>): Action<StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>, GetValidatorType<B>, false>;
     // Warning: (ae-forgotten-export) The symbol "DataValidator" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "FailOfRest" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O, B extends TypedDataValidator, REST extends DataValidator[]>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: REST): Action<StrictUnion<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>, GetValidatorType<B>, false>;
+    <O, B extends TypedDataValidator, REST extends DataValidator[]>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: REST): Action<StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>, GetValidatorType<B>, false>;
     // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -440,18 +441,18 @@ export const validatorQrl: ValidatorConstructorQRL;
 export { z }
 
 // @alpha (undocumented)
-export const zod$: Zod;
+export const zod$: ZodConstructor;
 
 // @alpha (undocumented)
-export interface Zod {
+export interface ZodConstructor {
     // (undocumented)
-    <T extends z.ZodRawShape>(schema: T): TypedDataValidator<z.ZodObject<T>>;
+    <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
-    <T extends z.ZodRawShape>(schema: (z: z) => T): TypedDataValidator<z.ZodObject<T>>;
+    <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
-    <T extends z.Schema>(schema: T): TypedDataValidator<T>;
+    <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
     // (undocumented)
-    <T extends z.Schema>(schema: (z: z) => T): TypedDataValidator<T>;
+    <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

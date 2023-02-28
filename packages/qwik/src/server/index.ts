@@ -1,4 +1,4 @@
-import { setPlatform } from '../core/platform/platform';
+import { setPlatform } from '@builder.io/qwik';
 import { createPlatform } from './platform';
 import type { ResolvedManifest } from './prefetch-strategy';
 import { resolveManifest } from './render';

@@ -6,6 +6,7 @@ import { printAddHelp } from './print-add-help';
 export async function runAddCommand(app: AppCommand) {
   try {
     const id = app.args[1];
+    console.log(id);
     if (id === 'help') {
       await printAddHelp();
     } else {

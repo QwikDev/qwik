@@ -2,9 +2,50 @@
 import color from 'kleur';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
-import { note, panic, pmRunCmd, printHeader } from './utils/utils';
+import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
-import { intro, outro } from '@clack/prompts';
+import { intro, isCancel, select, confirm } from '@clack/prompts';
+
+const COMMANDS = [
+  {
+    value: 'add',
+    label: 'add',
+    hint: 'Add an integration to this app',
+    run: (app: AppCommand) => runAddCommand(app),
+    showInHelp: true,
+    spaceToHint: 7,
+  },
+  {
+    value: 'build',
+    label: 'build',
+    hint: 'Parallelize builds and type checking',
+    run: (app: AppCommand) => runBuildCommand(app),
+    showInHelp: true,
+    spaceToHint: 6,
+  },
+  {
+    value: 'build preview',
+    label: 'build preview',
+    hint: 'Same as "build", but for preview server',
+    run: (app: AppCommand) => runBuildCommand(app),
+    showInHelp: true,
+    spaceToHint: 2,
+  },
+  {
+    value: 'help',
+    label: 'help',
+    hint: 'Show this help',
+    run: (app: AppCommand) => printHelp(app),
+    showInHelp: false,
+  },
+  {
+    value: 'version',
+    label: 'version',
+    hint: 'Show the version',
+    run: () => printVersion(),
+    showInHelp: false,
+  },
+];
 
 export async function runCli() {
   console.clear();
@@ -23,21 +64,9 @@ export async function runCli() {
 }
 
 async function runCommand(app: AppCommand) {
-  switch (app.task) {
-    case 'add': {
-      await runAddCommand(app);
-      return;
-    }
-    case 'build': {
-      await runBuildCommand(app);
-      return;
-    }
-    case 'help': {
-      printHelp();
-      return;
-    }
-    case 'version': {
-      printVersion();
+  for (let value of COMMANDS) {
+    if (value.value === app.task && typeof value.run === 'function') {
+      await value.run(app);
       return;
     }
   }
@@ -46,43 +75,51 @@ async function runCommand(app: AppCommand) {
     console.log(color.red(`Unrecognized qwik command: ${app.task}`) + '\n');
   }
 
-  await printHelp();
+  await printHelp(app);
   process.exit(1);
 }
 
-async function printHelp() {
+async function printHelp(app: AppCommand) {
   const pmRun = pmRunCmd();
 
   intro(color.bgMagenta().white(` Qwik Help `));
 
   note(
-    `
-${pmRun} qwik ${color.cyan(`add`)}            ${color.dim(`Add an integration to this app`)}
-${pmRun} qwik ${color.cyan(`build`)}          ${color.dim(`Parallelize builds and type checking`)}
-${pmRun} qwik ${color.cyan(`build preview`)}  ${color.dim(
-      `Same as "build", but for preview server`
-    )}
-  `,
+    COMMANDS.filter((cmd) => cmd.showInHelp)
+      .map(
+        (cmd) =>
+          `${pmRun} qwik ${color.cyan(cmd.label)}` +
+          Array(cmd.spaceToHint).join('  ') +
+          color.dim(cmd.hint)
+      )
+      .join('\n'),
     'Available commands'
   );
 
-  console.log(``);
-  console.log(color.bgMagenta(` Qwik Help `));
-  console.log(``);
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`add`)}            ${color.dim(`Add an integration to this app`)}`
-  );
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`build`)}          ${color.dim(
-      `Parallelize builds and type checking`
-    )}`
-  );
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`build preview`)}  ${color.dim(
-      `Same as "build", but for preview server`
-    )}`
-  );
-  console.log(``);
+  const proceed = await confirm({
+    message: 'Do you want to run a command?',
+    initialValue: true,
+  });
+
+  if (isCancel(proceed) || !proceed) {
+    bye();
+  }
+
+  const command = await select({
+    message: 'Select a command',
+    options: COMMANDS.filter((cmd) => cmd.showInHelp).map((cmd) => ({
+      value: cmd.value,
+      label: `${pmRun} qwik ${color.cyan(cmd.label)}`,
+      hint: cmd.hint,
+    })),
+  });
+
+  if (isCancel(command)) {
+    bye();
+  }
+
+  app.task = command as string;
+  runCommand(app);
 }
 
 function printVersion() {

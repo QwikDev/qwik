@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import color from 'kleur';
+import { outro } from '@clack/prompts';
 import detectPackageManager from 'which-pm-runs';
 import type { IntegrationPackageJson } from '../types';
 
@@ -74,6 +75,11 @@ export function pmRunCmd() {
 export function panic(msg: string) {
   console.error(`\n❌ ${color.red(msg)}\n`);
   process.exit(1);
+}
+
+export function bye() {
+  outro('take care 👋');
+  process.exit(0);
 }
 
 export function printHeader() {

@@ -52,7 +52,7 @@
     },
     "./build": {
       "import": "./src/build/index.ts",
-      "require": "./src/build/index.ts"
+      "require": "./dist/build/index.cjs"
     },
     "./loader": {
       "import": "./dist/loader/index.mjs",

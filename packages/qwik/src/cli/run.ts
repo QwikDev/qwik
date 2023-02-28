@@ -6,6 +6,7 @@ import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
 
+const SPACE_TO_HINT = 20;
 const COMMANDS = [
   {
     value: 'add',
@@ -13,7 +14,9 @@ const COMMANDS = [
     hint: 'Add an integration to this app',
     run: (app: AppCommand) => runAddCommand(app),
     showInHelp: true,
-    spaceToHint: 7,
+    get spaceToHint() {
+      return SPACE_TO_HINT - this.label.length;
+    },
   },
   {
     value: 'build',
@@ -21,7 +24,9 @@ const COMMANDS = [
     hint: 'Parallelize builds and type checking',
     run: (app: AppCommand) => runBuildCommand(app),
     showInHelp: true,
-    spaceToHint: 6,
+    get spaceToHint() {
+      return SPACE_TO_HINT - this.label.length;
+    },
   },
   {
     value: 'build preview',
@@ -29,7 +34,9 @@ const COMMANDS = [
     hint: 'Same as "build", but for preview server',
     run: (app: AppCommand) => runBuildCommand(app),
     showInHelp: true,
-    spaceToHint: 2,
+    get spaceToHint() {
+      return SPACE_TO_HINT - this.label.length;
+    },
   },
   {
     value: 'help',
@@ -89,7 +96,7 @@ async function printHelp(app: AppCommand) {
       .map(
         (cmd) =>
           `${pmRun} qwik ${color.cyan(cmd.label)}` +
-          Array(cmd.spaceToHint).join('  ') +
+          (cmd.spaceToHint && ' '.repeat(cmd.spaceToHint)) +
           color.dim(cmd.hint)
       )
       .join('\n'),
@@ -119,7 +126,7 @@ async function printHelp(app: AppCommand) {
   }
 
   app.task = command as string;
-  runCommand(app);
+  await runCommand(app);
 }
 
 function printVersion() {

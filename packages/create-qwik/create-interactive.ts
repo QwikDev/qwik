@@ -28,12 +28,7 @@ const note = (message = '', title = '') => {
       return ln.length > sum ? ln.length : sum;
     }, 0) + 2;
   const msg = lines
-    .map(
-      (ln) =>
-        `${gray(bar)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(
-          bar
-        )}`
-    )
+    .map((ln) => `${gray(bar)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(bar)}`)
     .join('\n');
   process.stdout.write(
     `${gray(bar)}\n${green('○')}  ${reset(title)} ${gray(

@@ -51,18 +51,12 @@ async function printHelp() {
   console.log(``);
   console.log(bgMagenta(` Qwik Help `));
   console.log(``);
+  console.log(`  ${pmRun} qwik ${cyan(`add`)}            ${dim(`Add an integration to this app`)}`);
   console.log(
-    `  ${pmRun} qwik ${cyan(`add`)}            ${dim(`Add an integration to this app`)}`
+    `  ${pmRun} qwik ${cyan(`build`)}          ${dim(`Parallelize builds and type checking`)}`
   );
   console.log(
-    `  ${pmRun} qwik ${cyan(`build`)}          ${dim(
-      `Parallelize builds and type checking`
-    )}`
-  );
-  console.log(
-    `  ${pmRun} qwik ${cyan(`build preview`)}  ${dim(
-      `Same as "build", but for preview server`
-    )}`
+    `  ${pmRun} qwik ${cyan(`build preview`)}  ${dim(`Same as "build", but for preview server`)}`
   );
   console.log(``);
 }

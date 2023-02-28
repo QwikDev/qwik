@@ -31,9 +31,7 @@ function checkNodeVersion() {
   const [majorVersion, minorVersion] = version.replace('v', '').split('.');
   if (Number(majorVersion) < 16) {
     console.error(
-      red(
-        `Qwik requires Node.js 16.8 or higher. You are currently running Node.js ${version}.`
-      )
+      red(`Qwik requires Node.js 16.8 or higher. You are currently running Node.js ${version}.`)
     );
     process.exit(1);
   } else if (Number(majorVersion) === 16) {

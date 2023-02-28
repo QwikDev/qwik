@@ -26,9 +26,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
       throw new Error(`Invalid integration: ${id}`);
     }
 
-    console.log(
-      `🦋 ${bgCyan(` Add Integration `)} ${bold(magenta(integration.id))}`
-    );
+    console.log(`🦋 ${bgCyan(` Add Integration `)} ${bold(magenta(integration.id))}`);
     console.log(``);
   } else {
     // use interactive cli to choose which integration to add
@@ -116,11 +114,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   console.clear();
   console.log(``);
 
-  console.log(
-    `👻 ${bgCyan(` Ready? `)} Add ${bold(
-      magenta(result.integration.id)
-    )} to your app?`
-  );
+  console.log(`👻 ${bgCyan(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
   console.log(``);
 
   if (modifyFiles.length > 0) {
@@ -149,9 +143,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
 
   if (installDeps) {
     console.log(
-      `💾 ${cyan(
-        `Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`
-      )}`
+      `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`
     );
     installDepNames.forEach((depName) => {
       console.log(`   - ${depName} ${result.updates.installedDeps[depName]}`);
@@ -163,9 +155,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     {
       type: 'select',
       name: 'commit',
-      message: `Ready to apply the ${bold(
-        magenta(result.integration.id)
-      )} updates to your app?`,
+      message: `Ready to apply the ${bold(magenta(result.integration.id))} updates to your app?`,
       choices: [
         { title: 'Yes looks good, finish update!', value: true },
         { title: 'Nope, cancel update', value: false },
@@ -186,9 +176,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
 
 function logUpdateAppCommitResult(result: UpdateAppResult) {
   console.log(
-    `🦄 ${bgMagenta(` Success! `)} Added ${bold(
-      cyan(result.integration.id)
-    )} to your app`
+    `🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`
   );
   console.log(``);
   logSuccessFooter(result.integration.docs);

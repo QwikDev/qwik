@@ -655,7 +655,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       }
     }
     if (key != null) {
-      openingElement += ' q:key="' + key + '"';
+      openingElement += ' q:key="' + escapeAttr(key) + '"';
     }
     if ('ref' in props || useSignal || listeners.length > 0) {
       if ('ref' in props || useSignal || listenersNeedId(listeners)) {

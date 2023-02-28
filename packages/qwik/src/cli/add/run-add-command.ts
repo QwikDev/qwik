@@ -13,7 +13,7 @@ export async function runAddCommand(app: AppCommand) {
     }
   } catch (e) {
     console.error(`\n❌ ${red(String(e))}\n`);
-    await printAddHelp();
+    await printAddHelp(app);
     process.exit(1);
   }
 }

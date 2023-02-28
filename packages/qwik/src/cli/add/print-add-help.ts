@@ -1,21 +1,30 @@
 /* eslint-disable no-console */
-import { magenta, cyan, dim } from 'kleur/colors';
+import { magenta, dim, cyan } from 'kleur/colors';
 import { loadIntegrations } from '../utils/integrations';
 import { pmRunCmd, note, bye } from '../utils/utils';
-import { confirm, intro, isCancel } from '@clack/prompts';
+import { confirm, intro, isCancel, select } from '@clack/prompts';
 import type { IntegrationData } from '../types';
 import type { AppCommand } from '../utils/app-command';
+import { runAddInteractive } from './run-add-interactive';
 
 const SPACE_TO_HINT = 25;
+const MAX_HINT_LENGTH = 50;
+
+function limitLength(hint: string) {
+  if (hint.length > MAX_HINT_LENGTH) {
+    return hint.substring(0, MAX_HINT_LENGTH - 3) + '...';
+  }
+  return hint;
+}
 
 function renderIntegration(integrations: IntegrationData[]) {
   return integrations
-    .map(
-      (integration) =>
-        integration.id +
-        ' '.repeat(SPACE_TO_HINT - integration.id.length) +
-        dim(integration.pkgJson.description)
-    )
+    .map((integration) => {
+      const hint = limitLength(integration.pkgJson.description);
+      return (
+        integration.id + ' '.repeat(Math.max(SPACE_TO_HINT - integration.id.length, 2)) + dim(hint)
+      );
+    })
     .join('\n');
 }
 
@@ -39,5 +48,24 @@ export async function printAddHelp(app: AppCommand) {
     bye();
   }
 
-  // const command =
+  const sort = (a: IntegrationData, b: IntegrationData) => {
+    if (a.id < b.id) return -1;
+    if (a.id > b.id) return 1;
+    return 0;
+  };
+
+  const command = await select({
+    message: 'Select an integration',
+    options: integrations.sort(sort).map((integration) => ({
+      value: integration.id,
+      label: `${integration.type}: ${cyan(integration.id)}`,
+      hint: limitLength(integration.pkgJson.description),
+    })),
+  });
+
+  if (isCancel(command)) {
+    bye();
+  }
+
+  runAddInteractive(app, command as string);
 }

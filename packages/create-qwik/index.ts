@@ -2,7 +2,7 @@
 import { createApp, runCreateCli } from './create-app';
 import { panic, printHeader } from '../qwik/src/cli/utils/utils';
 import { runCreateInteractiveCli } from './create-interactive';
-import { red, yellow, blue, magenta } from 'kleur/colors';
+import { red, yellow } from 'kleur/colors';
 
 export async function runCli() {
   console.clear();

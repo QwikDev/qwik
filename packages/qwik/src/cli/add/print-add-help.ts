@@ -14,7 +14,7 @@ function renderIntegration(integrations: IntegrationData[]) {
       (integration) =>
         integration.id +
         ' '.repeat(SPACE_TO_HINT - integration.id.length) +
-        color.dim(integration.pkgJson.description)
+        dim(integration.pkgJson.description)
     )
     .join('\n');
 }

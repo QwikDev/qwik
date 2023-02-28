@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { red } from 'kleur/colors';
+import { red, dim, cyan, bgMagenta } from 'kleur/colors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
@@ -88,17 +88,16 @@ async function runCommand(app: AppCommand) {
 
 async function printHelp(app: AppCommand) {
   const pmRun = pmRunCmd();
-<<<<<<< HEAD
 
-  intro(color.bgMagenta().white(` Qwik Help `));
+  intro(bgMagenta(` Qwik Help `));
 
   note(
     COMMANDS.filter((cmd) => cmd.showInHelp)
       .map(
         (cmd) =>
-          `${pmRun} qwik ${color.cyan(cmd.label)}` +
+          `${pmRun} qwik ${cyan(cmd.label)}` +
           (cmd.spaceToHint && ' '.repeat(cmd.spaceToHint)) +
-          color.dim(cmd.hint)
+          dim(cmd.hint)
       )
       .join('\n'),
     'Available commands'
@@ -117,7 +116,7 @@ async function printHelp(app: AppCommand) {
     message: 'Select a command',
     options: COMMANDS.filter((cmd) => cmd.showInHelp).map((cmd) => ({
       value: cmd.value,
-      label: `${pmRun} qwik ${color.cyan(cmd.label)}`,
+      label: `${pmRun} qwik ${cyan(cmd.label)}`,
       hint: cmd.hint,
     })),
   });
@@ -128,19 +127,6 @@ async function printHelp(app: AppCommand) {
 
   app.task = command as string;
   await runCommand(app);
-=======
-  console.log(``);
-  console.log(bgMagenta(` Qwik Help `));
-  console.log(``);
-  console.log(`  ${pmRun} qwik ${cyan(`add`)}            ${dim(`Add an integration to this app`)}`);
-  console.log(
-    `  ${pmRun} qwik ${cyan(`build`)}          ${dim(`Parallelize builds and type checking`)}`
-  );
-  console.log(
-    `  ${pmRun} qwik ${cyan(`build preview`)}  ${dim(`Same as "build", but for preview server`)}`
-  );
-  console.log(``);
->>>>>>> @{-1}
 }
 
 function printVersion() {

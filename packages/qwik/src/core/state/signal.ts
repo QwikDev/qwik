@@ -71,11 +71,19 @@ export class SignalImpl<T> implements Signal<T> {
     if (qDev) {
       verifySerializable(v);
       const invokeCtx = tryGetInvokeContext();
-      if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
-        logWarn(
-          'State mutation inside render function. Move mutation to useWatch(), useBrowserVisibleTask() or useServerMount()',
-          invokeCtx.$hostElement$
-        );
+      if (invokeCtx) {
+        if (invokeCtx.$event$ === RenderEvent) {
+          logWarn(
+            'State mutation inside render function. Use useTask$() instead.',
+            invokeCtx.$hostElement$
+          );
+        }
+        if (invokeCtx.$event$ === 'ComputedEvent') {
+          logWarn(
+            'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
+            invokeCtx.$hostElement$
+          );
+        }
       }
     }
     const manager = this[QObjectManagerSymbol];

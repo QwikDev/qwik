@@ -152,7 +152,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logError(
-          'State mutation inside render function. Move mutation to useWatch(), useBrowserVisibleTask() or useServerMount()',
+          'State mutation inside render function. Move mutation to useTask$() or useBrowserVisibleTask$()',
           prop
         );
       }

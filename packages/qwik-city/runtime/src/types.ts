@@ -1,4 +1,10 @@
-import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
+import type {
+  NoSerialize,
+  QRL,
+  QwikIntrinsicElements,
+  Signal,
+  ValueOrPromise,
+} from '@builder.io/qwik';
 import type {
   RequestEvent,
   RequestEventAction,
@@ -6,10 +12,7 @@ import type {
   RequestHandler,
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type {
-  ScriptHTMLAttributes,
-  StyleHTMLAttributes,
-} from 'packages/qwik/src/core/render/jsx/types/jsx-generated';
+
 import type * as zod from 'zod';
 
 export type {
@@ -177,7 +180,7 @@ export interface DocumentLink {
  */
 export interface DocumentStyle {
   readonly style: string;
-  readonly props?: Readonly<StyleHTMLAttributes<HTMLStyleElement>>;
+  readonly props?: Readonly<QwikIntrinsicElements['style']>;
   readonly key?: string;
 }
 
@@ -186,7 +189,7 @@ export interface DocumentStyle {
  */
 export interface DocumentScript {
   readonly script?: string;
-  readonly props?: Readonly<ScriptHTMLAttributes<HTMLScriptElement>>;
+  readonly props?: Readonly<QwikIntrinsicElements['script']>;
   readonly key?: string;
 }
 

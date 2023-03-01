@@ -7,9 +7,9 @@ import {
   runSubscriber,
   SubscriberEffect,
   WatchFlagsIsDirty,
-  WatchFlagsIsEffect,
+  WatchFlagsIsVisibleTask,
   WatchFlagsIsResource,
-  WatchFlagsIsWatch,
+  WatchFlagsIsTask,
 } from '../../use/use-task';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
@@ -220,7 +220,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   const hostElements = rCtx.$static$.$hostElements$;
 
   await executeWatchesAfter(containerState, rCtx, (watch, stage) => {
-    if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
+    if ((watch.$flags$ & WatchFlagsIsVisibleTask) === 0) {
       return false;
     }
     if (stage) {
@@ -252,7 +252,7 @@ const executeWatchesBefore = async (containerState: ContainerState, rCtx: Render
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
-  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
+  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsTask) !== 0;
   const isResourceWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {

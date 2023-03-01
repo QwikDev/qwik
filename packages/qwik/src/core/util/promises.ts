@@ -9,7 +9,7 @@ export const isPromise = (value: any): value is Promise<any> => {
 export const safeCall = <T, B, C>(
   call: () => ValueOrPromise<T>,
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>,
-  rejectFn: (reason: any) => C
+  rejectFn: (reason: any) => ValueOrPromise<C>
 ): ValueOrPromise<B | C> => {
   try {
     const promise = call();

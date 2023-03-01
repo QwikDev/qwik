@@ -1,6 +1,7 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
+import { isSignal, SignalInternal } from '../state/signal';
 import {
   InvokeContext,
   newInvokeContext,
@@ -171,6 +172,14 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   if (qDev) {
     if (!isQrl(qrl)) {
       throw new Error('Not a QRL');
+    }
+  }
+}
+
+export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
+  if (qDev) {
+    if (!isSignal(obj)) {
+      throw new Error('Not a Signal');
     }
   }
 }

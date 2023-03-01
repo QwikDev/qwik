@@ -14,6 +14,7 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
+import { SignalUnassignedException } from '../state/signal';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -78,6 +79,11 @@ export const executeComponent = (
       };
     },
     (err) => {
+      if (err === SignalUnassignedException) {
+        return Promise.all(waitOn).then(() => {
+          return executeComponent(rCtx, elCtx);
+        });
+      }
       handleError(err, hostElement, rCtx);
       return {
         node: SkipRender,

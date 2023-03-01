@@ -1,4 +1,4 @@
-import { newInvokeContext, invoke, waitAndRun } from './use-core';
+import { newInvokeContext, invoke, waitAndRun, untrack } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
@@ -6,7 +6,7 @@ import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
-import { assertQrl, createQRL, QRLInternal } from '../qrl/qrl-class';
+import { assertQrl, assertSignal, createQRL, QRLInternal } from '../qrl/qrl-class';
 import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
 import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
@@ -16,13 +16,23 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
-import { isSignal } from '../state/signal';
+import {
+  isSignal,
+  QObjectSignalFlags,
+  Signal,
+  SignalInternal,
+  SIGNAL_IMMUTABLE,
+  SIGNAL_UNASSIGNED,
+  _createSignal,
+} from '../state/signal';
+import { QObjectManagerSymbol } from '../state/constants';
 
-export const WatchFlagsIsEffect = 1 << 0;
-export const WatchFlagsIsWatch = 1 << 1;
-export const WatchFlagsIsDirty = 1 << 2;
-export const WatchFlagsIsCleanup = 1 << 3;
-export const WatchFlagsIsResource = 1 << 4;
+export const WatchFlagsIsVisibleTask = 1 << 0;
+export const WatchFlagsIsTask = 1 << 1;
+export const WatchFlagsIsResource = 1 << 2;
+export const WatchFlagsIsComputed = 1 << 3;
+export const WatchFlagsIsDirty = 1 << 4;
+export const WatchFlagsIsCleanup = 1 << 5;
 
 // <docs markdown="../readme.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -116,6 +126,11 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 /**
  * @public
  */
+export type ComputedFn<T> = () => T;
+
+/**
+ * @public
+ */
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 
 /**
@@ -166,7 +181,7 @@ export interface DescriptorBase<T = any, B = undefined> {
   $flags$: number;
   $index$: number;
   $destroy$?: NoSerialize<() => void>;
-  $resource$: B;
+  $state$: B;
 }
 
 /**
@@ -279,18 +294,64 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   assertQrl(qrl);
 
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const watch = new Task(WatchFlagsIsDirty | WatchFlagsIsWatch, i, elCtx.$element$, qrl, undefined);
+  const watch = new Task(WatchFlagsIsDirty | WatchFlagsIsTask, i, elCtx.$element$, qrl, undefined);
   set(true);
   qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }
   elCtx.$watches$.push(watch);
-  waitAndRun(iCtx, () => runSubscriber(watch, containerState, iCtx.$renderCtx$));
+  waitAndRun(iCtx, () => runWatch(watch, containerState, iCtx.$renderCtx$));
   if (isServerPlatform()) {
     useRunWatch(watch, opts?.eagerness);
   }
 };
+
+interface ComputedQRL {
+  <T>(qrl: QRL<ComputedFn<T>>): Readonly<Signal<T>>;
+}
+
+interface Computed {
+  <T>(qrl: ComputedFn<T>): Readonly<Signal<T>>;
+}
+/**
+ * @alpha
+ */
+export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<T> => {
+  const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<T>>();
+  if (get) {
+    return get;
+  }
+  assertQrl(qrl);
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const signal = _createSignal(
+    undefined as T,
+    containerState,
+    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
+    undefined
+  );
+
+  const watch = new Task(
+    WatchFlagsIsDirty | WatchFlagsIsTask | WatchFlagsIsComputed,
+    i,
+    elCtx.$element$,
+    qrl,
+    signal
+  );
+  qrl.$resolveLazy$(containerState.$containerEl$);
+  if (!elCtx.$watches$) {
+    elCtx.$watches$ = [];
+  }
+  elCtx.$watches$.push(watch);
+
+  waitAndRun(iCtx, () => runComputed(watch, containerState, iCtx.$renderCtx$));
+  return set(signal);
+};
+
+/**
+ * @alpha
+ */
+export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -405,7 +466,7 @@ export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskO
     return;
   }
   assertQrl(qrl);
-  const watch = new Task(WatchFlagsIsEffect, i, elCtx.$element$, qrl, undefined);
+  const watch = new Task(WatchFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
@@ -465,14 +526,19 @@ export type WatchDescriptor = DescriptorBase<TaskFn>;
 export interface ResourceDescriptor<T>
   extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
 
+export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, SignalInternal<T>> {}
+
 export type SubscriberHost = QwikElement;
 
-export type SubscriberEffect = WatchDescriptor | ResourceDescriptor<any>;
+export type SubscriberEffect = WatchDescriptor | ResourceDescriptor<any> | ComputedDescriptor<any>;
 
 export const isResourceTask = (watch: SubscriberEffect): watch is ResourceDescriptor<any> => {
-  return !!watch.$resource$;
+  return (watch.$flags$ & WatchFlagsIsResource) !== 0;
 };
 
+export const isComputedTask = (watch: SubscriberEffect): watch is ComputedDescriptor<any> => {
+  return (watch.$flags$ & WatchFlagsIsComputed) !== 0;
+};
 export const runSubscriber = async (
   watch: SubscriberEffect,
   containerState: ContainerState,
@@ -481,6 +547,8 @@ export const runSubscriber = async (
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceTask(watch)) {
     return runResource(watch, containerState, rCtx);
+  } else if (isComputedTask(watch)) {
+    return runComputed(watch, containerState, rCtx);
   } else {
     return runWatch(watch, containerState, rCtx);
   }
@@ -504,7 +572,7 @@ export const runResource = <T>(
   });
 
   const cleanups: (() => void)[] = [];
-  const resource = watch.$resource$;
+  const resource = watch.$state$;
   assertDefined(
     resource,
     'useResource: when running a resource, "watch.r" must be a defined.',
@@ -616,7 +684,7 @@ export const runResource = <T>(
 };
 
 export const runWatch = (
-  watch: WatchDescriptor,
+  watch: WatchDescriptor | ComputedDescriptor<any>,
   containerState: ContainerState,
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
@@ -670,6 +738,38 @@ export const runWatch = (
         cleanups.push(returnValue);
       }
     },
+    (reason) => {
+      handleError(reason, hostElement, rCtx);
+    }
+  );
+};
+
+export const runComputed = (
+  watch: ComputedDescriptor<any>,
+  containerState: ContainerState,
+  rCtx: RenderContext
+): ValueOrPromise<void> => {
+  assertSignal(watch.$state$);
+  watch.$flags$ &= ~WatchFlagsIsDirty;
+  cleanupWatch(watch);
+  const hostElement = watch.$el$;
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'ComputedEvent');
+  iCtx.$subscriber$ = watch;
+
+  const { $subsManager$: subsManager } = containerState;
+  const watchFn = watch.$qrl$.getFn(iCtx, () => {
+    subsManager.$clearSub$(watch);
+  }) as ComputedFn<unknown>;
+
+  return safeCall(
+    watchFn,
+    (returnValue) =>
+      untrack(() => {
+        const signal = watch.$state$;
+        signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
+        signal.untrackedValue = returnValue;
+        signal[QObjectManagerSymbol].$notifySubs$();
+      }),
     (reason) => {
       handleError(reason, hostElement, rCtx);
     }
@@ -737,8 +837,8 @@ export const serializeWatch = (watch: SubscriberEffect, getObjId: MustGetObjID) 
   let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
     watch.$qrl$
   )} ${getObjId(watch.$el$)}`;
-  if (isResourceTask(watch)) {
-    value += ` ${getObjId(watch.$resource$)}`;
+  if (watch.$state$) {
+    value += ` ${getObjId(watch.$state$)}`;
   }
   return value;
 };
@@ -748,12 +848,12 @@ export const parseTask = (data: string) => {
   return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
 };
 
-export class Task implements DescriptorBase<any, any> {
+export class Task<T = undefined> implements DescriptorBase<any, T> {
   constructor(
     public $flags$: number,
     public $index$: number,
     public $el$: QwikElement,
     public $qrl$: QRLInternal<any>,
-    public $resource$: ResourceReturnInternal<any> | undefined
+    public $state$: T
   ) {}
 }

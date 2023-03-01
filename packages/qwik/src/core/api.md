@@ -938,6 +938,16 @@ export const useClientMount$: <T>(first: MountFn<T>) => void;
 // @public @deprecated
 export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
+// Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useComputed$: Computed;
+
+// Warning: (ae-forgotten-export) The symbol "ComputedQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useComputedQrl: ComputedQRL;
+
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //
 // @public

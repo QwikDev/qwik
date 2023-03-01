@@ -251,7 +251,7 @@ export const _pauseFromContexts = async (
           }
         }
         if (isResourceTask(watch)) {
-          collector.$resources$.push(watch.$resource$);
+          collector.$resources$.push(watch.$state$);
         }
         destroyWatch(watch);
       }

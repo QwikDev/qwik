@@ -122,10 +122,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
 /**
  * @internal
  */
-export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
-  obj: T,
-  prop: P
-): any => {
+export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
   if (!isObject(obj)) {
     return obj[prop];
   }
@@ -158,7 +155,6 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   }
   return value;
 };
-
 
 /**
  * @internal

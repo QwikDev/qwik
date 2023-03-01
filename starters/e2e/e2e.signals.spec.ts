@@ -289,6 +289,5 @@ test.describe('signals', () => {
     await expect(result1).toHaveText('1');
     await expect(result2).toHaveText('1');
     await expect(result3).toHaveText('1');
-
   });
 });

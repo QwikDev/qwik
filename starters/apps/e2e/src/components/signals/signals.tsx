@@ -680,7 +680,6 @@ export const Stringify = component$<{
   return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
 });
 
-
 export const Issue3212Child = component$((props: { signal: Signal<number> }) => {
   return <>{props.signal.value}</>;
 });
@@ -689,7 +688,6 @@ export function useMySignal() {
   const signal = useSignal<number>(1);
   return { signal };
 }
-
 
 export const Issue3212 = component$(() => {
   const stuff = useMySignal();
@@ -700,15 +698,9 @@ export const Issue3212 = component$(() => {
       <div id="issue-3212-result-0">
         <Issue3212Child signal={stuff.signal} />
       </div>
-      <div id="issue-3212-result-1">
-        {stuff.signal.value}
-      </div>
-      <div id="issue-3212-result-2">
-        {stuff.signal}
-      </div>
-      <div id="issue-3212-result-3">
-        {signal}
-      </div>
+      <div id="issue-3212-result-1">{stuff.signal.value}</div>
+      <div id="issue-3212-result-2">{stuff.signal}</div>
+      <div id="issue-3212-result-3">{signal}</div>
     </div>
   );
 });

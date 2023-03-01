@@ -1,6 +1,12 @@
+import type * as csstype from 'csstype';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
+
+export interface CSSProperties extends csstype.PropertiesHyphen {
+  // Override
+  [key: `-${string}`]: string | number | undefined;
+}
 
 /**
  * @public
@@ -313,7 +319,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellcheck?: boolean | undefined;
-  style?: Record<string, string | number | undefined> | string | undefined;
+  style?: CSSProperties | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -895,7 +901,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   method?: string | undefined;
   min?: number | string | undefined;
   name?: string | undefined;
-  style?: Record<string, string | number> | string | undefined;
+  style?: CSSProperties | string | undefined;
   target?: string | undefined;
   type?: string | undefined;
   width?: number | string | undefined;

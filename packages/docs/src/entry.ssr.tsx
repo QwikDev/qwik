@@ -8,13 +8,7 @@ export default function (opts: RenderToStreamOptions) {
     ...opts,
     containerAttributes: {
       lang: 'en',
-    },
-    prefetchStrategy: {
-      implementation: {
-        linkInsert: null,
-        workerFetchInsert: null,
-        prefetchEvent: 'always',
-      },
+      ...opts.containerAttributes,
     },
   });
 }

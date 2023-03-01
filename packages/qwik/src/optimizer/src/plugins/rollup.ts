@@ -65,11 +65,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         inputOpts.input = opts.input;
       }
 
-      if (opts.target === 'ssr') {
-        // Server input
-        inputOpts.treeshake = false;
-      }
-
       return inputOpts;
     },
 
@@ -263,7 +258,7 @@ export interface QwikRollupPluginOptions {
    */
   debug?: boolean;
   /**
-   * The Qwik entry strategy to use while bunding for production.
+   * The Qwik entry strategy to use while building for production.
    * During development the type is always `hook`.
    * Default `{ type: "smart" }`)
    */
@@ -271,7 +266,7 @@ export interface QwikRollupPluginOptions {
   forceFullBuild?: boolean;
   /**
    * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is use to recursively
+   * does not have a single input, the `srcDir` is used to recursively
    * find Qwik files.
    * Default `src`
    */

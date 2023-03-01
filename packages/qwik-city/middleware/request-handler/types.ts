@@ -1,51 +1,336 @@
-import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type {
-  ClientPageData,
-  QwikCityPlan,
-  RequestContext,
-  RouteParams,
-} from '../../runtime/src/library/types';
+import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-city';
+import type { ErrorResponse } from './error-handler';
+import type { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { RequestEventInternal } from './request-event';
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
-export interface QwikCityRequestContext<T = any> {
-  request: RequestContext;
-  response: ResponseHandler<T>;
+export interface EnvGetter {
+  get(key: string): string | undefined;
+}
+
+/**
+ * @alpha
+ * Request event created by the server.
+ */
+export interface ServerRequestEvent<T = any> {
+  mode: ServerRequestMode;
   url: URL;
-  platform: Record<string, any>;
   locale: string | undefined;
+  platform: any;
+  request: Request;
+  env: EnvGetter;
+  getWritableStream: ServerResponseHandler<T>;
 }
 
-export interface QwikCityDevRequestContext extends QwikCityRequestContext {
-  routesDir: string;
-}
+/**
+ * @alpha
+ */
+export type ServerRequestMode = 'dev' | 'static' | 'server';
 
-export interface ResponseStreamWriter extends StreamWriter {
-  clientData?: (data: ClientPageData) => void;
-}
-
-export type ResponseHandler<T = any> = (
+/**
+ * @alpha
+ */
+export type ServerResponseHandler<T = any> = (
   status: number,
   headers: Headers,
   cookies: Cookie,
-  body: (stream: ResponseStreamWriter) => Promise<void>,
-  error?: any
-) => Promise<T>;
+  resolve: (response: T) => void,
+  requestEv: RequestEventInternal
+) => WritableStream<Uint8Array>;
 
-export interface UserResponseContext {
-  type: 'endpoint' | 'pagehtml' | 'pagedata';
-  url: URL;
-  params: RouteParams;
-  status: number;
-  headers: Headers;
-  cookie: Cookie;
-  resolvedBody: string | number | boolean | null | undefined;
-  pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
-  aborted: boolean;
-}
-
-export interface QwikCityHandlerOptions extends RenderOptions {
+/**
+ * @alpha
+ */
+export interface ServerRenderOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
+}
+
+/**
+ * @alpha
+ */
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (
+  ev: RequestEvent<PLATFORM>
+) => Promise<void> | void;
+
+/**
+ * @alpha
+ */
+export interface SendMethod {
+  (statusCode: number, data: any): AbortMessage;
+  (response: Response): AbortMessage;
+}
+
+export type RedirectCode = 301 | 302 | 303 | 307 | 308;
+
+/**
+ * @alpha
+ */
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+  /**
+   * HTTP response status code. Sets the status code when called with an
+   * argument. Always returns the status code, so calling `status()` without
+   * an argument will can be used to return the current status code.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   */
+  readonly status: (statusCode?: number) => number;
+
+  /**
+   * Which locale the content is in.
+   *
+   * The locale value can be retrieved from selected methods using `getLocale()`:
+   */
+  readonly locale: (local?: string) => string;
+
+  /**
+   * URL to redirect to. When called, the response will immediately
+   * end with the correct redirect status and headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+   */
+  readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
+
+  /**
+   * When called, the response will immediately end with the given
+   * status code. This could be useful to end a response with `404`,
+   * and use the 404 handler in the routes directory.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   * for which status code should be used.
+   */
+  readonly error: (statusCode: number, message: string) => ErrorResponse;
+
+  /**
+   * Convenience method to send an text body response. The response will be automatically
+   * set the `Content-Type` header to`text/plain; charset=utf-8`.
+   *  An `text()` response can only be called once.
+   */
+  readonly text: (statusCode: number, text: string) => AbortMessage;
+
+  /**
+   * Convenience method to send an HTML body response. The response will be automatically
+   * set the `Content-Type` header to`text/html; charset=utf-8`.
+   *  An `html()` response can only be called once.
+   */
+  readonly html: (statusCode: number, html: string) => AbortMessage;
+
+  /**
+   * Convenience method to JSON stringify the data and send it in the response.
+   * The response will be automatically set the `Content-Type` header to
+   * `application/json; charset=utf-8`. A `json()` response can only be called once.
+   */
+  readonly json: (statusCode: number, data: any) => AbortMessage;
+
+  /**
+   * Send a body response. The `Content-Type` response header is not automatically set
+   * when using `send()` and must be set manually. A `send()` response can only be called once.
+   */
+  readonly send: SendMethod;
+
+  readonly exit: () => AbortMessage;
+
+  /**
+   * HTTP response headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
+   */
+  readonly headers: Headers;
+
+  /**
+   * HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value.
+   * Use the `set()` method to set a response cookie value.
+   */
+  readonly cookie: Cookie;
+
+  /**
+   * HTTP request method.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+   */
+  readonly method: string;
+
+  /**
+   * URL pathname. Does not include the protocol, domain, query string (search params) or hash.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname
+   */
+  readonly pathname: string;
+
+  /**
+   * URL path params which have been parsed from the current url pathname segments.
+   * Use `query` to instead retrieve the query string search params.
+   */
+  readonly params: Readonly<Record<string, string>>;
+
+  /**
+   * URL Query Strings (URL Search Params).
+   * Use `params` to instead retrieve the route params found in the url pathname.
+   */
+  readonly query: URLSearchParams;
+
+  /**
+   * HTTP request URL.
+   */
+  readonly url: URL;
+
+  /**
+   * The base pathname of the request, which can be configured at build time.
+   * Defaults to `/`.
+   */
+  readonly basePathname: string;
+
+  /**
+   * HTTP request information.
+   */
+  readonly request: Request;
+
+  /**
+   * Platform specific data and functions
+   */
+  readonly platform: PLATFORM;
+
+  /**
+   * Platform provided environment variables.
+   */
+  readonly env: EnvGetter;
+
+  /**
+   * Shared Map across all the request handlers. Every HTTP request will get a new instance of
+   * the shared map. The shared map is useful for sharing data between request handlers.
+   */
+  readonly sharedMap: Map<string, any>;
+
+  /**
+   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
+   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+   *
+   * If the `Content-Type` header is not set, it will return `null`.
+   */
+  readonly parseBody: () => Promise<unknown>;
+}
+
+/**
+ * @alpha
+ */
+export type CacheControl =
+  | CacheControlOptions
+  | number
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'no-cache'
+  | 'immutable'
+  | 'private';
+
+/**
+ * @alpha
+ */
+export interface CacheControlOptions {
+  /**
+   * The max-age=N response directive indicates that the response remains fresh until N seconds after the response is generated.
+   * Note that max-age is not the elapsed time since the response was received; it is the elapsed time since the response was generated on the origin server. So if the other cache(s) — on the network route taken by the response — store the response for 100 seconds (indicated using the Age response header field), the browser cache would deduct 100 seconds from its freshness lifetime.
+   */
+  maxAge?: number;
+
+  /**
+   * The s-maxage response directive also indicates how long the response is fresh for (similar to max-age) — but it is specific to shared caches, and they will ignore max-age when it is present.
+   */
+  sMaxAge?: number;
+
+  /**
+   * The stale-while-revalidate response directive indicates that the cache could reuse a stale response while it revalidates it to a cache.
+   */
+  staleWhileRevalidate?: number;
+
+  /**
+   * The no-store response directive indicates that any caches of any kind (private or shared) should not store this response.
+   */
+  noStore?: boolean;
+
+  /**
+   * The no-cache response directive indicates that the response can be stored in caches, but the response must be validated with the origin server before each reuse, even when the cache is disconnected from the origin server.
+   */
+  noCache?: boolean;
+
+  /**
+   * The public response directive indicates that the response can be stored in a shared cache.
+   * Responses for requests with Authorization header fields must not be stored in a shared cache; however, the public directive will cause such responses to be stored in a shared cache.
+   */
+  public?: boolean;
+
+  /**
+   * The private response directive indicates that the response can be stored only in a private cache (e.g. local caches in browsers).
+   * You should add the private directive for user-personalized content, especially for responses received after login and for sessions managed via cookies.
+   * If you forget to add private to a response with personalized content, then that response can be stored in a shared cache and end up being reused for multiple users, which can cause personal information to leak.
+   */
+  private?: boolean;
+
+  /**
+   * The immutable response directive indicates that the response will not be updated while it's fresh.
+   *
+   * A modern best practice for static resources is to include version/hashes in their URLs, while never modifying the resources — but instead, when necessary, updating the resources with newer versions that have new version-numbers/hashes, so that their URLs are different. That's called the cache-busting pattern.
+   */
+  immutable?: boolean;
+}
+
+/**
+ * @alpha
+ */
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+  readonly headersSent: boolean;
+  readonly exited: boolean;
+  readonly cacheControl: (cacheControl: CacheControl) => void;
+  /**
+   * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
+   * the status and headers can no longer be modified and will be sent over the network.
+   */
+  readonly getWritableStream: () => WritableStream<Uint8Array>;
+
+  readonly next: () => Promise<void>;
+}
+
+declare global {
+  interface QwikCityPlatform {}
+}
+
+/**
+ * @alpha
+ */
+export interface RequestEventAction<PLATFORM = QwikCityPlatform>
+  extends RequestEventCommon<PLATFORM> {
+  fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+}
+
+/**
+ * @alpha
+ */
+export type DeferReturn<T> = () => Promise<T>;
+
+/**
+ * @alpha
+ */
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
+  extends RequestEventAction<PLATFORM> {
+  resolveValue: ResolveValue;
+  defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
+}
+
+/**
+ * @alpha
+ */
+export interface ResolveValue {
+  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
+  <T>(action: Action<T>): Promise<T | undefined>;
+}
+
+/**
+ * @alpha
+ */
+export interface ResolveSyncValue {
+  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+  <T>(action: Action<T>): Awaited<T> | undefined;
 }
 
 /**
@@ -57,6 +342,10 @@ export interface Cookie {
    */
   get(name: string): CookieValue | null;
   /**
+   * Gets all `Request` cookie headers.
+   */
+  getAll(): Record<string, CookieValue>;
+  /**
    * Checks if the `Request` cookie header name exists.
    */
   has(name: string): boolean;
@@ -67,12 +356,16 @@ export interface Cookie {
   /**
    * Deletes cookie value by name using the `Response` cookie header.
    */
-  delete(name: string): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
   /**
    * Returns an array of all the set `Response` `Set-Cookie` header values.
    */
   headers(): string[];
 }
+
+/**
+ * @alpha
+ */
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
@@ -124,3 +417,26 @@ export interface CookieValue {
   json: <T = unknown>() => T;
   number: () => number;
 }
+
+/**
+ * @alpha
+ */
+export interface QwikSerializer {
+  _deserializeData: typeof _deserializeData;
+  _serializeData: typeof _serializeData;
+  _verifySerializable: typeof _verifySerializable;
+}
+
+/**
+ * @alpha
+ */
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'CONNECT'
+  | 'TRACE';

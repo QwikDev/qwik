@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
+import { _renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -11,15 +11,13 @@ import type {
   StreamWriter,
   RenderOptions,
 } from './types';
+import { isDev } from '@builder.io/qwik/build';
 import { getQwikLoaderScript } from './scripts';
 import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
 import type { SymbolMapper } from '../optimizer/src/types';
-import { qDev } from '../core/util/qdev';
-import { EMPTY_OBJ } from '../core/util/flyweight';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
-import { assertDefined } from '../core/error/assert';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -120,7 +118,9 @@ export async function renderToStream(
   }
 
   if (!opts.manifest) {
-    console.warn('Missing client manifest, loading symbols in the client might 404');
+    console.warn(
+      `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
+    );
   }
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
@@ -131,7 +131,7 @@ export async function renderToStream(
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
-    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
+    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
     : undefined;
 
   const renderTimer = createTimer();
@@ -140,11 +140,11 @@ export async function renderToStream(
   let snapshotTime = 0;
   let containsDynamic = false;
 
-  await renderSSR(rootNode, {
+  await _renderSSR(rootNode, {
     stream,
     containerTagName,
     containerAttributes,
-    envData: opts.envData,
+    serverData: opts.serverData ?? opts.envData,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState, dynamic) => {
@@ -154,11 +154,12 @@ export async function renderToStream(
       containsDynamic = dynamic;
       snapshotResult = await _pauseFromContexts(contexts, containerState);
 
-      const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
+      const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
+          nonce: opts.serverData?.nonce,
         }),
       ];
 
@@ -168,7 +169,8 @@ export async function renderToStream(
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             opts.prefetchStrategy,
-            prefetchResources
+            prefetchResources,
+            opts.serverData?.nonce
           );
           if (prefetchImpl) {
             children.push(prefetchImpl);
@@ -188,6 +190,7 @@ export async function renderToStream(
           jsx('script', {
             id: 'qwikloader',
             dangerouslySetInnerHTML: qwikLoaderScript,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -201,6 +204,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -219,16 +223,14 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
-  assertDefined(snapshotResult, 'snapshotResult must be defined');
-
-  const isStatic = !containsDynamic && !snapshotResult.resources.some((r) => r._cache !== Infinity);
+  const isDynamic = containsDynamic || snapshotResult!.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: totalSize,
-    isStatic,
+    isStatic: !isDynamic,
     timing: {
       render: renderTime,
       snapshot: snapshotTime,

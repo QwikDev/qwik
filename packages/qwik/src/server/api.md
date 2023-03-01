@@ -82,12 +82,14 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // (undocumented)
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
-    // (undocumented)
+    // @deprecated (undocumented)
     envData?: Record<string, any>;
     locale?: string | ((options: RenderOptions) => string);
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
+    // (undocumented)
+    serverData?: Record<string, any>;
     snapshot?: boolean;
 }
 
@@ -168,6 +170,9 @@ export interface SerializeDocumentOptions {
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
 }
+
+// @alpha (undocumented)
+export function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined): Promise<void>;
 
 // @alpha (undocumented)
 export interface StreamingOptions {

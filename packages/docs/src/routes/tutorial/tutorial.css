@@ -44,8 +44,8 @@
   grid-area: tutorial-content-panel;
   position: relative;
 
-  border-right: 1px solid #dfdede;
-  color: rgb(37, 37, 37);
+  border-right: 1px solid var(--bg-secondary-color);
+  color: var(--secondary-text-color);
 
   display: grid;
   grid-template-rows: calc(var(--repl-tab-height) - 14px) 1fr calc(var(--repl-tab-height) - 14px);
@@ -129,16 +129,16 @@
   font-size: 14px;
   padding: 3px 12px;
   border-radius: 3px;
-  background-color: white;
-  color: var(--qwik-dark-blue);
-  border: 1px solid var(--qwik-dark-blue);
+  background-color: var(--tutorial-nav-button-bg-color);
+  color: var(--tutorial-nav-button-text-color);
+  border: 1px solid var(--tutorial-nav-button-text-color);
 }
 
 .nav-link:hover,
 .show-me[type='button']:hover {
-  background-color: var(--qwik-blue);
+  background-color: var(--tutorial-nav-button-hover-bg-color);
   color: white;
-  border-color: var(--qwik-blue);
+  border-color: var(--tutorial-nav-button-hover-bg-color);
 }
 
 .show-me[type='button'] {
@@ -148,8 +148,8 @@
 .show-me:hover {
   margin: 0;
   background-color: white;
-  color: var(--qwik-dark-blue);
-  border: 1px solid var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
+  border: 1px solid var(--interactive-text-color);
 }
 
 .content-main {
@@ -159,7 +159,7 @@
 }
 
 .content-main a {
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
   text-decoration: underline;
 }
 
@@ -168,10 +168,10 @@
 }
 
 .content-main h1 {
-  @apply text-slate-900;
   @apply text-5xl font-bold;
   @apply mb-6;
   @apply relative;
+  color: var(--text-color);
 }
 
 .content-main h2,
@@ -180,11 +180,11 @@
 .content-main h5,
 .content-main h6 {
   @apply text-xl font-semibold;
-  @apply text-slate-900;
   @apply mt-8;
   @apply mb-4;
   @apply relative;
   scroll-margin-top: var(--scroll-margin-top);
+  color: var(--text-color);
 }
 
 .content-main h2 {
@@ -231,7 +231,7 @@
 }
 
 .content-main code {
-  background-color: rgb(224, 224, 224);
+  background-color: var(--code-bg-color);
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.9em;

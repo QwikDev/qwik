@@ -1,6 +1,7 @@
 ---
 title: Resumable
 contributors:
+  - voluntadpear
   - RATIU5
   - adamdbradley
 ---
@@ -83,13 +84,17 @@ Limitations of JSON which Qwik solves:
 - JSON produces DAG. DAG stands for Directed Acyclic Graph, which means that the object which is being serialized can't have circular references. This is a big limitation because the application state is often circular. Qwik ensures that when the graph of objects gets serialized, the circular references get properly saved and then restored.
 - JSON can't serialize some object types. For example, DOM references, Dates, etc... Qwik serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
   - DOM references
-  - Dates (not yet implemented)
-  - Function closures (if wrapped in QRL).
+  - Promises (See [resources](../../components/resource/))
+  - Function closures (if wrapped in QRL)
+  - Dates
+  - `URL` objects
+  - `Map` and `Set` instances
 
 Limitations of JSON that Qwik does not solve:
 
 - Serialization of classes (`instanceof` and prototype)
-- Serialization of `Promise`s, Streams, etc...
+  - Although some built-in classes, such as [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date), [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL), [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map), [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) are supported.
+- Serialization of Streams, etc...
 
 ### Writing applications with serializability in mind
 

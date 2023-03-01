@@ -9,7 +9,7 @@ export const ExampleTest = component$((props: { flag: boolean }) => {
     <>
       <span>Count:{state.counter}</span>
       <div class="icon">Flag: {props.flag ? '⭐' : '💣'}</div>
-      <button className="btn-counter" onClick$={() => state.counter++}>
+      <button class="btn-counter" onClick$={() => state.counter++}>
         Increment counter
       </button>
     </>

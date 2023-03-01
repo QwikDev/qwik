@@ -1,4 +1,5 @@
 import { qRuntimeQrl } from '../util/qdev';
+import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 
 // <docs markdown="../readme.md#QRL">
@@ -142,9 +143,10 @@ export interface QRL<TYPE = any> {
    * Resolve the QRL and return the actual value.
    */
   resolve(): Promise<TYPE>;
-
+  getCaptured(): any[] | null;
   getSymbol(): string;
   getHash(): string;
+  dev: QRLDev | null;
 }
 
 /**
@@ -210,8 +212,8 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *    - Must be runtime serializable.
  *
  * ```tsx
- * import { importedFn } from './import/example';
- * import { createContext, useContext, useContextProvider } from './use/use-context';
+ *
+ * import { createContextId, useContext, useContextProvider } from './use/use-context';
  * import { useRef } from './use/use-ref';
  * import { Resource, useResource$ } from './use/use-resource';
  *
@@ -223,9 +225,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *   function localFn() {}
  *   // Valid Examples
  *   $(greet); // greet is importable
- *   $(importedFn); // importedFn is importable
  *   $(() => greet()); // greet is importable;
- *   $(() => importedFn()); // importedFn is importable
  *   $(() => console.log(store)); // store is serializable.
  *
  *   // Compile time errors

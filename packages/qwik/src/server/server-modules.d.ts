@@ -1,6 +1,4 @@
-import { QwikManifest } from './index';
-
 declare module '@qwik-client-manifest' {
-  const manifest: QwikManifest;
+  const manifest: import('./index').QwikManifest;
   export { manifest };
 }

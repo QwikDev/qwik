@@ -1,0 +1,195 @@
+.showcase {
+  margin: 10px auto;
+  padding: 0 30px;
+  max-width: 1060px;
+}
+
+.showcase h1 {
+  font-size: 60px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.showcase .grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  display: grid;
+  gap: 30px;
+}
+
+@media (min-width: 600px) {
+  .showcase .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .showcase li.large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+}
+
+@media (min-width: 900px) {
+  .showcase .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.showcase li {
+  display: block;
+  position: relative;
+}
+.showcase .card {
+  position: relative;
+  border-radius: 11px;
+  overflow: hidden;
+  display: block;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+}
+.showcase li .canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.showcase li .backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.showcase li:hover .backdrop {
+  opacity: 1;
+}
+
+.showcase li .title {
+  opacity: 1;
+  position: absolute;
+  bottom: 0;
+  padding: 10px;
+  width: 100%;
+  height: 60px;
+  background: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.showcase .score {
+  margin-top: 10px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  font-size: 34px;
+  color: var(--color);
+
+  --color: #0c6;
+  position: absolute;
+  right: -56px;
+  top: -56px;
+  background: #ffffffdb;
+  border-radius: 100%;
+  backdrop-filter: blur(4px) saturate(6.5);
+  transition: scale 0.2s ease-in-out;
+  scale: 0.5;
+  z-index: 10;
+}
+
+.showcase .score:hover {
+  background: #ffffff;
+  scale: 0.6;
+}
+
+.showcase .score-inner {
+  position: relative;
+  margin: auto;
+  width: 100px;
+}
+
+.showcase .score-text {
+  position: absolute;
+  top: 30px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  left: 0;
+  font-size: 30px;
+}
+
+.showcase .metrics {
+  color: white;
+  font-size: 26px;
+  font-weight: 900;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+}
+
+.showcase .metrics > div {
+  text-align: center;
+  color: var(--color);
+}
+
+.showcase .metrics p {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.showcase .metrics > div {
+  display: block;
+}
+
+.circle-1 {
+  opacity: 0.1;
+  fill: var(--color);
+  stroke: var(--color);
+}
+
+.circle-2 {
+  fill: none;
+  transform-origin: 50% 50%;
+  animation: load-gauge 1s ease forwards;
+  animation-delay: 250ms;
+  stroke-linecap: round;
+  stroke: var(--color);
+}
+
+.showcase section a {
+  font-weight: 400;
+  display: inline-block;
+  padding: 12px 0;
+  color: var(--qwik-dark-blue);
+}
+
+.showcase section a:hover {
+  text-decoration: underline;
+}
+.showcase section {
+  margin: 40px 0;
+}
+
+.showcase h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  padding: 0 0 5px 0;
+  border-bottom: 1px solid #ddd;
+}

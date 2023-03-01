@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 import fs from 'node:fs';
-import color from 'kleur';
+import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,
@@ -27,6 +26,8 @@ export async function runCreateCli(starterId: string, outDir: string) {
     }
   }
 
+  const pkgManager = getPackageManager();
+
   const opts: CreateAppOptions = {
     starterId,
     outDir,
@@ -34,53 +35,57 @@ export async function runCreateCli(starterId: string, outDir: string) {
 
   const result = await createApp(opts);
 
-  logCreateAppResult(result, false);
+  logCreateAppResult(pkgManager, result, false);
 
   return result;
 }
 
-export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
-  console.log(``);
-  console.log(``);
-
+export function logCreateAppResult(
+  pkgManager: string,
+  result: CreateAppResult,
+  ranInstall: boolean
+) {
   const isCwdDir = process.cwd() === result.outDir;
   const relativeProjectPath = relative(process.cwd(), result.outDir);
+  const outString = [];
 
   if (isCwdDir) {
-    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
+    outString.push(`🦄 ${bgMagenta(' Success! ')}`);
   } else {
-    console.log(
-      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
-        color.magenta(relativeProjectPath)
-      )} ${color.cyan(`directory`)}`
+    outString.push(
+      `🦄 ${bgMagenta(' Success! ')} ${cyan(`Project created in`)} ${bold(
+        magenta(relativeProjectPath)
+      )} ${cyan(`directory`)}`
     );
   }
-  console.log(``);
+  outString.push(``);
 
-  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
+  outString.push(`🐰 ${cyan(`Next steps:`)}`);
   if (!isCwdDir) {
-    console.log(`   cd ${relativeProjectPath}`);
+    outString.push(`   cd ${relativeProjectPath}`);
   }
-  const pkgManager = getPackageManager();
   if (!ranInstall) {
-    console.log(`   ${pkgManager} install`);
+    outString.push(`   ${pkgManager} install`);
   }
-  console.log(`   ${pkgManager} start`);
-  console.log(``);
+  outString.push(`   ${pkgManager} start`);
+  outString.push(``);
 
-  const qwikAdd = pkgManager === 'yarn' ? 'yarn qwik add' : `${pkgManager} run qwik add`;
-  console.log(`🔌 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
-  console.log(`   ${qwikAdd}`);
-  console.log(``);
+  const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
+  outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  outString.push(`   ${qwikAdd}`);
+  outString.push(``);
 
-  logSuccessFooter(result.docs);
+  outString.push(logSuccessFooter(result.docs));
 
-  console.log(`📺 ${color.cyan('Presentations, Podcasts and Videos:')}`);
-  console.log(`   https://qwik.builder.io/media/`);
-  console.log(``);
+  outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
+  outString.push(`   https://qwik.builder.io/media/`);
+  outString.push(``);
+
+  return outString.join('\n');
 }
 
 export async function createApp(opts: CreateAppOptions) {
+  const pkgManager = getPackageManager();
   if (!isValidOption(opts.starterId)) {
     throw new Error(`Missing starter id`);
   }
@@ -107,7 +112,7 @@ export async function createApp(opts: CreateAppOptions) {
     if (!baseApp) {
       throw new Error(`Unable to find base app`);
     }
-    await createFromStarter(result, baseApp);
+    await createFromStarter(pkgManager, result, baseApp);
   } else {
     const baseApp = starterApps.find((a) => a.id === 'base');
     if (!baseApp) {
@@ -122,12 +127,13 @@ export async function createApp(opts: CreateAppOptions) {
       );
     }
 
-    await createFromStarter(result, baseApp, starterApp);
+    await createFromStarter(pkgManager, result, baseApp, starterApp);
   }
   return result;
 }
 
 async function createFromStarter(
+  pkgManager: string,
   result: CreateAppResult,
   baseApp: IntegrationData,
   starterApp?: IntegrationData
@@ -147,7 +153,7 @@ async function createFromStarter(
   const readmePath = join(result.outDir, 'README.md');
   await fs.promises.writeFile(readmePath, '');
 
-  const baseUpdate = await updateApp({
+  const baseUpdate = await updateApp(pkgManager, {
     rootDir: result.outDir,
     integration: baseApp.id,
     installDeps: false,
@@ -156,7 +162,7 @@ async function createFromStarter(
 
   if (starterApp) {
     result.docs.push(...starterApp.docs);
-    const starterUpdate = await updateApp({
+    const starterUpdate = await updateApp(pkgManager, {
       rootDir: result.outDir,
       integration: starterApp.id,
       installDeps: false,

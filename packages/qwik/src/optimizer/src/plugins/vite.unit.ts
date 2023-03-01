@@ -28,6 +28,8 @@ const includeDeps = undefined;
 const excludeDeps = [
   '@vite/client',
   '@vite/env',
+  'node-fetch',
+  'undici',
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',
@@ -131,7 +133,7 @@ vite('command: build, mode: development', async () => {
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, {
     logLevel: 'error',
-    jsx: 'preserve',
+    jsx: 'automatic',
   });
   equal(c.ssr, undefined);
 });
@@ -168,7 +170,7 @@ vite('command: build, mode: production', async () => {
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, {
     logLevel: 'error',
-    jsx: 'preserve',
+    jsx: 'automatic',
   });
   equal(c.ssr, undefined);
 });
@@ -212,7 +214,7 @@ vite('command: build, --ssr entry.server.tsx', async () => {
 
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
@@ -231,7 +233,7 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, {
     logLevel: 'error',
-    jsx: 'preserve',
+    jsx: 'automatic',
   });
   equal(c.publicDir, false);
 });

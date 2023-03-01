@@ -21,15 +21,20 @@ export async function generatePackageJson(config: BuildConfig) {
       qwik: './qwik.cjs',
     },
     type: 'module',
+    peerDependencies: {
+      undici: '^5.14.0',
+    },
     exports: {
       '.': {
         types: './core.d.ts',
         import: {
           min: './core.min.mjs',
+          development: './core.mjs',
           production: './core.prod.mjs',
           default: './core.mjs',
         },
         require: {
+          development: './core.cjs',
           production: './core.prod.cjs',
           default: './core.cjs',
         },
@@ -39,13 +44,31 @@ export async function generatePackageJson(config: BuildConfig) {
       },
       './jsx-runtime': {
         types: './jsx-runtime.d.ts',
-        import: './jsx-runtime.mjs',
-        require: './jsx-runtime.cjs',
+        import: {
+          min: './core.min.mjs',
+          development: './core.mjs',
+          production: './core.prod.mjs',
+          default: './core.mjs',
+        },
+        require: {
+          development: './core.cjs',
+          production: './core.prod.cjs',
+          default: './core.cjs',
+        },
       },
       './jsx-dev-runtime': {
         types: './jsx-runtime.d.ts',
-        import: './jsx-runtime.mjs',
-        require: './jsx-runtime.cjs',
+        import: {
+          min: './core.min.mjs',
+          development: './core.mjs',
+          production: './core.prod.mjs',
+          default: './core.mjs',
+        },
+        require: {
+          development: './core.cjs',
+          production: './core.prod.cjs',
+          default: './core.cjs',
+        },
       },
       './build': {
         types: './build/index.d.ts',

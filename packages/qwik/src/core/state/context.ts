@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberEffect } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
@@ -12,10 +12,9 @@ import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../util/element';
-import { assertDefined, assertTrue } from '../error/assert';
+import { assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
-import { createProxy } from './store';
-import { QObjectFlagsSymbol, QObjectImmutable } from './constants';
+import { createPropsState, createProxy } from './store';
 
 export const Q_CTX = '_qc_';
 
@@ -97,19 +96,15 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           if (host) {
             const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
             const styleIds = el.getAttribute(QScopedStyle);
-            assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
-            elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+            elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
-            elCtx.$componentQrl$ = getObject(renderQrl);
+            if (renderQrl) {
+              elCtx.$componentQrl$ = getObject(renderQrl);
+            }
             if (props) {
               elCtx.$props$ = getObject(props);
             } else {
-              elCtx.$props$ = createProxy(
-                {
-                  [QObjectFlagsSymbol]: QObjectImmutable,
-                },
-                containerState
-              );
+              elCtx.$props$ = createProxy(createPropsState(), containerState);
             }
           }
         }

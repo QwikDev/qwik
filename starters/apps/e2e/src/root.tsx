@@ -18,6 +18,9 @@ export const Root = component$(() => {
         <a href="/e2e/two-listeners">Two listener</a>
       </p>
       <p>
+        <a href="/e2e/use-id">Use Ids</a>
+      </p>
+      <p>
         <a href="/e2e/events">Events</a>
       </p>
       <p>
@@ -57,6 +60,9 @@ export const Root = component$(() => {
         <a href="/e2e/resource-serialization">Resource serialization</a>
       </p>
       <p>
+        <a href="/e2e/resource-fn">Resource Fn</a>
+      </p>
+      <p>
         <a href="/e2e/mount">Mount</a>
       </p>
       <p>
@@ -79,6 +85,9 @@ export const Root = component$(() => {
       </p>
       <p>
         <a href="/e2e/resuming">Resuming</a>
+      </p>
+      <p>
+        <a href="/e2e/computed">Computed</a>
       </p>
     </section>
   );

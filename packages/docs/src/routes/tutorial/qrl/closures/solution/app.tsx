@@ -1,3 +1,4 @@
+// @ts-ignore: Unused import
 import { component$, useStore, $ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -6,13 +7,13 @@ export default component$(() => {
     <>
       Enter your name followed by the enter key:{' '}
       <input
-        onInput$={$(async (event) => {
+        onInput$={(event) => {
           const input = event.target as HTMLInputElement;
           store.name = input.value;
-        })}
-        onChange$={$(async (event) => {
+        }}
+        onChange$={() => {
           if (store.name) alert(store.name);
-        })}
+        }}
         value={store.name}
       />
     </>

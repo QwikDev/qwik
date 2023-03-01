@@ -36,8 +36,10 @@ export interface Diagnostic {
 // @alpha (undocumented)
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
+// Warning: (ae-forgotten-export) The symbol "HoistEntryStrategy" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @alpha (undocumented)
 export interface GlobalInjections {
@@ -269,6 +271,14 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
+export interface QwikViteDevResponse {
+    // (undocumented)
+    _qwikEnvData?: Record<string, any>;
+    // (undocumented)
+    _qwikRenderResolve?: () => void;
+}
+
+// @alpha (undocumented)
 export interface QwikVitePlugin {
     // (undocumented)
     api: QwikVitePluginApi;
@@ -302,8 +312,11 @@ export interface QwikVitePluginOptions {
         manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     };
     debug?: boolean;
-    entryStrategy?: EntryStrategy;
     // (undocumented)
+    devTools?: {
+        clickToSource: string[] | false;
+    };
+    entryStrategy?: EntryStrategy;
     optimizerOptions?: OptimizerOptions;
     srcDir?: string;
     // (undocumented)
@@ -313,6 +326,7 @@ export interface QwikVitePluginOptions {
         manifestInput?: QwikManifest;
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
+    vendorRoots?: string[];
 }
 
 // @alpha (undocumented)
@@ -351,10 +365,10 @@ export interface SourceLocation {
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 // @alpha (undocumented)
-export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
 // @alpha (undocumented)
-export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => [symbol: string, chunk: string] | undefined;
+export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
 
 // @alpha (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
@@ -400,6 +414,8 @@ export interface TransformOptions {
     // (undocumented)
     explicitExtensions?: boolean;
     // (undocumented)
+    isServer?: boolean;
+    // (undocumented)
     minify?: MinifyMode;
     // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts
     //
@@ -408,11 +424,19 @@ export interface TransformOptions {
     // (undocumented)
     preserveFilenames?: boolean;
     // (undocumented)
+    regCtxName?: string[];
+    // (undocumented)
     scope?: string;
     // (undocumented)
     sourceMaps?: boolean;
     // (undocumented)
     srcDir: string;
+    // (undocumented)
+    stripCtxName?: string[];
+    // (undocumented)
+    stripEventHandlers?: boolean;
+    // (undocumented)
+    stripExports?: string[];
     // (undocumented)
     transpileJsx?: boolean;
     // (undocumented)

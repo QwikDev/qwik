@@ -1,4 +1,4 @@
-import { $, component$, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
+import { $, component$, useStyles$, useStore, useBrowserVisibleTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
@@ -32,7 +32,7 @@ export default component$(() => {
     list: ['Input', 'Output', 'Console'],
   }));
 
-  useClientEffect$(() => {
+  useBrowserVisibleTask$(() => {
     // run once on the client
     const shareData = parsePlaygroundShareUrl(location.hash.slice(1));
     if (shareData) {
@@ -43,7 +43,7 @@ export default component$(() => {
     }
   });
 
-  useClientEffect$(({ track }) => {
+  useBrowserVisibleTask$(({ track }) => {
     track(() => store.buildId);
     track(() => store.buildMode);
     track(() => store.entryStrategy);
@@ -130,9 +130,11 @@ export interface PlaygroundStore extends ReplAppInput {
   shareUrlTmr: any;
 }
 
-export const onGet: RequestHandler = ({ response }) => {
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };

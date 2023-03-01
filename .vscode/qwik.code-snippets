@@ -49,23 +49,23 @@
 			""
 		]
 	},
-	"useClientEffect": {
+	"useBrowserVisibleTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useClientEffect",
-		"description": "useClientEffect$() function hook",
+		"prefix": "q:useBrowserVisibleTask",
+		"description": "useBrowserVisibleTask$() function hook",
 		"body": [
-			"useClientEffect$(({ track }) => {",
+			"useBrowserVisibleTask$(({ track }) => {",
 			"  $0",
 			"});",
 			""
 		]
 	},
-	"useWatch": {
+	"useTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useWatch",
-		"description": "useWatch$() function hook",
+		"prefix": "q:useTask",
+		"description": "useTask$() function hook",
 		"body": [
-			"useWatch$(({ track }) => {",
+			"useTask$(({ track }) => {",
 			"  track($1);",
 			"  $0",
 			"});",

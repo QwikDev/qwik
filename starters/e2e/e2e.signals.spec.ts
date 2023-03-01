@@ -126,7 +126,168 @@ test.describe('signals', () => {
   });
 
   test('issue 2000', async ({ page }) => {
-    const textArea = page.locator('textarea');
+    const textArea = page.locator('#textarea');
     await expect(textArea).toHaveText('body { background: white}');
+  });
+
+  test('issue 2176', async ({ page }) => {
+    const btn = page.locator('#issue-2176-btn');
+    const results = page.locator('.issue-2176-result');
+    await expect(results).toHaveText([
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+      'testing flag=F num=1',
+    ]);
+
+    await btn.click();
+    await expect(results).toHaveText([
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+      'testing2 flag=T num=2',
+    ]);
+
+    await btn.click();
+    await expect(results).toHaveText([
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+      'testing3 flag=F num=3',
+    ]);
+  });
+
+  test('issue 2245', async ({ page }) => {
+    const btn = page.locator('#issue-2245-btn');
+    const results = page.locator('.issue-2245-results p');
+    expect(await results.count()).toBe(16);
+    for (let i = 0; i < 16; i++) {
+      await expect(results.nth(i)).toHaveCSS('color', 'rgb(0, 0, 0)');
+    }
+
+    await btn.click();
+    for (let i = 0; i < 16; i++) {
+      await expect(results.nth(i)).toHaveCSS('color', 'rgb(255, 0, 0)');
+    }
+
+    await btn.click();
+    for (let i = 0; i < 16; i++) {
+      await expect(results.nth(i)).toHaveCSS('color', 'rgb(0, 0, 255)');
+    }
+  });
+
+  test('issue 2245-b', async ({ page }) => {
+    const btn = page.locator('#issue-2245-b-btn');
+    const results = page.locator('.issue-2245-b-results p');
+    await expect(results).toHaveCSS('color', 'rgb(0, 0, 0)');
+
+    await btn.click();
+    await expect(results).toHaveCSS('color', 'rgb(255, 0, 0)');
+
+    await btn.click();
+    await expect(results).toHaveCSS('color', 'rgb(0, 0, 255)');
+  });
+
+  test('complex classes with signals', async ({ page }) => {
+    const btn = page.locator('#complex-classes-btn');
+    const results = page.locator('#complex-classes-results');
+
+    await expect(results).toHaveClass('initial visible');
+    await btn.click();
+    await expect(results).toHaveClass('change hidden');
+  });
+
+  test('issue 2311', async ({ page }) => {
+    const btn = page.locator('#issue-2311-btn');
+    const results = page.locator('#issue-2311-results > *');
+    await expect(results).toHaveText([
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+    ]);
+
+    await btn.click();
+
+    await expect(results).toHaveText([
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+    ]);
+  });
+
+  test('issue 2344', async ({ page }) => {
+    const btn = page.locator('#issue-2344-btn');
+    const results = page.locator('#issue-2344-results');
+    await expect(results).toHaveText('Content');
+    await btn.click();
+    await expect(results).toHaveText('Content');
+  });
+
+  test('issue 2930', async ({ page }) => {
+    const input = page.locator('#issue-2930-input');
+    const results = page.locator('.issue-2930-result');
+    await expect(results).toHaveText([
+      '{"controls":{"ctrl":{"value":""}}}',
+      '{"ctrl":{"value":""}}',
+      '{"value":""}',
+      '""',
+    ]);
+    await input.fill('test');
+    await expect(results).toHaveText([
+      '{"controls":{"ctrl":{"value":"test"}}}',
+      '{"ctrl":{"value":"test"}}',
+      '{"value":"test"}',
+      '"test"',
+    ]);
+  });
+
+  test('issue 3212', async ({ page }) => {
+    const result0 = page.locator('#issue-3212-result-0');
+    const result1 = page.locator('#issue-3212-result-1');
+    const result2 = page.locator('#issue-3212-result-2');
+    const result3 = page.locator('#issue-3212-result-3');
+
+    await expect(result0).toHaveText('1');
+    await expect(result1).toHaveText('1');
+    await expect(result2).toHaveText('1');
+    await expect(result3).toHaveText('1');
   });
 });

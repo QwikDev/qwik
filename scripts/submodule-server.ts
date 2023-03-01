@@ -136,6 +136,12 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
       }
       return self.qwikCore;
     }
+    if (path === '@builder.io/qwik/build') {
+      if (!self.qwikBuild) {
+        throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
+      }
+      return self.qwikBuild;
+    }
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };
 }`;

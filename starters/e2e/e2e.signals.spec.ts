@@ -278,4 +278,16 @@ test.describe('signals', () => {
       '"test"',
     ]);
   });
+
+  test('issue 3212', async ({ page }) => {
+    const result0 = page.locator('#issue-3212-result-0');
+    const result1 = page.locator('#issue-3212-result-1');
+    const result2 = page.locator('#issue-3212-result-2');
+    const result3 = page.locator('#issue-3212-result-3');
+
+    await expect(result0).toHaveText('1');
+    await expect(result1).toHaveText('1');
+    await expect(result2).toHaveText('1');
+    await expect(result3).toHaveText('1');
+  });
 });

@@ -56,6 +56,12 @@ export const loadDependencies = async (options: ReplInputOptions) => {
     depResponse(cache, 'prettier', PRETTIER_VERSION, '/parser-html.js'),
   ]);
 
+  self.qwikBuild = {
+    isServer: true,
+    isBrowser: false,
+    isDev: false,
+  };
+
   if (!isSameQwikVersion(self.qwikCore?.version, version)) {
     await exec(cache, QWIK_PKG_NAME, version, '/core.cjs');
     if (self.qwikCore) {

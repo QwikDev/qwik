@@ -61,10 +61,13 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const cjsOutput: OutputOptions = {
     dir: join(config.distPkgDir),
-    format: 'cjs',
+    format: 'umd',
     name: 'qwikCore',
     entryFileNames: 'core.cjs',
     sourcemap: true,
+    globals: {
+      '@builder.io/qwik/build': 'qwikBuild',
+    },
     banner: getBanner('@builder.io/qwik', config.distVersion),
     intro: cjsIntro,
   };

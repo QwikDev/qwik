@@ -15,15 +15,17 @@ Instead => `useOn()` methods
 **Best Practice**:
 
 ```ts
-useBrowserVisibleTask$(()=> {
-    const listener = (event)=> {
-        const mouseEvent = event as MouseEvent
-        console.log(mouseEvent.x, mouseEvent.y);
-    }
-    document.addEventListener('mousemove', listener);
+useBrowserVisibleTask$(() => {
+  const listener = (event) => {
+    const mouseEvent = event as MouseEvent;
+    console.log(mouseEvent.x, mouseEvent.y);
+  };
+  document.addEventListener('mousemove', listener);
 
-    return ()=> {document.removeEventListener('mousemove', listener)}
-})
+  return () => {
+    document.removeEventListener('mousemove', listener);
+  };
+});
 ```
 
 **Why is above a problem**:
@@ -38,11 +40,14 @@ Not to mention it requires the extra effort for you to manually clean up the lis
 **Do this instead**:
 
 ```ts
-useOnDocument('mousemove', $((event)=> {
+useOnDocument(
+  'mousemove',
+  $((event) => {
     const mouseEvent = event as MouseEvent;
-    console.log(mouseEvent.x, mouseEvent.y)
+    console.log(mouseEvent.x, mouseEvent.y);
     // No manual clean up required!
-}))
+  })
+);
 ```
 
 > NOTE: Similar hooks exist for window and individual components.
@@ -93,11 +98,10 @@ When using the `if typeof window !== "undefined"` pattern you'll soon find it wi
 const location = useLocation();
 
 if (location.href.includes('foo')) {
-    // Do the thing
+  // Do the thing
 }
 //OR
 doTheThing(location.query);
-
 ```
 
 ## EXCEPTION

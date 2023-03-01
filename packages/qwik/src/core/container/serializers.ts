@@ -254,7 +254,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return getObjId(obj.untrackedValue);
   },
   prepare: (data, containerState) => {
-    return new SignalImpl(data, containerState?.$subsManager$?.$createManager$());
+    return new SignalImpl(data, containerState?.$subsManager$?.$createManager$(), 0);
   },
   subs: (signal, subs) => {
     signal[QObjectManagerSymbol].$addSubs$(subs);

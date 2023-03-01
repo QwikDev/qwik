@@ -4,9 +4,9 @@ import { delay, safeCall, then } from '../util/promises';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { assertDefined, assertEqual, assertTrue } from '../error/assert';
+import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
-import { assertQrl, createQRL, QRLInternal } from '../qrl/qrl-class';
+import { assertQrl, assertSignal, createQRL, QRLInternal } from '../qrl/qrl-class';
 import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
 import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
@@ -16,7 +16,16 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
-import { isSignal, Signal, _createSignal } from '../state/signal';
+import {
+  isSignal,
+  QObjectSignalFlags,
+  Signal,
+  SignalInternal,
+  SIGNAL_IMMUTABLE,
+  SIGNAL_UNASSIGNED,
+  _createSignal,
+} from '../state/signal';
+import { QObjectManagerSymbol } from '../state/constants';
 
 export const WatchFlagsIsVisibleTask = 1 << 0;
 export const WatchFlagsIsTask = 1 << 1;
@@ -299,25 +308,28 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
 };
 
 interface ComputedQRL {
-  <T>(qrl: QRL<ComputedFn<T>>, initial: T): Readonly<Signal<T>>;
-  <T>(qrl: QRL<ComputedFn<T>>): Readonly<Signal<T | undefined>>;
+  <T>(qrl: QRL<ComputedFn<T>>): Readonly<Signal<T>>;
 }
 
 interface Computed {
-  <T>(qrl: ComputedFn<T>, initial: T): Readonly<Signal<T>>;
-  <T>(qrl: ComputedFn<T>): Readonly<Signal<T | undefined>>;
+  <T>(qrl: ComputedFn<T>): Readonly<Signal<T>>;
 }
 /**
  * @alpha
  */
-export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>, initial?: T): Signal<T> => {
+export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<T> => {
   const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<T>>();
   if (get) {
     return get;
   }
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const signal = _createSignal(initial, containerState, undefined) as Signal<T>;
   assertQrl(qrl);
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const signal = _createSignal(
+    undefined as T,
+    containerState,
+    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
+    undefined
+  );
 
   const watch = new Task(
     WatchFlagsIsDirty | WatchFlagsIsTask | WatchFlagsIsComputed,
@@ -332,7 +344,7 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>, initial?
   }
   elCtx.$watches$.push(watch);
 
-  waitAndRun(iCtx, () => runComputed(watch as any, containerState, iCtx.$renderCtx$));
+  waitAndRun(iCtx, () => runComputed(watch, containerState, iCtx.$renderCtx$));
   return set(signal);
 };
 
@@ -514,7 +526,7 @@ export type WatchDescriptor = DescriptorBase<TaskFn>;
 export interface ResourceDescriptor<T>
   extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
 
-export interface ComputedDescriptor<T> extends DescriptorBase<ResourceFn<T>, Signal<T>> {}
+export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, SignalInternal<T>> {}
 
 export type SubscriberHost = QwikElement;
 
@@ -737,7 +749,7 @@ export const runComputed = (
   containerState: ContainerState,
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
-  assertTrue(isSignal(watch.$state$), 'Computed must be a signal');
+  assertSignal(watch.$state$);
   watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
   const hostElement = watch.$el$;
@@ -753,7 +765,10 @@ export const runComputed = (
     watchFn,
     (returnValue) =>
       untrack(() => {
-        watch.$state$.value = returnValue;
+        const signal = watch.$state$;
+        signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
+        signal.untrackedValue = returnValue;
+        signal[QObjectManagerSymbol].$notifySubs$();
       }),
     (reason) => {
       handleError(reason, hostElement, rCtx);

@@ -632,6 +632,32 @@ renderSSRSuite('using component with key', async () => {
   );
 });
 
+renderSSRSuite('using element with key', async () => {
+  await testSSR(
+    <body>
+      <div key="hola" />
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <div q:key="hola"></div>
+      </body>
+    </html>`
+  );
+});
+
+renderSSRSuite('using element with key containing double quotes', async () => {
+  await testSSR(
+    <body>
+      <div key={'"hola"'} />
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <div q:key="&quot;hola&quot;"></div>
+      </body>
+    </html>`
+  );
+});
+
 renderSSRSuite('using component props', async () => {
   await testSSR(
     <MyCmp

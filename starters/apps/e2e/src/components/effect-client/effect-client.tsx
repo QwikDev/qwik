@@ -9,6 +9,7 @@ import {
   Slot,
   useSignal,
   useTask$,
+  Signal,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -26,6 +27,7 @@ export const EffectClient = component$(() => {
       <Issue1717 />
       <Issue2015 />
       <Issue1955 />
+      <CleanupEffects />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -241,4 +243,28 @@ export const Issue1955 = component$(() => {
     signal.value = 'run';
   });
   return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;
+});
+
+export const CleanupEffects = component$(() => {
+  const nuCleanups = useSignal(0);
+  const counter = useSignal(0);
+
+  return (
+    <>
+      <CleanupEffectsChild nuCleanups={nuCleanups} key={counter.value} />
+      <button id="cleanup-effects-button" onClick$={() => counter.value++}>
+        Add
+      </button>
+      <div id="cleanup-effects-count">{nuCleanups.value + ''}</div>
+    </>
+  );
+});
+
+export const CleanupEffectsChild = component$((props: { nuCleanups: Signal<number> }) => {
+  useBrowserVisibleTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.nuCleanups.value++;
+    });
+  });
+  return <div>Hello</div>;
 });

@@ -56,4 +56,14 @@ test.describe('effect-client', () => {
     await page.waitForTimeout(300);
     await expect(results).toHaveText('run');
   });
+
+  test('cleanup', async ({ page }) => {
+    const counter = page.locator('#cleanup-effects-button');
+    const nuCleanups = page.locator('#cleanup-effects-count');
+    await expect(nuCleanups).toHaveText('0');
+    await counter.click();
+    await expect(nuCleanups).toHaveText('1');
+    await counter.click();
+    await expect(nuCleanups).toHaveText('2');
+  });
 });

@@ -122,7 +122,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
 /**
  * @internal
  */
-export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
   prop: P
 ): any => {
@@ -152,5 +152,20 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   if (isSignal(immutable)) {
     return immutable;
   }
-  return obj[prop];
+  return _IMMUTABLE;
+};
+
+
+/**
+ * @internal
+ */
+export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P
+): any => {
+  const r = _wrapProp(obj, prop);
+  if (r === _IMMUTABLE) {
+    return obj[prop];
+  }
+  return r;
 };

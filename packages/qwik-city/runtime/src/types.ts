@@ -249,12 +249,12 @@ export interface DocumentLink {
  * @alpha
  */
 export interface DocumentScript {
-  async?: string;
+  async?: boolean;
   crossorigin?: string;
-  defer?: string;
+  defer?: boolean;
   fetchpriority?: string;
   integrity?: string;
-  nomodule?: string;
+  nomodule?: boolean;
   nonce?: string;
   referrerpolicy?: string;
   src?: string;

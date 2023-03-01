@@ -6,6 +6,10 @@ import type {
   RequestHandler,
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import type {
+  ScriptHTMLAttributes,
+  StyleHTMLAttributes,
+} from 'packages/qwik/src/core/render/jsx/types/jsx-generated';
 import type * as zod from 'zod';
 
 export type {
@@ -117,6 +121,10 @@ export interface DocumentHeadValue {
    */
   readonly styles?: readonly DocumentStyle[];
   /**
+   * Used to manually append `<script>` elements to the `<head>`.
+   */
+  readonly scripts?: readonly DocumentScript[];
+  /**
    * Arbitrary object containing custom data. When the document head is created from
    * markdown files, the frontmatter attributes that are not recognized as a well-known
    * meta names (such as title, description, author, etc...), are stored in this property.
@@ -169,7 +177,16 @@ export interface DocumentLink {
  */
 export interface DocumentStyle {
   readonly style: string;
-  readonly props?: Readonly<{ [propName: string]: string }>;
+  readonly props?: Readonly<StyleHTMLAttributes<HTMLStyleElement>>;
+  readonly key?: string;
+}
+
+/**
+ * @alpha
+ */
+export interface DocumentScript {
+  readonly script?: string;
+  readonly props?: Readonly<ScriptHTMLAttributes<HTMLScriptElement>>;
   readonly key?: string;
 }
 

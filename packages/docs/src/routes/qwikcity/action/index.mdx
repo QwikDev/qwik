@@ -95,7 +95,8 @@ export default component$(() => {
         onClick={async () => {
           const { value } = await action.run({ name: 'John' });
           console.log(value);
-        }}>
+        }}
+      >
         Add user
       </button>
       {action.value?.success && <div>User added successfully</div>}

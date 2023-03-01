@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, loader$ } from '@builder.io/qwik-city';
+import { DocumentHead } from '@builder.io/qwik-city';
 import BuilderContentComp from '../components/builder-content';
 import { QWIK_MODEL, QWIK_PUBLIC_API_KEY } from '../constants';
 

@@ -259,6 +259,7 @@ export type JSXChildren =
   | RegExp
   | JSXChildren[]
   | Promise<JSXChildren>
+  | Signal<JSXChildren>
   | JSXNode;
 
 /**

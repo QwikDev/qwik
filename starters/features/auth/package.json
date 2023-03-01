@@ -7,6 +7,13 @@
   "__qwik__": {
     "displayName": "Integration: Auth.js (authentication)",
     "priority": -10,
+    "viteConfig": {
+      "optimizeDeps": {
+        "include": [
+          "@auth/core"
+        ]
+      }
+    },
     "docs": [
       "https://authjs.dev/"
     ]

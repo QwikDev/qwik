@@ -22,7 +22,6 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
 
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const value = isFunction(initialState) ? invoke(undefined, initialState as any) : initialState;
-  const signal = _createSignal(value, containerState, undefined) as Signal<STATE>;
-  set(signal);
-  return signal;
+  const signal = _createSignal(value, containerState, 0, undefined) as Signal<STATE>;
+  return set(signal);
 };

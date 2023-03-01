@@ -107,8 +107,8 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
   test: (v) => isSubscriberDescriptor(v),
   collect: (v, collector, leaks) => {
     collectValue(v.$qrl$, collector, leaks);
-    if (v.$resource$) {
-      collectValue(v.$resource$, collector, leaks);
+    if (v.$state$) {
+      collectValue(v.$state$, collector, leaks);
     }
   },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
@@ -116,8 +116,8 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
   fill: (watch, getObject) => {
     watch.$el$ = getObject(watch.$el$ as any);
     watch.$qrl$ = getObject(watch.$qrl$ as any);
-    if (watch.$resource$) {
-      watch.$resource$ = getObject(watch.$resource$ as any);
+    if (watch.$state$) {
+      watch.$state$ = getObject(watch.$state$ as any);
     }
   },
 };
@@ -254,7 +254,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return getObjId(obj.untrackedValue);
   },
   prepare: (data, containerState) => {
-    return new SignalImpl(data, containerState?.$subsManager$?.$createManager$());
+    return new SignalImpl(data, containerState?.$subsManager$?.$createManager$(), 0);
   },
   subs: (signal, subs) => {
     signal[QObjectManagerSymbol].$addSubs$(subs);

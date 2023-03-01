@@ -1,19 +1,23 @@
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
-import { loadIntegrations } from '../utils/integrations';
+import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import prompts from 'prompts';
 import { bgCyan, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
-import { getPackageManager, panic } from '../utils/utils';
+import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
 import { runInPkg, startSpinner } from '../utils/install-deps';
+import { intro, isCancel, select, log } from '@clack/prompts';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   const pkgManager = getPackageManager();
   const integrations = await loadIntegrations();
   let integration: IntegrationData | undefined;
+
+  console.clear();
+  printHeader();
 
   if (typeof id === 'string') {
     // cli passed a flag with the integration id to add
@@ -22,38 +26,26 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
       throw new Error(`Invalid integration: ${id}`);
     }
 
-    console.log(`🦋 ${bgCyan(` Add Integration `)} ${bold(magenta(integration.id))}`);
-    console.log(``);
+    intro(`🦋 ${bgCyan(` Add Integration `)} ${bold(magenta(integration.id))}`);
   } else {
     // use interactive cli to choose which integration to add
-    console.log(`🦋 ${bgCyan(` Add Integration `)}`);
-    console.log(``);
+    intro(`🦋 ${bgCyan(` Add Integration `)}`);
 
     const integrationChoices = [
       ...integrations.filter((i) => i.type === 'adapter'),
       ...integrations.filter((i) => i.type === 'feature'),
-    ].map((f) => {
-      return { title: f.name, value: f.id };
+    ];
+
+    const integrationAnswer = await select({
+      message: 'What integration would you like to add?',
+      options: await sortIntegrationsAndReturnAsClackOptions(integrationChoices),
     });
 
-    const integrationAnswer = await prompts(
-      {
-        type: 'select',
-        name: 'featureType',
-        message: `What integration would you like to add?`,
-        choices: integrationChoices,
-        hint: '(use ↓↑ arrows, hit enter)',
-      },
-      {
-        onCancel: () => {
-          console.log(``);
-          process.exit(0);
-        },
-      }
-    );
-    console.log(``);
+    if (isCancel(integrationAnswer)) {
+      bye();
+    }
 
-    integration = integrations.find((i) => i.id === integrationAnswer.featureType);
+    integration = integrations.find((i) => i.id === integrationAnswer);
 
     if (!integration) {
       throw new Error(`Invalid integration: ${id}`);
@@ -106,19 +98,15 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     panic(`No updates made`);
   }
 
-  console.log(``);
-  console.clear();
-  console.log(``);
-
-  console.log(`👻 ${bgCyan(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
-  console.log(``);
+  log.step(`👻 ${bgCyan(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
 
   if (modifyFiles.length > 0) {
-    console.log(`🐬 ${cyan(`Modify`)}`);
-    for (const f of modifyFiles) {
-      console.log(`   - ${relative(process.cwd(), f.path)}`);
-    }
-    console.log(``);
+    log.message(
+      [
+        `🐬 ${cyan('Modify')}`,
+        ...modifyFiles.map((f) => `   - ${relative(process.cwd(), f.path)}`),
+      ].join('\n')
+    );
   }
 
   if (createFiles.length > 0) {

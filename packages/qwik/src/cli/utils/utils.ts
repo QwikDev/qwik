@@ -60,6 +60,13 @@ export function toDashCase(str: string) {
   return str.toLocaleLowerCase().replace(/ /g, '-');
 }
 
+export function limitLength(hint: string, maxLength: number = 50) {
+  if (hint.length > maxLength) {
+    return hint.substring(0, maxLength - 3) + '...';
+  }
+  return hint;
+}
+
 export function getPackageManager() {
   return detectPackageManager()?.name || 'npm';
 }

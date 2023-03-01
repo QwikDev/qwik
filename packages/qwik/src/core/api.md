@@ -300,8 +300,10 @@ export { jsx as jsxs }
 // @internal (undocumented)
 export const _jsxBranch: (input?: any) => any;
 
+// Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
+//
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -1073,6 +1075,9 @@ export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partia
 //
 // @internal
 export function withLocale<T>(locale: string, fn: () => T): T;
+
+// @internal (undocumented)
+export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // @internal (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;

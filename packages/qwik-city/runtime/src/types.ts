@@ -252,7 +252,7 @@ export interface DocumentScript {
   async?: string;
   crossorigin?: string;
   defer?: string;
-  fectpriority?: string;
+  fetchpriority?: string;
   integrity?: string;
   nomodule?: string;
   nonce?: string;

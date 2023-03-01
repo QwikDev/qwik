@@ -5,7 +5,7 @@ import { Vendor } from './vendor';
 import { ThemeScript } from './theme-script';
 
 export const RouterHead = component$(() => {
-  const { href } = useLocation();
+  const { url } = useLocation();
   const head = useDocumentHead();
   const title = head.title ? `${head.title} - Qwik` : `Qwik - Framework reimagined for the edge`;
   const description =
@@ -16,7 +16,7 @@ export const RouterHead = component$(() => {
     <>
       <title>{title}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={href} />
+      <link rel="canonical" href={url.href} />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="application-name" content="Qwik" />
@@ -29,7 +29,7 @@ export const RouterHead = component$(() => {
 
       {import.meta.env.PROD && (
         <>
-          <Social title={title} description={description} href={href} />
+          <Social title={title} description={description} href={url.href} />
           <Vendor />
         </>
       )}

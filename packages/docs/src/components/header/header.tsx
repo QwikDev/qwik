@@ -21,7 +21,7 @@ import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
-  const pathname = new URL(useLocation().url).pathname;
+  const pathname = useLocation().url.pathname;
 
   useBrowserVisibleTask$(() => {
     globalStore.theme = getColorPreference();

@@ -6,7 +6,7 @@ export const Menu = component$(() => {
   useStyles$(styles);
 
   const { menu } = useContent();
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
   return (
     <aside class="menu">
@@ -21,7 +21,7 @@ export const Menu = component$(() => {
                       data-test-menu-link={item.href}
                       href={item.href}
                       class={{
-                        'is-active': pathname === item.href,
+                        'is-active': url.pathname === item.href,
                       }}
                     >
                       {item.text}

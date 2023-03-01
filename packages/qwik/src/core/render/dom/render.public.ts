@@ -12,7 +12,7 @@ import { processData, wrapJSX } from './render-dom';
 import { ContainerState, _getContainerState } from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
-import { executeDOMRender, printRenderStats, removeNode, removeNodeSync } from './operations';
+import { executeDOMRender, printRenderStats, removeNodeSync } from './operations';
 import { logError } from '../../util/log';
 import { appendQwikDevTools } from '../../container/resume';
 
@@ -26,8 +26,8 @@ export interface RenderOptions {
 /**
  * @alpha
  */
-export interface RenderCleanupFn {
-  (): void;
+export interface RenderResult {
+  cleanup(): void;
 }
 
 /**
@@ -48,7 +48,7 @@ export const render = async (
   parent: Element | Document,
   jsxNode: JSXNode | FunctionComponent<any>,
   opts?: RenderOptions
-): Promise<RenderCleanupFn> => {
+): Promise<RenderResult> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
@@ -82,8 +82,10 @@ export const render = async (
   const renderCtx = await containerState.$renderPromise$;
   await postRendering(containerState, renderCtx);
 
-  return function cleanup() {
-    removeNodeSync(renderCtx.$static$, containerEl);
+  return {
+    cleanup() {
+      removeNodeSync(renderCtx.$static$, containerEl);
+    },
   };
 };
 

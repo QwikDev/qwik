@@ -94,7 +94,7 @@ fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut P
                 let props_id = id!(new_ident);
                 let omit_fn = props_transform
                     .global_collect
-                    .import(&_REST_PROPS, &props_transform.core_module);
+                    .import(&_REST_PROPS, props_transform.core_module);
                 let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
                 transform_rest(arrow, &omit_fn, &rest_id, &props_id, omit);
             }
@@ -142,7 +142,7 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                                 let props_id = id!(new_ident);
                                 let omit_fn = props_transform
                                     .global_collect
-                                    .import(&_REST_PROPS, &props_transform.core_module);
+                                    .import(&_REST_PROPS, props_transform.core_module);
                                 let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
 
                                 let element =

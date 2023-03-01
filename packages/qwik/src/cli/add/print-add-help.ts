@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import color from 'kleur';
+import { magenta, cyan, dim } from 'kleur/colors';
 import { loadIntegrations } from '../utils/integrations';
 import { pmRunCmd } from '../utils/utils';
 
@@ -10,18 +10,18 @@ export async function printAddHelp() {
   const pmRun = pmRunCmd();
 
   console.log(``);
-  console.log(`${pmRun} qwik ${color.magenta(`add`)} [integration]`);
+  console.log(`${pmRun} qwik ${magenta(`add`)} [integration]`);
   console.log(``);
 
-  console.log(`  ${color.cyan('Adapters')}`);
+  console.log(`  ${cyan('Adapters')}`);
   for (const s of adapters) {
-    console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
+    console.log(`    ${s.id}  ${dim(s.pkgJson.description)}`);
   }
   console.log(``);
 
-  console.log(`  ${color.cyan('Features')}`);
+  console.log(`  ${cyan('Features')}`);
   for (const s of features) {
-    console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
+    console.log(`    ${s.id}  ${dim(s.pkgJson.description)}`);
   }
   console.log(``);
 }

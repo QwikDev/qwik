@@ -11,7 +11,7 @@ contributors:
 
 Progressive is about downloading code according to the application's needs, without eagerly downloading the entire code base.
 
-This connects us to the [core principle](../../think-qwik/index.mdx) of Qwik which focuses on delaying **the loading** and execution of JavaScript for as long as possible.  Qwik needs to break up the application into many lazy loadable chunks to achieve that.
+This connects us to the [core principle](../../think-qwik/index.mdx) of Qwik which focuses on delaying **the loading** and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
 
 ## Current state-of-the-art
 
@@ -53,7 +53,7 @@ In Qwik everything is lazy-loadable:
 - Component on render - initialization block and render block
 - Component on watch - side-effects, only downloaded if inputs change
 - Listeners - only downloaded on interaction
-- Styles  - only downloaded if the server did not already provide them
+- Styles - only downloaded if the server did not already provide them
 
 Lazy-loading is a core property of the framework and not an afterthought.
 

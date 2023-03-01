@@ -1,8 +1,8 @@
 .tutorial {
   position: fixed;
-  top: calc(var(--header-height) + var(--builder-bar-height));
+  top: var(--header-height);
   width: 100%;
-  height: calc(100vh - var(--header-height) - var(--builder-bar-height));
+  height: calc(100vh - var(--header-height));
 }
 
 .tutorial .repl {

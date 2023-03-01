@@ -12,9 +12,9 @@ Rather than showing a blank page, by default Qwik City provides a generic 404 pa
 
 ### Custom 404 Page
 
-Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familar layouts as the rest of your site. 
+Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familar layouts as the rest of your site.
 
-To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory. 
+To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory.
 
 ```
 src/
@@ -75,11 +75,7 @@ export default component$(() => {
   if (!product.value) {
     // no product data found
     // so render our own custom product 404
-    return (
-      <p>
-        Sorry, looks like we don't have this product.
-      </p>
-    )
+    return <p>Sorry, looks like we don't have this product.</p>;
   }
 
   // product data was found, so let's render it

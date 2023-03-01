@@ -9,6 +9,7 @@ import {
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -22,6 +23,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     _serializeData,
     _verifySerializable,
   };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);

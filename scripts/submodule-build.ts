@@ -29,6 +29,13 @@ export async function submoduleBuild(config: BuildConfig) {
   const cjs = build({
     ...opts,
     format: 'cjs',
+
+    banner: {
+      js: `globalThis.qwikBuild = (function (module) {`,
+    },
+    footer: {
+      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+    },
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
   });

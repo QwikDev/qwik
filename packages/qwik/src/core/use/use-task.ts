@@ -378,7 +378,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  *     count: 0,
  *   });
  *
- *   useBrowserVisibleTask$(() => {
+ *   useVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       store.count++;
@@ -395,7 +395,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
  * @public
  */
 // </docs>
-export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
+export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
   const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
   const eagerness = opts?.strategy ?? opts?.eagerness ?? 'intersection-observer';
   if (get) {
@@ -429,7 +429,7 @@ export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskO
  *     count: 0,
  *   });
  *
- *   useBrowserVisibleTask$(() => {
+ *   useVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       store.count++;
@@ -446,19 +446,31 @@ export const useBrowserVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskO
  * @public
  */
 // </docs>
-export const useBrowserVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useBrowserVisibleTaskQrl);
+export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);
 
 /**
  * @alpha
- * @deprecated - use `useBrowserVisibleTask$()` instead
+ * @deprecated - use `useVisibleTask$()` instead
  */
-export const useClientEffectQrl = useBrowserVisibleTaskQrl;
+export const useClientEffectQrl = useVisibleTaskQrl;
 
 /**
  * @alpha
- * @deprecated - use `useBrowserVisibleTask$()` instead
+ * @deprecated - use `useVisibleTask$()` instead
  */
-export const useClientEffect$ = useBrowserVisibleTask$;
+export const useClientEffect$ = useVisibleTask$;
+
+/**
+ * @alpha
+ * @deprecated - use `useVisibleTask$()` instead
+ */
+export const useBrowserVisibleTaskQrl = useVisibleTaskQrl;
+
+/**
+ * @alpha
+ * @deprecated - use `useVisibleTask$()` instead
+ */
+export const useBrowserVisibleTask$ = useVisibleTask$;
 
 export type WatchDescriptor = DescriptorBase<TaskFn>;
 

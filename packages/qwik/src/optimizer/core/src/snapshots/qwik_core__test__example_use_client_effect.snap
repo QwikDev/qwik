@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -13,7 +13,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -57,7 +57,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
-  "ctxName": "useBrowserVisibleTask$",
+  "ctxName": "useVisibleTask$",
   "captures": true,
   "loc": [
     244,
@@ -78,14 +78,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
+import { useVisibleTaskQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    useVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {

@@ -73,7 +73,7 @@ export class SignalImpl<T> implements Signal<T> {
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logWarn(
-          'State mutation inside render function. Move mutation to useTask$() or useBrowserVisibleTask$()',
+          'State mutation inside render function. Move mutation to useTask$() or useVisibleTask$()',
           invokeCtx.$hostElement$
         );
       }

@@ -5,7 +5,7 @@ test.describe('use-id', () => {
     await page.goto('/e2e/use-id');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
     // await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500); // Wait for useBrowserVisibleTask$
+    await page.waitForTimeout(500); // Wait for useVisibleTask$
   });
 
   test('Creates unique ids and ensure no collisions', async ({ page }) => {

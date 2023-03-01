@@ -1,10 +1,10 @@
-import { component$, useStore, useRef, useBrowserVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useStore, useRef, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export const RefRoot = component$(() => {
   const state = useStore({
     visible: false,
   });
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     state.visible = true;
   });
 
@@ -23,7 +23,7 @@ export const RefRoot = component$(() => {
 
 export const Ref = component$((props: { id: string }) => {
   const ref = useRef();
-  useBrowserVisibleTask$(({ track }) => {
+  useVisibleTask$(({ track }) => {
     const el = track(() => ref.current);
     el!.textContent = `Rendered ${props.id}`;
   });
@@ -36,7 +36,7 @@ export const Ref = component$((props: { id: string }) => {
 
 export const Ref2 = component$((props: { id: string }) => {
   const ref = useSignal<Element>();
-  useBrowserVisibleTask$(({ track }) => {
+  useVisibleTask$(({ track }) => {
     const el = track(() => ref.value);
     el!.textContent = `Rendered ${props.id}`;
   });

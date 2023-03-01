@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useBrowserVisibleTask$, useTask$ } from '../../use/use-task';
+import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -1569,10 +1569,10 @@ export const ContextConsumer = component$(() => {
 });
 
 export const UseClientEffect = component$((props: any) => {
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1584,10 +1584,10 @@ export const UseClientEffect = component$((props: any) => {
 });
 
 export const UseEmptyClientEffect = component$(() => {
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1598,7 +1598,7 @@ export const UseEmptyClientEffect = component$(() => {
 });
 
 export const HeadCmp = component$(() => {
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
   return (
@@ -1678,14 +1678,14 @@ export const NullCmp = component$(() => {
 });
 
 export const EffectTransparent = component$(() => {
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     console.warn('log');
   });
   return (

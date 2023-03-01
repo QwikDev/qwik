@@ -1,4 +1,4 @@
-import { component$, useBrowserVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 
 export const useGetQuery = loader$(({ query }) => {
@@ -11,7 +11,7 @@ export default component$(() => {
   const signal = useSignal({});
   const data = useGetQuery();
 
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     const url = new URL(window.location.href);
     signal.value = {
       query: url.searchParams.get('query') ?? 'NONE',

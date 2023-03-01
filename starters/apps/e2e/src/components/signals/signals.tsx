@@ -5,7 +5,7 @@ import {
   Signal,
   useSignal,
   useStore,
-  useBrowserVisibleTask$,
+  useVisibleTask$,
   useTask$,
   Slot,
   useStyles$,
@@ -42,7 +42,7 @@ export const Signals = component$(() => {
 
   const styles = useSignal('body { background: white}');
 
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     ref.current!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });

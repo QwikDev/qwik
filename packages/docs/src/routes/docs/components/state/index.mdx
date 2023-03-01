@@ -290,14 +290,14 @@ Thanks to the fine grained reactivity of Qwik, only the components that depend o
 Sometimes, you may want to store a value in the state, but you don't want it to be serialized. This is useful for storing values that are not serializable, like functions, or classes.
 
 ```tsx
-import { component$, useStore, noSerialize, useBrowserVisibleTask$ } from '@builder.io/qwik';
+import { component$, useStore, noSerialize, useVisibleTask$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
   const state = useStore({
     monacoInstance: null,
   });
 
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     // Monaco is not serializable, so we can't store it in the state using `noSerialize()`
     state.monacoInstance = noSerialize(new Monaco());
   });

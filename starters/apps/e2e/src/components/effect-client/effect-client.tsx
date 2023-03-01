@@ -10,6 +10,7 @@ import {
   useSignal,
   useTask$,
   Signal,
+  useBrowserVisibleTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 

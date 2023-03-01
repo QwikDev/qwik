@@ -914,6 +914,12 @@ export interface Tracker {
 // @alpha (undocumented)
 export const untrack: <T>(fn: () => T) => T;
 
+// @alpha @deprecated (undocumented)
+export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @alpha @deprecated (undocumented)
+export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
 // @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 

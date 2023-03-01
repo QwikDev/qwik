@@ -8,7 +8,7 @@ export const Breadcrumbs = component$(() => {
   const { menu } = useContent();
   const loc = useLocation();
 
-  const breadcrumbs = createBreadcrumbs(menu, loc.pathname);
+  const breadcrumbs = createBreadcrumbs(menu, loc.url.pathname);
   if (breadcrumbs.length === 0) {
     return null;
   }

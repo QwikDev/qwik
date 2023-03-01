@@ -9,7 +9,7 @@ export default component$<{
 }>((props) => {
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
-    const query = location.query;
+    const query = location.url.searchParams;
     const render =
       typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
     const isSDK = render === 'sdk';
@@ -19,9 +19,9 @@ export default component$<{
         {
           model: props.model!,
           apiKey: props.apiKey!,
-          options: getBuilderSearchParams(location.query),
+          options: getBuilderSearchParams(query),
           userAttributes: {
-            urlPath: location.pathname,
+            urlPath: location.url.pathname,
           },
         },
         getContent
@@ -31,7 +31,7 @@ export default component$<{
         {
           apiKey: props.apiKey,
           model: props.model,
-          urlPath: location.pathname,
+          urlPath: location.url.pathname,
         },
         getBuilderContent
       );

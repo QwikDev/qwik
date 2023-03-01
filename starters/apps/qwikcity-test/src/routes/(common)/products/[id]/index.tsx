@@ -3,7 +3,7 @@ import { Link, useLocation, DocumentHead, loader$ } from '@builder.io/qwik-city'
 import os from 'node:os';
 
 export default component$(() => {
-  const { params, pathname } = useLocation();
+  const { params, url } = useLocation();
   const store = useStore({ productFetchData: '' });
 
   const product = useProductLoader();
@@ -25,7 +25,7 @@ export default component$(() => {
       <p>
         <button
           onClick$={async () => {
-            const rsp = await fetch(pathname, {
+            const rsp = await fetch(url.pathname, {
               headers: {
                 accept: 'application/json',
               },
@@ -33,7 +33,7 @@ export default component$(() => {
             store.productFetchData = JSON.stringify(await rsp.json(), null, 2);
           }}
         >
-          fetch("{pathname}") data
+          fetch("{url.pathname}") data
         </button>
       </p>
 

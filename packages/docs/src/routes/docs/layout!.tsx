@@ -9,7 +9,7 @@ import styles from '../docs.css?inline';
 
 export default component$(() => {
   const loc = useLocation();
-  const noRightMenu = ['/docs/overview/'].includes(loc.pathname);
+  const noRightMenu = ['/docs/overview/'].includes(loc.url.pathname);
   useStyles$(styles);
 
   return (

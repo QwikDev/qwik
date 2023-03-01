@@ -6,9 +6,9 @@ export const Breadcrumbs = component$(() => {
   useStyles$(styles);
 
   const { menu } = useContent();
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
-  const breadcrumbs = createBreadcrumbs(menu, pathname);
+  const breadcrumbs = createBreadcrumbs(menu, url.pathname);
   if (breadcrumbs.length === 0) {
     return null;
   }

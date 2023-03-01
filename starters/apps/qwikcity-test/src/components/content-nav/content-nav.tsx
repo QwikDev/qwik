@@ -5,13 +5,13 @@ import styles from './content-nav.css?inline';
 export const ContentNav = component$(() => {
   useStyles$(styles);
 
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
   const { menu } = useContent();
   const items = flattenMenu(menu);
 
-  const prev = getNav(items, pathname, -1);
-  const next = getNav(items, pathname, 1);
+  const prev = getNav(items, url.pathname, -1);
+  const next = getNav(items, url.pathname, 1);
 
   return (
     <nav class="content-nav">

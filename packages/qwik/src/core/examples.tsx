@@ -12,7 +12,7 @@ import { $, QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useBrowserVisibleTask$, useTask$ } from './use/use-task';
+import { useVisibleTask$, useTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////
@@ -309,7 +309,7 @@ export const CmpInline = component$(() => {
       count: 0,
     });
 
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
       // Only runs in the client
       const timer = setInterval(() => {
         store.count++;
@@ -360,7 +360,7 @@ export const CmpInline = component$(() => {
     const counterStore = useStore({
       value: 0,
     });
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
       // Only runs in the client
       const timer = setInterval(() => {
         counterStore.value += step;
@@ -388,7 +388,7 @@ export const CmpInline = component$(() => {
   const Cmp = component$(() => {
     const input = useRef<HTMLInputElement>();
 
-    useBrowserVisibleTask$(({ track }) => {
+    useVisibleTask$(({ track }) => {
       const el = track(() => input.current)!;
       el.focus();
     });

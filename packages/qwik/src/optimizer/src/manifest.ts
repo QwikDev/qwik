@@ -166,8 +166,7 @@ const EVENT_PRIORITY = [
 
 const FUNCTION_PRIORITY = [
   'useTask$',
-  'useBrowserVisibleTask$',
-  'useEffect$',
+  'useVisibleTask$',
   'component$',
   'useStyles$',
   'useStylesScoped$',

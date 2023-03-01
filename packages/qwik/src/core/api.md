@@ -914,10 +914,10 @@ export interface Tracker {
 // @alpha (undocumented)
 export const untrack: <T>(fn: () => T) => T;
 
-// @public
+// @alpha @deprecated (undocumented)
 export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
-// @public
+// @alpha @deprecated (undocumented)
 export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @alpha @deprecated
@@ -1059,6 +1059,12 @@ export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @alpha @deprecated (undocumented)
 export const useUserContext: typeof useServerData;
+
+// @public
+export const useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @public
+export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @beta @deprecated (undocumented)
 export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;

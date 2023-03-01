@@ -6,7 +6,9 @@ export const ComputedRoot = component$(() => {
 
   return (
     <div key={rerender.value}>
-      <button onClick$={() => rerender.value++}>Rerender</button>
+      <button id="rerender" onClick$={() => rerender.value++}>
+        Rerender
+      </button>
       <ComputedBasic />
     </div>
   );
@@ -20,15 +22,16 @@ export const ComputedBasic = component$(() => {
   const sum = useComputed$(() => double.value + plus3.value + triple.value);
 
   console.log('here');
-  console.log(sum.value);
   return (
     <div>
-      <div>count: {count.value}</div>
-      <div>double: {double.value}</div>
-      <div>plus3: {plus3.value}</div>
-      <div>triple: {triple.value}</div>
-      <div>sum: {sum.value}</div>
-      <button onClick$={() => count.value++}>Increment</button>
+      <div class="result">count: {count.value}</div>
+      <div class="result">double: {double.value}</div>
+      <div class="result">plus3: {plus3.value}</div>
+      <div class="result">triple: {triple.value}</div>
+      <div class="result">sum: {sum.value + ''}</div>
+      <button id="increment" onClick$={() => count.value++}>
+        Increment
+      </button>
     </div>
   );
 });

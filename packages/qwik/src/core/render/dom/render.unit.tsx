@@ -784,7 +784,7 @@ renderSuite(
       cleanupSpy: false,
     };
 
-    const cleanup = await render(fixture.host, <CleanupComponent spies={spies} />);
+    const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
 
     cleanup();
 

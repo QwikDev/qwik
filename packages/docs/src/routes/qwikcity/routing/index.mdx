@@ -68,7 +68,18 @@ src/
             └── index.tsx     # https://example.com/user/foo
 ```
 
-> The folder `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Route Parameter (a part of the URL) that will be used to extract the `[skuId]`.
+> The folder `[username]` can be any of the thousands of users that you have in your database. It would be impractical to create a route for each user. Instead, you need to define a Route Parameter (a part of the URL) that will be used to extract the `[username]`.
+
+```tsx
+// src/routes/user/[username]/index.tsx
+import { component$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const loc = useLocation();
+  return <div>Hello {loc.params.username}!</div>
+});
+```
 
 ## `index.` files
 

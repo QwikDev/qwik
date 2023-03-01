@@ -1,0 +1,17 @@
+{
+  "description": "Use PostCSS in your Qwik app",
+  "devDependencies": {
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.16",
+    "postcss-preset-env": "^8.0.1"
+  },
+  "__qwik__": {
+    "displayName": "Integration: PostCSS (styling)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/postcss/",
+      "https://github.com/postcss/postcss-load-config"
+    ]
+  }
+}

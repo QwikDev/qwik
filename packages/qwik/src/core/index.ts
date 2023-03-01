@@ -58,7 +58,7 @@ export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/dom/render.public';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
-export type { RenderOptions } from './render/dom/render.public';
+export type { RenderOptions, RenderResult } from './render/dom/render.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API

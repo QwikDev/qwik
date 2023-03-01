@@ -1,20 +1,25 @@
 import { isDocument } from '../../util/element';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
-import { domToVnode, visitJsxNode } from './visitor';
+import { cleanupTree, domToVnode, visitJsxNode } from './visitor';
 import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
 import { QContainerAttr } from '../../util/markers';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
-import { directSetAttribute } from '../fast-calls';
+import { directRemoveAttribute, directSetAttribute } from '../fast-calls';
 import { processData, wrapJSX } from './render-dom';
-import { ContainerState, _getContainerState } from '../../container/container';
+import {
+  ContainerState,
+  removeContainerState,
+  _getContainerState,
+} from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
-import { executeDOMRender, printRenderStats, removeNodeSync } from './operations';
+import { executeDOMRender, printRenderStats } from './operations';
 import { logError } from '../../util/log';
 import { appendQwikDevTools } from '../../container/resume';
+import type { RenderContext } from '../types';
 
 /**
  * @alpha
@@ -84,7 +89,7 @@ export const render = async (
 
   return {
     cleanup() {
-      removeNodeSync(renderCtx.$static$, containerEl);
+      cleanupContainer(renderCtx, containerEl);
     },
   };
 };
@@ -126,3 +131,18 @@ export const injectQContainer = (containerEl: Element) => {
   directSetAttribute(containerEl, QContainerAttr, 'resumed');
   directSetAttribute(containerEl, 'q:render', qDev ? 'dom-dev' : 'dom');
 };
+
+function cleanupContainer(renderCtx: RenderContext, container: Element) {
+  const subsManager = renderCtx.$static$.$containerState$.$subsManager$;
+  cleanupTree(container, renderCtx.$static$, subsManager, true);
+
+  removeContainerState(container);
+
+  // Clean up attributes
+  directRemoveAttribute(container, 'q:version');
+  directRemoveAttribute(container, QContainerAttr);
+  directRemoveAttribute(container, 'q:render');
+
+  // Remove children
+  container.replaceChildren();
+}

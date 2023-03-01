@@ -169,10 +169,6 @@ export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualEle
   });
 };
 
-export const removeNodeSync = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
-  _removeNode(el, staticCtx);
-};
-
 const _removeNode = (el: Node | VirtualElement, staticCtx: RenderStaticContext) => {
   const parent = el.parentElement;
   if (parent) {

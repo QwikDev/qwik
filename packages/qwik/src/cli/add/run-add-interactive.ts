@@ -1,15 +1,14 @@
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import prompts from 'prompts';
 import { bgCyan, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
-import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
+import { bye, getPackageManager, panic, printHeader } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
-import { runInPkg, startSpinner } from '../utils/install-deps';
-import { intro, isCancel, select, log } from '@clack/prompts';
+import { runInPkg } from '../utils/install-deps';
+import { intro, isCancel, select, log, spinner, outro } from '@clack/prompts';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   const pkgManager = getPackageManager();
@@ -73,9 +72,10 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
   await result.commit(true);
   const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
   if (postInstall) {
-    const spinner = startSpinner(`Running post install script: ${postInstall}`);
+    const s = spinner();
+    s.start(`Running post install script: ${postInstall}`);
     await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
-    spinner.succeed();
+    s.stop('Post install script complete');
   }
   logUpdateAppCommitResult(result);
 }
@@ -150,11 +150,11 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
 }
 
 function logUpdateAppCommitResult(result: UpdateAppResult) {
-  console.log(
-    `🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`
-  );
-  console.log(``);
+  outro(`🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`);
+
+  // TODO: `logSuccessFooter` returns a string, but we don't use it!
   logSuccessFooter(result.integration.docs);
   const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
+  // TODO: `logNextStep` returns a string, but we don't use it!
   logNextStep(nextSteps);
 }

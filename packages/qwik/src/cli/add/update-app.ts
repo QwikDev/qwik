@@ -3,10 +3,11 @@ import { dirname } from 'node:path';
 import fs from 'node:fs';
 import { panic } from '../utils/utils';
 import { loadIntegrations } from '../utils/integrations';
-import { installDeps, startSpinner } from '../utils/install-deps';
+import { installDeps } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
 import { bgRed, green } from 'kleur/colors';
+import { spinner, log } from '@clack/prompts';
 
 export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
@@ -36,9 +37,14 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const commit = async (showSpinner?: boolean) => {
     const isInstallingDeps = Object.keys(fileUpdates.installedDeps).length > 0;
 
-    const spinner = showSpinner
-      ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
-      : null;
+    const s = spinner();
+    if (showSpinner) {
+      s.start(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`);
+    }
+
+    // const spinner = showSpinner
+    //   ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
+    //   : null;
 
     let passed = true;
     try {
@@ -63,7 +69,9 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       }
 
       await fsWrites;
-      spinner && spinner.succeed();
+
+      showSpinner && s.stop('App updated');
+
       if (!passed) {
         const errorMessage = `\n\n❌ ${bgRed(
           `  ${pkgManager} install failed  `
@@ -71,10 +79,10 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
           `${pkgManager} install`
         )}" manually inside the root of the project.\n\n`;
 
-        console.error(errorMessage);
+        log.error(errorMessage);
       }
     } catch (e) {
-      spinner && spinner.fail();
+      showSpinner && s.stop('App updated');
       panic(String(e));
     }
   };

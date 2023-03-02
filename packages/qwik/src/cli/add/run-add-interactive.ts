@@ -69,17 +69,15 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     installDeps: runInstall,
   });
 
-  const commit = await logUpdateAppResult(pkgManager, result);
-  if (commit) {
-    await result.commit(true);
-    const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
-    if (postInstall) {
-      const spinner = startSpinner(`Running post install script: ${postInstall}`);
-      await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
-      spinner.succeed();
-    }
-    logUpdateAppCommitResult(result);
+  await logUpdateAppResult(pkgManager, result);
+  await result.commit(true);
+  const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
+  if (postInstall) {
+    const spinner = startSpinner(`Running post install script: ${postInstall}`);
+    await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
+    spinner.succeed();
   }
+  logUpdateAppCommitResult(result);
 }
 
 async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
@@ -110,52 +108,45 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   }
 
   if (createFiles.length > 0) {
-    console.log(`🌟 ${cyan(`Create`)}`);
-    for (const f of createFiles) {
-      console.log(`   - ${relative(process.cwd(), f.path)}`);
-    }
-    console.log(``);
+    log.message(
+      [
+        `🌟 ${cyan(`Create`)}`,
+        ...createFiles.map((f) => `   - ${relative(process.cwd(), f.path)}`),
+      ].join('\n')
+    );
   }
 
   if (overwriteFiles.length > 0) {
-    console.log(`🐳 ${cyan(`Overwrite`)}`);
-    for (const f of overwriteFiles) {
-      console.log(`   - ${relative(process.cwd(), f.path)}`);
-    }
-    console.log(``);
-  }
-
-  if (installDeps) {
-    console.log(
-      `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`
+    log.message(
+      [
+        `🐳 ${cyan(`Overwrite`)}`,
+        ...overwriteFiles.map((f) => `   - ${relative(process.cwd(), f.path)}`),
+      ].join('\n')
     );
-    installDepNames.forEach((depName) => {
-      console.log(`   - ${depName} ${result.updates.installedDeps[depName]}`);
-    });
-    console.log(``);
   }
 
-  const commitAnswer = await prompts(
-    {
-      type: 'select',
-      name: 'commit',
-      message: `Ready to apply the ${bold(magenta(result.integration.id))} updates to your app?`,
-      choices: [
-        { title: 'Yes looks good, finish update!', value: true },
-        { title: 'Nope, cancel update', value: false },
-      ],
-      hint: ' ',
-    },
-    {
-      onCancel: () => {
-        console.log(``);
-        process.exit(0);
-      },
-    }
-  );
-  console.log(``);
+  if (installDepNames) {
+    log.message(
+      [
+        `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
+        ...installDepNames.map(
+          (depName) => `   - ${depName} ${result.updates.installedDeps[depName]}`
+        ),
+      ].join('\n')
+    );
+  }
 
-  return commitAnswer.commit as boolean;
+  const commit = await select({
+    message: `Ready to apply the ${bold(magenta(result.integration.id))} updates to your app?`,
+    options: [
+      { label: 'Yes looks good, finish update!', value: true },
+      { label: 'Nope, cancel update', value: false },
+    ],
+  });
+
+  if (isCancel(commit) || !commit) {
+    bye();
+  }
 }
 
 function logUpdateAppCommitResult(result: UpdateAppResult) {

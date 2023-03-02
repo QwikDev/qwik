@@ -68,8 +68,6 @@ export const DocSearch = component$((props: DocSearchProps) => {
 
   useBrowserVisibleTask$(() => {
     window.addEventListener('keydown', (event) => {
-      event.preventDefault();
-
       function open() {
         // We check that no other DocSearch modal is showing before opening
         // another one.
@@ -85,6 +83,8 @@ export const DocSearch = component$((props: DocSearchProps) => {
         // a character.
         (!isEditingContent(event) && event.key === '/' && !state.isOpen)
       ) {
+        event.preventDefault();
+
         if (state.isOpen) {
           state.isOpen = false;
         } else if (!document.body.classList.contains('DocSearch--active')) {

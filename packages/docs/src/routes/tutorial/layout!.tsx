@@ -15,13 +15,13 @@ export default component$(() => {
   useStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
-  const { pathname } = useLocation();
+  const { url } = useLocation();
   const panelStore = useStore(() => ({
     active: 'Tutorial',
     list: PANELS,
   }));
   const store = useStore<TutorialStore>(() => {
-    const p = pathname.split('/');
+    const p = url.pathname.split('/');
     const appId = `${p[2]}/${p[3]}`;
     const t = getTutorial(appId)!;
 

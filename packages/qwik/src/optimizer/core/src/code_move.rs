@@ -30,6 +30,7 @@ pub struct NewModuleCtx<'a> {
     pub local_idents: &'a [Id],
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
+    pub core_module: &'a JsWord,
     pub is_entry: bool,
     pub need_handle_watch: bool,
     pub need_transform: bool,
@@ -55,7 +56,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         let new_local = id!(private_ident!(&USE_LEXICAL_SCOPE.clone()));
         module
             .body
-            .push(create_synthetic_named_import(&new_local, &BUILDER_IO_QWIK));
+            .push(create_synthetic_named_import(&new_local, ctx.core_module));
         Some(new_local)
     } else {
         None
@@ -154,7 +155,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
     module.body.push(create_named_export(expr, ctx.name));
     if ctx.need_handle_watch {
         // Inject qwik internal import
-        add_handle_watch(&mut module.body);
+        add_handle_watch(&mut module.body, ctx.core_module);
     }
     Ok((module, comments))
 }
@@ -229,6 +230,7 @@ fn test_fix_path() {
 
 pub fn generate_entries(
     mut output: TransformOutput,
+    core_module: &JsWord,
     explicit_extensions: bool,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
@@ -246,7 +248,7 @@ pub fn generate_entries(
         }
 
         for (entry, hooks) in &entries_map {
-            let module = new_entry_module(hooks, explicit_extensions);
+            let module = new_entry_module(hooks, core_module, explicit_extensions);
             let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false)
                 .context("Emitting source code")?;
             new_modules.push(TransformModule {
@@ -264,7 +266,11 @@ pub fn generate_entries(
     Ok(output)
 }
 
-fn new_entry_module(hooks: &[&HookAnalysis], explicit_extensions: bool) -> ast::Module {
+fn new_entry_module(
+    hooks: &[&HookAnalysis],
+    core_module: &JsWord,
+    explicit_extensions: bool,
+) -> ast::Module {
     let mut module = ast::Module {
         span: DUMMY_SP,
         body: Vec::with_capacity(hooks.len()),
@@ -304,7 +310,7 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicit_extensions: bool) -> ast::
             )));
     }
     if need_handle_watch {
-        add_handle_watch(&mut module.body);
+        add_handle_watch(&mut module.body, core_module);
     }
     module
 }

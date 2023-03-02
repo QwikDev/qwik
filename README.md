@@ -14,8 +14,12 @@ As users interact with the site, only the necessary parts of the site load on-de
 
 ## Getting Started
 
-```shell
+```sh
 npm create qwik@latest
+# or
+pnpm create qwik@latest
+# or
+yarn create qwik@latest
 ```
 
 - Understand the difference between [resumable and replayable](https://qwik.builder.io/docs/concepts/resumable/) applications.

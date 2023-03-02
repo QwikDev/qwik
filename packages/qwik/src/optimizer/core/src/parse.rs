@@ -5,6 +5,7 @@ use std::hash::Hasher;
 use std::path::{Component, Path, PathBuf};
 use std::str;
 
+use crate::add_side_effect::SideEffectVisitor;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
@@ -82,11 +83,12 @@ pub struct TransformCodeOptions<'a> {
     pub mode: EmitMode,
     pub scope: Option<&'a String>,
     pub entry_strategy: EntryStrategy,
+    pub core_module: JsWord,
 
     pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
     pub is_server: Option<bool>,
 }
 
@@ -279,9 +281,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         ));
                     }
 
-                    // Resolve imports
-                    main_module.visit_mut_with(&mut inlining(Default::default()));
-
                     // Resolve with mark
                     main_module.visit_mut_with(&mut resolver(
                         unresolved_mark,
@@ -289,10 +288,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         is_type_script && !transpile_ts,
                     ));
 
+                    if transpile_ts {
+                        main_module.visit_mut_with(&mut inlining(Default::default()));
+                    }
+
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
 
-                    transform_props_destructuring(&mut main_module, &mut collect);
+                    transform_props_destructuring(
+                        &mut main_module,
+                        &mut collect,
+                        &config.core_module,
+                    );
 
                     // Replace const values
                     if let Some(is_server) = config.is_server {
@@ -312,10 +319,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         global_collect: collect,
                         scope: config.scope,
                         mode: config.mode,
+                        core_module: config.core_module,
                         entry_strategy: config.entry_strategy,
                         reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
-                        strip_ctx_kind: config.strip_ctx_kind,
+                        strip_event_handlers: config.strip_event_handlers,
                     });
 
                     // Run main transform
@@ -325,6 +333,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         main_module = main_module.fold_with(&mut simplify::simplifier(
                             unresolved_mark,
                             Default::default(),
+                        ));
+                    }
+                    if matches!(
+                        config.entry_strategy,
+                        EntryStrategy::Inline | EntryStrategy::Hoist
+                    ) {
+                        main_module.visit_mut_with(&mut SideEffectVisitor::new(
+                            &qwik_transform.options.global_collect,
                         ));
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
@@ -349,6 +365,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             need_transform: h.data.need_transform,
                             explicit_extensions: qwik_transform.options.explicit_extensions,
                             global: &qwik_transform.options.global_collect,
+                            core_module: &qwik_transform.options.core_module,
                             need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),
@@ -683,11 +700,11 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 }
 
 pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
-    if matches!(ctx_kind, HookKind::Event) {
+    if !matches!(ctx_kind, HookKind::Function) {
         return false;
     }
     matches!(
         ctx_name,
-        "useTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
+        "useTask$" | "useVisibleTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
     )
 }

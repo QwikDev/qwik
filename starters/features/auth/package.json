@@ -1,12 +1,19 @@
 {
   "description": "Authentication plugin for using battle-tested Auth.js (aka NextAuth)",
   "devDependencies": {
-    "@builder.io/qwik-auth": "0.0.2",
+    "@builder.io/qwik-auth": "0.0.3",
     "@auth/core": "^0.4.0"
   },
   "__qwik__": {
     "displayName": "Integration: Auth.js (authentication)",
     "priority": -10,
+    "viteConfig": {
+      "optimizeDeps": {
+        "include": [
+          "@auth/core"
+        ]
+      }
+    },
     "docs": [
       "https://authjs.dev/"
     ]

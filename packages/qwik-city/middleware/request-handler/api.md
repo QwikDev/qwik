@@ -15,6 +15,7 @@ import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { _serializeData } from '@builder.io/qwik';
+import type { ValueOrPromise } from '@builder.io/qwik';
 import type { _verifySerializable } from '@builder.io/qwik';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
@@ -83,6 +84,7 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 
 // @alpha (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+    readonly basePathname: string;
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -96,6 +98,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly locale: (local?: string) => string;
     readonly method: string;
     readonly params: Readonly<Record<string, string>>;
+    readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;

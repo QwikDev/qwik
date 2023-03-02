@@ -251,7 +251,7 @@ export const _pauseFromContexts = async (
           }
         }
         if (isResourceTask(watch)) {
-          collector.$resources$.push(watch.$resource$);
+          collector.$resources$.push(watch.$state$);
         }
         destroyWatch(watch);
       }
@@ -700,8 +700,11 @@ export const collectElementData = (
     }
   }
   if (elCtx.$watches$) {
+    const map = collector.$containerState$.$subsManager$.$groupToManagers$;
     for (const obj of elCtx.$watches$) {
-      collectValue(obj, collector, dynamicCtx);
+      if (map.has(obj)) {
+        collectValue(obj, collector, dynamicCtx);
+      }
     }
   }
 
@@ -838,11 +841,11 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
           }
           if (isArray(obj)) {
             for (let i = 0; i < obj.length; i++) {
-              collectValue(obj[i], collector, leaks);
+              collectValue(input[i], collector, leaks);
             }
           } else if (isSerializableObject(obj)) {
             for (const key of Object.keys(obj)) {
-              collectValue(obj[key], collector, leaks);
+              collectValue(input[key], collector, leaks);
             }
           }
         }

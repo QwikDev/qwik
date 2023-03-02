@@ -7,7 +7,7 @@
 /// <reference types="node" />
 
 import type { IncomingMessage } from 'node:http';
-import type { Render } from '@builder.io/qwik/server';
+import { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';

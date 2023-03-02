@@ -20,7 +20,7 @@ export default component$(() => {
                     <Link
                       href={item.href}
                       class={{
-                        'is-active': loc.pathname === item.href,
+                        'is-active': loc.url.pathname === item.href,
                       }}
                     >
                       {item.text}

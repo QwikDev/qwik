@@ -26,7 +26,14 @@ export const Parent = component$(() => {
     });
 
     return (
-        <div onClick$={() => console.log('parent', state, threejs)}>
+        <div
+            shouldRemove$={() => state.text}
+            onClick$={() => console.log('parent', state, threejs)}
+        >
+            <Div
+                onClick$={() => console.log('keep')}
+                render$={() => state.text}
+            />
             {state.text}
         </div>
     );
@@ -40,7 +47,9 @@ import { _noopQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _IMMUTABLE } from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
+import { jsx as _jsx, jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const state = useStore({
@@ -53,16 +62,34 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
     // Code
     }, "Parent_component_useTask_gDH1EtUWqBU"));
-    return /*#__PURE__*/ _jsx("div", {
+    return /*#__PURE__*/ _jsxs("div", {
+        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_I54ho17NmvA", [
+            state
+        ]),
         onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
             state
         ]),
-        children: _wrapSignal(state, "text")
-    }, "u6_0");
+        children: [
+            /*#__PURE__*/ _jsx(Div, {
+                onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_EHccsZgCcqc"),
+                render$: /*#__PURE__*/ inlinedQrl(()=>{
+                    const [state] = useLexicalScope();
+                    return state.text;
+                }, "Parent_component_div_Div_render_0CCbw3B0hdw", [
+                    state
+                ]),
+                [_IMMUTABLE]: {
+                    onClick$: _IMMUTABLE,
+                    render$: _IMMUTABLE
+                }
+            }, "u6_0"),
+            _wrapSignal(state, "text")
+        ]
+    }, "u6_1");
 }, "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,KAAC;QAAI,QAAQ;;;8BACR;;AAGb,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,MAAC;QACG,aAAa;;;QACb,QAAQ;;;;0BAER,KAAC;gBACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;gBAC5B,OAAO,2BAAE;;2BAAM,MAAM,IAAI;;;;;oBADzB,QAAQ;oBACR,OAAO;;;wBAEV;;;AAGb,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
-import { action$, Form } from '@builder.io/qwik-city';
+import { Form, globalAction$ } from '@builder.io/qwik-city';
 
-export const useOtherAction = action$(() => {
+export const useOtherAction = globalAction$(() => {
   return {
     secret: 'this is the secret',
     date: new Date(),

@@ -300,8 +300,10 @@ export { jsx as jsxs }
 // @internal (undocumented)
 export const _jsxBranch: (input?: any) => any;
 
+// Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
+//
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -912,10 +914,10 @@ export interface Tracker {
 // @alpha (undocumented)
 export const untrack: <T>(fn: () => T) => T;
 
-// @public
+// @alpha @deprecated (undocumented)
 export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
-// @public
+// @alpha @deprecated (undocumented)
 export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @alpha @deprecated
@@ -935,6 +937,16 @@ export const useClientMount$: <T>(first: MountFn<T>) => void;
 
 // @public @deprecated
 export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
+
+// Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useComputed$: Computed;
+
+// Warning: (ae-forgotten-export) The symbol "ComputedQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useComputedQrl: ComputedQRL;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //
@@ -1048,6 +1060,12 @@ export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 // @alpha @deprecated (undocumented)
 export const useUserContext: typeof useServerData;
 
+// @public
+export const useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @public
+export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
 // @beta @deprecated (undocumented)
 export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
@@ -1073,6 +1091,9 @@ export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partia
 //
 // @internal
 export function withLocale<T>(locale: string, fn: () => T): T;
+
+// @internal (undocumented)
+export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // @internal (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;

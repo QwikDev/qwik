@@ -12,9 +12,9 @@ Rather than showing a blank page, by default Qwik City provides a generic 404 pa
 
 ### Custom 404 Page
 
-Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familar layouts as the rest of your site. 
+Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familar layouts as the rest of your site.
 
-To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory. 
+To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory.
 
 ```
 src/
@@ -50,6 +50,9 @@ For example, let's say we have a product page with a URL such as `https://exampl
 In this example, `id` is used as a key to load the product data from the database. When the product data is found, great, we'll correctly render data. However, if the product data is not found in the database, we can still handle rendering this page, but instead responding with a 404 HTTP status code.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { loader$ } from '@builder.io/qwik-city';
+
 export const useProductLoader = loader$(async ({ params, status }) => {
   // Example database call using the id param
   // The database could return null if the product is not found
@@ -72,11 +75,7 @@ export default component$(() => {
   if (!product.value) {
     // no product data found
     // so render our own custom product 404
-    return (
-      <p>
-        Sorry, looks like we don't have this product.
-      </p>
-    )
+    return <p>Sorry, looks like we don't have this product.</p>;
   }
 
   // product data was found, so let's render it
@@ -185,6 +184,8 @@ In this case, the layouts will nest each other with the page within each of them
 
 ```tsx
 // File: src/routes/layout.tsx
+import { component$ } from '@builder.io/qwik';
+
 export default component$(() => {
   return (
     <main>
@@ -196,6 +197,8 @@ export default component$(() => {
 
 ```tsx
 // File: src/routes/about/layout.tsx
+import { component$ } from '@builder.io/qwik';
+
 export default component$(() => {
   return (
     <section>
@@ -207,6 +210,8 @@ export default component$(() => {
 
 ```tsx
 // File: src/routes/about/index.tsx
+import { component$ } from '@builder.io/qwik';
+
 export default component$(() => {
   return <h1>About</h1>;
 });

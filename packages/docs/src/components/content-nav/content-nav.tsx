@@ -6,7 +6,7 @@ export const ContentNav = component$(() => {
   useStyles$(styles);
 
   const { menu } = useContent();
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
   if (!menu) {
     return null;
@@ -14,8 +14,8 @@ export const ContentNav = component$(() => {
 
   const items = flattenMenu(menu);
 
-  const prev = getNav(items, pathname, -1);
-  const next = getNav(items, pathname, 1);
+  const prev = getNav(items, url.pathname, -1);
+  const next = getNav(items, url.pathname, 1);
 
   return (
     <nav class="content-nav border-t border-slate-300 flex flex-wrap py-4">

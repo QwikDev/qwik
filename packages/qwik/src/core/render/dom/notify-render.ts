@@ -7,9 +7,9 @@ import {
   runSubscriber,
   SubscriberEffect,
   WatchFlagsIsDirty,
-  WatchFlagsIsEffect,
+  WatchFlagsIsVisibleTask,
   WatchFlagsIsResource,
-  WatchFlagsIsWatch,
+  WatchFlagsIsTask,
 } from '../../use/use-task';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
@@ -21,7 +21,7 @@ import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
-import { getPlatform, isServer } from '../../platform/platform';
+import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
 import { isQwikElement } from '../../util/element';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
@@ -56,7 +56,7 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
  *
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const server = isServer();
+  const server = isServerPlatform();
   if (!server) {
     resumeIfNeeded(containerState.$containerEl$);
   }
@@ -220,7 +220,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   const hostElements = rCtx.$static$.$hostElements$;
 
   await executeWatchesAfter(containerState, rCtx, (watch, stage) => {
-    if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
+    if ((watch.$flags$ & WatchFlagsIsVisibleTask) === 0) {
       return false;
     }
     if (stage) {
@@ -252,7 +252,7 @@ const executeWatchesBefore = async (containerState: ContainerState, rCtx: Render
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
-  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
+  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsTask) !== 0;
   const isResourceWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {

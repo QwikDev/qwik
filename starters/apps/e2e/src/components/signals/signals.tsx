@@ -5,7 +5,7 @@ import {
   Signal,
   useSignal,
   useStore,
-  useBrowserVisibleTask$,
+  useVisibleTask$,
   useTask$,
   Slot,
   useStyles$,
@@ -42,7 +42,7 @@ export const Signals = component$(() => {
 
   const styles = useSignal('body { background: white}');
 
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     ref.current!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });
@@ -105,6 +105,8 @@ export const Signals = component$(() => {
       <Issue2311 />
       <Issue2344 />
       <Issue2928 />
+      <Issue2930 />
+      <Issue3212 />
     </div>
   );
 });
@@ -629,6 +631,76 @@ export const FormDebug = component$<{ ctrl: any }>((props) => {
     <div>
       value:{' this_breaks!! '} -<>{props.ctrl.value} </>
       <>{props.ctrl.value + ''} </>
+    </div>
+  );
+});
+
+export const Issue2930 = component$(() => {
+  const group = useStore(
+    {
+      controls: {
+        ctrl: {
+          value: '',
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+
+  return (
+    <div>
+      <div>Type into input field:</div>
+      <input
+        id="issue-2930-input"
+        style="border: 1px solid black"
+        type="text"
+        value={group.controls.ctrl.value}
+        onInput$={(e) => {
+          const val = (e.target as HTMLInputElement).value;
+          group.controls.ctrl.value = val;
+        }}
+      />
+      <Stringify data={group} />
+
+      <Stringify data={group.controls} />
+
+      <Stringify data={group.controls.ctrl} />
+
+      <Stringify data={group.controls.ctrl.value} />
+    </div>
+  );
+});
+
+export const Stringify = component$<{
+  data: any;
+  style?: any;
+}>((props) => {
+  return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
+});
+
+export const Issue3212Child = component$((props: { signal: Signal<number> }) => {
+  return <>{props.signal.value}</>;
+});
+
+export function useMySignal() {
+  const signal = useSignal<number>(1);
+  return { signal };
+}
+
+export const Issue3212 = component$(() => {
+  const stuff = useMySignal();
+  const signal = stuff.signal;
+  return (
+    <div>
+      <h2>Issue3212</h2>
+      <div id="issue-3212-result-0">
+        <Issue3212Child signal={stuff.signal} />
+      </div>
+      <div id="issue-3212-result-1">{stuff.signal.value}</div>
+      <div id="issue-3212-result-2">{stuff.signal}</div>
+      <div id="issue-3212-result-3">{signal}</div>
     </div>
   );
 });

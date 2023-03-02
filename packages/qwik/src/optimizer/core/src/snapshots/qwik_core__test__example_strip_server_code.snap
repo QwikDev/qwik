@@ -139,7 +139,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
   "extension": "js",
   "parent": "Parent_component_0TaiDayHrlo",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [

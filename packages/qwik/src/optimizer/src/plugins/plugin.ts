@@ -32,8 +32,17 @@ const SERVER_STRIP_EXPORTS = [
   'onStaticGenerate',
 ];
 
-const SERVER_STRIP_CTX_NAME = ['useServer', 'server', 'action$', 'loader$', 'zod$'];
-const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'client', 'browser'];
+const SERVER_STRIP_CTX_NAME = [
+  'useServer',
+  'route',
+  'server',
+  'action$',
+  'loader$',
+  'zod$',
+  'validator$',
+  'globalAction$',
+];
+const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'];
 export interface QwikPackages {
   id: string;
   path: string;
@@ -358,7 +367,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
         transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
-        transformOpts.stripCtxKind = 'event';
+        transformOpts.stripEventHandlers = true;
         transformOpts.isServer = true;
         transformOpts.regCtxName = REG_CTX_NAME;
       }
@@ -560,7 +569,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (strip) {
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
-          transformOpts.stripCtxKind = 'event';
+          transformOpts.stripEventHandlers = true;
           transformOpts.entryStrategy = { type: 'hoist' };
           transformOpts.regCtxName = REG_CTX_NAME;
           transformOpts.isServer = true;
@@ -583,7 +592,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         results.set(normalizedID, newOutput);
       }
-      const deps: string[] = [];
+      const deps = new Set();
       for (const mod of newOutput.modules) {
         if (mod.isEntry) {
           const key = normalizePath(path.join(srcDir, mod.path));
@@ -592,7 +601,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           } else {
             transformedOutputs.set(key, [mod, id]);
           }
-          deps.push(key);
+          deps.add(key);
         }
       }
       if (isSSR && strip) {
@@ -627,6 +636,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             const key = normalizePath(path.join(srcDir, mod.path));
             ctx.addWatchFile(key);
             transformedOutputs.set(key, [mod, id]);
+            deps.add(key);
           }
         }
       }
@@ -637,7 +647,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         map: module.map,
         meta: {
           hook: module.hook,
-          qwikdeps: deps,
+          qwikdeps: Array.from(deps),
         },
       };
     }

@@ -1,6 +1,7 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
-import { getPlatform, isServer } from '../platform/platform';
+import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
+import { isSignal, SignalInternal } from '../state/signal';
 import {
   InvokeContext,
   newInvokeContext,
@@ -92,7 +93,11 @@ export const createQRL = <TYPE>(
     return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
-  const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
+  function invokeFn(
+    this: any,
+    currentCtx?: InvokeContext | InvokeTuple,
+    beforeFn?: () => void | boolean
+  ) {
     return ((...args: any[]): any => {
       const start = now();
       const fn = resolveLazy() as TYPE;
@@ -107,12 +112,12 @@ export const createQRL = <TYPE>(
             $qrl$: QRL as QRLInternal<any>,
           };
           emitUsedSymbol(symbol, context.$element$, start);
-          return invoke(context, fn as any, ...args);
+          return invoke.call(this, context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
       });
     }) as any;
-  };
+  }
 
   const createInvokationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
@@ -124,8 +129,8 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const invokeQRL = async function (...args: any) {
-    const fn = invokeFn();
+  const invokeQRL = async function (this: any, ...args: any) {
+    const fn = invokeFn.call(this);
     const result = await fn(...args);
     return result;
   };
@@ -171,6 +176,14 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
+export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
+  if (qDev) {
+    if (!isSignal(obj)) {
+      throw new Error('Not a Signal');
+    }
+  }
+}
+
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
   emitEvent('qsymbol', {
     symbol,
@@ -180,7 +193,7 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
 };
 
 export const emitEvent = (eventName: string, detail: any) => {
-  if (!qTest && !isServer() && typeof document === 'object') {
+  if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
@@ -191,7 +204,7 @@ export const emitEvent = (eventName: string, detail: any) => {
 };
 
 const now = () => {
-  if (qTest || isServer()) {
+  if (qTest || isServerPlatform()) {
     return 0;
   }
   if (typeof performance === 'object') {

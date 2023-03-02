@@ -1,4 +1,4 @@
-import color from 'kleur';
+import { bgRed, green, red } from 'kleur/colors';
 import fs from 'node:fs';
 import ora from 'ora';
 import os from 'node:os';
@@ -105,9 +105,9 @@ export function backgroundInstallDeps(
           spinner.succeed();
           success = true;
         } else {
-          const errorMessage = `\n\n${color.bgRed(
+          const errorMessage = `\n\n${bgRed(
             `  ${pkgManager} install failed  `
-          )}\n  Automatic install failed. "${color.green(
+          )}\n  Automatic install failed. "${green(
             `${pkgManager} install`
           )}" must be manually executed to install deps.\n`;
 
@@ -138,7 +138,7 @@ function setupTmpInstall(baseApp: IntegrationData) {
   try {
     fs.mkdirSync(tmpInstallDir);
   } catch (e) {
-    console.error(`\n❌ ${color.red(String(e))}\n`);
+    console.error(`\n❌ ${red(String(e))}\n`);
   }
 
   const basePkgJson = path.join(baseApp.dir, 'package.json');

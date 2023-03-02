@@ -75,9 +75,9 @@ Use the [`useLocation()`](/qwikcity/api/index.mdx#uselocation) function to retri
 ```tsx
 export interface RouteLocation {
   readonly params: RouteParams; // Record<string,string>
-  readonly href: string;
-  readonly pathname: string;
-  readonly query: Record<string, string>;
+  readonly href: string; // @deprecated Use `url` instead
+  readonly pathname: string; // @deprecated Use `url` instead
+  readonly query: Record<string, string>; // @deprecated Use `url` instead
   readonly isNavigating: boolean;
   readonly url: URL;
 }
@@ -91,11 +91,12 @@ The return value of [`useLocation()`](/qwikcity/api/index.mdx#uselocation) is si
 
 Assume you have:
 
-- Route: `https://example.com/sku/[skuId]`
+- File: `src/routes/sku/[skuId]/index.tsx`
 - User navigates to: `https://example.com/sku/1234`
-- Then the `skuId` can be retrieved through `useLocation().params.skuId`.
+- Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
 ```tsx
+// src/routes/sku/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -116,8 +117,40 @@ The above code would generate:
 
 ```html
 <h1>SKU</h1>
-<p>pathname: /sku/1234</p>
+<p>pathname: /sku/1234/</p>
 <p>skuId: 1234</p>
+```
+
+You can also use `...` syntax to indicate deeply nested child routes. For example:
+
+- File: `src/routes/post/[...all]/index.tsx`
+- User navigates to: `https://example.com/post/2023/id/title`
+- Then the `all` can be retrieved through `useLocation().params.all`
+
+```tsx
+// src/routes/post/[...all]/index.tsx
+import { component$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const loc = useLocation();
+
+  return (
+    <>
+      <h1>POST</h1>
+      <p>pathname: {loc.url.pathname}</p>
+      <p>all: {loc.params.all}</p>
+    </>
+  );
+});
+```
+
+The above code would generate:
+
+```html
+<h1>POST</h1>
+<p>pathname: /post/2023/id/title/</p>
+<p>all: 2023/id/title</p>
 ```
 
 > Notice that `useLocation` is a read-only API, you should never attempt to mutate the values of the `loc` object returned. Instead look into the `useNavigate()` API.

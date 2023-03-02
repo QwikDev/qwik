@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bgCyan, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
+import { bgBlue, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
 import { bye, getPackageManager, panic, printHeader } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
@@ -25,10 +25,10 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
       throw new Error(`Invalid integration: ${id}`);
     }
 
-    intro(`🦋 ${bgCyan(` Add Integration `)} ${bold(magenta(integration.id))}`);
+    intro(`🦋 ${bgBlue(` Add Integration `)} ${bold(magenta(integration.id))}`);
   } else {
     // use interactive cli to choose which integration to add
-    intro(`🦋 ${bgCyan(` Add Integration `)}`);
+    intro(`🦋 ${bgBlue(` Add Integration `)}`);
 
     const integrationChoices = [
       ...integrations.filter((i) => i.type === 'adapter'),
@@ -96,7 +96,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     panic(`No updates made`);
   }
 
-  log.step(`👻 ${bgCyan(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
+  log.step(`👻 ${bgBlue(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
 
   if (modifyFiles.length > 0) {
     log.message(

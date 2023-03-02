@@ -5,7 +5,7 @@ import {
   JSXNode,
   SkipRender,
   useContext,
-  useOnWindow,
+  useOnDocument,
   _IMMUTABLE,
   _jsxBranch,
 } from '@builder.io/qwik';
@@ -18,7 +18,7 @@ import { ContentInternalContext } from './contexts';
 export const RouterOutlet = component$(() => {
   _jsxBranch();
 
-  useOnWindow(
+  useOnDocument(
     'qinit',
     $(() => {
       const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';

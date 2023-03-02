@@ -6,7 +6,7 @@ import {
   useContext,
   Slot,
   useSignal,
-  useBrowserVisibleTask$,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 
 export interface ContextI {
@@ -154,7 +154,7 @@ export const Issue1971Provider = component$(() => {
 
 export const Issue1971Child = component$(() => {
   const show = useSignal(false);
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     show.value = true;
   });
   return (

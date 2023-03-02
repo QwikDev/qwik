@@ -52,6 +52,7 @@ import { componentQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -82,7 +83,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         ...rest,
         children: _wrapSignal(props, "count"),
         [_IMMUTABLE]: {
-            class: _wrapSignal(props, "count")
+            class: _wrapProp(props, "count")
         }
     }, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
@@ -116,7 +117,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,SAKf;;;;;;;IACb,QAAQ,GAAG,OAFX,aAFA,QAAO;IAKP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAPV;QAQI,QAAQ,GAAG,OARf,OAQuB,YALvB,aAFA,QAAO;;;;;IASP,qBACI,KAAC;QAAI,IAAI,QAVb,QAAO;QAUc,QAAQ;YAAE,IAAI,QAVnC,QAAO;QAU6B;YAAG;yBAXvC;;QAWsD,GAAG,IAAI;;;YAAtB,KAAK;;;AAEhD,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,SAKf;;;;;;;IACb,QAAQ,GAAG,OAFX,aAFA,QAAO;IAKP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAPV;QAQI,QAAQ,GAAG,OARf,OAQuB,YALvB,aAFA,QAAO;;;;;IASP,qBACI,KAAC;QAAI,IAAI,QAVb,QAAO;QAUc,QAAQ;YAAE,IAAI,QAVnC,QAAO;QAU6B;YAAG;yBAXvC;;QAWsD,GAAG,IAAI;;;YAAtB,KAAK;;;AAEhD,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

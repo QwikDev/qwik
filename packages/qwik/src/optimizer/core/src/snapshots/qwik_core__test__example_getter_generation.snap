@@ -52,6 +52,7 @@ import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { _wrapProp } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
     return /*#__PURE__*/ _jsxs(_Fragment, {
@@ -62,7 +63,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
                 },
                 children: _wrapSignal(props.nested, "count"),
                 [_IMMUTABLE]: {
-                    "data-value": _wrapSignal(props, "count")
+                    "data-value": _wrapProp(props, "count")
                 }
             }),
             /*#__PURE__*/ _jsxs("p", {
@@ -77,7 +78,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;oBAAE;2BAAY,MAAM,KAAK;;sCAAG,MAAM,MAAM;;oBAAtC,YAAU,cAAE;;;0BACf,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAwB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;oBAAE;2BAAY,MAAM,KAAK;;sCAAG,MAAM,MAAM;;oBAAtC,YAAU,YAAE;;;0BACf,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -102,7 +103,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Cmp } from "./test";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const store = useStore({
@@ -125,15 +126,15 @@ export const App_component_ckEPmXZlub0 = ()=>{
         store: store.stuff + 12,
         [_IMMUTABLE]: {
             prop: _IMMUTABLE,
-            count: _wrapSignal(store, "count"),
-            nested: _wrapSignal(store.nested, "count"),
+            count: _wrapProp(store, "count"),
+            nested: _wrapProp(store.nested, "count"),
             signal: _IMMUTABLE
         }
     }, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;QACR,OAAO,MAAM,KAAK,GAAG;;YAJrB,IAAI;YACJ,KAAK,cAAE;YACP,MAAM,cAAE,MAAM,MAAM;YACpB,MAAM;;;AAKlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;QACR,OAAO,MAAM,KAAK,GAAG;;YAJrB,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;;;AAKlB\"}")
 /*
 {
   "origin": "test.tsx",

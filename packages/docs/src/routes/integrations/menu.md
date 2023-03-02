@@ -9,6 +9,7 @@
 - [Styled-Vanilla-Extract](integration/styled-vanilla-extract/index.mdx)
 - [Tailwind CSS](integration/tailwind/index.mdx)
 - [Vitest](integration/vitest/index.mdx)
+- [Auth.js](integration/authjs/index.mdx)
 
 ## Deployments
 

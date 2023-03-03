@@ -5,11 +5,13 @@ import { bgBlue } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
-import { getPackageManager, note } from '../qwik/src/cli/utils/utils';
+import { getPackageManager, note, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+
+  await wait(500);
 
   const defaultProjectName = './qwik-app';
   const projectNameAnswer =

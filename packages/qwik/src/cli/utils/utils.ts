@@ -16,6 +16,10 @@ export async function writePackageJson(dir: string, pkgJson: IntegrationPackageJ
   await fs.promises.writeFile(path, JSON.stringify(pkgJson, null, 2) + '\n');
 }
 
+export function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
   srcPkg = { ...srcPkg };
 

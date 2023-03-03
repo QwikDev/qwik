@@ -95,7 +95,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
           success = true;
         } else {
           const errorMessage =
-            `${bgRed(` ${pkgManager} install failed `)}\n\n` +
+            `${bgRed(` ${pkgManager} install failed `)}\n` +
             ` You might need to run ${cyan(
               `"${pkgManager} install"`
             )} manually inside the root of the project.\n\n`;

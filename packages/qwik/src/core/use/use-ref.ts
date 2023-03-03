@@ -28,7 +28,7 @@ export interface Ref<T = Element> {
  * const Cmp = component$(() => {
  *   const input = useRef<HTMLInputElement>();
  *
- *   useBrowserVisibleTask$(({ track }) => {
+ *   useVisibleTask$(({ track }) => {
  *     const el = track(() => input.current)!;
  *     el.focus();
  *   });

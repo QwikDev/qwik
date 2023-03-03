@@ -97,11 +97,11 @@ When using the `if typeof window !== "undefined"` pattern you'll soon find it wi
 ```ts
 const location = useLocation();
 
-if (location.href.includes('foo')) {
+if (location.url.href.includes('foo')) {
   // Do the thing
 }
 //OR
-doTheThing(location.query);
+doTheThing(location.url.searchParams);
 ```
 
 ## EXCEPTION

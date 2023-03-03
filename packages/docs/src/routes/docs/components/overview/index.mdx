@@ -110,13 +110,13 @@ For a detailed discussion of reactivity, see related discussion.
 Qwik provides the ability to store a reference to any component. To do so, you have to create a signal and pass the signal as `ref` attribute to the component. After the component was mounted, the reference has been stored on the signal. Have a look at the example below:
 
 ```tsx
-import { component$, useBrowserVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const width = useSignal(0);
   const height = useSignal(0);
   const outputRef = useSignal<Element>();
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     if (outputRef.value) {
       const rect = outputRef.value.getBoundingClientRect();
       width.value = Math.round(rect.width);
@@ -226,7 +226,7 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 - [`useTask$()`](../lifecycle/index.mdx#usetask) - defines a callback that will be called before render and/or when a watched store changes
 - [`useResource$()`](../resource/index.mdx) - creates a resource to asyncronously load data
-- [`useBrowserVisibleTask$()`](../lifecycle/index.mdx#usebrowservisibletask) - defines a callback that will be called after render in the client only (browser)
+- [`useVisibleTask$()`](../lifecycle/index.mdx#usebrowservisibletask) - defines a callback that will be called after render in the client only (browser)
 
 ### Other
 

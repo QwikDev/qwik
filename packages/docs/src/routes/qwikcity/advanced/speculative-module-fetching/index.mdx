@@ -8,7 +8,7 @@ contributors:
 
 # Speculative Module Fetching
 
-Qwik is able to load a page and become interactive extremely fast is due to its ability to startup _without_ JavaScript. In addition to this, Speculative Module Fetching is a powerful feature that allows Qwik to pre-populate the browser's caching in a background thread.
+Qwik is able to load page and become interactive extremely fast due to its ability to startup _without_ JavaScript. In addition to this, Speculative Module Fetching is a powerful feature that allows Qwik to pre-populate the browser's cache in a background thread.
 
 The goal of Qwik is not to pre-populate the cache with the entire application, but to have already cached what's possible _at that time_. When the Qwik optimizer breaks apart the application, it's able to understand possible user interactions. And from this, it's just as important that it's able to understand what's not possible from user interaction, and to not bother loading those bundles.
 
@@ -18,7 +18,7 @@ The goal of Qwik is not to pre-populate the cache with the entire application, b
 
 ### Pre-populating the Cache Per Page
 
-Each page load will pre-populate the cache with bundles that _could_ be executed by the user, at that moment, on the page. For example, let's say that the page has a click listener on a button. When the page loads, the very first thing the service worker does is ensure the bundle for that click listener is already waiting in the [cache](#cache-api). When the user clicks the button, and Qwik makes a request to the event listener's bundle, but the goal is that the bundle is already sitting in the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) ready to execute.
+Each page load will pre-populate the cache with bundles that _could_ be executed by the user, at that moment, on the page. For example, let's say that the page has a click listener on a button. When the page loads, the very first thing the service worker does is ensure the bundle for that click listener is already waiting in the [cache](#cache-api). When the user clicks the button, and Qwik makes a request to the event listener's bundle, the goal is that the bundle is already sitting in the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) ready to execute.
 
 ### Pre-populating the Per Interaction
 
@@ -26,11 +26,11 @@ You can think of the page load as the first user interaction, which pre-populate
 
 ### Pre-populate Cache Event
 
-The recommended strategy is to use a [service worker](#pre-populating-the-cache-with-a-service-worker) to populate the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The Qwik framework itself should be use the [prefetchEvent](../../../docs/advanced/prefetching/index.mdx#prefetching-implementation) implementation, which is already the default.
+The recommended strategy is to use a [service worker](#pre-populating-the-cache-with-a-service-worker) to populate the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The Qwik framework itself should use the [prefetchEvent](../../../docs/advanced/prefetching/index.mdx#prefetching-implementation) implementation, which is already the default.
 
 ## Pre-populating the Cache with a Service Worker
 
-Traditionally, a service worker is used to cache most, or all, of the bundles an application uses. [Service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) are commonly seen only as a way to make an application work offline.
+Traditionally, a service worker is used to cache most, or all, of the bundles that application uses. [Service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) are commonly seen only as a way to make an application work offline.
 
 Qwik City, however, uses service workers quite differently to provide a powerful caching strategy. Instead, the goal is not to download the entire application, but rather to use the service worker to dynamically pre-populate the cache with what's _possible_ to execute. By _not_ downloading the entire application, this free's up resources to only request the small parts of the app a user _could_ use for what the user has on their screen at that time.
 
@@ -133,7 +133,7 @@ However, because our service worker contains a module graph generated from the m
 
 ## User Service Worker Code
 
-The default service worker that is installed by Qwik City can still controlled entirely by the application. For example, the source file `src/routes/service-worker.ts` becomes `/service-worker.js`, which is the script requested by the browser. Notice how it's place within `src/routes` still follows the same directory based routing pattern.
+The default service worker that is installed by Qwik City can still be controlled entirely by the application. For example, the source file `src/routes/service-worker.ts` becomes `/service-worker.js`, which is the script requested by the browser. Notice how it's place within `src/routes` still follows the same directory based routing pattern.
 
 Below is an example of a default `src/routes/service-worker.ts` source file:
 

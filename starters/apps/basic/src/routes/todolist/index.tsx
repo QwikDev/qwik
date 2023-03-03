@@ -2,7 +2,7 @@ import { component$ } from '@builder.io/qwik';
 import {
   type DocumentHead,
   routeLoader$,
-  globalAction$,
+  routeAction$,
   zod$,
   z,
   Form,
@@ -18,7 +18,7 @@ export const useListLoader = routeLoader$(() => {
   return list;
 });
 
-export const useAddToListAction = globalAction$(
+export const useAddToListAction = routeAction$(
   (item) => {
     list.push(item);
     return {

@@ -12,7 +12,7 @@ export async function runAddCommand(app: AppCommand) {
       await runAddInteractive(app, id);
     }
   } catch (e) {
-    console.error(`\n❌ ${red(String(e))}\n`);
+    console.error(`❌ ${red(String(e))}\n`);
     await printAddHelp(app);
     process.exit(1);
   }

@@ -42,10 +42,6 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       s.start(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`);
     }
 
-    // const spinner = showSpinner
-    //   ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
-    //   : null;
-
     let passed = true;
     try {
       const dirs = new Set(fileUpdates.files.map((f) => dirname(f.path)));
@@ -73,7 +69,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       showSpinner && s.stop('App updated');
 
       if (!passed) {
-        const errorMessage = `❌ ${bgRed(
+        const errorMessage = `${bgRed(
           ` ${pkgManager} install failed `
         )}\n\n   You might need to run "${cyan(
           `${pkgManager} install`

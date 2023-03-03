@@ -35,7 +35,7 @@ export async function runCreateInteractiveCli() {
   const baseApp = starterApps.find((a) => a.id === 'base')!;
   const apps = starterApps.filter((a) => a.id !== baseApp!.id);
 
-  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp, true);
+  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
@@ -108,7 +108,7 @@ export async function runCreateInteractiveCli() {
   if (runInstall) {
     s.start('Installing dependencies');
     successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
-    s.stop('Installed dependencies 📋');
+    s.stop(`${successfulDepsInstall ? 'Installed' : 'Failed to install'} dependencies 📋`);
   }
 
   note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');

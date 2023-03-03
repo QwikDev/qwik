@@ -4,11 +4,7 @@ import {
   prefetchUrlsEventScript,
   workerFetchScript,
 } from './prefetch-utils';
-import type { 
-  PrefetchImplementation,
-  PrefetchResource,
-  PrefetchStrategy,
-} from './types';
+import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
   prefetchStrategy: PrefetchStrategy | undefined,
@@ -157,7 +153,7 @@ function workerFetchImplementation(
 
 function normalizePrefetchImplementation(
   input: PrefetchImplementation | undefined
-): Required<PrefetchImplementation> { 
+): Required<PrefetchImplementation> {
   if (input && typeof input === 'object') {
     // user provided PrefetchImplementation
     return input as any;
@@ -173,4 +169,3 @@ const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
   workerFetchInsert: null,
   prefetchEvent: 'always',
 };
- 

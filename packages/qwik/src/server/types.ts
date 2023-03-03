@@ -57,7 +57,7 @@ export interface PrefetchImplementation {
    */
   prefetchEvent?: 'always' | null;
 }
- 
+
 /**
  * auto: Prefetch all possible QRLs used by the document. Default
  *

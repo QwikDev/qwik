@@ -80,7 +80,7 @@ async function runCommand(app: AppCommand) {
 async function printHelp(app: AppCommand) {
   const pmRun = pmRunCmd();
 
-  intro(`🛟  ${bgMagenta(' Qwik Help ')}`);
+  intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
 
   note(
     COMMANDS.filter((cmd) => cmd.showInHelp)

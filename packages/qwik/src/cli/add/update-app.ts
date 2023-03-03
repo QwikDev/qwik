@@ -6,7 +6,7 @@ import { loadIntegrations } from '../utils/integrations';
 import { installDeps } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
-import { bgRed, green } from 'kleur/colors';
+import { bgRed, cyan } from 'kleur/colors';
 import { spinner, log } from '@clack/prompts';
 
 export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
@@ -73,11 +73,11 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       showSpinner && s.stop('App updated');
 
       if (!passed) {
-        const errorMessage = `\n\n❌ ${bgRed(
-          `  ${pkgManager} install failed  `
-        )}\n\n   You might need to run "${green(
+        const errorMessage = `❌ ${bgRed(
+          ` ${pkgManager} install failed `
+        )}\n\n   You might need to run "${cyan(
           `${pkgManager} install`
-        )}" manually inside the root of the project.\n\n`;
+        )}" manually inside the root of the project.`;
 
         log.error(errorMessage);
       }

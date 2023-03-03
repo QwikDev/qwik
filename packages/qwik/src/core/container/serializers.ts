@@ -226,20 +226,6 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const PureFunctionSerializer: Serializer<Function> = {
-  prefix: '\u0011',
-  test: (obj) => typeof obj === 'function' && obj.__qwik_serializable__ !== undefined,
-  serialize: (obj) => {
-    return obj.toString();
-  },
-  prepare: (data) => {
-    const fn = new Function('return ' + data)();
-    fn.__qwik_serializable__ = true;
-    return fn;
-  },
-  fill: undefined,
-};
-
 const SignalSerializer: Serializer<SignalImpl<any>> = {
   prefix: '\u0012',
   test: (v) => v instanceof SignalImpl,
@@ -335,21 +321,20 @@ const FormDataSerializer: Serializer<FormData> = {
 };
 
 const serializers: Serializer<any>[] = [
-  QRLSerializer,
-  SignalSerializer,
-  SignalWrapperSerializer,
-  WatchSerializer,
-  ResourceSerializer,
-  URLSerializer,
-  DateSerializer,
-  RegexSerializer,
-  ErrorSerializer,
-  DocumentSerializer,
-  ComponentSerializer,
-  PureFunctionSerializer,
-  NoFiniteNumberSerializer,
-  URLSearchParamsSerializer,
-  FormDataSerializer,
+  QRLSerializer, ////////////// \u0002
+  SignalSerializer, /////////// \u0012
+  SignalWrapperSerializer, //// \u0013
+  WatchSerializer, //////////// \u0003
+  ResourceSerializer, ///////// \u0004
+  URLSerializer, ////////////// \u0005
+  DateSerializer, ///////////// \u0006
+  RegexSerializer, //////////// \u0007
+  ErrorSerializer, //////////// \u000E
+  DocumentSerializer, ///////// \u000F
+  ComponentSerializer, //////// \u0010
+  NoFiniteNumberSerializer, /// \u0014
+  URLSearchParamsSerializer, // \u0015
+  FormDataSerializer, ///////// \u0016
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

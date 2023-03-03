@@ -40,8 +40,8 @@ src/
     └── layout.tsx            # This layout is used for all pages
 ```
 
-- **`[id]`** is a directory that represents a dynamic route segment, in this example `id` is the param.
-- **`[...catchall]`** is a directory that represents a dynamic catch-all route, in this example `catchall` is the param.
+- **`[id]`** is a directory that represents a dynamic route segment, in this example `id` is the string parameter accessible by `getLocation().params.id`.
+- **`[...catchall]`** is a directory that represents a dynamic catch-all route, in this example `catchall` is the string parameter accessible by `getLocation().params.catchall`.
 - **`index.ext` files** are the pages/endpoints.
 - **`layout.ext` files** are the layouts.
 
@@ -50,8 +50,8 @@ src/
 Special named directories with square brackets, such as `[paramName]` and `[...catchAll]` can be used to match route segments which are dynamic:
 
 ```
-src/routes/blog/index.tsx → /blog/:slug (/blog/hello-world)
-src/routes/user/[username]/index.tsx → /user/:username/settings (/user/foo/)
+src/routes/blog/index.tsx → /blog
+src/routes/user/[username]/index.tsx → /user/:username (/user/foo)
 src/routes/post/[...all]/index.tsx → /post/* (/post/2020/id/title)
 ```
 
@@ -62,7 +62,7 @@ src/
     │   └── index.tsx         # https://example.com/blog
     ├── post/
     │   └── [...all]/
-    │       └── index.tsx     # https://example.com/post/2020/id/title/2020/12/03
+    │       └── index.tsx     # https://example.com/post/2020/id/title
     └── user/
         └── [username]/
             └── index.tsx     # https://example.com/user/foo

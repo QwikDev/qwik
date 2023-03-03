@@ -15,7 +15,7 @@ export interface SerializeDocumentOptions {
  * @alpha
  */
 export interface PrefetchStrategy {
-  implementation?: PrefetchImplementation | DeprecatedPrefetchImplementation;
+  implementation?: PrefetchImplementation;
   symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
@@ -57,36 +57,6 @@ export interface PrefetchImplementation {
    */
   prefetchEvent?: 'always' | null;
 }
-
-/**
- * `link-prefetch-html`: Render link rel=prefetch within the html
- *
- * `link-prefetch`: Use JS to add link rel=prefetch, add worker-fetch if not supported
- *
- * `link-preload-html`: Render link rel=preload within the html
- *
- * `link-preload`: Use JS to add link rel=preload, add worker-fetch if not supported
- *
- * `link-modulepreload-html`: Render link rel=modulepreload within the html
- *
- * `link-modulepreload`: Use JS to add link rel=modulepreload, add worker-fetch if not supported
- *
- * `worker-fetch`: Add worker-fetch JS
- *
- * `none`: Do not add any prefetch links
- *
- * @deprecated Use the `PrefetchImplementation` object options instead.
- * @alpha
- */
-export type DeprecatedPrefetchImplementation =
-  | 'link-prefetch-html'
-  | 'link-prefetch'
-  | 'link-preload-html'
-  | 'link-preload'
-  | 'link-modulepreload-html'
-  | 'link-modulepreload'
-  | 'worker-fetch'
-  | 'none';
 
 /**
  * auto: Prefetch all possible QRLs used by the document. Default

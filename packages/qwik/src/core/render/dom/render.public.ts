@@ -46,7 +46,7 @@ export interface RenderResult {
  * @param parent - Element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
- * @returns An async cleanup function
+ * @returns an object containing a cleanup function.
  * @alpha
  */
 export const render = async (

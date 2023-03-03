@@ -94,21 +94,21 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 ## Does Qwik download JS when the user interacts?
 
-Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [prefetching](/qwikcity/advanced/prefetching/index.mdx) only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already downloaded.
+Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](../../qwikcity/advanced/speculative-module-fetching/index.mdx) with only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already in the cache.
 
-## If Qwik prefetches JS, then what's the difference?
+## If Qwik still requests the JS, then what's the difference?
 
-Prefetching is not the same as parsing and executing JS, and Qwik does not execute JS until the user interacts.
+Pre-populating the cache is not the same as parsing and executing JS, and Qwik does not execute JS until the user interacts.
 
-In addition, [prefetching](/qwikcity/advanced/prefetching/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
+In addition, [Speculative Module Fetching](../../qwikcity/advanced/speculative-module-fetching/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
 
-For example, the "buy now" button is more important than the "add to cart" button, so Qwik will prefetch the "buy now" button first, and then the "add to cart" button.
+For example, the "buy now" button is more important than the "Add to Cart" button, so Qwik will prefetch the "Buy Now" button first, and then the "add to cart" button.
 
 Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path before they can start running because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
 
 ## Are Qwik apps slow on slow networks?
 
-Not at all! Thanks to [prefetching](/qwikcity/advanced/prefetching/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
+Not at all! Thanks to [Speculative Module Fetching](../../qwikcity/advanced/speculative-module-fetching/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
 
 ## Does Qwik generate too many small files?
 

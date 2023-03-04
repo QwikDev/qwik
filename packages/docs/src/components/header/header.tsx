@@ -40,7 +40,11 @@ export const Header = component$(() => {
   return (
     <header class={['header-container', ...(hasBuilderBar ? ['builder-bar'] : [])]}>
       {hasBuilderBar && (
-        <BuilderContentComp apiKey={BUILDER_PUBLIC_API_KEY} model={BUILDER_TOP_BAR_MODEL} tag="div" />
+        <BuilderContentComp
+          apiKey={BUILDER_PUBLIC_API_KEY}
+          model={BUILDER_TOP_BAR_MODEL}
+          tag="div"
+        />
       )}
       <div class="header-inner">
         <div class="header-logo">

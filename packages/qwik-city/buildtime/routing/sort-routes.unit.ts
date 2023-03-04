@@ -51,7 +51,7 @@ function route(r: TestRoute) {
     pathname,
     ext: '.tsx',
     layouts: [],
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname('/', pathname),
   };
   return route;
 }

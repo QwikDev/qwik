@@ -2,18 +2,20 @@
 import type { AppCommand } from '../utils/app-command';
 import { loadIntegrations } from '../utils/integrations';
 import prompts from 'prompts';
-import color from 'kleur';
+import { bgCyan, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
 import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
+import { runInPkg, startSpinner } from '../utils/install-deps';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   console.log(``);
   console.clear();
   console.log(``);
 
+  const pkgManager = getPackageManager();
   const integrations = await loadIntegrations();
   let integration: IntegrationData | undefined;
 
@@ -24,17 +26,15 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
       throw new Error(`Invalid integration: ${id}`);
     }
 
-    console.log(
-      `🦋 ${color.bgCyan(` Add Integration `)} ${color.bold(color.magenta(integration.id))}`
-    );
+    console.log(`🦋 ${bgCyan(` Add Integration `)} ${bold(magenta(integration.id))}`);
     console.log(``);
   } else {
     // use interactive cli to choose which integration to add
-    console.log(`🦋 ${color.bgCyan(` Add Integration `)}`);
+    console.log(`🦋 ${bgCyan(` Add Integration `)}`);
     console.log(``);
 
     const integrationChoices = [
-      ...integrations.filter((i) => i.type === 'adaptor'),
+      ...integrations.filter((i) => i.type === 'adapter'),
       ...integrations.filter((i) => i.type === 'feature'),
     ].map((f) => {
       return { title: f.name, value: f.id };
@@ -75,16 +75,26 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     runInstall = true;
   }
 
-  const result = await updateApp({
+  const result = await updateApp(pkgManager, {
     rootDir: app.rootDir,
     integration: integration.id,
     installDeps: runInstall,
   });
 
-  await logUpdateAppResult(result);
+  const commit = await logUpdateAppResult(pkgManager, result);
+  if (commit) {
+    await result.commit(true);
+    const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
+    if (postInstall) {
+      const spinner = startSpinner(`Running post install script: ${postInstall}`);
+      await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
+      spinner.succeed();
+    }
+    logUpdateAppCommitResult(result);
+  }
 }
 
-async function logUpdateAppResult(result: UpdateAppResult) {
+async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   const modifyFiles = result.updates.files.filter((f) => f.type === 'modify');
   const overwriteFiles = result.updates.files.filter((f) => f.type === 'overwrite');
   const createFiles = result.updates.files.filter((f) => f.type === 'create');
@@ -104,23 +114,27 @@ async function logUpdateAppResult(result: UpdateAppResult) {
   console.clear();
   console.log(``);
 
-  console.log(
-    `👻 ${color.bgCyan(` Ready? `)} Add ${color.bold(
-      color.magenta(result.integration.id)
-    )} to your app?`
-  );
+  console.log(`👻 ${bgCyan(` Ready? `)} Add ${bold(magenta(result.integration.id))} to your app?`);
   console.log(``);
 
   if (modifyFiles.length > 0) {
-    console.log(`🐬 ${color.cyan(`Modify`)}`);
+    console.log(`🐬 ${cyan(`Modify`)}`);
     for (const f of modifyFiles) {
       console.log(`   - ${relative(process.cwd(), f.path)}`);
     }
     console.log(``);
   }
 
+  if (createFiles.length > 0) {
+    console.log(`🌟 ${cyan(`Create`)}`);
+    for (const f of createFiles) {
+      console.log(`   - ${relative(process.cwd(), f.path)}`);
+    }
+    console.log(``);
+  }
+
   if (overwriteFiles.length > 0) {
-    console.log(`🐳 ${color.cyan(`Overwrite`)}`);
+    console.log(`🐳 ${cyan(`Overwrite`)}`);
     for (const f of overwriteFiles) {
       console.log(`   - ${relative(process.cwd(), f.path)}`);
     }
@@ -128,11 +142,8 @@ async function logUpdateAppResult(result: UpdateAppResult) {
   }
 
   if (installDeps) {
-    const pkgManager = getPackageManager();
     console.log(
-      `💾 ${color.cyan(
-        `Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`
-      )}`
+      `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`
     );
     installDepNames.forEach((depName) => {
       console.log(`   - ${depName} ${result.updates.installedDeps[depName]}`);
@@ -144,9 +155,7 @@ async function logUpdateAppResult(result: UpdateAppResult) {
     {
       type: 'select',
       name: 'commit',
-      message: `Ready to apply the ${color.bold(
-        color.magenta(result.integration.id)
-      )} updates to your app?`,
+      message: `Ready to apply the ${bold(magenta(result.integration.id))} updates to your app?`,
       choices: [
         { title: 'Yes looks good, finish update!', value: true },
         { title: 'Nope, cancel update', value: false },
@@ -162,19 +171,12 @@ async function logUpdateAppResult(result: UpdateAppResult) {
   );
   console.log(``);
 
-  if (commitAnswer.commit) {
-    await result.commit(true);
-    logUpdateAppCommitResult(result);
-  }
+  return commitAnswer.commit as boolean;
 }
 
 function logUpdateAppCommitResult(result: UpdateAppResult) {
-  console.clear();
-
   console.log(
-    `🦄 ${color.bgMagenta(` Success! `)} Added ${color.bold(
-      color.cyan(result.integration.id)
-    )} to your app`
+    `🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`
   );
   console.log(``);
   logSuccessFooter(result.integration.docs);

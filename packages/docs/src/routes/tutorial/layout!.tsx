@@ -1,4 +1,4 @@
-import { component$, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
@@ -15,13 +15,13 @@ export default component$(() => {
   useStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
-  const { pathname } = useLocation();
+  const { url } = useLocation();
   const panelStore = useStore(() => ({
     active: 'Tutorial',
     list: PANELS,
   }));
   const store = useStore<TutorialStore>(() => {
-    const p = pathname.split('/');
+    const p = url.pathname.split('/');
     const appId = `${p[2]}/${p[3]}`;
     const t = getTutorial(appId)!;
 
@@ -39,7 +39,7 @@ export default component$(() => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const appId = track(() => store.appId);
     const t = getTutorial(appId)!;
 
@@ -70,15 +70,14 @@ export default component$(() => {
                   </a>
                 </p>
               ) : null}
-              <p class="edit-tutorial">
-                <a
-                  href={`https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}`}
-                  target="_blank"
-                >
-                  <EditIcon width={16} height={16} />
-                  <span>Edit Tutorial</span>
-                </a>
-              </p>
+              <a
+                class="edit-tutorial"
+                href={`https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}`}
+                target="_blank"
+              >
+                <EditIcon width={16} height={16} />
+                <span>Edit Tutorial</span>
+              </a>
             </div>
           </div>
 
@@ -128,13 +127,13 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
 import { renderToString, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 
-export default function(opts: RenderOptions) {
+export default function (opts: RenderOptions) {
   return renderToString(<Root />, opts);
 }
 `;
 
   const DEFAULT_ROOT = `
-import { App } from './app';
+import App from './app';
 
 export const Root = () => {
   return (
@@ -169,9 +168,11 @@ export interface TutorialStore extends ReplAppInput {
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];
-export const onGet: RequestHandler = ({ response }) => {
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };

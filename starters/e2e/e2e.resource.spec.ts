@@ -73,27 +73,77 @@ test.describe('resource serialization', () => {
 
     await expect(button1).toHaveText('PASS: Success 0');
     await expect(button2).toHaveText('ERROR: Error: failed 0');
-    await expect(button3).toHaveText('ERROR: timeout 0');
+    await expect(button3).toHaveText('ERROR: Error: timeout 0');
 
     // Click button 1
     await button1.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 0');
-    await expect(button3).toHaveText('ERROR: timeout 0');
+    await expect(button3).toHaveText('ERROR: Error: timeout 0');
 
     // Click button 2
     await button2.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 1');
-    await expect(button3).toHaveText('ERROR: timeout 1');
+    await expect(button3).toHaveText('ERROR: Error: timeout 1');
 
     // Click button 2
     await button2.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 2');
-    await expect(button3).toHaveText('ERROR: timeout 2');
+    await expect(button3).toHaveText('ERROR: Error: timeout 2');
+  });
+
+  test('issue 2014', async ({ page }) => {
+    const button1 = page.locator('#issue-2014-btn');
+    await expect(button1).toHaveText('0(count is here: 0)');
+    await button1.click();
+    await expect(button1).toHaveText('2(count is here: 1)');
+    await button1.click();
+    await expect(button1).toHaveText('4(count is here: 2)');
+  });
+
+  test('race condition', async ({ page }) => {
+    const btn = page.locator('#resource-race-btn');
+    const result = page.locator('#resource-race-result');
+
+    await expect(btn).toHaveText('0');
+    await expect(result).toHaveText('0');
+    await btn.click();
+    await expect(btn).toHaveText('1');
+    await expect(result).toHaveText('0');
+    await btn.click();
+    await expect(btn).toHaveText('2');
+    await expect(result).toHaveText('2');
+    await page.waitForTimeout(1000);
+
+    await expect(btn).toHaveText('2');
+    await expect(result).toHaveText('2');
+    await btn.click();
+
+    await expect(btn).toHaveText('3');
+    await expect(result).toHaveText('3');
+  });
+});
+
+test.describe('resource fn', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/e2e/resource-fn');
+    page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  });
+
+  test('should load', async ({ page }) => {
+    const asyncSignal = page.locator('#asyncSignal');
+    const promise = page.locator('#promise');
+    const signal = page.locator('#signal');
+    const resource = page.locator('#resource');
+
+    await expect(resource).toHaveText('resource');
+    await expect(asyncSignal).toHaveText('asyncSignal');
+    await expect(promise).toHaveText('promise');
+    await expect(signal).toHaveText('signal');
   });
 });

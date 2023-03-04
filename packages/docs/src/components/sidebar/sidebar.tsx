@@ -9,9 +9,9 @@ export const SideBar = component$(() => {
 
   const globalStore = useContext(GlobalStore);
   const { menu } = useContent();
-  const { pathname } = useLocation();
-  const breadcrumbs = createBreadcrumbs(menu, pathname);
-
+  const { url } = useLocation();
+  const breadcrumbs = createBreadcrumbs(menu, url.pathname);
+  const isQwikCity = url.pathname.startsWith('/qwikcity/');
   return (
     <aside class="sidebar">
       <nav class="breadcrumbs">
@@ -48,20 +48,30 @@ export const SideBar = component$(() => {
         >
           <CloseIcon width={24} height={24} />
         </button>
-        <Items items={menu?.items} pathname={pathname} />
+        <Items items={menu?.items} pathname={url.pathname} allOpen={isQwikCity} />
       </nav>
     </aside>
   );
 });
 
-export function Items({ items, pathname }: { items?: ContentMenu[]; pathname: string }) {
+export function Items({
+  items,
+  pathname,
+  allOpen,
+}: {
+  items?: ContentMenu[];
+  pathname: string;
+  allOpen?: boolean;
+}) {
   return (
     <ul>
       {items &&
         items.map((item, i) => (
           <li>
             {item.items ? (
-              <details open={i < 1 || item.items?.some((item) => pathname === item.href)}>
+              <details
+                open={allOpen || i < 1 || item.items?.some((item) => pathname === item.href)}
+              >
                 <summary>
                   <h5>{item.text}</h5>
                 </summary>

@@ -1,6 +1,7 @@
-import { assertDefined, assertEqual, assertTrue } from '../error/assert';
+import { assertDefined, assertEqual } from '../error/assert';
 import { getDocument } from '../util/dom';
 import {
+  assertElement,
   isComment,
   isDocument,
   isElement,
@@ -13,7 +14,12 @@ import { logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
 
-import { destroyWatch, WatchFlagsIsDirty } from '../use/use-watch';
+import {
+  destroyWatch,
+  isResourceTask,
+  ResourceReturnInternal,
+  WatchFlagsIsDirty,
+} from '../use/use-task';
 import {
   qError,
   QError_containerAlreadyPaused,
@@ -28,7 +34,7 @@ import {
   ContainerState,
   FILTER_REJECT,
   FILTER_SKIP,
-  getContainerState,
+  _getContainerState,
   GetObjID,
   intToStr,
   SHOW_COMMENT,
@@ -42,7 +48,8 @@ import { groupListeners } from '../state/listeners';
 import { serializeSStyle } from '../style/qrl-styles';
 import { serializeQRLs } from '../qrl/qrl';
 import {
-  fastShouldSerialize,
+  fastSkipSerialize,
+  fastWeakSerialize,
   getProxyFlags,
   getProxyManager,
   getProxyTarget,
@@ -55,12 +62,104 @@ import { HOST_FLAG_DYNAMIC, QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
 
+/**
+ * @internal
+ */
+export const _serializeData = async (data: any, pureQRL?: boolean) => {
+  const containerState = {} as any;
+  const collector = createCollector(containerState);
+  collectValue(data, collector, false);
+
+  // Wait for remaining promises
+  let promises: Promise<any>[];
+  while ((promises = collector.$promises$).length > 0) {
+    collector.$promises$ = [];
+    await Promise.all(promises);
+  }
+
+  const objs = Array.from(collector.$objSet$.keys());
+  let count = 0;
+
+  const objToId = new Map<any, string>();
+  for (const obj of objs) {
+    objToId.set(obj, intToStr(count));
+    count++;
+  }
+  if (collector.$noSerialize$.length > 0) {
+    const undefinedID = objToId.get(undefined);
+    assertDefined(undefinedID, 'undefined ID must be defined');
+    for (const obj of collector.$noSerialize$) {
+      objToId.set(obj, undefinedID);
+    }
+  }
+
+  const mustGetObjId = (obj: any): string => {
+    let suffix = '';
+    if (isPromise(obj)) {
+      const promiseValue = getPromiseValue(obj);
+      if (!promiseValue) {
+        throw qError(QError_missingObjectId, obj);
+      }
+      obj = promiseValue.value;
+      if (promiseValue.resolved) {
+        suffix += '~';
+      } else {
+        suffix += '_';
+      }
+    }
+    const key = objToId.get(obj);
+    if (key === undefined) {
+      throw qError(QError_missingObjectId, obj);
+    }
+    return key + suffix;
+  };
+
+  const convertedObjs = objs.map((obj) => {
+    if (obj === null) {
+      return null;
+    }
+    const typeObj = typeof obj;
+    switch (typeObj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
+      case 'number':
+        if (!Number.isFinite(obj)) {
+          break;
+        }
+        return obj;
+      case 'string':
+      case 'boolean':
+        return obj;
+    }
+    const value = serializeValue(obj, mustGetObjId, containerState);
+    if (value !== undefined) {
+      return value;
+    }
+    if (typeObj === 'object') {
+      if (isArray(obj)) {
+        return obj.map(mustGetObjId);
+      }
+      if (isSerializableObject(obj)) {
+        const output: Record<string, any> = {};
+        for (const key of Object.keys(obj)) {
+          output[key] = mustGetObjId(obj[key]);
+        }
+        return output;
+      }
+    }
+    throw qError(QError_verifySerializable, obj);
+  });
+
+  return JSON.stringify({
+    _entry: mustGetObjId(data),
+    _objs: convertedObjs,
+  });
+};
+
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)
 /**
- * Serialize the current state of the application into DOM
- *
  */
 // </docs>
 export const pauseContainer = async (
@@ -76,7 +175,7 @@ export const pauseContainer = async (
   const parentJSON =
     defaultParentJSON ?? (containerEl === doc.documentElement ? doc.body : containerEl);
 
-  const containerState = getContainerState(containerEl);
+  const containerState = _getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasContext);
 
   // Set container to paused
@@ -151,6 +250,9 @@ export const _pauseFromContexts = async (
             logWarn('Serializing disconneted watch. Looks like an internal error.');
           }
         }
+        if (isResourceTask(watch)) {
+          collector.$resources$.push(watch.$state$);
+        }
         destroyWatch(watch);
       }
     }
@@ -178,12 +280,14 @@ export const _pauseFromContexts = async (
   if (!hasListeners) {
     return {
       state: {
+        refs: {},
         ctx: {},
         objs: [],
         subs: [],
       },
       objs: [],
       qrls: [],
+      resources: collector.$resources$,
       mode: 'static',
     };
   }
@@ -199,7 +303,7 @@ export const _pauseFromContexts = async (
   const canRender = collector.$elements$.length > 0;
   if (canRender) {
     for (const elCtx of collector.$deferElements$) {
-      collectElementData(elCtx, collector, false);
+      collectElementData(elCtx, collector, elCtx.$element$);
     }
 
     for (const ctx of allContexts) {
@@ -224,8 +328,6 @@ export const _pauseFromContexts = async (
       id = getQId(el);
       if (!id) {
         console.warn('Missing ID', el);
-      } else {
-        id = ELEMENT_ID_PREFIX + id;
       }
       elementToIndex.set(el, id);
     }
@@ -235,9 +337,12 @@ export const _pauseFromContexts = async (
   const getObjId: GetObjID = (obj) => {
     let suffix = '';
     if (isPromise(obj)) {
-      const { value, resolved } = getPromiseValue(obj);
-      obj = value;
-      if (resolved) {
+      const promiseValue = getPromiseValue(obj);
+      if (!promiseValue) {
+        return null;
+      }
+      obj = promiseValue.value;
+      if (promiseValue.resolved) {
         suffix += '~';
       } else {
         suffix += '_';
@@ -252,7 +357,7 @@ export const _pauseFromContexts = async (
       } else if (isQwikElement(obj)) {
         const elID = getElementID(obj);
         if (elID) {
-          return elID + suffix;
+          return ELEMENT_ID_PREFIX + elID + suffix;
         }
         return null;
       }
@@ -371,7 +476,10 @@ export const _pauseFromContexts = async (
       if (isSerializableObject(obj)) {
         const output: Record<string, any> = {};
         for (const key of Object.keys(obj)) {
-          output[key] = mustGetObjId(obj[key]);
+          const id = getObjId(obj[key]);
+          if (id !== null) {
+            output[key] = id;
+          }
         }
         return output;
       }
@@ -380,11 +488,12 @@ export const _pauseFromContexts = async (
   });
 
   const meta: SnapshotMeta = {};
+  const refs: Record<string, string> = {};
 
   // Write back to the dom
   allContexts.forEach((ctx) => {
-    assertDefined(ctx, `pause: missing context for dom node`);
     const node = ctx.$element$;
+    const elementID = ctx.$id$;
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
@@ -393,20 +502,27 @@ export const _pauseFromContexts = async (
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
     const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(ctx);
+    assertDefined(elementID, `pause: can not generate ID for dom node`, node);
 
-    let add = false;
     if (ref.length > 0) {
+      assertElement(node);
       const value = ref.map(mustGetObjId).join(' ');
       if (value) {
-        metaValue.r = value;
-        add = true;
+        refs[elementID] = value;
       }
-    }
-
-    if (canRender) {
-      if (elementCaptured && props) {
-        metaValue.h = mustGetObjId(props) + ' ' + mustGetObjId(renderQrl);
+    } else if (canRender) {
+      let add = false;
+      if (elementCaptured) {
+        assertDefined(renderQrl, 'renderQrl must be defined');
+        const propsId = getObjId(props);
+        metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
         add = true;
+      } else {
+        const propsId = getObjId(props);
+        if (propsId) {
+          metaValue.h = ' ' + propsId;
+          add = true;
+        }
       }
 
       if (watches && watches.length > 0) {
@@ -437,12 +553,9 @@ export const _pauseFromContexts = async (
           add = true;
         }
       }
-    }
-
-    if (add) {
-      const elementID = getElementID(node);
-      assertDefined(elementID, `pause: can not generate ID for dom node`, node);
-      meta[elementID] = metaValue;
+      if (add) {
+        meta[elementID] = metaValue;
+      }
     }
   });
 
@@ -457,11 +570,13 @@ export const _pauseFromContexts = async (
 
   return {
     state: {
+      refs,
       ctx: meta,
       objs: convertedObjs,
       subs,
     },
     objs,
+    resources: collector.$resources$,
     qrls: collector.$qrls$,
     mode: canRender ? 'render' : 'listeners',
   };
@@ -499,6 +614,7 @@ export interface Collector {
   $noSerialize$: any[];
   $elements$: QContext[];
   $qrls$: QRL[];
+  $resources$: ResourceReturnInternal<any>[];
   $prefetch$: number;
   $deferElements$: QContext[];
   $containerState$: ContainerState;
@@ -507,11 +623,21 @@ export interface Collector {
 
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
-  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {
-    const subs = getProxyManager(elCtx.$props$)?.$subs$;
+  const props = elCtx.$props$;
+  if (parentCtx && props && !isEmptyObj(props) && collector.$elements$.includes(parentCtx)) {
+    const subs = getProxyManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
-    if (subs && subs.some((e) => e[0] === 0 && e[1] === el)) {
-      collectElement(el, collector);
+    if (subs) {
+      for (const sub of subs) {
+        if (sub[1] === el) {
+          if (sub[0] === 0) {
+            collectElement(el, collector);
+            return;
+          } else {
+            collectValue(props, collector, false);
+          }
+        }
+      }
     }
   }
 };
@@ -523,6 +649,7 @@ const createCollector = (containerState: ContainerState): Collector => {
     $objSet$: new Set(),
     $prefetch$: 0,
     $noSerialize$: [],
+    $resources$: [],
     $elements$: [],
     $qrls$: [],
     $deferElements$: [],
@@ -552,41 +679,56 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
       return;
     }
     collector.$elements$.push(ctx);
-    collectElementData(ctx, collector, false);
+    collectElementData(ctx, collector, el);
   }
 };
 
-export const collectElementData = (elCtx: QContext, collector: Collector, dynamic: boolean) => {
-  if (elCtx.$props$) {
-    collectValue(elCtx.$props$, collector, dynamic);
+export const collectElementData = (
+  elCtx: QContext,
+  collector: Collector,
+  dynamicCtx: QwikElement | boolean
+) => {
+  if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
+    collectValue(elCtx.$props$, collector, dynamicCtx);
   }
   if (elCtx.$componentQrl$) {
-    collectValue(elCtx.$componentQrl$, collector, dynamic);
+    collectValue(elCtx.$componentQrl$, collector, dynamicCtx);
   }
   if (elCtx.$seq$) {
     for (const obj of elCtx.$seq$) {
-      collectValue(obj, collector, dynamic);
+      collectValue(obj, collector, dynamicCtx);
     }
   }
   if (elCtx.$watches$) {
+    const map = collector.$containerState$.$subsManager$.$groupToManagers$;
     for (const obj of elCtx.$watches$) {
-      collectValue(obj, collector, dynamic);
+      if (map.has(obj)) {
+        collectValue(obj, collector, dynamicCtx);
+      }
     }
   }
 
-  if (dynamic) {
-    let parent: QContext | null = elCtx;
-    while (parent) {
-      if (parent.$contexts$) {
-        for (const obj of parent.$contexts$.values()) {
-          collectValue(obj, collector, dynamic);
-        }
-        if (parent.$contexts$.get('_') === true) {
-          break;
-        }
+  if (dynamicCtx) {
+    collectContext(elCtx, collector);
+    if (elCtx.$dynamicSlots$) {
+      for (const slotCtx of elCtx.$dynamicSlots$) {
+        collectContext(slotCtx, collector);
       }
-      parent = parent.$parent$;
     }
+  }
+};
+
+const collectContext = (elCtx: QContext | null, collector: Collector) => {
+  while (elCtx) {
+    if (elCtx.$contexts$) {
+      for (const obj of elCtx.$contexts$.values()) {
+        collectValue(obj, collector, true);
+      }
+      if (elCtx.$contexts$.get('_') === true) {
+        break;
+      }
+    }
+    elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
   }
 };
 
@@ -641,12 +783,11 @@ const resolvePromise = (promise: Promise<any>) => {
   );
 };
 
-const getPromiseValue = (promise: Promise<any>): PromiseValue => {
-  assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously', promise);
+const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-export const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectValue = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
   if (obj !== null) {
     const objType = typeof obj;
     switch (objType) {
@@ -657,7 +798,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
           return;
         }
         seen.add(obj);
-        if (!fastShouldSerialize(obj)) {
+        if (fastSkipSerialize(obj)) {
           collector.$objSet$.add(undefined);
           collector.$noSerialize$.push(obj);
           return;
@@ -671,8 +812,12 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
             return;
           }
           seen.add(obj);
-          if (leaks) {
+          if (leaks === true) {
             collectSubscriptions(getProxyManager(input)!, collector);
+          }
+          if (fastWeakSerialize(input)) {
+            collector.$objSet$.add(obj);
+            return;
           }
         }
         const collected = collectDeps(obj, collector, leaks);
@@ -696,11 +841,11 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
           }
           if (isArray(obj)) {
             for (let i = 0; i < obj.length; i++) {
-              collectValue(obj[i], collector, leaks);
+              collectValue(input[i], collector, leaks);
             }
           } else if (isSerializableObject(obj)) {
             for (const key of Object.keys(obj)) {
-              collectValue(obj[key], collector, leaks);
+              collectValue(input[key], collector, leaks);
             }
           }
         }
@@ -763,4 +908,8 @@ const getTextID = (node: Text, containerState: ContainerState) => {
   parent.insertBefore(open, node);
   parent.insertBefore(close, node.nextSibling);
   return ELEMENT_ID_PREFIX + id;
+};
+
+const isEmptyObj = (obj: Record<string, any>) => {
+  return Object.keys(obj).length === 0;
 };

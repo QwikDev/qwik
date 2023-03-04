@@ -16,32 +16,37 @@
 - [Lifecycle](components/lifecycle/index.mdx)
 - [Context](components/context/index.mdx)
 - [Resource](components/resource/index.mdx)
-- [Lite components](components/lite-components/index.mdx)
-- [Content projection](components/projection/index.mdx)
+- [Slots](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
+- [Styling](components/styles/index.mdx)
+- [Lite components](components/lite-components/index.mdx)
 
 ## Cheat Sheet
 
 - [Qwik vs React](cheat/qwik-react/index.mdx)
 - [Serialization](cheat/serialization/index.mdx)
+- [Best Practices](cheat/best-practices/index.mdx)
 
 ## Concepts
 
 - [Resumable](concepts/resumable/index.mdx)
 - [Progressive](concepts/progressive/index.mdx)
-- [Reactive](concepts/reactivity/index.mdx)
+- [Reactivity](concepts/reactivity/index.mdx)
 
 ## Advanced
 
-- [Prefetching](advanced/prefetching/index.mdx)
+- [The $ dollar sign](advanced/dollar/index.mdx)
 - [Containers](advanced/containers/index.mdx)
-- [Optimizer](advanced/optimizer/index.mdx)
 - [QRL](advanced/qrl/index.mdx)
 - [Qwikloader](advanced/qwikloader/index.mdx)
+- [Optimizer](advanced/optimizer/index.mdx)
+- [Prefetching](advanced/prefetching/index.mdx)
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
+- [Internationalization](advanced/i18n/index.mdx)
+- [Vite](advanced/vite/index.mdx)
 
 ## Community
 
-- [Github](https://github.com/BuilderIO/qwik)
+- [GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.builder.io/chat)

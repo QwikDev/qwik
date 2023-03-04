@@ -7,6 +7,11 @@ import { depResponse } from './repl-dependencies';
 import { QWIK_REPL_DEPS_CACHE } from './repl-constants';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
+  const srcInputs = options.srcInputs;
+  const resolveId = (id: string) => {
+    return srcInputs.find((i) => i.path === id)?.path;
+  };
+
   return {
     name: 'repl-resolver',
 
@@ -21,8 +26,21 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       ) {
         return '\0qwikCore';
       }
+      if (id === '@builder.io/qwik/build') {
+        return '\0qwikBuild';
+      }
       if (id === '@builder.io/qwik/server') {
         return '\0qwikServer';
+      }
+      if (id.startsWith('./')) {
+        const extensions = ['', '.tsx', '.ts'];
+        id = id.slice(1);
+        for (const ext of extensions) {
+          const path = resolveId(id + ext);
+          if (path) {
+            return path;
+          }
+        }
       }
       return {
         id,
@@ -42,6 +60,20 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         if (id === '\0qwikServer') {
           return getRuntimeBundle('qwikServer');
         }
+        if (id === '\0qwikBuild') {
+          return `
+          export const isServer = true;
+          export const isBrowser = false;
+          export const isDev = false;
+        `;
+        }
+      }
+      if (id === '\0qwikBuild') {
+        return `
+        export const isServer = false;
+        export const isBrowser = true;
+        export const isDev = false;
+      `;
       }
       if (id === '\0qwikCore') {
         const cache = await caches.open(QWIK_REPL_DEPS_CACHE);

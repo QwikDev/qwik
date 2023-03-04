@@ -28,6 +28,8 @@ const includeDeps = undefined;
 const excludeDeps = [
   '@vite/client',
   '@vite/env',
+  'node-fetch',
+  'undici',
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',
@@ -58,7 +60,6 @@ vite('command: serve, mode: development', async () => {
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(outputOptions.format, 'es');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
@@ -93,15 +94,11 @@ vite('command: serve, mode: production', async () => {
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
   equal(outputOptions.format, 'es');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, {
-    logLevel: 'error',
-    jsx: 'preserve',
-  });
+  equal(c.esbuild, false);
   equal(c.ssr, undefined);
 });
 
@@ -130,12 +127,14 @@ vite('command: build, mode: development', async () => {
   equal(outputOptions.assetFileNames, 'build/[name].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, false);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'automatic',
+  });
   equal(c.ssr, undefined);
 });
 
@@ -165,14 +164,13 @@ vite('command: build, mode: production', async () => {
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, {
     logLevel: 'error',
-    jsx: 'preserve',
+    jsx: 'automatic',
   });
   equal(c.ssr, undefined);
 });
@@ -216,7 +214,7 @@ vite('command: build, --ssr entry.server.tsx', async () => {
 
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
@@ -229,12 +227,14 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, true);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, false);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'automatic',
+  });
   equal(c.publicDir, false);
 });
 

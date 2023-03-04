@@ -1,6 +1,6 @@
 import { component$, useStore, $ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({ name: '' });
   return (
     <>
@@ -10,7 +10,7 @@ export const App = component$(() => {
           const input = event.target as HTMLInputElement;
           store.name = input.value;
         })}
-        onChange$={$(async (event: KeyboardEvent) => {
+        onChange$={$(async () => {
           if (store.name) alert(store.name);
         })}
         value={store.name}

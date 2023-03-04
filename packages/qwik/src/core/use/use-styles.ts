@@ -7,7 +7,6 @@ import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../qrl/qrl-class';
 import { isPromise } from '../util/promises';
 import { assertDefined } from '../error/assert';
-import { getContext } from '../state/context';
 import { ComponentStylesPrefixContent } from '../util/markers';
 
 /**
@@ -134,14 +133,12 @@ const _useStyles = (
 ): string => {
   assertQrl(styleQrl);
 
-  const { get, set, ctx, i } = useSequentialScope<string>();
+  const { get, set, iCtx, i, elCtx } = useSequentialScope<string>();
   if (get) {
     return get;
   }
-  const renderCtx = ctx.$renderCtx$;
   const styleId = styleKey(styleQrl, i);
-  const containerState = renderCtx.$static$.$containerState$;
-  const elCtx = getContext(ctx.$hostElement$);
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   set(styleId);
 
   if (!elCtx.$appendStyles$) {
@@ -166,7 +163,7 @@ const _useStyles = (
     });
   };
   if (isPromise(value)) {
-    ctx.$waitOn$.push(value.then(appendStyle));
+    iCtx.$waitOn$.push(value.then(appendStyle));
   } else {
     appendStyle(value);
   }

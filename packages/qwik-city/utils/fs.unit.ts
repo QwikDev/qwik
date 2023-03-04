@@ -1,5 +1,5 @@
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { NormalizedPluginOptions } from '../buildtime/types';
@@ -7,6 +7,7 @@ import {
   createFileId,
   getExtension,
   getPathnameFromDirPath,
+  getMenuPathname,
   isGroupedLayoutName,
   isMarkdownExt,
   isMenuFileName,
@@ -19,6 +20,7 @@ import {
 } from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
+const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 
 test('isGroupedLayoutName', () => {
   const t = [
@@ -186,81 +188,79 @@ test('createFileId, Layout', () => {
   equal(p, 'DashboardSettingsLayout');
 });
 
-test('getPathnameFromDirPath', () => {
-  const routesDir = tmpdir();
-
-  const t = [
-    {
-      dirPath: join(routesDir, '(a)', 'about', '(b)', 'info', '(c)'),
-      basePathname: '/',
-      trailingSlash: true,
-      expect: '/about/info/',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/app/',
-      trailingSlash: true,
-      expect: '/app/about/',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/app/',
-      trailingSlash: false,
-      expect: '/app/about',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/',
-      trailingSlash: true,
-      expect: '/about/',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/',
-      trailingSlash: false,
-      expect: '/about',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/',
-      trailingSlash: false,
-      expect: '/',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/',
-      trailingSlash: true,
-      expect: '/',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/app/',
-      trailingSlash: false,
-      expect: '/app/',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/app/',
-      trailingSlash: true,
-      expect: '/app/',
-    },
-  ];
-
-  t.forEach((c) => {
+[
+  {
+    dirPath: join(routesDir, '(a)', 'about', '(b)', 'info', '(c)'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/about/info/',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/app/',
+    trailingSlash: true,
+    expect: '/app/about/',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/app/',
+    trailingSlash: false,
+    expect: '/app/about',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/about/',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/about',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/app/',
+    trailingSlash: false,
+    expect: '/app/',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/app/',
+    trailingSlash: true,
+    expect: '/app/',
+  },
+].forEach((t) => {
+  test(`getPathnameFromDirPath, dirPath: ${basename(t.dirPath)}, basePathname: ${
+    t.basePathname
+  }`, () => {
     const opts: NormalizedPluginOptions = {
-      routesDir: routesDir,
-      basePathname: c.basePathname,
-      trailingSlash: c.trailingSlash,
+      routesDir,
+      serverPluginsDir,
+      basePathname: t.basePathname,
+      trailingSlash: t.trailingSlash,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: c.basePathname,
     };
-    const pathname = getPathnameFromDirPath(opts, c.dirPath);
-    equal(pathname, c.expect, c.dirPath);
+    const pathname = getPathnameFromDirPath(opts, t.dirPath);
+    equal(pathname, t.expect, t.dirPath);
   });
 });
 
@@ -292,6 +292,74 @@ test('parseRouteIndexName', () => {
     const r = parseRouteIndexName(c.extlessName);
     equal(r.layoutName, c.expect.layoutName, `${c.extlessName} layoutName`);
     equal(r.layoutStop, c.expect.layoutStop, `${c.extlessName} layoutStop`);
+  });
+});
+
+[
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: true,
+    expect: '/basepath/dir/',
+  },
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: false,
+    expect: '/basepath/dir/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: true,
+    expect: '/basepath/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: false,
+    expect: '/basepath/',
+  },
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/dir/',
+  },
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/dir/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/',
+  },
+].forEach((t) => {
+  test(``, () => {
+    const opts: NormalizedPluginOptions = {
+      routesDir,
+      serverPluginsDir,
+      basePathname: t.basePathname,
+      trailingSlash: t.trailingSlash,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
+      mdx: {},
+    };
+    const pathname = getMenuPathname(opts, t.filePath);
+    equal(pathname, t.expect);
   });
 });
 

@@ -1,4 +1,4 @@
-import type { RouteParams } from '../runtime/src';
+import type { PathParams } from '../runtime/src';
 
 export function normalizePathname(
   pathname: string | undefined | null,
@@ -50,7 +50,7 @@ export function normalizePathname(
 export function getPathnameForDynamicRoute(
   originalPathname: string,
   paramNames: string[] | undefined,
-  params: RouteParams | undefined
+  params: PathParams | undefined
 ) {
   let pathname = originalPathname;
 

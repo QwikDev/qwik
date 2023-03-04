@@ -2,7 +2,7 @@ export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
-  errors: BuildRoute[];
+  serverPlugins: BuildServerPlugin[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
   serviceWorkers: BuildEntry[];
@@ -46,7 +46,7 @@ export interface RouteSourceFileName {
   ext: string;
 }
 
-export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error' | 'service-worker';
+export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'service-worker';
 
 export interface BuildRoute extends ParsedPathname {
   /**
@@ -63,6 +63,18 @@ export interface BuildRoute extends ParsedPathname {
    */
   pathname: string;
   layouts: BuildLayout[];
+}
+
+export interface BuildServerPlugin {
+  /**
+   * Unique id built from its relative file system path
+   */
+  id: string;
+  /**
+   * Local file system path
+   */
+  filePath: string;
+  ext: string;
 }
 
 export interface ParsedPathname {
@@ -113,13 +125,18 @@ export interface PluginOptions {
    */
   routesDir?: string;
   /**
+   * Directory of the `server plugins`. Defaults to `src/server-plugins`.
+   */
+  serverPluginsDir?: string;
+  /**
    * The base pathname is used to create absolute URL paths up to
    * the `hostname`, and must always start and end with a
    * `/`.  Defaults to `/`.
    */
   basePathname?: string;
   /**
-   * Ensure a trailing slash ends page urls. Defaults to `false`.
+   * Ensure a trailing slash ends page urls. Defaults to `true`.
+   * (Note: Previous versions defaulted to `false`).
    */
   trailingSlash?: boolean;
   /**
@@ -130,10 +147,6 @@ export interface PluginOptions {
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
-  /**
-   * @deprecated Please use "basePathname" instead.
-   */
-  baseUrl?: string;
 }
 
 export interface MdxPlugins {

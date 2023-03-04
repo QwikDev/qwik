@@ -10,13 +10,13 @@ export const OnThisPage = component$(() => {
   useStyles$(styles);
 
   const { headings } = useContent();
-  const contentHeadings = headings?.filter((h) => h.level === 2 || h.level === 3) || [];
+  const contentHeadings = headings?.filter((h) => h.level <= 3) || [];
 
-  const { pathname } = useLocation();
-  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes${pathname}index.mdx`;
+  const { url } = useLocation();
+  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes${url.pathname}index.mdx`;
 
   return (
-    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem] xl:top-[9rem]">
+    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem] xl:top-[14rem]">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>
@@ -84,7 +84,7 @@ export const OnThisPage = component$(() => {
         <li>
           <a href="https://github.com/BuilderIO/qwik" target="_blank" rel="nofollow noopener">
             <GithubLogo width={20} height={20} />
-            <span>Github</span>
+            <span>GitHub</span>
           </a>
         </li>
         <li>

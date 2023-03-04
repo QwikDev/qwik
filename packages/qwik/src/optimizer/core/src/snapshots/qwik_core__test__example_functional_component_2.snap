@@ -45,10 +45,10 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,kBAAkB,CAAC;AAC3D,OAAO,MAAM,UAAU,GAAG,IAAM;IAC5B,OAAO,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,CAAC;AAChC,CAAC,CAAA;AAED,OAAO,MAAM,IAAI,GAAG,CAAC,CAAC;AAEtB,OAAO,MAAM,GAAG,iBAAG,yFAoBjB,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
 ============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -58,7 +58,7 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,KAAK,CAAC,KAAK,IAAE,MAAM;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,MAAM,KAAK,IAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component_div_onclick_1cgetmfzx0g",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -81,14 +81,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_div_button_onclick_f5nww9e63a4.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { STEP } from "./test";
 export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
-    const [STEP_2, btn, props, state, thing] = useLexicalScope();
-    return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
+    const [btn, props, state, thing] = useLexicalScope();
+    return state.count += btn.offset + thing + 1 + 2 + props.step;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,KAAK,CAAC,KAAK,IAAI,GAAG,CAAC,MAAM,GAAG,KAAK,GAAG,IAAI,GAAG,MAAM,GAAG,KAAK,CAAC,IAAI;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAb5C,IAKD,IAQqE,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -99,7 +98,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component_div_button_onclick_f5nww9e63a4",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -121,10 +120,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const thing = useStore({
         thing: 0
     });
-    const STEP_2 = 2;
     const count2 = state.count * 2;
     return /*#__PURE__*/ _jsxs("div", {
-        onClick$: qrl(()=>import("./app_component_div_onclick_1cgetmfzx0g"), "App_component_div_onClick_1CGetmFZx0g", [
+        onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_onclick_1cgetmfzx0g"), "App_component_div_onClick_1CGetmFZx0g", [
             count2,
             state
         ]),
@@ -133,21 +131,20 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 children: _wrapSignal(state, "count")
             }),
             buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
-                    onClick$: qrl(()=>import("./app_component_div_button_onclick_f5nww9e63a4"), "App_component_div_button_onClick_f5NwW9e63a4", [
-                        STEP_2,
+                    onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_button_onclick_f5nww9e63a4"), "App_component_div_button_onClick_f5NwW9e63a4", [
                         btn,
                         props,
                         state,
                         thing
                     ]),
                     children: _wrapSignal(btn, "name")
-                }))
+                }, "u6_0"))
         ]
-    });
+    }, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,UAAU,EAAE,AAAC;IAC3B,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,MAAM,MAAM,GAAG,CAAC,AAAC;IAEjB,MAAM,MAAM,GAAG,KAAK,CAAC,KAAK,GAAG,CAAC,AAAC;IAC/B,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;0BACT,KAAC,MAAI;sCAAE,KAAK;cAAc;YACzB,OAAO,CAAC,GAAG,CAAC,CAAA,GAAG,iBACZ,KAAC,QAAM;oBACH,QAAQ;;;;;;;0CAEP,GAAG;kBACC,AACZ,CAAC;;MAEA,CAER;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,QAAU;IACrC,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;0BACT,KAAC;sCAAM;;YACN,QAAQ,GAAG,CAAC,CAAA,oBACT,KAAC;oBACG,QAAQ;;;;;;0CAEP;;;;AAOrB\"}")
 /*
 {
   "origin": "test.tsx",

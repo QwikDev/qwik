@@ -80,6 +80,11 @@ export interface TransformOptions {
   explicitExtensions?: boolean;
   mode?: EmitMode;
   scope?: string;
+  stripExports?: string[];
+  regCtxName?: string[];
+  stripCtxName?: string[];
+  stripEventHandlers?: boolean;
+  isServer?: boolean;
 }
 
 /**
@@ -187,6 +192,7 @@ export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
  */
 export type EntryStrategy =
   | InlineEntryStrategy
+  | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
   | ComponentEntryStrategy
@@ -207,6 +213,13 @@ export type EmitMode = 'dev' | 'prod' | 'lib';
  */
 export interface InlineEntryStrategy {
   type: 'inline';
+}
+
+/**
+ * @alpha
+ */
+export interface HoistEntryStrategy {
+  type: 'hoist';
 }
 
 /**
@@ -261,7 +274,7 @@ export interface QwikManifest {
 /**
  * @alpha
  */
-export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
 /**
  * @alpha
@@ -269,7 +282,7 @@ export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
 export type SymbolMapperFn = (
   symbolName: string,
   mapper: SymbolMapper | undefined
-) => [symbol: string, chunk: string] | undefined;
+) => readonly [symbol: string, chunk: string] | undefined;
 
 /**
  * @alpha
@@ -303,7 +316,6 @@ export interface GlobalInjections {
   tag: string;
   attributes?: { [key: string]: string };
   location: 'head' | 'body';
-  children?: string;
 }
 
 export interface GeneratedOutputBundle {

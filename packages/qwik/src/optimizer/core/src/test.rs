@@ -10,6 +10,14 @@ macro_rules! test_input {
             .strip_exports
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
 
+        let reg_ctx_name: Option<Vec<JsWord>> = input
+            .reg_ctx_name
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
+        let strip_ctx_name: Option<Vec<JsWord>> = input
+            .strip_ctx_name
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let res = transform_modules(TransformModulesOptions {
             src_dir: input.src_dir,
             input: vec![TransformModuleInput {
@@ -26,7 +34,12 @@ macro_rules! test_input {
             entry_strategy: input.entry_strategy,
             mode: input.mode,
             scope: input.scope,
+            core_module: input.core_module,
             strip_exports,
+            strip_ctx_name,
+            reg_ctx_name,
+            strip_event_handlers: input.strip_event_handlers,
+            is_server: input.is_server,
         });
         if input.snapshot {
             let input = input.code.to_string();
@@ -424,6 +437,31 @@ export const Bar = component$(({bar}) => {
 })
 "#
         .to_string(),
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_dead_code() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { deps } from 'deps';
+
+export const Foo = component$(({foo}) => {
+    useMount$(() => {
+        if (false) {
+            deps();
+        }
+    });
+    return (
+        <div />
+    );
+})
+"#
+        .to_string(),
+        minify: MinifyMode::Simplify,
         ..TestInput::default()
     });
 }
@@ -470,6 +508,154 @@ export const Foo = component$(() => {
     });
 }
 
+#[test]
+fn example_props_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$(({
+    count,
+    some = 1+2,
+    hello = CONST,
+    stuff: hey,
+    ...rest}) => {
+    console.log(hey, some);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count, rest, hey, some);
+    });
+    return (
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
+    );
+});
+
+export const NoWorks2 = component$(({count, stuff: {hey}}) => {
+    console.log(hey);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count);
+    });
+    return (
+        <div class={count}>{count}</div>
+    );
+});
+
+export const NoWorks3 = component$(({count, stuff = hola()}) => {
+    console.log(stuff);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count);
+    });
+    return (
+        <div class={count}>{count}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_use_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$((props) => {
+    const {value} = useSignal(0);
+    const {foo, ...rest} = useStore({foo: 0});
+    const {bar = 'hello', ...rest2} = useStore({foo: 0});
+    const {hello} = props;
+
+    return (
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+import { foo } from './foo';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <>
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+        <div onClick$={() => foo()}></div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        strip_event_handlers: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_hoisted() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
+
+export const Works = component$((props) => {
+    useStyle$(STYLES);
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+
+const STYLES = '.class {}';
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
@@ -659,6 +845,7 @@ export const Header = component$(() => {
 export const Footer = component$();
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -1016,7 +1203,7 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -1024,7 +1211,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -1052,7 +1239,7 @@ export const Child = component$(() => {
 fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -1064,7 +1251,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         state.count = thing.doStuff() + import("./sibling");
     });
 
@@ -1128,12 +1315,35 @@ export default component$(() => {
 }
 
 #[test]
+fn example_default_export_invalid_ident() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        filename: "src/components/mongo/404.tsx".into(),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_parsed_inlined_qrls() {
     test_input!(TestInput {
         code: r#"
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+    useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+
     const store = useStore({
         count: 0
     });
@@ -1160,10 +1370,13 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     });
 }, "App_component_Fh88JClhbC0"));
 
+export const STYLES = ".red { color: red; }";
+
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
         mode: EmitMode::Prod,
+        transpile_ts: false,
         ..TestInput::default()
     });
 }
@@ -1223,7 +1436,7 @@ export const Child = component$(() => {
 fn example_manual_chunks() {
     test_input!(TestInput {
         code: r#"
-import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1233,7 +1446,7 @@ export const Parent = component$(() => {
     });
 
     // Double count watch
-    useWatch$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
         redis.set(state.text);
     });
@@ -1251,7 +1464,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useWatch$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
     });
 
@@ -1325,6 +1538,151 @@ export default component$(()=> {
 "#
         .to_string(),
         strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_strip_server_code() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+import { handler } from 'serverless';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    serverStuff$(async () => {
+        // should be removed too
+    })
+
+    serverLoader$(handler);
+
+    useTask$(() => {
+        // Code
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Hook,
+        strip_ctx_name: Some(vec!["useServerMount$".into(), "server".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_server_auth() {
+    test_input!(TestInput {
+        code: r#"
+import GitHub from '@auth/core/providers/github'
+import Facebook from 'next-auth/providers/facebook'
+import Google from 'next-auth/providers/google'
+import {serverAuth$, auth$} from '@auth/qwik';
+
+export const { onRequest, logout, getSession, signup } = serverAuth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: import.meta.env.FACEBOOK_ID,
+        clientSecret: import.meta.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+
+export const { onRequest, logout, getSession, signup } = auth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: process.env.FACEBOOK_ID,
+        clientSecret: process.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Hook,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_strip_client_code() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+import threejs from 'threejs';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useClientMount$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    useTask$(() => {
+        // Code
+    });
+
+    return (
+        <div
+            shouldRemove$={() => state.text}
+            onClick$={() => console.log('parent', state, threejs)}
+        >
+            <Div
+                onClick$={() => console.log('keep')}
+                render$={() => state.text}
+            />
+            {state.text}
+        </div>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        strip_ctx_name: Some(vec!["useClientMount$".into(),]),
+        strip_event_handlers: true,
         ..TestInput::default()
     });
 }
@@ -1650,7 +2008,38 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
-fn example_mutable_children() {
+fn example_export_issue() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+const App = component$(() => {
+    return (
+        <div>hola</div>
+    );
+});
+
+
+export const Root = component$((props: Stuff) => {
+    return (
+        <App/>
+    );
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_jsx_keyed() {
     test_input!(TestInput {
         code: r#"
 import { component$, useStore } from '@builder.io/qwik';
@@ -1658,22 +2047,148 @@ import { component$, useStore } from '@builder.io/qwik';
 export const App = component$((props: Stuff) => {
     return (
         <>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
-            <div>{prop.value && <div></div>}</div>
-            <div>{prop.value || <div></div>}</div>
-            <div>{prop.value ?? <div></div>}</div>
-            <div>Static {f ? 1 : 3}</div>
-
-            <div>Static</div>
-            <div>Static {props.value}</div>
-            <div>Static {stuff()}</div>
-            <div>Static {stuff()}</div>
-
+            <Cmp key="stuff"></Cmp>
+            <Cmp></Cmp>
+            <Cmp prop="23"></Cmp>
+            <Cmp prop="23" key={props.stuff}></Cmp>
+            <p key={props.stuff}>Hello Qwik</p>
         </>
     );
 });
 "#
         .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_jsx_keyed_dev() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <>
+            <Cmp key="stuff"></Cmp>
+            <Cmp></Cmp>
+            <Cmp prop="23"></Cmp>
+            <Cmp prop="23" key={props.stuff}></Cmp>
+            <p key={props.stuff}>Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Dev,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_mutable_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+
+export function Fn1(props: Stuff) {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+}
+
+export function Fn2(props: Stuff) {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+}
+
+export function Fn3(props: Stuff) {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+}
+
+export function Fn4(props: Stuff) {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+}
+
+export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
+
+export const AppDynamic1 = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+});
+export const AppDynamic2 = component$((props: Stuff) => {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+});
+
+export const AppDynamic3 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+});
+
+export const AppDynamic4 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+});
+
+export const AppStatic = component$((props: Stuff) => {
+    return (
+        <>
+            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+
+            <div>{prop.value && <div></div>}<div></div></div>
+            <div>Static {f ? 1 : 3}</div>
+            <div>Static</div>
+            <div>Static {props.value}</div>
+            <div>Static {stuff()}</div>
+            <div>Static {stuff()}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
         transpile_ts: true,
         transpile_jsx: true,
         explicit_extensions: true,
@@ -1729,6 +2244,66 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_preserve_filenames_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    foo();
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+
+export const foo = () => console.log('foo');
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_build_server() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { mongodb } from 'mondodb';
+import { threejs } from 'threejs';
+
+export const App = component$(() => {
+    useMount$(() => {
+        if (isServer) {
+            console.log('server', mongodb());
+        }
+        if (isBrowser) {
+            console.log('browser', new threejs());
+        }
+    });
+    return (
+        <Cmp>
+            {isServer && <p>server</p>}
+            {isBrowser && <p>server</p>}
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        is_server: Some(true),
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_getter_generation() {
     test_input!(TestInput {
         code: r#"
@@ -1775,7 +2350,7 @@ export const Cmp = component$((props) => {
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -1787,7 +2362,7 @@ function qwikifyQrl(reactCmpQrl) {
         let run;
         if (props['client:visible']) run = 'visible';
         else if (props['client:load'] || props['client:only']) run = 'load';
-        useWatchQrl(inlinedQrl(async (track)=>{
+        useTaskQrl(inlinedQrl(async (track)=>{
             const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
             track(props);
             if (isBrowser) {
@@ -1869,6 +2444,110 @@ export { qwikify$, qwikifyQrl, renderToString };
         .to_string(),
         filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
         entry_strategy: EntryStrategy::Hook,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_qwik_react_inline() {
+    test_input!(TestInput {
+        code: r#"
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+
+function qwikifyQrl(reactCmpQrl) {
+    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+        const [reactCmpQrl] = useLexicalScope();
+        const hostElement = useHostElement();
+        const store = useStore({});
+        let run;
+        if (props['client:visible']) run = 'visible';
+        else if (props['client:load'] || props['client:only']) run = 'load';
+        useTaskQrl(inlinedQrl(async (track)=>{
+            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+            track(props);
+            if (isBrowser) {
+                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+                else {
+                    const [Cmp, client] = await Promise.all([
+                        reactCmpQrl.resolve(),
+                        import('./client-f762f78c.js')
+                    ]);
+                    let root;
+                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+                    else {
+                        root = client.createRoot(hostElement);
+                        root.render(client.Main(Cmp, filterProps(props)));
+                    }
+                    store.data = noSerialize({
+                        client,
+                        cmp: Cmp,
+                        root
+                    });
+                }
+            }
+        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+            hostElement,
+            props,
+            reactCmpQrl,
+            store
+        ]), {
+            run
+        });
+        if (isServer && !props['client:only']) {
+            const jsx$1 = Promise.all([
+                reactCmpQrl.resolve(),
+                import('./server-9ac6caad.js')
+            ]).then(([Cmp, server])=>{
+                const html = server.render(Cmp, filterProps(props));
+                return /*#__PURE__*/ jsx(Host, {
+                    dangerouslySetInnerHTML: html,
+                    [_IMMUTABLE]: [
+                        "dangerouslySetInnerHTML"
+                    ]
+                });
+            });
+            return /*#__PURE__*/ jsx(Fragment, {
+                children: jsx$1
+            });
+        }
+        return /*#__PURE__*/ jsx(Host, {
+            children: /*#__PURE__*/ jsx(SkipRerender, {})
+        });
+    }, "qwikifyQrl_component_zH94hIe0Ick", [
+        reactCmpQrl
+    ]), {
+        tagName: 'qwik-wrap'
+    });
+}
+const filterProps = (props)=>{
+    const obj = {};
+    Object.keys(props).forEach((key)=>{
+        if (!key.startsWith('client:')) obj[key] = props[key];
+    });
+    return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+
+async function renderToString(rootNode, opts) {
+    const mod = await import('./server-9ac6caad.js');
+    const result = await mod.renderToString(rootNode, opts);
+    const styles = mod.getGlobalStyleTag(result.html);
+    const finalHtml = styles + result.html;
+    return {
+        ...result,
+        html: finalHtml
+    };
+}
+
+export { qwikify$, qwikifyQrl, renderToString };
+        "#
+        .to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        explicit_extensions: true,
         ..TestInput::default()
     });
 }
@@ -1943,8 +2622,13 @@ export const Local = component$(() => {
         transpile_ts: true,
         transpile_jsx: true,
         preserve_filenames: false,
+        core_module: None,
         scope: None,
         strip_exports: None,
+        strip_ctx_name: None,
+        strip_event_handlers: false,
+        reg_ctx_name: None,
+        is_server: None,
     });
     snapshot_res!(&res, "".into());
 }
@@ -2018,7 +2702,12 @@ export const Greeter = component$(() => {
         transpile_jsx: true,
         preserve_filenames: false,
         scope: None,
+        core_module: None,
+        reg_ctx_name: None,
         strip_exports: None,
+        strip_ctx_name: None,
+        strip_event_handlers: false,
+        is_server: None,
     });
     let ref_hooks: Vec<_> = res
         .unwrap()
@@ -2050,7 +2739,12 @@ export const Greeter = component$(() => {
             transpile_jsx: option.2,
             preserve_filenames: false,
             scope: None,
+            core_module: None,
             strip_exports: None,
+            strip_ctx_name: None,
+            strip_event_handlers: false,
+            reg_ctx_name: None,
+            is_server: None,
         });
 
         let hooks: Vec<_> = res
@@ -2094,8 +2788,13 @@ struct TestInput {
     pub explicit_extensions: bool,
     pub snapshot: bool,
     pub mode: EmitMode,
+    pub core_module: Option<String>,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
+    pub reg_ctx_name: Option<Vec<String>>,
+    pub strip_ctx_name: Option<Vec<String>>,
+    pub strip_event_handlers: bool,
+    pub is_server: Option<bool>,
 }
 
 impl TestInput {
@@ -2114,7 +2813,12 @@ impl TestInput {
             snapshot: true,
             mode: EmitMode::Lib,
             scope: None,
+            core_module: None,
+            reg_ctx_name: None,
             strip_exports: None,
+            strip_ctx_name: None,
+            strip_event_handlers: false,
+            is_server: None,
         }
     }
 }

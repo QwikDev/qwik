@@ -15,11 +15,12 @@ export const ReplInputPanel = ({
   enableInputDelete,
 }: ReplInputPanelProps) => {
   return (
-    <div class="repl-panel repl-input-panel">
+    <div class="repl-panel repl-input-panel" translate="no">
       <ReplTabButtons>
         {input.files.map((f) =>
           f.hidden ? null : (
             <ReplTabButton
+              key={f.path}
               text={formatFilePath(f.path)}
               isActive={store.selectedInputPath === f.path}
               onClick$={async () => {

@@ -1,4 +1,3 @@
-import { logWarn } from '../../core/util/log';
 import type {
   OptimizerSystem,
   SystemEnvironment,
@@ -150,7 +149,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
             const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {
-            logWarn(e);
+            console.warn(e);
           }
         }
       }

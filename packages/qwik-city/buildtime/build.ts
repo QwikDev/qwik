@@ -1,7 +1,8 @@
 import type { BuildContext } from './types';
-import { addError } from '../utils/format';
+import { addError, addWarning } from '../utils/format';
 import { walkRoutes } from './routing/walk-routes-dir';
 import { resolveSourceFiles } from './routing/resolve-source-file';
+import { walkServerPlugins } from './routing/walk-server-plugins';
 
 export async function build(ctx: BuildContext) {
   try {
@@ -23,12 +24,15 @@ export async function build(ctx: BuildContext) {
 export async function updateBuildContext(ctx: BuildContext) {
   if (!ctx.activeBuild) {
     ctx.activeBuild = new Promise<void>((resolve, reject) => {
-      walkRoutes(ctx.opts.routesDir)
+      walkServerPlugins(ctx.opts)
+        .then((serverPlugins) => {
+          ctx.serverPlugins = serverPlugins;
+          return walkRoutes(ctx.opts.routesDir);
+        })
         .then((sourceFiles) => {
           const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
           ctx.layouts = resolved.layouts;
           ctx.routes = resolved.routes;
-          ctx.errors = resolved.errors;
           ctx.entries = resolved.entries;
           ctx.serviceWorkers = resolved.serviceWorkers;
           ctx.menus = resolved.menus;
@@ -56,4 +60,13 @@ function validateBuild(ctx: BuildContext) {
       );
     }
   }
+
+  ctx.layouts
+    .filter((l) => l.layoutType === 'top')
+    .forEach((l) => {
+      addWarning(
+        ctx,
+        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.builder.io/qwikcity/layout/grouped/`
+      );
+    });
 }

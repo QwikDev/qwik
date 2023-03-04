@@ -5,9 +5,87 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
+import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
+import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
+import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
+import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
-import { ResourceReturn } from '@builder.io/qwik';
+import { QwikJSX } from '@builder.io/qwik';
+import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
+import type { Signal } from '@builder.io/qwik';
+import { ValueOrPromise } from '@builder.io/qwik';
+import { z } from 'zod';
+import type * as zod from 'zod';
+
+// @alpha @deprecated (undocumented)
+export const action$: ActionConstructor;
+
+// @alpha (undocumented)
+export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
+    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+    // @deprecated (undocumented)
+    use(): ActionStore<RETURN, INPUT, OPTIONAL>;
+}
+
+// @alpha (undocumented)
+export interface ActionConstructor {
+    // Warning: (ae-forgotten-export) The symbol "TypedDataValidator" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "StrictUnion" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    <O, B extends TypedDataValidator>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B | ActionOptionsWithValidation<B>): Action<StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>, GetValidatorType<B>, false>;
+    // Warning: (ae-forgotten-export) The symbol "DataValidator" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FailOfRest" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    <O, B extends TypedDataValidator, REST extends DataValidator[]>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: REST): Action<StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>, GetValidatorType<B>, false>;
+    // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    <O>(actionQrl: (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>, options?: ActionOptions): Action<O>;
+    // (undocumented)
+    <O, REST extends DataValidator[]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>, ...rest: REST): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+// @alpha (undocumented)
+export interface ActionOptions {
+    // (undocumented)
+    readonly id?: string;
+    // (undocumented)
+    readonly validation?: DataValidator[];
+}
+
+// @alpha (undocumented)
+export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
+    // (undocumented)
+    readonly id?: string;
+    // (undocumented)
+    readonly validation: [val: B, ...a: DataValidator[]];
+}
+
+// Warning: (ae-forgotten-export) The symbol "ActionConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha @deprecated (undocumented)
+export const actionQrl: ActionConstructorQRL;
+
+// @alpha (undocumented)
+export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
+    readonly actionPath: string;
+    readonly formData: FormData | undefined;
+    readonly isRunning: boolean;
+    // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
+    readonly run: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
+    readonly status?: number;
+    readonly value: RETURN | undefined;
+}
 
 // @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
@@ -15,43 +93,51 @@ export const Content: Component<    {}>;
 // @alpha (undocumented)
 export interface ContentHeading {
     // (undocumented)
-    id: string;
+    readonly id: string;
     // (undocumented)
-    level: number;
+    readonly level: number;
     // (undocumented)
-    text: string;
+    readonly text: string;
 }
 
 // @alpha (undocumented)
 export interface ContentMenu {
     // (undocumented)
-    href?: string;
+    readonly href?: string;
     // (undocumented)
-    items?: ContentMenu[];
+    readonly items?: ContentMenu[];
     // (undocumented)
-    text: string;
+    readonly text: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
+export { Cookie }
+
+export { CookieOptions }
+
+export { CookieValue }
+
+export { DeferReturn }
 
 // @alpha (undocumented)
-export interface DocumentHeadProps<T = unknown> extends RouteLocation {
+export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
+
+// @alpha (undocumented)
+export interface DocumentHeadProps extends RouteLocation {
     // (undocumented)
-    data: T;
+    readonly head: ResolvedDocumentHead;
     // (undocumented)
-    head: ResolvedDocumentHead;
+    readonly resolveValue: ResolveSyncValue;
+    // (undocumented)
+    readonly withLocale: <T>(fn: () => T) => T;
 }
 
 // @alpha (undocumented)
 export interface DocumentHeadValue {
-    frontmatter?: Record<string, any>;
-    links?: DocumentLink[];
-    meta?: DocumentMeta[];
-    styles?: DocumentStyle[];
-    title?: string;
+    readonly frontmatter?: Readonly<Record<string, any>>;
+    readonly links?: readonly DocumentLink[];
+    readonly meta?: readonly DocumentMeta[];
+    readonly styles?: readonly DocumentStyle[];
+    readonly title?: string;
 }
 
 // @alpha (undocumented)
@@ -95,31 +181,64 @@ export interface DocumentLink {
 // @alpha (undocumented)
 export interface DocumentMeta {
     // (undocumented)
-    content?: string;
+    readonly content?: string;
     // (undocumented)
-    httpEquiv?: string;
+    readonly httpEquiv?: string;
     // (undocumented)
-    key?: string;
+    readonly itemprop?: string;
     // (undocumented)
-    name?: string;
+    readonly key?: string;
     // (undocumented)
-    property?: string;
+    readonly name?: string;
+    // (undocumented)
+    readonly property?: string;
 }
 
 // @alpha (undocumented)
 export interface DocumentStyle {
     // (undocumented)
-    key?: string;
+    readonly key?: string;
     // (undocumented)
-    props?: {
+    readonly props?: Readonly<{
         [propName: string]: string;
-    };
+    }>;
     // (undocumented)
-    style: string;
+    readonly style: string;
 }
 
 // @alpha @deprecated (undocumented)
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
+
+// @alpha (undocumented)
+export type FailReturn<T> = T & {
+    failed: true;
+};
+
+// @alpha (undocumented)
+export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>) => JSXNode<"form">;
+
+// @alpha (undocumented)
+export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
+    action: ActionStore<O, I, true | false>;
+    onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
+    onSubmitCompleted$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
+    reloadDocument?: boolean;
+    spaReset?: boolean;
+}
+
+// @alpha (undocumented)
+export interface FormSubmitSuccessDetail<T> {
+    // (undocumented)
+    status: number;
+    // (undocumented)
+    value: T;
+}
+
+// @alpha (undocumented)
+export const globalAction$: ActionConstructor;
+
+// @alpha (undocumented)
+export const globalActionQrl: ActionConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
 //
@@ -135,76 +254,99 @@ export const Link: Component<LinkProps>;
 export interface LinkProps extends AnchorAttributes {
     // (undocumented)
     prefetch?: boolean;
+    // (undocumented)
+    reload?: boolean;
+}
+
+// Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
+//
+// @alpha @deprecated (undocumented)
+export const loader$: LoaderConstructor;
+
+// @alpha (undocumented)
+export interface Loader<RETURN> {
+    (): LoaderSignal<RETURN>;
+    // @deprecated (undocumented)
+    use(): LoaderSignal<RETURN>;
+}
+
+// Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha @deprecated (undocumented)
+export const loaderQrl: LoaderConstructorQRL;
+
+// @alpha (undocumented)
+export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<T>>;
+
+// Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
+// Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface PageModule extends RouteModule {
+    // (undocumented)
+    readonly default: any;
+    // Warning: (ae-forgotten-export) The symbol "ContentModuleHead" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly head?: ContentModuleHead;
+    // (undocumented)
+    readonly headings?: ContentHeading[];
+    // (undocumented)
+    readonly onStaticGenerate?: StaticGenerateHandler;
 }
 
 // @alpha (undocumented)
+export type PathParams = Record<string, string>;
+
+// @alpha @deprecated (undocumented)
 export const QwikCity: Component<QwikCityProps>;
+
+// Warning: (ae-forgotten-export) The symbol "QwikCityMockProps" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const QwikCityMockProvider: Component<QwikCityMockProps>;
 
 // @alpha (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
-    basePathname?: string;
+    readonly basePathname?: string;
     // (undocumented)
-    cacheModules?: boolean;
-    // Warning: (ae-forgotten-export) The symbol "MenuData" needs to be exported by the entry point index.d.ts
-    //
+    readonly cacheModules?: boolean;
     // (undocumented)
-    menus?: MenuData[];
+    readonly menus?: MenuData[];
     // (undocumented)
-    routes: RouteData[];
+    readonly routes: RouteData[];
     // (undocumented)
-    trailingSlash?: boolean;
+    readonly serverPlugins?: RouteModule[];
+    // (undocumented)
+    readonly trailingSlash?: boolean;
 }
 
 // @alpha (undocumented)
-export interface RequestContext {
-    // (undocumented)
-    formData(): Promise<FormData>;
-    // (undocumented)
-    headers: Headers;
-    // (undocumented)
-    json(): Promise<any>;
-    // (undocumented)
-    method: string;
-    // (undocumented)
-    text(): Promise<string>;
-    // (undocumented)
-    url: string;
-}
+export const QwikCityProvider: Component<QwikCityProps>;
 
-// @alpha (undocumented)
-export interface RequestEvent<PLATFORM = unknown> {
-    // (undocumented)
-    abort: () => void;
-    // (undocumented)
-    next: () => Promise<void>;
-    params: RouteParams;
-    platform: PLATFORM;
-    // (undocumented)
-    request: RequestContext;
-    // (undocumented)
-    response: ResponseContext;
-    // (undocumented)
-    url: URL;
-}
+export { RequestEvent }
 
-// Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => RequestHandlerResult<BODY>;
+export { RequestEventAction }
+
+export { RequestEventCommon }
+
+export { RequestEventLoader }
+
+export { RequestHandler }
 
 // @alpha (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 // @alpha (undocumented)
-export interface ResponseContext {
-    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
-    readonly error: (status: number) => ErrorResponse;
-    readonly headers: Headers;
-    // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
-    readonly redirect: (url: string, status?: number) => RedirectResponse;
-    status: number;
-}
+export const routeAction$: ActionConstructor;
+
+// @alpha (undocumented)
+export const routeActionQrl: ActionConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //
@@ -218,28 +360,57 @@ routeBundleNames: string[]
 ];
 
 // @alpha (undocumented)
+export const routeLoader$: LoaderConstructor;
+
+// @alpha (undocumented)
+export const routeLoaderQrl: LoaderConstructorQRL;
+
+// @alpha (undocumented)
 export interface RouteLocation {
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly href: string;
     // (undocumented)
-    readonly params: RouteParams;
+    readonly isNavigating: boolean;
     // (undocumented)
+    readonly params: Readonly<Record<string, string>>;
+    // @deprecated (undocumented)
     readonly pathname: string;
+    // @deprecated (undocumented)
+    readonly query: URLSearchParams;
     // (undocumented)
-    readonly query: Record<string, string>;
+    readonly url: URL;
 }
 
 // @alpha (undocumented)
+export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+
+// @alpha @deprecated (undocumented)
 export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
-// @alpha (undocumented)
-export const ServiceWorkerRegister: () => JSXNode<"script">;
-
-// Warning: (ae-forgotten-export) The symbol "StaticGenerate" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ServerFunction" needs to be exported by the entry point index.d.ts
 //
+// @alpha (undocumented)
+export const server$: <T extends ServerFunction>(first: T) => QRL<T>;
+
+// Warning: (ae-forgotten-export) The symbol "ServerConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const serverQrl: ServerConstructorQRL;
+
+// @alpha (undocumented)
+export const ServiceWorkerRegister: (props: {
+    nonce?: string;
+}) => JSXNode<"script">;
+
+// @alpha (undocumented)
+export interface StaticGenerate {
+    // (undocumented)
+    params?: PathParams[];
+}
+
 // @alpha (undocumented)
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
 
@@ -252,15 +423,42 @@ export const useContent: () => ContentState;
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
 // @alpha (undocumented)
-export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
-
-// @alpha (undocumented)
 export const useLocation: () => RouteLocation;
 
-// Warning: (ae-forgotten-export) The symbol "RouteNavigate" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export const useNavigate: () => RouteNavigate;
+
+// Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const validator$: ValidatorConstructor;
+
+// Warning: (ae-forgotten-export) The symbol "ValidatorConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const validatorQrl: ValidatorConstructorQRL;
+
+export { z }
+
+// @alpha (undocumented)
+export const zod$: ZodConstructor;
+
+// @alpha (undocumented)
+export interface ZodConstructor {
+    // (undocumented)
+    <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
+    // (undocumented)
+    <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+    // (undocumented)
+    <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
+    // (undocumented)
+    <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+}
+
+// Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const zodQrl: ZodConstructorQRL;
 
 // (No @packageDocumentation comment for this package)
 

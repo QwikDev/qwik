@@ -25,11 +25,11 @@ export const App = component$((props)=>{
     useStyles$('hola');
     return $(()=>/*#__PURE__*/ _jsx("div", {
             children: _wrapSignal(state, "thing")
-        }));
+        }, "u6_0"));
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,OAAO,GAAG,CAAC,CAAC,IAAI,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC,CAAC;AAElD,OAAO,MAAM,GAAG,GAAG,UAAU,CAAC,CAAC,KAAK,GAAK;IACrC,UAAU,CAAC,MAAM,CAAC,CAAC;IACnB,OAAO,CAAC,CAAC,kBACL,KAAC,KAAG;kCAAE,KAAK;UAAa,AAC3B,CAAC,CAAC;AACP,CAAC,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACrC,WAAW;IACX,OAAO,EAAE,kBACL,KAAC;kCAAK;;AAEd,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

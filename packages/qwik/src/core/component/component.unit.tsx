@@ -1,4 +1,4 @@
-import { ElementFixture, trigger } from '../../testing/element-fixture';
+import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
@@ -6,17 +6,20 @@ import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { render } from '../render/dom/render.public';
 
+/**
+ * Appling new unit test library/layer
+ * `@builder.io/qwik/testing`  ==>  ../../testing/library
+ */
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
-  const fixture = new ElementFixture();
-  await render(fixture.host, <HelloWorld></HelloWorld>);
+  const { screen, render } = await createDOM();
+  await render(<HelloWorld />);
   await expectDOM(
-    fixture.host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-        <style q:style="pfkgyr-0">
+        <style q:style="pfkgyr-0" hidden="">
            {
           }
         </style>
@@ -28,10 +31,11 @@ qComponent('should declare and render basic component', async () => {
 });
 
 qComponent('should render Counter and accept events', async () => {
-  const fixture = new ElementFixture();
-  await render(fixture.host, <MyCounter step={5} value={15} />);
+  const { screen, render, userEvent } = await createDOM();
+
+  await render(<MyCounter step={5} value={15} />);
   await expectDOM(
-    fixture.host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <!--qv q:key=sX:-->
@@ -43,9 +47,9 @@ qComponent('should render Counter and accept events', async () => {
     <!--/qv-->
   </host>`
   );
-  await trigger(fixture.host, 'button.decrement', 'click');
+  await userEvent('button.decrement', 'click');
   await expectDOM(
-    fixture.host,
+    screen,
     `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
   <!--qv q:key=sX:-->
@@ -68,7 +72,8 @@ qComponent('should render Counter and accept events', async () => {
 });
 
 qComponent('should render a collection of todo items', async () => {
-  const host = new ElementFixture().host;
+  const { screen, render } = await createDOM();
+
   const items = {
     items: [
       {
@@ -81,10 +86,10 @@ qComponent('should render a collection of todo items', async () => {
       },
     ],
   };
-  await render(host, <Items items={items} />);
+  await render(<Items items={items} />);
   await delay(0);
   await expectDOM(
-    host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
       <!--qv q:key=sX:-->

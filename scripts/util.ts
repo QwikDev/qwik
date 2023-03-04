@@ -48,6 +48,7 @@ export interface BuildConfig {
   build?: boolean;
   qwikcity?: boolean;
   qwikreact?: boolean;
+  qwikauth?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -355,4 +356,5 @@ const IGNORE: { [path: string]: boolean } = {
   'starter.tsconfig.json': true,
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
+  'pnpm-lock.yaml': true,
 };

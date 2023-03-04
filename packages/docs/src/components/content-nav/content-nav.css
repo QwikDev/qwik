@@ -1,8 +1,8 @@
 .content-nav .prev,
 .content-nav .next {
   position: relative;
-  background-color: var(--qwik-dark-blue);
-  border: 1px solid var(--qwik-dark-blue);
+  background-color: var(--content-nav-button-bg-color);
+  border: 1px solid var(--content-nav-button-bg-color);
   border-radius: 5px;
   padding: 6px 16px;
   text-decoration: none;
@@ -24,8 +24,9 @@
 
 .content-nav .prev:hover,
 .content-nav .next:hover {
-  background-color: white;
-  color: var(--qwik-dark-blue);
+  background-color: var(--content-nav-button-hover-bg-color);
+  border: 1px solid var(--content-nav-button-text-color);
+  color: var(--content-nav-button-text-color);
 }
 
 .content-nav .prev {

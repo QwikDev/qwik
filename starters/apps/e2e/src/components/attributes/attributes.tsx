@@ -117,6 +117,9 @@ export const AttributesChild = component$(() => {
               required={required.value}
               aria-hidden={state.dataAria as any}
               aria-label={state.label}
+              aria-required={required.value}
+              draggable={required.value}
+              spellcheck={required.value}
               data-stuff={'stuff: ' + state.stuff}
               tabIndex={-1}
               title={title.value}

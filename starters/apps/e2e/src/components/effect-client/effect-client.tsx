@@ -1,13 +1,16 @@
 /* eslint-disable */
 import {
   component$,
+  useVisibleTask$,
   useClientEffect$,
   useRef,
   useStore,
   useStyles$,
   Slot,
   useSignal,
-  useWatch$,
+  useTask$,
+  Signal,
+  useBrowserVisibleTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -23,6 +26,9 @@ export const EffectClient = component$(() => {
     <div>
       <Issue1413 />
       <Issue1717 />
+      <Issue2015 />
+      <Issue1955 />
+      <CleanupEffects />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -50,13 +56,13 @@ export const Timer = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     state.msg = 'run';
     container.current!.setAttribute('data-effect', 'true');
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     state.count = 10;
     const timer = setInterval(() => {
       state.count++;
@@ -82,12 +88,12 @@ export const Eager = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(
+  useVisibleTask$(
     () => {
       state.msg = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
@@ -108,25 +114,25 @@ export const ClientSide = component$(() => {
     text3: 'empty 3',
   });
 
-  useClientEffect$(
+  useVisibleTask$(
     () => {
       state.text1 = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     state.text2 = 'run';
   });
 
-  useClientEffect$(
+  useVisibleTask$(
     () => {
       state.text3 = 'run';
     },
     {
-      eagerness: 'idle',
+      strategy: 'document-idle',
     }
   );
 
@@ -141,7 +147,7 @@ export const ClientSide = component$(() => {
 
 export const FancyName = component$(() => {
   console.log('Fancy Name');
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.log('Client effect fancy name');
   });
   return <Slot />;
@@ -150,7 +156,7 @@ export const FancyName = component$(() => {
 export const fancyName = 'Some';
 
 export const Issue1413 = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.log(fancyName);
   });
   console.log('Root route');
@@ -165,7 +171,7 @@ export const Issue1413 = component$(() => {
 
 export function useDelay(value: string) {
   const ready = useSignal('---');
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     ready.value = value;
   });
   return ready;
@@ -181,7 +187,7 @@ export const Issue1717 = component$(() => {
     { reactive: false }
   );
   const signal = useSignal(0);
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(500);
     signal.value = 10;
   });
@@ -195,4 +201,71 @@ export const Issue1717 = component$(() => {
       <div id="issue-1717-value2">{val2.value}</div>
     </>
   );
+});
+
+export const Issue2015 = component$(() => {
+  const state = useStore({
+    logs: [] as string[],
+  });
+
+  useVisibleTask$(async () => {
+    state.logs.push('start 1');
+    await delay(100);
+    state.logs.push('finish 1');
+  });
+
+  useVisibleTask$(async () => {
+    state.logs.push('start 2');
+    await delay(100);
+    state.logs.push('finish 2');
+  });
+
+  useVisibleTask$(async () => {
+    state.logs.push('start 3');
+    await delay(100);
+    state.logs.push('finish 3');
+    state.logs = state.logs.slice();
+  });
+
+  return <div id="issue-2015-order">Order: {state.logs.join(' ')}</div>;
+});
+
+export const Issue1955Helper = component$(() => {
+  return (
+    <div id="issue-1955-results">
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue1955 = component$(() => {
+  const signal = useSignal('empty');
+  useClientEffect$(() => {
+    signal.value = 'run';
+  });
+  return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;
+});
+
+export const CleanupEffects = component$(() => {
+  const nuCleanups = useSignal(0);
+  const counter = useSignal(0);
+
+  return (
+    <>
+      <CleanupEffectsChild nuCleanups={nuCleanups} key={counter.value} />
+      <button id="cleanup-effects-button" onClick$={() => counter.value++}>
+        Add
+      </button>
+      <div id="cleanup-effects-count">{nuCleanups.value + ''}</div>
+    </>
+  );
+});
+
+export const CleanupEffectsChild = component$((props: { nuCleanups: Signal<number> }) => {
+  useBrowserVisibleTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.nuCleanups.value++;
+    });
+  });
+  return <div>Hello</div>;
 });

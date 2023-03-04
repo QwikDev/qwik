@@ -4,7 +4,7 @@ import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getWrappingContainer } from '../core/use/use-core';
 import { assertDefined } from '../core/error/assert';
-import { getContext, QContext } from '../core/state/context';
+import { tryGetContext, QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
 
 /**
@@ -52,11 +52,12 @@ export interface ElementFixtureOptions {
 
 /**
  * Trigger an event in unit tests on an element.
- *
+ * Posibly deprecated in the future
  * @param element
  * @param selector
  * @param event
  * @returns
+ * @alpha
  */
 export async function trigger(
   root: Element,
@@ -72,10 +73,16 @@ export async function trigger(
   await getTestPlatform().flush();
 }
 
+/**
+ * Dispatch
+ * @param root
+ * @param attrName
+ * @param ev
+ */
 export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
   while (root) {
     const elm = root;
-    const ctx = getContext(elm);
+    const ctx = tryGetContext(elm);
     const qrls = ctx?.li.filter((li) => li[0] === attrName);
     if (qrls && qrls.length > 0) {
       for (const q of qrls) {
@@ -85,7 +92,6 @@ export const dispatch = async (root: Element | null, attrName: string, ev: any) 
     root = elm.parentElement;
   }
 };
-
 export function getEvent(elCtx: QContext, prop: string): any {
   return qPropReadQRL(elCtx, normalizeOnProp(prop));
 }

@@ -1,14 +1,18 @@
-import { isArray } from '../util/types';
-import { assertDefined } from '../error/assert';
+import { _getContainerState } from '../container/container';
 import type { QwikDocument } from '../document';
-import { QContainerSelector, RenderEvent } from '../util/markers';
-import type { QRL } from '../qrl/qrl.public';
+import { assertDefined } from '../error/assert';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
-import type { RenderContext } from '../render/types';
-import type { SubscriberEffect, SubscriberHost } from './use-watch';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { seal } from '../util/qdev';
+import type { RenderContext } from '../render/types';
+import { getContext, HOST_FLAG_DYNAMIC } from '../state/context';
+import { QContainerSelector, QLocaleAttr, RenderEvent } from '../util/markers';
 import { isPromise } from '../util/promises';
+import { seal } from '../util/qdev';
+import { isArray } from '../util/types';
+import { setLocale } from './use-locale';
+import type { SubscriberEffect, SubscriberHost } from './use-task';
 
 declare const document: QwikDocument;
 
@@ -42,10 +46,14 @@ export interface InvokeContext {
   $waitOn$: Promise<any>[] | undefined;
   $subscriber$: SubscriberEffect | SubscriberHost | null | undefined;
   $renderCtx$: RenderContext | undefined;
+  $locale$: string | undefined;
 }
 
 let _context: InvokeContext | undefined;
 
+/**
+ * @alpha
+ */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -69,8 +77,8 @@ export const getInvokeContext = (): InvokeContext => {
 };
 
 export const useInvokeContext = (): RenderInvokeContext => {
-  const ctx = getInvokeContext();
-  if (ctx.$event$ !== RenderEvent) {
+  const ctx = tryGetInvokeContext();
+  if (!ctx || ctx.$event$ !== RenderEvent) {
     throw qError(QError_useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
@@ -92,21 +100,22 @@ export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undef
     return invoke(ctx, callback.bind(undefined, ...args));
   }) as T;
 };
-export const invoke = <ARGS extends any[] = any[], RET = any>(
+export function invoke<ARGS extends any[] = any[], RET = any>(
+  this: any,
   context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET => {
+): RET {
   const previousContext = _context;
   let returnValue: RET;
   try {
     _context = context;
-    returnValue = fn.apply(null, args);
+    returnValue = fn.apply(this, args);
   } finally {
     _context = previousContext;
   }
   return returnValue;
-};
+}
 
 export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
   const waitOn = ctx.$waitOn$;
@@ -122,10 +131,14 @@ export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
 
 export const newInvokeContextFromTuple = (context: InvokeTuple) => {
   const element = context[0];
-  return newInvokeContext(undefined, element, context[1], context[2]);
+  const container = element.closest(QContainerSelector);
+  const locale = container?.getAttribute(QLocaleAttr) || undefined;
+  locale && setLocale(locale);
+  return newInvokeContext(locale, undefined, element, context[1], context[2]);
 };
 
 export const newInvokeContext = (
+  locale?: string,
   hostElement?: QwikElement,
   element?: Element,
   event?: any,
@@ -142,6 +155,7 @@ export const newInvokeContext = (
     $renderCtx$: undefined,
     $subscriber$: undefined,
     $waitOn$: undefined,
+    $locale$: locale,
   };
   seal(ctx);
   return ctx;
@@ -149,4 +163,36 @@ export const newInvokeContext = (
 
 export const getWrappingContainer = (el: QwikElement): Element | null => {
   return el.closest(QContainerSelector);
+};
+
+/**
+ * @alpha
+ */
+export const untrack = <T>(fn: () => T): T => {
+  return invoke(undefined, fn);
+};
+
+/**
+ * @internal
+ */
+export const _getContextElement = (): unknown => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return (
+      iCtx.$element$ ?? iCtx.$hostElement$ ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined)
+    );
+  }
+};
+
+/**
+ * @internal
+ */
+export const _jsxBranch = (input?: any) => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
+    const hostElement = iCtx.$hostElement$;
+    const elCtx = getContext(hostElement, iCtx.$renderCtx$.$static$.$containerState$);
+    elCtx.$flags$ |= HOST_FLAG_DYNAMIC;
+  }
+  return input;
 };

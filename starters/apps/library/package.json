@@ -5,7 +5,6 @@
   "private": false,
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
-  "module": "./lib/index.qwik.mjs",
   "types": "./lib-types/index.d.ts",
   "type": "module",
   "exports": {
@@ -27,20 +26,22 @@
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint src/**/*.ts*",
+    "lint": "eslint \"src/**/*.ts*\"",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
     "release": "np"
   },
   "devDependencies": {
     "@builder.io/qwik": "latest",
-    "@types/eslint": "8.4.1",
+    "@types/eslint": "latest",
     "@types/node": "latest",
-    "@typescript-eslint/eslint-plugin": "5.14.0",
-    "@typescript-eslint/parser": "5.14.0",
+    "@types/node-fetch": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
     "eslint-plugin-qwik": "latest",
-    "eslint": "8.12.0",
+    "eslint": "latest",
     "node-fetch": "latest",
+    "undici": "latest",
     "np": "7.6.1",
     "prettier": "latest",
     "typescript": "latest",
@@ -50,7 +51,7 @@
     "displayName": "Component library",
     "priority": -1,
     "docs": [
-      "https://qwik.builder.io/docs/overview/"
+      "https://qwik.builder.io/docs/getting-started/"
     ]
   }
 }

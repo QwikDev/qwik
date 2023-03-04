@@ -5,14 +5,19 @@ use std::hash::Hasher;
 use std::path::{Component, Path, PathBuf};
 use std::str;
 
+use crate::add_side_effect::SideEffectVisitor;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
+use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
+use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
+use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
+use swc_ecmascript::transforms::optimization::simplify::inlining::inlining;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -77,9 +82,14 @@ pub struct TransformCodeOptions<'a> {
     pub entry_policy: &'a dyn EntryPolicy,
     pub mode: EmitMode,
     pub scope: Option<&'a String>,
-    pub is_inline: bool,
+    pub entry_strategy: EntryStrategy,
+    pub core_module: JsWord,
 
+    pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
+    pub strip_ctx_name: Option<&'a [JsWord]>,
+    pub strip_event_handlers: bool,
+    pub is_server: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -153,7 +163,7 @@ impl TransformOutput {
     ) -> Result<usize, Error> {
         for module in &self.modules {
             let write_path = destination.join(&module.path);
-            fs::create_dir_all(&write_path.parent().with_context(|| {
+            fs::create_dir_all(write_path.parent().with_context(|| {
                 format!("Computing path parent of {}", write_path.to_string_lossy())
             })?)?;
             fs::write(write_path, &module.code)?;
@@ -278,8 +288,28 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         is_type_script && !transpile_ts,
                     ));
 
+                    if transpile_ts {
+                        main_module.visit_mut_with(&mut inlining(Default::default()));
+                    }
+
                     // Collect import/export metadata
-                    let collect = global_collect(&main_module);
+                    let mut collect = global_collect(&main_module);
+
+                    transform_props_destructuring(
+                        &mut main_module,
+                        &mut collect,
+                        &config.core_module,
+                    );
+
+                    // Replace const values
+                    if let Some(is_server) = config.is_server {
+                        if config.mode != EmitMode::Lib {
+                            let is_dev = config.mode == EmitMode::Dev;
+                            let mut const_replacer =
+                                ConstReplacerVisitor::new(is_server, is_dev, &collect);
+                            main_module.visit_mut_with(&mut const_replacer);
+                        }
+                    }
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
                         path_data: &path_data,
                         entry_policy: config.entry_policy,
@@ -289,7 +319,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         global_collect: collect,
                         scope: config.scope,
                         mode: config.mode,
-                        is_inline: config.is_inline,
+                        core_module: config.core_module,
+                        entry_strategy: config.entry_strategy,
+                        reg_ctx_name: config.reg_ctx_name,
+                        strip_ctx_name: config.strip_ctx_name,
+                        strip_event_handlers: config.strip_event_handlers,
                     });
 
                     // Run main transform
@@ -301,6 +335,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             Default::default(),
                         ));
                     }
+                    if matches!(
+                        config.entry_strategy,
+                        EntryStrategy::Inline | EntryStrategy::Hoist
+                    ) {
+                        main_module.visit_mut_with(&mut SideEffectVisitor::new(
+                            &qwik_transform.options.global_collect,
+                        ));
+                    }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                     main_module.visit_mut_with(&mut fixer(None));
 
@@ -309,7 +351,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     let comments_maps = comments.clone().take_all();
                     for h in hooks.into_iter() {
-                        let is_entry = h.entry == None;
+                        let is_entry = h.entry.is_none();
                         let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
                         let need_handle_watch =
                             might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;
@@ -321,12 +363,20 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             local_idents: &h.data.local_idents,
                             scoped_idents: &h.data.scoped_idents,
                             need_transform: h.data.need_transform,
+                            explicit_extensions: qwik_transform.options.explicit_extensions,
                             global: &qwik_transform.options.global_collect,
+                            core_module: &qwik_transform.options.core_module,
                             need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
                         })?;
+                        if config.minify != MinifyMode::None {
+                            hook_module = hook_module.fold_with(&mut simplify::simplifier(
+                                unresolved_mark,
+                                Default::default(),
+                            ));
+                        }
                         hook_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                         hook_module.visit_mut_with(&mut fixer(None));
 
@@ -501,7 +551,7 @@ pub fn emit_source_code(
     let mut map_buf = vec![];
     if source_maps
         && source_map
-            .build_source_map(&mut src_map_buf)
+            .build_source_map(&src_map_buf)
             .to_writer(&mut map_buf)
             .is_ok()
     {
@@ -650,8 +700,11 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 }
 
 pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
-    if matches!(ctx_kind, HookKind::Event) {
+    if !matches!(ctx_kind, HookKind::Function) {
         return false;
     }
-    matches!(ctx_name, "useWatch$" | "useClientEffect$" | "$")
+    matches!(
+        ctx_name,
+        "useTask$" | "useVisibleTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
+    )
 }

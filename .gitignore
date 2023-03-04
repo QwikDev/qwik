@@ -17,10 +17,11 @@ target
 *.node
 todo-express/
 qwik-app/
-**/server/**/*.js
+**/server/
 .idea
 .eslintcache
 
 # Yarn
 .yarn/*
 !.yarn/releases
+.pnpm-store/*

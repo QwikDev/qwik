@@ -1,13 +1,14 @@
 import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
 import { dirname } from 'node:path';
 import fs from 'node:fs';
-import { getPackageManager, panic } from '../utils/utils';
+import { panic } from '../utils/utils';
 import { loadIntegrations } from '../utils/integrations';
 import { installDeps, startSpinner } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
+import { bgRed, green } from 'kleur/colors';
 
-export async function updateApp(opts: UpdateAppOptions) {
+export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
   const integration = integrations.find((s) => s.id === opts.integration);
   if (!integration) {
@@ -34,9 +35,12 @@ export async function updateApp(opts: UpdateAppOptions) {
 
   const commit = async (showSpinner?: boolean) => {
     const isInstallingDeps = Object.keys(fileUpdates.installedDeps).length > 0;
+
     const spinner = showSpinner
       ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
       : null;
+
+    let passed = true;
     try {
       const dirs = new Set(fileUpdates.files.map((f) => dirname(f.path)));
       for (const dir of Array.from(dirs)) {
@@ -54,13 +58,21 @@ export async function updateApp(opts: UpdateAppOptions) {
       );
 
       if (opts.installDeps && Object.keys(fileUpdates.installedDeps).length > 0) {
-        const pkgManager = getPackageManager();
         const { install } = installDeps(pkgManager, opts.rootDir);
-        await install;
+        passed = await install;
       }
 
       await fsWrites;
       spinner && spinner.succeed();
+      if (!passed) {
+        const errorMessage = `\n\n❌ ${bgRed(
+          `  ${pkgManager} install failed  `
+        )}\n\n   You might need to run "${green(
+          `${pkgManager} install`
+        )}" manually inside the root of the project.\n\n`;
+
+        console.error(errorMessage);
+      }
     } catch (e) {
       spinner && spinner.fail();
       panic(String(e));

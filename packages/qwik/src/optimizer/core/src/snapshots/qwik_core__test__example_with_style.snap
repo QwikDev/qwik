@@ -21,7 +21,7 @@ export const Foo = component$(() => {
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe,WAAW\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe\"}")
 /*
 {
   "origin": "test.tsx",
@@ -46,12 +46,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    useStylesQrl(qrl(()=>import("./foo_component_usestyles_pv9tscbihw8"), "Foo_component_useStyles_pV9TSCBIhw8"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_usestyles_pv9tscbihw8"), "Foo_component_useStyles_pV9TSCBIhw8"));
     return <div class="class"/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC,6GAAuB,CAAC;IACxB,QACK,GAAG,CAAC,KAAK,CAAC,OAAO,GACpB;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC;IACA,QACK,IAAI,MAAM;AAEnB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -75,12 +75,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAKhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAKhB;IACC,SAAS;AACb,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

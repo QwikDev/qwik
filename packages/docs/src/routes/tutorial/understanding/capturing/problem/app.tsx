@@ -5,13 +5,13 @@ interface AppStore {
   counter: { count: number };
   largeData: any;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<AppStore>(
     {
       counter: { count: 1 },
       largeData: { data: 'PRETEND THIS IS LARGE DATASET' },
     },
-    { recursive: true }
+    { deep: true }
   );
   console.log('Render: <App/>');
   const counter = store.counter;

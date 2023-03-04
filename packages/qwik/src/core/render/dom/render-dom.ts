@@ -8,7 +8,7 @@ import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../u
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent, jsxToString } from '../execute-component';
 import type { RenderContext } from '../types';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
@@ -33,10 +33,10 @@ export const renderComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const staticCtx = rCtx.$static$;
     const newCtx = res.rCtx;
-    const invocatinContext = newInvokeContext(hostElement);
+    const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocatinContext.$subscriber$ = hostElement;
-    invocatinContext.$renderCtx$ = newCtx;
+    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
         for (const style of elCtx.$appendStyles$) {
@@ -44,7 +44,7 @@ export const renderComponent = (
         }
       }
     }
-    const processedJSXNode = processData(res.node, invocatinContext);
+    const processedJSXNode = processData(res.node, invocationContext);
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       const oldVdom = getVdom(elCtx);
@@ -177,4 +177,5 @@ export interface ProcessedJSXNode {
   $elm$: Node | VirtualElement | null;
   $text$: string;
   $signal$: Signal<any> | null;
+  $dev$?: DevJSX;
 }

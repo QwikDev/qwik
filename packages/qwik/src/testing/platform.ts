@@ -1,4 +1,3 @@
-import { setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +16,12 @@ function createPlatform() {
   const testPlatform: TestPlatform = {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
+      if (!url) {
+        throw new Error('Missing URL');
+      }
+      if (!containerEl) {
+        throw new Error('Missing Container');
+      }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);
       const mod = moduleCache.get(importPath);
@@ -73,8 +78,8 @@ function createPlatform() {
   return testPlatform;
 }
 
-export function setTestPlatform() {
-  setPlatform(testPlatform);
+export function setTestPlatform(_setPlatform: Function) {
+  _setPlatform(testPlatform);
 }
 
 /**

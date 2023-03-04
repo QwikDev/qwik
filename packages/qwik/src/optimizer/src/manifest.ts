@@ -165,9 +165,8 @@ const EVENT_PRIORITY = [
 ].map((n) => `on${n.toLowerCase()}$`);
 
 const FUNCTION_PRIORITY = [
-  'useWatch$',
-  'useClientEffect$',
-  'useEffect$',
+  'useTask$',
+  'useVisibleTask$',
   'component$',
   'useStyles$',
   'useStylesScoped$',

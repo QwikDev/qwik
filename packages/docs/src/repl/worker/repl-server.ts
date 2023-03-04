@@ -9,7 +9,7 @@
 import type { ReplMessage, ReplResult } from '../types';
 
 export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
-  const clientId = win.location.hash.slice(1);
+  const clientId = win.location.search.slice(1);
 
   if (!/^[a-z0-9]+$/.test(clientId)) {
     console.error('Qwik REPL server missing valid client id');

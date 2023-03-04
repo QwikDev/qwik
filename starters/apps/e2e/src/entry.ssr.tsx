@@ -1,6 +1,7 @@
 import type { FunctionComponent } from '@builder.io/qwik';
 import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
+import { UseId } from './components/useid/useid';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
 import { TwoListeners } from './components/two-listeners/twolisteners';
@@ -25,6 +26,10 @@ import { RefRoot } from './components/ref/ref';
 import { Signals } from './components/signals/signals';
 import { Attributes } from './components/attributes/attributes';
 import { EventsClient } from './components/events/events-client';
+import { NoResume } from './components/no-resume/no-resume';
+import { Resuming1 } from './components/resuming/resuming';
+import { ResourceFn } from './components/resource/resource-fn';
+import { ComputedRoot } from './components/computed/computed';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -35,6 +40,7 @@ export default function (opts: RenderToStreamOptions) {
   const tests: Record<string, FunctionComponent> = {
     '/e2e/': () => <Root />,
     '/e2e/two-listeners': () => <TwoListeners />,
+    '/e2e/use-id': () => <UseId />,
     '/e2e/slot': () => <SlotParent />,
     '/e2e/lexical-scope': () => <LexicalScope />,
     '/e2e/render': () => <Render />,
@@ -51,6 +57,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/weather': () => <Weather />,
     '/e2e/resource': () => <ResourceApp />,
     '/e2e/resource-serialization': () => <ResourceSerialization />,
+    '/e2e/resource-fn': () => <ResourceFn />,
     '/e2e/treeshaking': () => <TreeshakingApp />,
     '/e2e/streaming': () => <StreamingRoot />,
     '/e2e/mount': () => <MountRoot />,
@@ -58,9 +65,12 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/signals': () => <Signals />,
     '/e2e/attributes': () => <Attributes />,
     '/e2e/events-client': () => <EventsClient />,
+    '/e2e/no-resume': () => <NoResume />,
+    '/e2e/resuming': () => <Resuming1 />,
+    '/e2e/computed': () => <ComputedRoot />,
   };
 
-  const url = new URL(opts.envData!.url);
+  const url = new URL(opts.serverData!.url);
   const Test = tests[url.pathname];
 
   // Render segment instead
@@ -87,7 +97,7 @@ export default function (opts: RenderToStreamOptions) {
   }
 
   return renderToStream(
-    <html>
+    <>
       <head>
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
@@ -95,7 +105,7 @@ export default function (opts: RenderToStreamOptions) {
       <body>
         <Test />
       </body>
-    </html>,
+    </>,
     {
       debug: true,
       ...opts,

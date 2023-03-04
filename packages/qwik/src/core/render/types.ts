@@ -15,11 +15,12 @@ export interface RenderOperation {
  */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
-  readonly $localStack$: QContext[];
-  $cmpCtx$: QContext | undefined;
+  $cmpCtx$: QContext | null;
+  $slotCtx$: QContext | null;
 }
 
 export interface RenderStaticContext {
+  readonly $locale$: string;
   readonly $doc$: Document;
   readonly $roots$: QContext[];
   readonly $hostElements$: Set<QwikElement>;

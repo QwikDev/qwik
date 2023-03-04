@@ -1,14 +1,18 @@
 .header-container {
-  height: calc(var(--header-height));
+  height: var(--header-height);
   margin-bottom: 6px;
-  background: white;
+  background: var(--bg-color);
   position: relative;
   z-index: 100;
 }
 
+.header-container.builder-bar {
+  height: calc(var(--header-height) + var(--builder-bar-height));
+}
+
 @media (min-width: 1024px) {
   .header-container {
-    background: #ffffff9e;
+    background: var(--bg-header-color);
     backdrop-filter: blur(23px) saturate(4.5);
   }
 }
@@ -22,14 +26,14 @@
 
 header li {
   @apply px-2 text-right;
-  @apply py-4 md:py-0;
+  @apply py-4 lg:py-0;
 
   font-size: 14px;
   font-weight: 500;
 }
 
 header a.active {
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
 }
 
 header a:hover {
@@ -41,14 +45,15 @@ header li a:hover svg {
 }
 
 header .mobile-menu {
+  height: var(--header-height);
   position: absolute;
   right: 0;
-  @apply p-5 md:hidden;
+  @apply p-5 lg:hidden;
 }
 
 header ul {
-  @apply hidden md:block;
-  @apply pt-0 pb-6 md:pt-0;
+  @apply hidden lg:block;
+  @apply pt-0 pb-6 lg:pt-0;
   height: 100%;
   align-items: center;
 }
@@ -61,18 +66,14 @@ header .close-icon {
   display: none;
 }
 
-@media (max-width: 767px) {
-  .header-container {
-    padding-top: 5px;
-  }
-
+@media (max-width: 1023px) {
   .header-open header ul {
     position: absolute;
     z-index: 10;
     display: block;
     top: var(--header-height);
     width: 100%;
-    background: white;
+    background: var(--bg-color);
     height: auto;
   }
 
@@ -94,7 +95,7 @@ header .header-inner {
   margin-left: auto;
   margin-right: auto;
   position: relative;
-  height: 100%;
+  height: var(--header-height);
 }
 
 .full-width header .header-inner {

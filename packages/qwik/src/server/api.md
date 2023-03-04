@@ -55,10 +55,8 @@ export interface PrefetchResource {
 
 // @alpha (undocumented)
 export interface PrefetchStrategy {
-    // Warning: (ae-forgotten-export) The symbol "DeprecatedPrefetchImplementation" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    implementation?: PrefetchImplementation | DeprecatedPrefetchImplementation;
+    implementation?: PrefetchImplementation;
     // (undocumented)
     symbolsToPrefetch?: SymbolsToPrefetch;
 }
@@ -78,26 +76,31 @@ export type Render = RenderToString | RenderToStream;
 
 // @alpha (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
-    base?: string;
+    base?: string | ((options: RenderOptions) => string);
     // (undocumented)
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
-    // (undocumented)
+    // @deprecated (undocumented)
     envData?: Record<string, any>;
+    locale?: string | ((options: RenderOptions) => string);
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
+    // (undocumented)
+    serverData?: Record<string, any>;
     snapshot?: boolean;
 }
 
 // @alpha (undocumented)
 export interface RenderResult {
     // (undocumented)
+    isStatic: boolean;
+    // (undocumented)
     manifest?: QwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)
-    snapshotResult: SnapshotResult | null;
+    snapshotResult: SnapshotResult | undefined;
     // @internal
     _symbols?: string[];
 }
@@ -165,6 +168,9 @@ export interface SerializeDocumentOptions {
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
 }
+
+// @alpha (undocumented)
+export function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined): Promise<void>;
 
 // @alpha (undocumented)
 export interface StreamingOptions {

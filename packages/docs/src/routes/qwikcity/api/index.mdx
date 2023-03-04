@@ -74,12 +74,9 @@ Use the [`useLocation()`](/qwikcity/api/index.mdx#uselocation) function to retri
 
 ```tsx
 export interface RouteLocation {
-  readonly params: RouteParams; // Record<string,string>
-  readonly href: string;
-  readonly pathname: string;
-  readonly query: Record<string, string>;
-  readonly isNavigating: boolean;
+  readonly params: RouteParams; // Readonly<Record<string, string>>
   readonly url: URL;
+  readonly isNavigating: boolean;
 }
 ```
 
@@ -91,11 +88,12 @@ The return value of [`useLocation()`](/qwikcity/api/index.mdx#uselocation) is si
 
 Assume you have:
 
-- Route: `https://example.com/sku/[skuId]`
+- File: `src/routes/sku/[skuId]/index.tsx`
 - User navigates to: `https://example.com/sku/1234`
-- Then the `skuId` can be retrieved through `useLocation().params.skuId`.
+- Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
 ```tsx
+// src/routes/sku/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -116,7 +114,7 @@ The above code would generate:
 
 ```html
 <h1>SKU</h1>
-<p>pathname: /sku/1234</p>
+<p>pathname: /sku/1234/</p>
 <p>skuId: 1234</p>
 ```
 

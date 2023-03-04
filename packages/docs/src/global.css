@@ -278,6 +278,10 @@ body {
   filter: invert(90%) hue-rotate(180deg);
 }
 
+:root[data-theme='dark'] .dark-mode-invert {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
 :root[data-theme='dark'] .builder .dark-mode :is(img, iframe, video) {
   filter: invert(100%) hue-rotate(180deg);
 }

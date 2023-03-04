@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+// @ts-ignore: Unused import
 import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -6,6 +6,9 @@ export default component$(() => {
     org: 'BuilderIO',
   });
 
+  // Use useResource$() to set up how the data is fetched from the server.
+  // See the example for Fetching Data in the text on the left.
+  // @ts-ignore: Unused declaration
   const reposResource = useResource$<string[]>(({ track, cleanup }) => {
     // We need a way to re-run fetching data whenever the `github.org` changes.
     // Use `track` to trigger re-running of the this data fetching function.
@@ -32,11 +35,9 @@ export default component$(() => {
         />
       </span>
       <div>
-        <Resource
-          value={reposResource}
-          onPending={() => <>Loading...</>}
-          onRejected={(error) => <>Error: {error.message}</>}
-          onResolved={(repos) => (
+        {/* Use <Resource> to display the data from the useResource$() function. */}
+        {/* To help, here's a callback function to display the data on resolved. */}
+        {/* (repos) => (
             <ul>
               {repos.map((repo) => (
                 <li>
@@ -44,8 +45,7 @@ export default component$(() => {
                 </li>
               ))}
             </ul>
-          )}
-        />
+          ) */}
       </div>
     </div>
   );

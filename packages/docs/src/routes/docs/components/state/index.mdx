@@ -50,7 +50,7 @@ Just accessing the `count.value` property will cause the component to be updated
 
 Works very similary to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal, or an object made of several signals.
 
-`const store = useStore(initialState)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
+`const store = useStore(initialStateObject)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
 
 The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#usestore) is just like any other object, but it is reactive. If you change any property of the object, any component that depends on that property will be updated.
 

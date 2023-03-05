@@ -103,7 +103,7 @@ export function Counter() {
 ```tsx
 export const Clock = component$(() => {
   const seconds = useSignal(0);
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     const interval = setInterval(() => {
       seconds.value++;
     }, 1000);

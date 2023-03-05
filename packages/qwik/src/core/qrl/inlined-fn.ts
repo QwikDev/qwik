@@ -1,11 +1,14 @@
 import type { MustGetObjID } from '../container/container';
-import { isFunction } from '../util/types';
 
 /**
  * @alpha
  */
-export const $$ = <T extends () => any>(fn: T): T => {
-  return fn;
+export const $$ = <T>(fn: () => T): { value: T } => {
+  return {
+    get value() {
+      return fn();
+    },
+  };
 };
 
 const FnOriginalSymbol = Symbol('original fn');
@@ -17,35 +20,35 @@ export interface InlinedFn<B = any> {
   [FnCaptureSymbol]: any[];
 }
 
+export class SignalDerived<T = any, ARGS extends any[] = any> {
+  constructor(public func: (...args: ARGS) => T, public args: ARGS) {}
+
+  get value(): T {
+    return this.func.apply(undefined, this.args);
+  }
+}
+
 /**
  * @alpha
  */
 export const _inlinedFn = <T extends (...args: any[]) => any>(fn: T, args: any[]) => {
-  const bindedFn = (() => {
-    return fn(...args);
-  }) as InlinedFn;
-  bindedFn[FnCaptureSymbol] = args;
-  bindedFn[FnOriginalSymbol] = fn;
-
-  return bindedFn;
+  return new SignalDerived(fn, args);
 };
 
-export const isInlinedFn = (obj: any): obj is InlinedFn => {
-  return isFunction(obj) && FnOriginalSymbol in obj;
-};
-
-export const serializeInlinedFn = (inlinedFn: InlinedFn, getObjID: MustGetObjID) => {
-  const parts = inlinedFn[FnCaptureSymbol].map(getObjID);
-  const originalFn = inlinedFn[FnOriginalSymbol];
-  return parts.join(' ') + ':' + String(originalFn);
+export const serializeInlinedFn = (inlinedFn: SignalDerived, getObjID: MustGetObjID) => {
+  const parts = inlinedFn.args.map(getObjID);
+  const fn = String(inlinedFn.func);
+  const start = fn.indexOf('=>');
+  const fnBody = fn.slice(start + 2).trim();
+  return parts.join(' ') + ':' + fnBody;
 };
 
 export const parseInlinedFn = (data: string) => {
   const colonIndex = data.indexOf(':');
   const objects = data.slice(0, colonIndex).split(' ');
   const fnStr = data.slice(colonIndex + 1);
-  const fn = new Function('args', `return () => ((${fnStr}).apply(undefined, args));`)(objects);
-  fn[FnCaptureSymbol] = objects;
-  fn[FnOriginalSymbol] = fnStr;
-  return fn;
+  const args = objects.map((_, i) => `p${i}`);
+  args.push(`return ${fnStr}`);
+  const fn = new Function(...args);
+  return new SignalDerived(fn as any, objects);
 };

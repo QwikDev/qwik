@@ -582,12 +582,12 @@ export const runResource = <T>(
   const track: Tracker = (obj: any, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
-      ctx.$subscriber$ = watch;
+      ctx.$subscriber$ = [0, watch];
       return invoke(ctx, obj);
     }
     const manager = getProxyManager(obj);
     if (manager) {
-      manager.$addSub$([0, watch, prop]);
+      manager.$addSub$([0, watch], prop);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -705,12 +705,12 @@ export const runWatch = (
   const track: Tracker = (obj: any, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
-      ctx.$subscriber$ = watch;
+      ctx.$subscriber$ = [0, watch];
       return invoke(ctx, obj);
     }
     const manager = getProxyManager(obj);
     if (manager) {
-      manager.$addSub$([0, watch, prop]);
+      manager.$addSub$([0, watch], prop);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -754,7 +754,7 @@ export const runComputed = (
   cleanupWatch(watch);
   const hostElement = watch.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'ComputedEvent');
-  iCtx.$subscriber$ = watch;
+  iCtx.$subscriber$ = [0, watch];
 
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.getFn(iCtx, () => {

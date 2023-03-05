@@ -35,7 +35,7 @@ export const renderComponent = (
     const newCtx = res.rCtx;
     const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$subscriber$ = [0, hostElement];
     invocationContext.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {

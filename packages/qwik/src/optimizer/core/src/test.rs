@@ -2347,32 +2347,6 @@ export const Cmp = component$((props) => {
 }
 
 #[test]
-fn example_inlined_fn() {
-    test_input!(TestInput {
-        code: r#"
-import { component$, $$ } from '@builder.io/qwik';
-
-export const App = component$(() => {
-    const foo = useSignal(0);
-    const bar = useSignal(0);
-
-    return (
-        <Cmp stuff={$$(() => {
-            return foo.value + bar.value;
-        })}>
-        </Cmp>
-    );
-});
-"#
-        .to_string(),
-        mode: EmitMode::Dev,
-        transpile_ts: true,
-        transpile_jsx: true,
-        ..TestInput::default()
-    });
-}
-
-#[test]
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"

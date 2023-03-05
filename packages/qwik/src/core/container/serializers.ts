@@ -23,7 +23,7 @@ import {
 } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
-import { InlinedFn, isInlinedFn, parseInlinedFn, serializeInlinedFn } from '../qrl/inlined-fn';
+import { parseInlinedFn, serializeInlinedFn, SignalDerived } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 
 /**
@@ -227,9 +227,16 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const PureFunctionSerializer: Serializer<InlinedFn> = {
+const PureFunctionSerializer: Serializer<SignalDerived<any, any>> = {
   prefix: '\u0011',
-  test: (obj) => isInlinedFn(obj),
+  test: (obj) => obj instanceof SignalDerived,
+  collect: (obj, collector, leaks) => {
+    if (obj.args) {
+      for (const arg of obj.args) {
+        collectValue(arg, collector, leaks);
+      }
+    }
+  },
   serialize: (fn, getObj) => {
     return serializeInlinedFn(fn, getObj);
   },
@@ -237,10 +244,7 @@ const PureFunctionSerializer: Serializer<InlinedFn> = {
     return parseInlinedFn(data);
   },
   fill: (fn, getObject) => {
-    const args = fn.$$;
-    for (let i = 0; i < args.length; i++) {
-      args[i] = getObject(args[i]);
-    }
+    fn.args = fn.args.map(getObject);
   },
 };
 
@@ -250,7 +254,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   collect: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
     if (leaks === true) {
-      collectSubscriptions(obj[QObjectManagerSymbol], collector);
+      collectSubscriptions(obj[QObjectManagerSymbol], collector, leaks);
     }
     return obj;
   },

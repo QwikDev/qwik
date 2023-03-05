@@ -26,7 +26,6 @@ import { RefRoot } from './components/ref/ref';
 import { Signals } from './components/signals/signals';
 import { Attributes } from './components/attributes/attributes';
 import { EventsClient } from './components/events/events-client';
-import { InlinedFn } from './components/inlined-fn/inlinedfn';
 import { NoResume } from './components/no-resume/no-resume';
 import { Resuming1 } from './components/resuming/resuming';
 import { ResourceFn } from './components/resource/resource-fn';
@@ -66,7 +65,6 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/signals': () => <Signals />,
     '/e2e/attributes': () => <Attributes />,
     '/e2e/events-client': () => <EventsClient />,
-    '/e2e/inlined-fn': () => <InlinedFn />,
     '/e2e/no-resume': () => <NoResume />,
     '/e2e/resuming': () => <Resuming1 />,
     '/e2e/computed': () => <ComputedRoot />,

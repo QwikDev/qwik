@@ -35,6 +35,7 @@ export const AttributesChild = component$(() => {
   });
   renders.count++;
 
+  console.log(state.stuff);
   return (
     <>
       <div>

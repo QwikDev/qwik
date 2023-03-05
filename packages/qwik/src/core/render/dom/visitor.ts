@@ -28,6 +28,7 @@ import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
   isAriaAttribute,
+  jsxToString,
   parseClassList,
   pushRenderContext,
   serializeClass,
@@ -62,7 +63,7 @@ import {
 } from './operations';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { addSignalSub, isSignal } from '../../state/signal';
+import { isSignal } from '../../state/signal';
 import {
   cleanupContext,
   createContext,
@@ -76,6 +77,7 @@ import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../stat
 import { createPropsState, createProxy } from '../../state/store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import { _inlinedFn } from '../../qrl/inlined-fn';
+import { trackSignal } from '../../use/use-core';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -137,11 +139,11 @@ export const smartUpdateChildren = (
   }
 };
 
-export const getVnodeChildren = (vnode: ProcessedJSXNode, mode: ChildrenMode) => {
-  const oldCh = vnode.$children$;
-  const elm = vnode.$elm$ as Element;
+export const getVnodeChildren = (oldVnode: ProcessedJSXNode, mode: ChildrenMode) => {
+  const oldCh = oldVnode.$children$;
+  const elm = oldVnode.$elm$ as Element;
   if (oldCh === CHILDREN_PLACEHOLDER) {
-    return (vnode.$children$ = getChildrenVnodes(elm, mode));
+    return (oldVnode.$children$ = getChildrenVnodes(elm, mode));
   }
   return oldCh;
 };
@@ -272,7 +274,7 @@ export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | Virtu
   }
 };
 
-export const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
+const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
   return getChildren(elm, mode).map(getVnodeFromEl);
 };
 
@@ -406,7 +408,9 @@ export const patchVnode = (
   if (tag === '#text') {
     const signal = newVnode.$signal$;
     if (signal) {
-      addSignalSub(2, currentComponent.$element$, signal, elm as Text, 'data');
+      newVnode.$text$ = jsxToString(
+        trackSignal(signal, [2, currentComponent.$element$, signal, elm as Text])
+      );
     }
     if (oldVnode.$text$ !== newVnode.$text$) {
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
@@ -627,9 +631,9 @@ const createElm = (
   const currentComponent = rCtx.$cmpCtx$;
   if (tag === '#text') {
     const signal = vnode.$signal$;
-    const elm = createTextNode(doc, vnode.$text$!);
+    const elm = createTextNode(doc, vnode.$text$);
     if (signal && currentComponent) {
-      addSignalSub(2, currentComponent.$element$, signal, elm, 'data');
+      elm.data = jsxToString(trackSignal(signal, [2, currentComponent.$element$, signal, elm]));
     }
     return (vnode.$elm$ = elm);
   }
@@ -924,8 +928,7 @@ export const updateProperties = (
     }
 
     if (isSignal(newValue)) {
-      addSignalSub(1, hostElm, newValue, elm, prop);
-      newValue = newValue.value;
+      newValue = trackSignal(newValue, [1, hostElm, newValue, elm, prop]);
     }
     if (prop === 'class') {
       newValue = serializeClass(newValue);
@@ -1044,14 +1047,16 @@ export const setProperties = (
 
     const sig = isSignal(newValue);
     if (sig) {
-      if (hostElm) addSignalSub(1, hostElm, newValue, elm, prop);
-      newValue = newValue.value;
+      if (hostElm) {
+        newValue = trackSignal(newValue, [1, hostElm, newValue, elm, prop]);
+      } else {
+        newValue = newValue.value;
+      }
     }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     if (normalizedProp === 'class') {
       if (qDev && values.class) throw new TypeError('Can only provide one of class or className');
-      // Signals shouldn't be changed
-      if (!sig) newValue = serializeClass(newValue);
+      newValue = serializeClass(newValue);
     }
     values[normalizedProp] = newValue;
     smartSetProperty(staticCtx, elm, prop, newValue, undefined, isSvg);

@@ -5,10 +5,10 @@ import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
-import type { SubscriberEffect, SubscriberHost } from '../use/use-task';
 import {
   fastSkipSerialize,
   LocalSubscriptionManager,
+  Subscriber,
   Subscriptions,
   unwrapProxy,
   verifySerializable,
@@ -101,7 +101,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       if (prop === QObjectManagerSymbol) return this.$manager$;
       return target[prop];
     }
-    let subscriber: SubscriberHost | SubscriberEffect | undefined | null;
+    let subscriber: Subscriber | undefined | null;
     const flags = target[QObjectFlagsSymbol] ?? 0;
     assertNumber(flags, 'flags must be an number');
     const invokeCtx = tryGetInvokeContext();
@@ -129,7 +129,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     if (subscriber) {
       const isA = isArray(target);
-      this.$manager$.$addSub$([0, subscriber, isA ? undefined : prop]);
+      this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
     }
     return recursive ? wrap(value, this.$containerState$) : value;
   }
@@ -189,13 +189,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     assertNumber(flags, 'flags must be an number');
     const immutable = (flags & QObjectImmutable) !== 0;
     if (!immutable) {
-      let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
+      let subscriber: Subscriber | null | undefined = null;
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx) {
         subscriber = invokeCtx.$subscriber$;
       }
       if (subscriber) {
-        this.$manager$.$addSub$([0, subscriber, undefined]);
+        this.$manager$.$addSub$(subscriber);
       }
     }
     if (isArray(target)) {

@@ -12,6 +12,7 @@ import { notifyChange } from '../render/dom/notify-render';
 import { createError, logError } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
+import type { Signal } from './signal';
 
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
@@ -201,25 +202,19 @@ export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefin
   return (obj as any)[QObjectFlagsSymbol];
 };
 
-type A = [type: 0, subscriber: SubscriberEffect | SubscriberHost, key: string | undefined];
+type SubscriberA = [type: 0, host: SubscriberEffect | SubscriberHost];
 
-type B = [
-  type: 1,
-  subscriber: SubscriberHost,
-  signal: Record<string, any>,
-  elm: QwikElement,
-  prop: string,
-  key: string
-];
+type SubscriberB = [type: 1, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
 
-type C = [
-  type: 2,
-  subscriber: SubscriberHost,
-  signal: Record<string, any>,
-  elm: Node,
-  attribute: string,
-  key: string
-];
+type SubscriberC = [type: 2, host: SubscriberHost, signal: Signal, elm: Node | string];
+
+export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
+
+type A = [type: 0, host: SubscriberEffect | SubscriberHost, key: string | undefined];
+
+type B = [type: 1, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
+
+type C = [type: 2, host: SubscriberHost, signal: Signal, elm: Node];
 
 export type SubscriberSignal = B | C;
 
@@ -234,17 +229,15 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
     return undefined;
   }
   let base = type + ' ' + host;
-  if (sub[0] === 0) {
+  if (type === 0) {
     if (sub[2]) {
       base += ' ' + sub[2];
     }
   } else {
     const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
     base += ` ${must(getObjId(sub[2]))} ${nodeID} ${sub[4]}`;
-    if (sub[5]) {
-      base += ` ${sub[5]}`;
-    }
   }
+
   return base;
 };
 
@@ -336,14 +329,13 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $addSub$(sub: Subscriptions) {
+  $addSub$(sub: Subscriber, key?: string) {
     const subs = this.$subs$;
     const group = sub[1];
-    const key = sub[sub.length - 1] as string | undefined;
     if (subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)) {
       return;
     }
-    subs.push(sub);
+    subs.push([...sub, key] as any);
     this.$addToGroup$(group, this);
   }
 

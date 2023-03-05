@@ -16,7 +16,7 @@ import {
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
 import BuilderContentComp from '../../components/builder-content';
-import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
+import { BUILDER_TOP_BAR_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -40,7 +40,11 @@ export const Header = component$(() => {
   return (
     <header class={['header-container', ...(hasBuilderBar ? ['builder-bar'] : [])]}>
       {hasBuilderBar && (
-        <BuilderContentComp apiKey={BUILDER_PUBLIC_API_KEY} model={BUILDER_MODEL} tag="div" />
+        <BuilderContentComp
+          apiKey={BUILDER_PUBLIC_API_KEY}
+          model={BUILDER_TOP_BAR_MODEL}
+          tag="div"
+        />
       )}
       <div class="header-inner">
         <div class="header-logo">

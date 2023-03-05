@@ -110,5 +110,5 @@ export async function getBuilderContent({
     const content: BuilderContent = JSON.parse(await response.text());
     return content;
   }
-  throw new Error('Unable to load Builder content');
+  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
 }

@@ -50,7 +50,7 @@ Just accessing the `count.value` property will cause the component to be updated
 
 Works very similary to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal, or an object made of several signals.
 
-`const store = useStore(initialState)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
+`const store = useStore(initialStateObject)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
 
 The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#usestore) is just like any other object, but it is reactive. If you change any property of the object, any component that depends on that property will be updated.
 
@@ -113,7 +113,7 @@ export default component$(() => {
     {
       nested: { fields: { are: 'not tracked' } },
     },
-    { recursive: true }
+    { deep: true }
   );
 
   return (
@@ -135,7 +135,7 @@ export default component$(() => {
     {
       letters: ['A', 'B', 'C'],
     },
-    { recursive: true }
+    { deep: true }
   );
 
   return (
@@ -290,14 +290,14 @@ Thanks to the fine grained reactivity of Qwik, only the components that depend o
 Sometimes, you may want to store a value in the state, but you don't want it to be serialized. This is useful for storing values that are not serializable, like functions, or classes.
 
 ```tsx
-import { component$, useStore, noSerialize } from '@builder.io/qwik';
+import { component$, useStore, noSerialize, useVisibleTask$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
   const state = useStore({
     monacoInstance: null,
   });
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     // Monaco is not serializable, so we can't store it in the state using `noSerialize()`
     state.monacoInstance = noSerialize(new Monaco());
   });

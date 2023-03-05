@@ -6,7 +6,7 @@ contributors:
 
 # Static Site Generation (SSG) Overview
 
-Static Site Generation, or commonly referred to as "SSG", is the process of pre-rendering site webpages into static HTML files. The benefit is that when a visitor requests the webpage, the response is a pre-generated HTML file (a static file), and doesn't require the webpage's HTML to "rebuild" on the visitors browser, or dynamically created by your server (more on this later).
+Static Site Generation, or commonly referred to as "SSG", is the process of pre-rendering site webpages into static HTML files. The benefit is that when a visitor requests the webpage, the response is a pre-generated HTML file (a static file), and doesn't require the webpage's HTML to "rebuild" on the visitor's browser, or dynamically created by your server (more on this later).
 
 Additionally, due to Qwik's underlying architecture, page performance also benefits by not requiring a Javascript "hydration" step, which can significantly lower performance and slow down user interactivity. By pre-rendering static `index.html` files with SSG, and combined with Qwik's [resumability](../../../docs/concepts/resumable/index.mdx), static site generation offers many performance benefits over legacy solutions.
 
@@ -32,14 +32,14 @@ Static site generation is created from the built in adapter, to create an adapte
 npm run qwik add
 ```
 
-Select `Adaptor: Static site (.html files)`. Done!
+Select `Adapter: Static site (.html files)`. Done!
 
 ### Changes
 
 Running the above command will make the following changes to your project:
 
 - A `build.server` script will be automatically added to your `package.json` file.
-- A `adapters/vite.config.ts` file will be created.
+- A `adapters/static/vite.config.ts` file will be created.
 
 In node you can run the generation after building using:
 
@@ -51,7 +51,7 @@ Your build files will be generated into the `dist` folder.
 
 ### SSG Config
 
-The `adapters/vite.config.ts` file also includes the SSG config, which would be custom for each implementation.
+The `adapters/static/vite.config.ts` file also includes the SSG config, which would be custom for each implementation.
 
 #### `origin`
 
@@ -72,6 +72,8 @@ For a Javascript project, it's quite common for the build's runtime to be built 
 ## Dynamic SSG Routes
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
 import type { StaticGenerateHandler } from '@builder.io/qwik-city';
 
 export default component$(() => {

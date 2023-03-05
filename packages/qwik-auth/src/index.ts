@@ -4,7 +4,9 @@ import { implicit$FirstArg, QRL } from '@builder.io/qwik';
 import { action$, loader$, RequestEvent, RequestEventCommon, z, zod$ } from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
+
 export interface QwikAuthConfig extends AuthConfig {}
+
 const actions: AuthAction[] = [
   'providers',
   'session',
@@ -27,6 +29,7 @@ export async function authAction(
     headers: req.request.headers,
     body: body,
   });
+  request.headers.set('content-type', 'application/x-www-form-urlencoded');
   const res = await Auth(request, {
     ...authOptions,
     skipCSRFCheck,
@@ -36,7 +39,11 @@ export async function authAction(
   });
   fixCookies(req);
 
-  return await res.json();
+  try {
+    return await res.json();
+  } catch (error) {
+    return await res.text();
+  }
 }
 
 export const fixCookies = (req: RequestEventCommon) => {
@@ -51,29 +58,40 @@ export const fixCookies = (req: RequestEventCommon) => {
   }
 };
 
+export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('/q-')[0];
+
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
-  const useAuthSignup = action$(
-    async ({ provider, ...rest }, req) => {
+  const useAuthSignin = action$(
+    async ({ providerId, callbackUrl, ...rest }, req) => {
+      callbackUrl ??= getCurrentPageForAction(req);
       const auth = await authOptions(req);
-      const body = new URLSearchParams();
+      const body = new URLSearchParams({ callbackUrl });
       Object.entries(rest).forEach(([key, value]) => {
         body.set(key, String(value));
       });
-      const data = await authAction(body, req, `/api/auth/signin/${provider}`, auth);
+      const pathname = '/api/auth/signin' + (providerId ? `/${providerId}` : '');
+      const data = await authAction(body, req, pathname, auth);
       if (data.url) {
         throw req.redirect(301, data.url);
       }
     },
     zod$({
-      provider: z.string(),
+      providerId: z.string().optional(),
+      callbackUrl: z.string().optional(),
     })
   );
 
-  const useAuthLogout = action$(async (_, req) => {
-    const auth = await authOptions(req);
-    const body = new URLSearchParams();
-    return authAction(body, req, `/api/auth/logout`, auth);
-  });
+  const useAuthSignout = action$(
+    async ({ callbackUrl }, req) => {
+      callbackUrl ??= getCurrentPageForAction(req);
+      const auth = await authOptions(req);
+      const body = new URLSearchParams({ callbackUrl });
+      await authAction(body, req, `/api/auth/signout`, auth);
+    },
+    zod$({
+      callbackUrl: z.string().optional(),
+    })
+  );
 
   const useAuthSession = loader$((req) => {
     return req.sharedMap.get('session') as Session | null;
@@ -102,14 +120,14 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   };
 
   return {
-    useAuthSignup,
-    useAuthLogout,
+    useAuthSignin,
+    useAuthSignout,
     useAuthSession,
     onRequest,
   };
 }
 
-export const serverAuth$ = implicit$FirstArg(serverAuthQrl);
+export const serverAuth$ = /*#__PURE__*/ implicit$FirstArg(serverAuthQrl);
 
 export const ensureAuthMiddleware = (req: RequestEvent) => {
   const isLoggedIn = req.sharedMap.has('session');

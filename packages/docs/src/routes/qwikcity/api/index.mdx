@@ -33,7 +33,40 @@ Use the `useDocumentHead()` function to retrieve the document head metadata.
 - update the `link` tags in `<head>`.
 - update the `style` tags in `<head>`.
 
-The `useDocumentHead()` function can be used within a Qwik component, such as `<Head>`, to create the inner elements within `document.head`.
+The `useDocumentHead()` function can be used within a Qwik component, such as `<RouterHead>`, to create the inner elements within `document.head`.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useDocumentHead } from '@builder.io/qwik-city';
+
+/**
+ * The RouterHead component is placed inside of the document `<head>` element.
+ */
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+
+  return (
+    <>
+      <title>{head.title}</title>
+
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+      {head.meta.map((m) => (
+        <meta {...m} />
+      ))}
+
+      {head.links.map((l) => (
+        <link {...l} />
+      ))}
+
+      {head.styles.map((s) => (
+        <style {...s.props} dangerouslySetInnerHTML={s.style} />
+      ))}
+    </>
+  );
+});
+```
 
 ## `useLocation()`
 
@@ -41,10 +74,8 @@ Use the [`useLocation()`](/qwikcity/api/index.mdx#uselocation) function to retri
 
 ```tsx
 export interface RouteLocation {
-  readonly params: RouteParams; // Record<string,string>
-  readonly href: string;
-  readonly pathname: string;
-  readonly query: Record<string, string>;
+  readonly params: RouteParams; // Readonly<Record<string, string>>
+  readonly url: URL;
   readonly isNavigating: boolean;
 }
 ```
@@ -57,11 +88,12 @@ The return value of [`useLocation()`](/qwikcity/api/index.mdx#uselocation) is si
 
 Assume you have:
 
-- Route: `https://example.com/sku/[skuId]`
+- File: `src/routes/sku/[skuId]/index.tsx`
 - User navigates to: `https://example.com/sku/1234`
-- Then the `skuId` can be retrieved through `useLocation().params.skuId`.
+- Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
 ```tsx
+// src/routes/sku/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -71,7 +103,7 @@ export default component$(() => {
   return (
     <>
       <h1>SKU</h1>
-      <p>pathname: {loc.pathname}</p>
+      <p>pathname: {loc.url.pathname}</p>
       <p>skuId: {loc.params.skuId}</p>
     </>
   );
@@ -82,7 +114,7 @@ The above code would generate:
 
 ```html
 <h1>SKU</h1>
-<p>pathname: /sku/1234</p>
+<p>pathname: /sku/1234/</p>
 <p>skuId: 1234</p>
 ```
 
@@ -134,6 +166,9 @@ This component will have a button then when clicked, QwikCity will navigate to `
 The `loader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. QwikCity will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { loader$ } from '@builder.io/qwik-city';
+
 export const useGetTime = loader$(() => {
   return { time: new Date() }
 });
@@ -225,6 +260,9 @@ The `Link` component works like the `<a>` anchor element, but instead of causing
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/qwikcity/api/index.mdx#usenavigate) API and prevents the default behaviour of the native `<a>`:
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { useNavigate } from '@builder.io/qwik-city';
+
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
 

@@ -49,12 +49,12 @@
 			""
 		]
 	},
-	"useClientEffect": {
+	"useBrowserVisibleTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useClientEffect",
-		"description": "useClientEffect$() function hook",
+		"prefix": "q:useBrowserVisibleTask",
+		"description": "useVisibleTask$() function hook",
 		"body": [
-			"useClientEffect$(({ track }) => {",
+			"useVisibleTask$(({ track }) => {",
 			"  $0",
 			"});",
 			""

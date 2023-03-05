@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -632,6 +632,32 @@ renderSSRSuite('using component with key', async () => {
   );
 });
 
+renderSSRSuite('using element with key', async () => {
+  await testSSR(
+    <body>
+      <div key="hola" />
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <div q:key="hola"></div>
+      </body>
+    </html>`
+  );
+});
+
+renderSSRSuite('using element with key containing double quotes', async () => {
+  await testSSR(
+    <body>
+      <div key={'"hola"'} />
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <div q:key="&quot;hola&quot;"></div>
+      </body>
+    </html>`
+  );
+});
+
 renderSSRSuite('using component props', async () => {
   await testSSR(
     <MyCmp
@@ -972,19 +998,24 @@ renderSSRSuite('component useStylesScoped()', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
-        <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
+        <!--qv q:sstyle=⭐️1d-0|⭐️1e-1 q:id=0 q:key=sX:-->
         <style q:style="1d-0" hidden>
           .host.⭐️1d-0 {
             color: red;
           }
         </style>
-        <div class="⭐️1d-0 host">
-          <div class="⭐️1d-0 div">
+        <style q:style="1e-1" hidden>
+          .blue.⭐️1e-1 {
+            color: blue;
+          }
+        </style>
+        <div class="⭐️1d-0 ⭐️1e-1 host">
+          <div class="⭐️1d-0 ⭐️1e-1 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
             <!--/qv-->
-            <p class="⭐️1d-0">Que tal?</p>
+            <p class="⭐️1d-0 ⭐️1e-1">Que tal?</p>
           </div>
           <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
           <style q:style="f0gmsw-0" hidden>
@@ -1010,7 +1041,8 @@ renderSSRSuite('component useStylesScoped()', async () => {
         </div>
         <!--/qv-->
       </body>
-    </html>`
+    </html>
+    `
   );
 });
 
@@ -1045,7 +1077,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect()', async () => {
+renderSSRSuite('component useBrowserVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" class="qc📦">
@@ -1060,7 +1092,7 @@ renderSSRSuite('component useClientEffect()', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() without elements', async () => {
+renderSSRSuite('component useBrowserVisibleTask() without elements', async () => {
   await testSSR(
     <body>
       <UseEmptyClientEffect />
@@ -1078,7 +1110,7 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() inside <head>', async () => {
+renderSSRSuite('component useBrowserVisibleTask() inside <head>', async () => {
   await testSSR(
     <head>
       <UseEmptyClientEffect />
@@ -1422,6 +1454,7 @@ export const Styles = component$(() => {
 
 export const ScopedStyles1 = component$(() => {
   useStylesScopedQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+  useStylesScopedQrl(inlinedQrl('.blue {color: blue}', 'styles_scoped_2'));
 
   return (
     <div class="host">
@@ -1536,10 +1569,10 @@ export const ContextConsumer = component$(() => {
 });
 
 export const UseClientEffect = component$((props: any) => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1551,10 +1584,10 @@ export const UseClientEffect = component$((props: any) => {
 });
 
 export const UseEmptyClientEffect = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1565,7 +1598,7 @@ export const UseEmptyClientEffect = component$(() => {
 });
 
 export const HeadCmp = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
   return (
@@ -1645,14 +1678,14 @@ export const NullCmp = component$(() => {
 });
 
 export const EffectTransparent = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('log');
   });
   return (

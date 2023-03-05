@@ -1,4 +1,4 @@
-import color from 'kleur';
+import { bgRed, green, red } from 'kleur/colors';
 import fs from 'node:fs';
 import ora from 'ora';
 import os from 'node:os';
@@ -51,12 +51,16 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
   return { abort, install };
 }
 
-export function startSpinner(msg: string) {
-  const spinner = ora(msg).start();
+export function startSpinner(msg: string, hideSpinner: boolean = false) {
+  const spinner = hideSpinner ? { succeed: () => {}, fail: () => {} } : ora(msg).start();
   return spinner;
 }
 
-export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
+export function backgroundInstallDeps(
+  pkgManager: string,
+  baseApp: IntegrationData,
+  hideSpinner = false
+) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
   const { install, abort } = installDeps(pkgManager, tmpInstallDir);
@@ -65,7 +69,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
     let success = false;
 
     if (runInstall) {
-      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`);
+      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`, hideSpinner);
       try {
         const installed = await install;
         if (installed) {
@@ -101,9 +105,9 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
           spinner.succeed();
           success = true;
         } else {
-          const errorMessage = `\n\n${color.bgRed(
+          const errorMessage = `\n\n${bgRed(
             `  ${pkgManager} install failed  `
-          )}\n  Automatic install failed. "${color.green(
+          )}\n  Automatic install failed. "${green(
             `${pkgManager} install`
           )}" must be manually executed to install deps.\n`;
 
@@ -134,7 +138,7 @@ function setupTmpInstall(baseApp: IntegrationData) {
   try {
     fs.mkdirSync(tmpInstallDir);
   } catch (e) {
-    console.error(`\n❌ ${color.red(String(e))}\n`);
+    console.error(`\n❌ ${red(String(e))}\n`);
   }
 
   const basePkgJson = path.join(baseApp.dir, 'package.json');

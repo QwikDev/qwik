@@ -33,20 +33,36 @@ export type ValueOrSignal<T> = T | Signal<T>;
 export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
+  flags: number,
   subcriptions?: Subscriptions[]
-): Signal<T> => {
+): SignalInternal<T> => {
   const manager = containerState.$subsManager$.$createManager$(subcriptions);
-  const signal = new SignalImpl<T>(value, manager);
+  const signal = new SignalImpl<T>(value, manager, flags);
   return signal;
 };
+
+export const QObjectSignalFlags = Symbol('proxy manager');
+
+export const SIGNAL_IMMUTABLE = 1 << 0;
+export const SIGNAL_UNASSIGNED = 1 << 1;
+
+export const SignalUnassignedException = Symbol('unasigned signal');
+
+export interface SignalInternal<T> extends Signal<T> {
+  untrackedValue: T;
+  [QObjectManagerSymbol]: LocalSubscriptionManager;
+  [QObjectSignalFlags]: number;
+}
 
 export class SignalImpl<T> implements Signal<T> {
   untrackedValue: T;
   [QObjectManagerSymbol]: LocalSubscriptionManager;
+  [QObjectSignalFlags]: number = 0;
 
-  constructor(v: T, manager: LocalSubscriptionManager) {
+  constructor(v: T, manager: LocalSubscriptionManager, flags: number) {
     this.untrackedValue = v;
     this[QObjectManagerSymbol] = manager;
+    this[QObjectSignalFlags] = flags;
   }
 
   // prevent accidental use as value
@@ -63,19 +79,34 @@ export class SignalImpl<T> implements Signal<T> {
   get value() {
     const sub = tryGetInvokeContext()?.$subscriber$;
     if (sub) {
+      if (this[QObjectSignalFlags] & SIGNAL_UNASSIGNED) {
+        throw SignalUnassignedException;
+      }
       this[QObjectManagerSymbol].$addSub$([0, sub, undefined]);
     }
     return this.untrackedValue;
   }
+
   set value(v: T) {
     if (qDev) {
+      if (this[QObjectSignalFlags] & SIGNAL_IMMUTABLE) {
+        throw new Error('Cannot mutate immutable signal');
+      }
       verifySerializable(v);
       const invokeCtx = tryGetInvokeContext();
-      if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
-        logWarn(
-          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
-          invokeCtx.$hostElement$
-        );
+      if (invokeCtx) {
+        if (invokeCtx.$event$ === RenderEvent) {
+          logWarn(
+            'State mutation inside render function. Use useTask$() instead.',
+            invokeCtx.$hostElement$
+          );
+        }
+        if (invokeCtx.$event$ === 'ComputedEvent') {
+          logWarn(
+            'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
+            invokeCtx.$hostElement$
+          );
+        }
       }
     }
     const manager = this[QObjectManagerSymbol];
@@ -98,15 +129,8 @@ interface AddSignal {
 export const addSignalSub: AddSignal = (type, hostEl, signal, elm, property) => {
   const subscription =
     signal instanceof SignalWrapper
-      ? [
-          type,
-          hostEl,
-          getProxyTarget(signal.ref),
-          elm as any,
-          property,
-          signal.prop === 'value' ? undefined : signal.prop,
-        ]
-      : [type, hostEl, signal, elm, property, undefined];
+      ? [type, hostEl, getProxyTarget(signal.ref), elm as any, property, signal.prop]
+      : [type, hostEl, signal, elm, property, 'value'];
   getProxyManager(signal)!.$addSub$(subscription as any);
 };
 
@@ -129,10 +153,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
 /**
  * @internal
  */
-export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
-  obj: T,
-  prop: P
-): any => {
+export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
   if (!isObject(obj)) {
     return obj[prop];
   }
@@ -159,5 +180,23 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   if (isSignal(immutable)) {
     return immutable;
   }
-  return obj[prop];
+  const value = obj[prop];
+  if (isSignal(value)) {
+    return _IMMUTABLE;
+  }
+  return value;
+};
+
+/**
+ * @internal
+ */
+export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P
+): any => {
+  const r = _wrapProp(obj, prop);
+  if (r === _IMMUTABLE) {
+    return obj[prop];
+  }
+  return r;
 };

@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 import fs from 'node:fs';
-import color from 'kleur';
+import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,
@@ -46,43 +45,43 @@ export function logCreateAppResult(
   result: CreateAppResult,
   ranInstall: boolean
 ) {
-  console.log(``);
-  console.log(``);
-
   const isCwdDir = process.cwd() === result.outDir;
   const relativeProjectPath = relative(process.cwd(), result.outDir);
+  const outString = [];
 
   if (isCwdDir) {
-    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
+    outString.push(`🦄 ${bgMagenta(' Success! ')}`);
   } else {
-    console.log(
-      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
-        color.magenta(relativeProjectPath)
-      )} ${color.cyan(`directory`)}`
+    outString.push(
+      `🦄 ${bgMagenta(' Success! ')} ${cyan(`Project created in`)} ${bold(
+        magenta(relativeProjectPath)
+      )} ${cyan(`directory`)}`
     );
   }
-  console.log(``);
+  outString.push(``);
 
-  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
+  outString.push(`🐰 ${cyan(`Next steps:`)}`);
   if (!isCwdDir) {
-    console.log(`   cd ${relativeProjectPath}`);
+    outString.push(`   cd ${relativeProjectPath}`);
   }
   if (!ranInstall) {
-    console.log(`   ${pkgManager} install`);
+    outString.push(`   ${pkgManager} install`);
   }
-  console.log(`   ${pkgManager} start`);
-  console.log(``);
+  outString.push(`   ${pkgManager} start`);
+  outString.push(``);
 
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
-  console.log(`🔌 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
-  console.log(`   ${qwikAdd}`);
-  console.log(``);
+  outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  outString.push(`   ${qwikAdd}`);
+  outString.push(``);
 
-  logSuccessFooter(result.docs);
+  outString.push(logSuccessFooter(result.docs));
 
-  console.log(`📺 ${color.cyan('Presentations, Podcasts and Videos:')}`);
-  console.log(`   https://qwik.builder.io/media/`);
-  console.log(``);
+  outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
+  outString.push(`   https://qwik.builder.io/media/`);
+  outString.push(``);
+
+  return outString.join('\n');
 }
 
 export async function createApp(opts: CreateAppOptions) {

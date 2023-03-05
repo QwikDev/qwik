@@ -3,6 +3,7 @@ import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export interface EnvGetter {
   get(key: string): string | undefined;
@@ -174,6 +175,12 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
   readonly url: URL;
 
   /**
+   * The base pathname of the request, which can be configured at build time.
+   * Defaults to `/`.
+   */
+  readonly basePathname: string;
+
+  /**
    * HTTP request information.
    */
   readonly request: Request;
@@ -193,6 +200,14 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
    * the shared map. The shared map is useful for sharing data between request handlers.
    */
   readonly sharedMap: Map<string, any>;
+
+  /**
+   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
+   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+   *
+   * If the `Content-Type` header is not set, it will return `null`.
+   */
+  readonly parseBody: () => Promise<unknown>;
 }
 
 /**
@@ -267,7 +282,6 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
   readonly headersSent: boolean;
   readonly exited: boolean;
   readonly cacheControl: (cacheControl: CacheControl) => void;
-
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
@@ -299,14 +313,14 @@ export type DeferReturn<T> = () => Promise<T>;
  */
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
-  getData: GetData;
+  resolveValue: ResolveValue;
   defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
 }
 
 /**
  * @alpha
  */
-export interface GetData {
+export interface ResolveValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
   <T>(action: Action<T>): Promise<T | undefined>;
 }
@@ -314,7 +328,7 @@ export interface GetData {
 /**
  * @alpha
  */
-export interface GetSyncData {
+export interface ResolveSyncValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
   <T>(action: Action<T>): Awaited<T> | undefined;
 }
@@ -402,6 +416,15 @@ export interface CookieValue {
   value: string;
   json: <T = unknown>() => T;
   number: () => number;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikSerializer {
+  _deserializeData: typeof _deserializeData;
+  _serializeData: typeof _serializeData;
+  _verifySerializable: typeof _verifySerializable;
 }
 
 /**

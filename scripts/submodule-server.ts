@@ -32,7 +32,10 @@ export async function submoduleServer(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: [/* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom'],
+    external: [
+      /* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom',
+      '@builder.io/qwik/build',
+    ],
   };
 
   const esm = build({
@@ -132,6 +135,12 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikCore;
+    }
+    if (path === '@builder.io/qwik/build') {
+      if (!self.qwikBuild) {
+        throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
+      }
+      return self.qwikBuild;
     }
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };

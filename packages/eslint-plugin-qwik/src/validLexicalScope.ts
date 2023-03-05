@@ -3,8 +3,10 @@ import { ESLintUtils } from '@typescript-eslint/utils';
 import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
+import redent from 'redent';
+import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
 
-const createRule = ESLintUtils.RuleCreator((name) => `https://typescript-eslint.io/rules/${name}`);
+const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
 
 interface DetectorOptions {
   allowAny: boolean;
@@ -40,11 +42,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-      unvalidJsxDollar:
-        'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+        'Seems like you are referencing "{{varName}}" inside a different scope ({{dollarName}}), when this happens, Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+      invalidJsxDollar:
+        'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured by the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {
@@ -87,24 +89,6 @@ export const validLexicalScope = createRule({
               return;
             }
             if (scopeType === 'module') {
-              const identifier =
-                declaredVariable.identifiers.length === 1
-                  ? declaredVariable.identifiers[0]
-                  : ref.identifier;
-              const tsNode = esTreeNodeToTSNodeMap.get(identifier);
-              const s = typeChecker.getSymbolAtLocation(tsNode);
-              if (s && exports.includes(s)) {
-                return;
-              }
-              context.report({
-                messageId: 'referencesOutside',
-                node: ref.identifier,
-                data: {
-                  varName: ref.identifier.name,
-                  dollarName: dollarIdentifier,
-                  reason: `it's declared at the root of the module and it is not exported. Make sure "${ref.identifier.name}" is an exported identifier:\n\nexport const ${ref.identifier.name} = ...\n\n`,
-                },
-              });
               return;
             }
             const identifier = ref.identifier;
@@ -130,7 +114,8 @@ export const validLexicalScope = createRule({
                   });
                 }
               }
-              const reason = canCapture(typeChecker, tsNode, ref.identifier, opts);
+
+              const reason = canCapture(context, typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
                   messageId: 'referencesOutside',
@@ -176,14 +161,22 @@ export const validLexicalScope = createRule({
             } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
+
               if (!isTypeQRL(type)) {
                 const symbolName = type.symbol.name;
                 if (symbolName === 'PropFnInterface') {
                   return;
                 }
                 context.report({
-                  messageId: 'unvalidJsxDollar',
+                  messageId: 'invalidJsxDollar',
                   node: firstArg.expression,
+                  data: {
+                    varName: firstArg.expression.name,
+                    solution: `const ${firstArg.expression.name} = $(\n${getContent(
+                      type.symbol,
+                      context.getSourceCode().text
+                    )}\n);\n`,
+                  },
                 });
               }
             }
@@ -212,6 +205,7 @@ export const validLexicalScope = createRule({
 });
 
 function canCapture(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   node: ts.Node,
   ident: Identifier,
@@ -219,7 +213,7 @@ function canCapture(
 ) {
   const type = checker.getTypeAtLocation(node);
   const seen = new Set<any>();
-  return isTypeCapturable(checker, type, node, ident, opts, seen);
+  return isTypeCapturable(context, checker, type, node, ident, opts, seen);
 }
 
 interface TypeReason {
@@ -241,6 +235,7 @@ function humanizeTypeReason(reason: TypeReason) {
 }
 
 function isTypeCapturable(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   type: ts.Type,
   tsnode: ts.Node,
@@ -248,7 +243,7 @@ function isTypeCapturable(
   opts: DetectorOptions,
   seen: Set<any>
 ): TypeReason | undefined {
-  const result = _isTypeCapturable(checker, type, tsnode, opts, 0, seen);
+  const result = _isTypeCapturable(context, checker, type, tsnode, opts, 0, seen);
   if (result) {
     const loc = result.location;
     if (loc) {
@@ -259,6 +254,7 @@ function isTypeCapturable(
   return result;
 }
 function _isTypeCapturable(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   type: ts.Type,
   node: ts.Node,
@@ -324,16 +320,25 @@ function _isTypeCapturable(
     if (symbolName === 'PropFnInterface') {
       return;
     }
+    let reason = 'is a function, which is not serializable';
+    if (level === 0 && ts.isIdentifier(node)) {
+      const solution = `const ${node.text} = $(\n${getContent(
+        type.symbol,
+        context.getSourceCode().text
+      )}\n);`;
+      reason += `.\nDid you mean to wrap it in \`$()\`?\n\n${solution}\n`;
+    }
+
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: 'is a function, which is not serializable',
+      reason,
     };
   }
 
   if (type.isUnion()) {
     for (const subType of type.types) {
-      const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
+      const result = _isTypeCapturable(context, checker, subType, node, opts, level + 1, seen);
       if (result) {
         return result;
       }
@@ -344,13 +349,13 @@ function _isTypeCapturable(
   if (isObject) {
     const arrayType = getElementTypeOfArrayType(type, checker);
     if (arrayType) {
-      return _isTypeCapturable(checker, arrayType, node, opts, level + 1, seen);
+      return _isTypeCapturable(context, checker, arrayType, node, opts, level + 1, seen);
     }
 
     const tupleTypes = getTypesOfTupleType(type, checker);
     if (tupleTypes) {
       for (const subType of tupleTypes) {
-        const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
+        const result = _isTypeCapturable(context, checker, subType, node, opts, level + 1, seen);
         if (result) {
           return result;
         }
@@ -400,7 +405,7 @@ function _isTypeCapturable(
     }
 
     for (const symbol of type.getProperties()) {
-      const result = isSymbolCapturable(checker, symbol, node, opts, level + 1, seen);
+      const result = isSymbolCapturable(context, checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;
         result.location = `${symbol.name}${loc ? `.${loc}` : ''}`;
@@ -412,6 +417,7 @@ function _isTypeCapturable(
 }
 
 function isSymbolCapturable(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   symbol: ts.Symbol,
   node: ts.Node,
@@ -420,7 +426,7 @@ function isSymbolCapturable(
   seen: Set<any>
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
-  return _isTypeCapturable(checker, type, node, opts, level, seen);
+  return _isTypeCapturable(context, checker, type, node, opts, level, seen);
 }
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
@@ -438,6 +444,16 @@ function getTypesOfTupleType(
 
 function isTypeQRL(type: ts.Type): boolean {
   return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
+}
+
+function getContent(symbol: ts.Symbol, sourceCode: string) {
+  if (symbol.declarations && symbol.declarations.length > 0) {
+    const decl = symbol.declarations[0];
+    // Remove empty lines
+    const text = sourceCode.slice(decl.pos, decl.end).replace(/^\s*$/gm, '');
+    return redent(text, 2);
+  }
+  return '';
 }
 
 const ALLOWED_CLASSES = {

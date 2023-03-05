@@ -293,18 +293,15 @@ export default component$(() => {
         );
       });
     `,
-    ],
-    invalid: [
-      {
-        code: `
+      `
           const useMethod = 12;
           export const HelloWorld = component$(() => {
             const foo = 'bar';
             useMethod(foo);
             return <div></div>
           });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
+    ],
+    invalid: [
       {
         code: `
           export const HelloWorld = component$(() => {
@@ -417,7 +414,9 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+          {
+            messageId: 'invalidJsxDollar',
+          },
         ],
       },
       {
@@ -434,7 +433,9 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+          {
+            messageId: 'mutableIdentifier',
+          },
         ],
       },
       {
@@ -451,30 +452,6 @@ export default component$(() => {
           );
         });`,
         errors: [{ messageId: 'referencesOutside' }],
-      },
-    ],
-  });
-});
-
-test('single-jsx-root', () => {
-  ruleTester.run('my-rule', rules['single-jsx-root'] as any, {
-    valid: [``],
-    invalid: [
-      {
-        code: `export const HelloWorld = component$(async () => {
-            return isLoading ? <>Loading...</> : <div>The value is loaded</div>;
-          });`,
-        errors: [
-          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
-        ],
-      },
-      {
-        code: `export const HelloWorld = component$(async () => {
-          return isLoading ? <div>Loading...</div> : <div>The value is loaded</div>
-          });`,
-        errors: [
-          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
-        ],
       },
     ],
   });

@@ -87,7 +87,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
-  const baseUrl = `/${appName}/`;
+  const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
 
   // always clean the build directory
@@ -99,7 +99,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   if (enableCityServer) {
     // ssr entry existed in service folder, use dev plugin to
     // 1. export router
-    // 2. set baseUrl
+    // 2. set basePath
     plugins.push({
       name: 'devPlugin',
       resolveId(id) {
@@ -118,7 +118,7 @@ import qwikCityPlan from '@qwik-city-plan';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
-  base: '${baseUrl}build/',
+  base: '${basePath}build/',
 });
 export {
   router,
@@ -138,17 +138,15 @@ export {
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(
-      qwikCityVite.qwikCity({
-        basePathname: '/qwikcity-test/',
-      })
-    );
+
+    plugins.push(qwikCityVite.qwikCity());
   }
+
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
     mode: 'development',
     configFile: false,
-    base: baseUrl,
+    base: basePath,
     ...extra,
     resolve: {
       alias: {

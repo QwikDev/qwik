@@ -55,10 +55,8 @@ export interface PrefetchResource {
 
 // @alpha (undocumented)
 export interface PrefetchStrategy {
-    // Warning: (ae-forgotten-export) The symbol "DeprecatedPrefetchImplementation" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    implementation?: PrefetchImplementation | DeprecatedPrefetchImplementation;
+    implementation?: PrefetchImplementation;
     // (undocumented)
     symbolsToPrefetch?: SymbolsToPrefetch;
 }
@@ -170,6 +168,9 @@ export interface SerializeDocumentOptions {
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
 }
+
+// @alpha (undocumented)
+export function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined): Promise<void>;
 
 // @alpha (undocumented)
 export interface StreamingOptions {

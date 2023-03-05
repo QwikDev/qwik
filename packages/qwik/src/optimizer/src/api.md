@@ -36,8 +36,10 @@ export interface Diagnostic {
 // @alpha (undocumented)
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
+// Warning: (ae-forgotten-export) The symbol "HoistEntryStrategy" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @alpha (undocumented)
 export interface GlobalInjections {
@@ -363,10 +365,10 @@ export interface SourceLocation {
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 // @alpha (undocumented)
-export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
 // @alpha (undocumented)
-export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => [symbol: string, chunk: string] | undefined;
+export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
 
 // @alpha (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
@@ -422,15 +424,17 @@ export interface TransformOptions {
     // (undocumented)
     preserveFilenames?: boolean;
     // (undocumented)
+    regCtxName?: string[];
+    // (undocumented)
     scope?: string;
     // (undocumented)
     sourceMaps?: boolean;
     // (undocumented)
     srcDir: string;
     // (undocumented)
-    stripCtxKind?: 'function' | 'event';
-    // (undocumented)
     stripCtxName?: string[];
+    // (undocumented)
+    stripEventHandlers?: boolean;
     // (undocumented)
     stripExports?: string[];
     // (undocumented)

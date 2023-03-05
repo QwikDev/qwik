@@ -5,14 +5,18 @@
 ```ts
 
 import type { Action } from '@builder.io/qwik-city';
+import type { _deserializeData } from '@builder.io/qwik';
 import type { FailReturn } from '@builder.io/qwik-city';
-import type { GetSyncData as GetSyncData_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ResolveSyncValue as ResolveSyncValue_2 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { _serializeData } from '@builder.io/qwik';
+import type { ValueOrPromise } from '@builder.io/qwik';
+import type { _verifySerializable } from '@builder.io/qwik';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -54,23 +58,7 @@ export interface CookieValue {
 export type DeferReturn<T> = () => Promise<T>;
 
 // @alpha (undocumented)
-export interface GetData {
-    // (undocumented)
-    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
-    // (undocumented)
-    <T>(action: Action<T>): Promise<T | undefined>;
-}
-
-// @alpha (undocumented)
 export function getErrorHtml(status: number, e: any): string;
-
-// @alpha (undocumented)
-export interface GetSyncData {
-    // (undocumented)
-    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
-    // (undocumented)
-    <T>(action: Action<T>): Awaited<T> | undefined;
-}
 
 // @alpha (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
@@ -96,6 +84,7 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 
 // @alpha (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+    readonly basePathname: string;
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -109,6 +98,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
     readonly locale: (local?: string) => string;
     readonly method: string;
     readonly params: Readonly<Record<string, string>>;
+    readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;
@@ -130,16 +120,33 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends Request
     // (undocumented)
     defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
     // (undocumented)
-    getData: GetData;
+    resolveValue: ResolveValue;
 }
 
 // @alpha (undocumented)
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 
+// Warning: (ae-forgotten-export) The symbol "QwikSerializer" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<T>, opts: ServerRenderOptions): Promise<QwikCityRun<T> | null>;
+export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<T>, opts: ServerRenderOptions, qwikSerializer: QwikSerializer): Promise<QwikCityRun<T> | null>;
+
+// @alpha (undocumented)
+export interface ResolveSyncValue {
+    // (undocumented)
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    // (undocumented)
+    <T>(action: Action<T>): Awaited<T> | undefined;
+}
+
+// @alpha (undocumented)
+export interface ResolveValue {
+    // (undocumented)
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
+    // (undocumented)
+    <T>(action: Action<T>): Promise<T | undefined>;
+}
 
 // @alpha (undocumented)
 export interface ServerRenderOptions extends RenderOptions {

@@ -14,6 +14,7 @@ import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 
 export interface SubscriptionManager {
+  $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
   $clearSub$: (sub: SubscriberEffect | SubscriberHost) => void;
 }
@@ -208,7 +209,7 @@ type B = [
   signal: Record<string, any>,
   elm: QwikElement,
   prop: string,
-  key: string | undefined
+  key: string
 ];
 
 type C = [
@@ -217,7 +218,7 @@ type C = [
   signal: Record<string, any>,
   elm: Node,
   attribute: string,
-  key: string | undefined
+  key: string
 ];
 
 export type SubscriberSignal = B | C;
@@ -272,6 +273,7 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
   const groupToManagers: GroupToManagersMap = new Map();
   const manager: SubscriptionManager = {
+    $groupToManagers$: groupToManagers,
     $createManager$: (initialMap?: Subscriptions[]) => {
       return new LocalSubscriptionManager(groupToManagers, containerState, initialMap);
     },
@@ -354,21 +356,6 @@ export class LocalSubscriptionManager {
       }
       notifyChange(sub, this.$containerState$);
     }
-  }
-
-  $isTreeshakeable$(prop: string) {
-    const subs = this.$subs$;
-    const groups = this.$groupToManagers$;
-    for (const sub of subs) {
-      const compare = sub[sub.length - 1];
-      if (prop === compare) {
-        const group = groups.get(sub[1])!;
-        if (group.length > 1 && group.some((g) => g !== this && g.$subs$.some((s) => s[0] === 0))) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 }
 

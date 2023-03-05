@@ -1,12 +1,17 @@
-import { component$, useClientEffect$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal, useTask$ } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 import { isBrowser } from '@builder.io/qwik/build';
 
-export const useCmp1 = loader$(() => {
-  return {
-    message: 'loader-cmp1',
-  };
-});
+export const useCmp1 = loader$(
+  () => {
+    return {
+      message: 'loader-cmp1',
+    };
+  },
+  {
+    id: 'cmp-1',
+  }
+);
 
 export const useCmp2 = loader$(() => {
   return {
@@ -35,7 +40,7 @@ export const useCmp5 = loader$(() => {
 export const Cmp = component$(() => {
   const date = useCmp1();
   const ref = useSignal<HTMLElement>();
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     ref.value!.textContent = date.value.message;
   });
   return (

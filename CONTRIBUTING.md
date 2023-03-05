@@ -45,7 +45,7 @@ Before submitting a pull request, consider the following guidelines:
 Every PR is being automatically merged with `main` before the CI Github actions run.
 That's why if the CI checks aren't passing your PR branch is probably not up to date.
 
-**For non documetntation PRs please do the following:**
+**For non documentation PRs please do the following:**
 
 1. Merge `main` into your PR branch
 2. Run `pnpm api.update`
@@ -69,8 +69,8 @@ You need to have these tools up and running in your local machine:
 
 #### Steps
 
-- Install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
-- Once installed you will be prompted to reopen the folder in a container. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+- Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
+- Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 
 ## Alternative way
 

@@ -1,6 +1,6 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
-import type { Render } from '@builder.io/qwik/server';
+import { Render, setServerPlatform } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
 import {
   mergeHeadersCookies,
@@ -11,6 +11,7 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -24,6 +25,14 @@ interface AzureResponse {
  * @alpha
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
       const url = new URL(req.headers['x-ms-original-url']!);
@@ -71,7 +80,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
         handledResponse.completion.then((err) => {
           if (err) {
@@ -112,7 +121,7 @@ export interface QwikCityAzureOptions extends ServerRenderOptions {}
 /**
  * @alpha
  */
-export interface EventPluginContext extends Context {}
+export interface PlatformAzure extends Partial<Context> {}
 
 /**
  * @alpha

@@ -10,7 +10,7 @@ import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/reques
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
-import { _serializeData } from '@builder.io/qwik';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -39,6 +39,23 @@ export async function workerThread(sys: System) {
   });
 }
 
+export async function createSingleThreadWorker(sys: System) {
+  const ssgOpts = sys.getOptions();
+  const pendingPromises = new Set<Promise<any>>();
+
+  const opts: StaticGenerateHandlerOptions = {
+    ...ssgOpts,
+    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
+    qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
+  };
+
+  return (staticRoute: StaticRoute) => {
+    return new Promise<StaticWorkerRenderResult>((resolve) => {
+      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
+    });
+  };
+}
+
 async function workerRender(
   sys: System,
   opts: StaticGenerateHandlerOptions,
@@ -46,6 +63,11 @@ async function workerRender(
   pendingPromises: Set<Promise<any>>,
   callback: (result: StaticWorkerRenderResult) => void
 ) {
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
 
@@ -57,6 +79,7 @@ async function workerRender(
     error: null,
     filePath: null,
     contentType: null,
+    resourceType: null,
   };
 
   try {
@@ -84,12 +107,19 @@ async function workerRender(
 
         if (!result.ok) {
           // not ok, don't write anything
-          return noopWriter;
+          return noopWritableStream;
         }
 
-        const contentType = (headers.get('Content-Type') || '').toLowerCase();
-        const isHtml = contentType.includes('text/html');
+        result.contentType = (headers.get('Content-Type') || '').toLowerCase();
+        const isHtml = result.contentType.includes('text/html');
+        const is404ErrorPage = url.pathname.endsWith('/404.html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
+
+        if (is404ErrorPage) {
+          result.resourceType = '404';
+        } else if (isHtml) {
+          result.resourceType = 'page';
+        }
 
         const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
         const writeQDataEnabled = isHtml && opts.emitData !== false;
@@ -143,7 +173,7 @@ async function workerRender(
             try {
               if (writeQDataEnabled) {
                 const qData: ClientPageData = requestEv.sharedMap.get('qData');
-                if (qData && !url.pathname.endsWith('/404.html')) {
+                if (qData && !is404ErrorPage) {
                   // write q-data.json file when enabled and qData is set
                   const qDataFilePath = sys.getDataFilePath(url.pathname);
                   const dataWriter = sys.createWriteStream(qDataFilePath);
@@ -155,7 +185,7 @@ async function workerRender(
                     };
                   });
 
-                  const serialized = await _serializeData(qData);
+                  const serialized = await _serializeData(qData, true);
                   dataWriter.write(serialized);
 
                   writePromises.push(
@@ -195,14 +225,15 @@ async function workerRender(
       },
     };
 
-    const promise = requestHandler(requestCtx, opts)
-      .then(async (rsp) => {
+    const promise = requestHandler(requestCtx, opts, qwikSerializer)
+      .then((rsp) => {
         if (rsp != null) {
-          const r = await rsp.completion;
-          if (routeWriter) {
-            await closePromise;
-          }
-          return r;
+          return rsp.completion.then((r) => {
+            if (routeWriter) {
+              return closePromise.then(() => r);
+            }
+            return r;
+          });
         }
       })
       .then((e) => {
@@ -242,7 +273,24 @@ async function workerRender(
   }
 }
 
-const noopWriter = /*#__PURE__*/ new WritableStream({
-  write() {},
-  close() {},
-});
+const noopWriter: WritableStreamDefaultWriter<any> = {
+  closed: Promise.resolve(undefined),
+  ready: Promise.resolve(undefined),
+  desiredSize: 0,
+  async close() {},
+  async abort() {},
+  async write() {},
+  releaseLock() {},
+};
+
+const noopWritableStream: WritableStream = {
+  get locked() {
+    return false;
+  },
+  set locked(_: boolean) {},
+  async abort() {},
+  async close() {},
+  getWriter() {
+    return noopWriter;
+  },
+};

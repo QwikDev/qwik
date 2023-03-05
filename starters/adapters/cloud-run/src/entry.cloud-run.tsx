@@ -7,10 +7,15 @@
  * - https://qwik.builder.io/integrations/deployments/node/
  *
  */
-import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
+import { manifest } from '@qwik-client-manifest';
 import { createServer } from 'node:http';
 import render from './entry.ssr';
+
+declare global {
+  interface QwikCityPlatform extends PlatformNode {}
+}
 
 /** The default headers used by helmet */
 const DEFAULT_HEADERS = {
@@ -45,6 +50,7 @@ const DEFAULT_HEADERS = {
 const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
+  manifest,
   static: {
     cacheControl: 'public, max-age=31557600',
   },

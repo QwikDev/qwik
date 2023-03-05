@@ -18,7 +18,7 @@ import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
-import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
+import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
@@ -67,8 +67,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
-        base: userOpts?.basePathname,
+        base: userOpts?.basePathname, // TODO: Remove
         optimizeDeps: {
+          include: ['zod'],
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {
@@ -83,7 +84,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
 
       const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';
 
-      ctx = createBuildContext(rootDir!, userOpts, target);
+      ctx = createBuildContext(rootDir!, config.base, userOpts, target);
 
       ctx.isDevServer = config.command === 'serve';
       ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
@@ -121,7 +122,19 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     resolveId(id) {
-      if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID || id === QWIK_CITY_SW_REGISTER) {
+      if (id === QWIK_SERIALIZER) {
+        return join(rootDir!, id);
+      }
+      if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID) {
+        return {
+          id: join(rootDir!, id),
+          // user entries added in the routes, like src/routes/service-worker.ts
+          // are added as dynamic imports to the qwik-city-plan as a way to create
+          // a new entry point for the build. Ensure these are not treeshaked.
+          moduleSideEffects: 'no-treeshake',
+        };
+      }
+      if (id === QWIK_CITY_SW_REGISTER) {
         return join(rootDir!, id);
       }
       if (id === STATIC_PATHS_ID) {
@@ -145,10 +158,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
           // @qwik-city-entries
           return generateQwikCityEntries(ctx);
         }
-
+        const isSerializer = id.endsWith(QWIK_SERIALIZER);
         const isCityPlan = id.endsWith(QWIK_CITY_PLAN_ID);
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
+        if (isSerializer) {
+          return `export {_deserializeData, _serializeData, _verifySerializable} from '@builder.io/qwik'`;
+        }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
@@ -235,11 +251,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
       async handler() {
         if (ctx?.target === 'ssr') {
           // ssr build
-          // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-          const manifest: QwikManifest =
-            (globalThis as any).QWIK_MANIFEST || qwikPlugin!.api.getManifest();
-          const clientOutDir: string =
-            (globalThis as any).QWIK_CLIENT_OUT_DIR || qwikPlugin!.api.getClientOutDir();
+          const manifest = qwikPlugin!.api.getManifest();
+          const clientOutDir = qwikPlugin!.api.getClientOutDir();
 
           if (manifest && clientOutDir) {
             for (const swEntry of ctx.serviceWorkers) {
@@ -261,7 +274,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             }
           }
 
-          if (outDir) {
+          if (outDir && clientOutDir) {
             const { staticPathsCode, notFoundPathsCode } = await postBuild(
               clientOutDir,
               api.getBasePathname(),
@@ -305,6 +318,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   return plugin;
 }
 
+const QWIK_SERIALIZER = '@qwik-serializer';
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';

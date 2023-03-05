@@ -7,7 +7,7 @@
 /// <reference types="node" />
 
 import type { IncomingMessage } from 'node:http';
-import type { Render } from '@builder.io/qwik/server';
+import { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
@@ -23,6 +23,16 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions): {
 export interface NodeRequestNextFunction {
     // (undocumented)
     (err?: any): void;
+}
+
+// @alpha (undocumented)
+export interface PlatformNode {
+    // (undocumented)
+    incomingMessage?: IncomingMessage;
+    // (undocumented)
+    node?: string;
+    // (undocumented)
+    ssr?: true;
 }
 
 // @alpha @deprecated (undocumented)

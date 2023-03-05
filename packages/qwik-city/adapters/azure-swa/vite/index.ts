@@ -14,7 +14,7 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
     ssg: opts.ssg,
     cleanStaticGenerated: true,
 
-    async generate({ outputEntries, serverOutDir }) {
+    async generate({ outputEntries, serverOutDir, clientOutDir }) {
       const serverPackageJsonPath = join(serverOutDir!, 'package.json');
       const serverPackageJsonCode = `{"type":"module"}`;
       await fs.promises.mkdir(serverOutDir!, { recursive: true });
@@ -57,6 +57,11 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
         2
       );
       await fs.promises.writeFile(funcJsonPath, funcJson);
+
+      // Azure SWA needs an index.html in the dist folder (otherwise it won't deploy)
+      if (!fs.existsSync(join(clientOutDir, 'index.html'))) {
+        await fs.promises.writeFile(join(clientOutDir, 'index.html'), '');
+      }
     },
   });
 }

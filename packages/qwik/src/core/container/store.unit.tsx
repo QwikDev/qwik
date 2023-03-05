@@ -108,7 +108,7 @@ storeSuite('should serialize content', async () => {
       '\u0012m',
       '\u0001',
     ],
-    subs: [['2 #0 0 #2 data']],
+    subs: [['2 #0 0 #2 data value']],
   });
 });
 

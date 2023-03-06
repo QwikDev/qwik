@@ -4,7 +4,7 @@ import { ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 /**
  * @alpha
  */
-export function expressAdapter(opts: NodeServerAdapterOptions = {}): any {
+export function nodeServerAdapter(opts: NodeServerAdapterOptions = {}): any {
   return viteAdapter({
     name: opts.name || 'node-server',
     origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',

@@ -151,7 +151,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                             baz: p0.count ? true : false
                         }), [
                         state
-                    ], '{foo:"bar",baz:p0.count?true:false};'),
+                    ], '{foo:"bar",baz:p0.count?true:false}'),
                     mutable3: _IMMUTABLE
                 }
             }, "u6_1")

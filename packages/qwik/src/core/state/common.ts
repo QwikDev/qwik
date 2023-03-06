@@ -258,9 +258,12 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
     subscription.push(parts[2]);
-  } else {
-    assertTrue(parts.length === 5 || parts.length === 6, 'Max 5 parts');
+  } else if (type === 1) {
+    assertTrue(parts.length === 5, 'Type 1 has 5');
     subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], parts[5]);
+  } else if (type === 2) {
+    assertTrue(parts.length === 4, 'Type 2 has 4');
+    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4]);
   }
   return subscription as any;
 };

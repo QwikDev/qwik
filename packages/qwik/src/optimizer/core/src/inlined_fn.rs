@@ -184,5 +184,9 @@ fn render_expr(expr: ast::Expr) -> String {
             span: DUMMY_SP,
         })
         .expect("Should emit");
-    unsafe { str::from_utf8_unchecked(&buf).to_string() }
+    unsafe {
+        str::from_utf8_unchecked(&buf)
+            .trim_end_matches(';')
+            .to_string()
+    }
 }

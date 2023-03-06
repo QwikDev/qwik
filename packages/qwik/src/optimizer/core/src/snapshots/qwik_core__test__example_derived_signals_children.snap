@@ -74,7 +74,7 @@ const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsx("div", {
                 children: _fnSignal((p0)=>p0, [
                     signal
-                ], "p0;")
+                ], "p0")
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: _wrapSignal(signal, "value")
@@ -82,7 +82,7 @@ const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsx("div", {
                 children: _fnSignal((p0)=>12 + p0.value, [
                     signal
-                ], "12+p0.value;")
+                ], "12+p0.value")
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: _wrapSignal(store.address.city, "name")
@@ -90,7 +90,7 @@ const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsx("div", {
                 children: _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
                     store
-                ], 'p0.address.city.name?"true":"false";')
+                ], 'p0.address.city.name?"true":"false"')
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: dep
@@ -113,12 +113,12 @@ const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsx("div", {
                 children: _fnSignal((p0)=>p0.value(), [
                     signal
-                ], "p0.value();")
+                ], "p0.value()")
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: _fnSignal((p0)=>p0.value + unknown(), [
                     signal
-                ], "p0.value+unknown();")
+                ], "p0.value+unknown()")
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: mutable(signal)

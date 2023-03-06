@@ -75,12 +75,12 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
     return /*#__PURE__*/ _jsx("div", {
         some: _fnSignal((p0)=>p0.some ?? 3, [
             props
-        ], "p0.some??1+2;"),
+        ], "p0.some??1+2"),
         params: _fnSignal((p0)=>({
                 some: p0.some ?? 3
             }), [
             props
-        ], "{some:p0.some??1+2};"),
+        ], "{some:p0.some??1+2}"),
         class: _wrapProp(props, "count"),
         ...rest,
         children: _wrapSignal(props, "count")

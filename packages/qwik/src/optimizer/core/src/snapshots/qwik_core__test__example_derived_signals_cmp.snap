@@ -109,20 +109,20 @@ const App_component_ckEPmXZlub0 = ()=>{
             signalValue: _wrapProp(signal, "value"),
             signalComputedValue: _fnSignal((p0)=>12 + p0.value, [
                 signal
-            ], "12+p0.value;"),
+            ], "12+p0.value"),
             store: _wrapProp(store.address.city, "name"),
             storeComputed: _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
                 store
-            ], 'p0.address.city.name?"true":"false";'),
+            ], 'p0.address.city.name?"true":"false"'),
             dep: _IMMUTABLE,
             depAccess: _wrapProp(dep, "thing"),
             globalAccess: _wrapProp(globalThing, "thing"),
             noInline: _fnSignal((p0)=>p0.value(), [
                 signal
-            ], "p0.value();"),
+            ], "p0.value()"),
             noInline2: _fnSignal((p0)=>p0.value + unknown(), [
                 signal
-            ], "p0.value+unknown();")
+            ], "p0.value+unknown()")
         }
     }, "u6_0");
 };

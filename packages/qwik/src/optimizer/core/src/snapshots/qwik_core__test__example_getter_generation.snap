@@ -132,10 +132,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
             signal: _IMMUTABLE,
             store: _fnSignal((p0)=>p0.stuff + 12, [
                 store
-            ], "p0.stuff+12;"),
+            ], "p0.stuff+12"),
             value: _fnSignal((p0)=>p0.formData?.get('username'), [
                 signal
-            ], 'p0.formData?.get("username");')
+            ], 'p0.formData?.get("username")')
         }
     }, "u6_0");
 };

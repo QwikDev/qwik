@@ -1,0 +1,8 @@
+{
+  "integrations": [
+    {
+      "name": "slack",
+      "url": "https://hooks.slack.com/services/..."
+    }
+  ]
+}

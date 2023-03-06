@@ -5,8 +5,8 @@ export function useMousePosition() {
   useOnDocument(
     'mousemove',
     $((event: Event) => {
-      mousePosition.x = (event as MouseEvent).clientX;
-      mousePosition.y = (event as MouseEvent).clientY;
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
     })
   );
   return mousePosition;

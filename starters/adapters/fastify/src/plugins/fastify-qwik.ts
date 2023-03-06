@@ -36,4 +36,4 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (fastify, optio
   });
 };
 
-export const fastifyQwik = fastifyPlugin(qwikPlugin);
+export default fastifyPlugin(qwikPlugin);

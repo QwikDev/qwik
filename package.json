@@ -19,6 +19,7 @@
     "link.dist": "cd packages/qwik/dist && pnpm link --global && cd ../../qwik-city/lib && pnpm link --global && cd ../../eslint-plugin-qwik/dist && pnpm link --global && cd ../../qwik-react && pnpm link --global",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.validate": "tsm scripts/validate-cli.ts",
+    "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
@@ -54,6 +55,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "0.7.5",
+    "@clack/prompts": "^0.6.1",
     "@microsoft/api-extractor": "7.34.4",
     "@napi-rs/cli": "2.12.1",
     "@napi-rs/triples": "1.1.0",

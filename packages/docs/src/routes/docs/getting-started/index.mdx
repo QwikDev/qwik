@@ -52,10 +52,10 @@ export const MyCmp = component$((props: MyCmpProps) => {
   // Returns JSX
   return (
     <>
-      <span>
-        Hello, {props.name} {count.value}
-      </span>
-      <div>Times: {count.value}</div>
+      <h3>
+        Hello, {props.name}
+      </h3>
+      <p>You have clicked {count.value} times</div>
       <button
         onClick$={() => {
           // This will update the local state and cause a re-render.

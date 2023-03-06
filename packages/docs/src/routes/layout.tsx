@@ -10,7 +10,9 @@ export default component$(() => {
       <main>
         <Slot />
       </main>
-      <Footer />
+      <div class="px-4">
+        <Footer />
+      </div>
     </>
   );
 });

@@ -19,6 +19,7 @@
 - [Lite components](components/lite-components/index.mdx)
 
 ## Guides
+
 - [Think Qwik](think-qwik/index.mdx)
 - [Routing (QwikCity)](../qwikcity/overview/index.mdx)
 - [FAQ](faq/index.mdx)

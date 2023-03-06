@@ -1016,12 +1016,13 @@ impl<'a> QwikTransform<'a> {
                                     name_token = true;
                                 }
                                 if is_children {
+                                    let folded = node.value.clone().fold_with(self);
                                     let transformed_children = if let Some(new_children) =
-                                        self.convert_children(&node.value)
+                                        self.convert_children(&folded)
                                     {
-                                        Box::new(new_children.fold_with(self))
+                                        Box::new(new_children)
                                     } else {
-                                        node.value.clone().fold_with(self)
+                                        folded
                                     };
                                     mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                         ast::Prop::KeyValue(ast::KeyValueProp {
@@ -1161,7 +1162,7 @@ impl<'a> QwikTransform<'a> {
                     .iter()
                     .map(|e| {
                         if let Some(e) = e {
-                            if let Some(new) = self.convert_to_signal(&e.expr) {
+                            if let Some(new) = self.convert_to_signal_item(&e.expr) {
                                 Some(ast::ExprOrSpread {
                                     spread: e.spread,
                                     expr: Box::new(new),
@@ -1175,7 +1176,7 @@ impl<'a> QwikTransform<'a> {
                     })
                     .collect(),
             })),
-            _ => None,
+            expr => self.convert_to_signal_item(expr),
         }
     }
 
@@ -1199,6 +1200,18 @@ impl<'a> QwikTransform<'a> {
             }
         }
         None
+    }
+
+    fn convert_to_signal_item(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
+        if let ast::Expr::Member(member) = expr {
+            let prop_sym = prop_to_string(&member.prop);
+            if let Some(prop_sym) = prop_sym {
+                let id = self.ensure_core_import(&_WRAP_SIGNAL);
+                return Some(make_wrap(&id, member.obj.clone(), prop_sym));
+            }
+        }
+        // None
+        self.create_synthetic_qqhook(expr.clone())
     }
 
     fn should_reg_hook(&self, ctx_name: &str) -> bool {

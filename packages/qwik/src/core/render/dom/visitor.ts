@@ -76,7 +76,6 @@ import {
 import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
 import { createPropsState, createProxy } from '../../state/store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
-import { _inlinedFn } from '../../qrl/inlined-fn';
 import { trackSignal } from '../../use/use-core';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';

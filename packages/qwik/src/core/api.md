@@ -4,9 +4,6 @@
 
 ```ts
 
-// @alpha (undocumented)
-export const $$: <T extends () => any>(fn: T) => T;
-
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
@@ -132,6 +129,11 @@ export interface ErrorBoundaryStore {
     // (undocumented)
     error: any | undefined;
 }
+
+// Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr: string) => SignalDerived<any, any[]>;
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -283,9 +285,6 @@ export const _IMMUTABLE: unique symbol;
 
 // @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
-
-// @alpha (undocumented)
-export const _inlinedFn: <T extends (...args: any[]) => any>(fn: T, args: any[]) => (...args: any[]) => any;
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //

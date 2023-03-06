@@ -23,6 +23,9 @@ pub fn convert_inlined_fn(
     qqhook: &Id,
 ) -> Option<ast::Expr> {
     let mut identifiers = HashMap::new();
+    if scoped_idents.is_empty() {
+        return None;
+    }
     let params: Vec<ast::Pat> = scoped_idents
         .iter()
         .enumerate()
@@ -41,7 +44,12 @@ pub fn convert_inlined_fn(
     }
 
     // Replace identifier
-    expr.visit_mut_with(&mut ReplaceIdentifiers { identifiers });
+    let mut replace_identifiers = ReplaceIdentifiers::new(identifiers);
+    expr.visit_mut_with(&mut replace_identifiers);
+
+    if replace_identifiers.abort {
+        return None;
+    }
 
     // Generate stringified version
     let rendered_str = ast::ExprOrSpread::from(ast::Expr::Lit(ast::Lit::Str(ast::Str::from(
@@ -83,6 +91,16 @@ pub fn convert_inlined_fn(
 
 struct ReplaceIdentifiers {
     pub identifiers: HashMap<Id, ast::Expr>,
+    pub abort: bool,
+}
+
+impl ReplaceIdentifiers {
+    const fn new(identifiers: HashMap<Id, ast::Expr>) -> Self {
+        Self {
+            identifiers,
+            abort: false,
+        }
+    }
 }
 
 impl VisitMut for ReplaceIdentifiers {
@@ -109,6 +127,34 @@ impl VisitMut for ReplaceIdentifiers {
             }
         }
         node.visit_mut_children_with(self);
+    }
+
+    fn visit_mut_callee(&mut self, node: &mut ast::Callee) {
+        if matches!(node, ast::Callee::Import(_)) {
+            self.abort = true;
+        } else {
+            node.visit_mut_children_with(self);
+        }
+    }
+
+    fn visit_mut_arrow_expr(&mut self, _: &mut ast::ArrowExpr) {
+        self.abort = true;
+    }
+
+    fn visit_mut_function(&mut self, _: &mut ast::Function) {
+        self.abort = true;
+    }
+
+    fn visit_mut_class_expr(&mut self, _: &mut ast::ClassExpr) {
+        self.abort = true;
+    }
+
+    fn visit_mut_decorator(&mut self, _: &mut ast::Decorator) {
+        self.abort = true;
+    }
+
+    fn visit_mut_stmt(&mut self, _: &mut ast::Stmt) {
+        self.abort = true;
     }
 }
 

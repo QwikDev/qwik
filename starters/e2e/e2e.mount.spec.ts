@@ -10,7 +10,7 @@ test.describe('mount', () => {
     const btn = page.locator('button');
     const logs = page.locator('#logs');
     const renders = page.locator('#renders');
-    await expect(renders).toHaveText('Renders: 2');
+    await expect(renders).toHaveText('Renders: 1');
     await expect(logs).toHaveText(`BEFORE useServerMount1()
 AFTER useServerMount1()
 BEFORE useMount2()

@@ -23,7 +23,7 @@ import {
 } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
-import { parseInlinedFn, serializeInlinedFn, SignalDerived } from '../qrl/inlined-fn';
+import { parseDerivedSignal, serializeDerivedSignal, SignalDerived } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 
 /**
@@ -238,10 +238,10 @@ const PureFunctionSerializer: Serializer<SignalDerived<any, any>> = {
     }
   },
   serialize: (fn, getObj) => {
-    return serializeInlinedFn(fn, getObj);
+    return serializeDerivedSignal(fn, getObj);
   },
   prepare: (data) => {
-    return parseInlinedFn(data);
+    return parseDerivedSignal(data);
   },
   fill: (fn, getObject) => {
     fn.$args$ = fn.$args$.map(getObject);

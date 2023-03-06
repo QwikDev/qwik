@@ -28,7 +28,7 @@ lazy_static! {
     pub static ref H: JsWord = JsWord::from("h");
     pub static ref FRAGMENT: JsWord = JsWord::from("Fragment");
     pub static ref _IMMUTABLE: JsWord = JsWord::from("_IMMUTABLE");
-    pub static ref _INLINED_FN: JsWord = JsWord::from("_inlinedFn");
+    pub static ref _INLINED_FN: JsWord = JsWord::from("_fnSignal");
     pub static ref IS_SERVER: JsWord = JsWord::from("isServer");
     pub static ref IS_BROWSER: JsWord = JsWord::from("isBrowser");
     pub static ref IS_DEV: JsWord = JsWord::from("isDev");

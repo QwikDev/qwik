@@ -77,7 +77,7 @@ export const routeActionQrl = ((
       return initialState as ActionStore<any, any>;
     });
 
-    initialState.run = $((input: any | FormData | SubmitEvent = {}) => {
+    initialState.run = $(async (input: any | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
@@ -90,7 +90,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
       } else {
         data = input;
       }
-      return new Promise<RouteActionResolver>((resolve) => {
+      const { result, status } = await new Promise<RouteActionResolver>((resolve) => {
         if (data instanceof FormData) {
           state.formData = data;
         }
@@ -101,29 +101,28 @@ Action.run() can only be called on the browser, for example when a user clicks a
           id,
           resolve: noSerialize(resolve),
         };
-      }).then(({ result, status }) => {
-        state.isRunning = false;
-        state.status = status;
-        state.value = result;
-        if (form) {
-          if (form.getAttribute('data-spa-reset') === 'true') {
-            form.reset();
-          }
-          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
-          form.dispatchEvent(
-            new CustomEvent('submitcompleted', {
-              bubbles: false,
-              cancelable: false,
-              composed: false,
-              detail: detail,
-            })
-          );
-        }
-        return {
-          status: status,
-          value: result,
-        };
       });
+      state.isRunning = false;
+      state.status = status;
+      state.value = result;
+      if (form) {
+        if (form.getAttribute('data-spa-reset') === 'true') {
+          form.reset();
+        }
+        const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
+        form.dispatchEvent(
+          new CustomEvent('submitcompleted', {
+            bubbles: false,
+            cancelable: false,
+            composed: false,
+            detail: detail,
+          })
+        );
+      }
+      return {
+        status: status,
+        value: result,
+      };
     });
     return state;
   }

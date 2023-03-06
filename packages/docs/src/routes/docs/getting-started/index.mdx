@@ -4,6 +4,7 @@ contributors:
   - manucorporat
   - jesperp
   - adamdbradley
+  - steve8708
 ---
 
 # Getting Started Qwikly
@@ -35,96 +36,36 @@ yarn create qwik
 
 The CLI will guide you through an interactive menu to set the project-name, select one of the starters and asks if you want to install the dependencies.
 
-After your new app is created, you will see an output like the following in your terminal:
+## Writing Qwik Components
 
-```shell
-🐰 Let's create a Qwik app 🐇   v0.18.1
+A component is a small, reusable piece of code that can be used to build a UI.
 
-✔ Where would you like to create your new project? … qwik-app
+Qwik components should look familiar to many UI developers:
 
-✔ Select a starter › Basic App (QwikCity)
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
 
-✔ Would you like to install pnpm dependencies? … yes
+export const MyCmp = component$((props: MyCmpProps) => {
+  // Declare local state
+  const count = useSignal(0);
 
-✔ Installing pnpm dependencies...
-
-
-🦄  Success!  Project created in qwik-app directory
-
-🐰 Next steps:
-   cd qwik-app
-   pnpm start
-
-🔌 Integrations? Add Netlify, Cloudflare, Tailwind...
-   pnpm qwik add
-
-📚 Relevant docs:
-   https://qwik.builder.io/docs/getting-started/
-
-💬 Questions? Start the conversation at:
-   https://qwik.builder.io/chat
-   https://twitter.com/QwikDev
-
-📺 Presentations, Podcasts and Videos:
-   https://qwik.builder.io/media/
+  // Returns JSX
+  return (
+    <>
+      <h3>Hello, {props.name}</h3>
+      <p>You have clicked {count.value} times</p>
+      <button
+        onClick$={() => {
+          // This will update the local state and cause a re-render.
+          // Reactivity is at Qwik's core!
+          count.value++;
+        }}
+      >
+        Increment
+      </button>
+    </>
+  );
+});
 ```
 
-At this point, you will have a `qwik-app` directory, that contains the starter app.
-
-## Running in development
-
-Once the application is download.
-
-1. Change into the directory created.
-
-```shell
-cd qwik-app
-```
-
-2. Invoke the dev server
-
-```shell
-npm start
-pnpm start
-yarn start
-```
-
-3. You should see a server running with your starter application
-
-```shell
-
-  VITE v4.0.1  ready in 515 ms
-
-  ➜  Local:   http://127.0.0.1:5173/
-  ➜  Network: use --host to expose
-  ➜  press h to show help
-
-```
-
-4. Visit http://localhost:5173/ to explore the app.
-
-## Running in production
-
-To run the application locally in production, run the following command:
-
-```shell
-npm run preview
-```
-
-It will build your application and the [Vite preview server](https://vitejs.dev/config/preview-options.html) to serve the application.
-
-## Deployment
-
-It's very easy to deploy your Qwik application to the cloud, as static files, or your own server.
-
-Please check out the [deployment](/integrations/deployments/overview/index.mdx) section for more details.
-
-## Other integrations
-
-Qwik is designed to be integrated with other tools. Such as `vitest`, `tailwind`, `partytown`... run the following command to see the list of available integrations:
-
-```shell
-npm run qwik add
-```
-
-and don't forget to check the [integrations](/integrations/integration/overview/index.mdx) section for more details.
+Learn more about the key concepts of writing [Qwik Components](../concepts/components/index.mdx).

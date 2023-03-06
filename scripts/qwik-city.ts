@@ -72,6 +72,11 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adapters/express/vite/index.mjs',
         require: './adapters/express/vite/index.cjs',
       },
+      './adapters/node-server/vite': {
+        types: './adapters/node-server/vite/index.d.ts',
+        import: './adapters/node-server/vite/index.mjs',
+        require: './adapters/node-server/vite/index.cjs',
+      },
       './adapters/netlify-edge/vite': {
         types: './adapters/netlify-edge/vite/index.d.ts',
         import: './adapters/netlify-edge/vite/index.mjs',
@@ -402,11 +407,11 @@ async function buildAdapterCloudRunVite(config: BuildConfig, inputDir: string, o
 }
 
 async function buildAdapterExpressVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'adapters', 'express', 'vite', 'index.ts')];
+  const entryPoints = [join(inputDir, 'adapters', 'node-server', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'express', 'vite', 'index.mjs'),
+    outfile: join(outputDir, 'adapters', 'node-server', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -418,7 +423,7 @@ async function buildAdapterExpressVite(config: BuildConfig, inputDir: string, ou
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'express', 'vite', 'index.cjs'),
+    outfile: join(outputDir, 'adapters', 'node-server', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

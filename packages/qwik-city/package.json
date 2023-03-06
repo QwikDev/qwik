@@ -24,9 +24,9 @@
       "import": "./lib/adapters/cloud-run/vite/index.mjs",
       "require": "./lib/adapters/cloud-run/vite/index.cjs"
     },
-    "./adapters/express/vite": {
-      "import": "./lib/adapters/express/vite/index.mjs",
-      "require": "./lib/adapters/express/vite/index.cjs"
+    "./adapters/node-server/vite": {
+      "import": "./lib/adapters/node-server/vite/index.mjs",
+      "require": "./lib/adapters/node-server/vite/index.cjs"
     },
     "./adapters/netlify-edge/vite": {
       "import": "./lib/adapters/netlify-edge/vite/index.mjs",
@@ -56,9 +56,13 @@
       "import": "./lib/adapters/cloud-run/vite/index.mjs",
       "require": "./lib/adapters/cloud-run/vite/index.cjs"
     },
-    "./adaptors/express/vite": {
+    "./adapters/express/vite": {
       "import": "./lib/adapters/express/vite/index.mjs",
       "require": "./lib/adapters/express/vite/index.cjs"
+    },
+    "./adaptors/node-server/vite": {
+      "import": "./lib/adapters/node-server/vite/index.mjs",
+      "require": "./lib/adapters/node-server/vite/index.cjs"
     },
     "./adaptors/netlify-edge/vite": {
       "import": "./lib/adapters/netlify-edge/vite/index.mjs",

@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 
 use crate::collector::{new_ident_from_id, Id};
+use std::str;
 use swc_common::DUMMY_SP;
+use swc_common::{sync::Lrc, SourceMap};
+use swc_ecmascript::ast;
+use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::{
-    ast,
     utils::private_ident,
     visit::{VisitMut, VisitMutWith},
 };
@@ -14,7 +17,11 @@ macro_rules! id {
     };
 }
 
-pub fn convert_inlined_fn(expr: ast::Expr, scoped_idents: Vec<Id>, qqhook: &Id) -> ast::CallExpr {
+pub fn convert_inlined_fn(
+    mut expr: ast::Expr,
+    scoped_idents: Vec<Id>,
+    qqhook: &Id,
+) -> Option<ast::Expr> {
     let mut identifiers = HashMap::new();
     let params: Vec<ast::Pat> = scoped_idents
         .iter()
@@ -29,30 +36,30 @@ pub fn convert_inlined_fn(expr: ast::Expr, scoped_idents: Vec<Id>, qqhook: &Id) 
         })
         .collect();
 
-    let expr = match expr {
-        ast::Expr::Arrow(mut arrow) => {
-            arrow
-                .body
-                .visit_mut_with(&mut ReplaceIdentifiers { identifiers });
+    if matches!(expr, ast::Expr::Arrow(_)) {
+        return None;
+    }
 
-            ast::Expr::Arrow(ast::ArrowExpr { params, ..arrow })
-        }
-        mut expr => {
-            expr.visit_mut_with(&mut ReplaceIdentifiers { identifiers });
+    // Replace identifier
+    expr.visit_mut_with(&mut ReplaceIdentifiers { identifiers });
 
-            ast::Expr::Arrow(ast::ArrowExpr {
-                body: ast::BlockStmtOrExpr::Expr(Box::new(expr)),
-                is_async: false,
-                is_generator: false,
-                params,
-                return_type: None,
-                span: DUMMY_SP,
-                type_params: None,
-            })
-        }
-    };
+    // Generate stringified version
+    let rendered_str = ast::ExprOrSpread::from(ast::Expr::Lit(ast::Lit::Str(ast::Str::from(
+        render_expr(expr.clone()),
+    ))));
 
-    ast::CallExpr {
+    // Wrap around arrow fuctions
+    let expr = ast::Expr::Arrow(ast::ArrowExpr {
+        body: ast::BlockStmtOrExpr::Expr(Box::new(expr)),
+        is_async: false,
+        is_generator: false,
+        params,
+        return_type: None,
+        span: DUMMY_SP,
+        type_params: None,
+    });
+
+    Some(ast::Expr::Call(ast::CallExpr {
         span: DUMMY_SP,
         callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqhook)))),
         type_args: None,
@@ -69,8 +76,9 @@ pub fn convert_inlined_fn(expr: ast::Expr, scoped_idents: Vec<Id>, qqhook: &Id) 
                     })
                     .collect(),
             })),
+            rendered_str,
         ],
-    }
+    }))
 }
 
 struct ReplaceIdentifiers {
@@ -102,4 +110,33 @@ impl VisitMut for ReplaceIdentifiers {
         }
         node.visit_mut_children_with(self);
     }
+}
+
+fn render_expr(expr: ast::Expr) -> String {
+    let mut buf = Vec::new();
+    let source_map = Lrc::new(SourceMap::default());
+    let writer = Box::new(JsWriter::new(Lrc::clone(&source_map), "\n", &mut buf, None));
+    let config = swc_ecmascript::codegen::Config {
+        minify: true,
+        target: ast::EsVersion::latest(),
+        ascii_only: false,
+        omit_last_semi: true,
+    };
+    let mut emitter = swc_ecmascript::codegen::Emitter {
+        cfg: config,
+        comments: None,
+        cm: Lrc::clone(&source_map),
+        wr: writer,
+    };
+    emitter
+        .emit_script(&ast::Script {
+            body: vec![ast::Stmt::Expr(ast::ExprStmt {
+                span: DUMMY_SP,
+                expr: Box::new(expr),
+            })],
+            shebang: None,
+            span: DUMMY_SP,
+        })
+        .expect("Should emit");
+    unsafe { str::from_utf8_unchecked(&buf).to_string() }
 }

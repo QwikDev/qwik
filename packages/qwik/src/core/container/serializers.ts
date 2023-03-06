@@ -231,8 +231,8 @@ const PureFunctionSerializer: Serializer<SignalDerived<any, any>> = {
   prefix: '\u0011',
   test: (obj) => obj instanceof SignalDerived,
   collect: (obj, collector, leaks) => {
-    if (obj.args) {
-      for (const arg of obj.args) {
+    if (obj.$args$) {
+      for (const arg of obj.$args$) {
         collectValue(arg, collector, leaks);
       }
     }
@@ -244,7 +244,7 @@ const PureFunctionSerializer: Serializer<SignalDerived<any, any>> = {
     return parseInlinedFn(data);
   },
   fill: (fn, getObject) => {
-    fn.args = fn.args.map(getObject);
+    fn.$args$ = fn.$args$.map(getObject);
   },
 };
 

@@ -47,7 +47,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         some: _wrapProp(signal, "value"),
         bar: _inlinedFn((p0)=>p0.bar ?? 'hello', [
             store1
-        ]),
+        ], 'p0.bar??"hello";'),
         rest: rest,
         rest2: rest2,
         children: _wrapSignal(store, "foo")

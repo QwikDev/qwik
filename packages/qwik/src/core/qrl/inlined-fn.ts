@@ -21,25 +21,27 @@ export interface InlinedFn<B = any> {
 }
 
 export class SignalDerived<T = any, ARGS extends any[] = any> {
-  constructor(public func: (...args: ARGS) => T, public args: ARGS) {}
+  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$: string) {}
 
   get value(): T {
-    return this.func.apply(undefined, this.args);
+    return this.$func$.apply(undefined, this.$args$);
   }
 }
 
 /**
  * @alpha
  */
-export const _inlinedFn = <T extends (...args: any[]) => any>(fn: T, args: any[]) => {
-  return new SignalDerived(fn, args);
+export const _inlinedFn = <T extends (...args: any[]) => any>(
+  fn: T,
+  args: any[],
+  fnStr: string
+) => {
+  return new SignalDerived(fn, args, fnStr);
 };
 
 export const serializeInlinedFn = (inlinedFn: SignalDerived, getObjID: MustGetObjID) => {
-  const parts = inlinedFn.args.map(getObjID);
-  const fn = String(inlinedFn.func);
-  const start = fn.indexOf('=>');
-  const fnBody = fn.slice(start + 2).trim();
+  const parts = inlinedFn.$args$.map(getObjID);
+  const fnBody = inlinedFn.$funcStr$;
   return parts.join(' ') + ':' + fnBody;
 };
 
@@ -50,5 +52,5 @@ export const parseInlinedFn = (data: string) => {
   const args = objects.map((_, i) => `p${i}`);
   args.push(`return ${fnStr}`);
   const fn = new Function(...args);
-  return new SignalDerived(fn as any, objects);
+  return new SignalDerived(fn as any, objects, fnStr);
 };

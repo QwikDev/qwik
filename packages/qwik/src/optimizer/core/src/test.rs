@@ -2325,6 +2325,7 @@ export const App = component$(() => {
             nested={store.nested.count}
             signal={signal}
             store={store.stuff + 12}
+            value={signal.formData?.get('username')}
         >
         </Cmp>
     );

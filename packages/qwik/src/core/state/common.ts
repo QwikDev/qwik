@@ -233,9 +233,11 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
     if (sub[2]) {
       base += ' ' + sub[2];
     }
-  } else {
+  } else if (type === 1) {
+    base += ` ${must(getObjId(sub[2]))} ${must(getObjId(sub[3]))} ${sub[4]}`;
+  } else if (type === 2) {
     const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
-    base += ` ${must(getObjId(sub[2]))} ${nodeID} ${sub[4]}`;
+    base += ` ${must(getObjId(sub[2]))} ${nodeID}`;
   }
 
   return base;

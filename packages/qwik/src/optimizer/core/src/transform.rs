@@ -18,7 +18,7 @@ use std::hash::Hash;
 use std::hash::Hasher; // import without risk of name clashing
 use std::iter;
 use std::path::Path;
-
+use std::str;
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
@@ -449,11 +449,7 @@ impl<'a> QwikTransform<'a> {
 
         let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
         let inlined_fn = self.ensure_core_import(&_INLINED_FN);
-        Some(ast::Expr::Call(convert_inlined_fn(
-            folded,
-            scoped_idents,
-            &inlined_fn,
-        )))
+        convert_inlined_fn(folded, scoped_idents, &inlined_fn)
     }
 
     fn create_synthetic_qhook(
@@ -1913,7 +1909,7 @@ fn is_return_static(expr: &Option<Box<ast::Expr>>) -> bool {
         Some(box ast::Expr::Call(ast::CallExpr {
             callee: ast::Callee::Expr(box ast::Expr::Ident(ident)),
             ..
-        })) => return ident.sym.starts_with("use"),
+        })) => ident.sym.starts_with("use"),
         Some(_) => false,
         None => true,
     }

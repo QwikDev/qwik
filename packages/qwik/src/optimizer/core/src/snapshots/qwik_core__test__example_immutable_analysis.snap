@@ -153,10 +153,10 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                             baz: p0.count ? true : false
                         }), [
                         state
-                    ]),
+                    ], '{foo:"bar",baz:p0.count?true:false};'),
                     mutable2: _inlinedFn((p0)=>(()=>console.log(p0.count))(), [
                         state
-                    ]),
+                    ], "(()=>console.log(p0.count))();"),
                     mutable3: _IMMUTABLE
                 }
             }, "u6_1")

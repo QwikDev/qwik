@@ -23,6 +23,7 @@ export const App = component$(() => {
             nested={store.nested.count}
             signal={signal}
             store={store.stuff + 12}
+            value={signal.formData?.get('username')}
         >
         </Cmp>
     );
@@ -45,7 +46,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAmBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAoBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -72,7 +73,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;gBAAE,YAAU,YAAE;sCAAc,MAAM,MAAM;;0BACzC,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;gBAAE,YAAU,YAAE;sCAAc,MAAM,MAAM;;0BACzC,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -87,8 +88,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    527,
-    701
+    580,
+    754
   ]
 }
 */
@@ -121,6 +122,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
         get store () {
             return store.stuff + 12;
         },
+        get value () {
+            return signal.formData?.get('username');
+        },
         [_IMMUTABLE]: {
             prop: _IMMUTABLE,
             count: _wrapProp(store, "count"),
@@ -128,13 +132,16 @@ export const App_component_ckEPmXZlub0 = ()=>{
             signal: _IMMUTABLE,
             store: _inlinedFn((p0)=>p0.stuff + 12, [
                 store
-            ])
+            ], "p0.stuff+12;"),
+            value: _inlinedFn((p0)=>p0.formData?.get('username'), [
+                signal
+            ], 'p0.formData?.get("username");')
         }
     }, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;;YAJrB,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;YACN,KAAK,mBAAE,GAAM,KAAK,GAAG;;;;;AAIjC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;YACN,KAAK,mBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,mBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -150,7 +157,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     90,
-    493
+    546
   ]
 }
 */

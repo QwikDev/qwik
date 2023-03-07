@@ -69,7 +69,6 @@ export const DocSearch = component$((props: DocSearchProps) => {
   return (
     <div
       class="docsearch"
-      preventdefault:keyDown={!state.isOpen}
       window:onKeyDown$={(event) => {
         function open() {
           // We check that no other DocSearch modal is showing before opening
@@ -86,6 +85,9 @@ export const DocSearch = component$((props: DocSearchProps) => {
           // a character.
           (!isEditingContent(event) && event.key === '/' && !state.isOpen)
         ) {
+          // FIXME: not able to prevent
+          // event.preventDefault();
+
           if (state.isOpen) {
             state.isOpen = false;
           } else if (!document.body.classList.contains('DocSearch--active')) {

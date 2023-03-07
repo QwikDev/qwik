@@ -13,6 +13,7 @@ export type {
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
+  DocumentScript,
   PageModule,
   PathParams,
   RequestHandler,

@@ -136,7 +136,6 @@ export interface DocumentHeadValue {
     readonly frontmatter?: Readonly<Record<string, any>>;
     readonly links?: readonly DocumentLink[];
     readonly meta?: readonly DocumentMeta[];
-    // Warning: (ae-forgotten-export) The symbol "DocumentScript" needs to be exported by the entry point index.d.ts
     readonly scripts?: readonly DocumentScript[];
     readonly styles?: readonly DocumentStyle[];
     readonly title?: string;
@@ -194,6 +193,16 @@ export interface DocumentMeta {
     readonly name?: string;
     // (undocumented)
     readonly property?: string;
+}
+
+// @alpha (undocumented)
+export interface DocumentScript {
+    // (undocumented)
+    readonly key?: string;
+    // (undocumented)
+    readonly props?: Readonly<QwikIntrinsicElements['script']>;
+    // (undocumented)
+    readonly script?: string;
 }
 
 // @alpha (undocumented)

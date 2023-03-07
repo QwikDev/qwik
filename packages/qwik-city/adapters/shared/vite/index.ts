@@ -136,7 +136,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
 
             if (Array.isArray(opts.ssg?.include) && opts.ssg!.include.length > 0) {
-              let ssgOrigin = opts.origin;
+              let ssgOrigin = opts.ssg?.origin || opts.origin;
               if (!ssgOrigin) {
                 ssgOrigin = `https://yoursite.qwik.builder.io`;
               }

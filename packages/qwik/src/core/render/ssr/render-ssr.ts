@@ -1,5 +1,5 @@
 import { isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
@@ -35,7 +35,7 @@ import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { addSignalSub, isSignal, Signal } from '../../state/signal';
+import { isSignal, Signal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
@@ -358,7 +358,7 @@ const renderSSRComponent = (
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
     const invocationContext = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
-    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$subscriber$ = [0, hostElement];
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       ...ssrCtx,
@@ -526,10 +526,11 @@ const renderNode = (
       if (isSignal(value)) {
         if (hostCtx) {
           const hostEl = hostCtx.$element$ as QwikElement;
-          addSignalSub(1, hostEl, value, elm, attrName);
+          value = trackSignal(value, [1, hostEl, value, elm, attrName]);
           useSignal = true;
+        } else {
+          value = value.value;
         }
-        value = value.value;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -778,9 +779,8 @@ const processData = (
     let value;
     if (hostEl) {
       if (!insideText) {
-        value = node.value;
         const id = getNextIndex(rCtx);
-        addSignalSub(2, hostEl, node, '#' + id, 'data');
+        value = trackSignal(node, [2, hostEl, node, ('#' + id) as any]);
         stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {

@@ -71,38 +71,34 @@ export const DocSearch = component$((props: DocSearchProps) => {
       class="docsearch"
       preventdefault:keyDown={!state.isOpen}
       window:onKeyDown$={(event) => {
-        window.addEventListener('keydown', (event) => {
-          function open() {
-            // We check that no other DocSearch modal is showing before opening
-            // another one.
-            if (!document.body.classList.contains('DocSearch--active')) {
-              state.isOpen = true;
-            }
+        function open() {
+          // We check that no other DocSearch modal is showing before opening
+          // another one.
+          if (!document.body.classList.contains('DocSearch--active')) {
+            state.isOpen = true;
           }
-          if (
-            (event.key === 'Escape' && state.isOpen) ||
-            // The `Cmd+K` shortcut both opens and closes the modal.
-            (event.key === 'k' && (event.metaKey || event.ctrlKey)) ||
-            // The `/` shortcut opens but doesn't close the modal because it's
-            // a character.
-            (!isEditingContent(event) && event.key === '/' && !state.isOpen)
-          ) {
-            event.preventDefault();
+        }
+        if (
+          (event.key === 'Escape' && state.isOpen) ||
+          // The `Cmd+K` shortcut both opens and closes the modal.
+          (event.key === 'k' && (event.metaKey || event.ctrlKey)) ||
+          // The `/` shortcut opens but doesn't close the modal because it's
+          // a character.
+          (!isEditingContent(event) && event.key === '/' && !state.isOpen)
+        ) {
+          if (state.isOpen) {
+            state.isOpen = false;
+          } else if (!document.body.classList.contains('DocSearch--active')) {
+            open();
+          }
+        }
 
-            if (state.isOpen) {
-              state.isOpen = false;
-            } else if (!document.body.classList.contains('DocSearch--active')) {
-              open();
-            }
+        if (searchButtonRef && searchButtonRef.current === document.activeElement) {
+          if (/[a-zA-Z0-9]/.test(String.fromCharCode(event.keyCode))) {
+            state.isOpen = true;
+            state.initialQuery = event.key;
           }
-
-          if (searchButtonRef && searchButtonRef.current === document.activeElement) {
-            if (/[a-zA-Z0-9]/.test(String.fromCharCode(event.keyCode))) {
-              state.isOpen = true;
-              state.initialQuery = event.key;
-            }
-          }
-        });
+        }
       }}
     >
       <DocSearchButton

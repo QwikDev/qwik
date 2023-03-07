@@ -166,7 +166,8 @@ pre[class*='language-'] {
 @media (max-width: 768px) {
   :root {
     --panel-toggle-height: 56px;
-    --header-height: 80px;
+    --header-height: 60px;
+    --builder-bar-height: 40px;
   }
 }
 
@@ -276,6 +277,18 @@ body {
 /* Builder */
 :root[data-theme='dark'] .builder .dark-mode {
   filter: invert(90%) hue-rotate(180deg);
+}
+
+:root[data-theme='dark'] .dark-mode-invert {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
+:root[data-theme='dark'] .dark-mode-hide {
+  display: none !important;
+}
+
+:root[data-theme='light'] .light-mode-hide {
+  display: none !important;
 }
 
 :root[data-theme='dark'] .builder .dark-mode :is(img, iframe, video) {

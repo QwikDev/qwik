@@ -1,5 +1,5 @@
 import type { SearchClient } from 'algoliasearch/lite';
-import { component$, useStore, useStyles$, useRef } from '@builder.io/qwik';
+import { component$, useStore, useStyles$, useSignal } from '@builder.io/qwik';
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from './types';
 import { ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, ModalTranslations } from './doc-search-modal';
@@ -64,7 +64,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
     snippetLength: 10,
   });
 
-  const searchButtonRef = useRef();
+  const searchButtonRef = useSignal();
 
   return (
     <div

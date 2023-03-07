@@ -1,4 +1,4 @@
-import { component$, useSignal, useBrowserVisibleTask$, useStore } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({
@@ -6,7 +6,7 @@ export default component$(() => {
     height: 0,
   });
   const outputRef = useSignal<Element>();
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     if (outputRef.value) {
       const rect = outputRef.value.getBoundingClientRect();
       store.width = Math.round(rect.width);

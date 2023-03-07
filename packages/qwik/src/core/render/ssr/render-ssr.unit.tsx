@@ -323,6 +323,103 @@ renderSSRSuite('single simple children', async () => {
   );
 });
 
+renderSSRSuite('valid phrasing content', async () => {
+  await testSSR(
+    <body>
+      <p>
+        <del>Del</del>
+      </p>
+    </body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p><del>Del</del></p></body>'
+  );
+  await testSSR(
+    <body>
+      <p>
+        <link rel="example" />
+      </p>
+    </body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p><link rel="example"/></p></body>'
+  );
+  await testSSR(
+    <body>
+      <p>
+        <map name="my-map">
+          <area shape="poly" coords="0,0,10,10,10,0" href="/example" alt="Example" />
+        </map>
+        <img useMap="#my-map" src="/example.png" alt="Example" />
+      </p>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <p>
+          <map name="my-map">
+            <area shape="poly" coords="0,0,10,10,10,0" href="/example" alt="Example">
+          </map>
+          <img usemap="#my-map" src="/example.png" alt="Example">
+        </p>
+        </body>
+      </html>`
+  );
+  await testSSR(
+    <body>
+      <p>
+        <svg
+          viewBox="0 0 10 10"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <path d="M 0 0 L 10 10"></path>
+          <circle cx="5" cy="5" rx="5" ry="5"></circle>
+        </svg>
+      </p>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <p>
+          <svg 
+            viewBox="0 0 10 10" 
+            xmlns="http://www.w3.org/2000/svg" 
+            xmlns:xlink="http://www.w3.org/1999/xlink" 
+          >
+            <path d="M 0 0 L 10 10"></path>
+            <circle cx="5" cy="5" rx="5" ry="5"></circle>
+          </svg>
+        </p>
+      </body>
+    </html>`
+  );
+  await testSSR(
+    <body>
+      <p>
+        <math>
+          <semantics>
+            <mrow>
+              <mi>2</mi>
+              <mo>+</mo>
+              <mi>2</mi>
+            </mrow>
+          </semantics>
+        </math>
+      </p>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <p>
+          <math>
+            <semantics>
+              <mrow>
+                <mi>2</mi>
+                <mo>+</mo>
+                <mi>2</mi>
+              </mrow>
+            </semantics>
+          </math>
+        </p>
+      </body>
+    </html>`
+  );
+});
+
 renderSSRSuite('events', async () => {
   await testSSR(
     <body onClick$={() => console.warn('hol')}>hola</body>,

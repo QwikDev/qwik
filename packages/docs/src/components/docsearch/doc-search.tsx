@@ -1,5 +1,5 @@
 import type { SearchClient } from 'algoliasearch/lite';
-import { component$, useStore, useStyles$, useRef } from '@builder.io/qwik';
+import { component$, useStore, useStyles$, useSignal } from '@builder.io/qwik';
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from './types';
 import { ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, ModalTranslations } from './doc-search-modal';
@@ -64,11 +64,12 @@ export const DocSearch = component$((props: DocSearchProps) => {
     snippetLength: 10,
   });
 
-  const searchButtonRef = useRef();
+  const searchButtonRef = useSignal();
 
   return (
     <div
       class="docsearch"
+      preventdefault:keyDown={!state.isOpen}
       window:onKeyDown$={(event) => {
         function open() {
           // We check that no other DocSearch modal is showing before opening
@@ -85,9 +86,6 @@ export const DocSearch = component$((props: DocSearchProps) => {
           // a character.
           (!isEditingContent(event) && event.key === '/' && !state.isOpen)
         ) {
-          // FIXME: not able to prevent
-          // event.preventDefault();
-
           if (state.isOpen) {
             state.isOpen = false;
           } else if (!document.body.classList.contains('DocSearch--active')) {

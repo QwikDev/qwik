@@ -15,7 +15,6 @@ import type {
   ResolveSyncValue,
   StaticGenerateProps,
 } from '../runtime/src/types';
-import { useQwikCityEnv } from '../runtime/src/use-functions';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -178,25 +177,27 @@ export async function mainThread(sys: System) {
 
       const loadStaticRoute = async (route: RouteData) => {
         const [_, loaders, paramNames, originalPathname] = route;
+
         const modules = await Promise.all(loaders.map((loader) => loader()));
         const pageModule: PageModule = modules[modules.length - 1] as any;
 
         // if a module has a "default" export, it's a page module
         // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation
-        const env = useQwikCityEnv();
         const isValidStaticModule: boolean =
           pageModule && (pageModule.default || pageModule.onRequest || pageModule.onGet);
-        const endpoint = env!.response;
+
+        // Not sure how we get this...
+        const dataLoaders: Record<string, any> = {};
         const resolveValue = ((loaderOrAction: LoaderInternal | ActionInternal) => {
           const id = loaderOrAction.__id;
           if (loaderOrAction.__brand === 'server_loader') {
-            if (!(id in endpoint.loaders)) {
+            if (!(id in dataLoaders)) {
               throw new Error(
                 'You can not get the returned data of a loader that has not been executed for this request.'
               );
             }
           }
-          const data: any = endpoint.loaders[id];
+          const data: any = dataLoaders[id];
           if (data instanceof Promise) {
             throw new Error(
               'Loaders returning a function can not be refered to in the head function.'

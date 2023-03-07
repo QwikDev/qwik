@@ -66,30 +66,6 @@ header .close-icon {
   display: none;
 }
 
-@media (max-width: 1023px) {
-  .header-open header ul {
-    position: absolute;
-    z-index: 10;
-    display: block;
-    top: var(--header-height);
-    width: 100%;
-    background: var(--bg-color);
-    height: auto;
-  }
-
-  .header-open header .more-icon {
-    display: none;
-  }
-
-  .header-open header .close-icon {
-    display: block;
-  }
-
-  .header-open .menu-toolkit li {
-    text-align: center;
-  }
-}
-
 header .header-inner {
   max-width: 1400px;
   margin-left: auto;
@@ -115,4 +91,41 @@ header .header-logo {
 
 .full-width header .header-logo {
   left: 0;
+}
+
+@media (max-width: 1023px) {
+  header .qwik-logo {
+    width: auto;
+    height: 33px;
+  }
+
+  header .header-logo {
+    @apply pl-2;
+  }
+
+  header .mobile-menu {
+    padding: 0.5rem 1rem;
+  }
+
+  .header-open header ul {
+    position: absolute;
+    z-index: 10;
+    display: block;
+    top: var(--header-height);
+    width: 100%;
+    background: var(--bg-color);
+    height: auto;
+  }
+
+  .header-open header .more-icon {
+    display: none;
+  }
+
+  .header-open header .close-icon {
+    display: block;
+  }
+
+  .header-open .menu-toolkit li {
+    text-align: center;
+  }
 }

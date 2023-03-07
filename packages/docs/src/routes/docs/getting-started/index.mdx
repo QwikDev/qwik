@@ -38,9 +38,9 @@ The CLI will guide you through an interactive menu to set the project-name, sele
 
 ## Writing Qwik Components
 
-A component is a small, reusable piece of code that can be used to build a UI.
+Components are basic building blocks of Qwik Applications. 
 
-Qwik components should look familiar to many UI developers:
+[Qwik Components](../components/overview/index.mdx) should look familiar to many UI developers:
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -67,5 +67,11 @@ export const MyCmp = component$((props: MyCmpProps) => {
   );
 });
 ```
+
+Qwik components are unique in that:
+
+- Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../advanced/optimizer/index.mdx).
+- They are [resumable](../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
+- They are [reactive](../concepts/reactivity/index.mdx) and render independently of other components on the page. See [rendering](../components/rendering/index.mdx).
 
 Learn more about the key concepts of writing [Qwik Components](../components/overview/index.mdx).

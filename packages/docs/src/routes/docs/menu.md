@@ -1,12 +1,9 @@
 # Guide
 
-## Guides
+## Intro
 
 - [Overview](overview/index.mdx)
 - [Getting Started](getting-started/index.mdx)
-- [Think Qwik](think-qwik/index.mdx)
-- [FAQ](faq/index.mdx)
-- [Routing (QwikCity)](../qwikcity/overview/index.mdx)
 
 ## Component API
 
@@ -20,6 +17,12 @@
 - [Rendering](components/rendering/index.mdx)
 - [Styling](components/styles/index.mdx)
 - [Lite components](components/lite-components/index.mdx)
+
+## Guides
+
+- [Think Qwik](think-qwik/index.mdx)
+- [Routing (QwikCity)](../qwikcity/overview/index.mdx)
+- [FAQ](faq/index.mdx)
 
 ## Cheat Sheet
 

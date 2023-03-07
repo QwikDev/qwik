@@ -4,7 +4,6 @@
 
 - [Intro](overview/index.mdx)
 - [Project structure](project-structure/index.mdx)
-- [API reference](api/index.mdx)
 
 ## Basics
 
@@ -26,3 +25,4 @@
 - [Speculative Module Fetching](advanced/speculative-module-fetching/index.mdx)
 - [Menus](advanced/menu/index.mdx)
 - [Static Assets](advanced/static-assets/index.mdx)
+- [API reference](api/index.mdx)

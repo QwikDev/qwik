@@ -10,4 +10,4 @@ While not a common use case, you may occasionally need to process events synchro
 
 Since Qwik processes asynchronously by default, your code must be explicitly configured for synchronous calls. This example shows how to eagerly load an event handler that processes a synchronous event.
 
-> **Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using [`useBrowserVisibleTask$`](https://qwik.builder.io/docs/components/lifecycle/#usebrowservisibletask) lifecycle and [normal event registration](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
+> **Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using [`useVisibleTask$`](https://qwik.builder.io/docs/components/lifecycle/#usebrowservisibletask) lifecycle and [normal event registration](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).

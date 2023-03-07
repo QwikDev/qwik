@@ -343,21 +343,21 @@ const FormDataSerializer: Serializer<FormData> = {
 };
 
 const serializers: Serializer<any>[] = [
-  QRLSerializer,
-  SignalSerializer,
-  SignalWrapperSerializer,
-  WatchSerializer,
-  ResourceSerializer,
-  URLSerializer,
-  DateSerializer,
-  RegexSerializer,
-  ErrorSerializer,
-  DocumentSerializer,
-  ComponentSerializer,
-  DerivedSignalSerializer,
-  NoFiniteNumberSerializer,
-  URLSearchParamsSerializer,
-  FormDataSerializer,
+  QRLSerializer, ////////////// \u0002
+  SignalSerializer, /////////// \u0012
+  SignalWrapperSerializer, //// \u0013
+  WatchSerializer, //////////// \u0003
+  ResourceSerializer, ///////// \u0004
+  URLSerializer, ////////////// \u0005
+  DateSerializer, ///////////// \u0006
+  RegexSerializer, //////////// \u0007
+  ErrorSerializer, //////////// \u000E
+  DocumentSerializer, ///////// \u000F
+  ComponentSerializer, //////// \u0010
+  DerivedSignalSerializer, //// \u0011
+  NoFiniteNumberSerializer, /// \u0014
+  URLSearchParamsSerializer, // \u0015
+  FormDataSerializer, ///////// \u0016
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

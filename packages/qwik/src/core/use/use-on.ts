@@ -15,7 +15,7 @@ import { Task, WatchFlagsIsCleanup } from './use-task';
  *
  * @alpha
  * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
- * `useBrowserVisibleTask$()` instead.
+ * `useVisibleTask$()` instead.
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
@@ -39,7 +39,7 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
  *
  * @alpha
  * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
- * `useBrowserVisibleTask$()` instead.
+ * `useVisibleTask$()` instead.
  */
 // </docs>
 export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);

@@ -7,13 +7,13 @@ export async function runAddCommand(app: AppCommand) {
   try {
     const id = app.args[1];
     if (id === 'help') {
-      await printAddHelp();
+      await printAddHelp(app);
     } else {
       await runAddInteractive(app, id);
     }
   } catch (e) {
-    console.error(`\n❌ ${red(String(e))}\n`);
-    await printAddHelp();
+    console.error(`❌ ${red(String(e))}\n`);
+    await printAddHelp(app);
     process.exit(1);
   }
 }

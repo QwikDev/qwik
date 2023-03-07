@@ -98,7 +98,7 @@ import { component$ } from '@builder.io/qwik';
 import { useLocation, useContent } from '@builder.io/qwik-city';
 export default component$(() => {
   const { menu } = useContent();
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
   return (
     <div class="menu">
@@ -112,7 +112,7 @@ export default component$(() => {
                     <a
                       href={item.href}
                       class={{
-                        'is-active': pathname === item.href,
+                        'is-active': url.pathname === item.href,
                       }}
                     >
                       {item.text}

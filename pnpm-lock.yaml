@@ -5,6 +5,7 @@ importers:
   .:
     specifiers:
       '@builder.io/partytown': 0.7.5
+      '@clack/prompts': ^0.6.1
       '@microsoft/api-extractor': 7.34.4
       '@napi-rs/cli': 2.12.1
       '@napi-rs/triples': 1.1.0
@@ -62,6 +63,7 @@ importers:
       zod: ^3.20.6
     devDependencies:
       '@builder.io/partytown': 0.7.5
+      '@clack/prompts': 0.6.1
       '@microsoft/api-extractor': 7.34.4_@types+node@18.14.0
       '@napi-rs/cli': 2.12.1
       '@napi-rs/triples': 1.1.0
@@ -486,6 +488,16 @@ packages:
 
   /@clack/prompts/0.6.0:
     resolution: {integrity: sha512-lNg3MFPLA2rrMAZ6R2QFg+jGo2Pt3ACJERDbPgxjPU9QJwVFB3D2v3x7SzzVoS6schggcMN0tDJ4zSdcI+kqJg==}
+    dependencies:
+      '@clack/core': 0.3.0
+      picocolors: 1.0.0
+      sisteransi: 1.0.5
+    dev: true
+    bundledDependencies:
+      - is-unicode-supported
+
+  /@clack/prompts/0.6.1:
+    resolution: {integrity: sha512-7KuMST/5zB7KpvfR00kcnbOaXmfN6tkJmkLpAyV2Iv2SJ7oxFbhNFvR5OQJynSKDhU8oOp/eFMK6Q0k/DXsq8A==}
     dependencies:
       '@clack/core': 0.3.0
       picocolors: 1.0.0

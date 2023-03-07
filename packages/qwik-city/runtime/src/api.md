@@ -411,8 +411,10 @@ export interface StaticGenerate {
     params?: PathParams[];
 }
 
+// Warning: (ae-forgotten-export) The symbol "StaticGenerateProps" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+export type StaticGenerateHandler = (ev: StaticGenerateProps) => Promise<StaticGenerate> | StaticGenerate;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

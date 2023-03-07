@@ -305,7 +305,15 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
 /**
  * @alpha
  */
-export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+export type StaticGenerateProps = {
+  resolveValue: ResolveSyncValue;
+};
+/**
+ * @alpha
+ */
+export type StaticGenerateHandler = (
+  ev: StaticGenerateProps
+) => Promise<StaticGenerate> | StaticGenerate;
 
 /**
  * @alpha

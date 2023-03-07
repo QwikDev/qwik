@@ -9,6 +9,13 @@ import { relative } from 'node:path';
 import { bold, green, dim, red, magenta } from 'kleur/colors';
 import { formatError } from '../buildtime/vite/format-error';
 import { buildErrorMessage } from 'vite';
+import type {
+  ActionInternal,
+  LoaderInternal,
+  ResolveSyncValue,
+  StaticGenerateProps,
+} from '../runtime/src/types';
+import { useQwikCityEnv } from '../runtime/src/use-functions';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -176,14 +183,36 @@ export async function mainThread(sys: System) {
 
         // if a module has a "default" export, it's a page module
         // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation
-        const isValidStaticModule =
+        const env = useQwikCityEnv();
+        const isValidStaticModule: boolean =
           pageModule && (pageModule.default || pageModule.onRequest || pageModule.onGet);
+        const endpoint = env!.response;
+        const resolveValue = ((loaderOrAction: LoaderInternal | ActionInternal) => {
+          const id = loaderOrAction.__id;
+          if (loaderOrAction.__brand === 'server_loader') {
+            if (!(id in endpoint.loaders)) {
+              throw new Error(
+                'You can not get the returned data of a loader that has not been executed for this request.'
+              );
+            }
+          }
+          const data: any = endpoint.loaders[id];
+          if (data instanceof Promise) {
+            throw new Error(
+              'Loaders returning a function can not be refered to in the head function.'
+            );
+          }
+          return data;
+        }) as any as ResolveSyncValue;
 
         if (isValidStaticModule) {
           if (Array.isArray(paramNames) && paramNames.length > 0) {
             if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
               // dynamic route page module
-              const staticGenerate = await pageModule.onStaticGenerate();
+              const props: StaticGenerateProps = {
+                resolveValue,
+              };
+              const staticGenerate = await pageModule.onStaticGenerate(props);
               if (Array.isArray(staticGenerate.params)) {
                 for (const params of staticGenerate.params) {
                   const pathname = getPathnameForDynamicRoute(

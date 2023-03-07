@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-auth",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Qwik Auth is powered by Next's Auth.js a battle tested library for authentication with 3rd party providers",
   "keywords": [
     "auth.js",

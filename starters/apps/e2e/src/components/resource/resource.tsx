@@ -10,6 +10,7 @@ import {
   useContext,
   useStyles$,
   ResourceReturn,
+  mutable,
 } from '@builder.io/qwik';
 
 export interface WeatherData {
@@ -114,7 +115,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
             <>
               <div class="resource1">resource 1 is {number}</div>
               <button class="count" onClick$={() => state.count++}>
-                count is {state.count + 0}
+                count is {mutable(state.count + 0)}
               </button>
             </>
           );

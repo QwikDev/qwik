@@ -23,6 +23,7 @@ export const App = component$(() => {
             nested={store.nested.count}
             signal={signal}
             store={store.stuff + 12}
+            value={signal.formData?.get('username')}
         >
         </Cmp>
     );
@@ -45,11 +46,10 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAmBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAoBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { _wrapProp } from "@builder.io/qwik";
@@ -58,13 +58,8 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
     return /*#__PURE__*/ _jsxs(_Fragment, {
         children: [
             /*#__PURE__*/ _jsx("p", {
-                get "data-value" () {
-                    return props.count;
-                },
-                children: _wrapSignal(props.nested, "count"),
-                [_IMMUTABLE]: {
-                    "data-value": _wrapProp(props, "count")
-                }
+                "data-value": _wrapProp(props, "count"),
+                children: _wrapSignal(props.nested, "count")
             }),
             /*#__PURE__*/ _jsxs("p", {
                 children: [
@@ -78,7 +73,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAwB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;oBAAE;2BAAY,MAAM,KAAK;;sCAAG,MAAM,MAAM;;oBAAtC,YAAU,YAAE;;;0BACf,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;gBAAE,YAAU,YAAE;sCAAc,MAAM,MAAM;;0BACzC,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -93,8 +88,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    527,
-    701
+    580,
+    754
   ]
 }
 */
@@ -102,6 +97,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Cmp } from "./test";
 import { _IMMUTABLE } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { _wrapProp } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -123,18 +119,29 @@ export const App_component_ckEPmXZlub0 = ()=>{
             return store.nested.count;
         },
         signal: signal,
-        store: store.stuff + 12,
+        get store () {
+            return store.stuff + 12;
+        },
+        get value () {
+            return signal.formData?.get('username');
+        },
         [_IMMUTABLE]: {
             prop: _IMMUTABLE,
             count: _wrapProp(store, "count"),
             nested: _wrapProp(store.nested, "count"),
-            signal: _IMMUTABLE
+            signal: _IMMUTABLE,
+            store: _fnSignal((p0)=>p0.stuff + 12, [
+                store
+            ], "p0.stuff+12"),
+            value: _fnSignal((p0)=>p0.formData?.get('username'), [
+                signal
+            ], 'p0.formData?.get("username")')
         }
     }, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;QACR,OAAO,MAAM,KAAK,GAAG;;YAJrB,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;;;AAKlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -150,7 +157,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     90,
-    493
+    546
   ]
 }
 */

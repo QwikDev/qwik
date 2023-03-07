@@ -1,9 +1,9 @@
-import { bgRed, green, red } from 'kleur/colors';
+import { bgRed, cyan, red } from 'kleur/colors';
 import fs from 'node:fs';
-import ora from 'ora';
 import os from 'node:os';
 import path from 'node:path';
 import spawn from 'cross-spawn';
+import { log } from '@clack/prompts';
 import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
 
@@ -51,16 +51,7 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
   return { abort, install };
 }
 
-export function startSpinner(msg: string, hideSpinner: boolean = false) {
-  const spinner = hideSpinner ? { succeed: () => {}, fail: () => {} } : ora(msg).start();
-  return spinner;
-}
-
-export function backgroundInstallDeps(
-  pkgManager: string,
-  baseApp: IntegrationData,
-  hideSpinner = false
-) {
+export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
   const { install, abort } = installDeps(pkgManager, tmpInstallDir);
@@ -69,7 +60,6 @@ export function backgroundInstallDeps(
     let success = false;
 
     if (runInstall) {
-      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`, hideSpinner);
       try {
         const installed = await install;
         if (installed) {
@@ -102,20 +92,18 @@ export function backgroundInstallDeps(
             //
           }
 
-          spinner.succeed();
           success = true;
         } else {
-          const errorMessage = `\n\n${bgRed(
-            `  ${pkgManager} install failed  `
-          )}\n  Automatic install failed. "${green(
-            `${pkgManager} install`
-          )}" must be manually executed to install deps.\n`;
+          const errorMessage =
+            `${bgRed(` ${pkgManager} install failed `)}\n` +
+            ` You might need to run ${cyan(
+              `"${pkgManager} install"`
+            )} manually inside the root of the project.\n\n`;
 
-          spinner.succeed();
-          console.error(errorMessage);
+          log.error(errorMessage);
         }
       } catch (e) {
-        spinner.fail();
+        //
       }
     } else {
       await abort();
@@ -138,7 +126,7 @@ function setupTmpInstall(baseApp: IntegrationData) {
   try {
     fs.mkdirSync(tmpInstallDir);
   } catch (e) {
-    console.error(`\n❌ ${red(String(e))}\n`);
+    log.error(`❌ ${red(String(e))}`);
   }
 
   const basePkgJson = path.join(baseApp.dir, 'package.json');

@@ -11,9 +11,10 @@ contributors:
 
 Components are basic building blocks of Qwik Applications. Qwik components are unique in that:
 
-- Qwik components automatically get broken down into lazy-loaded chunks by the Optimizer. (See Optimizer discussion)
-- Are [resumable](../../concepts/resumable/index.mdx). (A component can get created on a server and continue its execution on the client.) (See resumable discussion)
-- Can render independently of other components on the page. (See rendering discussion)
+- Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../../advanced/optimizer/index.mdx).
+- They are [resumable](../../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
+- They are [reactive](../../concepts/reactivity/index.mdx) and render independently of other components on the page. See [rendering](../../components/rendering/index.mdx).
+
 
 ## `component$()`
 
@@ -205,8 +206,8 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 ### State
 
-- [`useSignal(initialStateObject)`](../state/index.mdx#usesignal) - creates a reactive value
-- [`useStore(initialState)`](../state/index.mdx#usestore) - creates a reactive object that can be used to store state
+- [`useSignal(initialState)`](../state/index.mdx#usesignal) - creates a reactive value
+- [`useStore(initialStateObject)`](../state/index.mdx#usestore) - creates a reactive object that can be used to store state
 - [`createContextId(contextName)`](../context/index.mdx#createcontext) - creates a context reference
 - [`useContextProvider()`](../context/index.mdx#usecontextprovider) - provides a value to a given context
 - [`useContext()`](../context/index.mdx#usecontext) - reads the value of the current context

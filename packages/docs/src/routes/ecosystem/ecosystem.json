@@ -4,5 +4,37 @@
       "name": "slack",
       "url": "https://hooks.slack.com/services/..."
     }
+  ],
+  "deployments": [
+    {
+      "name": "Azure",
+      "url": "/integrations/deployments/azure-swa/",
+      "logo": ""
+    },
+    {
+      "name": "Cloudflare",
+      "url": "/integrations/deployments/cloudflare-pages/",
+      "logo": ""
+    },
+    {
+      "name": "Google Cloud Run",
+      "url": "/integrations/deployments/gcp-cloud-run/",
+      "logo": ""
+    },
+    {
+      "name": "Netlify",
+      "url": "/integrations/deployments/netlify-edge/",
+      "logo": ""
+    },
+    {
+      "name": "Node.js",
+      "url": "/integrations/deployments/node/",
+      "logo": ""
+    },
+    {
+      "name": "Vercel",
+      "url": "/integrations/deployments/vercel-edge/",
+      "logo": ""
+    }
   ]
 }

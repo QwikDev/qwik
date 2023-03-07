@@ -22,7 +22,7 @@
         }
       ],
       "vitePlugins": [
-        "partytownVite({dest: join(__dirname, 'public', '~partytown')})"
+        "partytownVite({dest: join(__dirname, 'dist', '~partytown')})"
       ]
     },
     "docs": [

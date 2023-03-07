@@ -3,7 +3,7 @@ import {
   useRef,
   noSerialize,
   useContextProvider,
-  useBrowserVisibleTask$,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
@@ -135,7 +135,7 @@ export const DocSearchModal = component$(
     // TODO:
     // useTrapFocus(containerRef as any);
 
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
       state.favoriteSearches = createStoredSearches<StoredDocSearchHit>({
         key: `__DOCSEARCH_FAVORITE_SEARCHES__${indexName}`,
         limit: 10,
@@ -171,7 +171,7 @@ export const DocSearchModal = component$(
       };
     });
 
-    useBrowserVisibleTask$(({ track }) => {
+    useVisibleTask$(({ track }) => {
       track(state, 'query');
       if (dropdownRef.current) {
         dropdownRef.current.scrollTop = 0;
@@ -183,7 +183,7 @@ export const DocSearchModal = component$(
     // keyboard appearing.
     // We therefore need to refresh the autocomplete instance to load all the
     // results, which is usually triggered on focus.
-    useBrowserVisibleTask$(({ track }) => {
+    useVisibleTask$(({ track }) => {
       const initialQuery = track(state, 'initialQuery');
       if (initialQuery && initialQuery.length > 0) {
         onInput?.({
@@ -201,7 +201,7 @@ export const DocSearchModal = component$(
     // We rely on a CSS property to set the modal height to the full viewport height
     // because all mobile browsers don't compute their height the same way.
     // See https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
       function setFullViewportHeight() {
         if (modalRef.current) {
           const vh = window.innerHeight * 0.01;

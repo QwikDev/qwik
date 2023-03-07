@@ -167,8 +167,6 @@ For example, let's go back to our `Collapsible` example from above:
 
 In order for the two components to have an independent lifecycle, the projection needs to be declarative. In this way, either the parent or child can change what is projected or how it is projected without re-rendering the other.
 
-With `children` approach, the component can imperatively modify the `children` in endless ways. This would make it extremely difficult to build a framework that would not force re-rendering both parent and children.
-
 ## Advanced Example
 
 An example of a collapsible component which conditionally projects its content.

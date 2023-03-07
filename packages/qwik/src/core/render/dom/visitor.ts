@@ -396,8 +396,8 @@ export const patchVnode = (
   const elm = oldVnode.$elm$;
   const tag = newVnode.$type$;
   const staticCtx = rCtx.$static$;
-  const isVirtual = tag === VIRTUAL;
   const currentComponent = rCtx.$cmpCtx$;
+  const isVirtual = tag === VIRTUAL;
   assertDefined(elm, 'while patching element must be defined');
   assertDefined(currentComponent, 'while patching current component must be defined');
 
@@ -631,8 +631,11 @@ const createElm = (
   if (tag === '#text') {
     const signal = vnode.$signal$;
     const elm = createTextNode(doc, vnode.$text$);
-    if (signal && currentComponent) {
-      elm.data = jsxToString(trackSignal(signal, [2, currentComponent.$element$, signal, elm]));
+    if (signal) {
+      assertDefined(currentComponent, 'signals can not be used outside components');
+      elm.data = vnode.$text$ = jsxToString(
+        trackSignal(signal, [2, currentComponent.$element$, signal, elm])
+      );
     }
     return (vnode.$elm$ = elm);
   }

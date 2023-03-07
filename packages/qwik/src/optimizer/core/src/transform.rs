@@ -412,7 +412,11 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn create_synthetic_qqhook(&mut self, first_arg: ast::Expr) -> Option<ast::Expr> {
+    fn create_synthetic_qqhook(
+        &mut self,
+        first_arg: ast::Expr,
+        accept_call_expr: bool,
+    ) -> Option<ast::Expr> {
         // Collect descendent idents
         let descendent_idents = {
             let mut collector = IdentCollector::new();
@@ -449,7 +453,7 @@ impl<'a> QwikTransform<'a> {
 
         let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
         let inlined_fn = self.ensure_core_import(&_INLINED_FN);
-        convert_inlined_fn(folded, scoped_idents, &inlined_fn)
+        convert_inlined_fn(folded, scoped_idents, &inlined_fn, accept_call_expr)
     }
 
     fn create_synthetic_qhook(
@@ -1188,7 +1192,7 @@ impl<'a> QwikTransform<'a> {
                 return Some(make_wrap(&id, member.obj.clone(), prop_sym));
             }
         }
-        self.create_synthetic_qqhook(expr.clone())
+        self.create_synthetic_qqhook(expr.clone(), true)
     }
 
     fn convert_to_signal(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
@@ -1211,7 +1215,7 @@ impl<'a> QwikTransform<'a> {
             }
         }
         // None
-        self.create_synthetic_qqhook(expr.clone())
+        self.create_synthetic_qqhook(expr.clone(), false)
     }
 
     fn should_reg_hook(&self, ctx_name: &str) -> bool {

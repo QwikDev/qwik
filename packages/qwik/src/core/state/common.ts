@@ -214,7 +214,7 @@ type A = [type: 0, host: SubscriberEffect | SubscriberHost, key: string | undefi
 
 type B = [type: 1, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
 
-type C = [type: 2, host: SubscriberHost, signal: Signal, elm: Node];
+type C = [type: 2, host: SubscriberHost, signal: Signal, elm: Text];
 
 export type SubscriberSignal = B | C;
 

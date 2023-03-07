@@ -21,6 +21,7 @@ pub fn convert_inlined_fn(
     mut expr: ast::Expr,
     scoped_idents: Vec<Id>,
     qqhook: &Id,
+    accept_call_expr: bool,
 ) -> Option<ast::Expr> {
     let mut identifiers = HashMap::new();
     if scoped_idents.is_empty() {
@@ -44,7 +45,7 @@ pub fn convert_inlined_fn(
     }
 
     // Replace identifier
-    let mut replace_identifiers = ReplaceIdentifiers::new(identifiers);
+    let mut replace_identifiers = ReplaceIdentifiers::new(identifiers, accept_call_expr);
     expr.visit_mut_with(&mut replace_identifiers);
 
     if replace_identifiers.abort {
@@ -91,13 +92,15 @@ pub fn convert_inlined_fn(
 
 struct ReplaceIdentifiers {
     pub identifiers: HashMap<Id, ast::Expr>,
+    pub accept_call_expr: bool,
     pub abort: bool,
 }
 
 impl ReplaceIdentifiers {
-    const fn new(identifiers: HashMap<Id, ast::Expr>) -> Self {
+    const fn new(identifiers: HashMap<Id, ast::Expr>, accept_call_expr: bool) -> Self {
         Self {
             identifiers,
+            accept_call_expr,
             abort: false,
         }
     }
@@ -130,7 +133,7 @@ impl VisitMut for ReplaceIdentifiers {
     }
 
     fn visit_mut_callee(&mut self, node: &mut ast::Callee) {
-        if matches!(node, ast::Callee::Import(_)) {
+        if !self.accept_call_expr || matches!(node, ast::Callee::Import(_)) {
             self.abort = true;
         } else {
             node.visit_mut_children_with(self);

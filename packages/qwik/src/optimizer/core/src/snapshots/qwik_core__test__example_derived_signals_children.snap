@@ -111,14 +111,10 @@ const App_component_ckEPmXZlub0 = ()=>{
                 children: globalThing.thing + 'stuff'
             }),
             /*#__PURE__*/ _jsx("div", {
-                children: _fnSignal((p0)=>p0.value(), [
-                    signal
-                ], "p0.value()")
+                children: signal.value()
             }),
             /*#__PURE__*/ _jsx("div", {
-                children: _fnSignal((p0)=>p0.value + unknown(), [
-                    signal
-                ], "p0.value+unknown()")
+                children: signal.value + unknown()
             }),
             /*#__PURE__*/ _jsx("div", {
                 children: mutable(signal)
@@ -132,7 +128,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAAA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,KAAC;0BAAI;;0BACL,KAAC;0BAAK,CAAC,IAAI,CAAC;;0BACZ,KAAC;0BAAK;;0BACN,KAAC;0BAAK,IAAI;;0BACV,KAAC;0BAAK,CAAC,IAAI,EAAE,GAAG,CAAC;;0BACjB,KAAC;0BAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;0BAC/C,KAAC;;;;;0BACD,KAAC;sCAAK;;0BACN,KAAC;0CAAK,KAAK,GAAO,KAAK;;;;0BACvB,KAAC;sCAAK,MAAM,OAAO,CAAC,IAAI;;0BACxB,KAAC;0CAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;0BAChD,KAAC;0BAAK;;0BACN,KAAC;sCAAK;;0BACN,KAAC;0BAAK,IAAI,KAAK,GAAG;;0BAClB,KAAC;0BAAK;;0BACN,KAAC;sCAAK;;0BACN,KAAC;0BAAK,YAAY,KAAK,GAAG;;0BAC1B,KAAC;0CAAK,GAAO,KAAK;;;;0BAClB,KAAC;0CAAK,GAAO,KAAK,GAAG;;;;0BACrB,KAAC;0BAAK,QAAQ;;0BACd,KAAC;0BAAK,OAAO,KAAK,GAAG;;;;AAGjC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAAA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,KAAC;0BAAI;;0BACL,KAAC;0BAAK,CAAC,IAAI,CAAC;;0BACZ,KAAC;0BAAK;;0BACN,KAAC;0BAAK,IAAI;;0BACV,KAAC;0BAAK,CAAC,IAAI,EAAE,GAAG,CAAC;;0BACjB,KAAC;0BAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;0BAC/C,KAAC;;;;;0BACD,KAAC;sCAAK;;0BACN,KAAC;0CAAK,KAAK,GAAO,KAAK;;;;0BACvB,KAAC;sCAAK,MAAM,OAAO,CAAC,IAAI;;0BACxB,KAAC;0CAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;0BAChD,KAAC;0BAAK;;0BACN,KAAC;sCAAK;;0BACN,KAAC;0BAAK,IAAI,KAAK,GAAG;;0BAClB,KAAC;0BAAK;;0BACN,KAAC;sCAAK;;0BACN,KAAC;0BAAK,YAAY,KAAK,GAAG;;0BAC1B,KAAC;0BAAK,OAAO,KAAK;;0BAClB,KAAC;0BAAK,OAAO,KAAK,GAAG;;0BACrB,KAAC;0BAAK,QAAQ;;0BACd,KAAC;0BAAK,OAAO,KAAK,GAAG;;;;AAGjC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

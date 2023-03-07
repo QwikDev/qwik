@@ -1,4 +1,6 @@
+import { isServer } from '@builder.io/qwik/build';
 import type { MustGetObjID } from '../container/container';
+import { isServerPlatform } from '../platform/platform';
 
 export class SignalDerived<T = any, ARGS extends any[] = any> {
   constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$: string) {}
@@ -22,6 +24,9 @@ export const serializeDerivedSignal = (signal: SignalDerived, getObjID: MustGetO
 };
 
 export const parseDerivedSignal = (data: string) => {
+  if (isServer || isServerPlatform()) {
+    throw new Error('For security reasons. Derived signals cannot be deserialized on the server.');
+  }
   const colonIndex = data.indexOf(':');
   const objects = data.slice(0, colonIndex).split(' ');
   const fnStr = data.slice(colonIndex + 1);

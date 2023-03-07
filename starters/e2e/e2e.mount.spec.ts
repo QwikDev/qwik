@@ -21,7 +21,7 @@ BEFORE useServerMount4()
 AFTER useServerMount4()`);
 
     await btn.click();
-    await expect(renders).toHaveText('Renders: 3');
+    await expect(renders).toHaveText('Renders: 1');
     await expect(logs).toHaveText(`BEFORE useServerMount1()
 AFTER useServerMount1()
 BEFORE useMount2()

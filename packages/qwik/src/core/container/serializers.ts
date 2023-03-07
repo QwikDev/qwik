@@ -227,7 +227,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const PureFunctionSerializer: Serializer<SignalDerived<any, any>> = {
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
   prefix: '\u0011',
   test: (obj) => obj instanceof SignalDerived,
   collect: (obj, collector, leaks) => {
@@ -354,7 +354,7 @@ const serializers: Serializer<any>[] = [
   ErrorSerializer,
   DocumentSerializer,
   ComponentSerializer,
-  PureFunctionSerializer,
+  DerivedSignalSerializer,
   NoFiniteNumberSerializer,
   URLSearchParamsSerializer,
   FormDataSerializer,

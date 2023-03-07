@@ -1,0 +1,56 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <ul id="issue-2800-result">
+                {Object.entries(store).map(([key, value]) => (
+                <li>
+                    {key} - {value}
+                </li>
+                ))}
+            </ul>
+        </>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { useStore } from '@builder.io/qwik';
+const App_component_ckEPmXZlub0 = ()=>{
+    useSignal(0);
+    const store = useStore({});
+    return /*#__PURE__*/ _jsx(_Fragment, {
+        children: /*#__PURE__*/ _jsx("ul", {
+            id: "issue-2800-result",
+            children: Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxs("li", {
+                    children: [
+                        key,
+                        " - ",
+                        value
+                    ]
+                }, "u6_0"))
+        })
+    }, "u6_1");
+};
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAAA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACjB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;kBACI,cAAA,KAAC;YAAG,IAAG;sBACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;;wBACI;wBAAI;wBAAI;;;;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
+== DIAGNOSTICS ==
+
+[]

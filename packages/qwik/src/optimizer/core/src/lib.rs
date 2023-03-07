@@ -16,6 +16,7 @@ mod entry_strategy;
 mod errors;
 mod filter_exports;
 mod has_branches;
+mod inlined_fn;
 mod is_immutable;
 mod package_json;
 mod parse;

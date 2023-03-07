@@ -9,8 +9,7 @@ export const executeSignalOperation = (
   staticCtx: RenderStaticContext,
   operation: SubscriberSignal
 ) => {
-  const prop = operation[5];
-  let value = operation[2][prop];
+  let value = operation[2].value;
   switch (operation[0]) {
     case 1: {
       const prop = operation[4];
@@ -28,7 +27,9 @@ export const executeSignalOperation = (
       }
       return smartSetProperty(staticCtx, elm, prop, value, oldValue, isSVG);
     }
-    case 2:
-      return setProperty(staticCtx, operation[3], 'data', jsxToString(value));
+    case 2: {
+      const elm = operation[3];
+      return setProperty(staticCtx, elm, 'data', jsxToString(value));
+    }
   }
 };

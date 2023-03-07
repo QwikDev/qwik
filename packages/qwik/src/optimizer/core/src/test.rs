@@ -2304,6 +2304,235 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_derived_signals_div() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <div
+            staticText="text"
+            staticText2={`text`}
+            staticNumber={1}
+            staticBoolean={true}
+            staticExpr={`text${12}`}
+            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+
+            signal={signal}
+            signalValue={signal.value}
+            signalComputedValue={12 + signal.value}
+
+            store={store.address.city.name}
+            storeComputed={store.address.city.name ? 'true' : 'false'}
+
+            dep={dep}
+            depAccess={dep.thing}
+            depComputed={dep.thing + 'stuff'}
+
+            global={globalThing}
+            globalAccess={globalThing.thing}
+            globalComputed={globalThing.thing + 'stuff'}
+
+
+            noInline={signal.value()}
+            noInline2={signal.value + unknown()}
+            noInline3={mutable(signal)}
+            noInline4={signal.value + dep}
+        />
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <div>text</div>
+            <div>{`text`}</div>
+            <div>{1}</div>
+            <div>{true}</div>
+            <div>{`text${12}`}</div>
+            <div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
+            <div>{signal}</div>
+            <div>{signal.value}</div>
+            <div>{12 + signal.value}</div>
+            <div>{store.address.city.name}</div>
+            <div>{store.address.city.name ? 'true' : 'false'}</div>
+            <div>{dep}</div>
+            <div>{dep.thing}</div>
+            <div>{dep.thing + 'stuff'}</div>
+            <div>{globalThing}</div>
+            <div>{globalThing.thing}</div>
+            <div>{globalThing.thing + 'stuff'}</div>
+            <div>{signal.value()}</div>
+            <div>{signal.value + unknown()}</div>
+            <div>{mutable(signal)}</div>
+            <div>{signal.value + dep}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_multiple_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <div>First text</div>
+            <div>First {`text`}</div>
+            <div>First {1}</div>
+            <div>First {true}</div>
+            <div>First {`text${12}`}</div>
+            <div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
+            <div>First {signal}</div>
+            <div>First {signal.value}</div>
+            <div>First {12 + signal.value}</div>
+            <div>First {store.address.city.name}</div>
+            <div>First {store.address.city.name ? 'true' : 'false'}</div>
+            <div>First {dep}</div>
+            <div>First {dep.thing}</div>
+            <div>First {dep.thing + 'stuff'}</div>
+            <div>First {globalThing}</div>
+            <div>First {globalThing.thing}</div>
+            <div>First {globalThing.thing + 'stuff'}</div>
+            <div>First {signal.value()}</div>
+            <div>First {signal.value + unknown()}</div>
+            <div>First {mutable(signal)}</div>
+            <div>First {signal.value + dep}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_complext_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <ul id="issue-2800-result">
+                {Object.entries(store).map(([key, value]) => (
+                <li>
+                    {key} - {value}
+                </li>
+                ))}
+            </ul>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_cmp() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+import {Cmp} from './cmp';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <Cmp
+            staticText="text"
+            staticText2={`text`}
+            staticNumber={1}
+            staticBoolean={true}
+            staticExpr={`text${12}`}
+            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+
+            signal={signal}
+            signalValue={signal.value}
+            signalComputedValue={12 + signal.value}
+
+            store={store.address.city.name}
+            storeComputed={store.address.city.name ? 'true' : 'false'}
+
+            dep={dep}
+            depAccess={dep.thing}
+            depComputed={dep.thing + 'stuff'}
+
+            global={globalThing}
+            globalAccess={globalThing.thing}
+            globalComputed={globalThing.thing + 'stuff'}
+
+
+            noInline={signal.value()}
+            noInline2={signal.value + unknown()}
+            noInline3={mutable(signal)}
+            noInline4={signal.value + dep}
+        />
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_getter_generation() {
     test_input!(TestInput {
         code: r#"
@@ -2325,6 +2554,7 @@ export const App = component$(() => {
             nested={store.nested.count}
             signal={signal}
             store={store.stuff + 12}
+            value={signal.formData?.get('username')}
         >
         </Cmp>
     );

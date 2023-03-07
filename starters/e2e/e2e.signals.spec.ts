@@ -44,7 +44,7 @@ test.describe('signals', () => {
 
     await clickBtn.click();
     await expect(parentRender).toHaveText('Parent renders: 1');
-    await expect(childRender).toHaveText('Child renders: 2');
+    await expect(childRender).toHaveText('Child renders: 1');
     await expect(text).toHaveText('Text: Message');
     await expect(text).toHaveAttribute('data-set', 'ref');
     await expect(id).toHaveText('Id: 0');
@@ -54,7 +54,7 @@ test.describe('signals', () => {
 
     await incrementIdBtn.click();
     await expect(parentRender).toHaveText('Parent renders: 1');
-    await expect(childRender).toHaveText('Child renders: 2');
+    await expect(childRender).toHaveText('Child renders: 1');
     await expect(text).toHaveText('Text: Message');
     await expect(text).toHaveAttribute('data-set', 'ref');
     await expect(id).toHaveText('Id: 1');
@@ -65,7 +65,7 @@ test.describe('signals', () => {
 
     await backgroundBtn.click();
     await expect(parentRender).toHaveText('Parent renders: 1');
-    await expect(childRender).toHaveText('Child renders: 2');
+    await expect(childRender).toHaveText('Child renders: 1');
     await expect(text).toHaveText('Text: Message');
     await expect(text).toHaveAttribute('data-set', 'ref');
     await expect(id).toHaveText('Id: 1');

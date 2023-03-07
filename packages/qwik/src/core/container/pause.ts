@@ -736,7 +736,11 @@ export const escapeText = (str: string) => {
   return str.replace(/<(\/?script)/g, '\\x3C$1');
 };
 
-export const collectSubscriptions = (manager: LocalSubscriptionManager, collector: Collector) => {
+export const collectSubscriptions = (
+  manager: LocalSubscriptionManager,
+  collector: Collector,
+  leaks: boolean | QwikElement
+) => {
   if (collector.$seen$.has(manager)) {
     return;
   }
@@ -745,13 +749,19 @@ export const collectSubscriptions = (manager: LocalSubscriptionManager, collecto
   const subs = manager.$subs$;
   assertDefined(subs, 'subs must be defined');
   for (const key of subs) {
-    const host = key[1];
-    if (isNode(host) && isVirtualElement(host)) {
-      if (key[0] === 0) {
-        collectDeferElement(host, collector);
+    const type = key[0];
+    if (type > 0) {
+      collectValue(key[2], collector, true);
+    }
+    if (leaks === true) {
+      const host = key[1];
+      if (isNode(host) && isVirtualElement(host)) {
+        if (type === 0) {
+          collectDeferElement(host, collector);
+        }
+      } else {
+        collectValue(host, collector, true);
       }
-    } else {
-      collectValue(host, collector, true);
     }
   }
 };
@@ -812,9 +822,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
             return;
           }
           seen.add(obj);
-          if (leaks === true) {
-            collectSubscriptions(getProxyManager(input)!, collector);
-          }
+          collectSubscriptions(getProxyManager(input)!, collector, leaks);
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
             return;

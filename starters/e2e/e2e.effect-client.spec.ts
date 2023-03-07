@@ -42,7 +42,7 @@ test.describe('effect-client', () => {
     const meta = page.locator('#issue-1717-meta');
     await expect(value1).toHaveText('value 1');
     await expect(value2).toHaveText('value 2');
-    await expect(meta).toHaveText('Sub: 10 Renders: 2');
+    await expect(meta).toHaveText('Sub: 10 Renders: 1');
   });
 
   test('issue 2015', async ({ page }) => {

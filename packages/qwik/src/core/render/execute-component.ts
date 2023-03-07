@@ -49,7 +49,7 @@ export const executeComponent = (
   newCtx.$slotCtx$ = null;
 
   // Invoke render hook
-  invocationContext.$subscriber$ = hostElement;
+  invocationContext.$subscriber$ = [0, hostElement];
   invocationContext.$renderCtx$ = rCtx;
 
   // Resolve render function

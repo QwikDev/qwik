@@ -9,7 +9,7 @@ import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
-import { executeComponent, jsxToString } from '../execute-component';
+import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
@@ -35,7 +35,7 @@ export const renderComponent = (
     const newCtx = res.rCtx;
     const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$subscriber$ = [0, hostElement];
     invocationContext.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
@@ -133,9 +133,7 @@ export const processData = (
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    const value = node.value;
     const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
-    newNode.$text$ = jsxToString(value);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {

@@ -5,7 +5,6 @@ import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isObject } from '../util/types';
 import type { ContainerState } from '../container/container';
-import type { QwikElement } from '../render/dom/virtual-element';
 import {
   getProxyManager,
   getProxyTarget,
@@ -14,6 +13,7 @@ import {
   verifySerializable,
 } from './common';
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
+import { _fnSignal, SignalDerived } from '../qrl/inlined-fn';
 
 /**
  * @alpha
@@ -82,7 +82,7 @@ export class SignalImpl<T> implements Signal<T> {
       if (this[QObjectSignalFlags] & SIGNAL_UNASSIGNED) {
         throw SignalUnassignedException;
       }
-      this[QObjectManagerSymbol].$addSub$([0, sub, undefined]);
+      this[QObjectManagerSymbol].$addSub$(sub);
     }
     return this.untrackedValue;
   }
@@ -119,19 +119,7 @@ export class SignalImpl<T> implements Signal<T> {
 }
 
 export const isSignal = (obj: any): obj is Signal<any> => {
-  return obj instanceof SignalImpl || obj instanceof SignalWrapper;
-};
-
-interface AddSignal {
-  (type: 1, hostEl: QwikElement, signal: Signal, elm: QwikElement, property: string): void;
-  (type: 2, hostEl: QwikElement, signal: Signal, elm: Node | string, property: string): void;
-}
-export const addSignalSub: AddSignal = (type, hostEl, signal, elm, property) => {
-  const subscription =
-    signal instanceof SignalWrapper
-      ? [type, hostEl, getProxyTarget(signal.ref), elm as any, property, signal.prop]
-      : [type, hostEl, signal, elm, property, 'value'];
-  getProxyManager(signal)!.$addSub$(subscription as any);
+  return obj instanceof SignalImpl || obj instanceof SignalWrapper || obj instanceof SignalDerived;
 };
 
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {

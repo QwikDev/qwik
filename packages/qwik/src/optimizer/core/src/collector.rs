@@ -74,6 +74,19 @@ impl GlobalCollect {
             .map(|s| s.0.clone())
     }
 
+    pub fn is_global(&self, local: &Id) -> bool {
+        if self.imports.contains_key(local) {
+            return true;
+        }
+        if self.exports.contains_key(local) {
+            return true;
+        }
+        if self.root.contains_key(local) {
+            return true;
+        }
+        false
+    }
+
     pub fn import(&mut self, specifier: &JsWord, source: &JsWord) -> Id {
         self.rev_imports
             .get(&(specifier.clone(), source.clone()))

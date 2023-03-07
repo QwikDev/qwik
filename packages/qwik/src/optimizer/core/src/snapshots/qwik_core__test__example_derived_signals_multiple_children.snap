@@ -1,0 +1,194 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <div>First text</div>
+            <div>First {`text`}</div>
+            <div>First {1}</div>
+            <div>First {true}</div>
+            <div>First {`text${12}`}</div>
+            <div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
+            <div>First {signal}</div>
+            <div>First {signal.value}</div>
+            <div>First {12 + signal.value}</div>
+            <div>First {store.address.city.name}</div>
+            <div>First {store.address.city.name ? 'true' : 'false'}</div>
+            <div>First {dep}</div>
+            <div>First {dep.thing}</div>
+            <div>First {dep.thing + 'stuff'}</div>
+            <div>First {globalThing}</div>
+            <div>First {globalThing.thing}</div>
+            <div>First {globalThing.thing + 'stuff'}</div>
+            <div>First {signal.value()}</div>
+            <div>First {signal.value + unknown()}</div>
+            <div>First {mutable(signal)}</div>
+            <div>First {signal.value + dep}</div>
+        </>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
+import { _wrapSignal } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { useStore, mutable } from '@builder.io/qwik';
+import { dep } from './file';
+const App_component_ckEPmXZlub0 = ()=>{
+    const signal = useSignal(0);
+    const store = useStore({});
+    return /*#__PURE__*/ _jsxs(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsx("div", {
+                children: "First text"
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    `text`
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    1
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    true
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    `text${12}`
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    typeof `text${12}` === 'string' ? 12 : 43
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _fnSignal((p0)=>p0, [
+                        signal
+                    ], "p0")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _wrapSignal(signal, "value")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _fnSignal((p0)=>12 + p0.value, [
+                        signal
+                    ], "12+p0.value")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _wrapSignal(store.address.city, "name")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
+                        store
+                    ], 'p0.address.city.name?"true":"false"')
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    dep
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _wrapSignal(dep, "thing")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    dep.thing + 'stuff'
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    globalThing
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    _wrapSignal(globalThing, "thing")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    globalThing.thing + 'stuff'
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    signal.value()
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    signal.value + unknown()
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    mutable(signal)
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "First ",
+                    signal.value + dep
+                ]
+            })
+        ]
+    }, "u6_0");
+};
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAAA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,KAAC;0BAAI;;0BACL,MAAC;;oBAAI;oBAAO,CAAC,IAAI,CAAC;;;0BAClB,MAAC;;oBAAI;oBAAO;;;0BACZ,MAAC;;oBAAI;oBAAO,IAAI;;;0BAChB,MAAC;;oBAAI;oBAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;;0BACvB,MAAC;;oBAAI;oBAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;;0BACrD,MAAC;;oBAAI;;;;;;0BACL,MAAC;;oBAAI;gCAAO;;;0BACZ,MAAC;;oBAAI;oCAAO,KAAK,GAAO,KAAK;;;;;0BAC7B,MAAC;;oBAAI;gCAAO,MAAM,OAAO,CAAC,IAAI;;;0BAC9B,MAAC;;oBAAI;oCAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;;0BACtD,MAAC;;oBAAI;oBAAO;;;0BACZ,MAAC;;oBAAI;gCAAO;;;0BACZ,MAAC;;oBAAI;oBAAO,IAAI,KAAK,GAAG;;;0BACxB,MAAC;;oBAAI;oBAAO;;;0BACZ,MAAC;;oBAAI;gCAAO;;;0BACZ,MAAC;;oBAAI;oBAAO,YAAY,KAAK,GAAG;;;0BAChC,MAAC;;oBAAI;oBAAO,OAAO,KAAK;;;0BACxB,MAAC;;oBAAI;oBAAO,OAAO,KAAK,GAAG;;;0BAC3B,MAAC;;oBAAI;oBAAO,QAAQ;;;0BACpB,MAAC;;oBAAI;oBAAO,OAAO,KAAK,GAAG;;;;;AAGvC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+== DIAGNOSTICS ==
+
+[]

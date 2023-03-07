@@ -23,6 +23,7 @@ import {
 } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
+import { parseDerivedSignal, serializeDerivedSignal, SignalDerived } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 
 /**
@@ -226,13 +227,34 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
+  prefix: '\u0011',
+  test: (obj) => obj instanceof SignalDerived,
+  collect: (obj, collector, leaks) => {
+    if (obj.$args$) {
+      for (const arg of obj.$args$) {
+        collectValue(arg, collector, leaks);
+      }
+    }
+  },
+  serialize: (fn, getObj) => {
+    return serializeDerivedSignal(fn, getObj);
+  },
+  prepare: (data) => {
+    return parseDerivedSignal(data);
+  },
+  fill: (fn, getObject) => {
+    fn.$args$ = fn.$args$.map(getObject);
+  },
+};
+
 const SignalSerializer: Serializer<SignalImpl<any>> = {
   prefix: '\u0012',
   test: (v) => v instanceof SignalImpl,
   collect: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
     if (leaks === true) {
-      collectSubscriptions(obj[QObjectManagerSymbol], collector);
+      collectSubscriptions(obj[QObjectManagerSymbol], collector, leaks);
     }
     return obj;
   },
@@ -332,6 +354,7 @@ const serializers: Serializer<any>[] = [
   ErrorSerializer, //////////// \u000E
   DocumentSerializer, ///////// \u000F
   ComponentSerializer, //////// \u0010
+  DerivedSignalSerializer, //// \u0011
   NoFiniteNumberSerializer, /// \u0014
   URLSearchParamsSerializer, // \u0015
   FormDataSerializer, ///////// \u0016

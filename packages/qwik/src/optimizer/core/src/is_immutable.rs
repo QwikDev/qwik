@@ -27,17 +27,17 @@ pub fn is_immutable_expr(
 
 pub struct ImmutableCollector<'a> {
     global: &'a GlobalCollect,
-    current_stack: Option<&'a Vec<IdPlusType>>,
+    immutable_idents: Option<&'a Vec<IdPlusType>>,
 
     pub is_immutable: bool,
 }
 
 impl<'a> ImmutableCollector<'a> {
-    const fn new(global: &'a GlobalCollect, current_stack: Option<&'a Vec<IdPlusType>>) -> Self {
+    const fn new(global: &'a GlobalCollect, immutable_idents: Option<&'a Vec<IdPlusType>>) -> Self {
         Self {
             global,
             is_immutable: true,
-            current_stack,
+            immutable_idents,
         }
     }
 }
@@ -59,7 +59,7 @@ impl<'a> Visit for ImmutableCollector<'a> {
         if self.global.exports.contains_key(&id) {
             return;
         }
-        if let Some(current_stack) = self.current_stack {
+        if let Some(current_stack) = self.immutable_idents {
             if current_stack
                 .iter()
                 .any(|item| item.1 == IdentType::Var(true) && item.0 == id)

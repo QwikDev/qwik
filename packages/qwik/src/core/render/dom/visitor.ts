@@ -279,13 +279,22 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
     const t = new ProcessedJSXNodeImpl(
       node.localName,
       EMPTY_OBJ,
+      null,
       CHILDREN_PLACEHOLDER,
+      0,
       getKey(node)
     );
     t.$elm$ = node;
     return t;
   } else if (isText(node)) {
-    const t = new ProcessedJSXNodeImpl(node.nodeName, EMPTY_OBJ, CHILDREN_PLACEHOLDER, null);
+    const t = new ProcessedJSXNodeImpl(
+      node.nodeName,
+      EMPTY_OBJ,
+      null,
+      CHILDREN_PLACEHOLDER,
+      0,
+      null
+    );
     t.$text$ = node.data;
     t.$elm$ = node;
     return t;
@@ -339,7 +348,9 @@ export const splitChildren = (input: ProcessedJSXNode[]): Record<string, Process
         {
           [QSlotS]: '',
         },
+        null,
         [],
+        0,
         key
       ));
     node.$children$.push(item);
@@ -401,6 +412,7 @@ export const patchVnode = (
       currentComponent,
       oldVnode.$props$,
       props,
+      newVnode.$immutableProps$,
       isSvg
     );
     if (pendingListeners.length > 0) {
@@ -698,7 +710,9 @@ const createElm = (
   const hasRef = !isVirtual && 'ref' in props;
   const listeners = elCtx.li;
   vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg);
-
+  if (vnode.$immutableProps$) {
+    setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg);
+  }
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
     if (scopedIds) {
@@ -860,6 +874,7 @@ export const updateProperties = (
   hostCtx: QContext,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
+  immutableProps: Record<string, any> | null,
   isSvg: boolean
 ): Record<string, any> => {
   const keys = Object.keys(newProps);
@@ -867,7 +882,7 @@ export const updateProperties = (
   if (keys.length === 0) {
     return values;
   }
-  const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+  const immutableMeta = (immutableProps ?? EMPTY_OBJ) as Record<string, any>;
   const elm = elCtx.$element$;
   for (const prop of keys) {
     if (prop === 'children') {
@@ -980,24 +995,20 @@ export const setProperties = (
   newProps: Record<string, any>,
   isSvg: boolean
 ): Record<string, any> => {
-  const elm = elCtx.$element$;
-  const keys = Object.keys(newProps);
-  const values: Record<string, any> = {};
-  if (keys.length === 0) {
-    return values;
+  if (newProps === EMPTY_OBJ) {
+    return EMPTY_OBJ;
   }
-  const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+  const elm = elCtx.$element$;
+  const values: Record<string, any> = {};
+  const keys = Object.keys(newProps);
   for (const prop of keys) {
-    if (prop === 'children') {
-      continue;
-    }
+    let newValue = newProps[prop];
     if (prop === 'ref') {
       assertElement(elm);
-      setRef(newProps[prop], elm);
+      setRef(newValue, elm);
       continue;
     }
 
-    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (isOnProp(prop)) {
       browserSetEvent(staticCtx, elCtx, prop, newValue);
       continue;

@@ -263,7 +263,7 @@ const renderNodeVirtual = (
       renderNodeElementSync(node.type, node.props, stream);
     }
   }
-  const promise = walkChildren(props.children, rCtx, ssrCtx, stream, flags);
+  const promise = walkChildren(node.children, rCtx, ssrCtx, stream, flags);
   return then(promise, () => {
     // Fast path
     if (!isSlot && !beforeClose) {
@@ -362,7 +362,7 @@ const renderSSRComponent = (
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       ...ssrCtx,
-      $projectedChildren$: splitProjectedChildren(props.children, ssrCtx),
+      $projectedChildren$: splitProjectedChildren(node.children, ssrCtx),
       $projectedCtxs$: [rCtx, ssrCtx],
       $invocationContext$: invocationContext,
     };
@@ -497,7 +497,7 @@ const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutableMeta: Record<string, boolean | Signal> = (props as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+    const immutableMeta: Record<string, boolean | Signal> = node.immutableProps ?? EMPTY_OBJ;
     const elCtx = createSSRContext(1);
     const elm = elCtx.$element$;
     const isHead = tagName === 'head';
@@ -701,7 +701,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       flags &= ~IS_HTML;
     }
 
-    const promise = processData(props.children, rCtx, ssrCtx, stream, flags);
+    const promise = processData(node.children, rCtx, ssrCtx, stream, flags);
     return then(promise, () => {
       // If head inject base styles
       if (isHead) {

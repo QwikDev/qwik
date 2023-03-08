@@ -4,14 +4,40 @@ import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
 import { logError, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { isQrl } from '../../qrl/qrl-class';
-import { invoke } from '../../use/use-core';
+import { invoke, untrack } from '../../use/use-core';
 import { verifySerializable } from '../../state/common';
 import { isQwikComponent } from '../../component/component.public';
 import { isSignal } from '../../state/signal';
 import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { _IMMUTABLE } from '../../internal';
 
 let warnClassname = false;
+
+/**
+ * @public
+ */
+export const jsxQ = <T extends string | FunctionComponent<any>>(
+  type: T,
+  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
+  immutableProps: Record<string, any> | null,
+  children: any | null,
+  flags: number,
+  key?: string | number | null
+): JSXNode<T> => {
+  const processed = key == null ? null : String(key);
+  const node = new JSXNodeImpl<T>(
+    type,
+    mutableProps ?? (EMPTY_OBJ as any),
+    immutableProps,
+    children,
+    flags,
+    processed
+  );
+  seal(node);
+  return node;
+};
 
 /**
  * @public
@@ -22,7 +48,14 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   key?: string | number | null
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
-  const node = new JSXNodeImpl<T>(type, props, processed);
+  const children = untrack(() => {
+    const c = props.children;
+    if (typeof type === 'string') {
+      delete props.children;
+    }
+    return c;
+  });
+  const node = new JSXNodeImpl<T>(type, props, null, children, 0, processed);
   seal(node);
   return node;
 };
@@ -34,6 +67,9 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   constructor(
     public type: T,
     public props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
+    public immutableProps: Record<string, any> | null,
+    public children: any | null,
+    public flags: number,
     public key: string | null = null
   ) {
     if (qDev) {
@@ -47,8 +83,8 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             this as any
           );
         }
-        if (isArray((props as any).children)) {
-          const flatChildren = (props as any).children.flat();
+        if (isArray(children)) {
+          const flatChildren = children.flat();
           if (isString(type) || isQwikC) {
             flatChildren.forEach((child: any) => {
               if (!isValidJSXChild(child)) {
@@ -113,7 +149,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
         }
         if (isString(type)) {
           if (type === 'style') {
-            if ((props as any).children) {
+            if (children) {
               logWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
 In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
 
@@ -122,7 +158,7 @@ See https://qwik.builder.io/docs/components/styles/#usestyles for more informati
             }
           }
           if (type === 'script') {
-            if ((props as any).children) {
+            if (children) {
               logWarn(`jsx: Using <script>{content}</script> will escape the content, effectively breaking the inlined JS.
 In order to disable content escaping use '<script dangerouslySetInnerHTML={content}/>'`);
             }
@@ -213,7 +249,14 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   ctx: any
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
-  const node = new JSXNodeImpl<T>(type, props, processed);
+  const children = untrack(() => {
+    const c = props.children;
+    if (typeof type === 'string') {
+      delete props.children;
+    }
+    return c;
+  });
+  const node = new JSXNodeImpl<T>(type, props, null, children, 0, processed);
   node.dev = {
     isStatic,
     ctx,

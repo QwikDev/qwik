@@ -3,7 +3,7 @@ import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
-import { jsx } from '../render/jsx/jsx-runtime';
+import { jsxQ } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
@@ -140,20 +140,22 @@ export const componentQrl = <PROPS extends {}>(
     assertQrl(componentQrl);
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
-    return jsx(
+    return jsxQ(
       Virtual,
       {
         [OnRenderProp]: componentQrl,
         [QSlot]: props[QSlot],
         [_IMMUTABLE]: (props as any)[_IMMUTABLE],
-        children: props.children,
         props,
       },
+      null,
+      props.children,
+      0,
       finalKey
     ) as any;
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
-  return QwikComponent;
+  return QwikComponent as any;
 };
 
 export const isQwikComponent = (component: any): component is Component<any> => {

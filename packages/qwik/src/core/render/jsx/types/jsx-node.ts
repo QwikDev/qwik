@@ -20,6 +20,9 @@ export interface DevJSX {
 export interface JSXNode<T = string | FunctionComponent> {
   type: T;
   props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
+  immutableProps: Record<string, any> | null;
+  children: any | null;
+  flags: number;
   key: string | null;
   dev?: DevJSX;
 }

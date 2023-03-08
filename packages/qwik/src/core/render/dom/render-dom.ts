@@ -7,7 +7,7 @@ import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
-import { isJSXNode, jsx, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
+import { isJSXNode, jsxQ, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
@@ -70,7 +70,9 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   constructor(
     public $type$: string,
     public $props$: Record<string, any>,
+    public $immutableProps$: Record<string, any> | null,
     public $children$: ProcessedJSXNode[],
+    public $flags$: number,
     public $key$: string | null
   ) {
     seal(this);
@@ -81,34 +83,38 @@ export const processNode = (
   node: JSXNode,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
-  const key = node.key != null ? String(node.key) : null;
-  const nodeType = node.type;
-  const props = node.props;
-  const originalChildren = props.children;
+  const { key, type, props, children, flags, immutableProps } = node;
   let textType = '';
-  if (isString(nodeType)) {
-    textType = nodeType;
-  } else if (nodeType === Virtual) {
+  if (isString(type)) {
+    textType = type;
+  } else if (type === Virtual) {
     textType = VIRTUAL;
-  } else if (isFunction(nodeType)) {
-    const res = invoke(invocationContext, nodeType, props, node.key);
-    if (isJSXNode(res) && (!node.key || isFunction(res.type) || res.key?.includes(node.key))) {
+  } else if (isFunction(type)) {
+    const res = invoke(invocationContext, type, props, key);
+    if (isJSXNode(res) && (!key || isFunction(res.type) || res.key?.includes(key))) {
       return processData(res, invocationContext);
     }
-    return processNode(jsx(Virtual, { children: res }, node.key), invocationContext);
+    return processNode(jsxQ(Virtual, null, null, res, 0, key), invocationContext);
   } else {
-    throw qError(QError_invalidJsxNodeType, nodeType);
+    throw qError(QError_invalidJsxNodeType, type);
   }
-  let children: ProcessedJSXNode[] = EMPTY_ARRAY;
-  if (originalChildren != null) {
-    return then(processData(originalChildren, invocationContext), (result) => {
+  let convertedChildren: ProcessedJSXNode[] = EMPTY_ARRAY;
+  if (children != null) {
+    return then(processData(children, invocationContext), (result) => {
       if (result !== undefined) {
-        children = isArray(result) ? result : [result];
+        convertedChildren = isArray(result) ? result : [result];
       }
-      return new ProcessedJSXNodeImpl(textType, props, children, key);
+      return new ProcessedJSXNodeImpl(
+        textType,
+        props,
+        immutableProps,
+        convertedChildren,
+        flags,
+        key
+      );
     });
   } else {
-    return new ProcessedJSXNodeImpl(textType, props, children, key);
+    return new ProcessedJSXNodeImpl(textType, props, immutableProps, convertedChildren, flags, key);
   }
 };
 
@@ -117,7 +123,7 @@ export const wrapJSX = (
   input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
 ) => {
   const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
-  const node = new ProcessedJSXNodeImpl(':virtual', {}, children, null);
+  const node = new ProcessedJSXNodeImpl(':virtual', {}, null, children, 0, null);
   node.$elm$ = element;
   return node;
 };
@@ -130,13 +136,13 @@ export const processData = (
     return undefined;
   }
   if (isPrimitive(node)) {
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
+    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$text$ = String(node);
     return newNode;
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
+    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
@@ -145,7 +151,7 @@ export const processData = (
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {
-    return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, EMPTY_ARRAY, null);
+    return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return undefined;
@@ -173,6 +179,8 @@ export const isPrimitive = (obj: any) => {
 export interface ProcessedJSXNode {
   $type$: string;
   $props$: Record<string, any>;
+  $immutableProps$: Record<string, any> | null;
+  $flags$: number;
   $children$: ProcessedJSXNode[];
   $key$: string | null;
   $elm$: Node | VirtualElement | null;

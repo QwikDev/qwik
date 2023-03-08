@@ -664,7 +664,7 @@ impl<'a> QwikTransform<'a> {
                 _ => {}
             }
         }
-        let should_emit_key = self.root_jsx_mode && ;
+        let should_emit_key = is_fn || self.root_jsx_mode;
         self.root_jsx_mode = false;
         let mut o = ast::CallExpr {
             callee: node.callee.fold_with(self),

@@ -27,6 +27,7 @@
 /qwikcity/routing/overview/ /qwikcity/routing/ 308
 /qwikcity/routing/route-parameters/ /qwikcity/routing/ 308
 /qwikcity/routing/error-responses/ /qwikcity/advanced/routing/ 308
+/qwikcity/loader/ /qwikcity/route-loader/ 308
 /qwikcity/layout/overview/ /qwikcity/layout/ 308
 /qwikcity/layout/nested/ /qwikcity/advanced/routing/ 308
 /qwikcity/layout/grouped/ /qwikcity/advanced/routing/ 308

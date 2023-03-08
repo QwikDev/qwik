@@ -11,6 +11,7 @@ import {
   jsxToString,
   pushRenderContext,
   serializeClass,
+  shouldWrapFunctional,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
@@ -788,7 +789,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     ssrCtx.$static$.$dynamic$ = true;
   }
   const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key);
-  if (isJSXNode(res) && (!node.key || isFunction(res.type) || res.key == node.key)) {
+  if (!shouldWrapFunctional(res, node)) {
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
   }
   return renderNode(

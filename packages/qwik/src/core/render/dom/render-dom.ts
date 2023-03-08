@@ -9,7 +9,7 @@ import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE, _jsxC } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
-import { executeComponent } from '../execute-component';
+import { executeComponent, shouldWrapFunctional } from '../execute-component';
 import type { RenderContext } from '../types';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
@@ -91,7 +91,7 @@ export const processNode = (
     textType = VIRTUAL;
   } else if (isFunction(type)) {
     const res = invoke(invocationContext, type, props, key);
-    if (isJSXNode(res) && (!key || isFunction(res.type) || res.key?.includes(key))) {
+    if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }
     return processNode(_jsxC(Virtual, { children: res }, 0, key), invocationContext);

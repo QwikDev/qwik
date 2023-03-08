@@ -2,7 +2,7 @@ import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { isArray, isString, ValueOrPromise } from '../util/types';
+import { isArray, isFunction, isString, ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
@@ -14,6 +14,7 @@ import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
 import { SignalUnassignedException } from '../state/signal';
+import { isJSXNode } from './jsx/jsx-runtime';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -193,3 +194,10 @@ export const jsxToString = (data: any) => {
 export function isAriaAttribute(prop: string): boolean {
   return prop.startsWith('aria-');
 }
+
+export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
+  if (node.key) {
+    return !isJSXNode(res) || (!isFunction(res.type) && res.key != node.key);
+  }
+  return false;
+};

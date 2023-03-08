@@ -875,14 +875,17 @@ export const updateProperties = (
   newProps: Record<string, any>,
   isSvg: boolean
 ): Record<string, any> => {
+  if (newProps === EMPTY_OBJ) {
+    return EMPTY_OBJ;
+  }
   const keys = Object.keys(newProps);
   const values: Record<string, any> = {};
-  if (keys.length === 0) {
-    return values;
-  }
   const elm = elCtx.$element$;
   for (const prop of keys) {
     let newValue = newProps[prop];
+    if (prop === 'children') {
+      continue;
+    }
     if (prop === 'ref') {
       assertElement(elm);
       setRef(newValue, elm);
@@ -995,6 +998,9 @@ export const setProperties = (
   const keys = Object.keys(newProps);
   for (const prop of keys) {
     let newValue = newProps[prop];
+    if (prop === 'children') {
+      continue;
+    }
     if (prop === 'ref') {
       assertElement(elm);
       setRef(newValue, elm);

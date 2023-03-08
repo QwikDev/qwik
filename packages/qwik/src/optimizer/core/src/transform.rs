@@ -1240,10 +1240,10 @@ impl<'a> QwikTransform<'a> {
     }
 
     fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<(ast::Expr, bool)> {
-        // let inlined = self.create_synthetic_qqhook(expr.clone(), true);
-        // if inlined.is_some() {
-        //     return inlined;
-        // }
+        let inlined = self.create_synthetic_qqhook(expr.clone(), true);
+        if inlined.is_some() {
+            return inlined;
+        }
 
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
@@ -1252,7 +1252,7 @@ impl<'a> QwikTransform<'a> {
                 return Some((make_wrap(&id, member.obj.clone(), prop_sym), false));
             }
         }
-        self.create_synthetic_qqhook(expr.clone(), true)
+        None
     }
 
     fn convert_to_signal(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
@@ -1267,10 +1267,10 @@ impl<'a> QwikTransform<'a> {
     }
 
     fn convert_to_signal_item(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
-        // let inlined = self.create_synthetic_qqhook(expr.clone(), false);
-        // if let Some((expr, _)) = inlined {
-        //     return Some(expr);
-        // }
+        let inlined = self.create_synthetic_qqhook(expr.clone(), false);
+        if let Some((expr, _)) = inlined {
+            return Some(expr);
+        }
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
             if let Some(prop_sym) = prop_sym {
@@ -1278,10 +1278,10 @@ impl<'a> QwikTransform<'a> {
                 return Some(make_wrap(&id, member.obj.clone(), prop_sym));
             }
         }
-        let inlined = self.create_synthetic_qqhook(expr.clone(), false);
-        if let Some((expr, _)) = inlined {
-            return Some(expr);
-        }
+        // let inlined = self.create_synthetic_qqhook(expr.clone(), false);
+        // if let Some((expr, _)) = inlined {
+        //     return Some(expr);
+        // }
         None
     }
 

@@ -34,8 +34,8 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"
 */
 ============================= app_component_akbu84a8zes.js (ENTRY POINT)==
 
+import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { _auto_useData as useData } from "../../node_modules/dep/dist/lib.mjs";
 export const App_component_AkbU84a8zes = ()=>{
@@ -43,7 +43,9 @@ export const App_component_AkbU84a8zes = ()=>{
     return /*#__PURE__*/ _jsxQ("div", null, null, [
         /*#__PURE__*/ _jsxQ("p", null, null, [
             "Count: ",
-            _wrapSignal(store, "count")
+            _fnSignal((p0)=>p0.count, [
+                store
+            ], "p0.count")
         ], 0, null),
         /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", {
             onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
@@ -54,7 +56,7 @@ export const App_component_AkbU84a8zes = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAWyD,IAAI;IACzD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,MAAK,mBACZ;QACN,WAAW,GAAG,MAAK,iBACL;YACN;wBACA;SACH;QAEL,WAAW,GAAG,MAAI,iBACJ,WAAW,GAAG,MAAI;YACxB,QAAQ;;;iBAME;KAGrB;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAWyD,IAAI;IACzD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,MAAK,mBACZ;QACN,WAAW,GAAG,MAAK,iBACL;YACN;4BACA,GAAM,KAAK;;;SACd;QAEL,WAAW,GAAG,MAAI,iBACJ,WAAW,GAAG,MAAI;YACxB,QAAQ;;;iBAME;KAGrB;AAET\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",

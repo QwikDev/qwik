@@ -115,6 +115,8 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 `useOn` hook will add a DOM based event listener at component level.
 
 ```tsx
+import { component$, useSignal, useOn, $ } from '@builder.io/qwik';
+
 export const ClickableComponent = component$(() => {
   useOn(
     'click',
@@ -151,6 +153,8 @@ export default component$(() => {
 `useOnWindow` hook will add a event listener to window.
 
 ```tsx
+import { component$, useOnWindow, $ } from '@builder.io/qwik';
+
 export const Online = component$(() => {
   useOnWindow(
     'online',
@@ -177,6 +181,8 @@ export default component$(() => {
 `useOnDocument` hook will add a event listener to document.
 
 ```tsx
+import { component$, useSignal, $, useOnDocument } from '@builder.io/qwik';
+
 export const KeyBoard = component$(() => {
   const keyPressed = useSignal('');
   useOnDocument(
@@ -200,7 +206,7 @@ Components are functions, not elements. Since DOM events do not exist naturally,
 Now let's look at how to declare a child component that can be used with events as props.
 
 ```tsx
-import { PropFunction } from '@builder.io/qwik';
+import { PropFunction, component$ } from '@builder.io/qwik';
 
 interface CmpButtonProps {
   onClick$?: PropFunction<() => void>;
@@ -232,6 +238,8 @@ Let's look at a variation of the above `<CmpButton>` implementation.
 In this example, we would like to demonstrate passing callbacks to components. For this reason, we have created a `onDblclick$` listener:
 
 ```tsx
+import { PropFunction, component$ } from '@builder.io/qwik';
+
 interface CmpButtonProps {
   onClick$?: PropFunction<() => number>;
 }
@@ -270,6 +278,8 @@ The operation is asynchronous and therefore returns a promise, which we can reso
 ## State recovery
 
 ```tsx
+import { useSignal, component$ } from '@builder.io/qwik';
+
 export const Counter = component$(() => {
   const count = useSignal(0);
 

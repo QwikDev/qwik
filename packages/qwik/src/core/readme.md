@@ -322,7 +322,7 @@ The above code needs to be serialized into DOM such as:
 
 ```
 <div q:base="/build/">
-  <button on:lick="./chunk-abc.js#onClick">...</button>
+  <button on:click="./chunk-abc.js#onClick">...</button>
 </div>
 ```
 

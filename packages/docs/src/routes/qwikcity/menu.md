@@ -8,7 +8,7 @@
 ## Basics
 
 - [Routing](routing/index.mdx)
-- [Data loaders](loader/index.mdx)
+- [Route Loaders](route-loader/index.mdx)
 - [Form actions](action/index.mdx)
 - [Layouts](layout/index.mdx)
 - [Pages](pages/index.mdx)

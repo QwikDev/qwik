@@ -1,0 +1,66 @@
+{
+  "integrations": [
+    {
+      "name": "Azure",
+      "url": "/deployments/azure-swa/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Cloudflare",
+      "url": "/deployments/cloudflare-pages/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Google Cloud Run",
+      "url": "/deployments/gcp-cloud-run/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Netlify",
+      "url": "/deployments/netlify-edge/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Node.js",
+      "url": "/deployments/node/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Vercel",
+      "url": "/deployments/vercel-edge/",
+      "logo": "/logos/qwik-logo.svg"
+    }
+  ],
+  "deployments": [
+    {
+      "name": "Azure",
+      "url": "/deployments/azure-swa/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Cloudflare",
+      "url": "/deployments/cloudflare-pages/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Google Cloud Run",
+      "url": "/deployments/gcp-cloud-run/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Netlify",
+      "url": "/deployments/netlify-edge/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Node.js",
+      "url": "/deployments/node/",
+      "logo": "/logos/qwik-logo.svg"
+    },
+    {
+      "name": "Vercel",
+      "url": "/deployments/vercel-edge/",
+      "logo": "/logos/qwik-logo.svg"
+    }
+  ]
+}

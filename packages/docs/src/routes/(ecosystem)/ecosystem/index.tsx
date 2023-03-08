@@ -1,5 +1,6 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
+import { Link } from '@builder.io/qwik-city';
 import styles from './styles.css?inline';
 import data from './ecosystem.json';
 
@@ -10,18 +11,16 @@ export default component$(() => {
     <article class="ecosystem">
       <h1>Qwik Ecosystem</h1>
 
-      <p>Seach available Qwik integrations and projects.</p>
-
       <section>
-        <h2>Integrations</h2>
-        <ul class="thumbnails">
-          {data.integrations.map((integration) => (
-            <li key={integration.name}>
-              <a href={integration.url}>
-                <span>
-                  <img src={integration.url} alt={integration.name + ' Logo'} />
-                </span>
-                <span>{integration.name}</span>
+        <h2>
+          <Link href="/integrations/">Integrations</Link>
+        </h2>
+        <ul class="grid">
+          {data.integrations.map((d) => (
+            <li key={d.name}>
+              <a href={d.url}>
+                <img src={d.logo} alt={d.name + ' Logo'} />
+                <span>{d.name}</span>
               </a>
             </li>
           ))}
@@ -29,17 +28,21 @@ export default component$(() => {
       </section>
 
       <section>
-        <h2>Integrations</h2>
-        <p>This page missing any great site or in need of an update?</p>
-        <p>
-          <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/scripts/pages.json"
-            target="_blank"
-            class="edit-page"
-          >
-            Edit this page!
-          </a>
-        </p>
+        <h2>
+          <Link href="/deployments/">Deployments</Link>
+        </h2>
+        <ul class="grid">
+          {data.deployments.map((d) => (
+            <li key={d.name}>
+              <a href={d.url}>
+                <span>
+                  <img src={d.logo} alt={d.name + ' Logo'} />
+                </span>
+                <span>{d.name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
     </article>
   );

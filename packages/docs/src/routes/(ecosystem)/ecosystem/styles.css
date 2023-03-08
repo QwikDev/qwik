@@ -1,0 +1,65 @@
+.ecosystem {
+  margin: 10px auto;
+  padding: 0 30px;
+  max-width: 1060px;
+}
+
+.ecosystem h1 {
+  font-size: 48px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.ecosystem section {
+  margin: 20px auto 80px auto;
+}
+
+.ecosystem h2 {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 40px 0;
+}
+
+.ecosystem .grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  display: grid;
+  gap: 40px;
+}
+
+.ecosystem .grid li {
+  display: block;
+  text-align: center;
+}
+
+.ecosystem .grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 1/1;
+}
+
+.ecosystem .grid span {
+  display: block;
+  font-size: 16px;
+}
+
+/* @media (min-width: 600px) {
+  .ecosystem .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ecosystem li.large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+}
+
+@media (min-width: 900px) {
+  .showcase .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+} */

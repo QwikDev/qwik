@@ -1,7 +1,7 @@
 {
   "description": "Authentication plugin for using battle-tested Auth.js (aka NextAuth)",
   "devDependencies": {
-    "@builder.io/qwik-auth": "0.0.3",
+    "@builder.io/qwik-auth": "0.0.4",
     "@auth/core": "^0.4.0"
   },
   "__qwik__": {

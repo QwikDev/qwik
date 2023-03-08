@@ -12,7 +12,8 @@ import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
-import type { SubscriberEffect, SubscriberHost } from './use-task';
+import type { Subscriber } from '../state/common';
+import type { Signal } from '../state/signal';
 
 declare const document: QwikDocument;
 
@@ -30,7 +31,7 @@ export interface RenderInvokeContext extends InvokeContext {
   $event$: any;
   $qrl$: QRL<any>;
   $waitOn$: Promise<any>[];
-  $subscriber$: SubscriberEffect | SubscriberHost | null;
+  $subscriber$: Subscriber | null;
   $renderCtx$: RenderContext;
 }
 
@@ -44,7 +45,7 @@ export interface InvokeContext {
   $event$: any | undefined;
   $qrl$: QRL<any> | undefined;
   $waitOn$: Promise<any>[] | undefined;
-  $subscriber$: SubscriberEffect | SubscriberHost | null | undefined;
+  $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
 }
@@ -170,6 +171,16 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
  */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
+};
+
+const trackInvokation = newInvokeContext();
+
+/**
+ * @alpha
+ */
+export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
+  trackInvokation.$subscriber$ = sub;
+  return invoke(trackInvokation, () => signal.value);
 };
 
 /**

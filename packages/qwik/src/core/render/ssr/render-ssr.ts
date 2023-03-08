@@ -1,5 +1,5 @@
 import { isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
@@ -35,7 +35,7 @@ import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { addSignalSub, isSignal, Signal } from '../../state/signal';
+import { isSignal, Signal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
@@ -99,6 +99,7 @@ const IS_PHASING = 1 << 5;
 const IS_ANCHOR = 1 << 6;
 const IS_BUTTON = 1 << 7;
 const IS_TABLE = 1 << 8;
+const IS_PHRASING_CONTAINER = 1 << 9;
 
 const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -357,7 +358,7 @@ const renderSSRComponent = (
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
     const invocationContext = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
-    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$subscriber$ = [0, hostElement];
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       ...ssrCtx,
@@ -525,10 +526,11 @@ const renderNode = (
       if (isSignal(value)) {
         if (hostCtx) {
           const hostEl = hostCtx.$element$ as QwikElement;
-          addSignalSub(1, hostEl, value, elm, attrName);
+          value = trackSignal(value, [1, hostEl, value, elm, attrName]);
           useSignal = true;
+        } else {
+          value = value.value;
         }
-        value = value.value;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -568,7 +570,7 @@ const renderNode = (
 
     // Reset HOST flags
     if (qDev) {
-      if (flags & IS_PHASING) {
+      if (flags & IS_PHASING && !(flags & IS_PHRASING_CONTAINER)) {
         if (!phasingContent[tagName]) {
           throw createJSXError(
             `<${tagName}> can not be rendered because one of its ancestor is a <p> or a <pre>.\n
@@ -610,6 +612,10 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
         } else {
           flags |= IS_ANCHOR;
         }
+      }
+      if (tagName === 'svg' || tagName === 'math') {
+        // These types of elements are considered phrasing content, but contain children that aren't phrasing content.
+        flags |= IS_PHRASING_CONTAINER;
       }
       if (flags & IS_HEAD) {
         if (!headContent[tagName]) {
@@ -773,9 +779,8 @@ const processData = (
     let value;
     if (hostEl) {
       if (!insideText) {
-        value = node.value;
         const id = getNextIndex(rCtx);
-        addSignalSub(2, hostEl, node, '#' + id, 'data');
+        value = trackSignal(node, [2, hostEl, node, ('#' + id) as any]);
         stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {
@@ -1000,8 +1005,10 @@ const headContent: Record<string, true | undefined> = {
 const phasingContent: Record<string, true | undefined> = {
   a: true,
   abbr: true,
+  area: true,
   audio: true,
   b: true,
+  bdi: true,
   bdo: true,
   br: true,
   button: true,
@@ -1011,6 +1018,7 @@ const phasingContent: Record<string, true | undefined> = {
   command: true,
   data: true,
   datalist: true,
+  del: true,
   dfn: true,
   em: true,
   embed: true,
@@ -1018,11 +1026,16 @@ const phasingContent: Record<string, true | undefined> = {
   iframe: true,
   img: true,
   input: true,
+  ins: true,
+  itemprop: true,
   kbd: true,
   keygen: true,
   label: true,
+  link: true,
+  map: true,
   mark: true,
   math: true,
+  meta: true,
   meter: true,
   noscript: true,
   object: true,
@@ -1035,12 +1048,14 @@ const phasingContent: Record<string, true | undefined> = {
   samp: true,
   script: true,
   select: true,
+  slot: true,
   small: true,
   span: true,
   strong: true,
   sub: true,
   sup: true,
   svg: true,
+  template: true,
   textarea: true,
   time: true,
   u: true,

@@ -49,10 +49,16 @@ export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props:
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
+    // (undocumented)
+    children: any | null;
     // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
     dev?: DevJSX;
+    // (undocumented)
+    flags: number;
+    // (undocumented)
+    immutableProps: Record<string, any> | null;
     // (undocumented)
     key: string | null;
     // (undocumented)

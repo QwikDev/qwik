@@ -67,7 +67,7 @@ export function ReplLog({ log }: { log: ReplEvent }) {
 
 const styleprefix = '%c';
 function renderConsoleMessage(texts: string[]) {
-  const nodes = [];
+  const nodes: any[] = [];
   for (let i = 0; i < texts.length; i++) {
     const msg = texts[i];
     if (msg.startsWith(styleprefix)) {

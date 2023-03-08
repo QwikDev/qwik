@@ -6,6 +6,7 @@ pub const LONG_SUFFIX: &str = "Qrl";
 
 lazy_static! {
     pub static ref REF: JsWord = JsWord::from("ref");
+    pub static ref QSLOT: JsWord = JsWord::from("q:slot");
     pub static ref CHILDREN: JsWord = JsWord::from("children");
     pub static ref HANDLE_WATCH: JsWord = JsWord::from("_hW");
     pub static ref _QRL: JsWord = JsWord::from("qrl");
@@ -38,4 +39,5 @@ lazy_static! {
     pub static ref _WRAP_PROP: JsWord = JsWord::from("_wrapProp");
     pub static ref _WRAP_SIGNAL: JsWord = JsWord::from("_wrapSignal");
     pub static ref _JSX_Q: JsWord = JsWord::from("_jsxQ");
+    pub static ref _JSX_C: JsWord = JsWord::from("_jsxC");
 }

@@ -2314,8 +2314,16 @@ import {dep} from './file';
 export const App = component$(() => {
     const signal = useSignal(0);
     const store = useStore({});
+    const count = props.counter.count;
+
     return (
         <div
+            class={{
+                even: count % 2 === 0,
+                odd: count % 2 === 1,
+                stable0: true,
+                hidden: false,
+            }}
             staticText="text"
             staticText2={`text`}
             staticNumber={1}
@@ -2344,6 +2352,7 @@ export const App = component$(() => {
             noInline3={mutable(signal)}
             noInline4={signal.value + dep}
         />
+
     );
 });
 "#

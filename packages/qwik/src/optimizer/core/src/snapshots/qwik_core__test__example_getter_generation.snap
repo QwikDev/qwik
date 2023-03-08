@@ -50,30 +50,27 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
-    return /*#__PURE__*/ _jsxs(_Fragment, {
+    return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsx("p", {
-                "data-value": _wrapProp(props, "count"),
-                children: _wrapSignal(props.nested, "count")
-            }),
-            /*#__PURE__*/ _jsxs("p", {
-                children: [
-                    "Value ",
-                    _wrapSignal(props, "count"),
-                    /*#__PURE__*/ _jsx("span", {})
-                ]
-            })
+            /*#__PURE__*/ _jsxQ("p", {
+                "data-value": _wrapProp(props, "count")
+            }, null, _wrapSignal(props.nested, "count"), 0, null),
+            /*#__PURE__*/ _jsxQ("p", null, null, [
+                "Value ",
+                _wrapSignal(props, "count"),
+                /*#__PURE__*/ _jsxQ("span", null, null, null, 0, null)
+            ], 0, null)
         ]
-    }, "u6_1");
+    }, 0, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;gBAAE,YAAU,YAAE;sCAAc,MAAM,MAAM;;0BACzC,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,MAAC;gBAAE,YAAU,YAAE;iCAAc,MAAM,MAAM;0BACzC,MAAC;gBAAE;4BAAO;8BAAY,MAAC;;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -98,7 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Cmp } from "./test";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
@@ -110,7 +107,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }
     });
     const signal = useSignal(0);
-    return /*#__PURE__*/ _jsx(Cmp, {
+    return /*#__PURE__*/ _jsxC(Cmp, {
         prop: 'true',
         get count () {
             return store.count;
@@ -137,11 +134,11 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 signal
             ], 'p0.formData?.get("username")')
         }
-    }, "u6_0");
+    }, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,YAAE;YACP,MAAM,YAAE,MAAM,MAAM;YACpB,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
 /*
 {
   "origin": "test.tsx",

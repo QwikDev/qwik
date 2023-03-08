@@ -412,7 +412,6 @@ export const patchVnode = (
       currentComponent,
       oldVnode.$props$,
       props,
-      newVnode.$immutableProps$,
       isSvg
     );
     if (pendingListeners.length > 0) {
@@ -874,7 +873,6 @@ export const updateProperties = (
   hostCtx: QContext,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
-  immutableProps: Record<string, any> | null,
   isSvg: boolean
 ): Record<string, any> => {
   const keys = Object.keys(newProps);
@@ -882,26 +880,22 @@ export const updateProperties = (
   if (keys.length === 0) {
     return values;
   }
-  const immutableMeta = (immutableProps ?? EMPTY_OBJ) as Record<string, any>;
   const elm = elCtx.$element$;
   for (const prop of keys) {
-    if (prop === 'children') {
-      continue;
-    }
+    let newValue = newProps[prop];
     if (prop === 'ref') {
       assertElement(elm);
-      setRef(newProps[prop], elm);
+      setRef(newValue, elm);
       continue;
     }
 
-    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (isOnProp(prop)) {
       browserSetEvent(staticCtx, elCtx, prop, newValue);
       continue;
     }
 
     if (isSignal(newValue)) {
-      newValue = trackSignal(newValue, [1, hostCtx.$element$, newValue, elm, prop]);
+      newValue = trackSignal(newValue, [1, elm, newValue, hostCtx.$element$, prop]);
     }
     if (prop === 'class') {
       newValue = serializeClassWithHost(newValue, hostCtx);
@@ -909,11 +903,10 @@ export const updateProperties = (
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     const oldValue = oldProps[normalizedProp];
     values[normalizedProp] = newValue;
-
     if (oldValue === newValue) {
       continue;
     }
-    smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, oldValue, isSvg);
+    smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, isSvg);
   }
   return values;
 };
@@ -923,7 +916,6 @@ export const smartSetProperty = (
   elm: QwikElement,
   prop: string,
   newValue: any,
-  oldValue: any,
   isSvg: boolean
 ) => {
   // aria attribute value should be rendered as string
@@ -1016,11 +1008,8 @@ export const setProperties = (
 
     const sig = isSignal(newValue);
     if (sig) {
-      if (hostCtx) {
-        newValue = trackSignal(newValue, [1, hostCtx.$element$, newValue, elm, prop]);
-      } else {
-        newValue = newValue.value;
-      }
+      assertDefined(hostCtx, 'Signals can only be used in components');
+      newValue = trackSignal(newValue, [1, elm, newValue, hostCtx.$element$, prop]);
     }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     if (normalizedProp === 'class') {
@@ -1028,7 +1017,7 @@ export const setProperties = (
       newValue = serializeClassWithHost(newValue, hostCtx);
     }
     values[normalizedProp] = newValue;
-    smartSetProperty(staticCtx, elm, prop, newValue, undefined, isSvg);
+    smartSetProperty(staticCtx, elm, prop, newValue, isSvg);
   }
   return values;
 };
@@ -1084,6 +1073,7 @@ export const cleanupTree = (
     return;
   }
   const ctx = tryGetContext(parent);
+  subsManager.$clearSub$(parent);
   if (ctx) {
     cleanupContext(ctx, subsManager);
   }

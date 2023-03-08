@@ -337,7 +337,10 @@ export class LocalSubscriptionManager {
   $addSub$(sub: Subscriber, key?: string) {
     const subs = this.$subs$;
     const group = sub[1];
-    if (subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)) {
+    if (
+      sub[0] === 0 &&
+      subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)
+    ) {
       return;
     }
     subs.push([...sub, key] as any);

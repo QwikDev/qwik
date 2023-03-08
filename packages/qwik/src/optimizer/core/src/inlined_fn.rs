@@ -22,7 +22,7 @@ pub fn convert_inlined_fn(
     scoped_idents: Vec<Id>,
     qqhook: &Id,
     accept_call_expr: bool,
-) -> Option<ast::Expr> {
+) -> Option<(ast::Expr, bool)> {
     let mut identifiers = HashMap::new();
     if scoped_idents.is_empty() {
         return None;
@@ -72,26 +72,29 @@ pub fn convert_inlined_fn(
         type_params: None,
     });
 
-    Some(ast::Expr::Call(ast::CallExpr {
-        span: DUMMY_SP,
-        callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqhook)))),
-        type_args: None,
-        args: vec![
-            ast::ExprOrSpread::from(expr),
-            ast::ExprOrSpread::from(ast::Expr::Array(ast::ArrayLit {
-                span: DUMMY_SP,
-                elems: scoped_idents
-                    .iter()
-                    .map(|id| {
-                        Some(ast::ExprOrSpread::from(ast::Expr::Ident(
-                            new_ident_from_id(id),
-                        )))
-                    })
-                    .collect(),
-            })),
-            rendered_str,
-        ],
-    }))
+    Some((
+        ast::Expr::Call(ast::CallExpr {
+            span: DUMMY_SP,
+            callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqhook)))),
+            type_args: None,
+            args: vec![
+                ast::ExprOrSpread::from(expr),
+                ast::ExprOrSpread::from(ast::Expr::Array(ast::ArrayLit {
+                    span: DUMMY_SP,
+                    elems: scoped_idents
+                        .iter()
+                        .map(|id| {
+                            Some(ast::ExprOrSpread::from(ast::Expr::Ident(
+                                new_ident_from_id(id),
+                            )))
+                        })
+                        .collect(),
+                })),
+                rendered_str,
+            ],
+        }),
+        true,
+    ))
 }
 
 struct ReplaceIdentifiers {

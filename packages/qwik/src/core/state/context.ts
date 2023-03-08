@@ -146,9 +146,6 @@ export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
-  if (elCtx.$componentQrl$) {
-    subsManager.$clearSub$(el);
-  }
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
   elCtx.$watches$ = null;

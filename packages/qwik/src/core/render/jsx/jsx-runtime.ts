@@ -18,7 +18,7 @@ let warnClassname = false;
 /**
  * @public
  */
-export const jsxQ = <T extends string | FunctionComponent<any>>(
+export const _jsxQ = <T extends string | FunctionComponent<any>>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
   immutableProps: Record<string, any> | null,
@@ -35,6 +35,22 @@ export const jsxQ = <T extends string | FunctionComponent<any>>(
     flags,
     processed
   );
+  seal(node);
+  return node;
+};
+
+/**
+ * @public
+ */
+export const _jsxC = <T extends string | FunctionComponent<any>>(
+  type: T,
+  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
+  flags: number,
+  key?: string | number | null
+): JSXNode<T> => {
+  const processed = key == null ? null : String(key);
+  const props = mutableProps ?? (EMPTY_OBJ as any);
+  const node = new JSXNodeImpl<T>(type, props, null, props.children, flags, processed);
   seal(node);
   return node;
 };

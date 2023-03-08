@@ -7,7 +7,7 @@ import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
-import { isJSXNode, jsxQ, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
+import { isJSXNode, SKIP_RENDER_TYPE, _jsxC } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
@@ -94,7 +94,7 @@ export const processNode = (
     if (isJSXNode(res) && (!key || isFunction(res.type) || res.key?.includes(key))) {
       return processData(res, invocationContext);
     }
-    return processNode(jsxQ(Virtual, null, null, res, 0, key), invocationContext);
+    return processNode(_jsxC(Virtual, { children: res }, 0, key), invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }

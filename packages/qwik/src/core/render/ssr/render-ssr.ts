@@ -35,7 +35,7 @@ import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { isSignal, Signal } from '../../state/signal';
+import { isSignal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
@@ -497,12 +497,13 @@ const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutableMeta: Record<string, boolean | Signal> = node.immutableProps ?? EMPTY_OBJ;
+    const immutable = node.immutableProps;
     const elCtx = createSSRContext(1);
     const elm = elCtx.$element$;
     const isHead = tagName === 'head';
     let openingElement = '<' + tagName;
     let useSignal = false;
+    let hasRef = false;
     let classStr = '';
     let htmlStr = null;
     assertElement(elm);
@@ -510,27 +511,25 @@ const renderNode = (
       throw new TypeError('Can only have one of class or className');
     }
     for (const prop of Object.keys(props)) {
-      if (prop === 'children' || prop === 'dangerouslySetInnerHTML') {
+      let value = props[prop];
+      if (prop === 'dangerouslySetInnerHTML') {
+        htmlStr = value;
         continue;
       }
       if (prop === 'ref') {
-        setRef(props[prop], elm);
+        setRef(value, elm);
+        hasRef = true;
         continue;
       }
-      let value = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : props[prop];
       if (isOnProp(prop)) {
         setEvent(elCtx.li, prop, value, undefined);
         continue;
       }
       const attrName = processPropKey(prop);
       if (isSignal(value)) {
-        if (hostCtx) {
-          const hostEl = hostCtx.$element$ as QwikElement;
-          value = trackSignal(value, [1, hostEl, value, elm, attrName]);
-          useSignal = true;
-        } else {
-          value = value.value;
-        }
+        assertDefined(hostCtx, 'Signals can not be used outside the root');
+        value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
+        useSignal = true;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -548,6 +547,43 @@ const renderNode = (
         } else {
           openingElement +=
             ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+        }
+      }
+    }
+    if (immutable) {
+      for (const prop of Object.keys(immutable)) {
+        let value = immutable[prop];
+        if (prop === 'dangerouslySetInnerHTML') {
+          htmlStr = value;
+          continue;
+        }
+        if (isOnProp(prop)) {
+          setEvent(elCtx.li, prop, value, undefined);
+          continue;
+        }
+        const attrName = processPropKey(prop);
+        if (isSignal(value)) {
+          assertDefined(hostCtx, 'Signals can not be used outside the root');
+          value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
+          useSignal = true;
+        }
+        if (prop.startsWith(PREVENT_DEFAULT)) {
+          addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+        }
+        const attrValue = processPropValue(attrName, value);
+        if (attrValue != null) {
+          if (attrName === 'class') {
+            classStr = attrValue;
+          } else if (attrName === 'value' && tagName === 'textarea') {
+            htmlStr = escapeHtml(attrValue);
+          } else if (isSSRUnsafeAttr(attrName)) {
+            if (qDev) {
+              logError('Attribute value is unsafe for SSR');
+            }
+          } else {
+            openingElement +=
+              ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+          }
         }
       }
     }
@@ -663,8 +699,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     if (key != null) {
       openingElement += ' q:key="' + escapeAttr(key) + '"';
     }
-    if ('ref' in props || useSignal || listeners.length > 0) {
-      if ('ref' in props || useSignal || listenersNeedId(listeners)) {
+    if (hasRef || useSignal || listeners.length > 0) {
+      if (hasRef || useSignal || listenersNeedId(listeners)) {
         const newID = getNextIndex(rCtx);
         openingElement += ' q:id="' + newID + '"';
         elCtx.$id$ = newID;
@@ -689,9 +725,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       return;
     }
 
-    const innerHTML = props.dangerouslySetInnerHTML ?? htmlStr;
-    if (innerHTML != null) {
-      stream.write(String(innerHTML));
+    if (htmlStr != null) {
+      stream.write(String(htmlStr));
       stream.write(`</${tagName}>`);
       return;
     }

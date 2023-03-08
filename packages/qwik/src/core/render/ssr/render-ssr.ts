@@ -491,7 +491,7 @@ const renderNode = (
   stream: StreamWriter,
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
-) => {
+): ValueOrPromise<void> => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
   if (typeof tagName === 'string') {
@@ -753,7 +753,17 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     ssrCtx.$static$.$dynamic$ = true;
   }
   const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key);
-  return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
+  if (isJSXNode(res) && (!node.key || isFunction(res.type) || res.key == node.key)) {
+    return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
+  }
+  return renderNode(
+    jsx(Virtual, { children: res }, node.key),
+    rCtx,
+    ssrCtx,
+    stream,
+    flags,
+    beforeClose
+  );
 };
 
 const processData = (

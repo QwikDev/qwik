@@ -1,11 +1,4 @@
-import {
-  ComponentStylesPrefixContent,
-  ELEMENT_ID,
-  OnRenderProp,
-  QSlot,
-  QSlotRef,
-  QSlotS,
-} from '../../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS } from '../../util/markers';
 import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
@@ -29,9 +22,8 @@ import type { RenderContext, RenderStaticContext } from '../types';
 import {
   isAriaAttribute,
   jsxToString,
-  parseClassList,
   pushRenderContext,
-  serializeClass,
+  serializeClassWithHost,
   setQId,
   stringifyStyle,
 } from '../execute-component';
@@ -57,7 +49,6 @@ import {
   prepend,
   removeNode,
   setAttribute,
-  setClasslist,
   setKey,
   setProperty,
 } from './operations';
@@ -90,8 +81,7 @@ type PropHandler = (
   staticCtx: RenderStaticContext | undefined,
   el: HTMLElement,
   key: string,
-  newValue: any,
-  oldValue: any
+  newValue: any
 ) => boolean;
 
 export type ChildrenMode = 'root' | 'head' | 'elements';
@@ -286,49 +276,21 @@ export const getVnodeFromEl = (el: Node | VirtualElement) => {
 
 export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
   if (isQwikElement(node)) {
-    const props = isVirtualElement(node) ? EMPTY_OBJ : getProps(node);
-    const t = new ProcessedJSXNodeImpl(node.localName, props, CHILDREN_PLACEHOLDER, getKey(node));
+    const t = new ProcessedJSXNodeImpl(
+      node.localName,
+      EMPTY_OBJ,
+      CHILDREN_PLACEHOLDER,
+      getKey(node)
+    );
     t.$elm$ = node;
     return t;
   } else if (isText(node)) {
-    const t = new ProcessedJSXNodeImpl(node.nodeName, {}, CHILDREN_PLACEHOLDER, null);
+    const t = new ProcessedJSXNodeImpl(node.nodeName, EMPTY_OBJ, CHILDREN_PLACEHOLDER, null);
     t.$text$ = node.data;
     t.$elm$ = node;
     return t;
   }
   throw new Error('invalid node');
-};
-
-export const getProps = (node: Element) => {
-  const props: Record<string, any> = {};
-  const attributes = node.attributes;
-  const len = attributes.length;
-  for (let i = 0; i < len; i++) {
-    const attr = attributes.item(i);
-    assertDefined(attr, 'attribute must be defined');
-
-    const name = attr.name;
-    if (name.includes(':')) {
-      continue;
-    }
-    if (qDev) {
-      if (name === 'data-qwik-inspector') {
-        continue;
-      }
-    }
-    if (name === 'class') {
-      props[name] = parseDomClass(attr.value);
-    } else {
-      props[name] = attr.value;
-    }
-  }
-  return props;
-};
-
-const parseDomClass = (value: string): string => {
-  return parseClassList(value)
-    .filter((c) => !c.startsWith(ComponentStylesPrefixContent))
-    .join(' ');
 };
 
 export const isNode = (elm: Node | VirtualElement): boolean => {
@@ -436,7 +398,7 @@ export const patchVnode = (
     newVnode.$props$ = updateProperties(
       staticCtx,
       elCtx,
-      currentComponent.$element$,
+      currentComponent,
       oldVnode.$props$,
       props,
       isSvg
@@ -735,7 +697,7 @@ const createElm = (
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
   const listeners = elCtx.li;
-  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent?.$element$, props, isSvg);
+  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg);
 
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
@@ -836,26 +798,17 @@ const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
   return true;
 };
 
-const handleClass: PropHandler = (ctx, elm, _, newValue, oldValue) => {
-  assertTrue(
-    oldValue == null || typeof oldValue === 'string',
-    'class oldValue must be either nullish or string',
-    oldValue
-  );
+const handleClass: PropHandler = (ctx, elm, _, newValue) => {
   assertTrue(
     newValue == null || typeof newValue === 'string',
     'class newValue must be either nullish or string',
     newValue
   );
-
-  const oldClasses = parseClassList(oldValue);
-  const newClasses = parseClassList(newValue);
-  setClasslist(
-    ctx,
-    elm,
-    oldClasses.filter((c) => c && !newClasses.includes(c)),
-    newClasses.filter((c) => c && !oldClasses.includes(c))
-  );
+  if (elm.namespaceURI === SVG_NS) {
+    setAttribute(ctx, elm, 'class', newValue);
+  } else {
+    setProperty(ctx, elm, 'className', newValue);
+  }
   return true;
 };
 
@@ -904,12 +857,12 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
 export const updateProperties = (
   staticCtx: RenderStaticContext,
   elCtx: QContext,
-  hostElm: QwikElement,
+  hostCtx: QContext,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
   isSvg: boolean
 ): Record<string, any> => {
-  const keys = getKeys(oldProps, newProps);
+  const keys = Object.keys(newProps);
   const values: Record<string, any> = {};
   if (keys.length === 0) {
     return values;
@@ -917,6 +870,9 @@ export const updateProperties = (
   const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   const elm = elCtx.$element$;
   for (const prop of keys) {
+    if (prop === 'children') {
+      continue;
+    }
     if (prop === 'ref') {
       assertElement(elm);
       setRef(newProps[prop], elm);
@@ -930,10 +886,10 @@ export const updateProperties = (
     }
 
     if (isSignal(newValue)) {
-      newValue = trackSignal(newValue, [1, hostElm, newValue, elm, prop]);
+      newValue = trackSignal(newValue, [1, hostCtx.$element$, newValue, elm, prop]);
     }
     if (prop === 'class') {
-      newValue = serializeClass(newValue);
+      newValue = serializeClassWithHost(newValue, hostCtx);
     }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     const oldValue = oldProps[normalizedProp];
@@ -964,7 +920,7 @@ export const smartSetProperty = (
   // Check if its an exception
   const exception = PROP_HANDLER_MAP[prop];
   if (exception) {
-    if (exception(staticCtx, elm as HTMLElement, prop, newValue, oldValue)) {
+    if (exception(staticCtx, elm as HTMLElement, prop, newValue)) {
       return;
     }
   }
@@ -983,13 +939,13 @@ export const smartSetProperty = (
   setAttribute(staticCtx, elm, prop, newValue);
 };
 
-const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) => {
-  const keys = Object.keys(newProps);
-  const normalizedKeys = keys.map((s) => s.toLowerCase());
-  const oldKeys = Object.keys(oldProps);
-  keys.push(...oldKeys.filter((p) => !normalizedKeys.includes(p)));
-  return keys.filter((c) => c !== 'children');
-};
+// const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) => {
+//   const keys = Object.keys(newProps);
+//   const normalizedKeys = keys.map((s) => s.toLowerCase());
+//   const oldKeys = Object.keys(oldProps);
+//   keys.push(...oldKeys.filter((p) => !normalizedKeys.includes(p)));
+//   return keys.filter((c) => c !== 'children');
+// };
 
 export const areExactQRLs = (oldValue: any, newValue: any) => {
   if (!isQrl(oldValue) || !isQrl(newValue) || oldValue.$hash$ !== newValue.$hash$) {
@@ -1020,7 +976,7 @@ export const sameArrays = (a1: any[], a2: any[]) => {
 export const setProperties = (
   staticCtx: RenderStaticContext,
   elCtx: QContext,
-  hostElm: QwikElement | undefined,
+  hostCtx: QContext | null,
   newProps: Record<string, any>,
   isSvg: boolean
 ): Record<string, any> => {
@@ -1049,8 +1005,8 @@ export const setProperties = (
 
     const sig = isSignal(newValue);
     if (sig) {
-      if (hostElm) {
-        newValue = trackSignal(newValue, [1, hostElm, newValue, elm, prop]);
+      if (hostCtx) {
+        newValue = trackSignal(newValue, [1, hostCtx.$element$, newValue, elm, prop]);
       } else {
         newValue = newValue.value;
       }
@@ -1058,7 +1014,7 @@ export const setProperties = (
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     if (normalizedProp === 'class') {
       if (qDev && values.class) throw new TypeError('Can only provide one of class or className');
-      newValue = serializeClass(newValue);
+      newValue = serializeClassWithHost(newValue, hostCtx);
     }
     values[normalizedProp] = newValue;
     smartSetProperty(staticCtx, elm, prop, newValue, undefined, isSvg);

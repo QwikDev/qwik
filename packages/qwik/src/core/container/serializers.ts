@@ -12,7 +12,7 @@ import {
   SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
-import { SignalImpl, SignalWrapper } from '../state/signal';
+import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
 import {
   fastWeakSerialize,
@@ -23,7 +23,7 @@ import {
 } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
-import { parseDerivedSignal, serializeDerivedSignal, SignalDerived } from '../qrl/inlined-fn';
+import { parseDerivedSignal, serializeDerivedSignal } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 
 /**

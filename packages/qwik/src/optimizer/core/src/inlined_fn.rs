@@ -52,10 +52,14 @@ pub fn convert_inlined_fn(
         return None;
     }
 
+    let rendered_expr = render_expr(expr.clone());
+    if rendered_expr.len() > 150 {
+        return None;
+    }
+
     // Generate stringified version
-    let rendered_str = ast::ExprOrSpread::from(ast::Expr::Lit(ast::Lit::Str(ast::Str::from(
-        render_expr(expr.clone()),
-    ))));
+    let rendered_str =
+        ast::ExprOrSpread::from(ast::Expr::Lit(ast::Lit::Str(ast::Str::from(rendered_expr))));
 
     // Wrap around arrow fuctions
     let expr = ast::Expr::Arrow(ast::ArrowExpr {

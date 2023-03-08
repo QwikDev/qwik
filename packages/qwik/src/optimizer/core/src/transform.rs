@@ -664,7 +664,7 @@ impl<'a> QwikTransform<'a> {
                 _ => {}
             }
         }
-        let should_emit_key = is_fn || self.root_jsx_mode;
+        let should_emit_key = self.root_jsx_mode && ;
         self.root_jsx_mode = false;
         let mut o = ast::CallExpr {
             callee: node.callee.fold_with(self),
@@ -694,7 +694,7 @@ impl<'a> QwikTransform<'a> {
                         raw: None,
                     }))),
                 });
-            } else if o.args.len() == 6 && is_undefined(&o.args[2].expr) {
+            } else if o.args.len() >= 4 && is_undefined(&o.args[2].expr) {
                 let new_key = format!("{}_{}", &base64(self.file_hash)[0..2], self.jsx_key_counter);
                 self.jsx_key_counter += 1;
                 o.args[2] = ast::ExprOrSpread {

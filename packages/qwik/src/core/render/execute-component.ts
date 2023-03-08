@@ -10,7 +10,6 @@ import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { seal } from '../util/qdev';
-import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
@@ -126,6 +125,16 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
+export const serializeClassWithHost = (
+  obj: ClassList,
+  hostCtx: QContext | undefined | null
+): string => {
+  if (hostCtx && hostCtx.$scopeIds$) {
+    return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
+  }
+  return serializeClass(obj);
+};
+
 export const serializeClass = (obj: ClassList): string => {
   if (!obj) return '';
   if (isString(obj)) return obj.trim();
@@ -141,10 +150,6 @@ export const serializeClass = (obj: ClassList): string => {
     ''
   );
 };
-
-const parseClassListRegex = /\s/;
-export const parseClassList = (value: string | undefined | null): string[] =>
-  !value ? EMPTY_ARRAY : value.split(parseClassListRegex);
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) return '';

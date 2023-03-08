@@ -27,7 +27,7 @@ test.describe('render', () => {
 
     await increment.click();
 
-    await expect(attributes).toHaveClass('⭐️unvb18-1 stable0 odd');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 odd stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 

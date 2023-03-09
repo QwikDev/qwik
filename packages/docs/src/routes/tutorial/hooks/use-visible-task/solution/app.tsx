@@ -15,11 +15,9 @@ export const Clock = component$(() => {
     second: 0,
   });
 
-  useVisibleTask$(({ track }) => {
-    track(store);
-    updateClock(store);
-    const tmrId = setTimeout(() => updateClock(store), 1000);
-    return () => clearTimeout(tmrId);
+  useVisibleTask$(() => {
+    const intervalId = setInterval(() => updateClock(store), 1000);
+    return () => clearInterval(intervalId);
   });
 
   return (

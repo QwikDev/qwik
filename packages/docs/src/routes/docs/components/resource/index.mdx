@@ -15,6 +15,8 @@ This method allows you to generate computed values asynchronously. The asynchron
 Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/components/overview/index.mdx#component), and all the [hook rules apply](../../../docs/components/lifecycle/index.mdx#use-method-rules).
 
 ```tsx
+import { useResource$, useSignal } from '@builder.io/qwik';
+
 const bar = useSignal('foo');
 const resource = useResource$(async (ctx) => {
   ctx.track(() => bar.value); // the resource will rerun when bar.value changes.
@@ -68,6 +70,8 @@ Example showing how `useResource$` is used to perform a fetch call to the agify.
 based on the name typed by the user, and will update whenever the user types in the name input.
 
 ```tsx
+import { component$, useSignal, useResource$ } from '@builder.io/qwik';
+
 export default component$(() => {
   const name = useSignal<string>();
 

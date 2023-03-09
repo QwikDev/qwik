@@ -36,6 +36,7 @@ export const blueClass = style({
 **component.tsx:**
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
 import { blueClass } from './styles.css';
 
 export const Cmp = component$(() => {
@@ -77,6 +78,7 @@ export const BlueBox = styled.div`
 **component.tsx:**
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
 import { BlueBox } from './styles.css';
 
 export const Cmp = component$(() => {
@@ -95,7 +97,7 @@ A lazy-loadable reference to component's styles.
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import { useStyles$ } from '@builder.io/qwik';
+import { useStyles$, component$ } from '@builder.io/qwik';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
@@ -120,7 +122,7 @@ Browser styles are global and apply to all DOM elements, for this reason, Qwik a
 This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
 
 ```tsx
-import { useStylesScoped$ } from '@builder.io/qwik';
+import { useStylesScoped$, component$ } from '@builder.io/qwik';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
@@ -143,7 +145,7 @@ export const CmpStyles = component$(() => {
 Using `useStylesScoped$` will scope all child selectors in a ruleset to the component. If you need to style child components rendered through a `<Slot />`, you will need to break out of the scoped styles using the `:global()` selector.
 
 ```tsx
-import { useStylesScoped$ } from '@builder.io/qwik';
+import { useStylesScoped$, component$ } from '@builder.io/qwik';
 
 export const List = component$(() => {
   useStylesScoped$(`

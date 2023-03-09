@@ -10,12 +10,15 @@ export const executeSignalOperation = (
   operation: SubscriberSignal
 ) => {
   try {
-    let value = operation[2].value;
     switch (operation[0]) {
       case 1: {
-        const prop = operation[4];
         const elm = operation[1];
+        if (tryGetContext(elm) == null) {
+          return;
+        }
+        const prop = operation[4];
         const isSVG = elm.namespaceURI === SVG_NS;
+        let value = operation[2].value;
         if (prop === 'class') {
           value = serializeClassWithHost(value, tryGetContext(operation[3]));
         }
@@ -23,10 +26,13 @@ export const executeSignalOperation = (
       }
       case 2: {
         const elm = operation[3];
-        return setProperty(staticCtx, elm, 'data', jsxToString(value));
+        if (!staticCtx.$visited$.includes(elm)) {
+          const value = operation[2].value;
+          return setProperty(staticCtx, elm, 'data', jsxToString(value));
+        }
       }
     }
-  } catch {
+  } catch (e) {
     // Ignore
   }
 };

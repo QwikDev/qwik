@@ -365,7 +365,7 @@ export const patchVnode = (
   flags: number
 ): ValueOrPromise<void> => {
   assertEqual(oldVnode.$type$, newVnode.$type$, 'old and new vnodes type must be the same');
-
+  assertEqual(oldVnode.$key$, newVnode.$key$, 'old and new vnodes key must be the same');
   const elm = oldVnode.$elm$;
   const tag = newVnode.$type$;
   const staticCtx = rCtx.$static$;
@@ -375,6 +375,7 @@ export const patchVnode = (
   assertDefined(currentComponent, 'while patching current component must be defined');
 
   newVnode.$elm$ = elm;
+  rCtx.$static$.$visited$.push(elm);
 
   // Render text nodes
   if (tag === '#text') {
@@ -384,9 +385,7 @@ export const patchVnode = (
         trackSignal(signal, [2, currentComponent.$element$, signal, elm as Text])
       );
     }
-    if (oldVnode.$text$ !== newVnode.$text$) {
-      setProperty(staticCtx, elm, 'data', newVnode.$text$);
-    }
+    setProperty(staticCtx, elm, 'data', newVnode.$text$);
     return;
   }
   assertQwikElement(elm);

@@ -108,6 +108,7 @@ export const createRenderContext = (
       $roots$: [],
       $addSlots$: [],
       $rmSlots$: [],
+      $visited$: [],
     },
     $cmpCtx$: null,
     $slotCtx$: null,

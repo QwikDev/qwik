@@ -223,7 +223,7 @@ renderSuite('should render a component with scoped styles', async () => {
     </style>
     <!--qv q:key=sX:-->
     <div class="⭐️ml52vk-0">
-      <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
+      <div class="⭐️ml52vk-0 stuff" q:key="b" aria-hidden="true">
         Hello
         <button class="⭐️ml52vk-0">
           Toggle
@@ -246,7 +246,7 @@ renderSuite('should render a component with scoped styles', async () => {
     </style>
     <!--qv q:key=sX:-->
     <div class="⭐️ml52vk-0">
-      <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0" q:key="a">
         Hello
         <button class="⭐️ml52vk-0">
           Toggle
@@ -651,7 +651,7 @@ renderSuite('should re-render classes correctly', async () => {
     <!--qv q:key=sX:-->
     <button class="increment">+</button>
     <div class="other">Div 1</div>
-    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <div class="stuff m-0 p-2 almost-null active container">Div 2</div>
     <!--/qv-->
   </host>`
   );
@@ -809,13 +809,13 @@ export const HelloWorldScoped = component$(() => {
   return (
     <div>
       {state.cond && (
-        <div>
+        <div key="a">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>
       )}
       {!state.cond && (
-        <div class="stuff" aria-hidden="true">
+        <div key="b" class="stuff" aria-hidden="true">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>

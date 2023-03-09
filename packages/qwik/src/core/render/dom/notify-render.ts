@@ -156,13 +156,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     });
     containerState.$hostsStaging$.clear();
 
+    const signalOperations = Array.from(containerState.$opsNext$);
+    containerState.$opsNext$.clear();
+
     const renderingQueue = Array.from(hostsRendering);
     sortNodes(renderingQueue);
-
-    containerState.$opsNext$.forEach((op) => {
-      executeSignalOperation(staticCtx, op);
-    });
-    containerState.$opsNext$.clear();
 
     for (const el of renderingQueue) {
       if (!staticCtx.$hostElements$.has(el)) {
@@ -182,6 +180,10 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
         }
       }
     }
+
+    signalOperations.forEach((op) => {
+      executeSignalOperation(staticCtx, op);
+    });
 
     // Add post operations
     staticCtx.$operations$.push(...staticCtx.$postOperations$);

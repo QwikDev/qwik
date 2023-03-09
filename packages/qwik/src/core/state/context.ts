@@ -26,6 +26,7 @@ export const HOST_FLAG_DIRTY = 1 << 0;
 export const HOST_FLAG_NEED_ATTACH_LISTENER = 1 << 1;
 export const HOST_FLAG_MOUNTED = 1 << 2;
 export const HOST_FLAG_DYNAMIC = 1 << 3;
+export const HOST_REMOVED = 1 << 4;
 
 export interface QContext {
   $element$: QwikElement;
@@ -149,7 +150,6 @@ export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
   elCtx.$watches$ = null;
-  elCtx.$flags$ = 0;
 
   (el as any)[Q_CTX] = undefined;
 };

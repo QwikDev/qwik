@@ -149,7 +149,7 @@ import WorkIcon from '@mui/icons-material/Work';
 import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 
 // Qwikify the whole list
-export const FolderList = qwikify$(() {
+export const FolderList = qwikify$(() => {
   return (
     <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
       <ListItem>
@@ -209,7 +209,7 @@ export const MUIBeachAccessIcon = qwikify$(BeachAccessIcon);
 ```tsx
 // Qwik component using dozens of nested React islands
 // Each MUI-* it's an independent React application
-export const FolderList = component$(() {
+export const FolderList = component$(() => {
   return (
     <MUIList sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
       <MUIListItem>

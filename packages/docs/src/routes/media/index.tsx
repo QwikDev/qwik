@@ -147,6 +147,10 @@ export const MEDIA = mediaObj({
   ],
   resources: [
     {
+      href: 'https://docs.google.com/presentation/d/1q0eILmAAdFyE0tHkvd_fSuFtcHsHzUn0nZnz5FDgU4k/edit#slide=id.gff298a2a9a_1_2',
+      title: 'Qwik City - Google Presentation Template',
+    },
+    {
       href: 'https://docs.google.com/presentation/d/1Jj1iw0lmaecxtUpqyNdF1aBzbCVnSlbPGLbOpN2xydc/edit#slide=id.g13225ffe116_6_234',
       title: 'Qwik - Google Presentation Template',
     },
@@ -154,7 +158,7 @@ export const MEDIA = mediaObj({
       href: 'https://docs.google.com/presentation/d/1cGbC-FFMrLCQ62YDGG17jf3Eh0hqwMBlyDQZGeoFNyw/edit#slide=id.g1620a79b097_0_300',
       title: 'Qwik the O(1) framework',
     },
-    { href: '/logos/qwik-logo.svg', title: 'Qwik SVG Logo [svg]' },
+    { href: '/logos/qwik-logo.svg', title: 'Qwik Logo [svg]' },
     { href: '/logos/qwik.svg', title: 'Qwik Logo and Text [svg]' },
     { href: '/logos/qwik.png', title: 'Qwik Logo and Text [png]' },
   ],

@@ -23,6 +23,8 @@ Qwik is unique because it knows how to render templates out-of-order and asynchr
 Simple counter-example:
 
 ```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
 export const Counter = component$(() => {
   const count = useSignal(0);
 
@@ -51,6 +53,8 @@ Qwik uses JSX to express the component's template. JSX discussion is outside of 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
 ```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
   const count = useSignal(0);
   const step = useSignal(1);
@@ -79,6 +83,8 @@ In the above example, there are two buttons:
 In many cases you'll want to render components by mapping an array in the render function with `data.map()`. In these cases, it is required to provide a key to the first child of the mapping function.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
   return (
     <>

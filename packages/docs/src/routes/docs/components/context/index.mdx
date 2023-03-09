@@ -32,6 +32,7 @@ import {
   useContext,
   useContextProvider,
   createContextId,
+  useStylesScoped$
 } from '@builder.io/qwik';
 
 export type Theme = 'dark' | 'light';
@@ -122,6 +123,8 @@ Since, it does not hold any state, it's ok to call it and make it a singleton, e
 - As all [`use-`](/docs/components/lifecycle/index.mdx#use-method-rules) methods it is used at the root of the [`component$()`](/docs/components/overview/index.mdx#component).
 
 ```tsx
+import { component$, useStore, useContextProvider } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
 
   const qwikCityObject = useStore<GenricType>({
@@ -157,6 +160,8 @@ export const Parent = component$(() => {
 This method is used to get the value of `Context` which is **provided** by Parent Component.
 
 ```tsx
+import { component$, useContext } from '@builder.io/qwik';
+
 export const Children = component$(() => {
   const qwikCityObject = useContext(QwikCityContext);
   const plainArray = useContext(PlainArrayContext);

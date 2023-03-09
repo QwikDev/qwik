@@ -52,6 +52,8 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 Additionally, this task can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
 
 ```tsx
+import { useTask$ } from '@builder.io/qwik';
+
 useTask$(({ track }) => {
   track(() => store.count);
   // will run when the component mounts and every time "store.count" changes
@@ -121,6 +123,7 @@ Sometimes it is required to only run code either in the server or in the client.
 
 ```tsx
 import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
 export const Cmp = component$(() => {
   const users = useSignal([]);
@@ -156,6 +159,8 @@ export const Cmp = component$(() => {
 `useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
 
 ```tsx
+import { useVisibleTask$ } from '@builder.io/qwik';
+
 useVisibleTask$(({ track }) => {
   track(() => store.count);
   // will run when the component becomes visible and every time "store.count" changes
@@ -168,6 +173,8 @@ Under the hood, `useVisibleTask$()` creates a DOM listener that uses [Intersecti
 However this `strategy` can be changed, and for example, run when the `document` is ready.
 
 ```tsx
+import { useVisibleTask$ } from '@builder.io/qwik';
+
 useVisibleTask$(() => console.log('runs in the browser'), {
   strategy: 'document-ready', // 'load' | 'visible' | 'idle'
 });
@@ -182,6 +189,8 @@ This is a unique feature of Qwik, any other frameworks would execute this and ot
 ### Example
 
 ```tsx
+import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+
 export const Timer = component$(() => {
   const count = useSignal(0);
   useVisibleTask$(() => {

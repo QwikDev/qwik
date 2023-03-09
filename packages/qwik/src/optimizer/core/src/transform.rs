@@ -104,6 +104,8 @@ pub struct QwikTransform<'a> {
     h_fn: Option<Id>,
     fragment_fn: Option<Id>,
 
+    jsx_mutable: bool,
+
     hook_stack: Vec<JsWord>,
     file_hash: u64,
     jsx_key_counter: u32,
@@ -205,6 +207,7 @@ impl<'a> QwikTransform<'a> {
             marker_functions,
             jsx_functions,
             root_jsx_mode: true,
+            jsx_mutable: false,
             options,
         }
     }
@@ -416,7 +419,7 @@ impl<'a> QwikTransform<'a> {
         &mut self,
         first_arg: ast::Expr,
         accept_call_expr: bool,
-    ) -> Option<(ast::Expr, bool)> {
+    ) -> (Option<ast::Expr>, bool) {
         // Collect descendent idents
         let descendent_idents = {
             let mut collector = IdentCollector::new();
@@ -439,10 +442,10 @@ impl<'a> QwikTransform<'a> {
         let mut set: HashSet<Id> = HashSet::new();
         for ident in &descendent_idents {
             if self.options.global_collect.is_global(ident) {
-                return None;
+                return (None, false);
             }
             if invalid_decl.contains(ident) {
-                return None;
+                return (None, false);
             }
             if decl_collect.contains(ident) {
                 set.insert(ident.clone());
@@ -656,6 +659,7 @@ impl<'a> QwikTransform<'a> {
             }
             ast::Expr::Ident(ident) => {
                 self.stack_ctxt.push(ident.sym.to_string());
+                self.jsx_mutable = true;
                 (true, true)
             }
             _ => (false, false),
@@ -997,6 +1001,7 @@ impl<'a> QwikTransform<'a> {
         let mutable = if mutable_props.is_empty() {
             get_null_arg()
         } else {
+            self.jsx_mutable = true;
             ast::ExprOrSpread {
                 spread: None,
                 expr: Box::new(ast::Expr::Object(ast::ObjectLit {
@@ -1047,6 +1052,8 @@ impl<'a> QwikTransform<'a> {
         Option<Box<ast::Expr>>,
         u32,
     ) {
+        let mut static_listeners = true;
+        let mut static_subtree = true;
         match expr {
             ast::ExprOrSpread {
                 expr: box ast::Expr::Object(object),
@@ -1071,14 +1078,20 @@ impl<'a> QwikTransform<'a> {
                                     name_token = true;
                                 }
                                 if is_children {
-                                    let folded = node.value.clone().fold_with(self);
+                                    let prev = self.jsx_mutable;
+                                    self.jsx_mutable = false;
+                                    let folded = node.value.clone();
                                     let transformed_children = if let Some(new_children) =
                                         self.convert_children(&folded)
                                     {
-                                        Box::new(new_children)
+                                        Box::new(new_children.fold_with(self))
                                     } else {
-                                        folded
+                                        folded.fold_with(self)
                                     };
+                                    if self.jsx_mutable {
+                                        static_subtree = false;
+                                    }
+                                    self.jsx_mutable = prev;
                                     if is_fn {
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
@@ -1128,6 +1141,7 @@ impl<'a> QwikTransform<'a> {
                                             mutable_props.push(converted_prop);
                                         }
                                     } else {
+                                        static_listeners = true;
                                         mutable_props.push(prop.fold_with(self));
                                     }
                                 } else if is_immutable_expr(
@@ -1203,17 +1217,35 @@ impl<'a> QwikTransform<'a> {
                         self.stack_ctxt.pop();
                     }
                 }
-                (mutable_props, immutable_props, children, 0)
+                let mut flags = 0;
+                // if static_listeners {
+                //     flags |= 1 << 0;
+                // }
+                // if static_subtree {
+                //     flags |= 1 << 1;
+                // }
+
+                (mutable_props, immutable_props, children, flags)
             }
             _ => (vec![], vec![], None, 0),
         }
     }
 
     fn convert_children(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
-        if let Some(expr) = self.convert_to_signal(expr) {
-            return Some(expr);
-        }
         match expr {
+            ast::Expr::Call(call_expr) => {
+                match &call_expr.callee {
+                    ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
+                        if !self.jsx_functions.contains(&id!(ident)) {
+                            self.jsx_mutable = true;
+                        }
+                    }
+                    _ => {
+                        self.jsx_mutable = true;
+                    }
+                };
+                return None;
+            }
             ast::Expr::Array(array) => Some(ast::Expr::Array(ast::ArrayLit {
                 span: array.span,
                 elems: array
@@ -1235,14 +1267,32 @@ impl<'a> QwikTransform<'a> {
                     })
                     .collect(),
             })),
-            expr => self.convert_to_signal_item(expr),
+            expr => {
+                let a = self.convert_to_signal_item(expr);
+                if a.is_some() {
+                    return a;
+                }
+                self.jsx_mutable = true;
+                if let ast::Expr::Member(member) = expr {
+                    self.jsx_mutable = true;
+                    let prop_sym = prop_to_string(&member.prop);
+                    if let Some(prop_sym) = prop_sym {
+                        let id = self.ensure_core_import(&_WRAP_SIGNAL);
+                        Some(make_wrap(&id, member.obj.clone(), prop_sym))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
         }
     }
 
     fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<(ast::Expr, bool)> {
         let inlined = self.create_synthetic_qqhook(expr.clone(), true);
-        if inlined.is_some() {
-            return inlined;
+        if let Some(expr) = inlined.0 {
+            return Some((expr, inlined.1));
         }
 
         if let ast::Expr::Member(member) = expr {
@@ -1255,21 +1305,26 @@ impl<'a> QwikTransform<'a> {
         None
     }
 
-    fn convert_to_signal(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
-        if let ast::Expr::Member(member) = expr {
-            let prop_sym = prop_to_string(&member.prop);
-            if let Some(prop_sym) = prop_sym {
-                let id = self.ensure_core_import(&_WRAP_SIGNAL);
-                return Some(make_wrap(&id, member.obj.clone(), prop_sym));
-            }
-        }
-        None
-    }
-
     fn convert_to_signal_item(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
-        let inlined = self.create_synthetic_qqhook(expr.clone(), false);
-        if let Some((expr, _)) = inlined {
-            return Some(expr);
+        if let ast::Expr::Call(call_expr) = expr {
+            match &call_expr.callee {
+                ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
+                    if !self.jsx_functions.contains(&id!(ident)) {
+                        self.jsx_mutable = true;
+                    }
+                }
+                _ => {
+                    self.jsx_mutable = true;
+                }
+            };
+            return None;
+        }
+        let (inlined_expr, immutable) = self.create_synthetic_qqhook(expr.clone(), false);
+        if !immutable {
+            self.jsx_mutable = true;
+        }
+        if inlined_expr.is_some() {
+            return inlined_expr;
         }
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
@@ -1437,6 +1492,10 @@ impl<'a> Fold for QwikTransform<'a> {
         self.decl_stack.push(vec![]);
         let prev = self.root_jsx_mode;
         self.root_jsx_mode = true;
+
+        let prev_jsx_mutable = self.jsx_mutable;
+        self.jsx_mutable = false;
+
         let is_component = self.in_component;
         self.in_component = false;
 
@@ -1458,6 +1517,7 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let o = node.fold_children_with(self);
         self.root_jsx_mode = prev;
+        self.jsx_mutable = prev_jsx_mutable;
         self.stack_ctxt.pop();
         self.decl_stack.pop();
 
@@ -1489,6 +1549,9 @@ impl<'a> Fold for QwikTransform<'a> {
         self.decl_stack.push(vec![]);
         let prev = self.root_jsx_mode;
         self.root_jsx_mode = true;
+
+        let prev_jsx_mutable = self.jsx_mutable;
+        self.jsx_mutable = false;
 
         let is_component = self.in_component;
         self.in_component = false;
@@ -1534,6 +1597,7 @@ impl<'a> Fold for QwikTransform<'a> {
             }
         }
         self.root_jsx_mode = prev;
+        self.jsx_mutable = prev_jsx_mutable;
         self.decl_stack.pop();
 
         o

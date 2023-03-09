@@ -22,11 +22,8 @@ pub fn convert_inlined_fn(
     scoped_idents: Vec<Id>,
     qqhook: &Id,
     accept_call_expr: bool,
-) -> Option<(ast::Expr, bool)> {
+) -> (Option<ast::Expr>, bool) {
     let mut identifiers = HashMap::new();
-    if scoped_idents.is_empty() {
-        return None;
-    }
     let params: Vec<ast::Pat> = scoped_idents
         .iter()
         .enumerate()
@@ -41,7 +38,7 @@ pub fn convert_inlined_fn(
         .collect();
 
     if matches!(expr, ast::Expr::Arrow(_)) {
-        return None;
+        return (None, false);
     }
 
     // Replace identifier
@@ -49,12 +46,16 @@ pub fn convert_inlined_fn(
     expr.visit_mut_with(&mut replace_identifiers);
 
     if replace_identifiers.abort {
-        return None;
+        return (None, false);
     }
 
     let rendered_expr = render_expr(expr.clone());
     if rendered_expr.len() > 150 {
-        return None;
+        return (None, false);
+    }
+
+    if scoped_idents.is_empty() {
+        return (None, true);
     }
 
     // Generate stringified version
@@ -72,8 +73,8 @@ pub fn convert_inlined_fn(
         type_params: None,
     });
 
-    Some((
-        ast::Expr::Call(ast::CallExpr {
+    (
+        Some(ast::Expr::Call(ast::CallExpr {
             span: DUMMY_SP,
             callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqhook)))),
             type_args: None,
@@ -92,9 +93,9 @@ pub fn convert_inlined_fn(
                 })),
                 rendered_str,
             ],
-        }),
+        })),
         true,
-    ))
+    )
 }
 
 struct ReplaceIdentifiers {

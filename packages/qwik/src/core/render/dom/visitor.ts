@@ -74,6 +74,9 @@ export const SVG_NS = 'http://www.w3.org/2000/svg';
 export const IS_SVG = 1 << 0;
 export const IS_HEAD = 1 << 1;
 
+// const static_listeners = 1 << 0;
+const static_subtree = 1 << 1;
+
 type KeyToIndexMap = { [key: string]: number };
 
 const CHILDREN_PLACEHOLDER: ProcessedJSXNode[] = [];
@@ -102,6 +105,9 @@ export const smartUpdateChildren = (
   mode: ChildrenMode,
   flags: number
 ) => {
+  if (newVnode.$flags$ & static_subtree) {
+    return;
+  }
   assertQwikElement(oldVnode.$elm$);
 
   const ch = newVnode.$children$;
@@ -476,6 +482,9 @@ const renderContentProjection = (
   vnode: ProcessedJSXNode,
   flags: number
 ): ValueOrPromise<void> => {
+  // if (vnode.$flags$ & static_subtree) {
+  //   return;
+  // }
   const newChildren = vnode.$children$;
   const staticCtx = rCtx.$static$;
   const splittedNewChidren = splitChildren(newChildren);

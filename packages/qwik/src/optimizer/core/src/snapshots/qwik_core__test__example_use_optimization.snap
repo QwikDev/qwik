@@ -23,7 +23,6 @@ export const Works = component$((props) => {
 import { _restProps } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
@@ -53,11 +52,13 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         bar: _fnSignal((p0)=>p0.bar ?? 'hello', [
             store1
         ], 'p0.bar??"hello"')
-    }, _wrapSignal(store, "foo"), 0, "u6_0");
+    }, _fnSignal((p0)=>p0.foo, [
+        store
+    ], "p0.foo"), 0, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAGlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBAHP;;;QAGgB,IAAI,qBANpB;;;QAM6B,GAAG,qBAJhC,OAAM;;;;AAMjB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAGlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBAHP;;;QAGgB,IAAI,qBANpB;;;QAM6B,GAAG,qBAJhC,OAAM;;;0BADN;;;AAOX,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

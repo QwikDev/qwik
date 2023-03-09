@@ -13,7 +13,7 @@ import { seal } from '../util/qdev';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
-import { SignalUnassignedException } from '../state/signal';
+import { isSignal, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
 
 export interface ExecuteComponentOutput {
@@ -188,7 +188,10 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
 
-export const jsxToString = (data: any) => {
+export const jsxToString = (data: any): string => {
+  if (isSignal(data)) {
+    return jsxToString(data.value);
+  }
   return data == null || typeof data === 'boolean' ? '' : String(data);
 };
 

@@ -246,6 +246,32 @@ export const globalActionQrl: ActionConstructorQRL;
 export const Html: Component<QwikCityProps>;
 
 // @alpha (undocumented)
+const Image_2: Component<ImageProps>;
+export { Image_2 as Image }
+
+// Warning: (ae-forgotten-export) The symbol "ImageAttributes" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface ImageProps extends ImageAttributes {
+    // (undocumented)
+    aspectRatio?: number;
+    // (undocumented)
+    layout: 'fixed' | 'constrained' | 'fullWidth';
+    // (undocumented)
+    objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' | 'inherit' | 'initial';
+    // (undocumented)
+    placeholder?: string;
+    // (undocumented)
+    style?: Record<string, string | number>;
+}
+
+// @alpha (undocumented)
+export type ImageState = {
+    resolutions?: number[];
+    imageTransformer$?: QRL<(params: ImageTransformerProps) => string>;
+};
+
+// @alpha (undocumented)
 export const Link: Component<LinkProps>;
 
 // Warning: (ae-forgotten-export) The symbol "AnchorAttributes" needs to be exported by the entry point index.d.ts
@@ -423,6 +449,9 @@ export const useContent: () => ContentState;
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
 // @alpha (undocumented)
+export const useImageProvider: (state: ImageState) => void;
+
+// @alpha (undocumented)
 export const useLocation: () => RouteLocation;
 
 // @alpha (undocumented)
@@ -459,6 +488,10 @@ export interface ZodConstructor {
 //
 // @alpha (undocumented)
 export const zodQrl: ZodConstructorQRL;
+
+// Warnings were encountered during analysis:
+//
+// /Users/gioboa/Desktop/dev-null/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/image-component.d.ts:9:5 - (ae-forgotten-export) The symbol "ImageTransformerProps" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -3,37 +3,37 @@
     {
       "name": "Qwik/React",
       "url": "/integrations/react/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/react.svg"
     },
     {
       "name": "Partytown",
       "url": "/integrations/partytown/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/partytown.svg"
     },
     {
-      "name": "Playwright (E2E Testing)",
+      "name": "Playwright",
       "url": "/integrations/playwright/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/playwright.svg"
     },
     {
-      "name": "PostCSS (Styling)",
+      "name": "PostCSS",
       "url": "/integrations/postcss/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/postcss.svg"
     },
     {
-      "name": "Styled-Vanilla-Extract (Styling)",
+      "name": "Styled-Vanilla-Extract",
       "url": "/integrations/styled-vanilla-extract/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/styled-vanilla-extract.svg"
     },
     {
-      "name": "Tailwind (Styling)",
+      "name": "Tailwind",
       "url": "/integrations/tailwind/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/tailwind.svg"
     },
     {
       "name": "Vitest",
       "url": "/integrations/vitest/",
-      "logo": "/logos/qwik-logo.svg"
+      "logo": "/ecosystem/vitest.svg"
     }
   ],
   "deployments": [

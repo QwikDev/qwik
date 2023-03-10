@@ -90,36 +90,36 @@
       "imgSrc": "/logos/qwik-logo.svg"
     }
   ],
-  "online": [
-    {
-      "title": "Discord",
-      "href": "/deployments/vercel-edge/",
-      "imgSrc": "/logos/qwik-logo.svg"
-    },
-    {
-      "title": "Newsletter",
-      "href": "https://qwiknewsletter.com/",
-      "imgSrc": "/logos/qwik-logo.svg"
-    },
+  "social": [
     {
       "title": "Twitter",
       "href": "https://twitter.com/QwikDev",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/twitter.svg"
+    },
+    {
+      "title": "Discord",
+      "href": "https://qwik.builder.io/chat",
+      "imgSrc": "/ecosystem/discord.svg"
     },
     {
       "title": "Facebook",
       "href": "https://www.facebook.com/groups/qwikdevs",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/facebook.svg"
     },
     {
       "title": "LinkedIn",
       "href": "https://www.linkedin.com/groups/12677766/",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/linkedin.svg"
     },
     {
       "title": "Reddit",
       "href": "https://www.reddit.com/r/qwik/",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/reddit.svg"
+    },
+    {
+      "title": "GitHub",
+      "href": "https://github.com/BuilderIO/qwik",
+      "imgSrc": "/ecosystem/github.svg"
     }
   ]
 }

@@ -60,6 +60,10 @@
   object-fit: cover;
 }
 
+.grid.full-item a:hover img {
+  opacity: 0.7;
+}
+
 .grid span {
   display: block;
   font-size: 16px;
@@ -67,20 +71,3 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-/* @media (min-width: 600px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .ecosystem li.large {
-    grid-column: span 2;
-    grid-row: span 2;
-  }
-}
-
-@media (min-width: 900px) {
-  .showcase .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-} */

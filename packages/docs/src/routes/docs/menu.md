@@ -19,7 +19,7 @@
 - [Slots](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
 - [Styling](components/styles/index.mdx)
-- [Lite components](components/lite-components/index.mdx)
+- [Inlined JSX Functions](components/lite-components/index.mdx)
 
 ## Cheat Sheet
 

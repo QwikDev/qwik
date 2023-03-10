@@ -22,6 +22,10 @@
   margin: 0 0 40px 0;
 }
 
+.ecosystem.subsection h2 {
+  text-align: left;
+}
+
 .ecosystem .grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: row dense;

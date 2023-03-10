@@ -42,6 +42,17 @@
 
 .grid.full-item .img {
   padding: 0;
+  background-color: transparent;
+}
+
+.grid.transparent-item .img {
+  padding: 0;
+  background-color: transparent;
+}
+
+.grid.transparent-item a:hover .img {
+  opacity: 0.7;
+  background-color: transparent;
 }
 
 .grid a:hover .img {

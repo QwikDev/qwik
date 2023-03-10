@@ -69,7 +69,7 @@ export default component$(() => {
         <h2>
           <Link href="/community/groups/">Social</Link>
         </h2>
-        <ul class="grid">{data.social.map(GridItem)}</ul>
+        <ul class="grid transparent-item">{data.social.map(GridItem)}</ul>
       </section>
     </article>
   );

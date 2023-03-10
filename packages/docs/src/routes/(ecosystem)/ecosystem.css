@@ -20,19 +20,19 @@
   margin: 0 0 10px 0;
 }
 
-.ecosystem .grid {
+.grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: row dense;
   display: grid;
   gap: 20px;
 }
 
-.ecosystem .grid li {
+.grid li {
   display: block;
   text-align: center;
 }
 
-.ecosystem .grid .img {
+.grid .img {
   display: block;
   padding: 10px;
   margin: 0 0 10px 0;
@@ -40,11 +40,15 @@
   border-radius: 5px;
 }
 
-.ecosystem .grid a:hover .img {
+.grid.full-item .img {
+  padding: 0;
+}
+
+.grid a:hover .img {
   background-color: rgba(68, 68, 68, 0.6);
 }
 
-.ecosystem .grid img {
+.grid img {
   display: block;
   width: 100%;
   height: auto;
@@ -52,7 +56,11 @@
   aspect-ratio: 16/9;
 }
 
-.ecosystem .grid span {
+.grid.full-item img {
+  object-fit: cover;
+}
+
+.grid span {
   display: block;
   font-size: 16px;
   white-space: nowrap;
@@ -61,7 +69,7 @@
 }
 
 /* @media (min-width: 600px) {
-  .ecosystem .grid {
+  .grid {
     grid-template-columns: repeat(2, 1fr);
   }
 

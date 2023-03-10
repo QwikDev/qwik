@@ -1,125 +1,125 @@
 {
   "integrations": [
     {
-      "name": "Qwik/React",
-      "url": "/integrations/react/",
-      "logo": "/ecosystem/react.svg"
+      "title": "Qwik/React",
+      "href": "/integrations/react/",
+      "imgSrc": "/ecosystem/react.svg"
     },
     {
-      "name": "Partytown",
-      "url": "/integrations/partytown/",
-      "logo": "/ecosystem/partytown.svg"
+      "title": "Partytown",
+      "href": "/integrations/partytown/",
+      "imgSrc": "/ecosystem/partytown.svg"
     },
     {
-      "name": "Playwright",
-      "url": "/integrations/playwright/",
-      "logo": "/ecosystem/playwright.svg"
+      "title": "Playwright",
+      "href": "/integrations/playwright/",
+      "imgSrc": "/ecosystem/playwright.svg"
     },
     {
-      "name": "PostCSS",
-      "url": "/integrations/postcss/",
-      "logo": "/ecosystem/postcss.svg"
+      "title": "PostCSS",
+      "href": "/integrations/postcss/",
+      "imgSrc": "/ecosystem/postcss.svg"
     },
     {
-      "name": "Styled-Vanilla-Extract",
-      "url": "/integrations/styled-vanilla-extract/",
-      "logo": "/ecosystem/styled-vanilla-extract.svg"
+      "title": "Styled-Vanilla-Extract",
+      "href": "/integrations/styled-vanilla-extract/",
+      "imgSrc": "/ecosystem/styled-vanilla-extract.svg"
     },
     {
-      "name": "Tailwind",
-      "url": "/integrations/tailwind/",
-      "logo": "/ecosystem/tailwind.svg"
+      "title": "Tailwind",
+      "href": "/integrations/tailwind/",
+      "imgSrc": "/ecosystem/tailwind.svg"
     },
     {
-      "name": "Vitest",
-      "url": "/integrations/vitest/",
-      "logo": "/ecosystem/vitest.svg"
+      "title": "Vitest",
+      "href": "/integrations/vitest/",
+      "imgSrc": "/ecosystem/vitest.svg"
     }
   ],
   "deployments": [
     {
-      "name": "Azure",
-      "url": "/deployments/azure-swa/",
-      "logo": "/ecosystem/azure.svg"
+      "title": "Azure",
+      "href": "/deployments/azure-swa/",
+      "imgSrc": "/ecosystem/azure.svg"
     },
     {
-      "name": "Cloudflare",
-      "url": "/deployments/cloudflare-pages/",
-      "logo": "/ecosystem/cloudflare.svg"
+      "title": "Cloudflare",
+      "href": "/deployments/cloudflare-pages/",
+      "imgSrc": "/ecosystem/cloudflare.svg"
     },
     {
-      "name": "Google Cloud Run",
-      "url": "/deployments/gcp-cloud-run/",
-      "logo": "/ecosystem/google-cloud.svg"
+      "title": "Google Cloud Run",
+      "href": "/deployments/gcp-cloud-run/",
+      "imgSrc": "/ecosystem/google-cloud.svg"
     },
     {
-      "name": "Netlify",
-      "url": "/deployments/netlify-edge/",
-      "logo": "/ecosystem/netlify.svg"
+      "title": "Netlify",
+      "href": "/deployments/netlify-edge/",
+      "imgSrc": "/ecosystem/netlify.svg"
     },
     {
-      "name": "Node.js",
-      "url": "/deployments/node/",
-      "logo": "/ecosystem/nodejs.svg"
+      "title": "Node.js",
+      "href": "/deployments/node/",
+      "imgSrc": "/ecosystem/nodejs.svg"
     },
     {
-      "name": "Vercel",
-      "url": "/deployments/vercel-edge/",
-      "logo": "/ecosystem/vercel.svg"
+      "title": "Vercel",
+      "href": "/deployments/vercel-edge/",
+      "imgSrc": "/ecosystem/vercel.svg"
     }
   ],
   "communities": [
     {
-      "name": "France",
-      "url": "https://www.linkedin.com/groups/14153723/",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "France",
+      "href": "https://www.linkedin.com/groups/14153723/",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "Israel",
-      "url": "https://www.facebook.com/groups/qwikisrael",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Israel",
+      "href": "https://www.facebook.com/groups/qwikisrael",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "Taiwan",
-      "url": "https://www.facebook.com/groups/836365297555873",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Taiwan",
+      "href": "https://www.facebook.com/groups/836365297555873",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "United Kingdom",
-      "url": "https://www.meetup.com/qwik-london/",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "United Kingdom",
+      "href": "https://www.meetup.com/qwik-london/",
+      "imgSrc": "/logos/qwik-logo.svg"
     }
   ],
   "online": [
     {
-      "name": "Discord",
-      "url": "/deployments/vercel-edge/",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Discord",
+      "href": "/deployments/vercel-edge/",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "Newsletter",
-      "url": "https://qwiknewsletter.com/",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Newsletter",
+      "href": "https://qwiknewsletter.com/",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "Twitter",
-      "url": "https://twitter.com/QwikDev",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Twitter",
+      "href": "https://twitter.com/QwikDev",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "Facebook",
-      "url": "https://www.facebook.com/groups/qwikdevs",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Facebook",
+      "href": "https://www.facebook.com/groups/qwikdevs",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "LinkedIn",
-      "url": "https://www.linkedin.com/groups/12677766/",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "LinkedIn",
+      "href": "https://www.linkedin.com/groups/12677766/",
+      "imgSrc": "/logos/qwik-logo.svg"
     },
     {
-      "name": "Reddit",
-      "url": "https://www.reddit.com/r/qwik/",
-      "logo": "/logos/qwik-logo.svg"
+      "title": "Reddit",
+      "href": "https://www.reddit.com/r/qwik/",
+      "imgSrc": "/logos/qwik-logo.svg"
     }
   ]
 }

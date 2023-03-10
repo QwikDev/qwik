@@ -3,9 +3,12 @@ import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
+import { MEDIA } from '../../media/index';
 
 export default component$(() => {
   useStyles$(styles);
+
+  const videos = MEDIA.videos.slice(0, 6);
 
   return (
     <article class="ecosystem">
@@ -27,14 +30,14 @@ export default component$(() => {
 
       <section>
         <h2>
-          <Link href="/showcase/">Videos</Link>
+          <Link href="/media/#videos">Videos</Link>
         </h2>
-        <ul class="grid">{data.deployments.map(GridItem)}</ul>
+        <ul class="grid full-item">{videos.map(GridItem)}</ul>
       </section>
 
       <section>
         <h2>
-          <Link href="/media/#videos">Podcasts</Link>
+          <Link href="/media/#podcasts">Podcasts</Link>
         </h2>
         <ul class="grid">{data.deployments.map(GridItem)}</ul>
       </section>
@@ -76,19 +79,19 @@ export const head: DocumentHead = {
 
 export function GridItem(props: GridItemProps) {
   return (
-    <li key={props.name}>
-      <Link href={props.url}>
+    <li key={props.title}>
+      <Link href={props.href}>
         <span class="img">
-          <img src={props.logo} alt={props.name + ' Logo'} />
+          <img src={props.imgSrc} alt={props.title} />
         </span>
-        <span>{props.name}</span>
+        <span>{props.title}</span>
       </Link>
     </li>
   );
 }
 
 interface GridItemProps {
-  name: string;
-  url: string;
-  logo: string;
+  title: string;
+  href: string;
+  imgSrc: string;
 }

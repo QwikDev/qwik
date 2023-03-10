@@ -4,6 +4,7 @@ import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
 import { MEDIA } from '../../media/index';
+import SHOWCASE from '../../showcase/generated-pages.json';
 
 export default component$(() => {
   useStyles$(styles);
@@ -11,6 +12,7 @@ export default component$(() => {
   const videos = MEDIA.videos.slice(0, 6);
   const podcasts = MEDIA.podcasts.slice(0, 6);
   const presentations = MEDIA.presentations.slice(0, 6);
+  const showcaseSites = SHOWCASE.slice(0, 6);
 
   return (
     <article class="ecosystem">
@@ -46,6 +48,13 @@ export default component$(() => {
 
       <section>
         <h2>
+          <Link href="/showcase/">Showcase</Link>
+        </h2>
+        <ul class="grid">{showcaseSites.map(GridItem)}</ul>
+      </section>
+
+      <section>
+        <h2>
           <Link href="/media/#presentations">Presentations</Link>
         </h2>
         <ul class="grid full-item">{presentations.map(GridItem)}</ul>
@@ -56,13 +65,6 @@ export default component$(() => {
           <Link href="/community/groups/">Communities</Link>
         </h2>
         <ul class="grid">{data.communities.map(GridItem)}</ul>
-      </section>
-
-      <section>
-        <h2>
-          <Link href="/showcase/">Showcase</Link>
-        </h2>
-        <ul class="grid">{data.deployments.map(GridItem)}</ul>
       </section>
 
       <section>

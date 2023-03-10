@@ -184,12 +184,14 @@ export const PropsDestructuring = component$(
       }
     );
     renders.renders++;
+    const rerenders = renders.renders;
+
     return (
       <div id={id}>
         <span {...rest}>
           {message} {c}
         </span>
-        <div class="renders">{renders.renders}</div>
+        <div class="renders">{rerenders}</div>
       </div>
     );
   }
@@ -204,12 +206,13 @@ export const PropsDestructuringNo = component$(
       }
     );
     renders.renders++;
+    const rerenders = renders.renders;
     return (
       <div id={id}>
         <span {...rest}>
           {message} {count}
         </span>
-        <div class="renders">{renders.renders}</div>
+        <div class="renders">{rerenders}</div>
       </div>
     );
   }

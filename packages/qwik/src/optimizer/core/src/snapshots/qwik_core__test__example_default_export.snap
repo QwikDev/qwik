@@ -57,7 +57,7 @@ import { qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
     return /*#__PURE__*/ _jsxQ("div", {
         onClick$: /*#__PURE__*/ qrl(()=>import("./entry______slug__.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
-    }, null, null, 0, "W4_0");
+    }, null, null, 3, "W4_0");
 };
 
 

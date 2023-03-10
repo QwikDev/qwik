@@ -46,13 +46,13 @@ export const App_component_AkbU84a8zes = ()=>{
             _fnSignal((p0)=>p0.count, [
                 store
             ], "p0.count")
-        ], 0, null),
+        ], 3, null),
         /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", {
             onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                 store
             ])
-        }, null, "Click", 0, null), 0, null)
-    ], 0, "70_0");
+        }, null, "Click", 3, null), 1, null)
+    ], 1, "70_0");
 };
 
 
@@ -95,7 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"
 import { _jsxQ } from "@builder.io/qwik";
 import { state } from "./components/sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, state, 0, "zp_0");
+    return /*#__PURE__*/ _jsxQ("div", null, null, state, 1, "zp_0");
 };
 
 

@@ -25,6 +25,7 @@ import {
   pushRenderContext,
   serializeClassWithHost,
   setQId,
+  static_subtree,
   stringifyStyle,
 } from '../execute-component';
 import { addQwikEvent, ContainerState, setRef } from '../../container/container';
@@ -73,9 +74,7 @@ export const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export const IS_SVG = 1 << 0;
 export const IS_HEAD = 1 << 1;
-
-// const static_listeners = 1 << 0;
-const static_subtree = 1 << 1;
+export const IS_IMMUTABLE = 1 << 2;
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -105,17 +104,18 @@ export const smartUpdateChildren = (
   mode: ChildrenMode,
   flags: number
 ) => {
-  if (newVnode.$flags$ & static_subtree) {
-    return;
-  }
   assertQwikElement(oldVnode.$elm$);
 
   const ch = newVnode.$children$;
   if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
     return;
   }
+  const immutableChildren = (newVnode.$flags$ & static_subtree) !== 0;
+  if (immutableChildren) {
+    flags |= IS_IMMUTABLE;
+  }
   const elm = oldVnode.$elm$;
-  const needsDOMRead = oldVnode.$children$ === CHILDREN_PLACEHOLDER;
+  const needsDOMRead = !immutableChildren && oldVnode.$children$ === CHILDREN_PLACEHOLDER;
   if (needsDOMRead) {
     const isHead = elm.nodeName === 'HEAD';
     if (isHead) {
@@ -125,12 +125,17 @@ export const smartUpdateChildren = (
   }
 
   const oldCh = getVnodeChildren(oldVnode, mode);
-  if (oldCh.length > 0 && ch.length > 0) {
-    return updateChildren(ctx, elm, oldCh, ch, flags);
+  if (oldCh.length > 0) {
+    if (immutableChildren) {
+      return;
+    }
+    if (ch.length > 0) {
+      return updateChildren(ctx, elm, oldCh, ch, flags);
+    } else {
+      return removeVnodes(ctx.$static$, oldCh, 0, oldCh.length - 1);
+    }
   } else if (ch.length > 0) {
     return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, flags);
-  } else if (oldCh.length > 0) {
-    return removeVnodes(ctx.$static$, oldCh, 0, oldCh.length - 1);
   }
 };
 
@@ -388,7 +393,7 @@ export const patchVnode = (
     const signal = newVnode.$signal$;
     if (signal) {
       newVnode.$text$ = jsxToString(
-        trackSignal(signal, [2, currentComponent.$element$, signal, elm as Text])
+        trackSignal(signal, [4, currentComponent.$element$, signal, elm as Text])
       );
     }
     setProperty(staticCtx, elm, 'data', newVnode.$text$);
@@ -614,9 +619,12 @@ const createElm = (
     const elm = createTextNode(doc, vnode.$text$);
     if (signal) {
       assertDefined(currentComponent, 'signals can not be used outside components');
-      elm.data = vnode.$text$ = jsxToString(
-        trackSignal(signal, [2, currentComponent.$element$, signal, elm])
-      );
+      const subs =
+        flags & IS_IMMUTABLE
+          ? ([3, elm, signal, currentComponent.$element$] as const)
+          : ([4, currentComponent.$element$, signal, elm] as const);
+
+      elm.data = vnode.$text$ = jsxToString(trackSignal(signal, subs));
     }
     return (vnode.$elm$ = elm);
   }
@@ -641,6 +649,9 @@ const createElm = (
   } else {
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
+  }
+  if (vnode.$flags$ & static_subtree) {
+    flags |= IS_IMMUTABLE;
   }
   if (qDev && qInspector) {
     const dev = vnode.$dev$;
@@ -716,9 +727,9 @@ const createElm = (
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
   const listeners = elCtx.li;
-  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg);
+  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
   if (vnode.$immutableProps$) {
-    setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg);
+    setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
   }
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
@@ -906,7 +917,7 @@ export const updateProperties = (
     }
 
     if (isSignal(newValue)) {
-      newValue = trackSignal(newValue, [1, elm, newValue, hostCtx.$element$, prop]);
+      newValue = trackSignal(newValue, [1, hostCtx.$element$, newValue, elm, prop]);
     }
     if (prop === 'class') {
       newValue = serializeClassWithHost(newValue, hostCtx);
@@ -996,7 +1007,8 @@ export const setProperties = (
   elCtx: QContext,
   hostCtx: QContext | null,
   newProps: Record<string, any>,
-  isSvg: boolean
+  isSvg: boolean,
+  immutable: boolean
 ): Record<string, any> => {
   if (newProps === EMPTY_OBJ) {
     return EMPTY_OBJ;
@@ -1020,10 +1032,15 @@ export const setProperties = (
       continue;
     }
 
-    const sig = isSignal(newValue);
-    if (sig) {
+    const signal = isSignal(newValue);
+    if (signal) {
       assertDefined(hostCtx, 'Signals can only be used in components');
-      newValue = trackSignal(newValue, [1, elm, newValue, hostCtx.$element$, prop]);
+      newValue = trackSignal(
+        newValue,
+        immutable
+          ? [1, elm, newValue, hostCtx.$element$, prop]
+          : [2, hostCtx.$element$, newValue, elm, prop]
+      );
     }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     if (normalizedProp === 'class') {

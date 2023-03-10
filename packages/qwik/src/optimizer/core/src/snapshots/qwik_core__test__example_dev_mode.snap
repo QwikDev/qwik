@@ -44,8 +44,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
             })
         }, {
             class: "stuff"
-        }, "Hello Qwik", 0, null)
-    }, 0, "u6_0");
+        }, "Hello Qwik", 3, null)
+    }, 1, "u6_0");
 };
 
 

@@ -55,12 +55,12 @@ import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export const Lightweight = (props)=>{
     return /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsxQ("div", null, null, null, 0, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
             /*#__PURE__*/ _jsxQ("button", {
                 ...props
-            }, null, null, 0, null)
+            }, null, null, 3, null)
         ]
-    }, 0, "u6_0"), 0, "u6_1");
+    }, 1, "u6_0"), 1, "u6_1");
 };
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
@@ -112,31 +112,31 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
             children: [
                 /*#__PURE__*/ _jsxQ("div", null, {
                     class: "class"
-                }, null, 0, null),
+                }, null, 3, null),
                 /*#__PURE__*/ _jsxQ("div", null, {
                     class: "class"
-                }, null, 0, null),
+                }, null, 3, null),
                 /*#__PURE__*/ _jsxQ("div", null, {
                     class: "class"
-                }, "12", 0, null)
+                }, "12", 3, null)
             ]
-        }, 0, "u6_2"),
+        }, 1, "u6_2"),
         /*#__PURE__*/ _jsxQ("div", null, {
             class: "class"
         }, /*#__PURE__*/ _jsxC(Lightweight, {
             ...props
-        }, 0, "u6_3"), 0, null),
+        }, 3, "u6_3"), 1, null),
         /*#__PURE__*/ _jsxQ("div", null, {
             class: "class"
         }, [
-            /*#__PURE__*/ _jsxQ("div", null, null, null, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, null, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, null, 0, null)
-        ], 0, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null)
+        ], 3, null),
         /*#__PURE__*/ _jsxQ("div", null, {
             class: "class"
-        }, children, 0, null)
-    ], 0, "u6_4");
+        }, children, 3, null)
+    ], 1, "u6_4");
 };
 export { _hW } from "@builder.io/qwik";
 

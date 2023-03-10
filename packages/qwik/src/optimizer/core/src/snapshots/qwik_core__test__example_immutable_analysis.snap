@@ -97,7 +97,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 onClick$: props.onClick$
             }, {
                 class: "stuff"
-            }, "Hello Qwik", 0, null),
+            }, "Hello Qwik", 3, null),
             /*#__PURE__*/ _jsxC(Div, {
                 onClick$: props.onClick$,
                 transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
@@ -117,7 +117,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     null,
                     {}
                 ],
-                children: /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 0, null),
+                children: /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, null),
                 [_IMMUTABLE]: {
                     transparent$: _IMMUTABLE,
                     immutable1: _IMMUTABLE,
@@ -125,7 +125,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     immutable4$: _IMMUTABLE,
                     immutable5: _IMMUTABLE
                 }
-            }, 0, "u6_0"),
+            }, 1, "u6_0"),
             /*#__PURE__*/ _jsxC(Div, {
                 class: state,
                 get mutable1 () {
@@ -152,9 +152,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     ], '{foo:"bar",baz:p0.count?true:false}'),
                     mutable3: _IMMUTABLE
                 }
-            }, 0, "u6_1")
+            }, 3, "u6_1")
         ]
-    }, 0, "u6_2");
+    }, 1, "u6_2");
 };
 
 

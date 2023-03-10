@@ -55,39 +55,39 @@ const App_component_ckEPmXZlub0 = ()=>{
     const store = useStore({});
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsxQ("div", null, null, "text", 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, `text`, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, 1, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, true, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, `text${12}`, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 0, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, "text", 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, `text`, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, 1, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, true, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, `text${12}`, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0, [
                 signal
-            ], "p0"), 0, null),
+            ], "p0"), 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.value, [
                 signal
-            ], "p0.value"), 0, null),
+            ], "p0.value"), 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>12 + p0.value, [
                 signal
-            ], "12+p0.value"), 0, null),
+            ], "12+p0.value"), 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.address.city.name, [
                 store
-            ], "p0.address.city.name"), 0, null),
+            ], "p0.address.city.name"), 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
                 store
-            ], 'p0.address.city.name?"true":"false"'), 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, dep, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(dep, "thing"), 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, dep.thing + 'stuff', 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, globalThing, 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(globalThing, "thing"), 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, globalThing.thing + 'stuff', 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal.value(), 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal.value + unknown(), 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, mutable(signal), 0, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal.value + dep, 0, null)
+            ], 'p0.address.city.name?"true":"false"'), 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, dep, 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(dep, "thing"), 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, dep.thing + 'stuff', 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, globalThing, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(globalThing, "thing"), 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, globalThing.thing + 'stuff', 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, signal.value(), 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, signal.value + unknown(), 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, mutable(signal), 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, signal.value + dep, 1, null)
         ]
-    }, 0, "u6_0");
+    }, 1, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 

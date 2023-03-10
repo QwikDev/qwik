@@ -652,23 +652,23 @@ impl<'a> QwikTransform<'a> {
     fn handle_jsx(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
         let node_type = node.args.remove(0);
         let node_props = node.args.remove(0);
-        let (name_token, is_fn) = match &*node_type.expr {
+        let (name_token, is_fn, is_text_only) = match &*node_type.expr {
             ast::Expr::Lit(ast::Lit::Str(str)) => {
                 self.stack_ctxt.push(str.value.to_string());
-                (true, false)
+                (true, false, is_text_only(&str.value))
             }
             ast::Expr::Ident(ident) => {
                 self.stack_ctxt.push(ident.sym.to_string());
                 self.jsx_mutable = true;
-                (true, true)
+                (true, true, false)
             }
-            _ => (false, false),
+            _ => (false, false, false),
         };
         let should_emit_key = is_fn || self.root_jsx_mode;
         self.root_jsx_mode = false;
 
         let (mutable_props, immutable_props, children, flags) =
-            self.handle_jsx_props_obj(node_props, is_fn);
+            self.handle_jsx_props_obj(node_props, is_fn, is_text_only);
 
         let key = if node.args.len() == 1 {
             node.args.remove(0)
@@ -972,6 +972,7 @@ impl<'a> QwikTransform<'a> {
         &mut self,
         expr: ast::ExprOrSpread,
         is_fn: bool,
+        is_text_only: bool,
     ) -> (
         ast::ExprOrSpread,
         ast::ExprOrSpread,
@@ -979,7 +980,7 @@ impl<'a> QwikTransform<'a> {
         ast::ExprOrSpread,
     ) {
         let (mut mutable_props, mut immutable_props, children, flags) =
-            self.internal_handle_jsx_props_obj(is_fn, expr);
+            self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
         if is_fn && !immutable_props.is_empty() {
             mutable_props.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
@@ -1042,10 +1043,12 @@ impl<'a> QwikTransform<'a> {
         (mutable, immutable_props, children, flags)
     }
 
+    #[allow(clippy::cognitive_complexity)]
     fn internal_handle_jsx_props_obj(
         &mut self,
-        is_fn: bool,
         expr: ast::ExprOrSpread,
+        is_fn: bool,
+        is_text_only: bool,
     ) -> (
         Vec<ast::PropOrSpread>,
         Vec<ast::PropOrSpread>,
@@ -1084,15 +1087,23 @@ impl<'a> QwikTransform<'a> {
                                     let transformed_children = if let Some(new_children) =
                                         self.convert_children(&folded)
                                     {
-                                        Box::new(new_children.fold_with(self))
+                                        if is_text_only {
+                                            self.jsx_mutable = true;
+                                            folded.fold_with(self)
+                                        } else {
+                                            Box::new(new_children.fold_with(self))
+                                        }
                                     } else {
                                         folded.fold_with(self)
                                     };
                                     if self.jsx_mutable {
                                         static_subtree = false;
+                                    } else {
+                                        self.jsx_mutable = prev;
                                     }
-                                    self.jsx_mutable = prev;
                                     if is_fn {
+                                        self.jsx_mutable = true;
+                                        static_subtree = false;
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
                                                 key: node.key.clone(),
@@ -1218,13 +1229,12 @@ impl<'a> QwikTransform<'a> {
                     }
                 }
                 let mut flags = 0;
-                // if static_listeners {
-                //     flags |= 1 << 0;
-                // }
-                // if static_subtree {
-                //     flags |= 1 << 1;
-                // }
-
+                if static_listeners {
+                    flags |= 1 << 0;
+                }
+                if static_subtree {
+                    flags |= 1 << 1;
+                }
                 (mutable_props, immutable_props, children, flags)
             }
             _ => (vec![], vec![], None, 0),
@@ -1244,7 +1254,7 @@ impl<'a> QwikTransform<'a> {
                         self.jsx_mutable = true;
                     }
                 };
-                return None;
+                None
             }
             ast::Expr::Array(array) => Some(ast::Expr::Array(ast::ArrayLit {
                 span: array.span,
@@ -1267,25 +1277,7 @@ impl<'a> QwikTransform<'a> {
                     })
                     .collect(),
             })),
-            expr => {
-                let a = self.convert_to_signal_item(expr);
-                if a.is_some() {
-                    return a;
-                }
-                self.jsx_mutable = true;
-                if let ast::Expr::Member(member) = expr {
-                    self.jsx_mutable = true;
-                    let prop_sym = prop_to_string(&member.prop);
-                    if let Some(prop_sym) = prop_sym {
-                        let id = self.ensure_core_import(&_WRAP_SIGNAL);
-                        Some(make_wrap(&id, member.obj.clone(), prop_sym))
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            }
+            expr => self.convert_to_signal_item(expr),
         }
     }
 
@@ -1639,6 +1631,14 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 
     fn fold_bin_expr(&mut self, node: ast::BinExpr) -> ast::BinExpr {
+        let prev = self.root_jsx_mode;
+        self.root_jsx_mode = true;
+        let o = node.fold_children_with(self);
+        self.root_jsx_mode = prev;
+        o
+    }
+
+    fn fold_cond_expr(&mut self, node: ast::CondExpr) -> ast::CondExpr {
         let prev = self.root_jsx_mode;
         self.root_jsx_mode = true;
         let o = node.fold_children_with(self);
@@ -2072,4 +2072,11 @@ fn get_null_arg() -> ast::ExprOrSpread {
         spread: None,
         expr: Box::new(ast::Expr::Lit(ast::Lit::Null(ast::Null { span: DUMMY_SP }))),
     }
+}
+
+fn is_text_only(node: &str) -> bool {
+    matches!(
+        node,
+        "text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
+    )
 }

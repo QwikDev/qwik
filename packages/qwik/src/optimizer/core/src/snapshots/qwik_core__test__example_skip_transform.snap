@@ -23,7 +23,7 @@ import { _jsxQ } from "@builder.io/qwik";
 export const handler = $(()=>console.log('hola'));
 export const App = component$((props)=>{
     useStyles$('hola');
-    return $(()=>/*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(state, "thing"), 0, "u6_0"));
+    return $(()=>/*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(state, "thing"), 3, "u6_0"));
 });
 
 

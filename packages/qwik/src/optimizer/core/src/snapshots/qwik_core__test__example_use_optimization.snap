@@ -54,7 +54,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         ], 'p0.bar??"hello"')
     }, _fnSignal((p0)=>p0.foo, [
         store
-    ], "p0.foo"), 0, "u6_0");
+    ], "p0.foo"), 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 

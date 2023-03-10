@@ -38,7 +38,6 @@ export const ResourceApp = component$(() => {
   useContextProvider(LOGS, logs);
 
   logs.content += '[RENDER] <ResourceApp>\n';
-
   const state = useStore({
     count: 10,
     countDouble: 0,
@@ -98,6 +97,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
     }`);
   const logs = useContext(LOGS);
   logs.content += '[RENDER] <Results>\n\n\n';
+  const logscontent = logs.content;
 
   const state = useStore({
     count: 0,
@@ -122,7 +122,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
         }}
       />
 
-      <div class="logs">{logs.content}</div>
+      <div class="logs">{logscontent}</div>
     </div>
   );
 });

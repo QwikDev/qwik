@@ -134,7 +134,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         onClick$: /*#__PURE__*/ qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A")
     }, null, _fnSignal((p0)=>p0.text, [
         state
-    ], "p0.text"), 0, "u6_0");
+    ], "p0.text"), 3, "u6_0");
 };
 
 
@@ -202,7 +202,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         onClick$: /*#__PURE__*/ qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ")
     }, null, _fnSignal((p0)=>p0.text, [
         state
-    ], "p0.text"), 0, "u6_1");
+    ], "p0.text"), 3, "u6_1");
 };
 
 

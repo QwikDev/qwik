@@ -272,6 +272,7 @@ test.describe('signals', () => {
         '""',
       ]);
       await input.fill('test');
+      await page.waitForTimeout(100);
       await expect(results).toHaveText([
         '{"controls":{"ctrl":{"value":"test"}}}',
         '{"ctrl":{"value":"test"}}',

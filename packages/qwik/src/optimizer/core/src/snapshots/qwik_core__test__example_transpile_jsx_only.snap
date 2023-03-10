@@ -26,8 +26,8 @@ export const App_component_ckEPmXZlub0 = (props: Stuff)=>{
             onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto.ts"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
         }, {
             class: "stuff"
-        }, "Hello Qwik", 0, null)
-    }, 0, "u6_0");
+        }, "Hello Qwik", 3, null)
+    }, 1, "u6_0");
 };
 
 

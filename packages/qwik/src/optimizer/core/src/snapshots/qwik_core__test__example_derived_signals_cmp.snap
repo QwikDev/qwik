@@ -128,7 +128,7 @@ const App_component_ckEPmXZlub0 = ()=>{
                 signal
             ], "p0.value+unknown()")
         }
-    }, 0, "u6_0");
+    }, 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 

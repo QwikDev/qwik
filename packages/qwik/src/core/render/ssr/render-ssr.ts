@@ -12,6 +12,7 @@ import {
   pushRenderContext,
   serializeClass,
   shouldWrapFunctional,
+  static_subtree,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
@@ -101,6 +102,7 @@ const IS_ANCHOR = 1 << 6;
 const IS_BUTTON = 1 << 7;
 const IS_TABLE = 1 << 8;
 const IS_PHRASING_CONTAINER = 1 << 9;
+const IS_IMMUTABLE = 1 << 10;
 
 const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -529,7 +531,7 @@ const renderNode = (
       const attrName = processPropKey(prop);
       if (isSignal(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
-        value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
+        value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
         useSignal = true;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
@@ -736,7 +738,9 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     } else {
       flags &= ~IS_HTML;
     }
-
+    if (node.flags & static_subtree) {
+      flags |= IS_IMMUTABLE;
+    }
     const promise = processData(node.children, rCtx, ssrCtx, stream, flags);
     return then(promise, () => {
       // If head inject base styles
@@ -826,7 +830,12 @@ const processData = (
     if (hostEl) {
       if (!insideText) {
         const id = getNextIndex(rCtx);
-        value = trackSignal(node, [2, hostEl, node, ('#' + id) as any]);
+        const subs =
+          flags & IS_IMMUTABLE
+            ? ([3, ('#' + id) as any, node, ('#' + id) as any] as const)
+            : ([4, hostEl, node, ('#' + id) as any] as const);
+
+        value = trackSignal(node, subs);
         stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {

@@ -62,16 +62,16 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
                 ], "p0.count")
             }, _fnSignal((p0)=>p0.nested.count, [
                 props
-            ], "p0.nested.count"), 0, null),
+            ], "p0.nested.count"), 3, null),
             /*#__PURE__*/ _jsxQ("p", null, null, [
                 "Value ",
                 _fnSignal((p0)=>p0.count, [
                     props
                 ], "p0.count"),
-                /*#__PURE__*/ _jsxQ("span", null, null, null, 0, null)
-            ], 0, null)
+                /*#__PURE__*/ _jsxQ("span", null, null, null, 3, null)
+            ], 3, null)
         ]
-    }, 0, "u6_1");
+    }, 1, "u6_1");
 };
 
 
@@ -142,7 +142,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 signal
             ], 'p0.formData?.get("username")')
         }
-    }, 0, "u6_0");
+    }, 3, "u6_0");
 };
 
 

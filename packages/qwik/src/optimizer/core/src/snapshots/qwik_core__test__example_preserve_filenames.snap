@@ -27,8 +27,8 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props: S
             onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto")
         }, {
             class: "stuff"
-        }, "Hello Qwik", 0, null)
-    }, 0, "u6_0");
+        }, "Hello Qwik", 3, null)
+    }, 1, "u6_0");
 }, "App_component_ckEPmXZlub0"));
 
 

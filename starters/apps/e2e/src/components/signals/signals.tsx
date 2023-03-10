@@ -59,6 +59,7 @@ export const SignalsChildren = component$(() => {
   });
 
   renders.count++;
+  const rerenders = renders.count;
   return (
     <div aria-label={store.attribute}>
       <button
@@ -94,7 +95,7 @@ export const SignalsChildren = component$(() => {
       >
         Black background
       </button>
-      <div id="parent-renders">Parent renders: {renders.count}</div>
+      <div id="parent-renders">Parent renders: {rerenders}</div>
       <Child
         text="Message"
         count={store.foo}
@@ -142,9 +143,10 @@ export const Child = component$((props: ChildProps) => {
     { reactive: false }
   );
   renders.count++;
+  const rerenders = renders.count;
   return (
     <>
-      <div id="child-renders">Child renders: {renders.count}</div>
+      <div id="child-renders">Child renders: {rerenders}</div>
       <div id="text" ref={props.ref}>
         Text: {props.text}
       </div>

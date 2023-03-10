@@ -205,3 +205,6 @@ export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
   }
   return false;
 };
+
+// const static_listeners = 1 << 0;
+export const static_subtree = 1 << 1;

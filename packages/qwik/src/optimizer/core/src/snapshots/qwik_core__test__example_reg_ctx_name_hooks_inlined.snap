@@ -23,7 +23,7 @@ import { _jsxQ } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return /*#__PURE__*/ _jsxQ("div", {
         onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
-    }, null, null, 0, "u6_0");
+    }, null, null, 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 

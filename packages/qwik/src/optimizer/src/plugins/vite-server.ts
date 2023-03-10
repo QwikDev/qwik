@@ -38,7 +38,10 @@ export async function configureDevServer(
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
-      const domain = 'http://' + (req.headers.host ?? 'localhost');
+      const domain =
+        ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http') +
+        '://' +
+        (req.headers[':authority'] ?? req.headers['host'] ?? 'localhost');
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {

@@ -1043,7 +1043,7 @@ impl<'a> QwikTransform<'a> {
         (mutable, immutable_props, children, flags)
     }
 
-    #[allow(clippy::cognitive_complexity)]
+    #[allow(clippy::wrong_self_convention)]
     fn internal_handle_jsx_props_obj(
         &mut self,
         expr: ast::ExprOrSpread,
@@ -1102,8 +1102,8 @@ impl<'a> QwikTransform<'a> {
                                         self.jsx_mutable = prev;
                                     }
                                     if is_fn {
-                                        self.jsx_mutable = true;
-                                        static_subtree = false;
+                                        // self.jsx_mutable = true;
+                                        // static_subtree = false;
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
                                                 key: node.key.clone(),

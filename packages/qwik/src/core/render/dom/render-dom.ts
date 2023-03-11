@@ -47,8 +47,10 @@ export const renderComponent = (
     const processedJSXNode = processData(res.node, invocationContext);
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
+      // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
       return then(visitJsxNode(newCtx, oldVdom, newVdom, flags), () => {
+        // setVdom(hostElement, newVdom);
         elCtx.$vdom$ = newVdom;
       });
     });
@@ -61,6 +63,19 @@ export const getVdom = (elCtx: QContext) => {
   }
   return elCtx.$vdom$;
 };
+
+// export const getVdom = (el: Node | VirtualElement): ProcessedJSXNode => {
+//   let vdom = (el as any).$vdom$;
+//   if (!vdom) {
+//     (el as any).$vdom$ = vdom = domToVnode(el);
+//   }
+//   return vdom;
+// };
+
+// export const setVdom = (el: Node | VirtualElement, vdom: ProcessedJSXNode) => {
+//   (el as any).$vdom$ = vdom;
+//   vdom.$elm$ = el;
+// };
 
 export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $elm$: Node | VirtualElement | null = null;
@@ -90,7 +105,7 @@ export const processNode = (
   } else if (type === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(type)) {
-    const res = invoke(invocationContext, type, props, key);
+    const res = invoke(invocationContext, type, props, key, flags);
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }

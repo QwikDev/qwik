@@ -153,6 +153,7 @@ export class VirtualElementImpl implements VirtualElement {
   remove() {
     const parent = this.parentElement;
     if (parent) {
+      // const ch = this.childNodes;
       const ch = Array.from(this.childNodes);
       assertEqual(this.template.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
@@ -166,6 +167,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
 
   insertBeforeTo(newParent: QwikElement, child: Node | null) {
+    // const ch = this.childNodes;
     const ch = Array.from(this.childNodes);
     // TODO
     // if (this.parentElement) {

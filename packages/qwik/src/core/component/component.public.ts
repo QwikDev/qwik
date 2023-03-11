@@ -136,7 +136,7 @@ export const componentQrl = <PROPS extends {}>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
-  function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
+  function QwikComponent(props: PublicProps<PROPS>, key: string | null, flags: number): JSXNode {
     assertQrl(componentQrl);
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
@@ -149,7 +149,7 @@ export const componentQrl = <PROPS extends {}>(
         children: props.children,
         props,
       },
-      0,
+      flags,
       finalKey
     ) as any;
   }

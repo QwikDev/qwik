@@ -153,6 +153,28 @@ export const serializeClass = (obj: ClassList): string => {
   );
 };
 
+// export const serializeClass = (obj: ClassList): string => {
+//   if (!obj) return '';
+//   if (isString(obj)) return obj.trim();
+
+//   let reduced = '';
+//   if (isArray(obj)) {
+//     for (const o of obj) {
+//       const classList = serializeClass(o);
+//       if (classList) {
+//         reduced += ' ' + classList.trim();
+//       }
+//     }
+//   } else {
+//     for (const key of Object.keys(obj)) {
+//       if (obj[key]) {
+//         reduced += ' ' + key;
+//       }
+//     }
+//   }
+//   return reduced.trim();
+// };
+
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) return '';
   if (typeof obj == 'object') {

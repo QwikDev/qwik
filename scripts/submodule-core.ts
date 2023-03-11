@@ -125,15 +125,12 @@ async function submoduleCoreProd(config: BuildConfig) {
                 'globalThis.qRuntimeQrl': false,
                 'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
               },
+              inline: false,
               ecma: 2020,
               passes: 3,
             },
-            mangle: {
-              toplevel: true,
-              properties: {
-                regex: '^\\$.+\\$$',
-              },
-            },
+            mangle: false,
+
             format: {
               comments: /__PURE__/,
               preserve_annotations: true,

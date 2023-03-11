@@ -86,6 +86,7 @@ const renderRoot = async (
 
   try {
     const processedNodes = await processData(jsxNode);
+    // const rootJsx = getVdom(parent);
     const rootJsx = domToVnode(parent);
     await visitJsxNode(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
   } catch (err) {
@@ -97,8 +98,8 @@ const renderRoot = async (
 
   if (qDev) {
     appendQwikDevTools(containerEl);
-    printRenderStats(staticCtx);
   }
+  printRenderStats(staticCtx);
   return rCtx;
 };
 

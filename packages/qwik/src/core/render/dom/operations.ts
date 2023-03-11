@@ -260,9 +260,6 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
   }
 };
 
-export const createTextNode = (doc: Document, text: string): Text => {
-  return doc.createTextNode(text);
-};
 
 export const printRenderStats = (staticCtx: RenderStaticContext) => {
   if (qDev) {

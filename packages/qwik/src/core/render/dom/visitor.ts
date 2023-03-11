@@ -17,7 +17,12 @@ import {
   isText,
   isVirtualElement,
 } from '../../util/element';
-import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
+import {
+  getVdom,
+  ProcessedJSXNode,
+  ProcessedJSXNodeImpl,
+  renderComponent,
+} from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
   isAriaAttribute,
@@ -43,7 +48,6 @@ import {
   appendChild,
   createElement,
   createTemplate,
-  createTextNode,
   executeDOMRender,
   getKey,
   insertBefore,
@@ -274,6 +278,9 @@ export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | Virtu
   }
 };
 
+// const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
+//   return getChildren(elm, mode).map(getVdom);
+// };
 const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
   return getChildren(elm, mode).map(getVnodeFromEl);
 };
@@ -289,7 +296,7 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
   if (isQwikElement(node)) {
     const t = new ProcessedJSXNodeImpl(
       node.localName,
-      EMPTY_OBJ,
+      {},
       null,
       CHILDREN_PLACEHOLDER,
       0,
@@ -298,14 +305,7 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
     t.$elm$ = node;
     return t;
   } else if (isText(node)) {
-    const t = new ProcessedJSXNodeImpl(
-      node.nodeName,
-      EMPTY_OBJ,
-      null,
-      CHILDREN_PLACEHOLDER,
-      0,
-      null
-    );
+    const t = new ProcessedJSXNodeImpl(node.nodeName, EMPTY_OBJ, null, CHILDREN_PLACEHOLDER, 0, null);
     t.$text$ = node.data;
     t.$elm$ = node;
     return t;
@@ -458,8 +458,8 @@ export const patchVnode = (
   }
 
   const cmpProps = props.props;
-  let needsRender = setComponentProps(elCtx, rCtx, cmpProps);
-
+  setComponentProps(elCtx, rCtx, cmpProps);
+  let needsRender = !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
   // TODO: review this corner case
   if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
     setQId(rCtx, elCtx);
@@ -501,6 +501,7 @@ const renderContentProjection = (
       const slotEl = slotMaps.slots[key];
       const oldCh = getChildrenVnodes(slotEl, 'root');
       if (oldCh.length > 0) {
+        // getVdom(slotEl).$children$ = [];
         const slotCtx = tryGetContext(slotEl);
         if (slotCtx && slotCtx.$vdom$) {
           slotCtx.$vdom$.$children$ = [];
@@ -535,6 +536,11 @@ const renderContentProjection = (
       slotRctx.$slotCtx$ = slotCtx;
       slotCtx.$vdom$ = newVdom;
       newVdom.$elm$ = slotCtx.$element$;
+
+      // const oldVdom = getVdom(slotCtx.$element$);
+      // const slotRctx = pushRenderContext(rCtx);
+      // slotRctx.$slotCtx$ = slotCtx;
+      // setVdom(slotCtx.$element$, newVdom);
       const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotCtx.$element$);
       if (index >= 0) {
         staticCtx.$addSlots$.splice(index, 1);
@@ -616,7 +622,7 @@ const createElm = (
   const currentComponent = rCtx.$cmpCtx$;
   if (tag === '#text') {
     const signal = vnode.$signal$;
-    const elm = createTextNode(doc, vnode.$text$);
+    const elm = doc.createTextNode(vnode.$text$);
     if (signal) {
       assertDefined(currentComponent, 'signals can not be used outside components');
       const subs =
@@ -677,6 +683,7 @@ const createElm = (
     assertTrue(isVirtual, 'component must be a virtual element');
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
+    elCtx.$props$ = createProxy(createPropsState(), rCtx.$static$.$containerState$);
     setComponentProps(elCtx, rCtx, props.props);
     setQId(rCtx, elCtx);
 
@@ -779,6 +786,9 @@ const createElm = (
   if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
     children = children[0].$children$;
   }
+  // for (const ch of children) {
+  //   directAppendChild(elm, createElm(rCtx, ch, flags, promises));
+  // }
   const nodes = children.map((ch) => createElm(rCtx, ch, flags, promises));
   for (const node of nodes) {
     directAppendChild(elm, node);
@@ -826,7 +836,7 @@ const readDOMSlots = (elCtx: QContext): ProcessedJSXNode[] => {
 };
 
 const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
-  setProperty(ctx, elm.style, 'cssText', stringifyStyle(newValue));
+  setProperty(ctx, elm.style, 'cssText', newValue);
   return true;
 };
 
@@ -894,11 +904,11 @@ export const updateProperties = (
   newProps: Record<string, any>,
   isSvg: boolean
 ): Record<string, any> => {
+  const values: Record<string, any> = { ...oldProps };
   if (newProps === EMPTY_OBJ) {
-    return EMPTY_OBJ;
+    return values;
   }
   const keys = Object.keys(newProps);
-  const values: Record<string, any> = {};
   const elm = elCtx.$element$;
   for (const prop of keys) {
     let newValue = newProps[prop];
@@ -919,10 +929,12 @@ export const updateProperties = (
     if (isSignal(newValue)) {
       newValue = trackSignal(newValue, [1, hostCtx.$element$, newValue, elm, prop]);
     }
-    if (prop === 'class') {
-      newValue = serializeClassWithHost(newValue, hostCtx);
-    }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
+    if (normalizedProp === 'class') {
+      newValue = serializeClassWithHost(newValue, hostCtx);
+    } else if (normalizedProp === 'style') {
+      newValue = stringifyStyle(newValue);
+    }
     const oldValue = oldProps[normalizedProp];
     values[normalizedProp] = newValue;
     if (oldValue === newValue) {
@@ -1010,11 +1022,11 @@ export const setProperties = (
   isSvg: boolean,
   immutable: boolean
 ): Record<string, any> => {
+  const values: Record<string, any> = {};
   if (newProps === EMPTY_OBJ) {
-    return EMPTY_OBJ;
+    return values;
   }
   const elm = elCtx.$element$;
-  const values: Record<string, any> = {};
   const keys = Object.keys(newProps);
   for (const prop of keys) {
     let newValue = newProps[prop];
@@ -1046,6 +1058,8 @@ export const setProperties = (
     if (normalizedProp === 'class') {
       if (qDev && values.class) throw new TypeError('Can only provide one of class or className');
       newValue = serializeClassWithHost(newValue, hostCtx);
+    } else if (prop === 'style') {
+      newValue = stringifyStyle(newValue);
     }
     values[normalizedProp] = newValue;
     smartSetProperty(staticCtx, elm, prop, newValue, isSvg);
@@ -1090,7 +1104,6 @@ export const setComponentProps = (
       }
     }
   }
-  return !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
 };
 
 export const cleanupTree = (

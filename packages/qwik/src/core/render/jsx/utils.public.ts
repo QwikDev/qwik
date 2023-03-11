@@ -83,6 +83,6 @@ export interface SSRHintProps {
 /**
  * @alpha
  */
-export const SSRHint: FunctionComponent<SSRHintProps> = ((props: any) => props.children) as any;
+export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 
 export const InternalSSRStream: FunctionComponent<SSRStreamProps> = () => null;

@@ -791,8 +791,9 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   }
   if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
     ssrCtx.$static$.$dynamic$ = true;
+    return;
   }
-  const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key);
+  const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key, node.flags);
   if (!shouldWrapFunctional(res, node)) {
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
   }
@@ -935,7 +936,7 @@ const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
     children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {
-    const res = invoke(ssrCtx.$invocationContext$, children.type, children.props, children.key);
+    const res = invoke(ssrCtx.$invocationContext$, children.type, children.props, children.key, children.flags);
     return flatVirtualChildren(res, ssrCtx);
   }
   return children;
@@ -976,11 +977,11 @@ const processPropKey = (prop: string) => {
 };
 
 const processPropValue = (prop: string, value: any): string | null => {
-  if (prop === 'style') {
-    return stringifyStyle(value);
-  }
   if (prop === 'class') {
     return serializeClass(value);
+  }
+  if (prop === 'style') {
+    return stringifyStyle(value);
   }
   if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
     return value != null ? String(value) : value;

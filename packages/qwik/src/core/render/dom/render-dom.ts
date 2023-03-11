@@ -81,6 +81,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $elm$: Node | VirtualElement | null = null;
   $text$: string = '';
   $signal$: Signal<any> | null = null;
+  $id$: string;
 
   constructor(
     public $type$: string,
@@ -90,6 +91,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
     public $flags$: number,
     public $key$: string | null
   ) {
+    this.$id$ = $type$ + ($key$ ? ':' + $key$ : '');
     seal(this);
   }
 }
@@ -193,6 +195,7 @@ export const isPrimitive = (obj: any) => {
 
 export interface ProcessedJSXNode {
   $type$: string;
+  $id$: string;
   $props$: Record<string, any>;
   $immutableProps$: Record<string, any> | null;
   $flags$: number;

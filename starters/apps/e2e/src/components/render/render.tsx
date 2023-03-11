@@ -55,6 +55,8 @@ export const Render = component$(() => {
         id="props-destructuring-count"
         aria-count={state.count}
       />
+
+      <IssueReorder />
     </>
   );
 });
@@ -319,5 +321,41 @@ export const Issue3116 = component$(() => {
         render$={(products) => <div id="issue-3116-result">{products.join('hi')}</div>}
       />
     </>
+  );
+});
+
+export const IssueReorder = component$(() => {
+  const cond = useSignal(false);
+
+  return (
+    <div>
+      {!cond.value && (
+        <p id="running" class="issue-order">
+          TOP
+        </p>
+      )}
+
+      <div class="issue-order" data-value="first">
+        1. First
+      </div>
+      <div class="issue-order" data-value="second">
+        2. Second
+      </div>
+
+      {cond.value && (
+        <p id="form-error" class="issue-order">
+          BOTTOM
+        </p>
+      )}
+      <button
+        id="issue-order-btn"
+        type="button"
+        onClick$={() => {
+          cond.value = true;
+        }}
+      >
+        Submit
+      </button>
+    </div>
   );
 });

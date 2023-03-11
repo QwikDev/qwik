@@ -936,7 +936,13 @@ const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
     children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {
-    const res = invoke(ssrCtx.$invocationContext$, children.type, children.props, children.key, children.flags);
+    const res = invoke(
+      ssrCtx.$invocationContext$,
+      children.type,
+      children.props,
+      children.key,
+      children.flags
+    );
     return flatVirtualChildren(res, ssrCtx);
   }
   return children;

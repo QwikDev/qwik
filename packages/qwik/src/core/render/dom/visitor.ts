@@ -17,12 +17,7 @@ import {
   isText,
   isVirtualElement,
 } from '../../util/element';
-import {
-  getVdom,
-  ProcessedJSXNode,
-  ProcessedJSXNodeImpl,
-  renderComponent,
-} from './render-dom';
+import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
   isAriaAttribute,
@@ -182,15 +177,15 @@ export const updateChildren = (
       newStartVnode = newCh[++newStartIdx];
     } else if (newEndVnode == null) {
       newEndVnode = newCh[--newEndIdx];
-    } else if (sameVnode(oldStartVnode, newStartVnode)) {
+    } else if (oldStartVnode.$id$ === newStartVnode.$id$) {
       results.push(patchVnode(ctx, oldStartVnode, newStartVnode, flags));
       oldStartVnode = oldCh[++oldStartIdx];
       newStartVnode = newCh[++newStartIdx];
-    } else if (sameVnode(oldEndVnode, newEndVnode)) {
+    } else if (oldEndVnode.$id$ === newEndVnode.$id$) {
       results.push(patchVnode(ctx, oldEndVnode, newEndVnode, flags));
       oldEndVnode = oldCh[--oldEndIdx];
       newEndVnode = newCh[--newEndIdx];
-    } else if (sameVnode(oldStartVnode, newEndVnode)) {
+    } else if (oldStartVnode.$key$ && oldStartVnode.$id$ === newEndVnode.$id$) {
       assertDefined(oldStartVnode.$elm$, 'oldStartVnode $elm$ must be defined');
       assertDefined(oldEndVnode.$elm$, 'oldEndVnode $elm$ must be defined');
 
@@ -199,7 +194,7 @@ export const updateChildren = (
       insertBefore(staticCtx, parentElm, oldStartVnode.$elm$, oldEndVnode.$elm$.nextSibling);
       oldStartVnode = oldCh[++oldStartIdx];
       newEndVnode = newCh[--newEndIdx];
-    } else if (sameVnode(oldEndVnode, newStartVnode)) {
+    } else if (oldEndVnode.$key$ && oldEndVnode.$id$ === newStartVnode.$id$) {
       assertDefined(oldStartVnode.$elm$, 'oldStartVnode $elm$ must be defined');
       assertDefined(oldEndVnode.$elm$, 'oldEndVnode $elm$ must be defined');
 
@@ -219,7 +214,7 @@ export const updateChildren = (
         insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
       } else {
         elmToMove = oldCh[idxInOld];
-        if (!isTagName(elmToMove, newStartVnode.$type$)) {
+        if (elmToMove.$type$ !== newStartVnode.$type$) {
           const newElm = createElm(ctx, newStartVnode, flags, results);
           then(newElm, (newElm) => {
             insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
@@ -305,7 +300,14 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
     t.$elm$ = node;
     return t;
   } else if (isText(node)) {
-    const t = new ProcessedJSXNodeImpl(node.nodeName, EMPTY_OBJ, null, CHILDREN_PLACEHOLDER, 0, null);
+    const t = new ProcessedJSXNodeImpl(
+      node.nodeName,
+      EMPTY_OBJ,
+      null,
+      CHILDREN_PLACEHOLDER,
+      0,
+      null
+    );
     t.$text$ = node.data;
     t.$elm$ = node;
     return t;
@@ -377,6 +379,7 @@ export const patchVnode = (
 ): ValueOrPromise<void> => {
   assertEqual(oldVnode.$type$, newVnode.$type$, 'old and new vnodes type must be the same');
   assertEqual(oldVnode.$key$, newVnode.$key$, 'old and new vnodes key must be the same');
+  assertEqual(oldVnode.$id$, newVnode.$id$, 'old and new vnodes key must be the same');
   const elm = oldVnode.$elm$;
   const tag = newVnode.$type$;
   const staticCtx = rCtx.$static$;
@@ -679,7 +682,6 @@ const createElm = (
   elCtx.$parent$ = rCtx.$cmpCtx$;
   elCtx.$slotParent$ = rCtx.$slotCtx$;
   if (isComponent) {
-    setKey(elm, vnode.$key$);
     assertTrue(isVirtual, 'component must be a virtual element');
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
@@ -754,7 +756,6 @@ const createElm = (
   if (isSlot) {
     assertDefined(currentComponent, 'slot can only be used inside component');
     assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
-    setKey(elm, vnode.$key$);
 
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
     currentComponent.$slots$.push(vnode);
@@ -1187,15 +1188,4 @@ const browserSetEvent = (
     setAttribute(staticCtx, elCtx.$element$, normalized, '');
   }
   addQwikEvent(normalized, containerState);
-};
-
-const sameVnode = (vnode1: ProcessedJSXNode, vnode2: ProcessedJSXNode): boolean => {
-  if (vnode1.$type$ !== vnode2.$type$) {
-    return false;
-  }
-  return vnode1.$key$ === vnode2.$key$;
-};
-
-const isTagName = (elm: ProcessedJSXNode, tagName: string): boolean => {
-  return elm.$type$ === tagName;
 };

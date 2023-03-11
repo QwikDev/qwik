@@ -1043,7 +1043,7 @@ impl<'a> QwikTransform<'a> {
         (mutable, immutable_props, children, flags)
     }
 
-    #[allow(clippy::wrong_self_convention)]
+    #[allow(clippy::cognitive_complexity)]
     fn internal_handle_jsx_props_obj(
         &mut self,
         expr: ast::ExprOrSpread,

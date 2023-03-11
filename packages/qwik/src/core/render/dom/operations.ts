@@ -260,7 +260,6 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
   }
 };
 
-
 export const printRenderStats = (staticCtx: RenderStaticContext) => {
   if (qDev) {
     if (typeof window !== 'undefined' && window.document != null) {

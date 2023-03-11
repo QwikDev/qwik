@@ -120,7 +120,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                     class: "class"
                 }, "12", 3, null)
             ]
-        }, 1, "u6_2"),
+        }, 3, "u6_2"),
         /*#__PURE__*/ _jsxQ("div", null, {
             class: "class"
         }, /*#__PURE__*/ _jsxC(Lightweight, {

@@ -110,7 +110,7 @@ export function Fn1(props) {
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_2") : /*#__PURE__*/ _jsxC(Stuff, {
             children: "2"
-        }, 1, "u6_3"), 1, null)
+        }, 3, "u6_3"), 1, null)
     }, 1, "u6_4");
 }
 export function Fn2(props) {
@@ -129,13 +129,13 @@ export function Fn4(props) {
 }
 export const Arrow = (props)=>/*#__PURE__*/ _jsxBranch(/*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_14") : /*#__PURE__*/ _jsxC(Stuff, {
         children: "2"
-    }, 1, "u6_15"), 1, "u6_16"));
+    }, 3, "u6_15"), 1, "u6_16"));
 const AppDynamic1_component_R00UJ05gbes = (props)=>{
     _jsxBranch();
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_19") : /*#__PURE__*/ _jsxC(Stuff, {
             children: "2"
-        }, 1, "u6_20"), 1, null)
+        }, 3, "u6_20"), 1, null)
     }, 1, "u6_21");
 };
 export const AppDynamic1 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic1_component_R00UJ05gbes, "AppDynamic1_component_R00UJ05gbes"));

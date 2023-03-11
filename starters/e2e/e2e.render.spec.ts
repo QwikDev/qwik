@@ -175,4 +175,13 @@ test.describe('render', () => {
 
     await expect(result).toHaveText('this comes from render$');
   });
+
+  test('issue reorder', async ({ page }) => {
+    const result = page.locator('.issue-order');
+    const button = page.locator('#issue-order-btn');
+    await expect(result).toHaveText(['TOP', '1. First', '2. Second']);
+
+    await button.click();
+    await expect(result).toHaveText(['1. First', '2. Second', 'BOTTOM']);
+  });
 });

@@ -452,42 +452,38 @@ export const patchVnode = (
       return;
     }
     return smartUpdateChildren(rCtx, oldVnode, newVnode, 'root', flags);
-  } else if (!(OnRenderProp in props)) {
-    // Virtual, but not a component
-    const isSlot = QSlotS in props;
-    if (isSlot) {
-      assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
-      currentComponent.$slots$.push(newVnode);
-      return;
+  } else if (OnRenderProp in props) {
+    const cmpProps = props.props;
+    setComponentProps(elCtx, rCtx, cmpProps);
+    let needsRender = !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
+    // TODO: review this corner case
+    if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
+      setQId(rCtx, elCtx);
+      elCtx.$componentQrl$ = cmpProps[OnRenderProp];
+      assertQrl(elCtx.$componentQrl$ as any);
+      needsRender = true;
     }
-    if (vnodeFlags & static_subtree) {
-      return;
+
+    // Rendering of children of component is more complicated,
+    // since the children must be projected into the rendered slots
+    // In addition, nested childen might need rerendering, if that's the case
+    // we need to render the nested component, and wait before projecting the content
+    // since otherwise we don't know where the slots
+    if (needsRender) {
+      return then(renderComponent(rCtx, elCtx, flags), () =>
+        renderContentProjection(rCtx, elCtx, newVnode, flags)
+      );
     }
-    return smartUpdateChildren(rCtx, oldVnode, newVnode, 'root', flags);
+    return renderContentProjection(rCtx, elCtx, newVnode, flags);
+  } else if (QSlotS in props) {
+    assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
+    currentComponent.$slots$.push(newVnode);
+    return;
   }
-
-  const cmpProps = props.props;
-  setComponentProps(elCtx, rCtx, cmpProps);
-  let needsRender = !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
-  // TODO: review this corner case
-  if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
-    setQId(rCtx, elCtx);
-    elCtx.$componentQrl$ = cmpProps[OnRenderProp];
-    assertQrl(elCtx.$componentQrl$ as any);
-    needsRender = true;
+  if (vnodeFlags & static_subtree) {
+    return;
   }
-
-  // Rendering of children of component is more complicated,
-  // since the children must be projected into the rendered slots
-  // In addition, nested childen might need rerendering, if that's the case
-  // we need to render the nested component, and wait before projecting the content
-  // since otherwise we don't know where the slots
-  if (needsRender) {
-    return then(renderComponent(rCtx, elCtx, flags), () =>
-      renderContentProjection(rCtx, elCtx, newVnode, flags)
-    );
-  }
-  return renderContentProjection(rCtx, elCtx, newVnode, flags);
+  return smartUpdateChildren(rCtx, oldVnode, newVnode, 'root', flags);
 };
 
 const renderContentProjection = (

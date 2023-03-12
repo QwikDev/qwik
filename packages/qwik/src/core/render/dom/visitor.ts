@@ -4,7 +4,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qInspector, qSerialize, qTest } from '../../util/qdev';
+import { qDev, qInspector, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -51,6 +51,7 @@ import {
   removeNode,
   setAttribute,
   setKey,
+  // setKey,
   setProperty,
 } from './operations';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -370,10 +371,10 @@ export const patchVnode = (
   assertDefined(currentComponent, 'while patching current component must be defined');
 
   newVnode.$elm$ = elm;
-  rCtx.$static$.$visited$.push(elm);
 
   // Render text nodes
   if (tag === '#text') {
+    rCtx.$static$.$visited$.push(elm);
     const signal = newVnode.$signal$;
     if (signal) {
       newVnode.$text$ = jsxToString(
@@ -398,6 +399,7 @@ export const patchVnode = (
     }
 
     if (props !== EMPTY_OBJ) {
+      // elCtx.$vdom$ = newVnode;
       if ((vnodeFlags & static_listeners) === 0) {
         elCtx.li.length = 0;
       }
@@ -643,7 +645,6 @@ const createElm = (
   }
 
   let elm: QwikElement;
-  let isHead = !!(flags & IS_HEAD);
   let isSvg = !!(flags & IS_SVG);
   if (!isSvg && tag === 'svg') {
     flags |= IS_SVG;
@@ -651,14 +652,12 @@ const createElm = (
   }
   const isVirtual = tag === VIRTUAL;
   const props = vnode.$props$;
-  const isComponent = OnRenderProp in props;
   const staticCtx = rCtx.$static$;
   if (isVirtual) {
     elm = newVirtualElement(doc);
   } else if (tag === 'head') {
     elm = doc.head;
     flags |= IS_HEAD;
-    isHead = true;
   } else {
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
@@ -666,27 +665,57 @@ const createElm = (
   if (vnode.$flags$ & static_subtree) {
     flags |= IS_IMMUTABLE;
   }
-  if (qDev && qInspector) {
-    const dev = vnode.$dev$;
-    if (dev) {
-      directSetAttribute(
-        elm,
-        'data-qwik-inspector',
-        `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
-      );
-    }
-  }
 
   vnode.$elm$ = elm;
-  if (isSvg && tag === 'foreignObject') {
-    isSvg = false;
-    flags &= ~IS_SVG;
-  }
   const elCtx = createContext(elm);
   elCtx.$parent$ = rCtx.$cmpCtx$;
   elCtx.$slotParent$ = rCtx.$slotCtx$;
-  if (isComponent) {
-    assertTrue(isVirtual, 'component must be a virtual element');
+  if (!isVirtual) {
+    if (qDev && qInspector) {
+      const dev = vnode.$dev$;
+      if (dev) {
+        directSetAttribute(
+          elm,
+          'data-qwik-inspector',
+          `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+        );
+      }
+    }
+    vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
+    if (vnode.$immutableProps$) {
+      setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
+    }
+    if (isSvg && tag === 'foreignObject') {
+      isSvg = false;
+      flags &= ~IS_SVG;
+    }
+    if (currentComponent) {
+      const listeners = elCtx.li;
+      const scopedIds = currentComponent.$scopeIds$;
+      if (scopedIds) {
+        scopedIds.forEach((styleId) => {
+          (elm as Element).classList.add(styleId);
+        });
+      }
+      if (currentComponent.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
+        listeners.push(...currentComponent.li);
+        currentComponent.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
+      }
+    }
+    setKey(elm, vnode.$key$);
+
+    const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
+    if (setsInnerHTML) {
+      if (qDev && vnode.$children$.length > 0) {
+        logWarn('Node can not have children when innerHTML is set');
+      }
+      return elm;
+    }
+    if (isSvg && tag === 'foreignObject') {
+      isSvg = false;
+      flags &= ~IS_SVG;
+    }
+  } else if (OnRenderProp in props) {
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
     elCtx.$props$ = createProxy(createPropsState(), rCtx.$static$.$containerState$);
@@ -735,55 +764,19 @@ const createElm = (
       promises.push(wait);
     }
     return elm;
-  }
+  } else if (QSlotS in props) {
+    // TODO
+    vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
 
-  const isSlot = isVirtual && QSlotS in props;
-  const hasRef = !isVirtual && 'ref' in props;
-  const listeners = elCtx.li;
-  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
-  if (vnode.$immutableProps$) {
-    setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
-  }
-  if (currentComponent && !isVirtual) {
-    const scopedIds = currentComponent.$scopeIds$;
-    if (scopedIds) {
-      scopedIds.forEach((styleId) => {
-        (elm as Element).classList.add(styleId);
-      });
-    }
-    if (currentComponent.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
-      listeners.push(...currentComponent.li);
-      currentComponent.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
-    }
-  }
-
-  if (isSlot) {
     assertDefined(currentComponent, 'slot can only be used inside component');
     assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
 
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
-  }
-
-  if (qSerialize) {
     setKey(elm, vnode.$key$);
-
-    if (isHead && !isVirtual) {
-      directSetAttribute(elm as Element, 'q:head', '');
-    }
-    if (listeners.length > 0 || hasRef) {
-      setQId(rCtx, elCtx);
-    }
   }
 
-  const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
-  if (setsInnerHTML) {
-    if (qDev && vnode.$children$.length > 0) {
-      logWarn('Node can not have children when innerHTML is set');
-    }
-    return elm;
-  }
   let children = vnode.$children$;
   if (children.length === 0) {
     return elm;
@@ -791,9 +784,6 @@ const createElm = (
   if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
     children = children[0].$children$;
   }
-  // for (const ch of children) {
-  //   directAppendChild(elm, createElm(rCtx, ch, flags, promises));
-  // }
   const nodes = children.map((ch) => createElm(rCtx, ch, flags, promises));
   for (const node of nodes) {
     directAppendChild(elm, node);

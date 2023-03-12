@@ -77,8 +77,8 @@ export const executeSignalOperation = (
 //           elm = operation[3];
 //           hostElm = operation[1];
 //         }
-
-//         if (tryGetContext(elm) == null) {
+//         const elCtx = tryGetContext(elm);
+//         if (elCtx == null) {
 //           return;
 //         }
 //         const prop = operation[4];
@@ -89,11 +89,11 @@ export const executeSignalOperation = (
 //         } else if (prop === 'style') {
 //           value = stringifyStyle(value);
 //         }
-//         const vdom = getVdom(elm);
-//         if (vdom.$props$[prop] === value) {
-//           return;
-//         }
-//         vdom.$props$[prop] = value;
+//         // const vdom = getVdom(elCtx);
+//         // if (vdom.$props$[prop] === value) {
+//         //   return;
+//         // }
+//         // vdom.$props$[prop] = value;
 //         return smartSetProperty(staticCtx, elm, prop, value, isSVG);
 //       }
 //       case 3:
@@ -107,11 +107,11 @@ export const executeSignalOperation = (
 //           // hostElm = operation[1];
 //         }
 //         if (!staticCtx.$visited$.includes(elm)) {
-//           const vdom = getVdom(elm);
+//           // const vdom = getVdom(elm);
 //           const value = operation[2].value;
-//           if (vdom.$text$ === value) {
-//             return;
-//           }
+//           // if (vdom.$text$ === value) {
+//           //   return;
+//           // }
 //           return setProperty(staticCtx, elm, 'data', jsxToString(value));
 //         }
 //       }

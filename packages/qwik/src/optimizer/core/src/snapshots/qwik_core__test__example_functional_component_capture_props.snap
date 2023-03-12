@@ -138,7 +138,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
         v1,
         v2,
         v3
-    ], 1, "u6_0");
+    ], 0, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 

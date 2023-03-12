@@ -97,7 +97,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 onClick$: props.onClick$
             }, {
                 class: "stuff"
-            }, "Hello Qwik", 3, null),
+            }, "Hello Qwik", 2, null),
             /*#__PURE__*/ _jsxC(Div, {
                 onClick$: props.onClick$,
                 transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
@@ -125,7 +125,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     immutable4$: _IMMUTABLE,
                     immutable5: _IMMUTABLE
                 }
-            }, 3, "u6_0"),
+            }, 2, "u6_0"),
             /*#__PURE__*/ _jsxC(Div, {
                 class: state,
                 get mutable1 () {

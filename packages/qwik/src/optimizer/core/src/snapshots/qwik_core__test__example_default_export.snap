@@ -55,9 +55,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", {
+    return /*#__PURE__*/ _jsxQ("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./entry______slug__.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
-    }, null, null, 3, "W4_0");
+    }, null, 3, "W4_0");
 };
 
 

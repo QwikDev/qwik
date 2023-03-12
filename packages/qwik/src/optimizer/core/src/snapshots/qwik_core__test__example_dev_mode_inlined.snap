@@ -23,17 +23,16 @@ import { _jsxQ } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     return /*#__PURE__*/ _jsxC(Cmp, {
-        children: /*#__PURE__*/ _jsxQ("p", {
+        children: /*#__PURE__*/ _jsxQ("p", null, {
+            class: "stuff",
             onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
                 file: "/user/qwik/src/test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
             })
-        }, {
-            class: "stuff"
         }, "Hello Qwik", 3, null)
-    }, 1, "u6_0");
+    }, 3, "u6_0");
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 90,
@@ -42,7 +41,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;AAEA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAgB,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;;YAA1C,OAAM;WAA6C;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;AAEA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;AAGlE;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

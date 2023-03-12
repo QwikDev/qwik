@@ -63,14 +63,14 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
     // Code
     }, "Parent_component_useTask_gDH1EtUWqBU"));
-    return /*#__PURE__*/ _jsxQ("div", {
+    return /*#__PURE__*/ _jsxQ("div", null, {
         shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_I54ho17NmvA", [
             state
         ]),
         onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
             state
         ])
-    }, null, [
+    }, [
         /*#__PURE__*/ _jsxC(Div, {
             onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_EHccsZgCcqc"),
             render$: /*#__PURE__*/ inlinedQrl(()=>{

@@ -488,6 +488,7 @@ export const Issue2245B = component$(() => {
       <button
         id="issue-2245-b-btn"
         onClick$={() => {
+          console.log('executed');
           store.n++;
           store.flag = !store.flag;
           flagSignal.value = !flagSignal.value;

@@ -73,11 +73,6 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   elCtx.$flags$ |= HOST_FLAG_DIRTY;
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
     containerState.$hostsStaging$.add(hostElement);
   } else {
     if (server) {
@@ -91,15 +86,8 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
 
 const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerState): void => {
   const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
-    containerState.$opsNext$.add(op);
-  } else {
-    containerState.$opsNext$.add(op);
+  containerState.$opsNext$.add(op);
+  if (!activeRendering) {
     scheduleFrame(containerState);
   }
 };
@@ -111,11 +99,6 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
 
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
     containerState.$watchStaging$.add(watch);
   } else {
     containerState.$watchNext$.add(watch);

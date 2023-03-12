@@ -60,6 +60,7 @@ test.describe('effect-client', () => {
   test('cleanup', async ({ page }) => {
     const counter = page.locator('#cleanup-effects-button');
     const nuCleanups = page.locator('#cleanup-effects-count');
+    await page.waitForTimeout(200);
     await expect(nuCleanups).toHaveText('0');
     await counter.click();
     await expect(nuCleanups).toHaveText('1');

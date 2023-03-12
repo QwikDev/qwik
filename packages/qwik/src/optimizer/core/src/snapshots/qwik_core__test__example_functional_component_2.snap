@@ -137,8 +137,8 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     state,
                     thing
                 ])
-            }, null, _wrapSignal(btn, "name"), 1, "u6_0"))
-    ], 1, "u6_1");
+            }, null, _wrapSignal(btn, "name"), 0, "u6_0"))
+    ], 0, "u6_1");
 };
 
 

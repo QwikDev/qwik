@@ -204,6 +204,7 @@ test.describe('signals', () => {
     test('issue 2245-b', async ({ page }) => {
       const btn = page.locator('#issue-2245-b-btn');
       const results = page.locator('.issue-2245-b-results p');
+      await page.waitForTimeout(200);
       await expect(results).toHaveCSS('color', 'rgb(0, 0, 0)');
 
       await btn.click();
@@ -211,6 +212,9 @@ test.describe('signals', () => {
 
       await btn.click();
       await expect(results).toHaveCSS('color', 'rgb(0, 0, 255)');
+
+      await btn.click();
+      await expect(results).toHaveCSS('color', 'rgb(0, 128, 0)');
     });
 
     test('complex classes with signals', async ({ page }) => {

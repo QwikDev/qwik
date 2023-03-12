@@ -51,7 +51,7 @@ export const App_component_AkbU84a8zes = ()=>{
             onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                 store
             ])
-        }, null, "Click", 3, null), 1, null)
+        }, null, "Click", 2, null), 1, null)
     ], 1, "70_0");
 };
 

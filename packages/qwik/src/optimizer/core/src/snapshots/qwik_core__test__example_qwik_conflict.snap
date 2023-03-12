@@ -63,9 +63,9 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
     const qwik = 54;
     console.log(qwik);
-    return /*#__PURE__*/ _jsxQ("div", {
+    return /*#__PURE__*/ _jsxQ("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw")
-    }, null, null, 3, "u6_0");
+    }, null, 3, "u6_0");
 };
 
 

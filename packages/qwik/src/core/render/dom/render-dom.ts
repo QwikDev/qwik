@@ -5,7 +5,7 @@ import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
-import { domToVnode, visitJsxNode } from './visitor';
+import { domToVnode, smartUpdateChildren } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE, _jsxC } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
@@ -49,7 +49,7 @@ export const renderComponent = (
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
-      return then(visitJsxNode(newCtx, oldVdom, newVdom, flags), () => {
+      return then(smartUpdateChildren(newCtx, oldVdom, newVdom, 'root', flags), () => {
         // setVdom(hostElement, newVdom);
         elCtx.$vdom$ = newVdom;
       });

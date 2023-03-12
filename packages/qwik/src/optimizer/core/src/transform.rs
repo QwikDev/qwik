@@ -427,15 +427,12 @@ impl<'a> QwikTransform<'a> {
             collector.get_words()
         };
 
-        let (valid_decl, invalid_decl): (_, Vec<_>) = self
+        let (decl_collect, invalid_decl): (_, Vec<_>) = self
             .decl_stack
             .iter()
             .flat_map(|v| v.iter())
             .cloned()
             .partition(|(_, t)| matches!(t, IdentType::Var(true)));
-
-        let decl_collect: HashSet<Id> = valid_decl.into_iter().map(|a| a.0).collect();
-        let invalid_decl: HashSet<Id> = invalid_decl.into_iter().map(|a| a.0).collect();
 
         let folded = fold_expr(self, first_arg);
 
@@ -444,17 +441,17 @@ impl<'a> QwikTransform<'a> {
             if self.options.global_collect.is_global(ident) {
                 return (None, false);
             }
-            if invalid_decl.contains(ident) {
+            if invalid_decl.iter().any(|entry| entry.0 == *ident) {
                 return (None, false);
             }
-            if decl_collect.contains(ident) {
+            if decl_collect.iter().any(|entry| entry.0 == *ident) {
                 set.insert(ident.clone());
             }
         }
         let mut scoped_idents: Vec<Id> = set.into_iter().collect();
         scoped_idents.sort();
 
-        let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
+        let (scoped_idents, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
         let inlined_fn = self.ensure_core_import(&_INLINED_FN);
         convert_inlined_fn(folded, scoped_idents, &inlined_fn, accept_call_expr)
     }
@@ -466,6 +463,17 @@ impl<'a> QwikTransform<'a> {
         ctx_name: JsWord,
         custom_symbol: Option<JsWord>,
     ) -> ast::CallExpr {
+        self._create_synthetic_qhook(first_arg, ctx_kind, ctx_name, custom_symbol)
+            .0
+    }
+
+    fn _create_synthetic_qhook(
+        &mut self,
+        first_arg: ast::Expr,
+        ctx_kind: HookKind,
+        ctx_name: JsWord,
+        custom_symbol: Option<JsWord>,
+    ) -> (ast::CallExpr, bool) {
         let can_capture = can_capture_scope(&first_arg);
         let first_arg_span = first_arg.span();
 
@@ -479,15 +487,12 @@ impl<'a> QwikTransform<'a> {
             collector.get_words()
         };
 
-        let (valid_decl, invalid_decl): (_, Vec<_>) = self
+        let (decl_collect, invalid_decl): (_, Vec<_>) = self
             .decl_stack
             .iter()
             .flat_map(|v| v.iter())
             .cloned()
             .partition(|(_, t)| matches!(t, IdentType::Var(_)));
-
-        let decl_collect: HashSet<Id> = valid_decl.into_iter().map(|a| a.0).collect();
-        let invalid_decl: HashSet<Id> = invalid_decl.into_iter().map(|a| a.0).collect();
 
         self.hook_stack.push(symbol_name.clone());
         let span = first_arg.span();
@@ -502,7 +507,7 @@ impl<'a> QwikTransform<'a> {
                 if self.options.global_collect.root.contains_key(id) {
                     self.ensure_export(id);
                 }
-                if invalid_decl.contains(id) {
+                if invalid_decl.iter().any(|entry| entry.0 == *id) {
                     HANDLER.with(|handler| {
                         handler
                             .struct_err_with_code(
@@ -518,7 +523,8 @@ impl<'a> QwikTransform<'a> {
             }
         }
 
-        let mut scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
+        let (mut scoped_idents, immutable) =
+            compute_scoped_idents(&descendent_idents, &decl_collect);
         if !can_capture && !scoped_idents.is_empty() {
             HANDLER.with(|handler| {
                 let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
@@ -545,7 +551,7 @@ impl<'a> QwikTransform<'a> {
             hash,
         };
         if !self.should_emit_hook(&hook_data) {
-            self.create_noop_qrl(&symbol_name, hook_data)
+            (self.create_noop_qrl(&symbol_name, hook_data), immutable)
         } else if self.is_inline() {
             let folded = if !hook_data.scoped_idents.is_empty() {
                 let new_local = self.ensure_core_import(&USE_LEXICAL_SCOPE);
@@ -565,9 +571,15 @@ impl<'a> QwikTransform<'a> {
             } else {
                 folded
             };
-            self.create_inline_qrl(hook_data, folded, symbol_name, span)
+            (
+                self.create_inline_qrl(hook_data, folded, symbol_name, span),
+                immutable,
+            )
         } else {
-            self.create_hook(hook_data, folded, symbol_name, span, hook_hash)
+            (
+                self.create_hook(hook_data, folded, symbol_name, span, hook_hash),
+                immutable,
+            )
         }
     }
 
@@ -1055,8 +1067,6 @@ impl<'a> QwikTransform<'a> {
         Option<Box<ast::Expr>>,
         u32,
     ) {
-        let mut static_listeners = true;
-        let mut static_subtree = true;
         match expr {
             ast::ExprOrSpread {
                 expr: box ast::Expr::Object(object),
@@ -1065,6 +1075,10 @@ impl<'a> QwikTransform<'a> {
                 let mut mutable_props = vec![];
                 let mut immutable_props = vec![];
                 let mut children = None;
+                let mut static_listeners = true;
+                let mut static_subtree = true;
+                let mut event_handlers = vec![];
+
                 for prop in object.props {
                     let mut name_token = false;
                     match prop {
@@ -1119,41 +1133,55 @@ impl<'a> QwikTransform<'a> {
                                 } else if convert_signal_word(&key_word).is_some() {
                                     if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
                                     {
+                                        let (convered_expr, immutable) = self
+                                            ._create_synthetic_qhook(
+                                                *node.value.clone(),
+                                                if is_fn {
+                                                    HookKind::JSXProp
+                                                } else {
+                                                    HookKind::EventHandler
+                                                },
+                                                key_word.clone(),
+                                                None,
+                                            );
+
                                         let converted_prop = ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
-                                                value: Box::new(ast::Expr::Call(
-                                                    self.create_synthetic_qhook(
-                                                        *node.value.clone(),
-                                                        if is_fn {
-                                                            HookKind::JSXProp
-                                                        } else {
-                                                            HookKind::EventHandler
-                                                        },
-                                                        key_word.clone(),
-                                                        None,
-                                                    ),
-                                                )),
+                                                value: Box::new(ast::Expr::Call(convered_expr)),
                                                 key: node.key.clone(),
                                             }),
                                         ));
                                         if is_fn {
-                                            immutable_props.push(ast::PropOrSpread::Prop(
-                                                Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-                                                    key: node.key.clone(),
-                                                    value: Box::new(ast::Expr::Ident(
-                                                        new_ident_from_id(
-                                                            &self.ensure_core_import(&_IMMUTABLE),
-                                                        ),
+                                            if immutable {
+                                                immutable_props.push(ast::PropOrSpread::Prop(
+                                                    Box::new(ast::Prop::KeyValue(
+                                                        ast::KeyValueProp {
+                                                            key: node.key.clone(),
+                                                            value: Box::new(ast::Expr::Ident(
+                                                                new_ident_from_id(
+                                                                    &self.ensure_core_import(
+                                                                        &_IMMUTABLE,
+                                                                    ),
+                                                                ),
+                                                            )),
+                                                        },
                                                     )),
-                                                })),
-                                            ));
+                                                ));
+                                            }
                                             mutable_props.push(converted_prop.fold_with(self));
                                         } else {
-                                            mutable_props.push(converted_prop);
+                                            if !immutable {
+                                                static_listeners = false;
+                                            }
+                                            event_handlers.push(converted_prop.fold_with(self));
                                         }
                                     } else {
-                                        static_listeners = true;
-                                        mutable_props.push(prop.fold_with(self));
+                                        static_listeners = false;
+                                        if is_fn {
+                                            mutable_props.push(prop.fold_with(self));
+                                        } else {
+                                            event_handlers.push(prop.fold_with(self));
+                                        }
                                     }
                                 } else if is_immutable_expr(
                                     &node.value,
@@ -1231,6 +1259,9 @@ impl<'a> QwikTransform<'a> {
                 let mut flags = 0;
                 if static_listeners {
                     flags |= 1 << 0;
+                    immutable_props.extend(event_handlers.into_iter());
+                } else {
+                    mutable_props.extend(event_handlers.into_iter());
                 }
                 if static_subtree {
                     flags |= 1 << 1;
@@ -1960,16 +1991,20 @@ fn base64(nu: u64) -> String {
     base64::encode_config(nu.to_le_bytes(), base64::URL_SAFE_NO_PAD).replace(['-', '_'], "0")
 }
 
-fn compute_scoped_idents(all_idents: &[Id], all_decl: &HashSet<Id>) -> Vec<Id> {
+fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool) {
     let mut set: HashSet<Id> = HashSet::new();
+    let mut immutable = true;
     for ident in all_idents {
-        if all_decl.contains(ident) {
+        if let Some(item) = all_decl.iter().find(|item| item.0 == *ident) {
             set.insert(ident.clone());
+            if !matches!(item.1, IdentType::Var(true)) {
+                immutable = false;
+            }
         }
     }
     let mut output: Vec<Id> = set.into_iter().collect();
     output.sort();
-    output
+    (output, immutable)
 }
 
 fn get_canonical_filename(symbol_name: &JsWord) -> JsWord {

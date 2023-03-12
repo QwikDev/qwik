@@ -1,7 +1,7 @@
 import { isDocument } from '../../util/element';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
-import { domToVnode, visitJsxNode } from './visitor';
+import { domToVnode, smartUpdateChildren } from './visitor';
 import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
@@ -88,7 +88,7 @@ const renderRoot = async (
     const processedNodes = await processData(jsxNode);
     // const rootJsx = getVdom(parent);
     const rootJsx = domToVnode(parent);
-    await visitJsxNode(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
+    await smartUpdateChildren(rCtx, rootJsx, wrapJSX(parent, processedNodes), 'root', 0);
   } catch (err) {
     logError(err);
   }

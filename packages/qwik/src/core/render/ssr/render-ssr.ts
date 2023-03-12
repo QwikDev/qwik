@@ -158,10 +158,9 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
 
   node = jsx(root, containerAttributes);
   containerState.$hostsRendering$ = new Set();
-  containerState.$renderPromise$ = Promise.resolve().then(() =>
+  await Promise.resolve().then(() =>
     renderRoot(node, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
-  await containerState.$renderPromise$;
 };
 
 const renderRoot = async (

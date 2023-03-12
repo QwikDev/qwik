@@ -31,7 +31,7 @@ const Works_component_t45qL4vNGv0 = (props)=>{
     useStyleQrl(/*#__PURE__*/ inlinedQrl(Works_component_useStyle_i40UL9JyQpg, "Works_component_useStyle_i40UL9JyQpg"));
     return /*#__PURE__*/ _jsxQ("div", {
         onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_onClick_server_OsNoEFc5SM4, "Works_component_div_onClick_server_OsNoEFc5SM4"))
-    }, null, null, 3, "u6_0");
+    }, null, null, 2, "u6_0");
 };
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
 

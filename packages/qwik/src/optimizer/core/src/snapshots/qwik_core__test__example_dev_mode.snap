@@ -35,21 +35,20 @@ import { _jsxQ } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxC(Cmp, {
-        children: /*#__PURE__*/ _jsxQ("p", {
+        children: /*#__PURE__*/ _jsxQ("p", null, {
+            class: "stuff",
             onClick$: /*#__PURE__*/ qrlDEV(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto"), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
                 file: "/user/qwik/src/test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
             })
-        }, {
-            class: "stuff"
         }, "Hello Qwik", 3, null)
-    }, 1, "u6_0");
+    }, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAgB,QAAQ;;;;;;;YAAtB,OAAM;WAA6C;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;;;;;;WAA6B;;AAGlE\"}")
 /*
 {
   "origin": "test.tsx",

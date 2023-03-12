@@ -6,7 +6,6 @@ import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
 import type { QwikElement } from '../render/dom/virtual-element';
-import type { RenderContext } from '../render/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
@@ -15,6 +14,7 @@ import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertTrue } from '../error/assert';
+import type { RenderContext } from '../render/types';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;

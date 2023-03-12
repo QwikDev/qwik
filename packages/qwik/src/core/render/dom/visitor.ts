@@ -681,7 +681,10 @@ const createElm = (
         );
       }
     }
-    vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
+    if (props !== EMPTY_OBJ) {
+      elCtx.$vdom$ = vnode;
+      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
+    }
     if (vnode.$immutableProps$) {
       setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
     }
@@ -765,7 +768,7 @@ const createElm = (
     }
     return elm;
   } else if (QSlotS in props) {
-    // TODO
+    // TODO: remove
     vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
 
     assertDefined(currentComponent, 'slot can only be used inside component');
@@ -961,9 +964,6 @@ export const setProperties = (
   immutable: boolean
 ): Record<string, any> => {
   const values: Record<string, any> = {};
-  if (newProps === EMPTY_OBJ) {
-    return values;
-  }
   const elm = elCtx.$element$;
   const keys = Object.keys(newProps);
   for (const prop of keys) {

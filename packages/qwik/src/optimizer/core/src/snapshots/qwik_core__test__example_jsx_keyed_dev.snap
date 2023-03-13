@@ -34,55 +34,34 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import(".
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-dev-runtime";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
-import { jsxDEV as _jsxDEV } from "@builder.io/qwik/jsx-dev-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
-    return /*#__PURE__*/ _jsxDEV(_Fragment, {
+    return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsxDEV(Cmp, {}, "stuff", false, {
-                fileName: "/user/qwik/src/test.tsx",
-                lineNumber: 7,
-                columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV(Cmp, {}, "u6_0", false, {
-                fileName: "/user/qwik/src/test.tsx",
-                lineNumber: 8,
-                columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV(Cmp, {
+            /*#__PURE__*/ _jsxC(Cmp, null, 3, "stuff"),
+            /*#__PURE__*/ _jsxC(Cmp, null, 3, "u6_0"),
+            /*#__PURE__*/ _jsxC(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
                     prop: _IMMUTABLE
                 }
-            }, "u6_1", false, {
-                fileName: "/user/qwik/src/test.tsx",
-                lineNumber: 9,
-                columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV(Cmp, {
+            }, 3, "u6_1"),
+            /*#__PURE__*/ _jsxC(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
                     prop: _IMMUTABLE
                 }
-            }, props.stuff, false, {
-                fileName: "/user/qwik/src/test.tsx",
-                lineNumber: 10,
-                columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV("p", {
-                children: "Hello Qwik"
-            }, props.stuff, false, {
-                fileName: "/user/qwik/src/test.tsx",
-                lineNumber: 11,
-                columnNumber: 13
-            }, this)
+            }, 3, props.stuff),
+            /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff)
         ]
-    }, void 0, true);
+    }, 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,QAAC,SAAQ;;;;;0BACT,QAAC;;;;;0BACD,QAAC;gBAAI,MAAK;;oBAAL,IAAI;;;;;;;0BACT,QAAC;gBAAI,MAAK;;oBAAL,IAAI;;eAAW,MAAM,KAAK;;;;;0BAC/B,QAAC;0BAAoB;eAAb,MAAM,KAAK;;;;;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,MAAC,cAAQ;0BACT,MAAC;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;AAG/B\"}")
 /*
 {
   "origin": "test.tsx",

@@ -118,13 +118,13 @@ renderSuite('should render into a document', async () => {
     fixture.document.documentElement,
     `
   <html q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX:-->
+  <!--qv -->
   <!--qv q:key q:sref=0 q:s-->
-    <head q:head="">
+    <head>
       <title></title>
       <existing></existing>
-      <title q:head="">Replace</title>
-      <div q:head=""><div></div></div>
+      <title>Replace</title>
+      <div><div></div></div>
     </head>
     <body>
       WORKS
@@ -221,7 +221,7 @@ renderSuite('should render a component with scoped styles', async () => {
         color: red;
       }
     </style>
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
         Hello
@@ -244,7 +244,7 @@ renderSuite('should render a component with scoped styles', async () => {
         color: red;
       }
     </style>
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0">
         Hello
@@ -287,7 +287,7 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <div aria-hidden="false">
         <div class="normal">Normal div</div>
         <button>toggle</button>
@@ -300,9 +300,9 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <div aria-hidden="true">
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <div><div>this is ToggleChild</div></div>
         <!--/qv-->
         <button>toggle</button>
@@ -321,7 +321,7 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <button class="decrement">-</button>
       <span>0</span>
       <button class="increment">+</button>
@@ -333,7 +333,7 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <button class="decrement">-</button>
       <span>5</span>
       <button class="increment">+</button>
@@ -398,7 +398,7 @@ renderSuite('should render host events on the first element', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     hello
     <div>
       thing
@@ -452,7 +452,7 @@ renderSuite('should project multiple slot with same name', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <q:template q:slot="ignore" hidden="" aria-hidden="true">
         <span q:slot="ignore">IGNORE</span>
       </q:template>
@@ -548,13 +548,13 @@ renderSuite('should render a component with hooks', async () => {
   await expectRendered(
     fixture,
     `
-    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div id="effect" q:id="2">true</div>
-      <div id="effect-destroy" q:id="3">true</div>
+    <div>
+      <div id="effect">true</div>
+      <div id="effect-destroy">true</div>
       <div id="watch">true</div>
-      <div id="watch-destroy" q:id="4">true</div>
+      <div id="watch-destroy">true</div>
       <div id="server-mount">false</div>
-      <div id="cleanup" q:id="5">true</div>
+      <div id="cleanup">true</div>
       <div id="reference">true</div>
     </div>`
   );
@@ -634,7 +634,7 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <button class="increment">+</button>
     <div class="stuff m-0 p-2">Div 1</div>
     <div class="stuff m-0 p-2 active container">Div 2</div>
@@ -648,10 +648,10 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <button class="increment">+</button>
     <div class="other">Div 1</div>
-    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <div class="stuff m-0 p-2 almost-null active container">Div 2</div>
     <!--/qv-->
   </host>`
   );
@@ -809,13 +809,13 @@ export const HelloWorldScoped = component$(() => {
   return (
     <div>
       {state.cond && (
-        <div>
+        <div key="a">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>
       )}
       {!state.cond && (
-        <div class="stuff" aria-hidden="true">
+        <div key="b" class="stuff" aria-hidden="true">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>

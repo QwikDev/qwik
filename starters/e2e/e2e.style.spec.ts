@@ -57,8 +57,19 @@ test.describe('styles', () => {
       const h4 = page.locator('#issue1945-4');
       const h5 = page.locator('#issue1945-5');
 
+      await expect(h1).toBeVisible();
+      await expect(h2).toBeVisible();
+      await expect(h3).toBeVisible();
+      await expect(h4).toBeVisible();
+      await expect(h5).not.toBeVisible();
+
       await btn.click();
 
+      await expect(h1).toBeVisible();
+      await expect(h2).toBeVisible();
+      await expect(h3).toBeVisible();
+      await expect(h4).toBeVisible();
+      await expect(h5).toBeVisible();
       await expect(h1).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h2).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h3).toHaveCSS('background-color', 'rgb(0, 0, 255)');

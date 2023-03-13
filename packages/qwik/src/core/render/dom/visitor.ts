@@ -764,12 +764,10 @@ const createElm = (
     }
     return elm;
   } else if (QSlotS in props) {
-    // TODO: remove
-    vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
-
     assertDefined(currentComponent, 'slot can only be used inside component');
     assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
 
+    directSetAttribute(elm, QSlotS, '');
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);

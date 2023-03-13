@@ -143,7 +143,7 @@ export const Fragment: FunctionComponent<{
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key: string | null): JSXNode | null;
+    (props: P, key: string | null, flags: number): JSXNode | null;
 }
 
 // @internal (undocumented)

@@ -24,39 +24,42 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: row dense;
   display: grid;
-  gap: 20px;
+  gap: 30px;
 }
 
-.grid li {
+.grid-card {
   display: block;
   text-align: center;
 }
 
-.grid .img {
+.grid-img {
   display: block;
   padding: 10px;
   margin: 0 0 10px 0;
   background-color: rgba(68, 68, 68, 1);
   border-radius: 5px;
+  transition: all 250ms ease-out;
+  transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
 }
 
-.grid.full-item .img {
+.grid.full-item .grid-img {
   padding: 0;
   background-color: transparent;
 }
 
-.grid.transparent-item .img {
+.grid.transparent-item .grid-img {
   padding: 0;
   background-color: transparent;
 }
 
-.grid.transparent-item a:hover .img {
-  opacity: 0.7;
-  background-color: transparent;
-}
-
-.grid a:hover .img {
+.grid a:hover .grid-img {
   background-color: rgba(68, 68, 68, 0.6);
+  transform: scale3d(1.05, 1.05, 1.05) translate3d(0, 0, 0);
+  box-shadow: 0px 0px 8px rgb(151, 151, 151);
+}
+
+.grid.transparent-item a:hover .grid-img {
+  background-color: transparent;
 }
 
 .grid img {
@@ -69,10 +72,6 @@
 
 .grid.full-item img {
   object-fit: cover;
-}
-
-.grid.full-item a:hover img {
-  opacity: 0.7;
 }
 
 .grid span {

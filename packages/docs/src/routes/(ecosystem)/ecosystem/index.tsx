@@ -1,4 +1,4 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { $, component$, QwikMouseEvent, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
@@ -81,18 +81,18 @@ export const head: DocumentHead = {
   title: 'Qwik Ecosystem',
 };
 
-export function GridItem(props: GridItemProps) {
+export const GridItem = component$((props: GridItemProps) => {
   return (
-    <li key={props.title}>
+    <li key={props.title} class="grid-card">
       <Link href={props.href}>
-        <span class="img">
+        <span class="grid-img">
           <img src={props.imgSrc} alt={props.title} />
         </span>
         <span>{props.title}</span>
       </Link>
     </li>
   );
-}
+});
 
 interface GridItemProps {
   title: string;

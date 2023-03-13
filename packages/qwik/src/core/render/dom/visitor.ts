@@ -46,12 +46,12 @@ import {
   createTemplate,
   executeDOMRender,
   getKey,
+  insertAfter,
   insertBefore,
   prepend,
   removeNode,
   setAttribute,
   setKey,
-  // setKey,
   setProperty,
 } from './operations';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -174,7 +174,7 @@ export const updateChildren = (
 
       // Vnode moved right
       results.push(patchVnode(ctx, oldStartVnode, newEndVnode, flags));
-      insertBefore(staticCtx, parentElm, oldStartVnode.$elm$, oldEndVnode.$elm$.nextSibling);
+      insertAfter(staticCtx, parentElm, oldStartVnode.$elm$, oldEndVnode.$elm$);
       oldStartVnode = oldCh[++oldStartIdx];
       newEndVnode = newCh[--newEndIdx];
     } else if (oldEndVnode.$key$ && oldEndVnode.$id$ === newStartVnode.$id$) {
@@ -1087,6 +1087,18 @@ export const directRemoveChild = (parent: QwikElement, child: Node | VirtualElem
     child.remove();
   } else {
     parent.removeChild(child);
+  }
+};
+
+export const directInsertAfter = (
+  parent: QwikElement,
+  child: Node | VirtualElement,
+  ref: Node | VirtualElement | null
+) => {
+  if (isVirtualElement(child)) {
+    child.insertBeforeTo(parent, getRootNode(ref)?.nextSibling);
+  } else {
+    parent.insertBefore(child, getRootNode(ref)?.nextSibling);
   }
 };
 

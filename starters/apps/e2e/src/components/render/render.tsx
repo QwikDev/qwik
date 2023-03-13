@@ -57,6 +57,7 @@ export const Render = component$(() => {
       />
 
       <IssueReorder />
+      <Issue2414 />
     </>
   );
 });
@@ -357,5 +358,64 @@ export const IssueReorder = component$(() => {
         Submit
       </button>
     </div>
+  );
+});
+
+const Issue2414 = component$(() => {
+  const sort = useSignal<'id' | 'size' | 'age'>('size');
+  const showTable = useSignal(true);
+  const table = useStore({
+    value: [
+      { id: 1, size: 4, age: 1 },
+      { id: 2, size: 3, age: 3 },
+      { id: 3, size: 2, age: 27 },
+      { id: 4, size: 1, age: 9 },
+      { id: 5, size: 7, age: 21 },
+      { id: 6, size: 8, age: 12 },
+      { id: 7, size: 9, age: 7 },
+    ],
+  });
+
+  useTask$(({ track }) => {
+    track(() => sort.value);
+    table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
+  });
+
+  return (
+    <>
+      <p>Should be currently sorted by: {sort.value}</p>
+      <table>
+        <thead>
+          {(['size', 'age', 'id'] as const).map((c) => {
+            return (
+              <th
+                key={c}
+                id={`issue-2414-${c}`}
+                onClick$={(e) => {
+                  sort.value = c;
+                }}
+              >
+                {c}
+              </th>
+            );
+          })}
+        </thead>
+        {showTable.value ? (
+          <tbody>
+            {table.value.map((row) => {
+              return (
+                <tr key={row.id}>
+                  <td class="issue-2414-size">{row.size}</td>
+                  <td class="issue-2414-age">{row.age}</td>
+                  <td class="issue-2414-id">{row.id}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        ) : (
+          <></>
+        )}
+      </table>
+    </>
   );
 });

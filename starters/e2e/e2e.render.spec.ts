@@ -184,4 +184,49 @@ test.describe('render', () => {
     await button.click();
     await expect(result).toHaveText(['1. First', '2. Second', 'BOTTOM']);
   });
+
+  test('issue2414', async ({ page }) => {
+    const sortByAge = page.locator('#issue-2414-age');
+    const sortBySize = page.locator('#issue-2414-size');
+    const sortById = page.locator('#issue-2414-id');
+
+    const age = page.locator('.issue-2414-age');
+    const size = page.locator('.issue-2414-size');
+    const id = page.locator('.issue-2414-id');
+
+    const list = [
+      [1, 9, 4],
+      [2, 27, 3],
+      [3, 3, 2],
+      [4, 1, 1],
+      [7, 21, 5],
+      [8, 12, 6],
+      [9, 7, 7],
+    ];
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+
+    // Sort by age
+    list.sort((a, b) => a[1] - b[1]);
+    await sortByAge.click();
+
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+
+    list.sort((a, b) => a[2] - b[2]);
+    await sortById.click();
+
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+
+    list.sort((a, b) => a[0] - b[0]);
+    await sortBySize.click();
+
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+  });
 });

@@ -12,6 +12,7 @@ import type { QwikElement, VirtualElement } from './virtual-element';
 import {
   cleanupTree,
   directAppendChild,
+  directInsertAfter,
   directInsertBefore,
   directRemoveChild,
   getChildren,
@@ -85,6 +86,19 @@ export const insertBefore = <T extends Node | VirtualElement>(
 ): T => {
   staticCtx.$operations$.push({
     $operation$: directInsertBefore,
+    $args$: [parent, newChild, refChild ? refChild : null],
+  });
+  return newChild;
+};
+
+export const insertAfter = <T extends Node | VirtualElement>(
+  staticCtx: RenderStaticContext,
+  parent: QwikElement,
+  newChild: T,
+  refChild: Node | VirtualElement | null | undefined
+): T => {
+  staticCtx.$operations$.push({
+    $operation$: directInsertAfter,
     $args$: [parent, newChild, refChild ? refChild : null],
   });
   return newChild;

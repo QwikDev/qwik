@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.list li {
   list-style: none;
 }
 

@@ -1,5 +1,4 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
@@ -27,12 +26,3 @@ export default component$(() => {
     </div>
   );
 });
-
-export const onGet: RequestHandler = ({ cacheControl }) => {
-  cacheControl({
-    public: true,
-    maxAge: 3600,
-    sMaxAge: 3600,
-    staleWhileRevalidate: 86400,
-  });
-};

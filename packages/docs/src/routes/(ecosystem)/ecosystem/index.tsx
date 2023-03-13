@@ -3,8 +3,8 @@ import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
-import { MEDIA } from '../../media/index';
-import SHOWCASE from '../../showcase/generated-pages.json';
+import { MEDIA } from '../media/index';
+import SHOWCASE from '../showcase/generated-pages.json';
 
 export default component$(() => {
   useStyles$(styles);

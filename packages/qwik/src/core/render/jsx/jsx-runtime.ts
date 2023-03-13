@@ -1,7 +1,7 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logError, logWarn } from '../../util/log';
+import { logOnceWarn, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke, untrack } from '../../use/use-core';
@@ -12,8 +12,6 @@ import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { _IMMUTABLE } from '../../internal';
-
-let warnClassname = false;
 
 /**
  * @public
@@ -99,8 +97,8 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             this as any
           );
         }
-        if (isArray(children)) {
-          const flatChildren = children.flat();
+        if (children) {
+          const flatChildren = isArray(children) ? children.flat() : [children];
           if (isString(type) || isQwikC) {
             flatChildren.forEach((child: any) => {
               if (!isValidJSXChild(child)) {
@@ -127,14 +125,18 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
           }
           const keys: Record<string, boolean> = {};
           flatChildren.forEach((child: any) => {
-            if (isJSXNode(child) && !isString(child.type) && child.key != null) {
+            if (isJSXNode(child) && child.key != null) {
               if (keys[child.key]) {
                 const err = createJSXError(
                   `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
                   child
                 );
                 if (err) {
-                  logError(err);
+                  if (isString(child.type)) {
+                    logOnceWarn(err);
+                  } else {
+                    logOnceWarn(err);
+                  }
                 }
               } else {
                 keys[child.key] = true;
@@ -166,7 +168,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
         if (isString(type)) {
           if (type === 'style') {
             if (children) {
-              logWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
+              logOnceWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
 In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
 
 However, if the use case is to inject component styleContent, use 'useStyles$()' instead, it will be a lot more efficient.
@@ -175,16 +177,8 @@ See https://qwik.builder.io/docs/components/styles/#usestyles for more informati
           }
           if (type === 'script') {
             if (children) {
-              logWarn(`jsx: Using <script>{content}</script> will escape the content, effectively breaking the inlined JS.
+              logOnceWarn(`jsx: Using <script>{content}</script> will escape the content, effectively breaking the inlined JS.
 In order to disable content escaping use '<script dangerouslySetInnerHTML={content}/>'`);
-            }
-          }
-          if ('className' in (props as any)) {
-            (props as any)['class'] = (props as any)['className'];
-            delete (props as any)['className'];
-            if (qDev && !warnClassname) {
-              warnClassname = true;
-              logWarn('jsx: `className` is deprecated. Use `class` instead.');
             }
           }
         }
@@ -194,9 +188,8 @@ In order to disable content escaping use '<script dangerouslySetInnerHTML={conte
       if ('className' in (props as any)) {
         (props as any)['class'] = (props as any)['className'];
         delete (props as any)['className'];
-        if (qDev && !warnClassname) {
-          warnClassname = true;
-          logWarn('jsx: `className` is deprecated. Use `class` instead.');
+        if (qDev) {
+          logOnceWarn('jsx: `className` is deprecated. Use `class` instead.');
         }
       }
     }

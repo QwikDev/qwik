@@ -9,6 +9,18 @@ import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
+const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
+
+function getOrigin(req: IncomingMessage) {
+  const headers = req.headers;
+  const protocol =
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const host = (HOST_HEADER && headers[HOST_HEADER]) || headers[':authority'] || headers['host'];
+
+  return `${protocol}://${host}`;
+}
+
 export async function configureDevServer(
   server: ViteDevServer,
   opts: NormalizedQwikPluginOptions,
@@ -38,7 +50,7 @@ export async function configureDevServer(
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
-      const domain = 'http://' + (req.headers.host ?? 'localhost');
+      const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {

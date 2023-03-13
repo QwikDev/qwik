@@ -1821,6 +1821,13 @@ import importedValue from 'v';
 
 export const App = component$((props) => {
     const state = useStore({count: 0});
+    const remove = $((id: number) => {
+        const d = state.data;
+        d.splice(
+          d.findIndex((d) => d.id === id),
+          1
+        )
+      });
     return (
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
@@ -1838,15 +1845,18 @@ export const App = component$((props) => {
             >
                 <p>Hello Qwik</p>
             </Div>
-            <Div
-                class={state}
-                mutable1={{
-                    foo: 'bar',
-                    baz: state.count ? true : false,
-                }}
-                mutable2={(() => console.log(state.count))()}
-                mutable3={[1, 2, state, null, {}]}
-            />
+            [].map(() => (
+                <Div
+                    class={state}
+                    remove$={remove}
+                    mutable1={{
+                        foo: 'bar',
+                        baz: state.count ? true : false,
+                    }}
+                    mutable2={(() => console.log(state.count))()}
+                    mutable3={[1, 2, state, null, {}]}
+                />
+            ));
         </>
     );
 });
@@ -2314,8 +2324,16 @@ import {dep} from './file';
 export const App = component$(() => {
     const signal = useSignal(0);
     const store = useStore({});
+    const count = props.counter.count;
+
     return (
         <div
+            class={{
+                even: count % 2 === 0,
+                odd: count % 2 === 1,
+                stable0: true,
+                hidden: false,
+            }}
             staticText="text"
             staticText2={`text`}
             staticNumber={1}
@@ -2344,6 +2362,7 @@ export const App = component$(() => {
             noInline3={mutable(signal)}
             noInline4={signal.value + dep}
         />
+
     );
 });
 "#

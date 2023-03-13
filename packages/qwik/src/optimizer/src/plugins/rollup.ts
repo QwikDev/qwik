@@ -167,12 +167,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOpts: OutputOptions
+  rollupOutputOpts: OutputOptions | OutputOptions[] | undefined
 ) {
-  const outputOpts: OutputOptions = {
-    ...rollupOutputOpts,
-  };
-
+  const outputOpts: OutputOptions = {};
+  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
+    Object.assign(outputOpts, rollupOutputOpts);
+  }
   if (opts.target === 'ssr') {
     // ssr output
     if (opts.buildMode === 'production') {

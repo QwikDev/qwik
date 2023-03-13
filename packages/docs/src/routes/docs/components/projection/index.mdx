@@ -27,7 +27,7 @@ Slots in Qwik are symbolic, allowing Qwik to render parents and children in perf
 The main API to achieve this is the `<Slot>` component, exported in `@builder.io/qwik`:
 
 ```tsx
-import { Slot } from '@builder.io/qwik';
+import { Slot, component$ } from '@builder.io/qwik';
 
 export const Button = component$(() => {
   return (
@@ -53,7 +53,7 @@ Let's see the usage of this component:
 The `Slot` component can be used multiple times in the same component, as long as it has a different `name` property:
 
 ```tsx
-import { Slot } from '@builder.io/qwik';
+import { Slot, component$ } from '@builder.io/qwik';
 
 export const Button = component$(() => {
   return (
@@ -109,6 +109,8 @@ Notice that:
 Qwik keeps all content around, even if not projected. This is because the content could be projected in the future.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const Project = component$(() => {
   // Notice, this component does not have a <Slot> component
   return <div />;
@@ -135,6 +137,8 @@ Notice that the un-projected content is moved into an inert `<q:template>`. This
 The `q:slot` attribute must be a direct child of a component.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const Project = component$(() => { ... })
 
 export const MyApp = component$(() => {
@@ -172,6 +176,8 @@ In order for the two components to have an independent lifecycle, the projection
 An example of a collapsible component which conditionally projects its content.
 
 ```tsx
+import { Slot, component$, useSignal } from '@builder.io/qwik';
+
 export const Collapsible = component$(() => {
   const isOpen = useSignal(true);
 
@@ -189,6 +195,8 @@ export const Collapsible = component$(() => {
 The above component can be used from a parent component like so:
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const MyApp = component$(() => {
   return (
     <Collapsible>

@@ -4,7 +4,7 @@
 #![allow(clippy::use_self)]
 #![feature(box_patterns)]
 #![allow(clippy::option_if_let_else)]
-
+#![allow(clippy::iter_with_drain)]
 #[cfg(test)]
 mod test;
 

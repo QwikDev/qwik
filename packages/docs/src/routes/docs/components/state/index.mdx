@@ -32,6 +32,8 @@ The reactive signal returned by `useSignal()` consist of an object with a single
 This example shows how `useSignal()` can be used in a counter component to keep track of the count.
 
 ```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
 export default component$(() => {
   const count = useSignal(0);
 
@@ -62,6 +64,8 @@ The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#
 This example shows how `useStore()` can be used in a counter component to keep track of the count.
 
 ```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
 export default component$(() => {
   const state = useStore({ count: 0 });
 
@@ -108,6 +112,8 @@ store.nested = { fields: { are: { "tracked" } } }
 In order to make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
 
 ```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
 export default component$(() => {
   const store = useStore(
     {
@@ -166,6 +172,8 @@ There are two ways to pass state to other components: with props, or with contex
 The most simple way to pass state to other components is to pass it as props. This is the way you would do it in React, and it works in Qwik as well.
 
 ```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
   const userData = useStore({
     count: 0,
@@ -235,6 +243,8 @@ The main difference between the two is that [`useTask$()`](/docs/components/life
 ### [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) example
 
 ```tsx
+import { component$, useStore, useTask$ } from '@builder.io/qwik';
+
 export default component$(() => {
   const state = useStore({
     count: 0,
@@ -259,6 +269,8 @@ export default component$(() => {
 ### [`useResource$()`](/docs/components/resource/index.mdx) example
 
 ```tsx
+import { component$, useStore, useResource$ } from '@builder.io/qwik';
+
 export default component$(() => {
   const state = useStore({
     count: 0,

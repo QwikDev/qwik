@@ -1,7 +1,7 @@
 import { isDocument } from '../../util/element';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
-import { cleanupTree, domToVnode, visitJsxNode } from './visitor';
+import { cleanupTree, domToVnode, smartUpdateChildren } from './visitor';
 import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
@@ -75,39 +75,34 @@ export const render = async (
   if (serverData) {
     Object.assign(containerState.$serverData$, serverData);
   }
+  const rCtx = createRenderContext(doc, containerState);
   containerState.$hostsRendering$ = new Set();
-  containerState.$renderPromise$ = renderRoot(
-    containerEl,
-    jsxNode,
-    doc,
-    containerState,
-    containerEl
-  );
+  await renderRoot(rCtx, containerEl, jsxNode, doc, containerState, containerEl);
 
-  const renderCtx = await containerState.$renderPromise$;
-  await postRendering(containerState, renderCtx);
+  await postRendering(containerState, rCtx);
 
   return {
     cleanup() {
-      cleanupContainer(renderCtx, containerEl);
+      cleanupContainer(rCtx, containerEl);
     },
   };
 };
 
 const renderRoot = async (
+  rCtx: RenderContext,
   parent: Element,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>,
   doc: Document,
   containerState: ContainerState,
   containerEl: Element
 ) => {
-  const rCtx = createRenderContext(doc, containerState);
   const staticCtx = rCtx.$static$;
 
   try {
     const processedNodes = await processData(jsxNode);
+    // const rootJsx = getVdom(parent);
     const rootJsx = domToVnode(parent);
-    await visitJsxNode(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
+    await smartUpdateChildren(rCtx, rootJsx, wrapJSX(parent, processedNodes), 'root', 0);
   } catch (err) {
     logError(err);
   }
@@ -117,9 +112,8 @@ const renderRoot = async (
 
   if (qDev) {
     appendQwikDevTools(containerEl);
-    printRenderStats(staticCtx);
   }
-  return rCtx;
+  printRenderStats(staticCtx);
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

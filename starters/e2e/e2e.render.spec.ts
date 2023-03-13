@@ -27,7 +27,7 @@ test.describe('render', () => {
 
     await increment.click();
 
-    await expect(attributes).toHaveClass('⭐️unvb18-1 stable0 odd');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 odd stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
@@ -174,5 +174,14 @@ test.describe('render', () => {
     const result = page.locator('#issue-3116-result');
 
     await expect(result).toHaveText('this comes from render$');
+  });
+
+  test('issue reorder', async ({ page }) => {
+    const result = page.locator('.issue-order');
+    const button = page.locator('#issue-order-btn');
+    await expect(result).toHaveText(['TOP', '1. First', '2. Second']);
+
+    await button.click();
+    await expect(result).toHaveText(['1. First', '2. Second', 'BOTTOM']);
   });
 });

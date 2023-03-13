@@ -470,6 +470,7 @@ const isTreeshakeable = (
     if (localManager.length === 1) {
       return localManager[0] !== target;
     }
+    return true;
   }
   return false;
 };

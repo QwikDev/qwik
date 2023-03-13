@@ -268,7 +268,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         let mut react_options = react::Options::default();
                         if is_jsx {
                             react_options.next = Some(true);
-                            react_options.development = Some(config.mode == EmitMode::Dev);
+                            // react_options.development = Some(config.mode == EmitMode::Dev);
                             react_options.throw_if_namespace = Some(false);
                             react_options.runtime = Some(react::Runtime::Automatic);
                             react_options.import_source = Some("@builder.io/qwik".to_string());

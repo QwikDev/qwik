@@ -163,6 +163,10 @@ export const directPrepend = (parent: QwikElement, newChild: Node) => {
 };
 
 export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
+  if (el.nodeType === 1 || el.nodeType === 111) {
+    const subsManager = staticCtx.$containerState$.$subsManager$;
+    cleanupTree(el as Element, staticCtx, subsManager, true);
+  }
   staticCtx.$operations$.push({
     $operation$: _removeNode,
     $args$: [el, staticCtx],
@@ -172,10 +176,6 @@ export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualEle
 const _removeNode = (el: Node | VirtualElement, staticCtx: RenderStaticContext) => {
   const parent = el.parentElement;
   if (parent) {
-    if (el.nodeType === 1 || el.nodeType === 111) {
-      const subsManager = staticCtx.$containerState$.$subsManager$;
-      cleanupTree(el as Element, staticCtx, subsManager, true);
-    }
     directRemoveChild(parent, el);
   } else if (qDev) {
     logWarn('Trying to remove component already removed', el);
@@ -258,10 +258,6 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       template.remove();
     }
   }
-};
-
-export const createTextNode = (doc: Document, text: string): Text => {
-  return doc.createTextNode(text);
 };
 
 export const printRenderStats = (staticCtx: RenderStaticContext) => {

@@ -50,17 +50,17 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { _IMMUTABLE } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { useStore, mutable } from '@builder.io/qwik';
 import { dep } from './file';
 import { Cmp } from './cmp';
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsx(Cmp, {
+    return /*#__PURE__*/ _jsxC(Cmp, {
         staticText: "text",
         staticText2: `text`,
         staticNumber: 1,
@@ -106,11 +106,15 @@ const App_component_ckEPmXZlub0 = ()=>{
             staticExpr: _IMMUTABLE,
             staticExpr2: _IMMUTABLE,
             signal: _IMMUTABLE,
-            signalValue: _wrapProp(signal, "value"),
+            signalValue: _fnSignal((p0)=>p0.value, [
+                signal
+            ], "p0.value"),
             signalComputedValue: _fnSignal((p0)=>12 + p0.value, [
                 signal
             ], "12+p0.value"),
-            store: _wrapProp(store.address.city, "name"),
+            store: _fnSignal((p0)=>p0.address.city.name, [
+                store
+            ], "p0.address.city.name"),
             storeComputed: _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
                 store
             ], 'p0.address.city.name?"true":"false"'),
@@ -124,12 +128,12 @@ const App_component_ckEPmXZlub0 = ()=>{
                 signal
             ], "p0.value+unknown()")
         }
-    }, "u6_0");
+    }, 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;AAAA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI,KAAC;QACG,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;YACR;mBAAa,OAAO,KAAK;;YACzB;mBAAqB,KAAK,OAAO,KAAK;;YAEtC;mBAAO,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;YAC9B;mBAAe,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;QAEzD,KAAK;YACL;mBAAW,IAAI,KAAK;;QACpB,aAAa,IAAI,KAAK,GAAG;QAEzB,QAAQ;YACR;mBAAc,YAAY,KAAK;;QAC/B,gBAAgB,YAAY,KAAK,GAAG;YAGpC;mBAAU,OAAO,KAAK;;YACtB;mBAAW,OAAO,KAAK,GAAG;;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;YA1B1B,UAAU;YACV,WAAW;YACX,YAAY;YACZ,aAAa;YACb,UAAU;YACV,WAAW;YAEX,MAAM;YACN,WAAW,YAAE;YACb,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;YAEtC,KAAK,YAAE,MAAM,OAAO,CAAC,IAAI;YACzB,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;YAEzD,GAAG;YACH,SAAS,YAAE;YAIX,YAAY,YAAE;YAId,QAAQ,kBAAE,GAAO,KAAK;;;YACtB,SAAS,kBAAE,GAAO,KAAK,GAAG;;;;;AAKtC;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;AAAA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI,MAAC;QACG,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;YACR;mBAAa,OAAO,KAAK;;YACzB;mBAAqB,KAAK,OAAO,KAAK;;YAEtC;mBAAO,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;YAC9B;mBAAe,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;QAEzD,KAAK;YACL;mBAAW,IAAI,KAAK;;QACpB,aAAa,IAAI,KAAK,GAAG;QAEzB,QAAQ;YACR;mBAAc,YAAY,KAAK;;QAC/B,gBAAgB,YAAY,KAAK,GAAG;YAGpC;mBAAU,OAAO,KAAK;;YACtB;mBAAW,OAAO,KAAK,GAAG;;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;YA1B1B,UAAU;YACV,WAAW;YACX,YAAY;YACZ,aAAa;YACb,UAAU;YACV,WAAW;YAEX,MAAM;YACN,WAAW,kBAAE,GAAO,KAAK;;;YACzB,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;YAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;YAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;YAEzD,GAAG;YACH,SAAS,YAAE;YAIX,YAAY,YAAE;YAId,QAAQ,kBAAE,GAAO,KAAK;;;YACtB,SAAS,kBAAE,GAAO,KAAK,GAAG;;;;;AAKtC;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -73,11 +73,6 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   elCtx.$flags$ |= HOST_FLAG_DIRTY;
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
     containerState.$hostsStaging$.add(hostElement);
   } else {
     if (server) {
@@ -91,15 +86,8 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
 
 const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerState): void => {
   const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
-    containerState.$opsNext$.add(op);
-  } else {
-    containerState.$opsNext$.add(op);
+  containerState.$opsNext$.add(op);
+  if (!activeRendering) {
     scheduleFrame(containerState);
   }
 };
@@ -111,11 +99,6 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
 
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
     containerState.$watchStaging$.add(watch);
   } else {
     containerState.$watchNext$.add(watch);
@@ -123,7 +106,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
 };
 
-const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
+const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
@@ -156,13 +139,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     });
     containerState.$hostsStaging$.clear();
 
+    const signalOperations = Array.from(containerState.$opsNext$);
+    containerState.$opsNext$.clear();
+
     const renderingQueue = Array.from(hostsRendering);
     sortNodes(renderingQueue);
-
-    containerState.$opsNext$.forEach((op) => {
-      executeSignalOperation(staticCtx, op);
-    });
-    containerState.$opsNext$.clear();
 
     for (const el of renderingQueue) {
       if (!staticCtx.$hostElements$.has(el)) {
@@ -183,6 +164,10 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       }
     }
 
+    signalOperations.forEach((op) => {
+      executeSignalOperation(staticCtx, op);
+    });
+
     // Add post operations
     staticCtx.$operations$.push(...staticCtx.$postOperations$);
 
@@ -193,11 +178,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       return;
     }
 
-    await getPlatform().raf(() => {
-      executeContextWithSlots(rCtx);
-      printRenderStats(staticCtx);
-      return postRendering(containerState, rCtx);
-    });
+    // await getPlatform().raf(() => {
+    // });
+    executeContextWithSlots(rCtx);
+    printRenderStats(staticCtx);
+    return postRendering(containerState, rCtx);
   } catch (err) {
     logError(err);
   }
@@ -244,7 +229,8 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
     containerState.$opsNext$.size;
 
   if (pending > 0) {
-    scheduleFrame(containerState);
+    // Immediately render again
+    containerState.$renderPromise$ = renderMarked(containerState);
   }
 };
 

@@ -258,7 +258,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
-            output: normalizeRollupOutputOptions(path, opts, {}),
+            output: normalizeRollupOutputOptions(
+              path,
+              opts,
+              viteConfig.build?.rollupOptions?.output
+            ),
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&

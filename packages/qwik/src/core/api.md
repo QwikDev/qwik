@@ -143,7 +143,7 @@ export const Fragment: FunctionComponent<{
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key: string | null): JSXNode | null;
+    (props: P, key: string | null, flags: number): JSXNode | null;
 }
 
 // @internal (undocumented)
@@ -305,6 +305,9 @@ export { jsx as jsxs }
 // @internal (undocumented)
 export const _jsxBranch: (input?: any) => any;
 
+// @public (undocumented)
+export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, flags: number, key?: string | number | null) => JSXNode<T>;
+
 // Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
 //
 // @public (undocumented)
@@ -317,10 +320,16 @@ export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props:
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
+    // (undocumented)
+    children: any | null;
     // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     dev?: DevJSX;
+    // (undocumented)
+    flags: number;
+    // (undocumented)
+    immutableProps: Record<string, any> | null;
     // (undocumented)
     key: string | null;
     // (undocumented)
@@ -328,6 +337,9 @@ export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     type: T;
 }
+
+// @public (undocumented)
+export const _jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key?: string | number | null) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;

@@ -10,6 +10,13 @@ import importedValue from 'v';
 
 export const App = component$((props) => {
     const state = useStore({count: 0});
+    const remove = $((id: number) => {
+        const d = state.data;
+        d.splice(
+          d.findIndex((d) => d.id === id),
+          1
+        )
+      });
     return (
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
@@ -27,15 +34,18 @@ export const App = component$((props) => {
             >
                 <p>Hello Qwik</p>
             </Div>
-            <Div
-                class={state}
-                mutable1={{
-                    foo: 'bar',
-                    baz: state.count ? true : false,
-                }}
-                mutable2={(() => console.log(state.count))()}
-                mutable3={[1, 2, state, null, {}]}
-            />
+            [].map(() => (
+                <Div
+                    class={state}
+                    remove$={remove}
+                    mutable1={{
+                        foo: 'bar',
+                        baz: state.count ? true : false,
+                    }}
+                    mutable2={(() => console.log(state.count))()}
+                    mutable3={[1, 2, state, null, {}]}
+                />
+            ));
         </>
     );
 });
@@ -47,7 +57,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,oBAAM,wGA8BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,oBAAM,wGAwChB\"}")
 ============================= app_component__fragment_div_immutable4_qt1dno4izxo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -57,7 +67,7 @@ export const App_component__Fragment_Div_immutable4_QT1DNo4IZXo = (ev)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAkB6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAyB6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -72,8 +82,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "immutable4$",
   "captures": true,
   "loc": [
-    621,
-    653
+    783,
+    815
   ]
 }
 */
@@ -82,8 +92,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import importedValue from "v";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -91,14 +101,17 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    return /*#__PURE__*/ _jsxs(_Fragment, {
+    const remove = /*#__PURE__*/ qrl(()=>import("./app_component_remove_pu6yoc5p6sy"), "App_component_remove_pU6yOC5P6sY", [
+        state
+    ]);
+    return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsx("p", {
-                class: "stuff",
-                onClick$: props.onClick$,
-                children: "Hello Qwik"
-            }),
-            /*#__PURE__*/ _jsx(Div, {
+            /*#__PURE__*/ _jsxQ("p", {
+                onClick$: props.onClick$
+            }, {
+                class: "stuff"
+            }, "Hello Qwik", 2, null),
+            /*#__PURE__*/ _jsxC(Div, {
                 onClick$: props.onClick$,
                 transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
                 immutable1: "stuff",
@@ -117,9 +130,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     null,
                     {}
                 ],
-                children: /*#__PURE__*/ _jsx("p", {
-                    children: "Hello Qwik"
-                }),
+                children: /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, null),
                 [_IMMUTABLE]: {
                     transparent$: _IMMUTABLE,
                     immutable1: _IMMUTABLE,
@@ -127,9 +138,11 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     immutable4$: _IMMUTABLE,
                     immutable5: _IMMUTABLE
                 }
-            }, "u6_0"),
-            /*#__PURE__*/ _jsx(Div, {
+            }, 2, "u6_0"),
+            "[].map(() => (",
+            /*#__PURE__*/ _jsxC(Div, {
                 class: state,
+                remove$: remove,
                 get mutable1 () {
                     return {
                         foo: 'bar',
@@ -146,6 +159,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 ],
                 [_IMMUTABLE]: {
                     class: _IMMUTABLE,
+                    remove$: _IMMUTABLE,
                     mutable1: _fnSignal((p0)=>({
                             foo: 'bar',
                             baz: p0.count ? true : false
@@ -154,13 +168,14 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     ], '{foo:"bar",baz:p0.count?true:false}'),
                     mutable3: _IMMUTABLE
                 }
-            }, "u6_1")
+            }, 3, "u6_1"),
+            "));"
         ]
-    }, "u6_2");
+    }, 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAI8B,CAAC,QAAU;IACrC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,qBACI;;0BACI,KAAC;gBAAE,OAAM;gBAAQ,UAAU,MAAM,QAAQ;0BAAE;;0BAC3C,KAAC;gBACG,UAAU,MAAM,QAAQ;gBACxB,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;gBACrC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;0BAE3C,cAAA,KAAC;8BAAE;;;oBAVH,YAAY;oBACZ,UAAU;oBAKV,UAAU;oBACV,WAAW;oBACX,UAAU;;;0BAId,KAAC;gBACG,OAAO;oBACP;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;oBANjC,KAAK;oBACL,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;wBACnC,CAAA;;;oBAEA,QAAQ;;;;;AAIxB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAI8B,CAAC,QAAU;IACrC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;gBACG,UAAU,MAAM,QAAQ;gBACxB,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;gBACrC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAVH,YAAY;oBACZ,UAAU;oBAKV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MAAC;gBACG,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;wBACnC,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -176,7 +191,38 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     124,
-    1110
+    1388
+  ]
+}
+*/
+============================= app_component_remove_pu6yoc5p6sy.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const App_component_remove_pU6yOC5P6sY = (id)=>{
+    const [state] = useLexicalScope();
+    const d = state.data;
+    d.splice(d.findIndex((d)=>d.id === id), 1);
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAMqB,CAAC;;IACd,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACN,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_remove_pU6yOC5P6sY",
+  "entry": null,
+  "displayName": "App_component_remove",
+  "hash": "pU6yOC5P6sY",
+  "canonicalFilename": "app_component_remove_pu6yoc5p6sy",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    198,
+    336
   ]
 }
 */
@@ -187,7 +233,7 @@ export const App_component__Fragment_Div_transparent_jTD8SCTNDsg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAW8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAkB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -202,8 +248,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "transparent$",
   "captures": false,
   "loc": [
-    360,
-    388
+    522,
+    550
   ]
 }
 */

@@ -24,6 +24,7 @@ export interface RenderStaticContext {
   readonly $doc$: Document;
   readonly $roots$: QContext[];
   readonly $hostElements$: Set<QwikElement>;
+  readonly $visited$: (Node | QwikElement)[];
   readonly $operations$: RenderOperation[];
   readonly $postOperations$: RenderOperation[];
   readonly $containerState$: ContainerState;

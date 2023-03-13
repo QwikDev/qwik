@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { JSXNodeImpl } from './jsx-runtime';
+import { jsx } from './jsx-runtime';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import { isArray } from '../../util/types';
@@ -43,7 +43,7 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
     else normalizedProps[i] = (props as Record<string, any>)[i];
   }
 
-  return new JSXNodeImpl(type, normalizedProps, key);
+  return jsx(type, normalizedProps, key);
 }
 
 /**

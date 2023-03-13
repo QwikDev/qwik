@@ -24,6 +24,17 @@ import {
 } from './utils/utils';
 
 export const Signals = component$(() => {
+  const rerender = useSignal(0);
+  return (
+    <>
+      <button id="rerender" onClick$={() => rerender.value++}>
+        Rerender
+      </button>
+      <SignalsChildren key={rerender.value} />
+    </>
+  );
+});
+export const SignalsChildren = component$(() => {
   const ref = useRef();
   const ref2 = useSignal<Element>();
   const id = useSignal(0);
@@ -48,6 +59,7 @@ export const Signals = component$(() => {
   });
 
   renders.count++;
+  const rerenders = renders.count;
   return (
     <div aria-label={store.attribute}>
       <button
@@ -83,7 +95,7 @@ export const Signals = component$(() => {
       >
         Black background
       </button>
-      <div id="parent-renders">Parent renders: {renders.count}</div>
+      <div id="parent-renders">Parent renders: {rerenders}</div>
       <Child
         text="Message"
         count={store.foo}
@@ -107,6 +119,8 @@ export const Signals = component$(() => {
       <Issue2928 />
       <Issue2930 />
       <Issue3212 />
+      <FineGrainedTextSub />
+      <FineGrainedUnsubs />
     </div>
   );
 });
@@ -129,9 +143,10 @@ export const Child = component$((props: ChildProps) => {
     { reactive: false }
   );
   renders.count++;
+  const rerenders = renders.count;
   return (
     <>
-      <div id="child-renders">Child renders: {renders.count}</div>
+      <div id="child-renders">Child renders: {rerenders}</div>
       <div id="text" ref={props.ref}>
         Text: {props.text}
       </div>
@@ -710,3 +725,52 @@ export const delayZero = () => {
     setTimeout(resolve, 1);
   });
 };
+
+export const FineGrainedTextSub = component$(() => {
+  const count = useSignal(0);
+  const computed = count.value + 2;
+
+  return (
+    <div>
+      <h2>Fine Grained</h2>
+      <div id="fine-grained-mutable" data-value={computed}>
+        {computed}
+      </div>
+      <div>
+        <button id="fine-grained-signal" data-value={count.value} onClick$={() => count.value++}>
+          Increment {count.value}
+        </button>
+      </div>
+    </div>
+  );
+});
+
+export const FineGrainedUnsubs = component$(() => {
+  const count = useSignal<{ nu: number } | undefined>({ nu: 1 });
+  console.warn(count.value);
+
+  return (
+    <div>
+      <h2>Fine Grained Unsubs</h2>
+      <button
+        id="fine-grained-unsubs-toggle"
+        onClick$={() => {
+          if (count.value) {
+            count.value = undefined;
+          } else {
+            count.value = { nu: 123 };
+          }
+        }}
+      >
+        Toggle
+      </button>
+
+      {count.value && (
+        <div id="fine-grained-unsubs" data-value={count.value.nu}>
+          {count.value.nu}
+        </div>
+      )}
+      <div>{count.value?.nu ?? 'EMPTY'}</div>
+    </div>
+  );
+});

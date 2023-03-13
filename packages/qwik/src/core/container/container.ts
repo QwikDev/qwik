@@ -6,7 +6,6 @@ import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
 import type { QwikElement } from '../render/dom/virtual-element';
-import type { RenderContext } from '../render/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
@@ -95,7 +94,7 @@ export interface ContainerState {
   readonly $base$: string;
 
   $hostsRendering$: Set<QwikElement> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
+  $renderPromise$: Promise<void> | undefined;
 
   $serverData$: Record<string, any>;
   $elementIndex$: number;

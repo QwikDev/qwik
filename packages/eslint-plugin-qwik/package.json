@@ -29,5 +29,8 @@
     "@types/eslint": "8.21.1",
     "@types/estree": "^1.0.0",
     "redent": "^4.0.0"
+  },
+  "dependencies": {
+    "jsx-ast-utils": "^3.3.3"
   }
 }

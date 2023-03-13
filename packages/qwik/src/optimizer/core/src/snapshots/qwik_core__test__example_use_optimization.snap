@@ -22,11 +22,9 @@ export const Works = component$((props) => {
 
 import { _restProps } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const signal = useSignal(0);
     const store = useStore({
@@ -41,21 +39,26 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
     const rest2 = _restProps(store1, [
         "bar"
     ]);
-    const props1 = props;
-    return /*#__PURE__*/ _jsx("div", {
-        hello: _wrapProp(props1, "hello"),
-        some: _wrapProp(signal, "value"),
+    return /*#__PURE__*/ _jsxQ("div", {
+        rest: rest,
+        rest2: rest2
+    }, {
+        hello: _fnSignal((p0)=>p0.hello, [
+            props
+        ], "p0.hello"),
+        some: _fnSignal((p0)=>p0.value, [
+            signal
+        ], "p0.value"),
         bar: _fnSignal((p0)=>p0.bar ?? 'hello', [
             store1
-        ], 'p0.bar??"hello"'),
-        rest: rest,
-        rest2: rest2,
-        children: _wrapSignal(store, "foo")
-    }, "u6_0");
+        ], 'p0.bar??"hello"')
+    }, _fnSignal((p0)=>p0.foo, [
+        store
+    ], "p0.foo"), 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAClD,MAAM,SAAU;IAEhB,qBACI,KAAC;QAAI,KAAK;QAAS,IAAI;QAAS,GAAG,qBAJhC,OAAM;;;QAIiC,MAAM;QAAM,OAAO;;;AAErE,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAGlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBAHP;;;QAGgB,IAAI,qBANpB;;;QAM6B,GAAG,qBAJhC,OAAM;;;0BADN;;;AAOX,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

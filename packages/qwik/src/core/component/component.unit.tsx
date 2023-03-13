@@ -23,7 +23,7 @@ qComponent('should declare and render basic component', async () => {
            {
           }
         </style>
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <span>Hello World</span>
         <!--/qv-->
       </host>`
@@ -38,7 +38,7 @@ qComponent('should render Counter and accept events', async () => {
     screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <my-counter>
       <button class="decrement">-</button>
       <span>15</span>
@@ -52,7 +52,7 @@ qComponent('should render Counter and accept events', async () => {
     screen,
     `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX:-->
+  <!--qv -->
   <my-counter>
     <button
       class="decrement"
@@ -92,15 +92,15 @@ qComponent('should render a collection of todo items', async () => {
     screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <items>
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <item-detail>
           <input type="checkbox" checked="" />
           <span>Task 1</span>
         </item-detail>
         <!--/qv-->
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <item-detail>
           <input type="checkbox" />
           <span>Task 2</span>

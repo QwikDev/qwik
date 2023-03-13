@@ -1,7 +1,7 @@
 // From: https://github.com/solidjs-community/eslint-plugin-solid/blob/d8bf1d13889fbc5fa3e644bc3f932696c78cef9d/src/rules/prefer-classlist.ts
 
 import type { TSESTree as T } from '@typescript-eslint/utils';
-import { hasProp, propName } from 'jsx-ast-utils';
+import jsxAstUtils from 'jsx-ast-utils';
 
 export const preferClasslist = {
   meta: {
@@ -41,10 +41,14 @@ export const preferClasslist = {
     return {
       JSXAttribute(node) {
         if (
-          ['class', 'className'].indexOf(propName(node)) === -1 ||
-          hasProp((node.parent as T.JSXOpeningElement | undefined)?.attributes, 'classlist', {
-            ignoreCase: false,
-          })
+          ['class', 'className'].indexOf(jsxAstUtils.propName(node)) === -1 ||
+          jsxAstUtils.hasProp(
+            (node.parent as T.JSXOpeningElement | undefined)?.attributes,
+            'classlist',
+            {
+              ignoreCase: false,
+            }
+          )
         ) {
           return;
         }

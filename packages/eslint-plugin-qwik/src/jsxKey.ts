@@ -1,4 +1,4 @@
-import { hasProp, propName } from 'jsx-ast-utils';
+import jsxAstUtils from 'jsx-ast-utils';
 
 // ------------------------------------------------------------------------------
 // Rule Definition
@@ -64,7 +64,10 @@ export const jsxKey = {
     const warnOnDuplicates = options.warnOnDuplicates;
 
     function checkIteratorElement(node) {
-      if (node.type === 'JSXElement' && !hasProp(node.openingElement.attributes, 'key')) {
+      if (
+        node.type === 'JSXElement' &&
+        !jsxAstUtils.hasProp(node.openingElement.attributes, 'key')
+      ) {
         context.report({
           node,
           messageId: 'missingIterKey',
@@ -110,7 +113,7 @@ export const jsxKey = {
         if (attribute.type !== 'JSXAttribute') {
           return false;
         }
-        return hasFoundSpread && propName(attribute) === 'key';
+        return hasFoundSpread && jsxAstUtils.propName(attribute) === 'key';
       });
     }
 

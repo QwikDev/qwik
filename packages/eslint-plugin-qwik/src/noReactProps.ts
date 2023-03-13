@@ -1,5 +1,5 @@
 import type { TSESLint } from '@typescript-eslint/utils';
-import { getProp, hasProp } from 'jsx-ast-utils';
+import jsxAstUtils from 'jsx-ast-utils';
 
 const reactSpecificProps = [
   { from: 'className', to: 'class' },
@@ -26,10 +26,10 @@ export const noReactProps = {
     return {
       JSXOpeningElement(node) {
         for (const { from, to } of reactSpecificProps) {
-          const classNameAttribute = getProp(node.attributes, from);
+          const classNameAttribute = jsxAstUtils.getProp(node.attributes, from);
           if (classNameAttribute) {
             // only auto-fix if there is no class prop defined
-            const fix = !hasProp(node.attributes, to, { ignoreCase: false })
+            const fix = !jsxAstUtils.hasProp(node.attributes, to, { ignoreCase: false })
               ? (fixer: TSESLint.RuleFixer) => fixer.replaceText(classNameAttribute.name, to)
               : undefined;
 

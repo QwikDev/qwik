@@ -128,7 +128,7 @@ test.describe('signals', () => {
 
     test('issue 2000', async ({ page }) => {
       const textArea = page.locator('#textarea');
-      await expect(textArea).toHaveText('body { background: white}');
+      await expect(textArea).toHaveValue('body { background: white}');
     });
 
     test('issue 2176', async ({ page }) => {

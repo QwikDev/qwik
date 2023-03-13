@@ -1,15 +1,19 @@
 import { isDocument } from '../../util/element';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
-import { domToVnode, smartUpdateChildren } from './visitor';
+import { cleanupTree, domToVnode, smartUpdateChildren } from './visitor';
 import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
 import { QContainerAttr } from '../../util/markers';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
-import { directSetAttribute } from '../fast-calls';
+import { directRemoveAttribute, directSetAttribute } from '../fast-calls';
 import { processData, wrapJSX } from './render-dom';
-import { ContainerState, _getContainerState } from '../../container/container';
+import {
+  ContainerState,
+  removeContainerState,
+  _getContainerState,
+} from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
 import { executeDOMRender, printRenderStats } from './operations';
@@ -25,22 +29,31 @@ export interface RenderOptions {
 }
 
 /**
+ * @alpha
+ */
+export interface RenderResult {
+  cleanup(): void;
+}
+
+/**
  * Render JSX.
  *
  * Use this method to render JSX. This function does reconciling which means
  * it always tries to reuse what is already in the DOM (rather then destroy and
  * recreate content.)
+ * It returns a cleanup function you could use for cleaning up subscriptions.
  *
  * @param parent - Element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
+ * @returns an object containing a cleanup function.
  * @alpha
  */
 export const render = async (
   parent: Element | Document,
   jsxNode: JSXNode | FunctionComponent<any>,
   opts?: RenderOptions
-): Promise<void> => {
+): Promise<RenderResult> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
@@ -67,6 +80,12 @@ export const render = async (
   await renderRoot(rCtx, containerEl, jsxNode, doc, containerState, containerEl);
 
   await postRendering(containerState, rCtx);
+
+  return {
+    cleanup() {
+      cleanupContainer(rCtx, containerEl);
+    },
+  };
 };
 
 const renderRoot = async (
@@ -106,3 +125,18 @@ export const injectQContainer = (containerEl: Element) => {
   directSetAttribute(containerEl, QContainerAttr, 'resumed');
   directSetAttribute(containerEl, 'q:render', qDev ? 'dom-dev' : 'dom');
 };
+
+function cleanupContainer(renderCtx: RenderContext, container: Element) {
+  const subsManager = renderCtx.$static$.$containerState$.$subsManager$;
+  cleanupTree(container, renderCtx.$static$, subsManager, true);
+
+  removeContainerState(container);
+
+  // Clean up attributes
+  directRemoveAttribute(container, 'q:version');
+  directRemoveAttribute(container, QContainerAttr);
+  directRemoveAttribute(container, 'q:render');
+
+  // Remove children
+  container.replaceChildren();
+}

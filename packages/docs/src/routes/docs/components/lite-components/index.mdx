@@ -5,11 +5,15 @@ contributors:
   - RATIU5
   - ykou
   - adamdbradley
+  - Kesmek
 ---
 
 # Lite Components
 
-In addition to standard Qwik components that have all of its lazy-loaded properties, Qwik also supports lightweight (lite) components that act more like traditional frameworks.
+In addition to the standard `component$()` with all of it's lazy-loaded
+properties, Qwik also supports lightweight (lite) components that act more
+like traditional frameworks. Lite components may also be called inline
+components.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -30,13 +34,22 @@ export const MyApp = component$(() => {
 });
 ```
 
-In the above example, the `MyButton` is a lite component. Lite components' lazy loading is merged with the regular component they are part of. In this case:
+In the above example, `MyButton` is a lite component.
+Unlike the standard `component$()`, lite components cannot be individually
+lazy-loaded; instead they are bundled with their parent component. In this case:
 
-- `MyButton` will get bundled with the `MyApp` render function.
-- Whenever the render function of `MyApp` executes, it will also force the execution of `MyButton`.
-- `MyButton` does not have a host element.
+- `MyButton` will get bundled with the `MyApp` component.
+- Whenever `MyApp` is rendered, it will also guarantee that `MyButton` is
+rendered.
+- `MyButton` does not have a [host element](../../../integrations/integration/react/#host-element).
 
-You can think of lightweight components as being inlined into the component, where they are instantiated.
+You can think of lightweight components as being inlined into the component where they are instantiated.
 
-> **Limitations**
-> Unlike regular Qwik components, lite components can not use `use` methods, such as `useSignal` or `useStore`. As it name implies, lite components are better used sparsely for lightweight pieces of markup since they offer the convenience of being bundled with the parent component.
+## Limitations
+Lite components come with some limitations that the standard `component$()`
+does not have. Lite components:
+- Cannot use `use` methods such as `useSignal` or `useStore`.
+
+As the name implies, lite components are best used sparingly for
+lightweight pieces of markup since they offer the convenience of being
+bundled with the parent component.

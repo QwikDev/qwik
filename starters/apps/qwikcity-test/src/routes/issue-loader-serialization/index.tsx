@@ -1,5 +1,5 @@
 import { component$, useVisibleTask$, useSignal, useTask$ } from '@builder.io/qwik';
-import { loader$ } from '@builder.io/qwik-city';
+import { loader$, routeLoader$ } from '@builder.io/qwik-city';
 import { isBrowser } from '@builder.io/qwik/build';
 
 export const useCmp1 = loader$(
@@ -31,7 +31,13 @@ export const useCmp4 = loader$(() => {
   };
 });
 
-export const useCmp5 = loader$(() => {
+export const useCmp5 = routeLoader$(() => {
+  return {
+    message: 'loader-cmp5',
+  };
+});
+
+export const useCmp6 = loader$(() => {
   return {
     message: 'loader-cmp5',
   };
@@ -98,6 +104,25 @@ export const Cmp4 = component$(() => {
   );
 });
 
+export const Cmp5 = component$(() => {
+  const loaderData = useCmp5();
+  const localStore = useSignal(false);
+  return (
+    <div>
+      <p>{JSON.stringify(localStore)}</p>
+      <p class="loader-data">{JSON.stringify(loaderData.value)}</p>
+      <button
+        id="update-cmp5"
+        onClick$={() => {
+          localStore.value = true;
+        }}
+      >
+        Update
+      </button>
+    </div>
+  );
+});
+
 export default component$(() => {
   return (
     <>
@@ -105,6 +130,7 @@ export default component$(() => {
       <Cmp2 />
       <Cmp3 />
       <Cmp4 />
+      <Cmp5 />
     </>
   );
 });

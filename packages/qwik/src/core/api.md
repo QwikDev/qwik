@@ -695,7 +695,7 @@ export interface Ref<T = Element> {
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @alpha (undocumented)
 export const RenderOnce: FunctionComponent<{
@@ -706,6 +706,12 @@ export const RenderOnce: FunctionComponent<{
 export interface RenderOptions {
     // (undocumented)
     serverData?: Record<string, any>;
+}
+
+// @alpha (undocumented)
+export interface RenderResult {
+    // (undocumented)
+    cleanup(): void;
 }
 
 // @internal (undocumented)

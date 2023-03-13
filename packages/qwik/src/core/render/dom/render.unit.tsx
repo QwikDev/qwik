@@ -775,6 +775,23 @@ renderSuite('should render foreignObject properly', async () => {
   );
 });
 
+renderSuite(
+  'should clean up subscriptions after calling the returned cleanup function',
+  async () => {
+    const fixture = new ElementFixture();
+
+    const spies = {
+      cleanupSpy: false,
+    };
+
+    const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
+
+    cleanup();
+
+    equal(spies.cleanupSpy, true);
+  }
+);
+
 async function expectRendered(fixture: ElementFixture, expected: string) {
   const firstNode = getFirstNode(fixture.host);
   return await expectDOM(firstNode, expected);
@@ -787,6 +804,7 @@ function getFirstNode(el: Element) {
   }
   return firstNode;
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1031,6 +1049,22 @@ export const Hooks = component$(() => {
       <div id="cleanup" ref={cleanupDiv}></div>
 
       <div id="reference">true</div>
+    </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+export const CleanupComponent = component$((props: { spies: { cleanupSpy: boolean } }) => {
+  useTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.spies.cleanupSpy = true;
+    });
+  });
+
+  return (
+    <div>
+      <div id="cleanup">true</div>
     </div>
   );
 });

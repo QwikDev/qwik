@@ -152,6 +152,10 @@ export const createContainerState = (containerEl: Element, base: string) => {
   return containerState;
 };
 
+export const removeContainerState = (containerEl: Element) => {
+  delete (containerEl as any)[CONTAINER_STATE];
+};
+
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);

@@ -1078,6 +1078,13 @@ impl<'a> QwikTransform<'a> {
                 let mut static_listeners = true;
                 let mut static_subtree = true;
                 let mut event_handlers = vec![];
+                let immutable_idents: Vec<_> = self
+                    .decl_stack
+                    .iter()
+                    .flat_map(|v| v.iter())
+                    .filter(|(_, t)| matches!(t, IdentType::Var(true)))
+                    .cloned()
+                    .collect();
 
                 for prop in object.props {
                     let mut name_token = false;
@@ -1176,8 +1183,33 @@ impl<'a> QwikTransform<'a> {
                                             event_handlers.push(converted_prop.fold_with(self));
                                         }
                                     } else {
-                                        static_listeners = false;
+                                        let immutable_prop = is_immutable_expr(
+                                            &node.value,
+                                            &key_word,
+                                            &self.options.global_collect,
+                                            Some(&immutable_idents),
+                                        );
+                                        if !immutable_prop {
+                                            static_listeners = false;
+                                        }
+
                                         if is_fn {
+                                            if immutable_prop {
+                                                immutable_props.push(ast::PropOrSpread::Prop(
+                                                    Box::new(ast::Prop::KeyValue(
+                                                        ast::KeyValueProp {
+                                                            key: node.key.clone(),
+                                                            value: Box::new(ast::Expr::Ident(
+                                                                new_ident_from_id(
+                                                                    &self.ensure_core_import(
+                                                                        &_IMMUTABLE,
+                                                                    ),
+                                                                ),
+                                                            )),
+                                                        },
+                                                    )),
+                                                ));
+                                            }
                                             mutable_props.push(prop.fold_with(self));
                                         } else {
                                             event_handlers.push(prop.fold_with(self));
@@ -1187,7 +1219,7 @@ impl<'a> QwikTransform<'a> {
                                     &node.value,
                                     &key_word,
                                     &self.options.global_collect,
-                                    self.decl_stack.last(),
+                                    Some(&immutable_idents),
                                 ) {
                                     if is_fn {
                                         immutable_props.push(ast::PropOrSpread::Prop(Box::new(
@@ -2082,7 +2114,9 @@ fn is_return_static(expr: &Option<Box<ast::Expr>>) -> bool {
         Some(box ast::Expr::Call(ast::CallExpr {
             callee: ast::Callee::Expr(box ast::Expr::Ident(ident)),
             ..
-        })) => ident.sym.starts_with("use"),
+        })) => {
+            ident.sym.ends_with('$') || ident.sym.ends_with("Qrl") || ident.sym.starts_with("use")
+        }
         Some(_) => false,
         None => true,
     }

@@ -106,7 +106,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
 };
 
-const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
+const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
@@ -178,11 +178,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       return;
     }
 
-    await getPlatform().raf(() => {
-      executeContextWithSlots(rCtx);
-      printRenderStats(staticCtx);
-      return postRendering(containerState, rCtx);
-    });
+    // await getPlatform().raf(() => {
+    // });
+    executeContextWithSlots(rCtx);
+    printRenderStats(staticCtx);
+    return postRendering(containerState, rCtx);
   } catch (err) {
     logError(err);
   }
@@ -229,7 +229,8 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
     containerState.$opsNext$.size;
 
   if (pending > 0) {
-    scheduleFrame(containerState);
+    // Immediately render again
+    containerState.$renderPromise$ = renderMarked(containerState);
   }
 };
 

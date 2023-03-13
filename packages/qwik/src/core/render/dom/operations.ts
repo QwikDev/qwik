@@ -3,7 +3,7 @@ import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';
 import { isElement, isNode } from '../../util/element';
-import { logError, logWarn } from '../../util/log';
+import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
@@ -261,20 +261,20 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
 };
 
 export const printRenderStats = (staticCtx: RenderStaticContext) => {
-  // if (qDev) {
-  if (typeof window !== 'undefined' && window.document != null) {
-    const byOp: Record<string, number> = {};
-    for (const op of staticCtx.$operations$) {
-      byOp[op.$operation$.name] = (byOp[op.$operation$.name] ?? 0) + 1;
+  if (qDev) {
+    if (typeof window !== 'undefined' && window.document != null) {
+      const byOp: Record<string, number> = {};
+      for (const op of staticCtx.$operations$) {
+        byOp[op.$operation$.name] = (byOp[op.$operation$.name] ?? 0) + 1;
+      }
+      const stats = {
+        byOp,
+        roots: staticCtx.$roots$.map((ctx) => ctx.$element$),
+        hostElements: Array.from(staticCtx.$hostElements$),
+        operations: staticCtx.$operations$.map((v) => [v.$operation$.name, ...v.$args$]),
+      };
+      const noOps = staticCtx.$operations$.length === 0;
+      logDebug('Render stats.', noOps ? 'No operations' : '', stats);
     }
-    const stats = {
-      byOp,
-      roots: staticCtx.$roots$.map((ctx) => ctx.$element$),
-      hostElements: Array.from(staticCtx.$hostElements$),
-      operations: staticCtx.$operations$.map((v) => [v.$operation$.name, ...v.$args$]),
-    };
-    const noOps = staticCtx.$operations$.length === 0;
-    console.log('Render stats.', noOps ? 'No operations' : '', stats);
   }
-  // }
 };

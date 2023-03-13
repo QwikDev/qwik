@@ -14,7 +14,6 @@ import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertTrue } from '../error/assert';
-import type { RenderContext } from '../render/types';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -95,7 +94,7 @@ export interface ContainerState {
   readonly $base$: string;
 
   $hostsRendering$: Set<QwikElement> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
+  $renderPromise$: Promise<void> | undefined;
 
   $serverData$: Record<string, any>;
   $elementIndex$: number;

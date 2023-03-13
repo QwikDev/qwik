@@ -66,7 +66,7 @@ import {
   tryGetContext,
 } from '../../state/context';
 import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
-import { createPropsState, createProxy } from '../../state/store';
+import { createPropsState, createProxy, ReadWriteProxyHandler } from '../../state/store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import { trackSignal } from '../../use/use-core';
 
@@ -689,7 +689,6 @@ const createElm = (
       flags &= ~IS_SVG;
     }
     if (currentComponent) {
-      const listeners = elCtx.li;
       const scopedIds = currentComponent.$scopeIds$;
       if (scopedIds) {
         scopedIds.forEach((styleId) => {
@@ -697,12 +696,10 @@ const createElm = (
         });
       }
       if (currentComponent.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
-        listeners.push(...currentComponent.li);
+        elCtx.li.push(...currentComponent.li);
         currentComponent.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
       }
     }
-    setKey(elm, vnode.$key$);
-
     const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
     if (setsInnerHTML) {
       if (qDev && vnode.$children$.length > 0) {
@@ -717,8 +714,29 @@ const createElm = (
   } else if (OnRenderProp in props) {
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
-    elCtx.$props$ = createProxy(createPropsState(), rCtx.$static$.$containerState$);
-    setComponentProps(elCtx, rCtx, props.props);
+    const containerState = rCtx.$static$.$containerState$;
+    const target = createPropsState();
+    const manager = containerState.$subsManager$.$createManager$();
+    const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager));
+    const expectProps = props.props;
+    containerState.$proxyMap$.set(target, proxy);
+    elCtx.$props$ = proxy;
+    if (expectProps !== EMPTY_OBJ) {
+      const keys = Object.keys(expectProps);
+      const immutableMeta = ((target as any)[_IMMUTABLE] =
+        (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+
+      for (const prop of keys) {
+        if (prop !== 'children' && prop !== QSlot) {
+          const immutableValue = immutableMeta[prop];
+          if (isSignal(immutableValue)) {
+            target[_IMMUTABLE_PREFIX + prop] = immutableValue;
+          } else {
+            target[prop] = expectProps[prop];
+          }
+        }
+      }
+    }
     setQId(rCtx, elCtx);
 
     if (qDev && !qTest) {
@@ -962,10 +980,6 @@ export const setProperties = (
   const keys = Object.keys(newProps);
   for (const prop of keys) {
     let newValue = newProps[prop];
-    if (prop === 'children') {
-      continue;
-    }
-
     if (prop === 'ref') {
       assertElement(elm);
       setRef(newValue, elm);
@@ -990,6 +1004,9 @@ export const setProperties = (
     if (prop === 'class') {
       if (qDev && values.class) throw new TypeError('Can only provide one of class or className');
       newValue = serializeClassWithHost(newValue, hostCtx);
+      if (!newValue) {
+        continue;
+      }
     } else if (prop === 'style') {
       newValue = stringifyStyle(newValue);
     }
@@ -1004,14 +1021,14 @@ export const setComponentProps = (
   rCtx: RenderContext,
   expectProps: Record<string, any>
 ) => {
-  const keys = Object.keys(expectProps);
   let props = elCtx.$props$;
   if (!props) {
     elCtx.$props$ = props = createProxy(createPropsState(), rCtx.$static$.$containerState$);
   }
-  if (keys.length === 0) {
-    return false;
+  if (expectProps === EMPTY_OBJ) {
+    return;
   }
+  const keys = Object.keys(expectProps);
 
   const manager = getProxyManager(props);
   assertDefined(manager, `props have to be a proxy, but it is not`, props);
@@ -1022,15 +1039,9 @@ export const setComponentProps = (
     (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
 
   for (const prop of keys) {
-    if (prop === 'children' || prop === QSlot) {
-      continue;
-    }
-    if (isSignal(immutableMeta[prop])) {
-      target[_IMMUTABLE_PREFIX + prop] = immutableMeta[prop];
-    } else {
+    if (prop !== 'children' && prop !== QSlot && !immutableMeta[prop]) {
       const value = expectProps[prop];
-      const oldValue = target[prop];
-      if (oldValue !== value) {
+      if (target[prop] !== value) {
         target[prop] = value;
         manager.$notifySubs$(prop);
       }

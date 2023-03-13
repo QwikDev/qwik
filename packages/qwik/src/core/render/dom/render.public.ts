@@ -15,6 +15,7 @@ import { createRenderContext } from '../execute-component';
 import { executeDOMRender, printRenderStats } from './operations';
 import { logError } from '../../util/log';
 import { appendQwikDevTools } from '../../container/resume';
+import type { RenderContext } from '../types';
 
 /**
  * @alpha
@@ -61,27 +62,21 @@ export const render = async (
   if (serverData) {
     Object.assign(containerState.$serverData$, serverData);
   }
+  const rCtx = createRenderContext(doc, containerState);
   containerState.$hostsRendering$ = new Set();
-  containerState.$renderPromise$ = renderRoot(
-    containerEl,
-    jsxNode,
-    doc,
-    containerState,
-    containerEl
-  );
+  await renderRoot(rCtx, containerEl, jsxNode, doc, containerState, containerEl);
 
-  const renderCtx = await containerState.$renderPromise$;
-  await postRendering(containerState, renderCtx);
+  await postRendering(containerState, rCtx);
 };
 
 const renderRoot = async (
+  rCtx: RenderContext,
   parent: Element,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>,
   doc: Document,
   containerState: ContainerState,
   containerEl: Element
 ) => {
-  const rCtx = createRenderContext(doc, containerState);
   const staticCtx = rCtx.$static$;
 
   try {
@@ -100,7 +95,6 @@ const renderRoot = async (
     appendQwikDevTools(containerEl);
   }
   printRenderStats(staticCtx);
-  return rCtx;
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

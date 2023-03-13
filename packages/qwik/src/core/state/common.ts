@@ -202,29 +202,41 @@ export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefin
   return (obj as any)[QObjectFlagsSymbol];
 };
 
-type SubscriberA = [type: 0, host: SubscriberEffect | SubscriberHost];
+type SubscriberA = readonly [type: 0, host: SubscriberEffect | SubscriberHost];
 
-type SubscriberB = [type: 1, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
+type SubscriberB = readonly [
+  type: 1 | 2,
+  host: SubscriberHost,
+  signal: Signal,
+  elm: QwikElement,
+  prop: string
+];
 
-type SubscriberC = [type: 2, host: SubscriberHost, signal: Signal, elm: Node | string];
+type SubscriberC = readonly [
+  type: 3 | 4,
+  host: SubscriberHost | Text,
+  signal: Signal,
+  elm: Node | string | QwikElement
+];
 
 export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
 
 type A = [type: 0, host: SubscriberEffect | SubscriberHost, key: string | undefined];
-
-type B = [type: 1, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
-
-type C = [type: 2, host: SubscriberHost, signal: Signal, elm: Text];
+type B = [type: 1 | 2, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
+type C = [type: 3 | 4, host: SubscriberHost | Text, signal: Signal, elm: Node | QwikElement];
 
 export type SubscriberSignal = B | C;
 
 export type Subscriptions = A | SubscriberSignal;
 
-export type GroupToManagersMap = Map<SubscriberHost | SubscriberEffect, LocalSubscriptionManager[]>;
+export type GroupToManagersMap = Map<
+  SubscriberHost | SubscriberEffect | Node,
+  LocalSubscriptionManager[]
+>;
 
 export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
   const type = sub[0];
-  const host = getObjId(sub[1]);
+  const host = typeof sub[1] === 'string' ? sub[1] : getObjId(sub[1]);
   if (!host) {
     return undefined;
   }
@@ -233,9 +245,9 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
     if (sub[2]) {
       base += ' ' + sub[2];
     }
-  } else if (type === 1) {
+  } else if (type <= 2) {
     base += ` ${must(getObjId(sub[2]))} ${must(getObjId(sub[3]))} ${sub[4]}`;
-  } else if (type === 2) {
+  } else if (type <= 4) {
     const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
     base += ` ${must(getObjId(sub[2]))} ${nodeID}`;
   }
@@ -258,10 +270,10 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
     subscription.push(parts[2]);
-  } else if (type === 1) {
+  } else if (type <= 2) {
     assertTrue(parts.length === 5, 'Type 1 has 5');
     subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], parts[5]);
-  } else if (type === 2) {
+  } else if (type <= 4) {
     assertTrue(parts.length === 4, 'Type 2 has 4');
     subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4]);
   }
@@ -313,7 +325,7 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $addToGroup$(group: SubscriberHost | SubscriberEffect, manager: LocalSubscriptionManager) {
+  $addToGroup$(group: SubscriberHost | SubscriberEffect | Node, manager: LocalSubscriptionManager) {
     let managers = this.$groupToManagers$.get(group);
     if (!managers) {
       this.$groupToManagers$.set(group, (managers = []));
@@ -337,7 +349,10 @@ export class LocalSubscriptionManager {
   $addSub$(sub: Subscriber, key?: string) {
     const subs = this.$subs$;
     const group = sub[1];
-    if (subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)) {
+    if (
+      sub[0] === 0 &&
+      subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)
+    ) {
       return;
     }
     subs.push([...sub, key] as any);

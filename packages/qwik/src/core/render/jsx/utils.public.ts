@@ -1,9 +1,8 @@
-import { jsx } from '../jsx/jsx-runtime';
+import { static_subtree } from '../execute-component';
+import { jsx, _jsxQ } from '../jsx/jsx-runtime';
 import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
-
-export const QOnce = 'qonce';
 
 /**
  * @alpha
@@ -14,14 +13,7 @@ export const SkipRender: JSXNode = Symbol('skip render') as any;
  * @alpha
  */
 export const RenderOnce: FunctionComponent<{ children?: any }> = (props: any, key) => {
-  return jsx(
-    Virtual,
-    {
-      ...props,
-      [QOnce]: '',
-    },
-    key
-  );
+  return _jsxQ(Virtual, null, null, props.children, static_subtree, key);
 };
 
 /**
@@ -83,6 +75,6 @@ export interface SSRHintProps {
 /**
  * @alpha
  */
-export const SSRHint: FunctionComponent<SSRHintProps> = ((props: any) => props.children) as any;
+export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 
 export const InternalSSRStream: FunctionComponent<SSRStreamProps> = () => null;

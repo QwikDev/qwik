@@ -1,14 +1,7 @@
 import { isServer } from '@builder.io/qwik/build';
 import type { MustGetObjID } from '../container/container';
 import { isServerPlatform } from '../platform/platform';
-
-export class SignalDerived<T = any, ARGS extends any[] = any> {
-  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$: string) {}
-
-  get value(): T {
-    return this.$func$.apply(undefined, this.$args$);
-  }
-}
+import { SignalDerived } from '../state/signal';
 
 /**
  * @alpha

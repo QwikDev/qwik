@@ -173,7 +173,7 @@ export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
 
-const trackInvokation = newInvokeContext();
+const trackInvokation = newInvokeContext(undefined, undefined, undefined, RenderEvent);
 
 /**
  * @alpha

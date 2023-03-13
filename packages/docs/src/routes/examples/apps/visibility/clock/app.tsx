@@ -1,4 +1,4 @@
-import { component$, useStore, useStyles$, useBrowserVisibleTask$ } from '@builder.io/qwik';
+import { component$, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
 import styles from './clock.css';
 
 export default component$(() => {
@@ -35,7 +35,7 @@ export const Clock = component$(() => {
     second: 0,
   });
 
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     const update = () => {
       const now = new Date();
       store.second = now.getSeconds() * (360 / 60);
@@ -47,7 +47,6 @@ export const Clock = component$(() => {
     return () => clearInterval(tmrId);
   });
 
-  jsx();
   console.log('Render Clock');
   return (
     <div class="clock">
@@ -55,12 +54,8 @@ export const Clock = component$(() => {
       <div class="three"></div>
       <div class="six"></div>
       <div class="nine"></div>
-      <div class="hour" style={{ transform: `rotate(${store.hour}deg)` }}>
-        {list}
-      </div>
-      <div class="minute" style={{ transform: `rotate(${store.minute}deg)` }}>
-        <svg flag={4}>....</svg>
-      </div>
+      <div class="hour" style={{ transform: `rotate(${store.hour}deg)` }}></div>
+      <div class="minute" style={{ transform: `rotate(${store.minute}deg)` }}></div>
       <div class="second" style={{ transform: `rotate(${store.second}deg)` }}></div>
     </div>
   );

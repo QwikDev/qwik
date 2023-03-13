@@ -103,7 +103,7 @@ import { createQRL } from './qrl-class';
  *
  * ```
  * <div q:base="/build/">
- *   <button on:lick="./chunk-abc.js#onClick">...</button>
+ *   <button on:click="./chunk-abc.js#onClick">...</button>
  * </div>
  * ```
  *

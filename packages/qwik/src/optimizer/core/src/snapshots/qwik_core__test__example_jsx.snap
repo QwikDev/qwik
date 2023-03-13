@@ -105,7 +105,6 @@ import { Lightweight } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const [props] = useLexicalScope();
     return /*#__PURE__*/ _jsxQ("div", null, null, [

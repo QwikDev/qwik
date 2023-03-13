@@ -64,19 +64,6 @@ export const getVdom = (elCtx: QContext) => {
   return elCtx.$vdom$;
 };
 
-// export const getVdom = (el: Node | VirtualElement): ProcessedJSXNode => {
-//   let vdom = (el as any).$vdom$;
-//   if (!vdom) {
-//     (el as any).$vdom$ = vdom = domToVnode(el);
-//   }
-//   return vdom;
-// };
-
-// export const setVdom = (el: Node | VirtualElement, vdom: ProcessedJSXNode) => {
-//   (el as any).$vdom$ = vdom;
-//   vdom.$elm$ = el;
-// };
-
 export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $elm$: Node | VirtualElement | null = null;
   $text$: string = '';

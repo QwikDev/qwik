@@ -785,11 +785,11 @@ const createElm = (
     assertDefined(currentComponent, 'slot can only be used inside component');
     assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
 
-    directSetAttribute(elm, QSlotS, '');
+    setKey(elm, vnode.$key$);
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
+    directSetAttribute(elm, QSlotS, '');
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
-    setKey(elm, vnode.$key$);
   }
 
   let children = vnode.$children$;

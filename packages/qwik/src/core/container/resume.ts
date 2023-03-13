@@ -185,9 +185,6 @@ export const resumeContainer = (containerEl: Element) => {
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);
         getContext(rawElement, containerState);
-        // getVdom(rawElement); // TODO
-        // getContext(rawElement, containerState).$vdom$ = domToVnode(rawElement);
-
         return rawElement;
       }
       finalized.set(id, rawElement);

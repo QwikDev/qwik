@@ -36,11 +36,10 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
       const url = new URL(req.headers['x-ms-original-url']!);
-      const options = {
-        method: req.method,
+      const options: RequestInit = {
+        method: req.method || 'GET',
         headers: req.headers,
-        body: req.body,
-        duplex: 'half' as any,
+        body: req.bufferBody || req.rawBody || req.body,
       };
 
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
@@ -53,7 +52,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
             return process.env[key];
           },
         },
-        request: new Request(url, options as any),
+        request: new Request(url, options),
         getWritableStream: (status, headers, cookies, resolve) => {
           const response: AzureResponse = {
             status,

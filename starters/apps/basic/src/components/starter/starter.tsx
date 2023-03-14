@@ -16,12 +16,12 @@ export const GETTING_STARTED_STEPS = [
   },
   {
     message: 'Select the title of this page while keeping the <b>ALT</b> key pressed',
-    hint: 'Edit and save your new title. If your editor does not open, have a look at <a href="https://github.com/yyx990803/launch-editor#supported-editors" target="_blank">this page</a> to set the correct <code>LAUNCH_EDITOR</code> value.',
+    hint: 'Edit the title and save the changes. If your editor does not open, have a look at <a href="https://github.com/yyx990803/launch-editor#supported-editors" target="_blank">this page</a> to set the correct <code>LAUNCH_EDITOR</code> value.',
   },
   {
     message:
       '<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes/layout.tsx</code> file',
-    hint: 'Instead of returning the current date, you could return any possible string.<br />The output is display in the footer.',
+    hint: 'Instead of returning the current date, you could return any possible string.<br />The output is displayed in the footer.',
   },
   {
     message: 'Create a <b>new Route</b> called <code>/me</code>',

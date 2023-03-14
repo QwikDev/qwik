@@ -1,4 +1,13 @@
-import { component$, useStore, Slot } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  Slot,
+  useContext,
+  useSignal,
+  useContextProvider,
+  createContextId,
+  Signal,
+} from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -39,6 +48,7 @@ export const SlotParent = component$(() => {
               {!state.removeContent && <>INSIDE THING {state.count}</>}
             </Projector>
           </Thing>
+          <Issue2751 />
         </>
       )}
       <div>
@@ -184,5 +194,50 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
         </Switch>
       </div>
     </>
+  );
+});
+
+const Issue2751Context = createContextId<Signal<number>>('CleanupCounterContext');
+
+export const Issue2751 = component$(() => {
+  const signal = useSignal(0);
+  useContextProvider(Issue2751Context, signal);
+
+  return (
+    <>
+      <button
+        id="issue-2751-toggle"
+        onClick$={() => {
+          signal.value++;
+        }}
+      >
+        Toggle
+      </button>
+      <div id="issue-2751-result">
+        {signal.value % 2 === 0 ? <CleanupA></CleanupA> : <div>Nothing</div>}
+      </div>
+    </>
+  );
+});
+
+interface CleanupProps {
+  slot?: boolean;
+}
+export const CleanupA = component$<CleanupProps>((props) => {
+  return (
+    <div>
+      <Bogus />
+      {props.slot && <Slot></Slot>}
+    </div>
+  );
+});
+
+export const Bogus = component$(() => {
+  const signal = useContext(Issue2751Context);
+  const count = signal.value;
+  return (
+    <div>
+      Bogus {count} {signal.value} <span>{signal.value}</span>
+    </div>
   );
 });

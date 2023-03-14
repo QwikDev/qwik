@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isQwikElement, isText } from '../util/element';
+import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 
@@ -62,7 +62,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
   }
   let doc = {} as Document;
   let containerState = {} as any;
-  if (element && isQwikElement(element)) {
+  if (isNode(element) && isQwikElement(element)) {
     const containerEl = getWrappingContainer(element);
     if (containerEl) {
       containerState = _getContainerState(containerEl);

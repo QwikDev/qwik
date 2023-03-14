@@ -13,6 +13,7 @@ import {
   assertElement,
   assertQwikElement,
   isElement,
+  isNodeElement,
   isQwikElement,
   isText,
   isVirtualElement,
@@ -229,7 +230,6 @@ export const updateChildren = (
 
 const getCh = (elm: QwikElement, filter: (el: Node | VirtualElement) => boolean) => {
   const end = isVirtualElement(elm) ? elm.close : null;
-
   const nodes: (Node | VirtualElement)[] = [];
   let node: Node | null | VirtualElement = elm.firstChild;
   while ((node = processVirtualNodes(node))) {
@@ -252,7 +252,7 @@ export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | Virtu
     case 'head':
       return getCh(elm, isHeadChildren);
     case 'elements':
-      return getCh(elm, isQwikElement);
+      return getCh(elm, isNodeElement);
   }
 };
 
@@ -296,11 +296,6 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
     return t;
   }
   throw new Error('invalid node');
-};
-
-export const isNode = (elm: Node | VirtualElement): boolean => {
-  const type = elm.nodeType;
-  return type === 1 || type === 3 || type === 111;
 };
 
 const isHeadChildren = (node: Node | VirtualElement): boolean => {
@@ -632,7 +627,7 @@ const createElm = (
       assertDefined(currentComponent, 'signals can not be used outside components');
       const subs =
         flags & IS_IMMUTABLE
-          ? ([3, elm, signal, currentComponent.$element$] as const)
+          ? ([3, elm, signal, elm] as const)
           : ([4, currentComponent.$element$, signal, elm] as const);
 
       elm.data = vnode.$text$ = jsxToString(trackSignal(signal, subs));
@@ -1050,23 +1045,30 @@ export const setComponentProps = (
 };
 
 export const cleanupTree = (
-  parent: QwikElement,
+  elm: Node | VirtualElement,
   staticCtx: RenderStaticContext,
   subsManager: SubscriptionManager,
   stopSlots: boolean
 ) => {
-  if (stopSlots && parent.hasAttribute(QSlotS)) {
-    staticCtx.$rmSlots$.push(parent);
-    return;
-  }
-  const ctx = tryGetContext(parent);
-  subsManager.$clearSub$(parent);
-  if (ctx) {
-    cleanupContext(ctx, subsManager);
-  }
-  const ch = getChildren(parent, 'elements');
-  for (const child of ch) {
-    cleanupTree(child as QwikElement, staticCtx, subsManager, true);
+  subsManager.$clearSub$(elm);
+  if (isQwikElement(elm)) {
+    if (stopSlots && elm.hasAttribute(QSlotS)) {
+      staticCtx.$rmSlots$.push(elm);
+      return;
+    }
+    const ctx = tryGetContext(elm);
+    if (ctx) {
+      cleanupContext(ctx, subsManager);
+    }
+    const end = isVirtualElement(elm) ? elm.close : null;
+    let node: Node | null | VirtualElement = elm.firstChild;
+    while ((node = processVirtualNodes(node))) {
+      cleanupTree(node!, staticCtx, subsManager, true);
+      node = node.nextSibling;
+      if (node === end) {
+        break;
+      }
+    }
   }
 };
 

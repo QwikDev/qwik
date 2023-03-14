@@ -235,16 +235,20 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
       if (hostCtx) {
         const hostElm = hostCtx.$element$;
-        const hasTemplate = Array.from(hostElm.childNodes).some(
-          (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
-        );
+        if (hostElm.isConnected) {
+          const hasTemplate = Array.from(hostElm.childNodes).some(
+            (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
+          );
 
-        if (!hasTemplate) {
-          const template = createTemplate(staticCtx.$doc$, key);
-          for (const child of slotChildren) {
-            directAppendChild(template, child);
+          if (!hasTemplate) {
+            const template = createTemplate(staticCtx.$doc$, key);
+            for (const child of slotChildren) {
+              directAppendChild(template, child);
+            }
+            directInsertBefore(hostElm, template, hostElm.firstChild);
+          } else {
+            cleanupTree(slotEl, staticCtx, subsManager, false);
           }
-          directInsertBefore(hostElm, template, hostElm.firstChild);
         } else {
           cleanupTree(slotEl, staticCtx, subsManager, false);
         }

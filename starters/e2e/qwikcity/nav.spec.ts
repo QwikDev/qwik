@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pathToFileURL } from 'url';
+import { assertPage, linkNavigate, load } from './util.js';
 
 test.describe('actions', () => {
   test.describe('mpa', () => {
@@ -103,6 +103,36 @@ test.describe('actions', () => {
         } else {
           await expect(page.locator('#browser')).toHaveText('BROWSER: {}');
         }
+      });
+    });
+
+    test.describe('issue 2751', () => {
+      test('should navigate without crash', async ({ context, javaScriptEnabled }) => {
+        const ctx = await load(context, javaScriptEnabled, '/qwikcity-test/actions/');
+
+        await linkNavigate(ctx, '[data-test-link="docs-home"]');
+        await assertPage(ctx, {
+          pathname: '/qwikcity-test/docs/',
+          title: 'Docs: Welcome! - Qwik',
+          layoutHierarchy: ['docs'],
+          h1: 'Welcome to the Docs!',
+        });
+
+        await linkNavigate(ctx, '[data-test-link="docs-actions"]');
+        await assertPage(ctx, {
+          pathname: '/qwikcity-test/actions/',
+          title: 'Actions - Qwik',
+          layoutHierarchy: ['root'],
+          h1: 'Actions Test',
+        });
+
+        await linkNavigate(ctx, '[data-test-link="api-home"]');
+        await assertPage(ctx, {
+          pathname: '/qwikcity-test/api/',
+          title: 'API: /qwikcity-test/api/ - Qwik',
+          layoutHierarchy: ['root', 'api'],
+          h1: 'Qwik City Test API!',
+        });
       });
     });
   }

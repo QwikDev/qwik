@@ -257,7 +257,7 @@ export interface UseContext {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useContext instead)
 /**
- * Retrive Context value.
+ * Retrieve Context value.
  *
  * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a
  * parent component needs to invoke `useContextProvider()` to assign a value.

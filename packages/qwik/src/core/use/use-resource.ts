@@ -43,7 +43,7 @@ export interface ResourceOptions {
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -132,7 +132,7 @@ export const useResourceQrl = <T>(
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -207,7 +207,7 @@ export interface ResourceProps<T> {
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:

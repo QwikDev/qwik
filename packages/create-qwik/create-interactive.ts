@@ -77,7 +77,7 @@ export async function runCreateInteractiveCli() {
     process.exit(0);
   }
 
-  const starterId = starterIdAnswer;
+  const starterId = starterIdAnswer as string;
 
   const runInstallAnswer = await confirm({
     message: `Would you like to install ${pkgManager} dependencies?`,

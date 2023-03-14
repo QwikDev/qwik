@@ -17,6 +17,8 @@ export default component$(() => {
       <head>
         <meta charSet="utf-8" />
         <link rel="manifest" href="/manifest.json" />
+        {/* REMOVE  THIS LINE BELOW IF YOUR APP DOES NOT LIKE CONFETTI 🤓 */}
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
         <RouterHead />
       </head>
       <body lang="en">

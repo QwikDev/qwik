@@ -1,0 +1,19 @@
+.counter-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.counter-value {
+  background: white;
+  border-radius: 12px;
+  color: var(--qwik-light-purple);
+  font-weight: 400;
+  font-size: 2rem;
+  width: 120px;
+}
+
+.counter-value.odd {
+  color: var(--qwik-light-blue);
+}

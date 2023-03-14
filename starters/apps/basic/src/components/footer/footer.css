@@ -1,0 +1,11 @@
+footer a {
+  color: white;
+  display: block;
+  font-size: 0.8rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+footer .spacer {
+  padding: 0 15px;
+}

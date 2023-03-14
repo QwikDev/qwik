@@ -1,5 +1,5 @@
 import { component$, useStyles$, useTask$, useStore } from '@builder.io/qwik';
-import type { RequestHandler, RouteParams, StaticGenerateHandler } from '@builder.io/qwik-city';
+import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../../components/header/header';
@@ -154,6 +154,6 @@ export const onStaticGenerate: StaticGenerateHandler = () => {
         });
       });
       return params;
-    }, [] as RouteParams[]),
+    }, [] as PathParams[]),
   };
 };

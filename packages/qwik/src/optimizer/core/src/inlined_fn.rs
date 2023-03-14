@@ -62,7 +62,7 @@ pub fn convert_inlined_fn(
     let rendered_str =
         ast::ExprOrSpread::from(ast::Expr::Lit(ast::Lit::Str(ast::Str::from(rendered_expr))));
 
-    // Wrap around arrow fuctions
+    // Wrap around arrow functions
     let expr = ast::Expr::Arrow(ast::ArrowExpr {
         body: ast::BlockStmtOrExpr::Expr(Box::new(expr)),
         is_async: false,

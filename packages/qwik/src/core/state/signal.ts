@@ -34,9 +34,9 @@ export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
   flags: number,
-  subcriptions?: Subscriptions[]
+  subscriptions?: Subscriptions[]
 ): SignalInternal<T> => {
-  const manager = containerState.$subsManager$.$createManager$(subcriptions);
+  const manager = containerState.$subsManager$.$createManager$(subscriptions);
   const signal = new SignalImpl<T>(value, manager, flags);
   return signal;
 };
@@ -46,7 +46,7 @@ export const QObjectSignalFlags = Symbol('proxy manager');
 export const SIGNAL_IMMUTABLE = 1 << 0;
 export const SIGNAL_UNASSIGNED = 1 << 1;
 
-export const SignalUnassignedException = Symbol('unasigned signal');
+export const SignalUnassignedException = Symbol('unassigned signal');
 
 export interface SignalInternal<T> extends Signal<T> {
   untrackedValue: T;

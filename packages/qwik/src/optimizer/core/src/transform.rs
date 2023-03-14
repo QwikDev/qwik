@@ -1140,7 +1140,7 @@ impl<'a> QwikTransform<'a> {
                                 } else if convert_signal_word(&key_word).is_some() {
                                     if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
                                     {
-                                        let (convered_expr, immutable) = self
+                                        let (converted_expr, immutable) = self
                                             ._create_synthetic_qhook(
                                                 *node.value.clone(),
                                                 if is_fn {
@@ -1154,7 +1154,7 @@ impl<'a> QwikTransform<'a> {
 
                                         let converted_prop = ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
-                                                value: Box::new(ast::Expr::Call(convered_expr)),
+                                                value: Box::new(ast::Expr::Call(converted_expr)),
                                                 key: node.key.clone(),
                                             }),
                                         ));

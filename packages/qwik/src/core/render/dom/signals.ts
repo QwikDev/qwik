@@ -24,6 +24,8 @@ export const executeSignalOperation = (
           elm = operation[3];
           hostElm = operation[1];
         }
+        // assertTrue(elm.isConnected, 'element must be connected to the dom');
+        // assertTrue(hostElm.isConnected, 'host element must be connected to the dom');
         const elCtx = tryGetContext(elm);
         if (elCtx == null) {
           return;
@@ -45,17 +47,12 @@ export const executeSignalOperation = (
       }
       case 3:
       case 4: {
-        let elm: Text;
-        if (type === 3) {
-          elm = operation[1] as Text;
-          // hostElm = operation[3];
-        } else {
-          elm = operation[3] as Text;
-          // hostElm = operation[1];
-        }
+        const elm: Text = operation[3] as Text;
+
         if (!staticCtx.$visited$.includes(elm)) {
-          // const vdom = getVdom(elm);
+          // assertTrue(elm.isConnected, 'text node must be connected to the dom');
           const value = operation[2].value;
+          // const vdom = getVdom(elm);
           // if (vdom.$text$ === value) {
           //   return;
           // }

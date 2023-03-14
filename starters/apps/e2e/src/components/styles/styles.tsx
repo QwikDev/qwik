@@ -1,4 +1,11 @@
-import { component$, useStylesScoped$, useStore, Slot, useSignal } from '@builder.io/qwik';
+import {
+  component$,
+  useStylesScoped$,
+  useStore,
+  Slot,
+  useSignal,
+  Fragment,
+} from '@builder.io/qwik';
 import parent from './parent.css?inline';
 import parent2 from './parent2.css?inline';
 import child from './child.css?inline';
@@ -32,10 +39,10 @@ export const StylesChildren = component$(() => {
           Add Child
         </button>
         {Array.from({ length: store.count }).map((_, i) => (
-          <>
+          <Fragment key={i}>
             <Child index={i} />
             <div class="parent-child">Inline {i}</div>
-          </>
+          </Fragment>
         ))}
       </div>
       <Issue1945 />

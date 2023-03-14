@@ -149,6 +149,7 @@ export {
     base: basePath,
     ...extra,
     resolve: {
+      conditions: ['development'],
       alias: {
         '@builder.io/qwik': qwikDistDir,
         '@builder.io/qwik-city': qwikCityDistDir,

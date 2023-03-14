@@ -104,10 +104,15 @@ const IS_TABLE = 1 << 8;
 const IS_PHRASING_CONTAINER = 1 << 9;
 const IS_IMMUTABLE = 1 << 10;
 
+class MockElement {
+  [Q_CTX] = null;
+  constructor(public readonly nodeType: number) {
+    seal(this);
+  }
+}
+
 const createDocument = () => {
-  const doc = { nodeType: 9 };
-  seal(doc);
-  return doc;
+  return new MockElement(9);
 };
 
 /**
@@ -478,11 +483,7 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
 };
 
 const createSSRContext = (nodeType: 1 | 111) => {
-  const elm = {
-    nodeType,
-    [Q_CTX]: null,
-  };
-  seal(elm);
+  const elm = new MockElement(nodeType);
   return createContext(elm as any);
 };
 

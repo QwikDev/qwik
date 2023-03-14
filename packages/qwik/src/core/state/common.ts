@@ -1,6 +1,6 @@
 import { assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
-import { isDocument, isQwikElement } from '../util/element';
+import { isNode } from '../util/element';
 import { seal } from '../util/qdev';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
@@ -17,7 +17,7 @@ import type { Signal } from './signal';
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
-  $clearSub$: (sub: SubscriberEffect | SubscriberHost) => void;
+  $clearSub$: (sub: SubscriberEffect | SubscriberHost | Node) => void;
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -49,8 +49,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
     switch (typeObj) {
       case 'object':
         if (isPromise(unwrapped)) return value;
-        if (isQwikElement(unwrapped)) return value;
-        if (isDocument(unwrapped)) return value;
+        if (isNode(unwrapped)) return value;
         if (isArray(unwrapped)) {
           let expectIndex = 0;
           // Make sure the array has no holes
@@ -176,10 +175,10 @@ export const mutable = <T>(v: T): T => {
 export const _useMutableProps = () => {};
 
 export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
-  if (isQwikElement(sub)) {
-    return !!tryGetContext(sub) || sub.isConnected;
-  } else {
+  if (isSubscriberDescriptor(sub)) {
     return isConnected(sub.$el$);
+  } else {
+    return !!tryGetContext(sub) || sub.isConnected;
   }
 };
 
@@ -287,7 +286,7 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
     $createManager$: (initialMap?: Subscriptions[]) => {
       return new LocalSubscriptionManager(groupToManagers, containerState, initialMap);
     },
-    $clearSub$: (group: SubscriberHost | SubscriberEffect) => {
+    $clearSub$: (group: SubscriberHost | SubscriberEffect | Node) => {
       const managers = groupToManagers.get(group);
       if (managers) {
         for (const manager of managers) {
@@ -335,7 +334,7 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $unsubGroup$(group: SubscriberEffect | SubscriberHost) {
+  $unsubGroup$(group: SubscriberEffect | SubscriberHost | Node) {
     const subs = this.$subs$;
     for (let i = 0; i < subs.length; i++) {
       const found = subs[i][1] === group;

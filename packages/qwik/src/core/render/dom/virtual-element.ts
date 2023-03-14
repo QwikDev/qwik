@@ -308,9 +308,9 @@ const updateComment = (attributes: Map<string, string>) => {
   return `qv ${serializeVirtualAttributes(attributes)}`;
 };
 
-export const processVirtualNodes = (node: Node | null): Node | QwikElement | null => {
+export const processVirtualNodes = <T extends Node | null>(node: T): T | VirtualElement => {
   if (node == null) {
-    return null;
+    return null as T;
   }
 
   if (isComment(node)) {

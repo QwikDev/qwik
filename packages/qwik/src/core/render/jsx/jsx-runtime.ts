@@ -12,6 +12,7 @@ import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { _IMMUTABLE } from '../../internal';
+import { isBrowser } from '@builder.io/qwik/build';
 
 /**
  * @public
@@ -117,32 +118,35 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
                 }
 
                 throw createJSXError(
-                  `One of the children of <${type} /> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal that resolves to one of those types. Instead, ${explanation}`,
+                  `One of the children of <${type}> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal. Instead, ${explanation}\n`,
                   this as any
                 );
               }
             });
           }
-          const keys: Record<string, boolean> = {};
-          flatChildren.forEach((child: any) => {
-            if (isJSXNode(child) && child.key != null) {
-              if (keys[child.key]) {
-                const err = createJSXError(
-                  `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
-                  child
-                );
-                if (err) {
-                  if (isString(child.type)) {
-                    logOnceWarn(err);
-                  } else {
-                    logOnceWarn(err);
+          if (isBrowser) {
+            const keys: Record<string, boolean> = {};
+            flatChildren.forEach((child: any) => {
+              if (isJSXNode(child) && child.key != null) {
+                const key = String(child.type) + ':' + child.key;
+                if (keys[key]) {
+                  const err = createJSXError(
+                    `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
+                    child
+                  );
+                  if (err) {
+                    if (isString(child.type)) {
+                      logOnceWarn(err);
+                    } else {
+                      logOnceWarn(err);
+                    }
                   }
+                } else {
+                  keys[key] = true;
                 }
-              } else {
-                keys[child.key] = true;
               }
-            }
-          });
+            });
+          }
         }
         if (!qRuntimeQrl && props) {
           for (const prop of Object.keys(props)) {
@@ -226,6 +230,8 @@ export const isValidJSXChild = (node: any): boolean => {
     return true;
   } else if (isJSXNode(node)) {
     return true;
+  } else if (isArray(node)) {
+    return node.every(isValidJSXChild);
   }
   if (isSignal(node)) {
     return isValidJSXChild(node.value);
@@ -238,7 +244,9 @@ export const isValidJSXChild = (node: any): boolean => {
 /**
  * @public
  */
-export const Fragment: FunctionComponent<{ children?: any }> = (props) => props.children as any;
+export const Fragment: FunctionComponent<{ children?: any; key?: string | number | null }> = (
+  props
+) => props.children as any;
 
 interface JsxDevOpts {
   fileName: string;

@@ -5,7 +5,6 @@ import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
-import type { QwikElement } from '../render/dom/virtual-element';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
@@ -14,6 +13,7 @@ import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertTrue } from '../error/assert';
+import type { QContext } from '../state/context';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -89,11 +89,11 @@ export interface ContainerState {
 
   readonly $opsNext$: Set<SubscriberSignal>;
 
-  readonly $hostsNext$: Set<QwikElement>;
-  readonly $hostsStaging$: Set<QwikElement>;
+  readonly $hostsNext$: Set<QContext>;
+  readonly $hostsStaging$: Set<QContext>;
   readonly $base$: string;
 
-  $hostsRendering$: Set<QwikElement> | undefined;
+  $hostsRendering$: Set<QContext> | undefined;
   $renderPromise$: Promise<void> | undefined;
 
   $serverData$: Record<string, any>;

@@ -142,7 +142,6 @@ export const createContext = (element: Element | VirtualElement): QContext => {
 };
 
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
-  const el = elCtx.$element$;
   elCtx.$watches$?.forEach((watch) => {
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
@@ -150,6 +149,4 @@ export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
   elCtx.$watches$ = null;
-
-  (el as any)[Q_CTX] = undefined;
 };

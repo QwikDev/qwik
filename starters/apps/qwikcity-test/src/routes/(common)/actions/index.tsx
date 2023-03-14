@@ -16,6 +16,7 @@ export default component$(() => {
 
   return (
     <div class="actions">
+      <h1>Actions Test</h1>
       <section class="input">
         <SecretForm />
       </section>

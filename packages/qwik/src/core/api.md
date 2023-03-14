@@ -138,6 +138,7 @@ export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
+    key?: string | number | null;
 }>;
 
 // @public (undocumented)

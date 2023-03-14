@@ -238,6 +238,24 @@ test.describe('slot', () => {
       await count.click();
       await expect(result).toHaveText('Alpha 5', { useInnerText: true });
     });
+
+    test('issue 2751', async ({ page }) => {
+      const result = page.locator('#issue-2751-result');
+      const button = page.locator('#issue-2751-toggle');
+      await expect(result).toHaveText('Bogus 0 0 0');
+      await button.click();
+      await expect(result).toHaveText('Nothing');
+      await button.click();
+      await expect(result).toHaveText('Bogus 2 2 2');
+      await button.click();
+      await expect(result).toHaveText('Nothing');
+      await button.click();
+      await expect(result).toHaveText('Bogus 4 4 4');
+      await button.click();
+      await expect(result).toHaveText('Nothing');
+      await button.click();
+      await expect(result).toHaveText('Bogus 6 6 6');
+    });
   }
 
   test.beforeEach(async ({ page }) => {

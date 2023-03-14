@@ -67,7 +67,8 @@ export type RedirectCode = 301 | 302 | 303 | 307 | 308;
 /**
  * @alpha
  */
-export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
+  extends RequestEventBase<PLATFORM> {
   /**
    * HTTP response status code. Sets the status code when called with an
    * argument. Always returns the status code, so calling `status()` without
@@ -129,7 +130,12 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
   readonly send: SendMethod;
 
   readonly exit: () => AbortMessage;
+}
 
+/**
+ * @alpha
+ */
+export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
    * HTTP response headers.
    *
@@ -208,6 +214,11 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
    * If the `Content-Type` header is not set, it will return `null`.
    */
   readonly parseBody: () => Promise<unknown>;
+
+  /**
+   * Convenience method to set the Cache-Control header.
+   */
+  readonly cacheControl: (cacheControl: CacheControl) => void;
 }
 
 /**
@@ -281,7 +292,6 @@ export interface CacheControlOptions {
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
   readonly exited: boolean;
-  readonly cacheControl: (cacheControl: CacheControl) => void;
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.

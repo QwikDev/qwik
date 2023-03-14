@@ -58,6 +58,7 @@ export const Render = component$(() => {
 
       <IssueReorder />
       <Issue2414 />
+      <Issue3178 />
     </>
   );
 });
@@ -268,7 +269,7 @@ export const Issue2800 = component$(() => {
       </button>
       <ul id="issue-2800-result">
         {Object.entries(store).map(([key, value]) => (
-          <li>
+          <li key={key}>
             {key} - {value}
           </li>
         ))}
@@ -416,6 +417,29 @@ const Issue2414 = component$(() => {
           <></>
         )}
       </table>
+    </>
+  );
+});
+
+const Issue3178 = component$(() => {
+  const store = useStore(
+    {
+      elements: [] as Element[],
+    },
+    { deep: true }
+  );
+
+  return (
+    <>
+      <div
+        id="issue-3178"
+        ref={(el) => {
+          store.elements.push(el);
+          console.warn(store.elements[0].nodeType);
+        }}
+      >
+        Hello
+      </div>
     </>
   );
 });

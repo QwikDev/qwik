@@ -25,7 +25,7 @@ export const renderComponent = (
   const hostElement = elCtx.$element$;
   const containerState = rCtx.$static$.$containerState$;
   // Component is not dirty any more
-  containerState.$hostsStaging$.delete(hostElement);
+  containerState.$hostsStaging$.delete(elCtx);
   // Clean current subscription before render
   containerState.$subsManager$.$clearSub$(hostElement);
 

@@ -229,4 +229,9 @@ test.describe('render', () => {
     await expect(age).toHaveText(list.map((a) => String(a[1])));
     await expect(id).toHaveText(list.map((a) => String(a[2])));
   });
+
+  test('issue3178', async ({ page }) => {
+    const result = page.locator('#issue-3178');
+    await expect(result).toHaveText('Hello');
+  });
 });

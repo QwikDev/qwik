@@ -161,7 +161,7 @@ export function createRequestEvent(
     },
 
     locale: (_locale?: string) => {
-      if (typeof locale === 'string') {
+      if (typeof _locale === 'string') {
         locale = _locale;
       }
       return locale || '';

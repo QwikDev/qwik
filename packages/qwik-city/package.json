@@ -114,7 +114,7 @@
     "@types/mdx": "2.0.3",
     "source-map": "0.7.4",
     "vfile": "5.3.7",
-    "zod": "^3.20.6"
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@azure/functions": "^3.5.0",
@@ -123,7 +123,7 @@
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.0.8",
     "@types/mdast": "^3.0.10",
-    "@types/node": "^18.14.0",
+    "@types/node": "^18.15.3",
     "@types/refractor": "3.0.2",
     "estree-util-value-to-estree": "2.1.0",
     "github-slugger": "2.0.0",
@@ -132,7 +132,7 @@
     "kleur": "4.1.5",
     "marked": "4.2.12",
     "mdast-util-mdx": "^2.0.1",
-    "refractor": "4.8.0",
+    "refractor": "4.8.1",
     "rehype-autolink-headings": "6.1.1",
     "remark-frontmatter": "4.0.1",
     "remark-gfm": "3.0.1",

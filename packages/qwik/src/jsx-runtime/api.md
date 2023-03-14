@@ -7,6 +7,7 @@
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
+    key?: string | number | null;
 }>;
 
 // @public (undocumented)

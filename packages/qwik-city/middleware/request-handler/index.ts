@@ -18,4 +18,5 @@ export type {
   ServerRequestEvent,
   ServerResponseHandler,
   DeferReturn,
+  RequestEventBase,
 } from './types';

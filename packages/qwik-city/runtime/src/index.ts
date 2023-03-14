@@ -38,6 +38,7 @@ export type {
   StaticGenerate,
   RouteNavigate,
   DeferReturn,
+  RequestEventBase,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';

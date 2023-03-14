@@ -66,8 +66,6 @@ export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers
 // @alpha (undocumented)
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
-    readonly cacheControl: (cacheControl: CacheControl) => void;
-    // (undocumented)
     readonly exited: boolean;
     readonly getWritableStream: () => WritableStream<Uint8Array>;
     // (undocumented)
@@ -83,36 +81,41 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 }
 
 // @alpha (undocumented)
-export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly basePathname: string;
+    readonly cacheControl: (cacheControl: CacheControl) => void;
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
-    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
-    readonly error: (statusCode: number, message: string) => ErrorResponse;
-    // (undocumented)
-    readonly exit: () => AbortMessage;
     readonly headers: Headers;
-    readonly html: (statusCode: number, html: string) => AbortMessage;
-    readonly json: (statusCode: number, data: any) => AbortMessage;
-    readonly locale: (local?: string) => string;
     readonly method: string;
     readonly params: Readonly<Record<string, string>>;
     readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;
+    readonly request: Request;
+    readonly sharedMap: Map<string, any>;
+    readonly url: URL;
+}
+
+// @alpha (undocumented)
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends RequestEventBase<PLATFORM> {
+    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
+    readonly error: (statusCode: number, message: string) => ErrorResponse;
+    // (undocumented)
+    readonly exit: () => AbortMessage;
+    readonly html: (statusCode: number, html: string) => AbortMessage;
+    readonly json: (statusCode: number, data: any) => AbortMessage;
+    readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
-    readonly request: Request;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
-    readonly sharedMap: Map<string, any>;
     readonly status: (statusCode?: number) => number;
     // Warning: (ae-forgotten-export) The symbol "AbortMessage" needs to be exported by the entry point index.d.ts
     readonly text: (statusCode: number, text: string) => AbortMessage;
-    readonly url: URL;
 }
 
 // @alpha (undocumented)

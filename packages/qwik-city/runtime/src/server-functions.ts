@@ -277,7 +277,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
     }
   }
 
-  function client() {
+  function stuff() {
     return $(async (...args: any[]) => {
       if (isServer) {
         return qrl(...(args as any));
@@ -310,7 +310,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
       }
     }) as any;
   }
-  return client();
+  return stuff();
 };
 
 /**

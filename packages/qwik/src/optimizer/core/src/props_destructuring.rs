@@ -10,7 +10,7 @@ use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{VisitMut, VisitMutWith};
 
-struct PropsDestructuing<'a> {
+struct PropsDestructuring<'a> {
     component_ident: Option<Id>,
     pub identifiers: HashMap<Id, ast::Expr>,
     pub global_collect: &'a mut GlobalCollect,
@@ -22,7 +22,7 @@ pub fn transform_props_destructuring(
     global_collect: &mut GlobalCollect,
     core_module: &JsWord,
 ) {
-    main_module.visit_mut_with(&mut PropsDestructuing {
+    main_module.visit_mut_with(&mut PropsDestructuring {
         component_ident: global_collect.get_imported_local(&COMPONENT, core_module),
         identifiers: HashMap::new(),
         global_collect,
@@ -46,7 +46,7 @@ macro_rules! id_eq {
     };
 }
 
-impl<'a> VisitMut for PropsDestructuing<'a> {
+impl<'a> VisitMut for PropsDestructuring<'a> {
     fn visit_mut_call_expr(&mut self, node: &mut ast::CallExpr) {
         if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) = &node.callee {
             if id_eq!(ident, &self.component_ident) {
@@ -86,7 +86,7 @@ impl<'a> VisitMut for PropsDestructuing<'a> {
     }
 }
 
-fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuing) {
+fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuring) {
     if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
         let new_ident = private_ident!("props");
         if let Some((rest_id, local)) = transform_pat(&new_ident, obj, props_transform) {
@@ -109,7 +109,7 @@ fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut P
     }
 }
 
-fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut PropsDestructuing) {
+fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut PropsDestructuring) {
     let mut inserts = vec![];
     for (index, stmt) in body.stmts.iter_mut().enumerate() {
         if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
@@ -171,7 +171,7 @@ type TransformPatReturn = (Option<Id>, Vec<(Id, JsWord, ast::Expr)>);
 fn transform_pat(
     new_ident: &ast::Ident,
     obj: &ast::ObjectPat,
-    props_transform: &mut PropsDestructuing,
+    props_transform: &mut PropsDestructuring,
 ) -> Option<TransformPatReturn> {
     let mut local = vec![];
     let mut skip = false;

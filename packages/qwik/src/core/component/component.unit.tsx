@@ -8,7 +8,7 @@ import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 
 /**
- * Appling new unit test library/layer
+ * Applying new unit test library/layer
  * `@builder.io/qwik/testing`  ==>  ../../testing/library
  */
 const qComponent = suite('q-component');
@@ -205,8 +205,8 @@ export const Items = component$((props: { items: ItemsObj }) => {
   );
 });
 
-function delay(miliseconds: number): Promise<void> {
-  return new Promise((res) => setTimeout(res, miliseconds));
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((res) => setTimeout(res, milliseconds));
 }
 
 qComponent.run();

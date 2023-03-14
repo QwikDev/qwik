@@ -116,7 +116,7 @@ async function submoduleCoreProd(config: BuildConfig) {
               global_defs: {
                 // special global that when set to false will remove all dev code entirely
                 // developer production builds could use core.min.js directly, or setup
-                // their own build tools to define the globa `qwikDev` to false
+                // their own build tools to define the global `qwikDev` to false
                 'globalThis.qDev': false,
                 'globalThis.qInspector': false,
                 'globalThis.qSerialize': false,
@@ -162,7 +162,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distPkgDir, 'core.min.mjs')));
 
-  // always set the cjs version (probably imported serverside) to dev mode
+  // always set the cjs version (probably imported server-side) to dev mode
   let esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
   let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
   await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);

@@ -279,7 +279,7 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
     collectValue(obj.ref, collector, leaks);
     if (fastWeakSerialize(obj.ref)) {
       const localManager = getProxyManager(obj.ref)!;
-      if (isTreeshakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
+      if (isTreeShakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }
     }
@@ -457,7 +457,7 @@ export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: Contai
     },
   };
 
-const isTreeshakeable = (
+const isTreeShakeable = (
   manager: SubscriptionManager,
   target: LocalSubscriptionManager,
   leaks: QwikElement | boolean

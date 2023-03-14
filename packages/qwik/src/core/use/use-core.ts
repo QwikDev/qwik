@@ -173,14 +173,14 @@ export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
 
-const trackInvokation = newInvokeContext(undefined, undefined, undefined, RenderEvent);
+const trackInvocation = newInvokeContext(undefined, undefined, undefined, RenderEvent);
 
 /**
  * @alpha
  */
 export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
-  trackInvokation.$subscriber$ = sub;
-  return invoke(trackInvokation, () => signal.value);
+  trackInvocation.$subscriber$ = sub;
+  return invoke(trackInvocation, () => signal.value);
 };
 
 /**

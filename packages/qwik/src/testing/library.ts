@@ -24,7 +24,7 @@ async function triggerUserEvent(
 }
 
 /**
- * CreatePlatfrom and CreateDocument
+ * CreatePlatform and CreateDocument
  * @alpha
  */
 export const createDOM = async function () {

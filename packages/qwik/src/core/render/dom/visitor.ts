@@ -461,7 +461,7 @@ export const patchVnode = (
 
     // Rendering of children of component is more complicated,
     // since the children must be projected into the rendered slots
-    // In addition, nested childen might need rerendering, if that's the case
+    // In addition, nested children might need rerendering, if that's the case
     // we need to render the nested component, and wait before projecting the content
     // since otherwise we don't know where the slots
     if (needsRender) {
@@ -492,12 +492,12 @@ const renderContentProjection = (
   }
   const newChildren = vnode.$children$;
   const staticCtx = rCtx.$static$;
-  const splittedNewChidren = splitChildren(newChildren);
+  const splittedNewChildren = splitChildren(newChildren);
   const slotMaps = getSlotMap(hostCtx);
 
   // Remove content from empty slots
   for (const key of Object.keys(slotMaps.slots)) {
-    if (!splittedNewChidren[key]) {
+    if (!splittedNewChildren[key]) {
       const slotEl = slotMaps.slots[key];
       const oldCh = getChildrenVnodes(slotEl, 'root');
       if (oldCh.length > 0) {
@@ -514,7 +514,7 @@ const renderContentProjection = (
   // Remove empty templates
   for (const key of Object.keys(slotMaps.templates)) {
     const templateEl = slotMaps.templates[key];
-    if (templateEl && !splittedNewChidren[key]) {
+    if (templateEl && !splittedNewChildren[key]) {
       slotMaps.templates[key] = undefined;
       removeNode(staticCtx, templateEl);
     }
@@ -522,8 +522,8 @@ const renderContentProjection = (
 
   // Render into slots
   return promiseAll(
-    Object.keys(splittedNewChidren).map((slotName) => {
-      const newVdom = splittedNewChidren[slotName];
+    Object.keys(splittedNewChildren).map((slotName) => {
+      const newVdom = splittedNewChildren[slotName];
       const slotCtx = getSlotCtx(
         staticCtx,
         slotMaps,

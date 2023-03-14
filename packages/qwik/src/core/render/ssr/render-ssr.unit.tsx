@@ -525,7 +525,7 @@ renderSSRSuite('single multiple children', async () => {
   );
 });
 
-renderSSRSuite('sanitazion', async () => {
+renderSSRSuite('sanity', async () => {
   await testSSR(
     <body>
       <div>{`.rule > thing{}`}</div>

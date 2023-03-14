@@ -128,7 +128,7 @@ import { getSourceFile } from './source-file';
     },
   },
   {
-    fileName: 'layou.css',
+    fileName: 'layout.css',
     expect: null,
   },
   {

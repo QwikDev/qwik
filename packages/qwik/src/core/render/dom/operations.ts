@@ -253,7 +253,7 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
           cleanupTree(slotEl, staticCtx, subsManager, false);
         }
       } else {
-        // If slot content cannot be relocated, it means it's content is definively removed
+        // If slot content cannot be relocated, it means it's content is definitely removed
         // Cleanup needs to be executed
         cleanupTree(slotEl, staticCtx, subsManager, false);
       }

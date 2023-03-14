@@ -9,13 +9,13 @@ export async function postBuild(
   format: string,
   cleanStatic: boolean
 ) {
-  const ingorePathnames = new Set([basePathname + 'build/', basePathname + 'assets/']);
+  const ignorePathnames = new Set([basePathname + 'build/', basePathname + 'assets/']);
 
   const staticPaths = new Set(userStaticPaths);
   const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
-    if (ingorePathnames.has(pathname)) {
+    if (ignorePathnames.has(pathname)) {
       return;
     }
 

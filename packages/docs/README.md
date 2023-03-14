@@ -7,7 +7,7 @@
 During development, the index.html is not a result of server-side rendering, but rather the Qwik app is built using client-side JavaScript only. This is ideal for development with Vite and its ability to reload modules quickly and on-demand. However, this mode is only for development and does not showcase "how" Qwik works since JavaScript is required to execute, and Vite imports many development modules for the app to work.
 
 ```
-yarn dev
+pnpm dev
 ```
 
 ### Server-side Rendering (SSR) and Client
@@ -15,7 +15,7 @@ yarn dev
 Server-side rendered index.html, with client-side modules prefetched and loaded by the browser. This can be used to test out server-side rendered content during development, but will be slower than the client-only development builds.
 
 ```
-yarn dev.ssr
+pnpm dev.ssr
 ```
 
 ## Production Builds
@@ -23,7 +23,7 @@ yarn dev.ssr
 A production build should generate the client and server modules by running both client and server build commands.
 
 ```
-yarn build
+pnpm build
 ```
 
 ### Client Modules
@@ -31,7 +31,7 @@ yarn build
 Production build that creates only the client-side modules that are dynamically imported by the browser.
 
 ```
-yarn build.client
+pnpm build.client
 ```
 
 ### Server Modules
@@ -39,7 +39,7 @@ yarn build.client
 Production build that creates the server-side render (SSR) module that is used by the server to render the HTML.
 
 ```
-yarn build.ssr
+pnpm build.ssr
 ```
 
 ## Cloudflare Pages
@@ -47,7 +47,7 @@ yarn build.ssr
 Cloudflare's [wrangler](https://github.com/cloudflare/wrangler) CLI can be used to preview a production build locally. To start a local server, run:
 
 ```
-yarn serve
+pnpm serve
 ```
 
 Then visit [http://localhost:8787/](http://localhost:8787/)
@@ -58,7 +58,7 @@ Then visit [http://localhost:8787/](http://localhost:8787/)
 
 If you don't already have an account, then [create a Cloudflare account here](https://dash.cloudflare.com/sign-up/pages). Next go to your dashboard and follow the [Cloudflare Pages deployment guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/).
 
-Within the projects "Settings" for "Build and deployments", the "Build command" should be `yarn build`, and the "Build output directory" should be set to `dist`.
+Within the projects "Settings" for "Build and deployments", the "Build command" should be `pnpm build`, and the "Build output directory" should be set to `dist`.
 
 ## Algolia search
 
@@ -92,7 +92,7 @@ see guide of [DocSearch-legacy docker command](https://docsearch.algolia.com/doc
 Cloudflare's [wrangler](https://github.com/cloudflare/wrangler) CLI can be used to preview a production build locally. To start a local server, run:
 
 ```
-yarn serve
+pnpm serve
 ```
 
 Then visit [http://localhost:8787/](http://localhost:8787/)
@@ -103,7 +103,7 @@ Then visit [http://localhost:8787/](http://localhost:8787/)
 
 If you don't already have an account, then [create a Cloudflare account here](https://dash.cloudflare.com/sign-up/pages). Next go to your dashboard and follow the [Cloudflare Pages deployment guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/).
 
-Within the projects "Settings" for "Build and deployments", the "Build command" should be `yarn build`, and the "Build output directory" should be set to `dist`.
+Within the projects "Settings" for "Build and deployments", the "Build command" should be `pnpm build`, and the "Build output directory" should be set to `dist`.
 
 ### Function Invocation Routes
 

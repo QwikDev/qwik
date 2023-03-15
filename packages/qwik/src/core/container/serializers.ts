@@ -25,6 +25,7 @@ import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
 import { parseDerivedSignal, serializeDerivedSignal } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
+import { deserializeError, serializeError } from '../error/error_serializer';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -181,14 +182,8 @@ const RegexSerializer: Serializer<RegExp> = {
 const ErrorSerializer: Serializer<Error> = {
   prefix: '\u000E',
   test: (v) => v instanceof Error,
-  serialize: (obj) => {
-    return obj.message;
-  },
-  prepare: (text) => {
-    const err = new Error(text);
-    err.stack = undefined;
-    return err;
-  },
+  serialize: (obj) => serializeError(obj),
+  prepare: (text) => deserializeError(text),
   fill: undefined,
 };
 

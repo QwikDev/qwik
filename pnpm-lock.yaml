@@ -134,8 +134,8 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': 0.21.0
-      '@builder.io/qwik-city': 0.5.3
+      '@builder.io/qwik': workspace:*
+      '@builder.io/qwik-city': workspace:*
       '@builder.io/sdk-qwik': 0.1.11
       '@docsearch/css': 3.3.3
       '@types/prismjs': ^1.26.0
@@ -160,9 +160,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': 0.21.0_undici@5.21.0
+      '@builder.io/qwik': link:../qwik
       '@builder.io/qwik-city': link:../qwik-city
-      '@builder.io/sdk-qwik': 0.1.11_@builder.io+qwik@0.21.0
+      '@builder.io/sdk-qwik': 0.1.11_57atdkqjbkulndxrlkskqpl6yi
       '@docsearch/css': 3.3.3
       '@types/prismjs': 1.26.0
       algoliasearch: 4.14.3
@@ -464,22 +464,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik/0.21.0_undici@5.21.0:
-    resolution: {integrity: sha512-YDQcCSGPgXLQkY260N4XvYavxPNHewzIzIjqbl9hvnnk7a1s4EkcCrkudbGCl6VkkiQsDKMYPsemy4sFpKlafg==}
-    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
-    hasBin: true
-    peerDependencies:
-      undici: ^5.14.0
-    dependencies:
-      undici: 5.21.0
-    dev: true
-
-  /@builder.io/sdk-qwik/0.1.11_@builder.io+qwik@0.21.0:
+  /@builder.io/sdk-qwik/0.1.11_57atdkqjbkulndxrlkskqpl6yi:
     resolution: {integrity: sha512-udbRD3OMfTIAShg244qyXdi78VlObrgThDrPyVEe/aS0teLKq0DAfGFf/60JAsN3FfCkGeg5VCtXGbTLqoPr4w==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.21.0_undici@5.21.0
+      '@builder.io/qwik': link:packages/qwik
     dev: true
 
   /@clack/core/0.3.2:

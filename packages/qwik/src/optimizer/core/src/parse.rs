@@ -324,6 +324,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
                         strip_event_handlers: config.strip_event_handlers,
+                        is_server: config.is_server,
                     });
 
                     // Run main transform

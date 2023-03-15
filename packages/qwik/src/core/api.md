@@ -133,7 +133,7 @@ export interface ErrorBoundaryStore {
 // Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr: string) => SignalDerived<any, any[]>;
+export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>;
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{

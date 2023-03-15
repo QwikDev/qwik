@@ -126,6 +126,7 @@ pub struct QwikTransformOptions<'a> {
     pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
     pub strip_event_handlers: bool,
+    pub is_server: Option<bool>,
 }
 
 fn convert_signal_word(id: &JsWord) -> Option<JsWord> {
@@ -451,9 +452,16 @@ impl<'a> QwikTransform<'a> {
         let mut scoped_idents: Vec<Id> = set.into_iter().collect();
         scoped_idents.sort();
 
+        let serialize_fn = matches!(self.options.is_server, None | Some(true));
         let (scoped_idents, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
         let inlined_fn = self.ensure_core_import(&_INLINED_FN);
-        convert_inlined_fn(folded, scoped_idents, &inlined_fn, accept_call_expr)
+        convert_inlined_fn(
+            folded,
+            scoped_idents,
+            &inlined_fn,
+            accept_call_expr,
+            serialize_fn,
+        )
     }
 
     fn create_synthetic_qhook(

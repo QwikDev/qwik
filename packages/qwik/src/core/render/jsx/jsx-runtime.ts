@@ -125,27 +125,29 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             });
           }
           if (isBrowser) {
-            const keys: Record<string, boolean> = {};
-            flatChildren.forEach((child: any) => {
-              if (isJSXNode(child) && child.key != null) {
-                const key = String(child.type) + ':' + child.key;
-                if (keys[key]) {
-                  const err = createJSXError(
-                    `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
-                    child
-                  );
-                  if (err) {
-                    if (isString(child.type)) {
-                      logOnceWarn(err);
-                    } else {
-                      logOnceWarn(err);
+            if (isFunction(type) || immutableProps) {
+              const keys: Record<string, boolean> = {};
+              flatChildren.forEach((child: any) => {
+                if (isJSXNode(child) && child.key != null) {
+                  const key = String(child.type) + ':' + child.key;
+                  if (keys[key]) {
+                    const err = createJSXError(
+                      `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
+                      child
+                    );
+                    if (err) {
+                      if (isString(child.type)) {
+                        logOnceWarn(err);
+                      } else {
+                        logOnceWarn(err);
+                      }
                     }
+                  } else {
+                    keys[key] = true;
                   }
-                } else {
-                  keys[key] = true;
                 }
-              }
-            });
+              });
+            }
           }
         }
         if (!qRuntimeQrl && props) {

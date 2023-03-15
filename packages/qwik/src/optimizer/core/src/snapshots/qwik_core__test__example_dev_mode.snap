@@ -43,12 +43,20 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
             })
-        }, "Hello Qwik", 3, null)
-    }, 3, "u6_0");
+        }, "Hello Qwik", 3, null, {
+            fileName: "test.tsx",
+            lineNumber: 7,
+            columnNumber: 13
+        })
+    }, 3, "u6_0", {
+        fileName: "test.tsx",
+        lineNumber: 6,
+        columnNumber: 9
+    });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;;;;;;WAA6B;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;;;;;;WAA6B;;;;;;;;;;AAGlE\"}")
 /*
 {
   "origin": "test.tsx",

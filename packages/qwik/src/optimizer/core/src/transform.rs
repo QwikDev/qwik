@@ -22,9 +22,9 @@ use std::str;
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
-use swc_common::{errors::HANDLER, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
-use swc_ecmascript::utils::{private_ident, ExprFactory};
+use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
 
 macro_rules! id {
@@ -127,6 +127,7 @@ pub struct QwikTransformOptions<'a> {
     pub strip_ctx_name: Option<&'a [JsWord]>,
     pub strip_event_handlers: bool,
     pub is_server: Option<bool>,
+    pub cm: Lrc<SourceMap>,
 }
 
 fn convert_signal_word(id: &JsWord) -> Option<JsWord> {
@@ -222,6 +223,40 @@ impl<'a> QwikTransform<'a> {
 
     fn is_inside_module(&self) -> bool {
         self.hook_stack.is_empty() || self.is_inline()
+    }
+
+    fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
+        let loc = self.options.cm.lookup_char_pos(span.lo);
+        let file_name = self
+            .options
+            .path_data
+            .rel_path
+            .to_string_lossy()
+            .to_string();
+        ast::ExprOrSpread {
+            spread: None,
+            expr: Box::new(ast::Expr::Object(ast::ObjectLit {
+                span: DUMMY_SP,
+                props: vec![
+                    ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+                        key: ast::PropName::Ident(quote_ident!("fileName")),
+                        value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                            span: DUMMY_SP,
+                            raw: None,
+                            value: file_name.into(),
+                        }))),
+                    }))),
+                    ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+                        key: ast::PropName::Ident(quote_ident!("lineNumber")),
+                        value: loc.line.into(),
+                    }))),
+                    ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+                        key: ast::PropName::Ident(quote_ident!("columnNumber")),
+                        value: (loc.col.0 + 1).into(),
+                    }))),
+                ],
+            })),
+        }
     }
 
     fn register_context_name(
@@ -707,7 +742,7 @@ impl<'a> QwikTransform<'a> {
             get_null_arg()
         };
 
-        let (jsx_func, args) = if is_fn {
+        let (jsx_func, mut args) = if is_fn {
             (
                 self.ensure_core_import(&_JSX_C),
                 vec![node_type, mutable_props, flags, key],
@@ -725,6 +760,10 @@ impl<'a> QwikTransform<'a> {
                 ],
             )
         };
+
+        if self.options.mode == EmitMode::Dev {
+            args.push(self.get_dev_location(node.span));
+        }
 
         if name_token {
             self.stack_ctxt.pop();

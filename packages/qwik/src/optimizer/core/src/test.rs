@@ -2096,6 +2096,8 @@ export const App = component$((props: Stuff) => {
 });
 "#
         .to_string(),
+        filename: "project/index.tsx".into(),
+        src_dir: "/src/project".into(),
         transpile_ts: true,
         transpile_jsx: true,
         mode: EmitMode::Dev,

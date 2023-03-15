@@ -143,7 +143,7 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                                 .identifiers
                                 .get(&id!(ident.clone()))
                                 .cloned()
-                                .unwrap_or(ast::Expr::Ident(ident.clone()));
+                                .unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
                             Some((new_ident, expr, true))
                         }
                         _ => None,

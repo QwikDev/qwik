@@ -117,3 +117,35 @@ export default defineConfig(() => {
   };
 });
 ```
+
+## Open Graph Properties
+
+You can use `og` or `opengraph` property to define [Open Graph protocol](https://ogp.me/) metadata.
+
+```yaml
+title: My Title
+description: My Description
+og:
+  - title: My Custom Title
+    description: true
+  - image: https://example.com/rock.jpg
+    image:alt: A shiny red apple with a bite taken out
+  - image: https://example.com/rock2.jpg
+```
+
+Setting `og:title` or `og:description` to `true` will check and use outside `title` and `description` property instead. Thus, you can avoid writing a same title and description twice.
+
+The above example will generate the following HTML code.
+
+```HTML
+<title>My Title</title>
+<meta name="description" content="My Description" />
+
+<meta property="og:title" content="My Custom Title" />
+<meta property="og:description" content="My Description" />
+
+<meta property="og:image" content="https://example.com/rock.jpg" />
+<meta property="og:image:alt" content="A shiny red apple with a bite taken out" />
+
+<meta property="og:image" content="https://example.com/rock2.jpg" />
+```

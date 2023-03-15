@@ -2,11 +2,11 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
-// A helper for defining Youtube Media Entries
+// A helper for defining YouTube Media Entries
 export const youtube = (title: string, id: string, start_time?: number): MediaEntry => {
   const url = new URL('https://www.youtube.com/watch');
   url.searchParams.append('v', id);
-  // if there's a start_time and it's not 0
+  // if there's a start_time, and it's not 0
   if (start_time) {
     url.searchParams.append('t', start_time.toString());
   }

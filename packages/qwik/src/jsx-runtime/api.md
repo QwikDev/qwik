@@ -46,7 +46,7 @@ export { jsx as jsxs }
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point jsx-runtime.d.ts
 //
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, isStatic: boolean, opts: JsxDevOpts, ctx: any) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: any) => JSXNode<T>;
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {

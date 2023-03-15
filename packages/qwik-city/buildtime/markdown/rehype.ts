@@ -44,7 +44,6 @@ export function rehypePage(ctx: BuildContext): Transformer {
 }
 
 export function renameClassname(): Transformer {
-
   return (ast) => {
     const mdast = ast as Root;
 
@@ -56,7 +55,7 @@ export function renameClassname(): Transformer {
         }
       }
     });
-  }
+  };
 }
 
 function updateContentLinks(mdast: Root, opts: NormalizedPluginOptions, sourcePath: string) {

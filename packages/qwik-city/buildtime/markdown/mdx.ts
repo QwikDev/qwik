@@ -55,7 +55,13 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       remarkFrontmatter,
       [parseFrontmatter, ctx],
     ],
-    rehypePlugins: [rehypeSlug, ...userRehypePlugins, ...coreRehypePlugins, [rehypePage, ctx], renameClassname],
+    rehypePlugins: [
+      rehypeSlug,
+      ...userRehypePlugins,
+      ...coreRehypePlugins,
+      [rehypePage, ctx],
+      renameClassname,
+    ],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

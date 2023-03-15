@@ -31,8 +31,16 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
             })
-        }, "Hello Qwik", 3, null)
-    }, 3, "u6_0");
+        }, "Hello Qwik", 3, null, {
+            fileName: "test.tsx",
+            lineNumber: 7,
+            columnNumber: 13
+        })
+    }, 3, "u6_0", {
+        fileName: "test.tsx",
+        lineNumber: 6,
+        columnNumber: 9
+    });
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 90,
@@ -41,7 +49,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;AAEA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;AAEA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;;;;;;;;;AAGlE;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

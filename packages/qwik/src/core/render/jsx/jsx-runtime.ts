@@ -23,7 +23,8 @@ export const _jsxQ = <T extends string | FunctionComponent<any>>(
   immutableProps: Record<string, any> | null,
   children: any | null,
   flags: number,
-  key?: string | number | null
+  key: string | number | null,
+  dev?: DevJSX
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(
@@ -34,6 +35,12 @@ export const _jsxQ = <T extends string | FunctionComponent<any>>(
     flags,
     processed
   );
+  if (qDev && dev) {
+    node.dev = {
+      stack: new Error().stack,
+      ...dev,
+    };
+  }
   seal(node);
   return node;
 };
@@ -45,11 +52,18 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
   flags: number,
-  key?: string | number | null
+  key: string | number | null,
+  dev?: JsxDevOpts
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
   const props = mutableProps ?? (EMPTY_OBJ as any);
   const node = new JSXNodeImpl<T>(type, props, null, props.children, flags, processed);
+  if (qDev && dev) {
+    node.dev = {
+      stack: new Error().stack,
+      ...dev,
+    };
+  }
   seal(node);
   return node;
 };
@@ -125,27 +139,29 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             });
           }
           if (isBrowser) {
-            const keys: Record<string, boolean> = {};
-            flatChildren.forEach((child: any) => {
-              if (isJSXNode(child) && child.key != null) {
-                const key = String(child.type) + ':' + child.key;
-                if (keys[key]) {
-                  const err = createJSXError(
-                    `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
-                    child
-                  );
-                  if (err) {
-                    if (isString(child.type)) {
-                      logOnceWarn(err);
-                    } else {
-                      logOnceWarn(err);
+            if (isFunction(type) || immutableProps) {
+              const keys: Record<string, boolean> = {};
+              flatChildren.forEach((child: any) => {
+                if (isJSXNode(child) && child.key != null) {
+                  const key = String(child.type) + ':' + child.key;
+                  if (keys[key]) {
+                    const err = createJSXError(
+                      `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
+                      child
+                    );
+                    if (err) {
+                      if (isString(child.type)) {
+                        logOnceWarn(err);
+                      } else {
+                        logOnceWarn(err);
+                      }
                     }
+                  } else {
+                    keys[key] = true;
                   }
-                } else {
-                  keys[key] = true;
                 }
-              }
-            });
+              });
+            }
           }
         }
         if (!qRuntimeQrl && props) {
@@ -261,9 +277,9 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
   key: string | number | null | undefined,
-  isStatic: boolean,
+  _isStatic: boolean,
   opts: JsxDevOpts,
-  ctx: any
+  _ctx: any
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
   const children = untrack(() => {
@@ -275,8 +291,6 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   });
   const node = new JSXNodeImpl<T>(type, props, null, children, 0, processed);
   node.dev = {
-    isStatic,
-    ctx,
     stack: new Error().stack,
     ...opts,
   };

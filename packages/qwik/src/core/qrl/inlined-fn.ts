@@ -1,18 +1,25 @@
 import { isServer } from '@builder.io/qwik/build';
 import type { MustGetObjID } from '../container/container';
+import { assertDefined } from '../error/assert';
 import { isServerPlatform } from '../platform/platform';
 import { SignalDerived } from '../state/signal';
+import { qSerialize } from '../util/qdev';
 
 /**
  * @alpha
  */
-export const _fnSignal = <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr: string) => {
+export const _fnSignal = <T extends (...args: any[]) => any>(
+  fn: T,
+  args: any[],
+  fnStr?: string
+) => {
   return new SignalDerived(fn, args, fnStr);
 };
 
 export const serializeDerivedSignal = (signal: SignalDerived, getObjID: MustGetObjID) => {
   const parts = signal.$args$.map(getObjID);
-  const fnBody = signal.$funcStr$;
+  const fnBody = qSerialize ? signal.$funcStr$ : 'null';
+  assertDefined(fnBody, 'If qSerialize is true then fnStr must be provided.');
   return parts.join(' ') + ':' + fnBody;
 };
 

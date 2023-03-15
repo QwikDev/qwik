@@ -5,6 +5,7 @@ import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
 import { getExtension } from '../../utils/fs';
+import { createHash } from 'node:crypto';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
@@ -71,8 +72,19 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
     if (extnames.includes(ext)) {
       const file = new VFile({ value: code, path: id });
       const compiled = await process(file);
+      const output = String(compiled.value);
+      const hasher = createHash('sha256');
+      const key = hasher.update(output).digest('base64url').slice(0, 8);
+      const addImport = `import { _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
+      const newDefault = `
+const WrappedMdxContent = () => {
+  return _jsxC(RenderOnce, {children: _jsxC(MDXContent, {}, 3, null)}, 3, ${JSON.stringify(key)});
+};
+export default WrappedMdxContent;
+`;
+
       return {
-        code: String(compiled.value),
+        code: addImport + output.replace('export default MDXContent;\n', newDefault),
         map: compiled.map,
       };
     }

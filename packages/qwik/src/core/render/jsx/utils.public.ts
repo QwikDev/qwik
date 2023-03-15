@@ -12,7 +12,10 @@ export const SkipRender: JSXNode = Symbol('skip render') as any;
 /**
  * @alpha
  */
-export const RenderOnce: FunctionComponent<{ children?: any }> = (props: any, key) => {
+export const RenderOnce: FunctionComponent<{
+  children?: any;
+  key?: string | number | null | undefined;
+}> = (props: any, key) => {
   return _jsxQ(Virtual, null, null, props.children, static_subtree, key);
 };
 

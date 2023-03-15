@@ -701,6 +701,7 @@ export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionCom
 // @alpha (undocumented)
 export const RenderOnce: FunctionComponent<{
     children?: any;
+    key?: string | number | null | undefined;
 }>;
 
 // @alpha (undocumented)

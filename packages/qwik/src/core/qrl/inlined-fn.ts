@@ -8,7 +8,11 @@ import { qSerialize } from '../util/qdev';
 /**
  * @alpha
  */
-export const _fnSignal = <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => {
+export const _fnSignal = <T extends (...args: any[]) => any>(
+  fn: T,
+  args: any[],
+  fnStr?: string
+) => {
   return new SignalDerived(fn, args, fnStr);
 };
 

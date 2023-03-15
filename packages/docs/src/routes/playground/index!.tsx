@@ -1,12 +1,11 @@
 import { $, component$, useStyles$, useStore, useVisibleTask$ } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
-import type { DocumentHead } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import type { QwikPointerEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 

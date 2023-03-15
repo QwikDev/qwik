@@ -6,8 +6,6 @@ export interface FunctionComponent<P = Record<string, any>> {
 }
 
 export interface DevJSX {
-  ctx: any;
-  isStatic: boolean;
   fileName: string;
   lineNumber: number;
   columnNumber: number;

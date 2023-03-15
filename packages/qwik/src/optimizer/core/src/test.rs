@@ -571,9 +571,11 @@ export const Works = component$((props) => {
     const {foo, ...rest} = useStore({foo: 0});
     const {bar = 'hello', ...rest2} = useStore({foo: 0});
     const {hello} = props;
+    const { translations = {} } = props;
+    const { buttonText = 'Search' } = translations;
 
     return (
-        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2} buttonText={buttonText}>{foo}</div>
     );
 });
 "#
@@ -581,6 +583,7 @@ export const Works = component$((props) => {
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
+        is_server: Some(false),
         ..TestInput::default()
     });
 }
@@ -2093,6 +2096,8 @@ export const App = component$((props: Stuff) => {
 });
 "#
         .to_string(),
+        filename: "project/index.tsx".into(),
+        src_dir: "/src/project".into(),
         transpile_ts: true,
         transpile_jsx: true,
         mode: EmitMode::Dev,

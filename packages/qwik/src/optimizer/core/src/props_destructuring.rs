@@ -89,14 +89,21 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuring) {
     if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
         let new_ident = private_ident!("props");
-        if let Some((rest_id, local)) = transform_pat(&new_ident, obj, props_transform) {
+        if let Some((rest_id, local)) =
+            transform_pat(ast::Expr::Ident(new_ident.clone()), obj, props_transform)
+        {
             if let Some(rest_id) = rest_id {
-                let props_id = id!(new_ident);
                 let omit_fn = props_transform
                     .global_collect
                     .import(&_REST_PROPS, props_transform.core_module);
                 let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
-                transform_rest(arrow, &omit_fn, &rest_id, &props_id, omit);
+                transform_rest(
+                    arrow,
+                    &omit_fn,
+                    &rest_id,
+                    ast::Expr::Ident(new_ident.clone()),
+                    omit,
+                );
             }
             for (id, _, expr) in local {
                 props_transform.identifiers.insert(id, expr);
@@ -122,7 +129,7 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                             {
                                 if ident.sym.starts_with("use") {
                                     let new_ident = private_ident!(ident.sym[3..].to_lowercase());
-                                    Some((new_ident.clone(), new_ident))
+                                    Some((new_ident.clone(), ast::Expr::Ident(new_ident), false))
                                 } else {
                                     None
                                 }
@@ -132,29 +139,35 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                         }
                         Some(box ast::Expr::Ident(ref ident)) => {
                             let new_ident = private_ident!("_unused");
-                            Some((new_ident, ident.clone()))
+                            let expr = props_transform
+                                .identifiers
+                                .get(&id!(ident.clone()))
+                                .cloned()
+                                .unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
+                            Some((new_ident, expr, true))
                         }
                         _ => None,
                     };
-                    if let Some((replace_pat, new_ref)) = convert {
+                    if let Some((replace_pat, new_ref, cleanup_init)) = convert {
                         if let Some((rest_id, local)) =
-                            transform_pat(&new_ref, obj_pat, props_transform)
+                            transform_pat(new_ref.clone(), obj_pat, props_transform)
                         {
                             if let Some(rest_id) = rest_id {
-                                let props_id = id!(new_ref);
                                 let omit_fn = props_transform
                                     .global_collect
                                     .import(&_REST_PROPS, props_transform.core_module);
                                 let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
 
-                                let element =
-                                    create_omit_props(&omit_fn, &rest_id, &props_id, omit);
+                                let element = create_omit_props(&omit_fn, &rest_id, new_ref, omit);
                                 inserts.push((index + 1 + inserts.len(), element));
                             }
                             for (id, _, expr) in local {
                                 props_transform.identifiers.insert(id, expr);
                             }
                             decl.name = ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
+                            if cleanup_init {
+                                decl.init = None;
+                            }
                         }
                     }
                 }
@@ -169,7 +182,7 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
 
 type TransformPatReturn = (Option<Id>, Vec<(Id, JsWord, ast::Expr)>);
 fn transform_pat(
-    new_ident: &ast::Ident,
+    new_ident: ast::Expr,
     obj: &ast::ObjectPat,
     props_transform: &mut PropsDestructuring,
 ) -> Option<TransformPatReturn> {
@@ -180,7 +193,7 @@ fn transform_pat(
         match prop {
             ast::ObjectPatProp::Assign(ref v) => {
                 let access = ast::Expr::Member(ast::MemberExpr {
-                    obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                    obj: Box::new(new_ident.clone()),
                     prop: ast::MemberProp::Ident(v.key.clone()),
                     span: DUMMY_SP,
                 });
@@ -212,7 +225,7 @@ fn transform_pat(
                 if let ast::PropName::Ident(ref key) = v.key {
                     if let ast::Pat::Ident(ref ident) = *v.value {
                         let access = ast::Expr::Member(ast::MemberExpr {
-                            obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                            obj: Box::new(new_ident.clone()),
                             prop: ast::MemberProp::Ident(key.clone()),
                             span: DUMMY_SP,
                         });
@@ -243,10 +256,10 @@ fn transform_rest(
     arrow: &mut ast::ArrowExpr,
     omit_fn: &Id,
     rest_id: &Id,
-    props_id: &Id,
+    props_expr: ast::Expr,
     omit: Vec<JsWord>,
 ) {
-    let new_stmt = create_omit_props(omit_fn, rest_id, props_id, omit);
+    let new_stmt = create_omit_props(omit_fn, rest_id, props_expr, omit);
     match &mut arrow.body {
         ast::BlockStmtOrExpr::BlockStmt(block) => {
             block.stmts.insert(0, new_stmt);
@@ -260,7 +273,12 @@ fn transform_rest(
     }
 }
 
-fn create_omit_props(omit_fn: &Id, rest_id: &Id, props_id: &Id, omit: Vec<JsWord>) -> ast::Stmt {
+fn create_omit_props(
+    omit_fn: &Id,
+    rest_id: &Id,
+    props_expr: ast::Expr,
+    omit: Vec<JsWord>,
+) -> ast::Stmt {
     ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
         span: DUMMY_SP,
         declare: false,
@@ -275,7 +293,7 @@ fn create_omit_props(omit_fn: &Id, rest_id: &Id, props_id: &Id, omit: Vec<JsWord
                 args: vec![
                     ast::ExprOrSpread {
                         spread: None,
-                        expr: Box::new(ast::Expr::Ident(new_ident_from_id(props_id))),
+                        expr: Box::new(props_expr),
                     },
                     ast::ExprOrSpread {
                         spread: None,

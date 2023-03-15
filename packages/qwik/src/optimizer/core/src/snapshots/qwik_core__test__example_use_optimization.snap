@@ -12,9 +12,11 @@ export const Works = component$((props) => {
     const {foo, ...rest} = useStore({foo: 0});
     const {bar = 'hello', ...rest2} = useStore({foo: 0});
     const {hello} = props;
+    const { translations = {} } = props;
+    const { buttonText = 'Search' } = translations;
 
     return (
-        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2} buttonText={buttonText}>{foo}</div>
     );
 });
 
@@ -45,20 +47,23 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
     }, {
         hello: _fnSignal((p0)=>p0.hello, [
             props
-        ], "p0.hello"),
+        ]),
         some: _fnSignal((p0)=>p0.value, [
             signal
-        ], "p0.value"),
+        ]),
         bar: _fnSignal((p0)=>p0.bar ?? 'hello', [
             store1
-        ], 'p0.bar??"hello"')
+        ]),
+        buttonText: _fnSignal((p0)=>(p0.translations ?? {}).buttonText ?? 'Search', [
+            props
+        ])
     }, _fnSignal((p0)=>p0.foo, [
         store
-    ], "p0.foo"), 3, "u6_0");
+    ]), 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAGlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBAHP;;;QAGgB,IAAI,qBANpB;;;QAM6B,GAAG,qBAJhC,OAAM;;;0BADN;;;AAOX,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAKlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBALP;;;QAKgB,IAAI,qBARpB;;;QAQ6B,GAAG,qBANhC,OAAM;;;QAM2D,UAAU,sBAJ1E,gBAAe,CAAC,GAChB,cAAa;;;0BAJd;;;AASX,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

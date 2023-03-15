@@ -122,7 +122,7 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
 }
 
 export class SignalDerived<T = any, ARGS extends any[] = any> extends SignalBase {
-  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$: string) {
+  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$?: string) {
     super();
   }
 

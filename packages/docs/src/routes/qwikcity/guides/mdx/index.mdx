@@ -126,18 +126,15 @@ title: My Title
 description: My Description
 og:
   - title: My Custom Title
-    # Note:
-    #   Set og:title to true will use outside title property instead.
-    #   Therefore you can avoid writing a same title twice.
-    #   The same logic also applies to og:description
     description: true
   - image: https://example.com/rock.jpg
     image:alt: A shiny red apple with a bite taken out
-    # If you have multiple same property to set, feel free to use arrays.
   - image: https://example.com/rock2.jpg
 ```
 
-The above example will generate following HTML code.
+Setting `og:title` or `og:description` to `true` will check and use outside `title` and `description` property instead. Thus, you can avoid writing a same title and description twice.
+
+The above example will generate the following HTML code.
 
 ```HTML
 <title>My Title</title>

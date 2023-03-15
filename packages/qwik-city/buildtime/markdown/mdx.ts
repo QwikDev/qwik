@@ -73,7 +73,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const file = new VFile({ value: code, path: id });
       const compiled = await process(file);
       const output = String(compiled.value);
-      const hasher = createHash('sha256')
+      const hasher = createHash('sha256');
       const key = hasher.update(output).digest('base64url').slice(0, 8);
       const addImport = `import { _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
       const newDefault = `

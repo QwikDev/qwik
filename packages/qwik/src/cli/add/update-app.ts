@@ -71,7 +71,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       if (!passed) {
         const errorMessage = `${bgRed(
           ` ${pkgManager} install failed `
-        )}\n   You might need to run "${cyan(
+        )}\n You might need to run "${cyan(
           `${pkgManager} install`
         )}" manually inside the root of the project.`;
 

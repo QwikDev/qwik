@@ -26,8 +26,8 @@ export function logNextStep(nextSteps: NextSteps | undefined) {
   const outString = [];
   if (nextSteps) {
     outString.push(`🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`);
-    nextSteps.lines.forEach((step) => outString.push(`   ${step}`));
     outString.push(``);
+    nextSteps.lines.forEach((step) => outString.push(`   ${step}`));
   }
   return outString.join('\n');
 }

@@ -1,20 +1,20 @@
 import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-import { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import fastifyStatic from '@fastify/static';
 import qwikCityPlan from '@qwik-city-plan';
 import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
+import render from '../entry.ssr';
+
 export interface FastifyQwikOptions {
   distDir: string;
   buildDir: string;
-  render: ServerRenderOptions['render'];
 }
 
-const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (fastify, options) => {
-  const { render, buildDir, distDir } = options;
+const { router, notFound } = createQwikCity({ render, qwikCityPlan });
 
-  const { router, notFound } = createQwikCity({ render, qwikCityPlan });
+const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (fastify, options) => {
+  const { buildDir, distDir } = options;
 
   fastify.register(fastifyStatic, {
     root: buildDir,

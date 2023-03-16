@@ -11,8 +11,7 @@ import { type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import Fastify from 'fastify';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-import render from './entry.ssr';
+import FastifyQwik from './plugins/fastify-qwik';
 
 declare global {
   interface QwikCityPlatform extends PlatformNode {}
@@ -38,7 +37,7 @@ const start = async () => {
   // await fastify.register(import('@fastify/compress'))
 
   // Handle Qwik City using a plugin
-  await fastify.register(import('./plugins/fastify-qwik'), { distDir, buildDir, render });
+  await fastify.register(FastifyQwik, { distDir, buildDir });
 
   // Start the fastify server
   await fastify.listen({ port: PORT });

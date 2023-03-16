@@ -247,7 +247,7 @@ export const _pauseFromContexts = async (
             logWarn('Serializing dirty watch. Looks like an internal error.');
           }
           if (!isConnected(watch)) {
-            logWarn('Serializing disconneted watch. Looks like an internal error.');
+            logWarn('Serializing disconnected watch. Looks like an internal error.');
           }
         }
         if (isResourceTask(watch)) {
@@ -388,9 +388,9 @@ export const _pauseFromContexts = async (
       return null;
     }
     const flags = getProxyFlags(obj) ?? 0;
-    const convered: (Subscriptions | number)[] = [];
+    const converted: (Subscriptions | number)[] = [];
     if (flags > 0) {
-      convered.push(flags);
+      converted.push(flags);
     }
     for (const sub of subs) {
       const host = sub[1];
@@ -399,10 +399,10 @@ export const _pauseFromContexts = async (
           continue;
         }
       }
-      convered.push(sub);
+      converted.push(sub);
     }
-    if (convered.length > 0) {
-      subsMap.set(obj, convered);
+    if (converted.length > 0) {
+      subsMap.set(obj, converted);
     }
   });
 

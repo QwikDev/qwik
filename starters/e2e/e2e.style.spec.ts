@@ -4,6 +4,11 @@ test.describe('styles', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/styles');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   runTests();
@@ -30,7 +35,7 @@ test.describe('styles', () => {
       await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
-      await expect(el.length).toBe(8);
+      await expect(el.length).toBe(9);
       await addChild.click();
       await page.waitForTimeout(100);
 
@@ -46,7 +51,7 @@ test.describe('styles', () => {
       await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
-      await expect(el2.length).toBe(8);
+      await expect(el2.length).toBe(9);
     });
 
     test('issue 1945', async ({ page }) => {
@@ -57,13 +62,33 @@ test.describe('styles', () => {
       const h4 = page.locator('#issue1945-4');
       const h5 = page.locator('#issue1945-5');
 
+      await expect(h1).toBeVisible();
+      await expect(h2).toBeVisible();
+      await expect(h3).toBeVisible();
+      await expect(h4).toBeVisible();
+      await expect(h5).not.toBeVisible();
+
       await btn.click();
 
+      await expect(h1).toBeVisible();
+      await expect(h2).toBeVisible();
+      await expect(h3).toBeVisible();
+      await expect(h4).toBeVisible();
+      await expect(h5).toBeVisible();
       await expect(h1).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h2).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h3).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h4).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h5).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+    });
+
+    test('issue scoped fine grained', async ({ page }) => {
+      const button = page.locator('#issue-scoped-fine-grained');
+      await expect(button).toHaveCSS('background-color', 'rgb(0, 128, 0)');
+      await button.click();
+      await expect(button).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await button.click();
+      await expect(button).toHaveCSS('background-color', 'rgb(0, 128, 0)');
     });
   }
 });

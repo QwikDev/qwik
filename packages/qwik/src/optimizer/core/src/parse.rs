@@ -268,7 +268,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         let mut react_options = react::Options::default();
                         if is_jsx {
                             react_options.next = Some(true);
-                            react_options.development = Some(config.mode == EmitMode::Dev);
                             react_options.throw_if_namespace = Some(false);
                             react_options.runtime = Some(react::Runtime::Automatic);
                             react_options.import_source = Some("@builder.io/qwik".to_string());
@@ -324,6 +323,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
                         strip_event_handlers: config.strip_event_handlers,
+                        is_server: config.is_server,
+                        cm: Lrc::clone(&source_map),
                     });
 
                     // Run main transform
@@ -341,6 +342,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     ) {
                         main_module.visit_mut_with(&mut SideEffectVisitor::new(
                             &qwik_transform.options.global_collect,
+                            &path_data,
+                            config.src_dir,
                         ));
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));

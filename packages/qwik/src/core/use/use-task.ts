@@ -656,7 +656,7 @@ export const runResource = <T>(
     return false;
   };
 
-  // Execute mutation inside empty invokation
+  // Execute mutation inside empty invocation
   invoke(invocationContext, () => {
     resource._state = 'pending';
     resource.loading = !isServerPlatform();

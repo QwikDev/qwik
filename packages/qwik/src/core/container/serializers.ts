@@ -12,7 +12,7 @@ import {
   SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
-import { SignalImpl, SignalWrapper } from '../state/signal';
+import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
 import {
   fastWeakSerialize,
@@ -23,7 +23,7 @@ import {
 } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
-import { parseDerivedSignal, serializeDerivedSignal, SignalDerived } from '../qrl/inlined-fn';
+import { parseDerivedSignal, serializeDerivedSignal } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 
 /**
@@ -279,7 +279,7 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
     collectValue(obj.ref, collector, leaks);
     if (fastWeakSerialize(obj.ref)) {
       const localManager = getProxyManager(obj.ref)!;
-      if (isTreeshakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
+      if (isTreeShakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }
     }
@@ -457,7 +457,7 @@ export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: Contai
     },
   };
 
-const isTreeshakeable = (
+const isTreeShakeable = (
   manager: SubscriptionManager,
   target: LocalSubscriptionManager,
   leaks: QwikElement | boolean
@@ -470,6 +470,7 @@ const isTreeshakeable = (
     if (localManager.length === 1) {
       return localManager[0] !== target;
     }
+    return true;
   }
   return false;
 };

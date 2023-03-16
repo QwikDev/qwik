@@ -153,6 +153,7 @@ export class VirtualElementImpl implements VirtualElement {
   remove() {
     const parent = this.parentElement;
     if (parent) {
+      // const ch = this.childNodes;
       const ch = Array.from(this.childNodes);
       assertEqual(this.template.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
@@ -166,6 +167,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
 
   insertBeforeTo(newParent: QwikElement, child: Node | null) {
+    // const ch = this.childNodes;
     const ch = Array.from(this.childNodes);
     // TODO
     // if (this.parentElement) {
@@ -306,9 +308,9 @@ const updateComment = (attributes: Map<string, string>) => {
   return `qv ${serializeVirtualAttributes(attributes)}`;
 };
 
-export const processVirtualNodes = (node: Node | null): Node | QwikElement | null => {
+export const processVirtualNodes = <T extends Node | null>(node: T): T | VirtualElement => {
   if (node == null) {
-    return null;
+    return null as T;
   }
 
   if (isComment(node)) {

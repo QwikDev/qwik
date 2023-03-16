@@ -95,6 +95,19 @@ test.describe('actions', () => {
         await page.waitForTimeout(200);
         expect(new URL(page.url()).pathname).toEqual('/qwikcity-test/');
       });
+
+      test('issue with action', async ({ page }) => {
+        const errorMessage = page.locator('#form-error');
+        const username = page.locator('#label-username > input');
+        const code = page.locator('#label-code > input');
+        const submit = page.locator('#submit');
+
+        await username.fill('123');
+        await submit.click();
+        await expect(errorMessage).toHaveText('Invalid username or code');
+        await expect(username).toHaveValue('123');
+        await expect(code).toHaveValue('');
+      });
     });
 
     test.describe('issue2644', () => {

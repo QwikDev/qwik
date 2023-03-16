@@ -12,6 +12,7 @@ import type { QwikElement, VirtualElement } from './virtual-element';
 import {
   cleanupTree,
   directAppendChild,
+  directInsertAfter,
   directInsertBefore,
   directRemoveChild,
   getChildren,
@@ -90,6 +91,19 @@ export const insertBefore = <T extends Node | VirtualElement>(
   return newChild;
 };
 
+export const insertAfter = <T extends Node | VirtualElement>(
+  staticCtx: RenderStaticContext,
+  parent: QwikElement,
+  newChild: T,
+  refChild: Node | VirtualElement | null | undefined
+): T => {
+  staticCtx.$operations$.push({
+    $operation$: directInsertAfter,
+    $args$: [parent, newChild, refChild ? refChild : null],
+  });
+  return newChild;
+};
+
 export const appendChild = <T extends Node | VirtualElement>(
   staticCtx: RenderStaticContext,
   parent: QwikElement,
@@ -163,6 +177,10 @@ export const directPrepend = (parent: QwikElement, newChild: Node) => {
 };
 
 export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
+  if (el.nodeType === 1 || el.nodeType === 111) {
+    const subsManager = staticCtx.$containerState$.$subsManager$;
+    cleanupTree(el as Element, staticCtx, subsManager, true);
+  }
   staticCtx.$operations$.push({
     $operation$: _removeNode,
     $args$: [el, staticCtx],
@@ -172,10 +190,6 @@ export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualEle
 const _removeNode = (el: Node | VirtualElement, staticCtx: RenderStaticContext) => {
   const parent = el.parentElement;
   if (parent) {
-    if (el.nodeType === 1 || el.nodeType === 111) {
-      const subsManager = staticCtx.$containerState$.$subsManager$;
-      cleanupTree(el as Element, staticCtx, subsManager, true);
-    }
     directRemoveChild(parent, el);
   } else if (qDev) {
     logWarn('Trying to remove component already removed', el);
@@ -221,21 +235,25 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
       if (hostCtx) {
         const hostElm = hostCtx.$element$;
-        const hasTemplate = Array.from(hostElm.childNodes).some(
-          (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
-        );
+        if (hostElm.isConnected) {
+          const hasTemplate = Array.from(hostElm.childNodes).some(
+            (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
+          );
 
-        if (!hasTemplate) {
-          const template = createTemplate(staticCtx.$doc$, key);
-          for (const child of slotChildren) {
-            directAppendChild(template, child);
+          if (!hasTemplate) {
+            const template = createTemplate(staticCtx.$doc$, key);
+            for (const child of slotChildren) {
+              directAppendChild(template, child);
+            }
+            directInsertBefore(hostElm, template, hostElm.firstChild);
+          } else {
+            cleanupTree(slotEl, staticCtx, subsManager, false);
           }
-          directInsertBefore(hostElm, template, hostElm.firstChild);
         } else {
           cleanupTree(slotEl, staticCtx, subsManager, false);
         }
       } else {
-        // If slot content cannot be relocated, it means it's content is definively removed
+        // If slot content cannot be relocated, it means it's content is definitely removed
         // Cleanup needs to be executed
         cleanupTree(slotEl, staticCtx, subsManager, false);
       }
@@ -258,10 +276,6 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       template.remove();
     }
   }
-};
-
-export const createTextNode = (doc: Document, text: string): Text => {
-  return doc.createTextNode(text);
 };
 
 export const printRenderStats = (staticCtx: RenderStaticContext) => {

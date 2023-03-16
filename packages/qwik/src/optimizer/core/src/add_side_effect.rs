@@ -44,7 +44,7 @@ impl<'a> VisitMut for SideEffectVisitor<'a> {
                 let abs_dir = self.path_data.abs_dir.to_slash_lossy();
                 let relative = relative_path::RelativePath::new(&abs_dir);
                 let final_path = relative.join(import.source.as_ref()).normalize();
-                if final_path.starts_with(&self.src_dir.to_str().unwrap()) {
+                if final_path.starts_with(self.src_dir.to_str().unwrap()) {
                     node.body.insert(
                         0,
                         ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {

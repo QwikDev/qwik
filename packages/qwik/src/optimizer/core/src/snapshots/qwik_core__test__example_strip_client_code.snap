@@ -9,6 +9,9 @@ import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwi
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
+import { a } from './keep';
+import { b } from '../keep2';
+import { c } from '../../remove';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -18,7 +21,7 @@ export const Parent = component$(() => {
     // Double count watch
     useClientMount$(async () => {
         state.text = await mongo.users();
-        redis.set(state.text);
+        redis.set(state.text, a, b, c);
     });
 
     useTask$(() => {
@@ -39,8 +42,10 @@ export const Parent = component$(() => {
     );
 });
 
-============================= test.js ==
+============================= components/component.js ==
 
+import "./keep";
+import "../keep2";
 import { componentQrl } from "@builder.io/qwik";
 import { useClientMountQrl } from "@builder.io/qwik";
 import { _noopQrl } from "@builder.io/qwik";
@@ -57,41 +62,41 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
         text: ''
     });
     // Double count watch
-    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_FX2jiJMePJA", [
+    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw", [
         state
     ]));
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
     // Code
-    }, "Parent_component_useTask_gDH1EtUWqBU"));
+    }, "Parent_component_useTask_ngmvcygWux8"));
     return /*#__PURE__*/ _jsxQ("div", null, {
-        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_I54ho17NmvA", [
+        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
             state
         ]),
-        onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
+        onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_0PioS4FByUg", [
             state
         ])
     }, [
         /*#__PURE__*/ _jsxC(Div, {
-            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_EHccsZgCcqc"),
+            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_kgowuto5dR0"),
             render$: /*#__PURE__*/ inlinedQrl(()=>{
                 const [state] = useLexicalScope();
                 return state.text;
-            }, "Parent_component_div_Div_render_0CCbw3B0hdw", [
+            }, "Parent_component_div_Div_render_CkMybN6xzQk", [
                 state
             ]),
             [_IMMUTABLE]: {
                 onClick$: _IMMUTABLE,
                 render$: _IMMUTABLE
             }
-        }, 3, "u6_0"),
+        }, 3, "7R_0"),
         _fnSignal((p0)=>p0.text, [
             state
         ], "p0.text")
-    ], 1, "u6_1");
-}, "Parent_component_0TaiDayHrlo"));
+    ], 1, "7R_1");
+}, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,MAAC;QACG,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;gBADzB,QAAQ;gBACR,OAAO;;;wBAEV,GAAM,IAAI;;;;AAGvB,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,MAAC;QACG,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;gBADzB,QAAQ;gBACR,OAAO;;;wBAEV,GAAM,IAAI;;;;AAGvB,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

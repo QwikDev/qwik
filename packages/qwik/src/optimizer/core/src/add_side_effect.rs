@@ -1,6 +1,9 @@
 use std::collections::HashSet;
+use std::path::Path;
 
 use crate::collector::GlobalCollect;
+use crate::parse::PathData;
+use path_slash::PathBufExt;
 use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
@@ -9,12 +12,20 @@ use swc_ecmascript::visit::{VisitMut, VisitMutWith};
 pub struct SideEffectVisitor<'a> {
     global_collector: &'a GlobalCollect,
     imports: HashSet<JsWord>,
+    path_data: &'a PathData,
+    src_dir: &'a Path,
 }
 
 impl<'a> SideEffectVisitor<'a> {
-    pub fn new(global_collector: &'a GlobalCollect) -> Self {
+    pub fn new(
+        global_collector: &'a GlobalCollect,
+        path_data: &'a PathData,
+        src_dir: &'a Path,
+    ) -> Self {
         Self {
             global_collector,
+            path_data,
+            src_dir,
             imports: HashSet::new(),
         }
     }
@@ -30,16 +41,21 @@ impl<'a> VisitMut for SideEffectVisitor<'a> {
         node.visit_mut_children_with(self);
         for import in self.global_collector.imports.values() {
             if import.source.starts_with('.') && !self.imports.contains(&import.source) {
-                node.body.insert(
-                    0,
-                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
-                        asserts: None,
-                        span: DUMMY_SP,
-                        specifiers: vec![],
-                        type_only: false,
-                        src: Box::new(ast::Str::from(import.source.clone())),
-                    })),
-                );
+                let abs_dir = self.path_data.abs_dir.to_slash_lossy();
+                let relative = relative_path::RelativePath::new(&abs_dir);
+                let final_path = relative.join(import.source.as_ref()).normalize();
+                if final_path.starts_with(self.src_dir.to_str().unwrap()) {
+                    node.body.insert(
+                        0,
+                        ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
+                            asserts: None,
+                            span: DUMMY_SP,
+                            specifiers: vec![],
+                            type_only: false,
+                            src: Box::new(ast::Str::from(import.source.clone())),
+                        })),
+                    );
+                }
             }
         }
     }

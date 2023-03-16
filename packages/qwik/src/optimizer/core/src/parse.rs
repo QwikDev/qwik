@@ -343,6 +343,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     ) {
                         main_module.visit_mut_with(&mut SideEffectVisitor::new(
                             &qwik_transform.options.global_collect,
+                            &path_data,
+                            config.src_dir,
                         ));
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));

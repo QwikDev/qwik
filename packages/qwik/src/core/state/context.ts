@@ -73,6 +73,9 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
         }
       } else {
+        const styleIds = el.getAttribute(QScopedStyle);
+        elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
+
         const ctxMeta = meta[elementID];
         if (ctxMeta) {
           const seq = ctxMeta.s;
@@ -96,8 +99,6 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           // Restore sequence scoping
           if (host) {
             const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
-            const styleIds = el.getAttribute(QScopedStyle);
-            elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
             if (renderQrl) {
               elCtx.$componentQrl$ = getObject(renderQrl);

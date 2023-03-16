@@ -21,6 +21,11 @@ body {
   padding: 60px 0px;
 }
 
+::selection {
+  background: rgb(8, 2, 61);
+  color: white;
+}
+
 h1,
 h2,
 h3 {

@@ -1,13 +1,13 @@
-import { component$, useStylesScoped$ } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import {
   type DocumentHead,
   routeLoader$,
-  globalAction$,
+  routeAction$,
   zod$,
   z,
   Form,
 } from '@builder.io/qwik-city';
-import style from './todolist.css?inline';
+import styles from './todolist.module.css';
 
 interface ListItem {
   text: string;
@@ -19,7 +19,7 @@ export const useListLoader = routeLoader$(() => {
   return list;
 });
 
-export const useAddToListAction = globalAction$(
+export const useAddToListAction = routeAction$(
   (item) => {
     list.push(item);
     return {
@@ -32,7 +32,6 @@ export const useAddToListAction = globalAction$(
 );
 
 export default component$(() => {
-  useStylesScoped$(style);
   const list = useListLoader();
   const action = useAddToListAction();
 
@@ -47,7 +46,7 @@ export default component$(() => {
       <div class="section bright">
         <div class="container center mh-300">
           {(list.value.length && (
-            <ul class="list">
+            <ul class={styles.list}>
               {list.value.map((item, index) => (
                 <li key={`items-${index}`}>{item.text}</li>
               ))}
@@ -62,7 +61,7 @@ export default component$(() => {
             <input type="text" name="text" required /> <button type="submit">Add item</button>
           </Form>
 
-          <p class="hint">PS: This little app works even when JavaScript is disabled.</p>
+          <p class={styles.hint}>PS: This little app works even when JavaScript is disabled.</p>
         </div>
       </div>
     </>

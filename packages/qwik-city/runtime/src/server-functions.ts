@@ -132,6 +132,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   action.__qrl = actionQrl;
   action.__id = id;
   action.use = action;
+  Object.freeze(action);
 
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
@@ -190,6 +191,7 @@ export const routeLoaderQrl = ((
   loader.__validators = validators;
   loader.__id = id;
   loader.use = loader;
+  Object.freeze(loader);
 
   return loader;
 }) as LoaderConstructorQRL;

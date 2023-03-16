@@ -33,7 +33,7 @@ export const deserializeError = (serializedError: string) => {
     // Get what we need and jettison the rest
     const { __errMessage, __constructorName, __deepErrors, stack, ...rest }: any = errPrims;
     stack;
-    const ErrorClass = dynamicErrorClass(__constructorName);
+    const ErrorClass = getErrorClass(__constructorName);
     const error = new ErrorClass(__errMessage);
     Object.assign(error, rest);
     delete error.stack;
@@ -128,7 +128,7 @@ const deserializeDeepErrors = (obj: any, deepErrorPaths: string[] | undefined) =
     if (objKey) {
       const { __errMessage, __constructorName, stack, ...rest }: any = deepErrObj;
       stack;
-      const ErrorClass = dynamicErrorClass(__constructorName);
+      const ErrorClass = getErrorClass(__constructorName);
       const error = new ErrorClass(__errMessage);
       delete error.stack;
       Object.assign(error, rest);
@@ -137,7 +137,11 @@ const deserializeDeepErrors = (obj: any, deepErrorPaths: string[] | undefined) =
   });
 };
 
-function dynamicErrorClass(constructorName: string): any {
+function getErrorClass(constructorName: string): any {
+  // If the constructor name is "Error", return the build-in Error class
+  if (constructorName === 'Error') return Error;
+
+  // Create a dynamic class that extends Error
   const DynamicErrorClass = class extends Error {
     constructor(...args: any[]) {
       super(...args);
@@ -150,33 +154,32 @@ function dynamicErrorClass(constructorName: string): any {
 }
 
 /**
-   * THIS IS A VALIDATION OBJECT FOR TESTING
-   *
-      const validate = {
-        e1: new Error("Standard Error"),
+ * THIS IS A VALIDATION OBJECT FOR TESTING
+ *
+    const validate = {
+    e1: new Error("Standard Error"),
+    c: {},
+    o: {
+        e2: new CustomError("Custom Error", {
+        e3: new Error("Super Deep Standard Error"),
+        }),
         c: {},
-        o: {
-          e2: new CustomError("Custom Error", {
-            e3: new Error("Super Deep Standard Error"),
-          }),
-          c: {},
-          stack: "keep me",
-          n: null,
-          b: true,
-          v: 123,
-          s: "abc",
-          u: undefined,
-          f: () => "function!",
-        },
         stack: "keep me",
         n: null,
         b: true,
         v: 123,
         s: "abc",
         u: undefined,
-        f: () => "function!"
-      };
-      validate.c = validate;
-      validate.o.c = validate;
-  
-   */
+        f: () => "function!",
+    },
+    stack: "keep me",
+    n: null,
+    b: true,
+    v: 123,
+    s: "abc",
+    u: undefined,
+    f: () => "function!"
+    };
+    validate.c = validate;
+    validate.o.c = validate;
+*/

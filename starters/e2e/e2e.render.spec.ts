@@ -27,7 +27,7 @@ test.describe('render', () => {
 
     await increment.click();
 
-    await expect(attributes).toHaveClass('⭐️unvb18-1 stable0 odd');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 odd stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
@@ -168,5 +168,70 @@ test.describe('render', () => {
 
     await expect(result1).toHaveText('Deeds: 4');
     await expect(result2).toHaveText('Filtered Deeds: 2');
+  });
+
+  test('issue3116', async ({ page }) => {
+    const result = page.locator('#issue-3116-result');
+
+    await expect(result).toHaveText('this comes from render$');
+  });
+
+  test('issue reorder', async ({ page }) => {
+    const result = page.locator('.issue-order');
+    const button = page.locator('#issue-order-btn');
+    await expect(result).toHaveText(['TOP', '1. First', '2. Second']);
+
+    await button.click();
+    await expect(result).toHaveText(['1. First', '2. Second', 'BOTTOM']);
+  });
+
+  test('issue2414', async ({ page }) => {
+    const sortByAge = page.locator('#issue-2414-age');
+    const sortBySize = page.locator('#issue-2414-size');
+    const sortById = page.locator('#issue-2414-id');
+
+    const age = page.locator('.issue-2414-age');
+    const size = page.locator('.issue-2414-size');
+    const id = page.locator('.issue-2414-id');
+
+    const list = [
+      [1, 9, 4],
+      [2, 27, 3],
+      [3, 3, 2],
+      [4, 1, 1],
+      [7, 21, 5],
+      [8, 12, 6],
+      [9, 7, 7],
+    ];
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+
+    // Sort by age
+    list.sort((a, b) => a[1] - b[1]);
+    await sortByAge.click();
+
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+
+    list.sort((a, b) => a[2] - b[2]);
+    await sortById.click();
+
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+
+    list.sort((a, b) => a[0] - b[0]);
+    await sortBySize.click();
+
+    await expect(size).toHaveText(list.map((a) => String(a[0])));
+    await expect(age).toHaveText(list.map((a) => String(a[1])));
+    await expect(id).toHaveText(list.map((a) => String(a[2])));
+  });
+
+  test('issue3178', async ({ page }) => {
+    const result = page.locator('#issue-3178');
+    await expect(result).toHaveText('Hello');
   });
 });

@@ -2,18 +2,22 @@
 title: Qwik City - action$()
 contributors:
   - manucorporat
+  - cunzaizhuyi
+  - forresst
+  - keuller
 ---
 
 # `action$()`
 
-Actions can be declared using the `action$()` function anywhere. Actions are similar to [loaders](/docs/qwik-city/loader$) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
+Actions can be declared using the `action$()` function anywhere. Actions are similar to [loaders](/qwikcity/loader/) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
 
 Actions are referenced using the `.use()` method from within a Qwik Component. The `use()` method returns `ActionStore` object with methods to trigger the action and get its state.
 
 ```tsx
 // src/routes/layout.tsx
-import { action$ } from '@builder.io/qwik';
-export const addUser = action$((user) => {
+import { component$ } from '@builder.io/qwik';
+import { action$ } from '@builder.io/qwik-city';
+export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -22,7 +26,7 @@ export const addUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   // action.actionPath: string;
   // action.isRunning: boolean;
   // action.status?: number;
@@ -46,7 +50,7 @@ The best way to trigger an action is by using the `<Form/>` component exported i
 import { action$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const addUser = action$((user) => {
+export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -55,7 +59,7 @@ export const addUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" />
@@ -70,7 +74,7 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 ## Using actions programatically
 
-Actions can also be triggered programatically using the `action.run()` method, ie you dont need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+Actions can also be triggered programatically using the `action.run()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx
 // src/routes/index.tsx
@@ -78,7 +82,7 @@ Actions can also be triggered programatically using the `action.run()` method, i
 import { action$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const addUser = action$((user) => {
+export const useAddUser = action$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -87,7 +91,7 @@ export const addUser = action$((user) => {
 });
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <div>
       <button
@@ -113,7 +117,7 @@ When submitting data to an action by default, the data is not validated.
 ```tsx
 // src/routes/index.tsx
 
-import { action$, Form } from '@builder.io/qwik-city';
+import { action$ } from '@builder.io/qwik-city';
 
 export const addUser = action$((user) => {
   // `user` is typed Record<string, any>
@@ -150,7 +154,8 @@ export const addUser = action$(
 When submitting data to an action, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.fail` property.
 
 ```tsx
-import { action$, Form } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { action$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const addUser = action$(
   (user) => {
@@ -167,7 +172,7 @@ export const addUser = action$(
 );
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" />
@@ -186,7 +191,7 @@ Please refer to the [Zod documentation](https://zod.dev/) for more information o
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx
-import { action$, Form } from '@builder.io/qwik-city';
+import { action$, zod$, z } from '@builder.io/qwik-city';
 
 export const addUser = action$(
   (user, { fail }) => {
@@ -210,8 +215,11 @@ export const addUser = action$(
 Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" />
@@ -230,9 +238,10 @@ Thanks to Typescript type discrimination, you can use the `action.value.failed` 
 When an action is triggered, the previous state is stored in the `action.formData` property. This is useful to display a loading state while the action is running.
 
 ```tsx
-import { action$, Form } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { action$, Form, zod$, z } from '@builder.io/qwik-city';
 
-export const addUser = action$(
+export const useAddUser = action$(
   (user) => {
     // `user` is typed { name: string }
     const userID = db.users.add(user);
@@ -246,7 +255,7 @@ export const addUser = action$(
 );
 
 export default component$(() => {
-  const action = addUser.use();
+  const action = useAddUser();
   return (
     <Form action={action}>
       <input name="name" value={action.formData?.get('name')} />
@@ -257,5 +266,3 @@ export default component$(() => {
 ```
 
 The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, allowing to have a full SPA experience, even with JS disabled.
-
-## Action

@@ -72,8 +72,8 @@
         "enableSsrOutput": false
       },
       {
-        "id": "inline",
-        "title": "Inline Components",
+        "id": "lite",
+        "title": "Lite Components",
         "enableHtmlOutput": true,
         "enableClientOutput": true,
         "enableSsrOutput": true
@@ -241,8 +241,8 @@
         "enableSsrOutput": false
       },
       {
-        "id": "use-client-effect",
-        "title": "useClientEffect$()",
+        "id": "use-visible-task",
+        "title": "useVisibleTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

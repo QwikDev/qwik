@@ -34,7 +34,9 @@ export const AttributesChild = component$(() => {
     stuff: '',
   });
   renders.count++;
+  const rerenders = renders.count;
 
+  console.warn(state.stuff);
   return (
     <>
       <div>
@@ -93,7 +95,7 @@ export const AttributesChild = component$(() => {
         </button>
       </div>
       <div>
-        Renders: <span id="renders">{renders.count}</span>
+        Renders: <span id="renders">{rerenders}</span>
       </div>
       <div>
         {hide.value ? (

@@ -1,11 +1,15 @@
 ---
 title: Slots
-keywords: children, transclusion, content projection, parent
+keywords: 'children, transclusion, content projection, parent'
 contributors:
   - RATIU5
   - manucorporat
   - forresst
   - adamdbradley
+  - cunzaizhuyi
+  - zanettin
+  - lbensaad
+  - gabrielgrant
 ---
 
 # Slots
@@ -27,7 +31,7 @@ Slots in Qwik are symbolic, allowing Qwik to render parents and children in perf
 The main API to achieve this is the `<Slot>` component, exported in `@builder.io/qwik`:
 
 ```tsx
-import { Slot } from '@builder.io/qwik';
+import { Slot, component$ } from '@builder.io/qwik';
 
 export const Button = component$(() => {
   return (
@@ -53,7 +57,7 @@ Let's see the usage of this component:
 The `Slot` component can be used multiple times in the same component, as long as it has a different `name` property:
 
 ```tsx
-import { Slot } from '@builder.io/qwik';
+import { Slot, component$ } from '@builder.io/qwik';
 
 export const Button = component$(() => {
   return (
@@ -101,7 +105,7 @@ The result will be:
 
 Notice that:
 
-- If `q:slot` is not specified or it's an empty string, the content will be projected into the default `<Slot>`, ie. the `<Slot>` without a `name` property.
+- If `q:slot` is not specified or it's an empty string, the content will be projected into the default `<Slot>`, i.e. the `<Slot>` without a `name` property.
 - Multiple `q:slot="end"` attributes coalesce items together in the content projection.
 
 ### Not projecting content
@@ -109,6 +113,8 @@ Notice that:
 Qwik keeps all content around, even if not projected. This is because the content could be projected in the future.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const Project = component$(() => {
   // Notice, this component does not have a <Slot> component
   return <div />;
@@ -135,6 +141,8 @@ Notice that the un-projected content is moved into an inert `<q:template>`. This
 The `q:slot` attribute must be a direct child of a component.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const Project = component$(() => { ... })
 
 export const MyApp = component$(() => {
@@ -167,22 +175,22 @@ For example, let's go back to our `Collapsible` example from above:
 
 In order for the two components to have an independent lifecycle, the projection needs to be declarative. In this way, either the parent or child can change what is projected or how it is projected without re-rendering the other.
 
-With `children` approach, the component can imperatively modify the `children` in endless ways. This would make it extremely difficult to build a framework that would not force re-rendering both parent and children.
-
 ## Advanced Example
 
 An example of a collapsible component which conditionally projects its content.
 
 ```tsx
+import { Slot, component$, useSignal } from '@builder.io/qwik';
+
 export const Collapsible = component$(() => {
-  const store = useStore({ isOpen: true });
+  const isOpen = useSignal(true);
 
   return (
     <div class="collapsible">
-      <div class="title" onClick$={() => (store.isOpen = !store.isOpen)}>
+      <div class="title" onClick$={() => (isOpen.value = !isOpen.value)}>
         <Slot name="title"></Slot>
       </div>
-      {store.isOpen ? <Slot /> : null}
+      {isOpen.value ? <Slot /> : null}
     </div>
   );
 });
@@ -191,6 +199,8 @@ export const Collapsible = component$(() => {
 The above component can be used from a parent component like so:
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const MyApp = component$(() => {
   return (
     <Collapsible>

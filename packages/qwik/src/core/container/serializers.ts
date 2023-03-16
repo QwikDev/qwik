@@ -12,11 +12,19 @@ import {
   SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
-import { SignalImpl, SignalWrapper } from '../state/signal';
+import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
-import { fastWeakSerialize, getProxyManager, Subscriptions } from '../state/common';
+import {
+  fastWeakSerialize,
+  getProxyManager,
+  LocalSubscriptionManager,
+  SubscriptionManager,
+  Subscriptions,
+} from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
+import { parseDerivedSignal, serializeDerivedSignal } from '../qrl/inlined-fn';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -49,7 +57,7 @@ export interface Serializer<T> {
   /**
    * Return of
    */
-  collect?: (obj: T, collector: Collector, leaks: boolean) => void;
+  collect?: (obj: T, collector: Collector, leaks: boolean | QwikElement) => void;
 
   /**
    * Deserialize the object.
@@ -100,8 +108,8 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
   test: (v) => isSubscriberDescriptor(v),
   collect: (v, collector, leaks) => {
     collectValue(v.$qrl$, collector, leaks);
-    if (v.$resource$) {
-      collectValue(v.$resource$, collector, leaks);
+    if (v.$state$) {
+      collectValue(v.$state$, collector, leaks);
     }
   },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
@@ -109,8 +117,8 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
   fill: (watch, getObject) => {
     watch.$el$ = getObject(watch.$el$ as any);
     watch.$qrl$ = getObject(watch.$qrl$ as any);
-    if (watch.$resource$) {
-      watch.$resource$ = getObject(watch.$resource$ as any);
+    if (watch.$state$) {
+      watch.$state$ = getObject(watch.$state$ as any);
     }
   },
 };
@@ -219,18 +227,25 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const PureFunctionSerializer: Serializer<Function> = {
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
   prefix: '\u0011',
-  test: (obj) => typeof obj === 'function' && obj.__qwik_serializable__ !== undefined,
-  serialize: (obj) => {
-    return obj.toString();
+  test: (obj) => obj instanceof SignalDerived,
+  collect: (obj, collector, leaks) => {
+    if (obj.$args$) {
+      for (const arg of obj.$args$) {
+        collectValue(arg, collector, leaks);
+      }
+    }
+  },
+  serialize: (fn, getObj) => {
+    return serializeDerivedSignal(fn, getObj);
   },
   prepare: (data) => {
-    const fn = new Function('return ' + data)();
-    fn.__qwik_serializable__ = true;
-    return fn;
+    return parseDerivedSignal(data);
   },
-  fill: undefined,
+  fill: (fn, getObject) => {
+    fn.$args$ = fn.$args$.map(getObject);
+  },
 };
 
 const SignalSerializer: Serializer<SignalImpl<any>> = {
@@ -238,8 +253,8 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   test: (v) => v instanceof SignalImpl,
   collect: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
-    if (leaks) {
-      collectSubscriptions(obj[QObjectManagerSymbol], collector);
+    if (leaks === true) {
+      collectSubscriptions(obj[QObjectManagerSymbol], collector, leaks);
     }
     return obj;
   },
@@ -247,7 +262,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return getObjId(obj.untrackedValue);
   },
   prepare: (data, containerState) => {
-    return new SignalImpl(data, containerState.$subsManager$.$createManager$());
+    return new SignalImpl(data, containerState?.$subsManager$?.$createManager$(), 0);
   },
   subs: (signal, subs) => {
     signal[QObjectManagerSymbol].$addSubs$(subs);
@@ -263,8 +278,8 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   collect(obj, collector, leaks) {
     collectValue(obj.ref, collector, leaks);
     if (fastWeakSerialize(obj.ref)) {
-      const manager = getProxyManager(obj.ref)!;
-      if (leaks || !manager.$isTreeshakeable$(obj.prop)) {
+      const localManager = getProxyManager(obj.ref)!;
+      if (isTreeShakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }
     }
@@ -328,21 +343,21 @@ const FormDataSerializer: Serializer<FormData> = {
 };
 
 const serializers: Serializer<any>[] = [
-  QRLSerializer,
-  SignalSerializer,
-  SignalWrapperSerializer,
-  WatchSerializer,
-  ResourceSerializer,
-  URLSerializer,
-  DateSerializer,
-  RegexSerializer,
-  ErrorSerializer,
-  DocumentSerializer,
-  ComponentSerializer,
-  PureFunctionSerializer,
-  NoFiniteNumberSerializer,
-  URLSearchParamsSerializer,
-  FormDataSerializer,
+  QRLSerializer, ////////////// \u0002
+  SignalSerializer, /////////// \u0012
+  SignalWrapperSerializer, //// \u0013
+  WatchSerializer, //////////// \u0003
+  ResourceSerializer, ///////// \u0004
+  URLSerializer, ////////////// \u0005
+  DateSerializer, ///////////// \u0006
+  RegexSerializer, //////////// \u0007
+  ErrorSerializer, //////////// \u000E
+  DocumentSerializer, ///////// \u000F
+  ComponentSerializer, //////// \u0010
+  DerivedSignalSerializer, //// \u0011
+  NoFiniteNumberSerializer, /// \u0014
+  URLSearchParamsSerializer, // \u0015
+  FormDataSerializer, ///////// \u0016
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);
@@ -356,7 +371,7 @@ export const canSerialize = (obj: any): boolean => {
   return false;
 };
 
-export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectDeps = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
   for (const s of collectorSerializers) {
     if (s.test(obj)) {
       s.collect!(obj, collector, leaks);
@@ -441,3 +456,21 @@ export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: Contai
       return Promise.reject(obj);
     },
   };
+
+const isTreeShakeable = (
+  manager: SubscriptionManager,
+  target: LocalSubscriptionManager,
+  leaks: QwikElement | boolean
+) => {
+  if (typeof leaks === 'boolean') {
+    return leaks;
+  }
+  const localManager = manager.$groupToManagers$.get(leaks);
+  if (localManager && localManager.length > 0) {
+    if (localManager.length === 1) {
+      return localManager[0] !== target;
+    }
+    return true;
+  }
+  return false;
+};

@@ -1,9 +1,9 @@
-import color from 'kleur';
+import { bgRed, cyan, red } from 'kleur/colors';
 import fs from 'node:fs';
-import ora from 'ora';
 import os from 'node:os';
 import path from 'node:path';
 import spawn from 'cross-spawn';
+import { log } from '@clack/prompts';
 import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
 
@@ -51,11 +51,6 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
   return { abort, install };
 }
 
-export function startSpinner(msg: string) {
-  const spinner = ora(msg).start();
-  return spinner;
-}
-
 export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
@@ -65,7 +60,6 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
     let success = false;
 
     if (runInstall) {
-      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`);
       try {
         const installed = await install;
         if (installed) {
@@ -98,20 +92,18 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
             //
           }
 
-          spinner.succeed();
           success = true;
         } else {
-          const errorMessage = `\n\n${color.bgRed(
-            `  ${pkgManager} install failed  `
-          )}\n  Automatic install failed. "${color.green(
-            `${pkgManager} install`
-          )}" must be manually executed to install deps.\n`;
+          const errorMessage =
+            `${bgRed(` ${pkgManager} install failed `)}\n` +
+            ` You might need to run ${cyan(
+              `"${pkgManager} install"`
+            )} manually inside the root of the project.\n\n`;
 
-          spinner.succeed();
-          console.error(errorMessage);
+          log.error(errorMessage);
         }
       } catch (e) {
-        spinner.fail();
+        //
       }
     } else {
       await abort();
@@ -134,7 +126,7 @@ function setupTmpInstall(baseApp: IntegrationData) {
   try {
     fs.mkdirSync(tmpInstallDir);
   } catch (e) {
-    console.error(`\n❌ ${color.red(String(e))}\n`);
+    log.error(`❌ ${red(String(e))}`);
   }
 
   const basePkgJson = path.join(baseApp.dir, 'package.json');

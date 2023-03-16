@@ -1,7 +1,7 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import type { Render } from '@builder.io/qwik/server';
+import { Render, setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import qwikCityPlan from '@qwik-city-plan';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from './mime-types';
 import { patchGlobalThis } from './node-fetch';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -22,6 +23,14 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
   patchGlobalThis();
 
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 
@@ -32,7 +41,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   ) => {
     try {
       const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
-      const handled = await requestHandler(serverRequestEv, opts);
+      const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
         const err = await handled.completion;
         if (err) {
@@ -51,13 +60,15 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
 
   const notFound = async (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => {
     try {
-      const url = getUrl(req);
-      const notFoundHtml = getNotFound(url.pathname);
-      res.writeHead(404, {
-        'Content-Type': 'text/html; charset=utf-8',
-        'X-Not-Found': url.pathname,
-      });
-      res.end(notFoundHtml);
+      if (!res.headersSent) {
+        const url = getUrl(req);
+        const notFoundHtml = getNotFound(url.pathname);
+        res.writeHead(404, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Not-Found': url.pathname,
+        });
+        res.end(notFoundHtml);
+      }
     } catch (e) {
       console.error(e);
       next(e);
@@ -101,6 +112,15 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     notFound,
     staticFile,
   };
+}
+
+/**
+ * @alpha
+ */
+export interface PlatformNode {
+  ssr?: true;
+  incomingMessage?: IncomingMessage;
+  node?: string;
 }
 
 /**

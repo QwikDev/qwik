@@ -4,13 +4,19 @@ contributors:
   - the-r3aper7
   - manucorporat
   - adamdbradley
+  - saikatdas0790
+  - anthonycaron
+  - ubmit
+  - literalpie
+  - forresst
+  - mhevery
 ---
 
 # The dollar `$` sign
 
 Qwik splits up your application into many small pieces we call symbols. A component can be broken up into many symbols, so a symbol is smaller than a component. The splitting up is performed by the [Qwik Optimizer](../optimizer/index.mdx).
 
-The `$` prefix is used to signal both the optimizer and the developer when this transformation occurs. As a developer, you need to understand that special rules apply whenever you see `$` (not all valid JavaScript is a valid Qwik Optimizer transform.)
+The `$` suffix is used to signal both the optimizer and the developer when this transformation occurs. As a developer, you need to understand that special rules apply whenever you see `$` (not all valid JavaScript is a valid Qwik Optimizer transform.)
 
 ## Compiler-time implications
 
@@ -238,7 +244,7 @@ This works but is a lot of work. The developer is responsible for putting the co
 ```tsx
 function onScroll(fnQrl: QRL<() => void>) {
   document.addEventListener('scroll', async () => {
-    const fn = await qImport.resolve();
+    const fn = await fnQrl.resolve();
     fn();
   });
 }

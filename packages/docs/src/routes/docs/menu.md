@@ -1,12 +1,9 @@
 # Guide
 
-## Guides
+## Intro
 
 - [Overview](overview/index.mdx)
 - [Getting Started](getting-started/index.mdx)
-- [Think Qwik](think-qwik/index.mdx)
-- [FAQ](faq/index.mdx)
-- [Routing (QwikCity)](../qwikcity/overview/index.mdx)
 
 ## Component API
 
@@ -21,6 +18,12 @@
 - [Styling](components/styles/index.mdx)
 - [Lite components](components/lite-components/index.mdx)
 
+## Guides
+
+- [Think Qwik](think-qwik/index.mdx)
+- [Routing (QwikCity)](../qwikcity/overview/index.mdx)
+- [FAQ](faq/index.mdx)
+
 ## Cheat Sheet
 
 - [Qwik vs React](cheat/qwik-react/index.mdx)
@@ -31,18 +34,19 @@
 
 - [Resumable](concepts/resumable/index.mdx)
 - [Progressive](concepts/progressive/index.mdx)
-- [Reactive](concepts/reactivity/index.mdx)
+- [Reactivity](concepts/reactivity/index.mdx)
 
 ## Advanced
 
 - [The $ dollar sign](advanced/dollar/index.mdx)
 - [Containers](advanced/containers/index.mdx)
-- [Prefetching](advanced/prefetching/index.mdx)
 - [QRL](advanced/qrl/index.mdx)
 - [Qwikloader](advanced/qwikloader/index.mdx)
 - [Optimizer](advanced/optimizer/index.mdx)
+- [Prefetching](advanced/prefetching/index.mdx)
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
 - [Internationalization](advanced/i18n/index.mdx)
+- [Vite](advanced/vite/index.mdx)
 
 ## Community
 

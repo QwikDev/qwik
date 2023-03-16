@@ -2,6 +2,16 @@
 title: Styles
 contributors:
   - manucorporat
+  - zanettin
+  - cunzaizhuyi
+  - manuelsanchez2
+  - literalpie
+  - forresst
+  - DustinJSilk
+  - saikatdas0790
+  - LiKang6688
+  - Craiqser
+  - adamdbradley
 ---
 
 # Styles
@@ -36,6 +46,7 @@ export const blueClass = style({
 **component.tsx:**
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
 import { blueClass } from './styles.css';
 
 export const Cmp = component$(() => {
@@ -77,6 +88,7 @@ export const BlueBox = styled.div`
 **component.tsx:**
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
 import { BlueBox } from './styles.css';
 
 export const Cmp = component$(() => {
@@ -95,7 +107,7 @@ A lazy-loadable reference to component's styles.
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import { useStyles$ } from '@builder.io/qwik';
+import { useStyles$, component$ } from '@builder.io/qwik';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
@@ -120,7 +132,7 @@ Browser styles are global and apply to all DOM elements, for this reason, Qwik a
 This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
 
 ```tsx
-import { useStylesScoped$ } from '@builder.io/qwik';
+import { useStylesScoped$, component$ } from '@builder.io/qwik';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
@@ -143,7 +155,7 @@ export const CmpStyles = component$(() => {
 Using `useStylesScoped$` will scope all child selectors in a ruleset to the component. If you need to style child components rendered through a `<Slot />`, you will need to break out of the scoped styles using the `:global()` selector.
 
 ```tsx
-import { useStylesScoped$ } from '@builder.io/qwik';
+import { useStylesScoped$, component$ } from '@builder.io/qwik';
 
 export const List = component$(() => {
   useStylesScoped$(`
@@ -182,7 +194,46 @@ To use Tailwind on your app, you can add it to you app with our built-in integra
 npm run qwik add tailwind
 ```
 
-Check our [the integration docs](../../../integrations/integration/tailwind) for more information.
+### PostCSS
+
+It is also possible to use PostCSS in your app with our built-in integration:
+
+```shell
+npm run qwik add postcss
+```
+
+Important: Since we are using vite, the configuration should look as follows to work:
+
+```shell
+// Configuration with vite
+module.exports = {
+  plugins: {
+    autoprefixer: {},
+    "postcss-preset-env": {
+      stage: 3,
+      features: {
+        "nesting-rules": true,
+      },
+    },
+  },
+}
+```
+
+Now you will be able to use CSS with nesting-rules like the following ones:
+
+```css
+body {
+  & .box {
+    background: red;
+
+    &:hover {
+      background: yellow;
+    }
+  }
+}
+```
+
+Check our [the integration docs](../../../integrations/integration/postcss) for more information.
 
 ## Why not inline styles using the `<style>` tag?
 

@@ -1,7 +1,15 @@
 [
   {
+    "href": "https://wope.com/",
+    "tags": "sass"
+  },
+  {
     "href": "https://www.builder.io/",
     "tags": "saas"
+  },
+  {
+    "href": "https://jose-aguilar.vercel.app/",
+    "tags": "portfolio"
   },
   {
     "href": "https://shaunchander.me",
@@ -106,5 +114,13 @@
   {
     "href": "https://tatbiqit.com/",
     "tags": "company"
+  },
+  {
+    "href": "https://keyboardz.co/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://travelcalc.pages.dev",
+    "tags": "app"
   }
 ]

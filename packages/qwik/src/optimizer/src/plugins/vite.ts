@@ -99,7 +99,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         qwikViteOpts.entryStrategy = { type: 'hook' };
         forceFullBuild = false;
       } else {
-        if (target === 'ssr' || target === 'lib') {
+        if (target === 'ssr') {
+          qwikViteOpts.entryStrategy = { type: 'hoist' };
+        } else if (target === 'lib') {
           qwikViteOpts.entryStrategy = { type: 'inline' };
         }
         forceFullBuild = true;
@@ -114,6 +116,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode,
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
+        srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
         resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
@@ -211,10 +214,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
       );
 
-      // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-      (globalThis as any).QWIK_MANIFEST = manifestInput;
-      (globalThis as any).QWIK_CLIENT_OUT_DIR = clientOutDir;
-
       if (typeof qwikViteOpts.client?.devInput === 'string') {
         clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);
       } else {
@@ -259,7 +258,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
-            output: normalizeRollupOutputOptions(path, opts, {}),
+            output: normalizeRollupOutputOptions(
+              path,
+              opts,
+              viteConfig.build?.rollupOptions?.output
+            ),
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -382,7 +385,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return qwikPlugin.load(this, id, loadOpts);
     },
 
-    transform(code, id) {
+    transform(code, id, transformOpts) {
       if (id.startsWith('\0')) {
         return null;
       }
@@ -392,7 +395,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           code = updateEntryDev(code);
         }
       }
-      return qwikPlugin.transform(this, code, id);
+      return qwikPlugin.transform(this, code, id, transformOpts);
     },
 
     generateBundle: {
@@ -684,25 +687,28 @@ export interface QwikVitePluginOptions {
    */
   debug?: boolean;
   /**
-   * The Qwik entry strategy to use while bunding for production.
+   * The Qwik entry strategy to use while building for production.
    * During development the type is always `hook`.
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
   /**
    * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is use to recursively
+   * does not have a single input, the `srcDir` is used to recursively
    * find Qwik files.
    * Default `src`
    */
   srcDir?: string;
-
+  /**
+   * List of directories to recursively search for Qwik components or Vendors.
+   * Default `[]`
+   */
   vendorRoots?: string[];
 
   client?: {
     /**
-     * The entry point for the client builds. Typically this would be
-     * the application's main component.
+     * The entry point for the client builds. This would be
+     * the application's root component typically.
      * Default `src/components/app/app.tsx`
      */
     input?: string[] | string;
@@ -735,7 +741,7 @@ export interface QwikVitePluginOptions {
     input?: string;
     /**
      * Output directory for the server build.
-     * Default `dist`
+     * Default `server`
      */
     outDir?: string;
     /**
@@ -746,6 +752,10 @@ export interface QwikVitePluginOptions {
      */
     manifestInput?: QwikManifest;
   };
+  /**
+   * Options for the Qwik optimizer.
+   * Default `undefined`
+   */
   optimizerOptions?: OptimizerOptions;
   /**
    * Hook that's called after the build and provides all of the transformed

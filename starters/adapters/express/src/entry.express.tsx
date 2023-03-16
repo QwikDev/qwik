@@ -1,19 +1,25 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the  entry point for the express server when building for production.
+ * It's the entry point for the express server when building for production.
  *
  * Learn more about the cloudflare integration here:
  * - https://qwik.builder.io/integrations/deployments/node/
  *
  */
-import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
+import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import compression from 'compression';
+
+declare global {
+  interface QwikCityPlatform extends PlatformNode {}
+}
+
+// import compression from 'compression';
 
 // Directories where the static assets are located
 const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
@@ -23,14 +29,14 @@ const buildDir = join(distDir, 'build');
 const PORT = process.env.PORT ?? 3000;
 
 // Create the Qwik City express middleware
-const { router, notFound } = createQwikCity({ render, qwikCityPlan });
+const { router, notFound } = createQwikCity({ render, qwikCityPlan, manifest });
 
 // Create the express server
 // https://expressjs.com/
 const app = express();
 
 // Enable gzip compression
-app.use(compression());
+// app.use(compression());
 
 // Static asset handlers
 // https://expressjs.com/en/starter/static-files.html

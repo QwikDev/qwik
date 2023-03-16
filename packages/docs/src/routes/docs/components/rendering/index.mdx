@@ -6,6 +6,11 @@ contributors:
   - manucorporat
   - forresst
   - adamdbradley
+  - zanettin
+  - cunzaizhuyi
+  - Pika-Pool
+  - Kesmek
+  - Craiqser
 ---
 
 # Rendering
@@ -23,10 +28,12 @@ Qwik is unique because it knows how to render templates out-of-order and asynchr
 Simple counter-example:
 
 ```tsx
-export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+import { component$, useSignal } from '@builder.io/qwik';
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+export const Counter = component$(() => {
+  const count = useSignal(0);
+
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 
@@ -51,14 +58,17 @@ Qwik uses JSX to express the component's template. JSX discussion is outside of 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
 ```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
-  const store = useStore({ count: 0, step: 1 });
+  const count = useSignal(0);
+  const step = useSignal(1);
 
   return (
     <>
-      <button onClick$={() => (store.step *= -1)}>direction</button>
-      <button onClick$={() => (store.count += store.step)}>{store.step}</button>
-      <Greeter name={'World_' + store.count} />
+      <button onClick$={() => (step.value *= -1)}>direction</button>
+      <button onClick$={() => (count.value += step.value)}>{step.value}</button>
+      <Greeter name={'World_' + count.value} />
     </>
   );
 });
@@ -78,6 +88,8 @@ In the above example, there are two buttons:
 In many cases you'll want to render components by mapping an array in the render function with `data.map()`. In these cases, it is required to provide a key to the first child of the mapping function.
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
   return (
     <>

@@ -6,13 +6,14 @@ import { component$ } from '@builder.io/qwik';
 import { DocumentHead, Form, RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 import { z } from 'zod';
+
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
     throw redirect(302, '/qwikcity-test/dashboard/');
   }
 };
 
-export const signinAction = action$(
+export const useSigninAction = action$(
   async (data, { cookie, redirect, status, fail }) => {
     const result = await signIn(data, cookie);
 
@@ -24,13 +25,25 @@ export const signinAction = action$(
       message: ['Invalid username or password'],
     });
   },
-  zod$({
-    username: z.string(),
-    password: z.string(),
-  })
+  zod$(
+    z
+      .object({
+        username: z.string(),
+        password: z.string(),
+        confirmPassword: z.string(),
+      })
+      .superRefine(({ confirmPassword, password }, ctx) => {
+        if (confirmPassword !== password) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'The passwords did not match',
+          });
+        }
+      })
+  )
 );
 
-export const resetPasswordAction = action$(
+export const useResetPasswordAction = action$(
   ({ email }) => {
     console.warn('resetPasswordAction', email);
   },
@@ -40,8 +53,8 @@ export const resetPasswordAction = action$(
 );
 
 export default component$(() => {
-  const signIn = signinAction.use();
-  const resetPassword = resetPasswordAction.use();
+  const signIn = useSigninAction();
+  const resetPassword = useResetPasswordAction();
 
   return (
     <div>
@@ -61,6 +74,13 @@ export default component$(() => {
           <input name="password" type="password" autoComplete="current-password" required />
           {signIn.value?.fieldErrors?.password && (
             <p style="color:red">{signIn.value?.fieldErrors?.password}</p>
+          )}
+        </label>
+        <label>
+          <span>Confirm password</span>
+          <input name="confirmPassword" type="password" autoComplete="current-password" required />
+          {signIn.value?.fieldErrors?.confirmPassword && (
+            <p style="color:red">{signIn.value?.fieldErrors?.confirmPassword}</p>
           )}
         </label>
         <button data-test-sign-in>Sign In</button>

@@ -1,4 +1,4 @@
-import { component$, FunctionComponent, useClientEffect$, useStore } from '@builder.io/qwik';
+import { component$, FunctionComponent, useVisibleTask$, useStore } from '@builder.io/qwik';
 import { DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { Host, odd, pride, Range, Square } from './flower.css';
 
@@ -34,7 +34,7 @@ export default component$(() => {
     number: 20,
   });
 
-  useClientEffect$(({ cleanup }) => {
+  useVisibleTask$(({ cleanup }) => {
     const timeout = setTimeout(() => (state.count = 1), 500);
     cleanup(() => clearTimeout(timeout));
 
@@ -51,7 +51,7 @@ export default component$(() => {
         style={{
           '--state': `${state.count * 0.1}`,
         }}
-        class={loc.query['pride'] && pride}
+        class={loc.url.searchParams.get('pride') && pride}
       >
         {Array.from({ length: state.number }, (_, i) => (
           <Square key={i} class={{ [odd]: i % 2 === 0 }} style={{ '--index': `${i + 1}` }} />

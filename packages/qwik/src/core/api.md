@@ -82,26 +82,33 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// @beta @deprecated (undocumented)
+export interface Context<STATE extends object> extends ContextId<STATE> {
+}
+
 // @public
-export interface Context<STATE extends object> {
+export interface ContextId<STATE extends object> {
     readonly __brand_context_type__: STATE;
     readonly id: string;
 }
 
 // @alpha
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
+    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
 
+// @beta @deprecated (undocumented)
+export const createContext: <STATE extends object>(name: string) => ContextId<STATE>;
+
 // @public
-export const createContext: <STATE extends object>(name: string) => Context<STATE>;
+export const createContextId: <STATE extends object>(name: string) => ContextId<STATE>;
 
 // @internal (undocumented)
-export const _deserializeData: (data: string) => any;
+export const _deserializeData: (data: string, element?: unknown) => any;
 
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
@@ -123,16 +130,25 @@ export interface ErrorBoundaryStore {
     error: any | undefined;
 }
 
+// Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>;
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
+    key?: string | number | null;
 }>;
 
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key: string | null): JSXNode | null;
+    (props: P, key: string | null, flags: number): JSXNode | null;
 }
+
+// @internal (undocumented)
+export const _getContextElement: () => unknown;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -287,20 +303,34 @@ const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends
 export { jsx }
 export { jsx as jsxs }
 
-// @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+// @internal (undocumented)
+export const _jsxBranch: (input?: any) => any;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, isStatic: boolean, opts: JsxDevOpts, ctx: any) => JSXNode<T>;
+export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
+//
+// @public (undocumented)
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
+
+// @public (undocumented)
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: any) => JSXNode<T>;
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
+    // (undocumented)
+    children: any | null;
     // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     dev?: DevJSX;
+    // (undocumented)
+    flags: number;
+    // (undocumented)
+    immutableProps: Record<string, any> | null;
     // (undocumented)
     key: string | null;
     // (undocumented)
@@ -308,6 +338,9 @@ export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     type: T;
 }
+
+// @public (undocumented)
+export const _jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -368,6 +401,13 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
+// @public (undocumented)
+export interface OnVisibleTaskOptions {
+    // @deprecated (undocumented)
+    eagerness?: EagernessOptions;
+    strategy?: VisibleTaskStrategy;
+}
+
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
@@ -398,6 +438,10 @@ export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+    // (undocumented)
+    dev: QRLDev | null;
+    // (undocumented)
+    getCaptured(): any[] | null;
     // (undocumented)
     getHash(): string;
     // (undocumented)
@@ -648,18 +692,28 @@ export interface Ref<T = Element> {
     current: T | undefined;
 }
 
+// @internal (undocumented)
+export const _regSymbol: (symbol: any, hash: string) => any;
+
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @alpha (undocumented)
 export const RenderOnce: FunctionComponent<{
     children?: any;
+    key?: string | number | null | undefined;
 }>;
 
 // @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
     serverData?: Record<string, any>;
+}
+
+// @alpha (undocumented)
+export interface RenderResult {
+    // (undocumented)
+    cleanup(): void;
 }
 
 // @internal (undocumented)
@@ -753,7 +807,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
 // @internal (undocumented)
-export const _serializeData: (data: any) => Promise<string>;
+export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
@@ -885,17 +939,23 @@ export interface Tracker {
 // @alpha (undocumented)
 export const untrack: <T>(fn: () => T) => T;
 
+// @alpha @deprecated (undocumented)
+export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @alpha @deprecated (undocumented)
+export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
 // @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 
 // @alpha @deprecated
 export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
 
-// @public
-export const useClientEffect$: (first: TaskFn, opts?: UseEffectOptions | undefined) => void;
+// @alpha @deprecated (undocumented)
+export const useClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
-// @public
-export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: UseEffectOptions) => void;
+// @alpha @deprecated (undocumented)
+export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @public @deprecated
 export const useClientMount$: <T>(first: MountFn<T>) => void;
@@ -903,18 +963,23 @@ export const useClientMount$: <T>(first: MountFn<T>) => void;
 // @public @deprecated
 export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
+// Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useComputed$: Computed;
+
+// Warning: (ae-forgotten-export) The symbol "ComputedQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useComputedQrl: ComputedQRL;
+
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //
 // @public
 export const useContext: UseContext;
 
 // @public
-export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
-
-// @public (undocumented)
-export interface UseEffectOptions {
-    eagerness?: EagernessOptions;
-}
+export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @alpha @deprecated (undocumented)
 export const useEnvData: typeof useServerData;
@@ -1020,6 +1085,12 @@ export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 // @alpha @deprecated (undocumented)
 export const useUserContext: typeof useServerData;
 
+// @public
+export const useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+
+// @public
+export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
 // @beta @deprecated (undocumented)
 export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
@@ -1035,6 +1106,9 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 // @public
 export const version: string;
 
+// @public (undocumented)
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+
 // @internal (undocumented)
 export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;
 
@@ -1042,6 +1116,9 @@ export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partia
 //
 // @internal
 export function withLocale<T>(locale: string, fn: () => T): T;
+
+// @internal (undocumented)
+export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // @internal (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;

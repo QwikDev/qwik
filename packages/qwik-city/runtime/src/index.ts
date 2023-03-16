@@ -18,6 +18,7 @@ export type {
   RequestHandler,
   RequestEvent,
   RequestEventLoader,
+  RequestEventAction,
   RequestEventCommon,
   RouteParams,
   QwikCityPlan,
@@ -31,11 +32,13 @@ export type {
   LoaderSignal,
   ActionConstructor,
   ActionOptions,
+  ActionOptionsWithValidation,
   FailReturn,
-  Zod,
-  ZodReturn,
+  ZodConstructor,
   StaticGenerate,
   RouteNavigate,
+  DeferReturn,
+  RequestEventBase,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';
@@ -44,9 +47,13 @@ export { Link } from './link-component';
 export type { LinkProps } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
-export { action$, actionQrl } from './server-functions';
-export { loader$, loaderQrl } from './server-functions';
+export { action$, actionQrl, routeAction$, routeActionQrl } from './server-functions';
+export { globalAction$, globalActionQrl } from './server-functions';
+export { loader$, loaderQrl, routeLoader$, routeLoaderQrl } from './server-functions';
+export { server$, serverQrl } from './server-functions';
 export { zod$, zodQrl } from './server-functions';
+export { validator$, validatorQrl } from './server-functions';
+
 export { z } from 'zod';
 
 export { Form } from './form-component';

@@ -1,6 +1,6 @@
 ---
 title: State
-keywords: useState, state management, reactivity, reactive
+keywords: 'useState, state management, reactivity, reactive'
 contributors:
   - nnelgxorz
   - the-r3aper7
@@ -11,6 +11,16 @@ contributors:
   - manucorporat
   - literalpie
   - fum4
+  - cunzaizhuyi
+  - zanettin
+  - ChristianAnagnostou
+  - shairez
+  - forresst
+  - almilo
+  - Craiqser
+  - XiaoChengyin
+  - gkatsanos
+  - adamdbradley
 ---
 
 # State
@@ -25,13 +35,15 @@ It is important to notice that state in Qwik is not necessarily local component 
 
 `const signal = useSignal(initialState)` is a hook that creates a reactive signal. It takes an initial value and returns a reactive signal.
 
-The reactive signal returned by `useSignal()` consist of an object with a single property (ie: `signal.value`). If you change the `value` property of the object, any component that depends on it will be updated.
+The reactive signal returned by `useSignal()` consist of an object with a single property (i.e.: `signal.value`). If you change the `value` property of the object, any component that depends on it will be updated.
 
 ### Example
 
 This example shows how `useSignal()` can be used in a counter component to keep track of the count.
 
 ```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
 export default component$(() => {
   const count = useSignal(0);
 
@@ -50,7 +62,7 @@ Just accessing the `count.value` property will cause the component to be updated
 
 Works very similary to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal, or an object made of several signals.
 
-`const store = useStore(initialState)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
+`const store = useStore(initialStateObject)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
 
 The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#usestore) is just like any other object, but it is reactive. If you change any property of the object, any component that depends on that property will be updated.
 
@@ -62,6 +74,8 @@ The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#
 This example shows how `useStore()` can be used in a counter component to keep track of the count.
 
 ```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
 export default component$(() => {
   const state = useStore({ count: 0 });
 
@@ -108,12 +122,14 @@ store.nested = { fields: { are: { "tracked" } } }
 In order to make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
 
 ```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
 export default component$(() => {
   const store = useStore(
     {
       nested: { fields: { are: 'not tracked' } },
     },
-    { recursive: true }
+    { deep: true }
   );
 
   return (
@@ -135,7 +151,7 @@ export default component$(() => {
     {
       letters: ['A', 'B', 'C'],
     },
-    { recursive: true }
+    { deep: true }
   );
 
   return (
@@ -166,6 +182,8 @@ There are two ways to pass state to other components: with props, or with contex
 The most simple way to pass state to other components is to pass it as props. This is the way you would do it in React, and it works in Qwik as well.
 
 ```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
 export const Parent = component$(() => {
   const userData = useStore({
     count: 0,
@@ -195,7 +213,7 @@ The context API is a way to pass state to components without having to pass it t
 Check the [context API](../context/index.mdx) for more information.
 
 ```tsx
-export const CTX = createContext('stuff');
+export const CTX = createContextId('stuff');
 
 export const Stores = component$(() => {
   const userData = useStore({
@@ -235,6 +253,8 @@ The main difference between the two is that [`useTask$()`](/docs/components/life
 ### [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) example
 
 ```tsx
+import { component$, useStore, useTask$ } from '@builder.io/qwik';
+
 export default component$(() => {
   const state = useStore({
     count: 0,
@@ -259,6 +279,8 @@ export default component$(() => {
 ### [`useResource$()`](/docs/components/resource/index.mdx) example
 
 ```tsx
+import { component$, useStore, useResource$ } from '@builder.io/qwik';
+
 export default component$(() => {
   const state = useStore({
     count: 0,
@@ -290,14 +312,14 @@ Thanks to the fine grained reactivity of Qwik, only the components that depend o
 Sometimes, you may want to store a value in the state, but you don't want it to be serialized. This is useful for storing values that are not serializable, like functions, or classes.
 
 ```tsx
-import { component$, useStore, noSerialize } from '@builder.io/qwik';
+import { component$, useStore, noSerialize, useVisibleTask$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
   const state = useStore({
     monacoInstance: null,
   });
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     // Monaco is not serializable, so we can't store it in the state using `noSerialize()`
     state.monacoInstance = noSerialize(new Monaco());
   });

@@ -1,6 +1,4 @@
-import type { ClientHistoryWindow } from './client-navigate';
-import { component$, Slot, QwikIntrinsicElements, $, useOnDocument } from '@builder.io/qwik';
-import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
+import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
@@ -19,36 +17,12 @@ export const Link = component$<LinkProps>((props) => {
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
 
-  useOnDocument(
-    'qinit',
-    $(() => {
-      if (!(window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]) {
-        (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED] = () => {
-          if (!(window as ClientHistoryWindow)[CLIENT_HISTORY_INITIALIZED]) {
-            // possible for page reload then hit back button to
-            // navigate to a client route added with history.pushState()
-            // in this scenario we need to reload the page
-            location.reload();
-          }
-        };
-
-        setTimeout(() => {
-          // this popstate listener will be removed when the client history is initialized
-          addEventListener(
-            'popstate',
-            (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]!
-          );
-        }, 0);
-      }
-    })
-  );
-
   return (
     <a
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav(linkProps.href);
+          nav(linkProps.href, linkProps.reload);
         }
       }}
       data-prefetch={prefetchDataset}
@@ -73,7 +47,7 @@ export const prefetchLinkResources = (elm: HTMLAnchorElement, isOnVisible?: bool
     if (!isOnVisible || (isOnVisible && windowInnerWidth < 520)) {
       // either this is a mouseover event, probably on desktop
       // or the link is visible, and the viewport width is less than X
-      loadClientData(elm.href);
+      loadClientData(new URL(elm.href), elm);
     }
   }
 };
@@ -87,4 +61,5 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
  */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
+  reload?: boolean;
 }

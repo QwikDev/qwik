@@ -1,5 +1,5 @@
-import { component$, useClientEffect$, useStore, useStylesScoped$ } from '@builder.io/qwik';
-import { DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { component$, useVisibleTask$, useStore, useStylesScoped$ } from '@builder.io/qwik';
+import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import styles from './flower.css?inline';
 
 export default component$(() => {
@@ -11,7 +11,7 @@ export default component$(() => {
     number: 20,
   });
 
-  useClientEffect$(({ cleanup }) => {
+  useVisibleTask$(({ cleanup }) => {
     const timeout = setTimeout(() => (state.count = 1), 500);
     cleanup(() => clearTimeout(timeout));
 
@@ -20,36 +20,38 @@ export default component$(() => {
   });
 
   return (
-    <>
-      <input
-        type="range"
-        value={state.number}
-        max={50}
-        onInput$={(ev) => {
-          state.number = (ev.target as HTMLInputElement).valueAsNumber;
-        }}
-      />
-      <div
-        style={{
-          '--state': `${state.count * 0.1}`,
-        }}
-        class={{
-          host: true,
-          pride: loc.query['pride'] === 'true',
-        }}
-      >
-        {Array.from({ length: state.number }, (_, i) => (
-          <div
-            key={i}
-            class={{
-              square: true,
-              odd: i % 2 === 0,
-            }}
-            style={{ '--index': `${i + 1}` }}
-          />
-        )).reverse()}
+    <div class="section">
+      <div class="container center">
+        <input
+          type="range"
+          value={state.number}
+          max={50}
+          onInput$={(ev) => {
+            state.number = (ev.target as HTMLInputElement).valueAsNumber;
+          }}
+        />
+        <div
+          style={{
+            '--state': `${state.count * 0.1}`,
+          }}
+          class={{
+            host: true,
+            pride: loc.query.get('pride') === 'true',
+          }}
+        >
+          {Array.from({ length: state.number }, (_, i) => (
+            <div
+              key={i}
+              class={{
+                square: true,
+                odd: i % 2 === 0,
+              }}
+              style={{ '--index': `${i + 1}` }}
+            />
+          )).reverse()}
+        </div>
       </div>
-    </>
+    </div>
   );
 });
 

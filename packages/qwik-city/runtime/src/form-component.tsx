@@ -15,7 +15,7 @@ export interface FormSubmitCompletedDetail<T> {
 export interface FormProps<O, I>
   extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
   /**
-   * Reference to the action returned by `action.use()`.
+   * Reference to the action returned by `action()`.
    */
   action: ActionStore<O, I, true | false>;
 
@@ -37,7 +37,7 @@ export interface FormProps<O, I>
   onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
 
   /**
-   * Event handler executed right after the action is executed sucesfully and returns some data.
+   * Event handler executed right after the action is executed successfully and returns some data.
    */
   onSubmitCompleted$?: (
     event: CustomEvent<FormSubmitCompletedDetail<O>>,

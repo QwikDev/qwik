@@ -5,7 +5,7 @@ import {
   Signal,
   useSignal,
   useStore,
-  useClientEffect$,
+  useVisibleTask$,
   useTask$,
   Slot,
   useStyles$,
@@ -24,6 +24,17 @@ import {
 } from './utils/utils';
 
 export const Signals = component$(() => {
+  const rerender = useSignal(0);
+  return (
+    <>
+      <button id="rerender" onClick$={() => rerender.value++}>
+        Rerender
+      </button>
+      <SignalsChildren key={rerender.value} />
+    </>
+  );
+});
+export const SignalsChildren = component$(() => {
   const ref = useRef();
   const ref2 = useSignal<Element>();
   const id = useSignal(0);
@@ -42,12 +53,13 @@ export const Signals = component$(() => {
 
   const styles = useSignal('body { background: white}');
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     ref.current!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });
 
   renders.count++;
+  const rerenders = renders.count;
   return (
     <div aria-label={store.attribute}>
       <button
@@ -83,7 +95,7 @@ export const Signals = component$(() => {
       >
         Black background
       </button>
-      <div id="parent-renders">Parent renders: {renders.count}</div>
+      <div id="parent-renders">Parent renders: {rerenders}</div>
       <Child
         text="Message"
         count={store.foo}
@@ -104,6 +116,11 @@ export const Signals = component$(() => {
       <ComplexClassSignals />
       <Issue2311 />
       <Issue2344 />
+      <Issue2928 />
+      <Issue2930 />
+      <Issue3212 />
+      <FineGrainedTextSub />
+      <FineGrainedUnsubs />
     </div>
   );
 });
@@ -126,9 +143,10 @@ export const Child = component$((props: ChildProps) => {
     { reactive: false }
   );
   renders.count++;
+  const rerenders = renders.count;
   return (
     <>
-      <div id="child-renders">Child renders: {renders.count}</div>
+      <div id="child-renders">Child renders: {rerenders}</div>
       <div id="text" ref={props.ref}>
         Text: {props.text}
       </div>
@@ -585,5 +603,174 @@ export const Issue2344 = component$(() => {
         </button>
       </p>
     </>
+  );
+});
+
+export const Issue2928 = component$(() => {
+  const store = useStore(
+    {
+      controls: {
+        age: {
+          value: 1,
+          valid: true,
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+  const group = {
+    controls: store.controls,
+  };
+
+  return (
+    <div>
+      <button
+        onClick$={async (e) => {
+          group.controls.age.value++;
+          await delayZero();
+          group.controls.age.valid = false;
+        }}
+      >
+        Increment
+      </button>
+      <FormDebug ctrl={group.controls.age} />
+      {group.controls.age.value == 2 && <div>match!</div>}
+    </div>
+  );
+});
+
+export const FormDebug = component$<{ ctrl: any }>((props) => {
+  return (
+    <div>
+      value:{' this_breaks!! '} -<>{props.ctrl.value} </>
+      <>{props.ctrl.value + ''} </>
+    </div>
+  );
+});
+
+export const Issue2930 = component$(() => {
+  const group = useStore(
+    {
+      controls: {
+        ctrl: {
+          value: '',
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+
+  return (
+    <div>
+      <div>Type into input field:</div>
+      <input
+        id="issue-2930-input"
+        style="border: 1px solid black"
+        type="text"
+        value={group.controls.ctrl.value}
+        onInput$={(e) => {
+          const val = (e.target as HTMLInputElement).value;
+          group.controls.ctrl.value = val;
+        }}
+      />
+      <Stringify data={group} />
+
+      <Stringify data={group.controls} />
+
+      <Stringify data={group.controls.ctrl} />
+
+      <Stringify data={group.controls.ctrl.value} />
+    </div>
+  );
+});
+
+export const Stringify = component$<{
+  data: any;
+  style?: any;
+}>((props) => {
+  return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
+});
+
+export const Issue3212Child = component$((props: { signal: Signal<number> }) => {
+  return <>{props.signal.value}</>;
+});
+
+export function useMySignal() {
+  const signal = useSignal<number>(1);
+  return { signal };
+}
+
+export const Issue3212 = component$(() => {
+  const stuff = useMySignal();
+  const signal = stuff.signal;
+  return (
+    <div>
+      <h2>Issue3212</h2>
+      <div id="issue-3212-result-0">
+        <Issue3212Child signal={stuff.signal} />
+      </div>
+      <div id="issue-3212-result-1">{stuff.signal.value}</div>
+      <div id="issue-3212-result-2">{stuff.signal}</div>
+      <div id="issue-3212-result-3">{signal}</div>
+    </div>
+  );
+});
+
+export const delayZero = () => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 1);
+  });
+};
+
+export const FineGrainedTextSub = component$(() => {
+  const count = useSignal(0);
+  const computed = count.value + 2;
+
+  return (
+    <div>
+      <h2>Fine Grained</h2>
+      <div id="fine-grained-mutable" data-value={computed}>
+        {computed}
+      </div>
+      <div>
+        <button id="fine-grained-signal" data-value={count.value} onClick$={() => count.value++}>
+          Increment {count.value}
+        </button>
+      </div>
+    </div>
+  );
+});
+
+export const FineGrainedUnsubs = component$(() => {
+  const count = useSignal<{ nu: number } | undefined>({ nu: 1 });
+  console.warn(count.value);
+
+  return (
+    <div>
+      <h2>Fine Grained Unsubs</h2>
+      <button
+        id="fine-grained-unsubs-toggle"
+        onClick$={() => {
+          if (count.value) {
+            count.value = undefined;
+          } else {
+            count.value = { nu: 123 };
+          }
+        }}
+      >
+        Toggle
+      </button>
+
+      {count.value && (
+        <div id="fine-grained-unsubs" data-value={count.value.nu}>
+          {count.value.nu}
+        </div>
+      )}
+      <div>{count.value?.nu ?? 'EMPTY'}</div>
+    </div>
   );
 });

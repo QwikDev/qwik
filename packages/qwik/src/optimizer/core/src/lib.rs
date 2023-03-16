@@ -4,16 +4,19 @@
 #![allow(clippy::use_self)]
 #![feature(box_patterns)]
 #![allow(clippy::option_if_let_else)]
-
+#![allow(clippy::iter_with_drain)]
 #[cfg(test)]
 mod test;
 
+mod add_side_effect;
 mod code_move;
 mod collector;
 mod const_replace;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
+mod has_branches;
+mod inlined_fn;
 mod is_immutable;
 mod package_json;
 mod parse;
@@ -27,7 +30,7 @@ use rayon::prelude::*;
 
 #[cfg(feature = "parallel")]
 use anyhow::Context;
-use transform::HookKind;
+use words::BUILDER_IO_QWIK;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -66,9 +69,11 @@ pub struct TransformFsOptions {
     pub mode: EmitMode,
     pub scope: Option<String>,
 
+    pub core_module: Option<String>,
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
+    pub reg_ctx_name: Option<Vec<JsWord>>,
     pub is_server: Option<bool>,
 }
 
@@ -95,18 +100,22 @@ pub struct TransformModulesOptions {
     pub mode: EmitMode,
     pub scope: Option<String>,
 
+    pub core_module: Option<String>,
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
+    pub reg_ctx_name: Option<Vec<JsWord>>,
     pub is_server: Option<bool>,
 }
 
 #[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
+    let core_module = config
+        .core_module
+        .map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
     let src_dir = Path::new(&config.src_dir);
     let mut paths = vec![];
-    let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
+    let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
     crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
 
     #[cfg(feature = "parallel")]
@@ -133,24 +142,28 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 scope: config.scope.as_ref(),
                 entry_policy,
                 mode: config.mode,
-                is_inline,
+                core_module: core_module.clone(),
+                entry_strategy: config.entry_strategy,
+                reg_ctx_name: config.reg_ctx_name.as_deref(),
                 strip_exports: config.strip_exports.as_deref(),
                 strip_ctx_name: config.strip_ctx_name.as_deref(),
-                strip_ctx_kind: config.strip_ctx_kind,
+                strip_event_handlers: config.strip_event_handlers,
                 is_server: config.is_server,
             })
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output, config.explicit_extensions)?;
+    final_output = generate_entries(final_output, &core_module, config.explicit_extensions)?;
     Ok(final_output)
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
+    let core_module = config
+        .core_module
+        .map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
     let src_dir = std::path::Path::new(&config.src_dir);
-    let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
+    let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
     #[cfg(feature = "parallel")]
     let iterator = config.input.par_iter();
 
@@ -170,11 +183,12 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             entry_policy,
             mode: config.mode,
             scope: config.scope.as_ref(),
-            is_inline,
-
+            core_module: core_module.clone(),
+            entry_strategy: config.entry_strategy,
+            reg_ctx_name: config.reg_ctx_name.as_deref(),
             strip_exports: config.strip_exports.as_deref(),
             strip_ctx_name: config.strip_ctx_name.as_deref(),
-            strip_ctx_kind: config.strip_ctx_kind,
+            strip_event_handlers: config.strip_event_handlers,
             is_server: config.is_server,
         })
     });
@@ -189,7 +203,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
     let mut final_output = final_output?;
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output, config.explicit_extensions)?;
+    final_output = generate_entries(final_output, &core_module, config.explicit_extensions)?;
 
     Ok(final_output)
 }

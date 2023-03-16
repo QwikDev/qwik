@@ -88,7 +88,7 @@ export function qwikifyQrl<PROPS extends {}>(
         slotRef,
         hydrationKeys
       );
-      return <RenderOnce>{jsx}</RenderOnce>;
+      return <RenderOnce key={2}>{jsx}</RenderOnce>;
     }
 
     return (

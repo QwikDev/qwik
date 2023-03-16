@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useClientEffect$ } from '@builder.io/qwik';
+import { component$, useStyles$, useContext, useVisibleTask$ } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -16,14 +16,14 @@ import {
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
 import BuilderContentComp from '../../components/builder-content';
-import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
+import { BUILDER_TOP_BAR_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
-  const pathname = useLocation().pathname;
+  const pathname = useLocation().url.pathname;
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     globalStore.theme = getColorPreference();
     return colorSchemeChangeListener((isDark) => {
       globalStore.theme = isDark ? 'dark' : 'light';
@@ -31,9 +31,21 @@ export const Header = component$(() => {
     });
   });
 
+  const hasBuilderBar = !(
+    pathname.startsWith('/examples') ||
+    pathname.startsWith('/tutorial') ||
+    pathname.startsWith('/playground')
+  );
+
   return (
-    <header class="header-container">
-      <BuilderContentComp apiKey={BUILDER_PUBLIC_API_KEY} model={BUILDER_MODEL} tag="div" />
+    <header class={['header-container', ...(hasBuilderBar ? ['builder-bar'] : [])]}>
+      {hasBuilderBar && (
+        <BuilderContentComp
+          apiKey={BUILDER_PUBLIC_API_KEY}
+          model={BUILDER_TOP_BAR_MODEL}
+          tag="div"
+        />
+      )}
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">

@@ -1,9 +1,26 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import type { IntegrationData, IntegrationType } from '../types';
-import { dashToTitlelCase, readPackageJson } from './utils';
+import { dashToTitleCase, readPackageJson, limitLength } from './utils';
 
 let integrations: IntegrationData[] | null = null;
+
+export async function sortIntegrationsAndReturnAsClackOptions(
+  integrations: IntegrationData[],
+  { maxHintLength = 50, showHint = true }: { maxHintLength?: number; showHint?: boolean } = {}
+) {
+  return integrations
+    .sort((a, b) => {
+      if (a.priority > b.priority) return -1;
+      if (a.priority < b.priority) return 1;
+      return a.id < b.id ? -1 : 1;
+    })
+    .map((i) => ({
+      value: i.id,
+      label: i.name,
+      hint: (showHint && limitLength(i.pkgJson.description, maxHintLength)) || undefined,
+    }));
+}
 
 export async function loadIntegrations() {
   if (!integrations) {
@@ -28,7 +45,7 @@ export async function loadIntegrations() {
                 const pkgJson = await readPackageJson(dirPath);
                 const integration: IntegrationData = {
                   id: dirItem,
-                  name: pkgJson.__qwik__?.displayName ?? dashToTitlelCase(dirItem),
+                  name: pkgJson.__qwik__?.displayName ?? dashToTitleCase(dirItem),
                   type: integrationType,
                   dir: dirPath,
                   pkgJson,

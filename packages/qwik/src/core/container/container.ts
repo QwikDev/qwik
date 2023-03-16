@@ -1,12 +1,10 @@
 import { qError, QError_invalidRefValue } from '../error/error';
-import { isServer } from '../platform/platform';
+import { isServerPlatform } from '../platform/platform';
 import type { Ref } from '../use/use-ref';
 import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
-import type { QwikElement } from '../render/dom/virtual-element';
-import type { RenderContext } from '../render/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
@@ -15,6 +13,7 @@ import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertTrue } from '../error/assert';
+import type { QContext } from '../state/context';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -90,12 +89,12 @@ export interface ContainerState {
 
   readonly $opsNext$: Set<SubscriberSignal>;
 
-  readonly $hostsNext$: Set<QwikElement>;
-  readonly $hostsStaging$: Set<QwikElement>;
+  readonly $hostsNext$: Set<QContext>;
+  readonly $hostsStaging$: Set<QContext>;
   readonly $base$: string;
 
-  $hostsRendering$: Set<QwikElement> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
+  $hostsRendering$: Set<QContext> | undefined;
+  $renderPromise$: Promise<void> | undefined;
 
   $serverData$: Record<string, any>;
   $elementIndex$: number;
@@ -113,7 +112,7 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export const _getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    assertTrue(!isServer(), 'Container state can only be created lazily on the browser');
+    assertTrue(!isServerPlatform(), 'Container state can only be created lazily on the browser');
     (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
       containerEl,
       directGetAttribute(containerEl, 'q:base') ?? '/'
@@ -153,6 +152,10 @@ export const createContainerState = (containerEl: Element, base: string) => {
   return containerState;
 };
 
+export const removeContainerState = (containerEl: Element) => {
+  delete (containerEl as any)[CONTAINER_STATE];
+};
+
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
@@ -168,7 +171,7 @@ export const setRef = (value: any, elm: Element) => {
 
 export const addQwikEvent = (prop: string, containerState: ContainerState) => {
   const eventName = getEventName(prop);
-  if (!qTest && !isServer()) {
+  if (!qTest && !isServerPlatform()) {
     try {
       const qwikevents = ((globalThis as any).qwikevents ||= []);
       qwikevents.push(eventName);

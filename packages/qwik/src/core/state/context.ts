@@ -26,6 +26,7 @@ export const HOST_FLAG_DIRTY = 1 << 0;
 export const HOST_FLAG_NEED_ATTACH_LISTENER = 1 << 1;
 export const HOST_FLAG_MOUNTED = 1 << 2;
 export const HOST_FLAG_DYNAMIC = 1 << 3;
+export const HOST_REMOVED = 1 << 4;
 
 export interface QContext {
   $element$: QwikElement;
@@ -96,7 +97,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           if (host) {
             const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
             const styleIds = el.getAttribute(QScopedStyle);
-            elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+            elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
             if (renderQrl) {
               elCtx.$componentQrl$ = getObject(renderQrl);
@@ -141,18 +142,11 @@ export const createContext = (element: Element | VirtualElement): QContext => {
 };
 
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
-  const el = elCtx.$element$;
   elCtx.$watches$?.forEach((watch) => {
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
-  if (elCtx.$componentQrl$) {
-    subsManager.$clearSub$(el);
-  }
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
   elCtx.$watches$ = null;
-  elCtx.$flags$ = 0;
-
-  (el as any)[Q_CTX] = undefined;
 };

@@ -1,5 +1,13 @@
-import { component$ } from '@builder.io/qwik';
-import { DocumentHead, loader$, action$, zod$, z, Form } from '@builder.io/qwik-city';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
+import {
+  type DocumentHead,
+  routeLoader$,
+  globalAction$,
+  zod$,
+  z,
+  Form,
+} from '@builder.io/qwik-city';
+import style from './todolist.css?inline';
 
 interface ListItem {
   text: string;
@@ -7,11 +15,11 @@ interface ListItem {
 
 export const list: ListItem[] = [];
 
-export const listLoader = loader$(() => {
+export const useListLoader = routeLoader$(() => {
   return list;
 });
 
-export const addToListAction = action$(
+export const useAddToListAction = globalAction$(
   (item) => {
     list.push(item);
     return {
@@ -24,26 +32,43 @@ export const addToListAction = action$(
 );
 
 export default component$(() => {
-  const list = listLoader.use();
-  const action = addToListAction.use();
+  useStylesScoped$(style);
+  const list = useListLoader();
+  const action = useAddToListAction();
 
   return (
     <>
-      <h1>Form Action TODO list</h1>
-      <ul>
-        {list.value.map((item) => (
-          <li>{item.text}</li>
-        ))}
-      </ul>
-      <Form action={action} spaReset>
-        <input type="text" name="text" required />
-        <button type="submit">Add item</button>
-      </Form>
-      <p>This little app works even when JavaScript is disabled.</p>
+      <div class="section">
+        <div class="container center">
+          <h1 class="hero">TODO List</h1>
+        </div>
+      </div>
+
+      <div class="section bright">
+        <div class="container center mh-300">
+          {(list.value.length && (
+            <ul class="list">
+              {list.value.map((item, index) => (
+                <li key={`items-${index}`}>{item.text}</li>
+              ))}
+            </ul>
+          )) || <span class="no-content">No items found</span>}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="container center">
+          <Form action={action} spaReset>
+            <input type="text" name="text" required /> <button type="submit">Add item</button>
+          </Form>
+
+          <p class="hint">PS: This little app works even when JavaScript is disabled.</p>
+        </div>
+      </div>
     </>
   );
 });
 
 export const head: DocumentHead = {
-  title: 'Qwik Flower',
+  title: 'Qwik Todo List',
 };

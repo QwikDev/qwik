@@ -119,3 +119,9 @@ details li a {
 .menu li a.is-active {
   font-weight: 800;
 }
+
+@media (max-width: 1023px) {
+  .breadcrumbs button {
+    @apply p-2;
+  }
+}

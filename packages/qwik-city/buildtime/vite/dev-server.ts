@@ -24,7 +24,7 @@ import { updateBuildContext } from '../build';
 import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp } from '../../middleware/node/http';
+import { fromNodeHttp, getUrl } from '../../middleware/node/http';
 import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
 
@@ -58,7 +58,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+      const url = getUrl(req);
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
@@ -77,11 +77,19 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
+        const { _deserializeData, _serializeData, _verifySerializable } =
+          await server.ssrLoadModule('@qwik-serializer', {
+            fixStacktrace: false,
+          });
+        const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+
         // use vite to dynamically load each layout/page module in this route's hierarchy
 
         const serverPlugins: RouteModule[] = [];
         for (const file of ctx.serverPlugins) {
-          const layoutModule = await server.ssrLoadModule(file.filePath);
+          const layoutModule = await server.ssrLoadModule(file.filePath, {
+            fixStacktrace: false,
+          });
           serverPlugins.push(layoutModule);
           routeModulePaths.set(layoutModule, file.filePath);
         }
@@ -97,11 +105,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // found a matching route
           for (const layout of route.layouts) {
-            const layoutModule = await server.ssrLoadModule(layout.filePath);
+            const layoutModule = await server.ssrLoadModule(layout.filePath, {
+              fixStacktrace: false,
+            });
             routeModules.push(layoutModule);
             routeModulePaths.set(layoutModule, layout.filePath);
           }
-          const endpointModule = await server.ssrLoadModule(route.filePath);
+          const endpointModule = await server.ssrLoadModule(route.filePath, {
+            fixStacktrace: false,
+          });
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
         }
@@ -115,6 +127,11 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestEv.headers.forEach((value, key) => {
               res.setHeader(key, value);
             });
+
+            const cookieHeaders = requestEv.cookie.headers();
+            if (cookieHeaders.length > 0) {
+              res.setHeader('Set-Cookie', cookieHeaders);
+            }
 
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
@@ -134,7 +151,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         let menu: ContentMenu | undefined = undefined;
         const menus = ctx.menus.map((buildMenu) => {
           const menuLoader: MenuModuleLoader = async () => {
-            const m = await server.ssrLoadModule(buildMenu.filePath);
+            const m = await server.ssrLoadModule(buildMenu.filePath, {
+              fixStacktrace: false,
+            });
             const menuModule: MenuModule = {
               default: m.default,
             };
@@ -166,7 +185,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             loadedRoute,
             requestHandlers,
             ctx.opts.trailingSlash,
-            ctx.opts.basePathname
+            ctx.opts.basePathname,
+            qwikSerializer
           );
           const result = await completion;
           if (result != null) {

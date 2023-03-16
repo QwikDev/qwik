@@ -5,6 +5,7 @@ use std::hash::Hasher;
 use std::path::{Component, Path, PathBuf};
 use std::str;
 
+use crate::add_side_effect::SideEffectVisitor;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
@@ -13,8 +14,10 @@ use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
+use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
+use swc_ecmascript::transforms::optimization::simplify::inlining::inlining;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -79,11 +82,13 @@ pub struct TransformCodeOptions<'a> {
     pub entry_policy: &'a dyn EntryPolicy,
     pub mode: EmitMode,
     pub scope: Option<&'a String>,
-    pub is_inline: bool,
+    pub entry_strategy: EntryStrategy,
+    pub core_module: JsWord,
 
+    pub reg_ctx_name: Option<&'a [JsWord]>,
     pub strip_exports: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
     pub is_server: Option<bool>,
 }
 
@@ -263,7 +268,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         let mut react_options = react::Options::default();
                         if is_jsx {
                             react_options.next = Some(true);
-                            react_options.development = Some(config.mode == EmitMode::Dev);
+                            // react_options.development = Some(config.mode == EmitMode::Dev);
                             react_options.throw_if_namespace = Some(false);
                             react_options.runtime = Some(react::Runtime::Automatic);
                             react_options.import_source = Some("@builder.io/qwik".to_string());
@@ -283,10 +288,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         is_type_script && !transpile_ts,
                     ));
 
+                    if transpile_ts {
+                        main_module.visit_mut_with(&mut inlining(Default::default()));
+                    }
+
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
 
-                    transform_props_destructuring(&mut main_module, &mut collect);
+                    transform_props_destructuring(
+                        &mut main_module,
+                        &mut collect,
+                        &config.core_module,
+                    );
 
                     // Replace const values
                     if let Some(is_server) = config.is_server {
@@ -306,9 +319,13 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         global_collect: collect,
                         scope: config.scope,
                         mode: config.mode,
-                        is_inline: config.is_inline,
+                        core_module: config.core_module,
+                        entry_strategy: config.entry_strategy,
+                        reg_ctx_name: config.reg_ctx_name,
                         strip_ctx_name: config.strip_ctx_name,
-                        strip_ctx_kind: config.strip_ctx_kind,
+                        strip_event_handlers: config.strip_event_handlers,
+                        is_server: config.is_server,
+                        cm: Lrc::clone(&source_map),
                     });
 
                     // Run main transform
@@ -318,6 +335,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         main_module = main_module.fold_with(&mut simplify::simplifier(
                             unresolved_mark,
                             Default::default(),
+                        ));
+                    }
+                    if matches!(
+                        config.entry_strategy,
+                        EntryStrategy::Inline | EntryStrategy::Hoist
+                    ) {
+                        main_module.visit_mut_with(&mut SideEffectVisitor::new(
+                            &qwik_transform.options.global_collect,
                         ));
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
@@ -342,6 +367,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             need_transform: h.data.need_transform,
                             explicit_extensions: qwik_transform.options.explicit_extensions,
                             global: &qwik_transform.options.global_collect,
+                            core_module: &qwik_transform.options.core_module,
                             need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),
@@ -676,8 +702,11 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 }
 
 pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
-    if matches!(ctx_kind, HookKind::Event) {
+    if !matches!(ctx_kind, HookKind::Function) {
         return false;
     }
-    matches!(ctx_name, "useTask$" | "useClientEffect$" | "$")
+    matches!(
+        ctx_name,
+        "useTask$" | "useVisibleTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
+    )
 }

@@ -3,6 +3,7 @@ import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export interface EnvGetter {
   get(key: string): string | undefined;
@@ -66,7 +67,8 @@ export type RedirectCode = 301 | 302 | 303 | 307 | 308;
 /**
  * @alpha
  */
-export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
+  extends RequestEventBase<PLATFORM> {
   /**
    * HTTP response status code. Sets the status code when called with an
    * argument. Always returns the status code, so calling `status()` without
@@ -128,7 +130,12 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
   readonly send: SendMethod;
 
   readonly exit: () => AbortMessage;
+}
 
+/**
+ * @alpha
+ */
+export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
    * HTTP response headers.
    *
@@ -174,6 +181,12 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
   readonly url: URL;
 
   /**
+   * The base pathname of the request, which can be configured at build time.
+   * Defaults to `/`.
+   */
+  readonly basePathname: string;
+
+  /**
    * HTTP request information.
    */
   readonly request: Request;
@@ -193,6 +206,19 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> {
    * the shared map. The shared map is useful for sharing data between request handlers.
    */
   readonly sharedMap: Map<string, any>;
+
+  /**
+   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
+   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+   *
+   * If the `Content-Type` header is not set, it will return `null`.
+   */
+  readonly parseBody: () => Promise<unknown>;
+
+  /**
+   * Convenience method to set the Cache-Control header.
+   */
+  readonly cacheControl: (cacheControl: CacheControl) => void;
 }
 
 /**
@@ -266,8 +292,6 @@ export interface CacheControlOptions {
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
   readonly exited: boolean;
-  readonly cacheControl: (cacheControl: CacheControl) => void;
-
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
@@ -292,15 +316,21 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform>
 /**
  * @alpha
  */
+export type DeferReturn<T> = () => Promise<T>;
+
+/**
+ * @alpha
+ */
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
-  getData: GetData;
+  resolveValue: ResolveValue;
+  defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
 }
 
 /**
  * @alpha
  */
-export interface GetData {
+export interface ResolveValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
   <T>(action: Action<T>): Promise<T | undefined>;
 }
@@ -308,7 +338,7 @@ export interface GetData {
 /**
  * @alpha
  */
-export interface GetSyncData {
+export interface ResolveSyncValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
   <T>(action: Action<T>): Awaited<T> | undefined;
 }
@@ -396,6 +426,15 @@ export interface CookieValue {
   value: string;
   json: <T = unknown>() => T;
   number: () => number;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikSerializer {
+  _deserializeData: typeof _deserializeData;
+  _serializeData: typeof _serializeData;
+  _verifySerializable: typeof _verifySerializable;
 }
 
 /**

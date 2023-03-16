@@ -1,12 +1,17 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
-import type { Render } from '@builder.io/qwik/server';
+import { Render, setServerPlatform } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -20,48 +25,66 @@ interface AzureResponse {
  * @alpha
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
-    const res: AzureResponse = (context.res = {
-      status: 200,
-      headers: {},
-    });
     try {
-      const getRequestBody = async function* () {
-        for await (const chunk of req as any) {
-          yield chunk;
-        }
-      };
-      const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
-      const url = req.headers['x-ms-original-url']!;
-      const options = {
-        method: req.method,
+      const url = new URL(req.headers['x-ms-original-url']!);
+      const options: RequestInit = {
+        method: req.method || 'GET',
         headers: req.headers,
-        body: body as any,
-        duplex: 'half' as any,
+        body: req.bufferBody || req.rawBody || req.body,
       };
+
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
-        url: new URL(url),
+        url,
         platform: context,
         env: {
           get(key) {
             return process.env[key];
           },
         },
-        request: new Request(url, options as any),
-        getWritableStream: (status, headers, _cookies) => {
-          res.status = status;
-          headers.forEach((value, key) => (res.headers[key] = value));
-          return new WritableStream(new AzureWritableStreamSink(res));
+        request: new Request(url, options),
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const response: AzureResponse = {
+            status,
+            body: new Uint8Array(),
+            headers: {},
+          };
+          mergeHeadersCookies(headers, cookies).forEach(
+            (value, key) => (response.headers[key] = value)
+          );
+          return new WritableStream({
+            write(chunk: Uint8Array) {
+              if (response.body instanceof Uint8Array) {
+                const newBuffer = new Uint8Array(response.body.length + chunk.length);
+                newBuffer.set(response.body);
+                newBuffer.set(chunk, response.body.length);
+                response.body = newBuffer;
+              }
+            },
+            close() {
+              resolve(response);
+            },
+          });
         },
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
-        handledResponse.completion.then((v) => {
-          console.error(v);
+        handledResponse.completion.then((err) => {
+          if (err) {
+            console.error(err);
+          }
         });
         const response = await handledResponse.response;
         if (response) {
@@ -70,17 +93,19 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      // const notFoundResponse = await notFoundHandler<void>(serverRequestEv);
-      // return notFoundResponse;
-      return res;
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+        body: notFoundHtml,
+      };
     } catch (e: any) {
       console.error(e);
-      context.res = {
+      return {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       };
-      return res;
     }
   }
 
@@ -95,7 +120,7 @@ export interface QwikCityAzureOptions extends ServerRenderOptions {}
 /**
  * @alpha
  */
-export interface EventPluginContext extends Context {}
+export interface PlatformAzure extends Partial<Context> {}
 
 /**
  * @alpha
@@ -113,24 +138,4 @@ export interface EventPluginContext extends Context {}
  */
 export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
-}
-
-/**
- * Aggregates the response to a `Uint8Array` and writes it to the Azure response.
- */
-class AzureWritableStreamSink implements UnderlyingSink<Uint8Array> {
-  private buffer!: Uint8Array;
-  constructor(private res: AzureResponse) {}
-  start() {
-    this.buffer = new Uint8Array();
-  }
-  write(chunk: Uint8Array) {
-    const newBuffer = new Uint8Array(this.buffer.length + chunk.length);
-    newBuffer.set(this.buffer);
-    newBuffer.set(chunk, this.buffer.length);
-    this.buffer = newBuffer;
-  }
-  close() {
-    this.res.body = this.buffer;
-  }
 }

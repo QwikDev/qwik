@@ -9,6 +9,8 @@ contributors:
   - adamdbradley
   - hamatoyogi
   - fleish80
+  - cunzaizhuyi
+  - Pika-Pool
 ---
 
 # Events
@@ -20,10 +22,12 @@ In the following example, the `onClick$` attribute of the `<button>` element is 
 Notice that `onClick$` ends with [`$`](todo/correct-link). This is a hint to both the [Optimizer](/docs/advanced/optimizer) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event.
 
 ```tsx
-export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+import { component$, useSignal } from '@builder.io/qwik';
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+export const Counter = component$(() => {
+  const count = useSignal(0);
+
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 
@@ -32,13 +36,13 @@ In a real applications, the listener may refer to complex code. By creating a la
 Another option is passing [`QRLs`](/docs/advanced/qrl/) as values for event listeners. For instance, the above example could also be written in the following way:
 
 ```tsx
-import { component$, useStore, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
-  const incrementCount = $(() => store.count++);
+  const count = useSignal(0);
+  const incrementCount = $(() => count.value++);
 
-  return <button onClick$={incrementCount}>{store.count}</button>;
+  return <button onClick$={incrementCount}>{count.value}</button>;
 });
 ```
 
@@ -49,6 +53,8 @@ Because of the async nature of Qwik, an event's handler execution might be delay
 This introduces a problem when the event's handler needs to prevent the default behavior of the event. Traditional `event.preventDefault()` will not work, so instead use Qwik's `preventdefault:{eventName}` attribute:
 
 ```tsx
+import { component$ } from '@builder.io/qwik';
+
 export const PreventDefaultExample = component$(() => {
   return (
     <a
@@ -71,25 +77,25 @@ export const PreventDefaultExample = component$(() => {
 So far, we have discussed how to listen to events that originate from elements. There are events (for example, `scroll` and `mousemove`) that require that we listen to them on the `window` or `document`. For this reason, Qwik allows for the `document:on` and `window:on` prefixes when listening for events.
 
 ```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
 export const EventExample = component$(() => {
-  const store = useStore({
-    scroll: 0,
-    mouse: { x: 0, y: 0 },
-    clickCount: 0,
-  });
+  const scroll = useSignal(0);
+  const mouse = useSignal({ x: 0, y: 0 });
+  const clickCount = useSignal(0);
 
   return (
     <button
-      window:onScroll$={(e) => (store.scroll = window.scrollY)}
+      window:onScroll$={(e) => (scroll.value = window.scrollY)}
       document:onMouseMove$={(e) => {
         const { x, y } = e;
-        store.mouse = { x, y };
+        mouse.value = { x, y };
       }}
-      onClick$={() => store.clickCount++}
+      onClick$={() => clickCount.value++}
     >
-      scroll: {store.scroll}
-      mouseMove: {store.mouse.x}, {store.mouse.y}
-      click: {store.clickCount}
+      scroll: {scroll.value}
+      mouseMove: {mouse.value.x}, {mouse.value.y}
+      click: {clickCount.value}
     </button>
   );
 });
@@ -111,6 +117,8 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 `useOn` hook will add a DOM based event listener at component level.
 
 ```tsx
+import { component$, useSignal, useOn, $ } from '@builder.io/qwik';
+
 export const ClickableComponent = component$(() => {
   useOn(
     'click',
@@ -122,14 +130,14 @@ export const ClickableComponent = component$(() => {
 });
 
 export const HoverComponent = component$(() => {
-  const store = useStore({ isHover: false });
+  const isHover = useSignal(false);
   useOn(
     'mouseover',
     $(() => {
-      store.isHover = true;
+      isHover.value = true;
     })
   );
-  return <div>{store.isHover ? 'Now Hovering' : 'Not Hovering'}</div>;
+  return <div>{isHover.value ? 'Now Hovering' : 'Not Hovering'}</div>;
 });
 
 export default component$(() => {
@@ -147,6 +155,8 @@ export default component$(() => {
 `useOnWindow` hook will add a event listener to window.
 
 ```tsx
+import { component$, useOnWindow, $ } from '@builder.io/qwik';
+
 export const Online = component$(() => {
   useOnWindow(
     'online',
@@ -173,15 +183,17 @@ export default component$(() => {
 `useOnDocument` hook will add a event listener to document.
 
 ```tsx
+import { component$, useSignal, $, useOnDocument } from '@builder.io/qwik';
+
 export const KeyBoard = component$(() => {
-  const store = useStore({ keyPressed: '' });
+  const keyPressed = useSignal('');
   useOnDocument(
     'keydown',
     $((event) => {
-      store.keyPressed = store.keyPressed + event.key;
+      keyPressed.value = keyPressed.value + event.key;
     })
   );
-  return <div>{store.keyPressed}</div>;
+  return <div>{keyPressed.value}</div>;
 });
 
 export default component$(() => {
@@ -196,7 +208,7 @@ Components are functions, not elements. Since DOM events do not exist naturally,
 Now let's look at how to declare a child component that can be used with events as props.
 
 ```tsx
-import { PropFunction } from '@builder.io/qwik';
+import { PropFunction, component$ } from '@builder.io/qwik';
 
 interface CmpButtonProps {
   onClick$?: PropFunction<() => void>;
@@ -228,6 +240,8 @@ Let's look at a variation of the above `<CmpButton>` implementation.
 In this example, we would like to demonstrate passing callbacks to components. For this reason, we have created a `onDblclick$` listener:
 
 ```tsx
+import { PropFunction, component$ } from '@builder.io/qwik';
+
 interface CmpButtonProps {
   onClick$?: PropFunction<() => number>;
 }
@@ -266,10 +280,12 @@ The operation is asynchronous and therefore returns a promise, which we can reso
 ## State recovery
 
 ```tsx
-export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+import { useSignal, component$ } from '@builder.io/qwik';
 
-  return <button onClick$={() => store.count++}>{store.count}</button>;
+export const Counter = component$(() => {
+  const count = useSignal(0);
+
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 ```
 

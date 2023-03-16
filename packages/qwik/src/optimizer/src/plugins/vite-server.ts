@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { IncomingMessage } from 'http';
+
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
@@ -9,6 +10,18 @@ import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 import { getErrorMarkdown, logError, VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import type { RollupError } from 'rollup';
+
+const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
+
+function getOrigin(req: IncomingMessage) {
+  const headers = req.headers;
+  const protocol =
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const host = (HOST_HEADER && headers[HOST_HEADER]) || headers[':authority'] || headers['host'];
+
+  return `${protocol}://${host}`;
+}
 
 export async function configureDevServer(
   server: ViteDevServer,
@@ -47,7 +60,7 @@ export async function configureDevServer(
     }
 
     try {
-      const domain = 'http://' + (req.headers.host ?? 'localhost');
+      const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
@@ -116,6 +129,9 @@ export async function configureDevServer(
             });
           });
 
+          const srcBase = opts.srcDir
+            ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
+            : 'src';
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -125,9 +141,15 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
+                  const defaultChunk = [
+                    symbolName,
+                    `/${srcBase}/${symbolName.toLowerCase()}.js`,
+                  ] as const;
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
-                    return mapper[hash];
+                    return mapper[hash] ?? defaultChunk;
+                  } else {
+                    return defaultChunk;
                   }
                 },
             prefetchStrategy: null,
@@ -496,7 +518,7 @@ ${DEV_QWIK_INSPECTOR(opts.devTools)}
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
   </head>
   <body>

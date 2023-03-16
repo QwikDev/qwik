@@ -2,7 +2,7 @@ import {
   component$,
   NoSerialize,
   PropFunction,
-  useClientEffect$,
+  useVisibleTask$,
   useContext,
   useRef,
   useStore,
@@ -31,7 +31,7 @@ export const Editor = component$((props: EditorProps) => {
 
   const globalStore = useContext(GlobalStore);
 
-  useClientEffect$(async () => {
+  useVisibleTask$(async () => {
     if (!store.editor) {
       await initMonacoEditor(hostRef.current, props, store, props.store);
     }
@@ -42,7 +42,7 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
-  useClientEffect$(({ track }) => {
+  useVisibleTask$(({ track }) => {
     track(globalStore, 'theme');
     if (globalStore.theme !== 'auto') {
       store.editor?.updateOptions({

@@ -1,4 +1,13 @@
-import { component$, useStore, Slot } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  Slot,
+  useContext,
+  useSignal,
+  useContextProvider,
+  createContextId,
+  Signal,
+} from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -24,6 +33,7 @@ export const SlotParent = component$(() => {
           <Issue1410>
             <span id="modal-content">Model content</span>
           </Issue1410>
+          <Issue2688 count={state.count} />
           <Projector state={state} id="btn1">
             {!state.removeContent && <>DEFAULT {state.count}</>}
             <span q:slot="ignore">IGNORE</span>
@@ -38,6 +48,7 @@ export const SlotParent = component$(() => {
               {!state.removeContent && <>INSIDE THING {state.count}</>}
             </Projector>
           </Thing>
+          <Issue2751 />
         </>
       )}
       <div>
@@ -161,5 +172,72 @@ export const Thing = component$((props: { state: any; id: string }) => {
     <article class="todoapp" id={props.id}>
       {!props.state.disableNested && <Slot />}
     </article>
+  );
+});
+
+export const Switch = component$((props: { name: string }) => {
+  return <Slot name={props.name} />;
+});
+
+export const Issue2688 = component$(({ count }: { count: number }) => {
+  const store = useStore({ flip: false });
+
+  return (
+    <>
+      <button id="issue-2688-button" onClick$={() => (store.flip = !store.flip)}>
+        Toggle switch
+      </button>
+      <div id="issue-2688-result">
+        <Switch name={store.flip ? 'b' : 'a'}>
+          <div q:slot="a">Alpha {count}</div>
+          <div q:slot="b">Bravo {count}</div>
+        </Switch>
+      </div>
+    </>
+  );
+});
+
+const Issue2751Context = createContextId<Signal<number>>('CleanupCounterContext');
+
+export const Issue2751 = component$(() => {
+  const signal = useSignal(0);
+  useContextProvider(Issue2751Context, signal);
+
+  return (
+    <>
+      <button
+        id="issue-2751-toggle"
+        onClick$={() => {
+          signal.value++;
+        }}
+      >
+        Toggle
+      </button>
+      <div id="issue-2751-result">
+        {signal.value % 2 === 0 ? <CleanupA></CleanupA> : <div>Nothing</div>}
+      </div>
+    </>
+  );
+});
+
+interface CleanupProps {
+  slot?: boolean;
+}
+export const CleanupA = component$<CleanupProps>((props) => {
+  return (
+    <div>
+      <Bogus />
+      {props.slot && <Slot></Slot>}
+    </div>
+  );
+});
+
+export const Bogus = component$(() => {
+  const signal = useContext(Issue2751Context);
+  const count = signal.value;
+  return (
+    <div>
+      Bogus {count} {signal.value} <span>{signal.value}</span>
+    </div>
   );
 });

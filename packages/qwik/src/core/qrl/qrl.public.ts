@@ -103,7 +103,7 @@ import { createQRL } from './qrl-class';
  *
  * ```
  * <div q:base="/build/">
- *   <button on:lick="./chunk-abc.js#onClick">...</button>
+ *   <button on:click="./chunk-abc.js#onClick">...</button>
  * </div>
  * ```
  *
@@ -132,7 +132,7 @@ export interface QRL<TYPE = any> {
 
   /**
    * Resolve the QRL of closure and invoke it.
-   * @param args - Clousure arguments.
+   * @param args - Closure arguments.
    * @returns A promise of the return value of the closure.
    */
   (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<

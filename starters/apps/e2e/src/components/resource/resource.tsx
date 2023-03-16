@@ -10,6 +10,7 @@ import {
   useContext,
   useStyles$,
   ResourceReturn,
+  mutable,
 } from '@builder.io/qwik';
 
 export interface WeatherData {
@@ -37,7 +38,6 @@ export const ResourceApp = component$(() => {
   useContextProvider(LOGS, logs);
 
   logs.content += '[RENDER] <ResourceApp>\n';
-
   const state = useStore({
     count: 10,
     countDouble: 0,
@@ -97,6 +97,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
     }`);
   const logs = useContext(LOGS);
   logs.content += '[RENDER] <Results>\n\n\n';
+  const logscontent = logs.content;
 
   const state = useStore({
     count: 0,
@@ -114,14 +115,14 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
             <>
               <div class="resource1">resource 1 is {number}</div>
               <button class="count" onClick$={() => state.count++}>
-                count is {state.count + 0}
+                count is {mutable(state.count + 0)}
               </button>
             </>
           );
         }}
       />
 
-      <div class="logs">{logs.content}</div>
+      <div class="logs">{logscontent}</div>
     </div>
   );
 });

@@ -7,7 +7,7 @@ import { basePathname } from '@qwik-city-plan';
 /**
  * @alpha
  */
-export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
+export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   return viteAdapter({
     name: 'netlify-edge',
     origin: process?.env?.URL || 'https://yoursitename.netlify.app',
@@ -79,9 +79,15 @@ export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
 
 /**
  * @alpha
- * @deprecated Use `netifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
+ * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
  */
-export const netifyEdgeAdaptor = netifyEdgeAdapter;
+export const netifyEdgeAdapter = netlifyEdgeAdapter;
+
+/**
+ * @alpha
+ * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
+ */
+export const netifyEdgeAdaptor = netlifyEdgeAdapter;
 
 /**
  * @alpha

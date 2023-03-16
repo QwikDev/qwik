@@ -1,5 +1,5 @@
 import { isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
@@ -11,6 +11,8 @@ import {
   jsxToString,
   pushRenderContext,
   serializeClass,
+  shouldWrapFunctional,
+  static_subtree,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
@@ -35,7 +37,7 @@ import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { addSignalSub, isSignal, Signal } from '../../state/signal';
+import { isSignal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
@@ -99,11 +101,18 @@ const IS_PHASING = 1 << 5;
 const IS_ANCHOR = 1 << 6;
 const IS_BUTTON = 1 << 7;
 const IS_TABLE = 1 << 8;
+const IS_PHRASING_CONTAINER = 1 << 9;
+const IS_IMMUTABLE = 1 << 10;
+
+class MockElement {
+  [Q_CTX] = null;
+  constructor(public readonly nodeType: number) {
+    seal(this);
+  }
+}
 
 const createDocument = () => {
-  const doc = { nodeType: 9 };
-  seal(doc);
-  return doc;
+  return new MockElement(9);
 };
 
 /**
@@ -154,10 +163,9 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
 
   node = jsx(root, containerAttributes);
   containerState.$hostsRendering$ = new Set();
-  containerState.$renderPromise$ = Promise.resolve().then(() =>
+  await Promise.resolve().then(() =>
     renderRoot(node, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
-  await containerState.$renderPromise$;
 };
 
 const renderRoot = async (
@@ -262,7 +270,7 @@ const renderNodeVirtual = (
       renderNodeElementSync(node.type, node.props, stream);
     }
   }
-  const promise = walkChildren(props.children, rCtx, ssrCtx, stream, flags);
+  const promise = walkChildren(node.children, rCtx, ssrCtx, stream, flags);
   return then(promise, () => {
     // Fast path
     if (!isSlot && !beforeClose) {
@@ -357,11 +365,11 @@ const renderSSRComponent = (
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
     const invocationContext = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
-    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$subscriber$ = [0, hostElement];
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       ...ssrCtx,
-      $projectedChildren$: splitProjectedChildren(props.children, ssrCtx),
+      $projectedChildren$: splitProjectedChildren(node.children, ssrCtx),
       $projectedCtxs$: [rCtx, ssrCtx],
       $invocationContext$: invocationContext,
     };
@@ -475,11 +483,7 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
 };
 
 const createSSRContext = (nodeType: 1 | 111) => {
-  const elm = {
-    nodeType,
-    [Q_CTX]: null,
-  };
-  seal(elm);
+  const elm = new MockElement(nodeType);
   return createContext(elm as any);
 };
 
@@ -490,18 +494,19 @@ const renderNode = (
   stream: StreamWriter,
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
-) => {
+): ValueOrPromise<void> => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutableMeta: Record<string, boolean | Signal> = (props as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+    const immutable = node.immutableProps;
     const elCtx = createSSRContext(1);
     const elm = elCtx.$element$;
     const isHead = tagName === 'head';
     let openingElement = '<' + tagName;
     let useSignal = false;
+    let hasRef = false;
     let classStr = '';
     let htmlStr = null;
     assertElement(elm);
@@ -509,26 +514,25 @@ const renderNode = (
       throw new TypeError('Can only have one of class or className');
     }
     for (const prop of Object.keys(props)) {
-      if (prop === 'children' || prop === 'dangerouslySetInnerHTML') {
+      let value = props[prop];
+      if (prop === 'dangerouslySetInnerHTML') {
+        htmlStr = value;
         continue;
       }
       if (prop === 'ref') {
-        setRef(props[prop], elm);
+        setRef(value, elm);
+        hasRef = true;
         continue;
       }
-      let value = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : props[prop];
       if (isOnProp(prop)) {
         setEvent(elCtx.li, prop, value, undefined);
         continue;
       }
       const attrName = processPropKey(prop);
       if (isSignal(value)) {
-        if (hostCtx) {
-          const hostEl = hostCtx.$element$ as QwikElement;
-          addSignalSub(1, hostEl, value, elm, attrName);
-          useSignal = true;
-        }
-        value = value.value;
+        assertDefined(hostCtx, 'Signals can not be used outside the root');
+        value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
+        useSignal = true;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -546,6 +550,43 @@ const renderNode = (
         } else {
           openingElement +=
             ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+        }
+      }
+    }
+    if (immutable) {
+      for (const prop of Object.keys(immutable)) {
+        let value = immutable[prop];
+        if (prop === 'dangerouslySetInnerHTML') {
+          htmlStr = value;
+          continue;
+        }
+        if (isOnProp(prop)) {
+          setEvent(elCtx.li, prop, value, undefined);
+          continue;
+        }
+        const attrName = processPropKey(prop);
+        if (isSignal(value)) {
+          assertDefined(hostCtx, 'Signals can not be used outside the root');
+          value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
+          useSignal = true;
+        }
+        if (prop.startsWith(PREVENT_DEFAULT)) {
+          addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+        }
+        const attrValue = processPropValue(attrName, value);
+        if (attrValue != null) {
+          if (attrName === 'class') {
+            classStr = attrValue;
+          } else if (attrName === 'value' && tagName === 'textarea') {
+            htmlStr = escapeHtml(attrValue);
+          } else if (isSSRUnsafeAttr(attrName)) {
+            if (qDev) {
+              logError('Attribute value is unsafe for SSR');
+            }
+          } else {
+            openingElement +=
+              ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+          }
         }
       }
     }
@@ -568,7 +609,7 @@ const renderNode = (
 
     // Reset HOST flags
     if (qDev) {
-      if (flags & IS_PHASING) {
+      if (flags & IS_PHASING && !(flags & IS_PHRASING_CONTAINER)) {
         if (!phasingContent[tagName]) {
           throw createJSXError(
             `<${tagName}> can not be rendered because one of its ancestor is a <p> or a <pre>.\n
@@ -610,6 +651,10 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
         } else {
           flags |= IS_ANCHOR;
         }
+      }
+      if (tagName === 'svg' || tagName === 'math') {
+        // These types of elements are considered phrasing content, but contain children that aren't phrasing content.
+        flags |= IS_PHRASING_CONTAINER;
       }
       if (flags & IS_HEAD) {
         if (!headContent[tagName]) {
@@ -657,8 +702,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     if (key != null) {
       openingElement += ' q:key="' + escapeAttr(key) + '"';
     }
-    if ('ref' in props || useSignal || listeners.length > 0) {
-      if ('ref' in props || useSignal || listenersNeedId(listeners)) {
+    if (hasRef || useSignal || listeners.length > 0) {
+      if (hasRef || useSignal || listenersNeedId(listeners)) {
         const newID = getNextIndex(rCtx);
         openingElement += ' q:id="' + newID + '"';
         elCtx.$id$ = newID;
@@ -683,9 +728,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       return;
     }
 
-    const innerHTML = props.dangerouslySetInnerHTML ?? htmlStr;
-    if (innerHTML != null) {
-      stream.write(String(innerHTML));
+    if (htmlStr != null) {
+      stream.write(String(htmlStr));
       stream.write(`</${tagName}>`);
       return;
     }
@@ -694,8 +738,10 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     } else {
       flags &= ~IS_HTML;
     }
-
-    const promise = processData(props.children, rCtx, ssrCtx, stream, flags);
+    if (node.flags & static_subtree) {
+      flags |= IS_IMMUTABLE;
+    }
+    const promise = processData(node.children, rCtx, ssrCtx, stream, flags);
     return then(promise, () => {
       // If head inject base styles
       if (isHead) {
@@ -745,9 +791,20 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   }
   if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
     ssrCtx.$static$.$dynamic$ = true;
+    return;
   }
-  const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key);
-  return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
+  const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key, node.flags);
+  if (!shouldWrapFunctional(res, node)) {
+    return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
+  }
+  return renderNode(
+    jsx(Virtual, { children: res }, node.key),
+    rCtx,
+    ssrCtx,
+    stream,
+    flags,
+    beforeClose
+  );
 };
 
 const processData = (
@@ -773,9 +830,13 @@ const processData = (
     let value;
     if (hostEl) {
       if (!insideText) {
-        value = node.value;
         const id = getNextIndex(rCtx);
-        addSignalSub(2, hostEl, node, '#' + id, 'data');
+        const subs =
+          flags & IS_IMMUTABLE
+            ? ([3, ('#' + id) as any, node, ('#' + id) as any] as const)
+            : ([4, hostEl, node, ('#' + id) as any] as const);
+
+        value = trackSignal(node, subs);
         stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {
@@ -875,7 +936,13 @@ const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
     children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {
-    const res = invoke(ssrCtx.$invocationContext$, children.type, children.props, children.key);
+    const res = invoke(
+      ssrCtx.$invocationContext$,
+      children.type,
+      children.props,
+      children.key,
+      children.flags
+    );
     return flatVirtualChildren(res, ssrCtx);
   }
   return children;
@@ -916,11 +983,11 @@ const processPropKey = (prop: string) => {
 };
 
 const processPropValue = (prop: string, value: any): string | null => {
-  if (prop === 'style') {
-    return stringifyStyle(value);
-  }
   if (prop === 'class') {
     return serializeClass(value);
+  }
+  if (prop === 'style') {
+    return stringifyStyle(value);
   }
   if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
     return value != null ? String(value) : value;
@@ -1000,8 +1067,10 @@ const headContent: Record<string, true | undefined> = {
 const phasingContent: Record<string, true | undefined> = {
   a: true,
   abbr: true,
+  area: true,
   audio: true,
   b: true,
+  bdi: true,
   bdo: true,
   br: true,
   button: true,
@@ -1011,6 +1080,7 @@ const phasingContent: Record<string, true | undefined> = {
   command: true,
   data: true,
   datalist: true,
+  del: true,
   dfn: true,
   em: true,
   embed: true,
@@ -1018,11 +1088,16 @@ const phasingContent: Record<string, true | undefined> = {
   iframe: true,
   img: true,
   input: true,
+  ins: true,
+  itemprop: true,
   kbd: true,
   keygen: true,
   label: true,
+  link: true,
+  map: true,
   mark: true,
   math: true,
+  meta: true,
   meter: true,
   noscript: true,
   object: true,
@@ -1035,12 +1110,14 @@ const phasingContent: Record<string, true | undefined> = {
   samp: true,
   script: true,
   select: true,
+  slot: true,
   small: true,
   span: true,
   strong: true,
   sub: true,
   sup: true,
   svg: true,
+  template: true,
   textarea: true,
   time: true,
   u: true,

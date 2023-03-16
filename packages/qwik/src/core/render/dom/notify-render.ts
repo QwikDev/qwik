@@ -10,6 +10,7 @@ import {
   WatchFlagsIsVisibleTask,
   WatchFlagsIsResource,
   WatchFlagsIsTask,
+  isSubscriberDescriptor,
 } from '../../use/use-task';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
@@ -23,18 +24,17 @@ import { printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
-import { isQwikElement } from '../../util/element';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
 import { resumeIfNeeded } from '../../container/resume';
-import { getContext, HOST_FLAG_DIRTY } from '../../state/context';
+import { getContext, HOST_FLAG_DIRTY, QContext } from '../../state/context';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
     const host = subAction[1];
-    if (isQwikElement(host)) {
-      notifyRender(host, containerState);
-    } else {
+    if (isSubscriberDescriptor(host)) {
       notifyWatch(host, containerState);
+    } else {
+      notifyRender(host, containerState);
     }
   } else {
     notifySignalOperation(subAction, containerState);
@@ -73,33 +73,21 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   elCtx.$flags$ |= HOST_FLAG_DIRTY;
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
-    containerState.$hostsStaging$.add(hostElement);
+    containerState.$hostsStaging$.add(elCtx);
   } else {
     if (server) {
       logWarn('Can not rerender in server platform');
       return undefined;
     }
-    containerState.$hostsNext$.add(hostElement);
+    containerState.$hostsNext$.add(elCtx);
     scheduleFrame(containerState);
   }
 };
 
 const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerState): void => {
   const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
-    containerState.$opsNext$.add(op);
-  } else {
-    containerState.$opsNext$.add(op);
+  containerState.$opsNext$.add(op);
+  if (!activeRendering) {
     scheduleFrame(containerState);
   }
 };
@@ -111,11 +99,6 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
 
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(
-      containerState.$renderPromise$,
-      'render: while rendering, $renderPromise$ must be defined',
-      containerState
-    );
     containerState.$watchStaging$.add(watch);
   } else {
     containerState.$watchNext$.add(watch);
@@ -123,7 +106,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
 };
 
-const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
+const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
@@ -156,17 +139,15 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     });
     containerState.$hostsStaging$.clear();
 
+    const signalOperations = Array.from(containerState.$opsNext$);
+    containerState.$opsNext$.clear();
+
     const renderingQueue = Array.from(hostsRendering);
     sortNodes(renderingQueue);
 
-    containerState.$opsNext$.forEach((op) => {
-      executeSignalOperation(staticCtx, op);
-    });
-    containerState.$opsNext$.clear();
-
-    for (const el of renderingQueue) {
+    for (const elCtx of renderingQueue) {
+      const el = elCtx.$element$;
       if (!staticCtx.$hostElements$.has(el)) {
-        const elCtx = getContext(el, containerState);
         if (elCtx.$componentQrl$) {
           assertTrue(el.isConnected, 'element must be connected to the dom');
           staticCtx.$roots$.push(elCtx);
@@ -183,6 +164,10 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       }
     }
 
+    signalOperations.forEach((op) => {
+      executeSignalOperation(staticCtx, op);
+    });
+
     // Add post operations
     staticCtx.$operations$.push(...staticCtx.$postOperations$);
 
@@ -193,11 +178,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       return;
     }
 
-    await getPlatform().raf(() => {
-      executeContextWithSlots(rCtx);
-      printRenderStats(staticCtx);
-      return postRendering(containerState, rCtx);
-    });
+    // await getPlatform().raf(() => {
+    // });
+    executeContextWithSlots(rCtx);
+    printRenderStats(staticCtx);
+    return postRendering(containerState, rCtx);
   } catch (err) {
     logError(err);
   }
@@ -244,7 +229,8 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
     containerState.$opsNext$.size;
 
   if (pending > 0) {
-    scheduleFrame(containerState);
+    // Immediately render again
+    containerState.$renderPromise$ = renderMarked(containerState);
   }
 };
 
@@ -336,8 +322,10 @@ const executeWatchesAfter = async (
   } while (containerState.$watchStaging$.size > 0);
 };
 
-const sortNodes = (elements: QwikElement[]) => {
-  elements.sort((a, b) => (a.compareDocumentPosition(getRootNode(b)) & 2 ? 1 : -1));
+const sortNodes = (elements: QContext[]) => {
+  elements.sort((a, b) =>
+    a.$element$.compareDocumentPosition(getRootNode(b.$element$)) & 2 ? 1 : -1
+  );
 };
 
 const sortWatches = (watches: SubscriberEffect[]) => {

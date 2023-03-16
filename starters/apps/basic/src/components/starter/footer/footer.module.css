@@ -1,0 +1,11 @@
+.anchor {
+  color: white !important;
+  display: block;
+  font-size: 0.8rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.spacer {
+  padding: 0 15px;
+}

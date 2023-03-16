@@ -247,7 +247,7 @@ export const _pauseFromContexts = async (
             logWarn('Serializing dirty watch. Looks like an internal error.');
           }
           if (!isConnected(watch)) {
-            logWarn('Serializing disconneted watch. Looks like an internal error.');
+            logWarn('Serializing disconnected watch. Looks like an internal error.');
           }
         }
         if (isResourceTask(watch)) {
@@ -388,9 +388,9 @@ export const _pauseFromContexts = async (
       return null;
     }
     const flags = getProxyFlags(obj) ?? 0;
-    const convered: (Subscriptions | number)[] = [];
+    const converted: (Subscriptions | number)[] = [];
     if (flags > 0) {
-      convered.push(flags);
+      converted.push(flags);
     }
     for (const sub of subs) {
       const host = sub[1];
@@ -399,10 +399,10 @@ export const _pauseFromContexts = async (
           continue;
         }
       }
-      convered.push(sub);
+      converted.push(sub);
     }
-    if (convered.length > 0) {
-      subsMap.set(obj, convered);
+    if (converted.length > 0) {
+      subsMap.set(obj, converted);
     }
   });
 
@@ -736,7 +736,11 @@ export const escapeText = (str: string) => {
   return str.replace(/<(\/?script)/g, '\\x3C$1');
 };
 
-export const collectSubscriptions = (manager: LocalSubscriptionManager, collector: Collector) => {
+export const collectSubscriptions = (
+  manager: LocalSubscriptionManager,
+  collector: Collector,
+  leaks: boolean | QwikElement
+) => {
   if (collector.$seen$.has(manager)) {
     return;
   }
@@ -745,13 +749,19 @@ export const collectSubscriptions = (manager: LocalSubscriptionManager, collecto
   const subs = manager.$subs$;
   assertDefined(subs, 'subs must be defined');
   for (const key of subs) {
-    const host = key[1];
-    if (isNode(host) && isVirtualElement(host)) {
-      if (key[0] === 0) {
-        collectDeferElement(host, collector);
+    const type = key[0];
+    if (type > 0) {
+      collectValue(key[2], collector, true);
+    }
+    if (leaks === true) {
+      const host = key[1];
+      if (isNode(host) && isVirtualElement(host)) {
+        if (type === 0) {
+          collectDeferElement(host, collector);
+        }
+      } else {
+        collectValue(host, collector, true);
       }
-    } else {
-      collectValue(host, collector, true);
     }
   }
 };
@@ -812,9 +822,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
             return;
           }
           seen.add(obj);
-          if (leaks === true) {
-            collectSubscriptions(getProxyManager(input)!, collector);
-          }
+          collectSubscriptions(getProxyManager(input)!, collector, leaks);
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
             return;

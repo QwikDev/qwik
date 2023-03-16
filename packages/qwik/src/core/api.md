@@ -76,7 +76,7 @@ export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    key?: string | number;
+    key?: string | number | null | undefined;
 }
 
 // @public
@@ -118,7 +118,7 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
-    key?: string | number;
+    key?: string | number | null | undefined;
 }
 
 // @public (undocumented)
@@ -130,15 +130,21 @@ export interface ErrorBoundaryStore {
     error: any | undefined;
 }
 
+// Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>;
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
+    key?: string | number | null;
 }>;
 
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key: string | null): JSXNode | null;
+    (props: P, key: string | null, flags: number): JSXNode | null;
 }
 
 // @internal (undocumented)
@@ -300,22 +306,31 @@ export { jsx as jsxs }
 // @internal (undocumented)
 export const _jsxBranch: (input?: any) => any;
 
+// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+
 // Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
 //
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
-// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, isStatic: boolean, opts: JsxDevOpts, ctx: any) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: any) => JSXNode<T>;
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
+    // (undocumented)
+    children: any | null;
     // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     dev?: DevJSX;
+    // (undocumented)
+    flags: number;
+    // (undocumented)
+    immutableProps: Record<string, any> | null;
     // (undocumented)
     key: string | null;
     // (undocumented)
@@ -323,6 +338,9 @@ export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     type: T;
 }
+
+// @public (undocumented)
+export const _jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -678,17 +696,24 @@ export interface Ref<T = Element> {
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @alpha (undocumented)
 export const RenderOnce: FunctionComponent<{
     children?: any;
+    key?: string | number | null | undefined;
 }>;
 
 // @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
     serverData?: Record<string, any>;
+}
+
+// @alpha (undocumented)
+export interface RenderResult {
+    // (undocumented)
+    cleanup(): void;
 }
 
 // @internal (undocumented)

@@ -79,12 +79,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_component_1_w0t0o3QMovU = ()=>/*#__PURE__*/ _jsx("div", {}, "u6_0");
+import { _jsxQ } from "@builder.io/qwik";
+export const App_component_1_w0t0o3QMovU = ()=>/*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_0");
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa,kBACL,KAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa,kBACL,MAAC\"}")
 /*
 {
   "origin": "test.tsx",

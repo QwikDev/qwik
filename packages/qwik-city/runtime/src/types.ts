@@ -2,6 +2,7 @@ import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik'
 import type {
   RequestEvent,
   RequestEventAction,
+  RequestEventBase,
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
@@ -17,6 +18,7 @@ export type {
   RequestEventAction,
   RequestEventCommon,
   RequestEventLoader,
+  RequestEventBase,
   RequestHandler,
   ResolveSyncValue,
   ResolveValue,
@@ -543,7 +545,7 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
    * export const useAddUser = action$(() => { ... });
    *
    * export default component$(() => {
-   *   const action = useAddUser()l
+   *   const action = useAddUser();
    *   return (
    *     <Form action={action}/>
    *   );
@@ -553,7 +555,7 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   readonly actionPath: string;
 
   /**
-   * Reactive property that becomes `true` only in the browser, when a form is submited and switched back to false when the action finish, ie, it describes if the action is actively running.
+   * Reactive property that becomes `true` only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.
    *
    * This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.
    *
@@ -578,15 +580,24 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   readonly formData: FormData | undefined;
 
   /**
-   * Returned succesful data of the action. This reactive property will contain the data returned inside the `action$` function.
+   * Returned successful data of the action. This reactive property will contain the data returned inside the `action$` function.
    *
    * It's `undefined` before the action is first called.
    */
   readonly value: RETURN | undefined;
 
   /**
-   * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
+   * Method to execute the action programmatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
    * in order to execute the action in the server.
+   */
+  readonly submit: QRL<
+    OPTIONAL extends true
+      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+  >;
+
+  /**
+   * @deprecated - use `submit` instead
    */
   readonly run: QRL<
     OPTIONAL extends true
@@ -723,7 +734,7 @@ export interface ZodConstructorQRL {
 }
 
 export interface ServerFunction {
-  (this: RequestEvent, ...args: any[]): any;
+  (this: RequestEventBase, ...args: any[]): any;
 }
 
 export interface ServerConstructorQRL {

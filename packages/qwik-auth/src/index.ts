@@ -58,7 +58,7 @@ export const fixCookies = (req: RequestEventCommon) => {
   }
 };
 
-export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('/q-')[0];
+export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignin = action$(

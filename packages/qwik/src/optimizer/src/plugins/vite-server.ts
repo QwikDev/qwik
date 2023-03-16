@@ -9,6 +9,18 @@ import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
+const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
+
+function getOrigin(req: IncomingMessage) {
+  const headers = req.headers;
+  const protocol =
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const host = (HOST_HEADER && headers[HOST_HEADER]) || headers[':authority'] || headers['host'];
+
+  return `${protocol}://${host}`;
+}
+
 export async function configureDevServer(
   server: ViteDevServer,
   opts: NormalizedQwikPluginOptions,
@@ -38,7 +50,7 @@ export async function configureDevServer(
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
-      const domain = 'http://' + (req.headers.host ?? 'localhost');
+      const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
@@ -160,7 +172,9 @@ export async function configureDevServer(
           if ('html' in result) {
             res.write((result as any).html);
           }
-          res.write(END_SSR_SCRIPT(opts));
+          res.write(
+            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
+          );
           res.end();
         } else {
           next();
@@ -304,7 +318,7 @@ declare global {
   }
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
   if (!opts.clickToSource) {
     // click to source set to false means no inspector
     return '';
@@ -364,6 +378,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
     pressedKeys: new Set(),
   };
 
+  const srcDir = ${JSON.stringify(srcDir)};
   const body = document.body;
   const overlay = document.createElement('div');
   overlay.id = 'qwik-inspector-overlay';
@@ -409,9 +424,13 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
         if (event.target && event.target instanceof HTMLElement) {
           if (event.target.dataset.qwikInspector) {
             event.preventDefault();
+            let file = event.target.dataset.qwikInspector;
+            if (!file.startsWith('/')) {
+              file = srcDir + '/' + file;
+            }
             body.style.setProperty('cursor', 'progress');
 
-            fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
+            fetch('/__open-in-editor?file=' + file);
           }
         }
       }
@@ -482,12 +501,12 @@ if (!window.__qwikViteLog) {
 }
 </script>`;
 
-const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions) => `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
-${DEV_QWIK_INSPECTOR(opts.devTools)}
+${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {

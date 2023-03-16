@@ -4,6 +4,12 @@ contributors:
   - the-r3aper7
   - manucorporat
   - adamdbradley
+  - saikatdas0790
+  - anthonycaron
+  - ubmit
+  - literalpie
+  - forresst
+  - mhevery
 ---
 
 # The dollar `$` sign
@@ -238,7 +244,7 @@ This works but is a lot of work. The developer is responsible for putting the co
 ```tsx
 function onScroll(fnQrl: QRL<() => void>) {
   document.addEventListener('scroll', async () => {
-    const fn = await qImport.resolve();
+    const fn = await fnQrl.resolve();
     fn();
   });
 }

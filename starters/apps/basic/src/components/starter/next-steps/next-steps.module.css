@@ -1,0 +1,13 @@
+.gettingstarted {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  line-height: 1.5;
+}
+
+.gettingstarted .hint {
+  margin-top: 10px;
+  font-size: 0.8rem;
+}

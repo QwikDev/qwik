@@ -123,7 +123,7 @@ As you can see in Qwik City there is no a clear separation between pages and end
 // src/routes/index.ts
 import { component$ } from '@builder.io/qwik';
 
-export const onRequest = ({ headers, query }) => {
+export const onRequest = ({ headers, query, json }) => {
   headers.set('Cache-Control', 'private');
   if (query.get('format') === 'json') {
     json(200, { message: 'Hello World' });

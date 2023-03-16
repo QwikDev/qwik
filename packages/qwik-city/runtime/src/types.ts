@@ -590,6 +590,15 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
    * Method to execute the action programmatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
    * in order to execute the action in the server.
    */
+  readonly submit: QRL<
+    OPTIONAL extends true
+      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+  >;
+
+  /**
+   * @deprecated - use `submit` instead
+   */
   readonly run: QRL<
     OPTIONAL extends true
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>

@@ -31,8 +31,10 @@ export const deserializeError = (serializedError: string) => {
 
   if (typeof errPrims === 'object' && errPrims !== null) {
     // Get what we need and jettison the rest
-    const { __errMessage, __deepErrors, stack, ...rest }: any = errPrims;
-    const error = new Error(__errMessage);
+    const { __errMessage, __constructorName, __deepErrors, stack, ...rest }: any = errPrims;
+    stack;
+    const ErrorClass = dynamicErrorClass(__constructorName);
+    const error = new ErrorClass(__errMessage);
     Object.assign(error, rest);
     delete error.stack;
 
@@ -88,6 +90,7 @@ const cloneErrorPrimitives = (obj: any): any => {
     if (isError) {
       path && __deepErrors.push(path);
       clonedObj.__errMessage = obj.message;
+      clonedObj.__constructorName = obj.constructor.name;
     }
 
     return clonedObj;
@@ -123,43 +126,57 @@ const deserializeDeepErrors = (obj: any, deepErrorPaths: string[] | undefined) =
 
     // Rebuild the object with an Error instance
     if (objKey) {
-      const { __errMessage, stack, ...rest }: any = deepErrObj;
-      const deepError = new Error(__errMessage);
-      delete deepError.stack;
-      Object.assign(deepError, rest);
-      parentObj[objKey] = deepError;
+      const { __errMessage, __constructorName, stack, ...rest }: any = deepErrObj;
+      stack;
+      const ErrorClass = dynamicErrorClass(__constructorName);
+      const error = new ErrorClass(__errMessage);
+      delete error.stack;
+      Object.assign(error, rest);
+      parentObj[objKey] = error;
     }
   });
 };
 
-/**
-* THIS IS A VALIDATION OBJECT FOR TESTING
-*
-  const validate = {
-    e1: new Error("Standard Error"),
-    c: {},
-    o: {
-      e2: new CustomError("Custom Error", {
-        e3: new Error("Super Deep Standard Error"),
-      }),
-      c: {},
-      stack: "keep me",
-      n: null,
-      b: true,
-      v: 123,
-      s: "abc",
-      u: undefined,
-      f: () => "function!",
-    },
-    stack: "keep me",
-    n: null,
-    b: true,
-    v: 123,
-    s: "abc",
-    u: undefined,
-    f: () => "function!"
+function dynamicErrorClass(constructorName: string): any {
+  const DynamicErrorClass = class extends Error {
+    constructor(...args: any[]) {
+      super(...args);
+      this.name = constructorName;
+    }
   };
-  validate.c = validate;
-  validate.o.c = validate;
- 
-*/
+
+  Object.defineProperty(DynamicErrorClass, 'name', { value: constructorName });
+  return DynamicErrorClass;
+}
+
+/**
+   * THIS IS A VALIDATION OBJECT FOR TESTING
+   *
+      const validate = {
+        e1: new Error("Standard Error"),
+        c: {},
+        o: {
+          e2: new CustomError("Custom Error", {
+            e3: new Error("Super Deep Standard Error"),
+          }),
+          c: {},
+          stack: "keep me",
+          n: null,
+          b: true,
+          v: 123,
+          s: "abc",
+          u: undefined,
+          f: () => "function!",
+        },
+        stack: "keep me",
+        n: null,
+        b: true,
+        v: 123,
+        s: "abc",
+        u: undefined,
+        f: () => "function!"
+      };
+      validate.c = validate;
+      validate.o.c = validate;
+  
+   */

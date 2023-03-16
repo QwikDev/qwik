@@ -76,7 +76,7 @@ export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    key?: string | number;
+    key?: string | number | null | undefined;
 }
 
 // @public
@@ -118,7 +118,7 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
-    key?: string | number;
+    key?: string | number | null | undefined;
 }
 
 // @public (undocumented)

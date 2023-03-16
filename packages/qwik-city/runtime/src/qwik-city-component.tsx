@@ -120,15 +120,16 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
     } else if (forceReload) {
       navPath.value = '';
-    } else if (navPath.value === path) {
+    }
+    const resolvedURL = new URL(path, routeLocation.url);
+    path = toPath(resolvedURL);
+    if (!forceReload && navPath.value === path) {
       return;
     }
     navPath.value = path;
-
     if (isBrowser) {
-      const prefetchURL = new URL(path, routeLocation.url);
-      loadClientData(prefetchURL, _getContextElement());
-      loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, prefetchURL.pathname);
+      loadClientData(resolvedURL, _getContextElement());
+      loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, resolvedURL.pathname);
     }
 
     actionState.value = undefined;

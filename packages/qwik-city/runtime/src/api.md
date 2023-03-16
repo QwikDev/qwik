@@ -82,9 +82,11 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
     readonly actionPath: string;
     readonly formData: FormData | undefined;
     readonly isRunning: boolean;
-    // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
+    // @deprecated (undocumented)
     readonly run: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
     readonly status?: number;
+    // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
+    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
     readonly value: RETURN | undefined;
 }
 
@@ -216,11 +218,13 @@ export type FailReturn<T> = T & {
 };
 
 // @alpha (undocumented)
-export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>) => JSXNode<"form">;
+export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => QwikJSX.Element;
 
 // @alpha (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
-    action: ActionStore<O, I, true | false>;
+    action?: ActionStore<O, I, true | false>;
+    // (undocumented)
+    key?: string | number | null;
     onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
     onSubmitCompleted$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
     reloadDocument?: boolean;

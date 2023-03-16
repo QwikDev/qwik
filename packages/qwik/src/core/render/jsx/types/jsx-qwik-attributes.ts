@@ -242,7 +242,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
  * @public
  */
 export interface ComponentBaseProps {
-  key?: string | number;
+  key?: string | number | null | undefined;
   'q:slot'?: string;
 }
 
@@ -267,5 +267,5 @@ export type JSXChildren =
  */
 export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
-  key?: string | number;
+  key?: string | number | null | undefined;
 }

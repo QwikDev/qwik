@@ -59,6 +59,7 @@ export const Render = component$(() => {
       <IssueReorder />
       <Issue2414 />
       <Issue3178 />
+      <Issue3398 />
     </>
   );
 });
@@ -441,5 +442,30 @@ const Issue3178 = component$(() => {
         Hello
       </div>
     </>
+  );
+});
+
+export type TitleProps = {
+  tag?: 'h1' | 'h2';
+};
+
+export const Title = component$((props: TitleProps) => {
+  const Tag = props.tag ?? 'h1';
+
+  return <Tag id="issue-3398-tag">Hello {Tag}</Tag>;
+});
+
+export const Issue3398 = component$(() => {
+  const tag = useSignal<'h1' | 'h2'>('h1');
+  return (
+    <div>
+      <button
+        id="issue-3398-button"
+        onClick$={() => (tag.value = tag.value === 'h1' ? 'h2' : 'h1')}
+      >
+        Toggle tag
+      </button>
+      <Title tag={tag.value}></Title>
+    </div>
   );
 });

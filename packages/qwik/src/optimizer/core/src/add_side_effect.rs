@@ -39,7 +39,10 @@ impl<'a> VisitMut for SideEffectVisitor<'a> {
     }
     fn visit_mut_module(&mut self, node: &mut ast::Module) {
         node.visit_mut_children_with(self);
-        for import in self.global_collector.imports.values() {
+        let mut imports: Vec<_> = self.global_collector.imports.values().collect();
+        imports.sort_by_key(|i| i.source.clone());
+
+        for import in imports {
             if import.source.starts_with('.') && !self.imports.contains(&import.source) {
                 let abs_dir = self.path_data.abs_dir.to_slash_lossy();
                 let relative = relative_path::RelativePath::new(&abs_dir);

@@ -10,13 +10,9 @@
       "https://qwik.builder.io/qwikcity/static-site-generation/overview/"
     ],
     "nextSteps": {
-      "title": "New scripts were added!",
       "lines": [
-        "-----------------------------------------------------",
-        " ATTENTION:",
         " You must change the 'origin' url under staticAdapter",
-        " inside 'vite.config.ts'",
-        "------------------------------------------------------"
+        " inside 'vite.config.ts'"
       ]
     }
   }

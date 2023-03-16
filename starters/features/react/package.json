@@ -20,10 +20,8 @@
     "nextSteps": {
       "title": "New folders created!",
       "lines": [
-        "",
         " - /src/routes/react: New public route showcasing react integration",
-        " - /src/integrations/react: Here's where react component live",
-        ""
+        " - /src/integrations/react: Here's where the react component lives"
       ]
     },
     "viteConfig": {

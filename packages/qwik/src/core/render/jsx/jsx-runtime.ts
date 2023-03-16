@@ -58,6 +58,9 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
   const processed = key == null ? null : String(key);
   const props = mutableProps ?? (EMPTY_OBJ as any);
   const node = new JSXNodeImpl<T>(type, props, null, props.children, flags, processed);
+  if (typeof type === 'string' && mutableProps) {
+    delete mutableProps.children;
+  }
   if (qDev && dev) {
     node.dev = {
       stack: new Error().stack,

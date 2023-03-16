@@ -15,13 +15,11 @@
     ],
     "nextSteps": {
       "lines": [
-        "------------------------------------------------",
-        "You must add the next lines into global.css file",
-        "global.css -------------------------------------",
+        " Please add the following lines to your global.css file:",
         "",
-        "@tailwind base;",
-        "@tailwind components;",
-        "@tailwind utilities;"
+        " @tailwind base;",
+        " @tailwind components;",
+        " @tailwind utilities;"
       ]
     }
   }

@@ -1650,6 +1650,9 @@ import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwi
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
+import { a } from './keep';
+import { b } from '../keep2';
+import { c } from '../../remove';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1659,7 +1662,7 @@ export const Parent = component$(() => {
     // Double count watch
     useClientMount$(async () => {
         state.text = await mongo.users();
-        redis.set(state.text);
+        redis.set(state.text, a, b, c);
     });
 
     useTask$(() => {
@@ -1681,6 +1684,7 @@ export const Parent = component$(() => {
 });
 "#
         .to_string(),
+        filename: "components/component.tsx".into(),
         transpile_ts: true,
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Inline,
@@ -2293,6 +2297,16 @@ import { component$, useStore } from '@builder.io/qwik';
 import { isServer, isBrowser } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
+
+import L from 'leaflet';
+
+export const functionThatNeedsWindow = () => {
+  if (isBrowser) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
+};
 
 export const App = component$(() => {
     useMount$(() => {

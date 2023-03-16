@@ -1,9 +1,10 @@
 import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import Counter from '~/components/counter/counter';
-import Hero from '~/components/hero/hero';
-import Infobox from '~/components/infobox/infobox';
-import Starter from '~/components/starter/starter';
+
+import Counter from '~/components/starter/counter/counter';
+import Hero from '~/components/starter/hero/hero';
+import Infobox from '~/components/starter/infobox/infobox';
+import Starter from '~/components/starter/next-steps/next-steps';
 
 export default component$(() => {
   return (
@@ -61,8 +62,8 @@ export default component$(() => {
                 Example Apps
               </div>
               <p>
-                Have a look at the <a href="/flower">React Flower App</a> or the{' '}
-                <a href="/todolist">Todo App</a>.
+                Have a look at the <a href="/demo/flower">Flower App</a> or the{' '}
+                <a href="/demo/todolist">Todo App</a>.
               </p>
             </Infobox>
 

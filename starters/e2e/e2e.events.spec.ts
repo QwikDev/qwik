@@ -4,6 +4,11 @@ test.describe('events', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/events');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should rerender correctly', async ({ page }) => {
@@ -63,6 +68,11 @@ test.describe('broadcast-events', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/broadcast-events');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   function tests() {
@@ -119,6 +129,11 @@ test.describe('events client side', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/events-client');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should progressively listen to new events', async ({ page }) => {

@@ -4,6 +4,11 @@ test.describe('resource', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/resource');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should load', async ({ page }) => {
@@ -64,6 +69,11 @@ test.describe('resource serialization', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/resource-serialization');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should load', async ({ page }) => {
@@ -133,6 +143,11 @@ test.describe('resource fn', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/resource-fn');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should load', async ({ page }) => {

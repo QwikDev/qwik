@@ -4,6 +4,11 @@ test.describe('mount', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/mount');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should render logs correctly', async ({ page }) => {

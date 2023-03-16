@@ -4,6 +4,11 @@ test.describe('attributes', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/attributes');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   function tests() {

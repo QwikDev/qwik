@@ -4,6 +4,11 @@ test.describe('render', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/render');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should load', async ({ page }) => {
@@ -233,5 +238,22 @@ test.describe('render', () => {
   test('issue3178', async ({ page }) => {
     const result = page.locator('#issue-3178');
     await expect(result).toHaveText('Hello');
+  });
+
+  test('issue3398', async ({ page }) => {
+    const toggle = page.locator('#issue-3398-button');
+    await expect(page.locator('h1#issue-3398-tag')).toHaveText('Hello h1');
+    await expect(page.locator('h1#issue-3398-tag')).not.hasAttribute('children');
+
+    await toggle.click();
+    await expect(page.locator('h1#issue-3398-tag')).not.toBeVisible();
+    await expect(page.locator('h2#issue-3398-tag')).toHaveText('Hello h2');
+    await expect(page.locator('h2#issue-3398-tag')).not.hasAttribute('children');
+
+    await toggle.click();
+    await expect(page.locator('h2#issue-3398-tag')).not.toBeVisible();
+    await expect(page.locator('h1#issue-3398-tag')).toBeVisible();
+    await expect(page.locator('h1#issue-3398-tag')).toHaveText('Hello h1');
+    await expect(page.locator('h1#issue-3398-tag')).not.hasAttribute('children');
   });
 });

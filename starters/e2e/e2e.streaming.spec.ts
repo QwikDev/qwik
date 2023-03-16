@@ -12,6 +12,11 @@ test.describe('streaming', () => {
     });
 
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should render correctly', async ({ page }) => {

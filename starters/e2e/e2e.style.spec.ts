@@ -4,6 +4,11 @@ test.describe('styles', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/styles');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   runTests();

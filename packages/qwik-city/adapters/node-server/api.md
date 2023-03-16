@@ -12,6 +12,8 @@ export function nodeServerAdapter(opts?: NodeServerAdapterOptions): any;
 
 // @alpha (undocumented)
 export interface NodeServerAdapterOptions extends ServerAdapterOptions {
+    // (undocumented)
+    name?: string;
 }
 
 export { StaticGenerateRenderOptions }

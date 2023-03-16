@@ -30,8 +30,8 @@ const PORT = process.env.PORT ?? 3000;
 // Create the fastify server
 // https://www.fastify.io/docs/latest/Guides/Getting-Started/
 const fastify = Fastify({
-  logger: true
-})
+  logger: true,
+});
 
 // Enable compression
 // https://github.com/fastify/fastify-compress
@@ -39,7 +39,7 @@ const fastify = Fastify({
 // await fastify.register(import('@fastify/compress'))
 
 // Handle Qwik City using a plugin
-await fastify.register(import('./plugins/fastify-qwik'), { distDir, buildDir, render })
+await fastify.register(import('./plugins/fastify-qwik'), { distDir, buildDir, render });
 
 // Start the fastify server
-await fastify.listen({ port: PORT })
+await fastify.listen({ port: PORT });

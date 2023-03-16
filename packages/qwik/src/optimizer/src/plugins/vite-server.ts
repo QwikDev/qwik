@@ -172,7 +172,9 @@ export async function configureDevServer(
           if ('html' in result) {
             res.write((result as any).html);
           }
-          res.write(END_SSR_SCRIPT(opts));
+          res.write(
+            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
+          );
           res.end();
         } else {
           next();
@@ -316,7 +318,7 @@ declare global {
   }
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
   if (!opts.clickToSource) {
     // click to source set to false means no inspector
     return '';
@@ -376,6 +378,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
     pressedKeys: new Set(),
   };
 
+  const srcDir = ${JSON.stringify(srcDir)};
   const body = document.body;
   const overlay = document.createElement('div');
   overlay.id = 'qwik-inspector-overlay';
@@ -421,9 +424,13 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
         if (event.target && event.target instanceof HTMLElement) {
           if (event.target.dataset.qwikInspector) {
             event.preventDefault();
+            let file = event.target.dataset.qwikInspector;
+            if (!file.startsWith('/')) {
+              file = srcDir + '/' + file;
+            }
             body.style.setProperty('cursor', 'progress');
 
-            fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
+            fetch('/__open-in-editor?file=' + file);
           }
         }
       }
@@ -494,12 +501,12 @@ if (!window.__qwikViteLog) {
 }
 </script>`;
 
-const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions) => `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
-${DEV_QWIK_INSPECTOR(opts.devTools)}
+${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {

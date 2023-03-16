@@ -268,9 +268,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         let mut react_options = react::Options::default();
                         if is_jsx {
                             react_options.next = Some(true);
-                            // react_options.development = Some(config.mode == EmitMode::Dev);
                             react_options.throw_if_namespace = Some(false);
+                            react_options.use_spread = Some(true);
                             react_options.runtime = Some(react::Runtime::Automatic);
+                            react_options.pragma = Some("h".to_string());
+                            react_options.pragma_frag = Some("Fragment".to_string());
                             react_options.import_source = Some("@builder.io/qwik".to_string());
                         };
                         main_module = main_module.fold_with(&mut react::react(

@@ -46,6 +46,7 @@ export const StylesChildren = component$(() => {
         ))}
       </div>
       <Issue1945 />
+      <IssueScopedAndFineGrained />
     </div>
   );
 });
@@ -127,5 +128,33 @@ export const ComponentB = component$(() => {
     <div>
       <Slot />
     </div>
+  );
+});
+
+export const IssueScopedAndFineGrained = component$(() => {
+  useStylesScoped$(`
+  .button {
+    background-color: red;
+  }
+  .even {
+    background-color: green;
+  }
+  .odd {
+    background-color: blue;
+  }
+  `);
+  const count = useSignal(0);
+  return (
+    <button
+      id="issue-scoped-fine-grained"
+      onClick$={() => count.value++}
+      class={{
+        button: true,
+        even: count.value % 2 === 0,
+        odd: count.value % 2 === 1,
+      }}
+    >
+      Hello
+    </button>
   );
 });

@@ -1,14 +1,5 @@
-import {
-  component$,
-  $,
-  useOnWindow,
-  useSignal,
-  useStylesScoped$,
-  useTask$,
-} from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
-import styles from './starter.css?inline';
-import { useLocation } from '@builder.io/qwik-city';
+import { component$, $, useOnWindow, useSignal } from '@builder.io/qwik';
+import styles from './next-steps.module.css';
 
 export const GETTING_STARTED_STEPS = [
   {
@@ -29,7 +20,7 @@ export const GETTING_STARTED_STEPS = [
   },
   {
     message: 'Time to have a look at <b>Forms</b>',
-    hint: 'Open <a href="/todolist" target="_blank">the TODO list App</a> and add some items to the list. Try the same with disabled JavaScript 🐰',
+    hint: 'Open <a href="/demo/todolist" target="_blank">the TODO list App</a> and add some items to the list. Try the same with disabled JavaScript 🐰',
   },
   {
     message: '<b>Congratulations!</b> You are now familiar with the basics! 🎉',
@@ -38,28 +29,7 @@ export const GETTING_STARTED_STEPS = [
 ];
 
 export default component$(() => {
-  useStylesScoped$(styles);
-
-  const loc = useLocation();
-  let stepParam = loc.url.searchParams.has('step')
-    ? parseInt(loc.url.searchParams.get('step') || '0') - 1
-    : 0;
-
-  if (stepParam < 0 || stepParam >= GETTING_STARTED_STEPS.length) {
-    stepParam = 0;
-  }
-
-  const gettingStartedStep = useSignal(stepParam);
-
-  useTask$(({ track }) => {
-    track(() => gettingStartedStep.value);
-    if (isBrowser) {
-      // pushState to update the URL
-      const url = new URL(window.location.href);
-      url.searchParams.set('step', gettingStartedStep.value + 1 + '');
-      window.history.pushState({}, '', url);
-    }
-  });
+  const gettingStartedStep = useSignal(0);
 
   useOnWindow(
     'keydown',
@@ -72,10 +42,10 @@ export default component$(() => {
 
   return (
     <>
-      <div class="getting-started">
+      <div class={styles.gettingstarted}>
         <div dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].message} />
         <span
-          class="hint"
+          class={styles.hint}
           dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].hint}
         />
       </div>

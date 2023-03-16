@@ -74,7 +74,16 @@ test.describe('styles', () => {
       await expect(h2).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h3).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h4).toHaveCSS('background-color', 'rgb(0, 0, 255)');
-      await expect(h5).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await expect(h5).toHawveCSS('background-color', 'rgb(0, 0, 255)');
+    });
+
+    test('issue scoped fine grained', async ({ page }) => {
+      const button = page.locator('#issue-scoped-fine-grained');
+      await expect(button).toHaveCSS('background-color', 'rgb(0, 128, 0)');
+      await button.click();
+      await expect(button).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await button.click();
+      await expect(button).toHaveCSS('background-color', 'rgb(0, 128, 0)');
     });
   }
 });

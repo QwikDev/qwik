@@ -30,7 +30,7 @@ test.describe('styles', () => {
       await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
-      await expect(el.length).toBe(8);
+      await expect(el.length).toBe(9);
       await addChild.click();
       await page.waitForTimeout(100);
 
@@ -46,7 +46,7 @@ test.describe('styles', () => {
       await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
-      await expect(el2.length).toBe(8);
+      await expect(el2.length).toBe(9);
     });
 
     test('issue 1945', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('styles', () => {
       await expect(h2).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h3).toHaveCSS('background-color', 'rgb(0, 0, 255)');
       await expect(h4).toHaveCSS('background-color', 'rgb(0, 0, 255)');
-      await expect(h5).toHawveCSS('background-color', 'rgb(0, 0, 255)');
+      await expect(h5).toHaveCSS('background-color', 'rgb(0, 0, 255)');
     });
 
     test('issue scoped fine grained', async ({ page }) => {

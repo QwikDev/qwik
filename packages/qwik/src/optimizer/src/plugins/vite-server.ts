@@ -49,15 +49,7 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  // note: the 4 args must be kept to treat this as error middleware
-  server.middlewares.use(async (err: RollupError, req: any, res: any, next: any) => {
-    if (err) {
-      logError(server, err);
-      res.statusCode = 500;
-      res.end(getErrorMarkdown(err));
-      return;
-    }
-
+  server.middlewares.use(async (req: any, res: any, next: any) => {
     try {
       const { ORIGIN } = process.env;
       const domain = ORIGIN ?? getOrigin(req);
@@ -203,6 +195,17 @@ export async function configureDevServer(
         (res as QwikViteDevResponse)._qwikRenderResolve!();
       }
     }
+  });
+
+  // qwik custom rollup error handler
+  server.middlewares.use((err: RollupError, _req: any, res: any, next: any) => {
+    if (err) {
+      logError(server, err);
+      res.statusCode = 500;
+      res.end(getErrorMarkdown(err));
+      return;
+    }
+    next();
   });
 }
 

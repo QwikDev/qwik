@@ -14,7 +14,7 @@ import {
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
-  RequestEventInternal,
+  type RequestEventInternal,
   RequestEvQwikSerializer,
   RequestEvSharedActionId,
 } from './request-event';
@@ -156,13 +156,22 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
     const qwikSerializer = requestEv[RequestEvQwikSerializer];
+    if (isDev && method === 'GET') {
+      if (requestEv.query.has(QACTION_KEY)) {
+        console.warn(
+          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure you <form> has method="POST" attribute, like this: <form method="POST">'
+        );
+      }
+    }
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
-      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
-      if (selectedAction && serverActionsMap) {
+      if (selectedAction) {
+        const serverActionsMap = (globalThis as any)._qwikActionsMap as
+          | Map<string, ActionInternal>
+          | undefined;
         const action =
           routeActions.find((action) => action.__id === selectedAction) ??
-          serverActionsMap.get(selectedAction);
+          serverActionsMap?.get(selectedAction);
         if (action) {
           requestEv.sharedMap.set(RequestEvSharedActionId, selectedAction);
           const data = await requestEv.parseBody();

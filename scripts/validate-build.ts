@@ -1,4 +1,4 @@
-import { BuildConfig, PackageJSON, panic } from './util';
+import { type BuildConfig, type PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';

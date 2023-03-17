@@ -4,6 +4,11 @@ test.describe('signals', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/signals');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   function tests() {
@@ -243,6 +248,7 @@ test.describe('signals', () => {
       ]);
 
       await btn.click();
+      await page.waitForTimeout(200);
 
       await expect(results).toHaveText([
         'This text should not change',
@@ -275,8 +281,9 @@ test.describe('signals', () => {
         '{"value":""}',
         '""',
       ]);
-      await input.fill('test');
       await page.waitForTimeout(100);
+      await input.fill('test');
+      await page.waitForTimeout(200);
       await expect(results).toHaveText([
         '{"controls":{"ctrl":{"value":"test"}}}',
         '{"ctrl":{"value":"test"}}',

@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberEffect } from '../use/use-task';
+import { destroyWatch, type SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
@@ -7,7 +7,7 @@ import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { SubscriptionManager } from './common';
 import type { ContainerState } from '../container/container';
-import { getDomListeners, Listener } from './listeners';
+import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
@@ -73,6 +73,9 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
         }
       } else {
+        const styleIds = el.getAttribute(QScopedStyle);
+        elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
+
         const ctxMeta = meta[elementID];
         if (ctxMeta) {
           const seq = ctxMeta.s;
@@ -96,8 +99,6 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           // Restore sequence scoping
           if (host) {
             const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
-            const styleIds = el.getAttribute(QScopedStyle);
-            elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
             if (renderQrl) {
               elCtx.$componentQrl$ = getObject(renderQrl);

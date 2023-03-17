@@ -76,7 +76,7 @@ export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    key?: string | number;
+    key?: string | number | null | undefined;
 }
 
 // @public
@@ -87,7 +87,7 @@ export interface Context<STATE extends object> extends ContextId<STATE> {
 }
 
 // @public
-export interface ContextId<STATE extends object> {
+export interface ContextId<STATE> {
     readonly __brand_context_type__: STATE;
     readonly id: string;
 }
@@ -105,7 +105,7 @@ export interface CorePlatform {
 export const createContext: <STATE extends object>(name: string) => ContextId<STATE>;
 
 // @public
-export const createContextId: <STATE extends object>(name: string) => ContextId<STATE>;
+export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 // @internal (undocumented)
 export const _deserializeData: (data: string, element?: unknown) => any;
@@ -118,7 +118,7 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
-    key?: string | number;
+    key?: string | number | null | undefined;
 }
 
 // @public (undocumented)

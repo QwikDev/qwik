@@ -25,7 +25,7 @@ use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
-use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
+use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
 
 macro_rules! id {
     ($ident: expr) => {
@@ -357,7 +357,7 @@ impl<'a> QwikTransform<'a> {
         };
 
         self.hook_stack.push(symbol_name.clone());
-        let folded = fold_expr(self, *first_arg.expr);
+        let folded = *first_arg.expr.fold_with(self);
         self.hook_stack.pop();
 
         let scoped_idents = {
@@ -470,7 +470,7 @@ impl<'a> QwikTransform<'a> {
             .cloned()
             .partition(|(_, t)| matches!(t, IdentType::Var(true)));
 
-        let folded = fold_expr(self, first_arg);
+        let folded = first_arg;
 
         let mut set: HashSet<Id> = HashSet::new();
         for ident in &descendent_idents {
@@ -539,7 +539,7 @@ impl<'a> QwikTransform<'a> {
 
         self.hook_stack.push(symbol_name.clone());
         let span = first_arg.span();
-        let folded = fold_expr(self, first_arg);
+        let folded = first_arg.fold_with(self);
         self.hook_stack.pop();
 
         // Collect local idents

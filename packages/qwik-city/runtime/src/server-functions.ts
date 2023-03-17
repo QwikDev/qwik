@@ -2,9 +2,9 @@ import {
   $,
   implicit$FirstArg,
   noSerialize,
-  QRL,
+  type QRL,
   useContext,
-  ValueOrPromise,
+  type ValueOrPromise,
   _wrapSignal,
   useStore,
   _serializeData,
@@ -77,7 +77,7 @@ export const routeActionQrl = ((
       return initialState as ActionStore<any, any>;
     });
 
-    initialState.run = $((input: any | FormData | SubmitEvent = {}) => {
+    const submit = $((input: any | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
@@ -125,6 +125,9 @@ Action.run() can only be called on the browser, for example when a user clicks a
         };
       });
     });
+    initialState.submit = submit;
+    initialState.run = submit;
+
     return state;
   }
   action.__brand = 'server_action' as const;
@@ -132,6 +135,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   action.__qrl = actionQrl;
   action.__id = id;
   action.use = action;
+  Object.freeze(action);
 
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
@@ -190,6 +194,7 @@ export const routeLoaderQrl = ((
   loader.__validators = validators;
   loader.__id = id;
   loader.use = loader;
+  Object.freeze(loader);
 
   return loader;
 }) as LoaderConstructorQRL;
@@ -282,6 +287,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
       if (isServer) {
         return qrl(...(args as any));
       } else {
+        const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
           if (arg instanceof Event) {
             return null;
@@ -305,7 +311,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
           throw new Error(`Server function failed: ${res.statusText}`);
         }
         const str = await res.text();
-        const obj = await _deserializeData(str);
+        const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
         return obj;
       }
     }) as any;

@@ -1,9 +1,9 @@
 import {
   component$,
   implicit$FirstArg,
-  NoSerialize,
+  type NoSerialize,
   noSerialize,
-  QRL,
+  type QRL,
   useTask$,
   SkipRender,
   useSignal,

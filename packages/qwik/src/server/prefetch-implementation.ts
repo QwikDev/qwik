@@ -1,4 +1,4 @@
-import { Fragment, jsx, JSXNode } from '@builder.io/qwik';
+import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import {
   flattenPrefetchResources,
   prefetchUrlsEventScript,

@@ -1549,7 +1549,7 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -1567,6 +1567,13 @@ export const Parent = component$(() => {
 
     serverStuff$(async () => {
         // should be removed too
+        const a = $(() => {
+            // from $(), should not be removed
+        });
+        const b = client$(() => {
+            // from clien$(), should not be removed
+        });
+        return [a,b];
     })
 
     serverLoader$(handler);
@@ -1650,6 +1657,9 @@ import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwi
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
+import { a } from './keep';
+import { b } from '../keep2';
+import { c } from '../../remove';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1659,7 +1669,7 @@ export const Parent = component$(() => {
     // Double count watch
     useClientMount$(async () => {
         state.text = await mongo.users();
-        redis.set(state.text);
+        redis.set(state.text, a, b, c);
     });
 
     useTask$(() => {
@@ -1681,6 +1691,7 @@ export const Parent = component$(() => {
 });
 "#
         .to_string(),
+        filename: "components/component.tsx".into(),
         transpile_ts: true,
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Inline,
@@ -2021,6 +2032,49 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_spread_jsx() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+
+/**
+ * The RouterHead component is placed inside of the document `<head>` element.
+ */
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+  const loc = useLocation();
+
+  return (
+    <>
+      <title>{head.title}</title>
+
+      <link rel="canonical" href={loc.href} />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+      {head.meta.map((m) => (
+        <meta {...m} />
+      ))}
+
+      {head.links.map((l) => (
+        <link {...l} key={l.key} />
+      ))}
+
+      {head.styles.map((s) => (
+        <style {...s.props} dangerouslySetInnerHTML={s.style} key={s.key} />
+      ))}
+    </>
+  );
+});"#
+            .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_export_issue() {
     test_input!(TestInput {
         code: r#"
@@ -2293,6 +2347,16 @@ import { component$, useStore } from '@builder.io/qwik';
 import { isServer, isBrowser } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
+
+import L from 'leaflet';
+
+export const functionThatNeedsWindow = () => {
+  if (isBrowser) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
+};
 
 export const App = component$(() => {
     useMount$(() => {
@@ -2802,6 +2866,18 @@ export { qwikify$, qwikifyQrl, renderToString };
         filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
         entry_strategy: EntryStrategy::Inline,
         explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_qwik_sdk_inline() {
+    test_input!(TestInput {
+        code: include_str!("fixtures/index.qwik.mjs").to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Component,
+        explicit_extensions: true,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }

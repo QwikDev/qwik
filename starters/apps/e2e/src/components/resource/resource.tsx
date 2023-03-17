@@ -9,7 +9,7 @@ import {
   useContextProvider,
   useContext,
   useStyles$,
-  ResourceReturn,
+  type ResourceReturn,
   mutable,
 } from '@builder.io/qwik';
 

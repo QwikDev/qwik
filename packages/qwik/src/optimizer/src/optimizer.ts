@@ -1,4 +1,9 @@
-import { getPlatformInputFiles, getSystem, loadPlatformBinding, PlatformBinding } from './platform';
+import {
+  getPlatformInputFiles,
+  getSystem,
+  loadPlatformBinding,
+  type PlatformBinding,
+} from './platform';
 import type {
   TransformModulesOptions,
   TransformFsOptions,

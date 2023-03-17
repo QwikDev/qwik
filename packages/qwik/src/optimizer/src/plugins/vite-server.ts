@@ -377,7 +377,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
-  const srcDir = new URL(${JSON.stringify(srcDir)}, 'http://local.local');
+  const origin = 'http://local.local';
+  const srcDir = new URL(${JSON.stringify(srcDir + '/')}, origin);
   const body = document.body;
   const overlay = document.createElement('div');
   overlay.id = 'qwik-inspector-overlay';
@@ -423,11 +424,15 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
         if (event.target && event.target instanceof HTMLElement) {
           if (event.target.dataset.qwikInspector) {
             event.preventDefault();
-            const file = new URL(file, event.target.dataset.qwikInspector).pathname;
+            const resolvedURL = new URL(event.target.dataset.qwikInspector, srcDir);
             body.style.setProperty('cursor', 'progress');
-            const params = new URLSearchParams();
-            params.set('file', file);
-            fetch('/__open-in-editor?' + params.toString());
+            if (resolvedURL.origin === origin) {
+              const params = new URLSearchParams();
+              params.set('file', resolvedURL.pathname);
+              fetch('/__open-in-editor?' + params.toString());
+            } else {
+              location.href = resolvedURL.href;
+            }
           }
         }
       }

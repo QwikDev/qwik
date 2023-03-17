@@ -49,9 +49,9 @@ export function renameClassname(): Transformer {
 
     visit(mdast, 'element', (node: any) => {
       if (node.properties) {
-        if (node.properties.className) {
+        if ('className' in node.properties) {
           node.properties.class = node.properties.className;
-          node.properties.className = undefined;
+          delete node.properties.className;
         }
       }
     });

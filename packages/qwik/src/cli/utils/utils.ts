@@ -2,8 +2,45 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { red, blue, magenta, white, gray, reset, green } from 'kleur/colors';
 import { outro } from '@clack/prompts';
+import spawn from 'cross-spawn';
+import type { ChildProcess } from 'node:child_process';
 import detectPackageManager from 'which-pm-runs';
 import type { IntegrationPackageJson } from '../types';
+
+export function runCommand(cmd: string, args: string[], cwd: string) {
+  let child: ChildProcess;
+
+  const install = new Promise<boolean>((resolve) => {
+    try {
+      child = spawn(cmd, args, {
+        cwd,
+        stdio: 'ignore',
+      });
+
+      child.on('error', () => {
+        resolve(false);
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+    } catch (e) {
+      resolve(false);
+    }
+  });
+
+  const abort = async () => {
+    if (child) {
+      child.kill('SIGINT');
+    }
+  };
+
+  return { abort, install };
+}
 
 export async function readPackageJson(dir: string) {
   const path = join(dir, 'package.json');

@@ -39,6 +39,7 @@ export type {
   RouteNavigate,
   DeferReturn,
   RequestEventBase,
+  QwikCityEnvData,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';

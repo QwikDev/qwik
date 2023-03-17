@@ -1,120 +1,80 @@
 /**
- * This file enables the serialization and deserialization
- * of Error objects and custom error objects. It supports
- * nested errors for systems that require this, such as GraphQL
- * libraries. Stack traces and circular referenes are omitted.
+ * This file enables the serialization and deserialization of Errors and Custom Errors
+ * Optimized to serialize and deserialize standard native Errors as fast as possible.
  */
 
-/**
- * Serialize an error object into a string, removing
- * stack traces and circular references.
- *
- * @param error
- * @returns serialized error as a string
- */
 export const serializeError = (error: any) => {
-  const errPrims = cloneErrorPrimitives(error);
-  return JSON.stringify(errPrims);
+  // Serialize Native Error
+  if (Object.keys(error).length === 0)
+    return `{"__constructorName": "Error","message":"${error.message}"}`; // Keep it screamin' fast! (IN) <--- This is the most common case
+
+  // Serialize Custom Error / Object with errors
+  return JSON.stringify(cloneErrorPrimitives(error));
 };
 
-/**
- * Deserialize an error object from a string,
- * removes unnecessary fields and rebuilds
- * nested error objects, before returning a
- * new Error object.
- *
- * @param serializedError
- * @returns
- */
 export const deserializeError = (serializedError: string) => {
+  // Deserialize Native Error
   const errPrims = JSON.parse(serializedError);
+  if (errPrims.__constructorName == 'Error' && !errPrims.__deepClasses)
+    return Object.assign(new Error(errPrims.message), { stack: undefined }); // Keep it screamin' fast! (OUT) <--- This is the most common case
 
+  // Deserialize Custom Error
   if (typeof errPrims === 'object' && errPrims !== null) {
-    // Get what we need and jettison the rest
-    const { __errMessage, __constructorName, __deepErrors, stack, ...rest }: any = errPrims;
+    const { message, __constructorName, __instanceOfError, __deepClasses, stack, ...rest }: any =
+      errPrims;
     stack;
-    const ErrorClass = getErrorClass(__constructorName);
-    const error = new ErrorClass(__errMessage);
-    Object.assign(error, rest);
-    delete error.stack;
-
-    if (__deepErrors) {
-      // Rebuild the deep errors
-      deserializeDeepErrors(error, errPrims.__deepErrors);
-    }
-
-    return error;
+    const classOrObject = makeSafeClassOrObjectInstance(
+      __constructorName,
+      __instanceOfError && message
+    );
+    Object.assign(classOrObject, rest);
+    // delete error.stack;
+    __deepClasses && deserializeDeepClasses(classOrObject, __deepClasses);
+    return classOrObject;
   }
 
-  throw new Error(`Unable to deserialize error: ${serializedError}`);
+  throw new Error(`Unable to deserialize error: ${serializedError}`); // Whoops!
 };
 
-/**
- * Recursively extract primitive values from an object or array,
- * including handling of circular references and pruning the
- * stack trace from Error objects, and returns a new object with
- * only primitive values.
- */
 const cloneErrorPrimitives = (obj: any): any => {
-  const __deepErrors = Array<string>();
+  const __deepClasses: string[] = [];
 
-  const clone = (
-    obj: any,
-    path: string | undefined = undefined,
-    cache: Set<any> = new Set()
-  ): any => {
-    if (obj === null || typeof obj !== 'object' || typeof obj === 'function') {
-      // If the object is a primitive type or null or function, return it
-      return obj;
-    }
+  function clone(obj: any, path: string | undefined = undefined, cache: Set<any> = new Set()) {
+    if (obj === null || typeof obj !== 'object' || typeof obj === 'function') return obj;
 
-    // If the object has already been processed, return it
+    // Prevent circular-references
     if (cache.has(obj)) return;
-
-    // Add the object to the cache
     cache.add(obj);
 
+    // Clone the object, "stack" is automatically removed (somehow magically)
     const clonedObj: any = Array.isArray(obj) ? [] : {};
-
-    const isError = obj instanceof Error;
     for (const key in obj) {
-      if (isError && key == 'stack') continue; // Not needed, just to be safe
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        // Recursively clone each property of the object
-        clonedObj[key] = clone(obj[key], path ? `${path}.${key}` : key, cache);
+        clonedObj[key] = clone(obj[key], path ? `${path}.${key}` : key, cache); // Recursively clone
       }
     }
 
-    // If the object is an Error, add a special property to the clone
-    // and add the path to the __deepErrors array
-    if (isError) {
-      path && __deepErrors.push(path);
-      clonedObj.__errMessage = obj.message;
+    // If instance of Error, add message and __constructorName
+    if (obj.constructor.name && obj.constructor !== Object) {
+      path && __deepClasses.push(path);
+      clonedObj.message = obj.message;
       clonedObj.__constructorName = obj.constructor.name;
+      obj instanceof Error && (clonedObj.__instanceOfError = true);
     }
 
     return clonedObj;
-  };
+  }
 
   const clonedErr = clone(obj);
-  clonedErr.__deepErrors = __deepErrors;
+  __deepClasses.length > 0 && (clonedErr.__deepClasses = __deepClasses!);
   return clonedErr;
 };
 
-/**
- * Rebuild any nested Error objects that were serialized
- * and inserts them back into the appropriate locations
- * within the parent Error object. Stack trace and circular
- * refereces are omitted.
- *
- * @param obj
- * @param deepErrorPaths
- */
-const deserializeDeepErrors = (obj: any, deepErrorPaths: string[] | undefined) => {
-  deepErrorPaths?.forEach((path) => {
+const deserializeDeepClasses = (obj: any, deepClassPaths: string[] | undefined) => {
+  deepClassPaths?.forEach((path) => {
     const pathKeys = path.split('.');
 
-    // Traverse the object to the deep error
+    // For speed, don't traverse the object, jump directly to the deep error
     let parentObj: any;
     let objKey: string | undefined;
     let deepErrObj = obj;
@@ -124,62 +84,33 @@ const deserializeDeepErrors = (obj: any, deepErrorPaths: string[] | undefined) =
       deepErrObj = deepErrObj[pathKeys[i]];
     });
 
-    // Rebuild the object with an Error instance
+    // Rebuild the object with Error instance
     if (objKey) {
-      const { __errMessage, __constructorName, stack, ...rest }: any = deepErrObj;
-      stack;
-      const ErrorClass = getErrorClass(__constructorName);
-      const error = new ErrorClass(__errMessage);
-      delete error.stack;
-      Object.assign(error, rest);
-      parentObj[objKey] = error;
+      if (deepErrObj.__constructorName) {
+        const { message, __constructorName, __instanceOfError, stack, ...rest }: any = deepErrObj;
+        stack;
+        const classOrObject = makeSafeClassOrObjectInstance(
+          __constructorName,
+          __instanceOfError && message
+        );
+        Object.assign(classOrObject, rest);
+        // delete error.stack;
+        parentObj[objKey] = classOrObject;
+      }
     }
   });
 };
 
-function getErrorClass(constructorName: string): any {
-  // If the constructor name is "Error", return the build-in Error class
-  if (constructorName === 'Error') return Error;
+export const makeSafeClassOrObjectInstance = (className: string, errorMessage?: string) => {
+  if (className === 'Error') return Object.assign(new Error(errorMessage), { stack: undefined }); // Keep it screamin' fast! <--- This is the most common case
 
-  // Create a dynamic class that extends Error
-  const DynamicErrorClass = class extends Error {
-    constructor(...args: any[]) {
-      super(...args);
-      this.name = constructorName;
-    }
-  };
+  // INECTION PROTECTION! If not a valid classname, return a plain object
+  if (!className || !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(className)) return {};
 
-  Object.defineProperty(DynamicErrorClass, 'name', { value: constructorName });
-  return DynamicErrorClass;
-}
-
-/**
- * THIS IS A VALIDATION OBJECT FOR TESTING
- *
-    const validate = {
-    e1: new Error("Standard Error"),
-    c: {},
-    o: {
-        e2: new CustomError("Custom Error", {
-        e3: new Error("Super Deep Standard Error"),
-        }),
-        c: {},
-        stack: "keep me",
-        n: null,
-        b: true,
-        v: 123,
-        s: "abc",
-        u: undefined,
-        f: () => "function!",
-    },
-    stack: "keep me",
-    n: null,
-    b: true,
-    v: 123,
-    s: "abc",
-    u: undefined,
-    f: () => "function!"
-    };
-    validate.c = validate;
-    validate.o.c = validate;
-*/
+  // Create a dynamic class or extends Error
+  const cObj: any = {};
+  const errEval = `cObj.DynamicClass = class ${className} extends Error {constructor() {super('${errorMessage}');this.name = '${className}';delete this.stack;}}`;
+  errorMessage ? eval(errEval) : eval(`cObj.DynamicClass = class ${className} {constructor() {}}`);
+  const instance = new cObj.DynamicClass(errorMessage);
+  return instance;
+};

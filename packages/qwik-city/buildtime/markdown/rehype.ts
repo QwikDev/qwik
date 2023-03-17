@@ -43,21 +43,6 @@ export function rehypePage(ctx: BuildContext): Transformer {
   };
 }
 
-export function renameClassname(): Transformer {
-  return (ast) => {
-    const mdast = ast as Root;
-
-    visit(mdast, 'element', (node: any) => {
-      if (node.properties) {
-        if ('className' in node.properties) {
-          node.properties.class = node.properties.className;
-          delete node.properties.className;
-        }
-      }
-    });
-  };
-}
-
 function updateContentLinks(mdast: Root, opts: NormalizedPluginOptions, sourcePath: string) {
   visit(mdast, 'element', (node: any) => {
     const tagName = node && node.type === 'element' && node.tagName.toLowerCase();

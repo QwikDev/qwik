@@ -2,7 +2,7 @@ import {
   $,
   component$,
   getLocale,
-  JSXNode,
+  type JSXNode,
   noSerialize,
   Slot,
   useContextProvider,

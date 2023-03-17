@@ -39,10 +39,10 @@
     "puppeteer": "^19.7.5",
     "tailwindcss": "3.2.7",
     "tsm": "2.3.0",
-    "typescript": "4.9.5",
+    "typescript": "5.0.2",
     "undici": "5.21.0",
     "uvu": "0.5.6",
-    "vite": "4.1.4",
+    "vite": "4.2.0",
     "wrangler": "^2.12.3"
   },
   "author": "Builder.io Team",

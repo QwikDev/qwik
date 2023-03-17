@@ -1,4 +1,4 @@
-import { BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
+import { type BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'node:path';
 import { getBanner, readdir, watcher, run } from './util';

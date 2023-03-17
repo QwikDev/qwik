@@ -9,7 +9,11 @@ import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
 import { isElement } from '../util/element';
-import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from '../state/common';
+import {
+  createSubscriptionManager,
+  type SubscriberSignal,
+  type SubscriptionManager,
+} from '../state/common';
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertTrue } from '../error/assert';

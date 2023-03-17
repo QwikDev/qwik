@@ -9,7 +9,7 @@ import {
   getProxyManager,
   getProxyTarget,
   LocalSubscriptionManager,
-  Subscriptions,
+  type Subscriptions,
   verifySerializable,
 } from './common';
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';

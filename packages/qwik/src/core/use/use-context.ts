@@ -3,11 +3,15 @@ import { qError, QError_invalidContext, QError_notFoundContext } from '../error/
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import {
+  getVirtualElement,
+  type QwikElement,
+  type VirtualElement,
+} from '../render/dom/virtual-element';
 import { isComment } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
-import { getContext, QContext } from '../state/context';
+import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
 import { invoke } from './use-core';
 
@@ -63,7 +67,7 @@ import { invoke } from './use-core';
  * @public
  */
 // </docs>
-export interface ContextId<STATE extends object> {
+export interface ContextId<STATE> {
   /**
    * Design-time property to store type information for the context.
    */
@@ -134,7 +138,7 @@ export interface Context<STATE extends object> extends ContextId<STATE> {}
  * @public
  */
 // </docs>
-export const createContextId = <STATE extends object>(name: string): ContextId<STATE> => {
+export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
   assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),

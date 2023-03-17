@@ -1,6 +1,6 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
-import { Render, setServerPlatform } from '@builder.io/qwik/server';
+import { type Render, setServerPlatform } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
 import {
   mergeHeadersCookies,

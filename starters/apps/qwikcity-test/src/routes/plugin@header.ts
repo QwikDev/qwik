@@ -1,4 +1,4 @@
-import { loader$, RequestHandler } from '@builder.io/qwik-city';
+import { loader$, type RequestHandler } from '@builder.io/qwik-city';
 
 export const useRootLoader = loader$(() => {
   return {

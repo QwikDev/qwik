@@ -1,8 +1,8 @@
 import {
   component$,
   useRef,
-  Ref,
-  Signal,
+  type Ref,
+  type Signal,
   useSignal,
   useStore,
   useVisibleTask$,

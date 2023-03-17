@@ -8,18 +8,18 @@ import { emitEvent } from '../util/event';
 
 import { isArray, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
+import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
 import {
-  ContainerState,
+  type ContainerState,
   _getContainerState,
-  GetObject,
+  type GetObject,
   isContainer,
   SHOW_COMMENT,
-  SnapshotState,
+  type SnapshotState,
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, Subscriptions } from '../state/common';
+import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';

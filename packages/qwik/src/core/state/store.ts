@@ -8,8 +8,8 @@ import type { ContainerState } from '../container/container';
 import {
   fastSkipSerialize,
   LocalSubscriptionManager,
-  Subscriber,
-  Subscriptions,
+  type Subscriber,
+  type Subscriptions,
   unwrapProxy,
   verifySerializable,
 } from './common';

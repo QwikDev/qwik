@@ -18,7 +18,12 @@ import {
   isText,
   isVirtualElement,
 } from '../../util/element';
-import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
+import {
+  getVdom,
+  type ProcessedJSXNode,
+  ProcessedJSXNodeImpl,
+  renderComponent,
+} from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
   isAriaAttribute,
@@ -30,15 +35,15 @@ import {
   static_subtree,
   stringifyStyle,
 } from '../execute-component';
-import { addQwikEvent, ContainerState, setRef } from '../../container/container';
+import { addQwikEvent, type ContainerState, setRef } from '../../container/container';
 import {
   getRootNode,
   newVirtualElement,
   processVirtualNodes,
   queryAllVirtualByAttribute,
-  QwikElement,
+  type QwikElement,
   VIRTUAL,
-  VirtualElement,
+  type VirtualElement,
 } from './virtual-element';
 
 import {
@@ -63,10 +68,10 @@ import {
   getContext,
   HOST_FLAG_DIRTY,
   HOST_FLAG_NEED_ATTACH_LISTENER,
-  QContext,
+  type QContext,
   tryGetContext,
 } from '../../state/context';
-import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
+import { getProxyManager, getProxyTarget, type SubscriptionManager } from '../../state/common';
 import { createPropsState, createProxy, ReadWriteProxyHandler } from '../../state/store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import { trackSignal } from '../../use/use-core';

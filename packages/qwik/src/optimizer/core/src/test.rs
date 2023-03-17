@@ -1549,7 +1549,7 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -1567,6 +1567,13 @@ export const Parent = component$(() => {
 
     serverStuff$(async () => {
         // should be removed too
+        const a = $(() => {
+            // from $(), should not be removed
+        });
+        const b = client$(() => {
+            // from clien$(), should not be removed
+        });
+        return [a,b];
     })
 
     serverLoader$(handler);
@@ -2859,6 +2866,18 @@ export { qwikify$, qwikifyQrl, renderToString };
         filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
         entry_strategy: EntryStrategy::Inline,
         explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_qwik_sdk_inline() {
+    test_input!(TestInput {
+        code: include_str!("fixtures/index.qwik.mjs").to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Component,
+        explicit_extensions: true,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }

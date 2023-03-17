@@ -1,4 +1,4 @@
-import { ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
+import { type ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
 import { component$, useStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 

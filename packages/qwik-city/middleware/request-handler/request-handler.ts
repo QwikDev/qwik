@@ -2,7 +2,7 @@ import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
 import type { MenuData, RouteModule } from '../../runtime/src/types';
-import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
+import { getRouteMatchPathname, type QwikCityRun, runQwikCity } from './user-response';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
 

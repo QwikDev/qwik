@@ -5,7 +5,7 @@ import {
   useResource$,
   Resource,
   useTask$,
-  ResourceReturn,
+  type ResourceReturn,
 } from '@builder.io/qwik';
 
 export interface WeatherData {

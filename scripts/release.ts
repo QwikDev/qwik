@@ -1,4 +1,4 @@
-import { BuildConfig, panic, run } from './util';
+import { type BuildConfig, panic, run } from './util';
 import { execa } from 'execa';
 import { join } from 'node:path';
 import { Octokit } from '@octokit/action';

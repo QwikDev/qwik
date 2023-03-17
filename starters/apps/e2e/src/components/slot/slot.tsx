@@ -6,7 +6,7 @@ import {
   useSignal,
   useContextProvider,
   createContextId,
-  Signal,
+  type Signal,
 } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {

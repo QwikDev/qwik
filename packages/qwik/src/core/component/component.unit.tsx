@@ -2,7 +2,7 @@ import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
-import { PropsOf, component$ } from './component.public';
+import { type PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';

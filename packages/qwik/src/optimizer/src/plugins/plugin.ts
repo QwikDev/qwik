@@ -15,8 +15,8 @@ import type {
   TransformModulesOptions,
   TransformOutput,
 } from '../types';
-import { createLinter, QwikLinter } from './eslint-plugin';
-import type { PluginContext } from 'rollup';
+import { createLinter, type QwikLinter } from './eslint-plugin';
+import type { Rollup } from 'vite';
 
 const REG_CTX_NAME = ['server$'];
 
@@ -388,7 +388,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveId = async (
-    _ctx: PluginContext,
+    _ctx: Rollup.PluginContext,
     id: string,
     importer: string | undefined,
     resolveIdOpts?: { ssr?: boolean }
@@ -515,7 +515,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const transform = async function (
-    ctx: PluginContext,
+    ctx: Rollup.PluginContext,
     code: string,
     id: string,
     ssrOpts: { ssr?: boolean } = {}

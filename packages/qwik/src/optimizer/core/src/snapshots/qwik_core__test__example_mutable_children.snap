@@ -108,55 +108,55 @@ import { inlinedQrl } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export function Fn1(props) {
     return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_2") : /*#__PURE__*/ _jsxC(Stuff, {
+        children: /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_0") : /*#__PURE__*/ _jsxC(Stuff, {
             children: "2"
-        }, 3, "u6_3"), 1, null)
-    }, 1, "u6_4");
+        }, 3, "u6_1"), 1, null)
+    }, 1, "u6_2");
 }
 export function Fn2(props) {
     return /*#__PURE__*/ _jsxQ("div", null, null, [
-        prop.value && /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_6"),
+        prop.value && /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_3"),
         /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null)
-    ], 1, "u6_7");
+    ], 1, "u6_4");
 }
 export function Fn3(props) {
-    if (prop.value) return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_8");
-    return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_9");
+    if (prop.value) return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_5");
+    return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_6");
 }
 export function Fn4(props) {
-    if (prop.value) return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_10");
-    return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_11");
+    if (prop.value) return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_7");
+    return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_8");
 }
-export const Arrow = (props)=>/*#__PURE__*/ _jsxBranch(/*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_14") : /*#__PURE__*/ _jsxC(Stuff, {
+export const Arrow = (props)=>/*#__PURE__*/ _jsxBranch(/*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_9") : /*#__PURE__*/ _jsxC(Stuff, {
         children: "2"
-    }, 3, "u6_15"), 1, "u6_16"));
+    }, 3, "u6_10"), 1, "u6_11"));
 const AppDynamic1_component_R00UJ05gbes = (props)=>{
     _jsxBranch();
     return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_19") : /*#__PURE__*/ _jsxC(Stuff, {
+        children: /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_12") : /*#__PURE__*/ _jsxC(Stuff, {
             children: "2"
-        }, 3, "u6_20"), 1, null)
-    }, 1, "u6_21");
+        }, 3, "u6_13"), 1, null)
+    }, 1, "u6_14");
 };
 export const AppDynamic1 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic1_component_R00UJ05gbes, "AppDynamic1_component_R00UJ05gbes"));
 const AppDynamic2_component_3EY2zm0v00A = (props)=>{
     _jsxBranch();
     return /*#__PURE__*/ _jsxQ("div", null, null, [
-        prop.value && /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_23"),
+        prop.value && /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_15"),
         /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null)
-    ], 1, "u6_24");
+    ], 1, "u6_16");
 };
 export const AppDynamic2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic2_component_3EY2zm0v00A, "AppDynamic2_component_3EY2zm0v00A"));
 const AppDynamic3_component_FVq83NlbTDQ = (props)=>{
     _jsxBranch();
-    if (prop.value) return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_25");
-    return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_26");
+    if (prop.value) return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_17");
+    return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_18");
 };
 export const AppDynamic3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic3_component_FVq83NlbTDQ, "AppDynamic3_component_FVq83NlbTDQ"));
 const AppDynamic4_component_IO0yr8UvWEI = (props)=>{
     _jsxBranch();
-    if (prop.value) return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_27");
-    return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_28");
+    if (prop.value) return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_19");
+    return /*#__PURE__*/ _jsxC(Stuff, null, 3, "u6_20");
 };
 export const AppDynamic4 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppDynamic4_component_IO0yr8UvWEI, "AppDynamic4_component_IO0yr8UvWEI"));
 const AppStatic_component_gYRXqF3G5nE = (props)=>{
@@ -166,9 +166,9 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
                 "Static ",
                 f ? 1 : 3
             ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_30") : /*#__PURE__*/ _jsxQ("p", null, null, "2", 3, null), 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_21") : /*#__PURE__*/ _jsxQ("p", null, null, "2", 3, null), 1, null),
             /*#__PURE__*/ _jsxQ("div", null, null, [
-                prop.value && /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_32"),
+                prop.value && /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_22"),
                 /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null)
             ], 1, null),
             /*#__PURE__*/ _jsxQ("div", null, null, [
@@ -191,12 +191,12 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
                 stuff()
             ], 1, null)
         ]
-    }, 1, "u6_33");
+    }, 1, "u6_23");
 };
 export const AppStatic = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppStatic_component_gYRXqF3G5nE, "AppStatic_component_gYRXqF3G5nE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAGA,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,qBACI;kBACI,cAAA,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC;sBAAM;qBAAS;;AAGxD,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,qBACI,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAE7C,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET,CAAC;AAED,OAAO,MAAM,QAAQ,CAAC,+CAAiB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC;kBAAM;kBAAS,eAAQ;0CAErD,CAAC,QAAiB;;IACpD,qBACI;kBACI,cAAA,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC;sBAAM;sBAAS;;AAGxD;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC,QAAiB;;IACpD,qBACI,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAE7C;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC,QAAiB;IAClD,qBACI;;0BACI,MAAC;gBAAI;gBAAQ,IAAI,IAAI,CAAC;;0BACtB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC,iBAAE,aAAK;0BAEpC,MAAC;gBAAK,KAAK,KAAK,kBAAI,MAAC;8BAAW,MAAC;;0BACjC,MAAC;gBAAI;gBAAQ,IAAI,IAAI,CAAC;;0BACtB,MAAC,mBAAI;0BACL,MAAC;gBAAI;gCAAQ,GAAM,KAAK;;;;0BACxB,MAAC;gBAAI;gBAAQ;;0BACb,MAAC;gBAAI;gBAAQ;;;;AAGzB;AAdA,OAAO,MAAM,0BAAY,2GActB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAGA,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,qBACI;kBACI,cAAA,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC;sBAAM;qBAAS;;AAGxD,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,qBACI,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAE7C,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET,CAAC;AAED,OAAO,MAAM,QAAQ,CAAC,+CAAiB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC;kBAAM;kBAAS,eAAQ;0CAErD,CAAC,QAAiB;;IACpD,qBACI;kBACI,cAAA,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC;sBAAM;sBAAS;;AAGxD;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC,QAAiB;;IACpD,qBACI,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAE7C;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC,QAAiB;IAClD,qBACI;;0BACI,MAAC;gBAAI;gBAAQ,IAAI,IAAI,CAAC;;0BACtB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC,iBAAE,aAAK;0BAEpC,MAAC;gBAAK,KAAK,KAAK,kBAAI,MAAC;8BAAW,MAAC;;0BACjC,MAAC;gBAAI;gBAAQ,IAAI,IAAI,CAAC;;0BACtB,MAAC,mBAAI;0BACL,MAAC;gBAAI;gCAAQ,GAAM,KAAK;;;;0BACxB,MAAC;gBAAI;gBAAQ;;0BACb,MAAC;gBAAI;gBAAQ;;;;AAGzB;AAdA,OAAO,MAAM,0BAAY,2GActB\"}")
 == DIAGNOSTICS ==
 
 []

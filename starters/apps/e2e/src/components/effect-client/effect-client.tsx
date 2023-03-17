@@ -9,7 +9,7 @@ import {
   Slot,
   useSignal,
   useTask$,
-  Signal,
+  type Signal,
   useBrowserVisibleTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';

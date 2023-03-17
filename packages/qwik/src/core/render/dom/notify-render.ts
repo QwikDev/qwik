@@ -5,7 +5,7 @@ import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
 import {
   runSubscriber,
-  SubscriberEffect,
+  type SubscriberEffect,
   WatchFlagsIsDirty,
   WatchFlagsIsVisibleTask,
   WatchFlagsIsResource,
@@ -17,16 +17,16 @@ import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
 import type { RenderContext } from '../types';
-import { ContainerState, _getContainerState } from '../../container/container';
+import { type ContainerState, _getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
-import { getRootNode, QwikElement } from './virtual-element';
+import { getRootNode, type QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
 import { resumeIfNeeded } from '../../container/resume';
-import { getContext, HOST_FLAG_DIRTY, QContext } from '../../state/context';
+import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {

@@ -18,9 +18,9 @@ import {
   mkdir as fsMkdir,
 } from 'node:fs';
 import { promisify } from 'util';
-import { minify, MinifyOptions } from 'terser';
+import { minify, type MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
-import { execa, Options } from 'execa';
+import { execa, type Options } from 'execa';
 import { fileURLToPath } from 'node:url';
 
 /**

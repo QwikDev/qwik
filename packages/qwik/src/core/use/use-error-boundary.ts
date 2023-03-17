@@ -1,5 +1,5 @@
 import { qrl } from '../qrl/qrl';
-import { ErrorBoundaryStore, ERROR_CONTEXT } from '../render/error-handling';
+import { type ErrorBoundaryStore, ERROR_CONTEXT } from '../render/error-handling';
 import { useContextProvider } from './use-context';
 import { useOn } from './use-on';
 import { useStore } from './use-store.public';

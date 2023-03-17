@@ -1,7 +1,7 @@
 import type { Signal } from '@builder.io/qwik';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { ClientHistoryWindow, clientNavigate } from './client-navigate';
+import { type ClientHistoryWindow, clientNavigate } from './client-navigate';
 import type { SimpleURL } from './types';
 import { toPath } from './utils';
 

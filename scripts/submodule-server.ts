@@ -1,7 +1,7 @@
-import { build, BuildOptions, Plugin } from 'esbuild';
+import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
 import {
-  BuildConfig,
+  type BuildConfig,
   getBanner,
   importPath,
   injectGlobalThisPoly,

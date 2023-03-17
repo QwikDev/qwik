@@ -398,7 +398,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
  */
 export interface ActionConstructor {
   // With validation
-  <O, B extends TypedDataValidator>(
+  <O extends Record<string, any> | void | null, B extends TypedDataValidator>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B | ActionOptionsWithValidation<B>
   ): Action<
@@ -408,7 +408,11 @@ export interface ActionConstructor {
   >;
 
   // With multiple validators
-  <O, B extends TypedDataValidator, REST extends DataValidator[]>(
+  <
+    O extends Record<string, any> | void | null,
+    B extends TypedDataValidator,
+    REST extends DataValidator[]
+  >(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B,
     ...rest: REST
@@ -429,7 +433,7 @@ export interface ActionConstructor {
   ): Action<O>;
 
   // Without validation
-  <O, REST extends DataValidator[]>(
+  <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
     actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
     ...rest: REST
   ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
@@ -440,7 +444,7 @@ export interface ActionConstructor {
  */
 export interface ActionConstructorQRL {
   // With validation
-  <O, B extends TypedDataValidator>(
+  <O extends Record<string, any> | void | null, B extends TypedDataValidator>(
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: B | ActionOptionsWithValidation<B>
   ): Action<
@@ -450,7 +454,11 @@ export interface ActionConstructorQRL {
   >;
 
   // With multiple validators
-  <O, B extends TypedDataValidator, REST extends DataValidator[]>(
+  <
+    O extends Record<string, any> | void | null,
+    B extends TypedDataValidator,
+    REST extends DataValidator[]
+  >(
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: B,
     ...rest: REST
@@ -469,7 +477,7 @@ export interface ActionConstructorQRL {
   ): Action<O>;
 
   // Without validation
-  <O, REST extends DataValidator[]>(
+  <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
     actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>,
     ...rest: REST
   ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
@@ -493,7 +501,7 @@ export interface LoaderConstructor {
   ): Loader<O>;
 
   // With validation
-  <O, REST extends readonly DataValidator[]>(
+  <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
     ...rest: REST
   ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
@@ -510,7 +518,7 @@ export interface LoaderConstructorQRL {
   ): Loader<O>;
 
   // With validation
-  <O, REST extends readonly DataValidator[]>(
+  <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
     ...rest: REST
   ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;

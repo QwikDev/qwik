@@ -1,7 +1,7 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import { Render, setServerPlatform } from '@builder.io/qwik/server';
+import { type Render, setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import qwikCityPlan from '@qwik-city-plan';
 import { isStaticPath } from '@qwik-city-static-paths';

@@ -1,4 +1,4 @@
-import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
+import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
@@ -24,7 +24,7 @@ import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
-import type { RollupError } from 'rollup';
+import type { Rollup } from 'vite';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -204,7 +204,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
           } catch (e: any) {
             const column = e.position.start.column;
             const line = e.position.start.line;
-            const err: RollupError = Object.assign(new Error(e.reason), {
+            const err: Rollup.RollupError = Object.assign(new Error(e.reason), {
               id,
               plugin: 'qwik-city-mdx',
               loc: {

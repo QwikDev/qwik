@@ -1,10 +1,10 @@
-import { build, Plugin, transform } from 'esbuild';
+import { build, type Plugin, transform } from 'esbuild';
 import { execa } from 'execa';
 import { copyFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
 import { readPackageJson, writePackageJson } from './package-json';
-import { BuildConfig, emptyDir, importPath, nodeTarget, panic, watcher } from './util';
+import { type BuildConfig, emptyDir, importPath, nodeTarget, panic, watcher } from './util';
 
 const PACKAGE = 'qwik-city';
 

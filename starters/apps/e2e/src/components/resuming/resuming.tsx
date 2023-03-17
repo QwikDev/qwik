@@ -3,7 +3,7 @@ import {
   useSignal,
   useContextProvider,
   createContextId,
-  Signal,
+  type Signal,
   useContext,
   useTask$,
 } from '@builder.io/qwik';

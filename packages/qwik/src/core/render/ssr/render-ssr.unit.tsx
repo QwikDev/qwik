@@ -9,7 +9,7 @@ import { inlinedQrl } from '../../qrl/qrl';
 import { $ } from '../../qrl/qrl.public';
 import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
-import { Ref, useRef } from '../../use/use-ref';
+import { type Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
 import { useVisibleTask$, useTask$ } from '../../use/use-task';
@@ -17,7 +17,7 @@ import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
 import { jsx } from '../jsx/jsx-runtime';
-import { _renderSSR, RenderSSROptions } from './render-ssr';
+import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
 
@@ -376,11 +376,7 @@ renderSSRSuite('valid phrasing content', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
         <p>
-          <svg 
-            viewBox="0 0 10 10" 
-            xmlns="http://www.w3.org/2000/svg" 
-            xmlns:xlink="http://www.w3.org/1999/xlink" 
-          >
+          <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <path d="M 0 0 L 10 10"></path>
             <circle cx="5" cy="5" rx="5" ry="5"></circle>
           </svg>

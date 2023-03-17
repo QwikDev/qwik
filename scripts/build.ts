@@ -1,4 +1,4 @@
-import { BuildConfig, ensureDir, panic } from './util';
+import { type BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';

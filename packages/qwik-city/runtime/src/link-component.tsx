@@ -1,4 +1,4 @@
-import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
+import { component$, Slot, type QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';

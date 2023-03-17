@@ -1,4 +1,4 @@
-import { $, PropFnInterface, QRL } from '../qrl/qrl.public';
+import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';

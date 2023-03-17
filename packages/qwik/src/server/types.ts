@@ -221,4 +221,4 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
  */
 export type Render = RenderToString | RenderToStream;
 
-export { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };

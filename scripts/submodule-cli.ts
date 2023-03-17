@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
+import { type BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
 
 /**
  * Builds @builder.io/qwik/cli

@@ -1,5 +1,5 @@
 import { component$, useStore } from '@builder.io/qwik';
-import { Link, useLocation, DocumentHead, loader$ } from '@builder.io/qwik-city';
+import { Link, useLocation, type DocumentHead, loader$ } from '@builder.io/qwik-city';
 import os from 'node:os';
 
 export default component$(() => {

@@ -1,26 +1,26 @@
 import { newInvokeContext, invoke, waitAndRun, untrack } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
-import { isFunction, isObject, ValueOrPromise } from '../util/types';
+import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
-import { assertQrl, assertSignal, createQRL, QRLInternal } from '../qrl/qrl-class';
+import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
-import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
+import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../container/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
-import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
+import { getProxyManager, noSerialize, type NoSerialize, unwrapProxy } from '../state/common';
 import {
   isSignal,
   QObjectSignalFlags,
-  Signal,
-  SignalInternal,
+  type Signal,
+  type SignalInternal,
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
   _createSignal,

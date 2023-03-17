@@ -1,6 +1,6 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug, renameClassname } from './rehype';
+import { rehypePage, rehypeSlug } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
@@ -50,19 +50,14 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
+    elementAttributeNameCase: 'html',
     remarkPlugins: [
       ...userRemarkPlugins,
       ...coreRemarkPlugins,
       remarkFrontmatter,
       [parseFrontmatter, ctx],
     ],
-    rehypePlugins: [
-      rehypeSlug,
-      ...userRehypePlugins,
-      ...coreRehypePlugins,
-      [rehypePage, ctx],
-      renameClassname,
-    ],
+    rehypePlugins: [rehypeSlug, ...userRehypePlugins, ...coreRehypePlugins, [rehypePage, ctx]],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

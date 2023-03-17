@@ -1,4 +1,4 @@
-import { BuildConfig, ensureDir } from './util';
+import { type BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
 import { join } from 'node:path';
 import { fetch } from 'undici';

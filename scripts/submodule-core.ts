@@ -1,7 +1,7 @@
-import { BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
-import { build, BuildOptions } from 'esbuild';
+import { type BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
+import { build, type BuildOptions } from 'esbuild';
 import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
-import { InputOptions, OutputOptions, rollup } from 'rollup';
+import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
 import { minify } from 'terser';
 

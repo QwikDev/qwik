@@ -12,15 +12,6 @@
     "docs": [
       "https://qwik.builder.io/integrations/integration/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
-    ],
-    "nextSteps": {
-      "lines": [
-        " Please add the following lines to your global.css file:",
-        "",
-        " @tailwind base;",
-        " @tailwind components;",
-        " @tailwind utilities;"
-      ]
-    }
+    ]
   }
 }

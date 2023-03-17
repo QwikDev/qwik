@@ -4,23 +4,11 @@
   max-width: 1060px;
 }
 
-.ecosystem h1 {
-  font-size: 48px;
-  font-weight: 800;
-  text-align: center;
-  margin-bottom: 40px;
-}
-
 .ecosystem section {
   margin: 10px auto 60px auto;
 }
 
-.ecosystem h2 {
-  font-size: 24px;
-  margin: 0 0 10px 0;
-}
-
-.grid {
+/* .grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: row dense;
   display: grid;
@@ -80,4 +68,4 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
+} */

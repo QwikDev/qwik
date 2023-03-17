@@ -49,7 +49,7 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  // note the 4 args must be kept for connect to treat this as error middleware
+  // note: the 4 args must be kept to treat this as error middleware
   server.middlewares.use(async (err: RollupError, req: any, res: any, next: any) => {
     if (err) {
       logError(server, err);

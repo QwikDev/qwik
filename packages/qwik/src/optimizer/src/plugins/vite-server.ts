@@ -9,9 +9,8 @@ import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
-
 function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
@@ -50,6 +49,7 @@ export async function configureDevServer(
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
+      const { ORIGIN } = process.env;
       const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 

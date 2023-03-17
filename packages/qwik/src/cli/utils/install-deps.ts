@@ -2,10 +2,9 @@ import { bgRed, cyan, red } from 'kleur/colors';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import spawn from 'cross-spawn';
 import { log } from '@clack/prompts';
-import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
+import { runCommand } from './utils';
 
 export function installDeps(pkgManager: string, dir: string) {
   return runCommand(pkgManager, ['install'], dir);
@@ -16,52 +15,17 @@ export function runInPkg(pkgManager: string, args: string[], cwd: string) {
   return runCommand(cmd, args, cwd);
 }
 
-export function runCommand(cmd: string, args: string[], cwd: string) {
-  let installChild: ChildProcess;
-
-  const install = new Promise<boolean>((resolve) => {
-    try {
-      installChild = spawn(cmd, args, {
-        cwd,
-        stdio: 'ignore',
-      });
-
-      installChild.on('error', () => {
-        resolve(false);
-      });
-
-      installChild.on('close', (code) => {
-        if (code === 0) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      });
-    } catch (e) {
-      resolve(false);
-    }
-  });
-
-  const abort = async () => {
-    if (installChild) {
-      installChild.kill('SIGINT');
-    }
-  };
-
-  return { abort, install };
-}
-
 export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
-  const { install, abort } = installDeps(pkgManager, tmpInstallDir);
+  const { installing, abort } = installDeps(pkgManager, tmpInstallDir);
 
   const complete = async (runInstall: boolean, outDir: string) => {
     let success = false;
 
     if (runInstall) {
       try {
-        const installed = await install;
+        const installed = await installing;
         if (installed) {
           const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
           const appNodeModules = path.join(outDir, 'node_modules');

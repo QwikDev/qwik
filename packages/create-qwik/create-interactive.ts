@@ -1,4 +1,4 @@
-// eslint-disable no-console
+/* eslint-disable no-console */
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';

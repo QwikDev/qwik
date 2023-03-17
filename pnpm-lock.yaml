@@ -38,7 +38,6 @@ importers:
       eslint-plugin-no-only-tests: 3.1.0
       execa: 7.1.0
       express: 4.18.2
-      husky: ^8.0.3
       monaco-editor: ^0.36.1
       mri: 1.2.0
       ora: 6.1.2
@@ -94,7 +93,6 @@ importers:
       eslint-plugin-no-only-tests: 3.1.0
       execa: 7.1.0
       express: 4.18.2
-      husky: 8.0.3
       monaco-editor: 0.36.1
       mri: 1.2.0
       ora: 6.1.2
@@ -4548,12 +4546,6 @@ packages:
   /human-signals/4.3.0:
     resolution: {integrity: sha512-zyzVyMjpGBX2+6cDVZeFPCdtOtdsxOeseRhB9tkQ6xXmGUNrcnBzdEKPy3VPNYz+4gy1oukVOXcrJCunSyc6QQ==}
     engines: {node: '>=14.18.0'}
-    dev: true
-
-  /husky/8.0.3:
-    resolution: {integrity: sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==}
-    engines: {node: '>=14'}
-    hasBin: true
     dev: true
 
   /iconv-lite/0.4.24:

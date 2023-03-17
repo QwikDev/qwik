@@ -17,7 +17,7 @@ export async function generate(opts: StaticGenerateOptions) {
   return result;
 }
 
-export { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
+export type { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
 
 function getEntryModulePath() {
   if (isDeno()) {

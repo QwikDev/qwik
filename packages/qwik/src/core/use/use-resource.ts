@@ -1,14 +1,14 @@
-import { $, QRL } from '../qrl/qrl.public';
+import { $, type QRL } from '../qrl/qrl.public';
 import { assertQrl } from '../qrl/qrl-class';
 import {
-  ResourceReturn,
-  ResourceDescriptor,
-  ResourceFn,
+  type ResourceReturn,
+  type ResourceDescriptor,
+  type ResourceFn,
   runResource,
   WatchFlagsIsDirty,
   WatchFlagsIsResource,
   Task,
-  ResourceReturnInternal,
+  type ResourceReturnInternal,
 } from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
@@ -19,7 +19,7 @@ import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
-import { isSignal, Signal } from '../state/signal';
+import { isSignal, type Signal } from '../state/signal';
 import { isObject } from '../util/types';
 
 /**

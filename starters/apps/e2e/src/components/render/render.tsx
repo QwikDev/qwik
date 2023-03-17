@@ -1,7 +1,7 @@
 import {
   component$,
-  JSXNode,
-  PropFunction,
+  type JSXNode,
+  type PropFunction,
   useSignal,
   useStore,
   useStylesScoped$,

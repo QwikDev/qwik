@@ -1,5 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { UseId } from './components/useid/useid';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';

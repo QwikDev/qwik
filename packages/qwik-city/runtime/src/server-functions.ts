@@ -2,9 +2,9 @@ import {
   $,
   implicit$FirstArg,
   noSerialize,
-  QRL,
+  type QRL,
   useContext,
-  ValueOrPromise,
+  type ValueOrPromise,
   _wrapSignal,
   useStore,
   _serializeData,
@@ -287,6 +287,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
       if (isServer) {
         return qrl(...(args as any));
       } else {
+        const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
           if (arg instanceof Event) {
             return null;
@@ -310,7 +311,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
           throw new Error(`Server function failed: ${res.statusText}`);
         }
         const str = await res.text();
-        const obj = await _deserializeData(str);
+        const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
         return obj;
       }
     }) as any;

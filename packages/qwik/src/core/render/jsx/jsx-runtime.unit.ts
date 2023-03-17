@@ -1,6 +1,6 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { ProcessedJSXNode, processNode } from '../dom/render-dom';
+import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
 import { jsx, isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 

@@ -1,4 +1,11 @@
-import { jsx, _wrapSignal, QwikJSX, ValueOrPromise, component$, Slot } from '@builder.io/qwik';
+import {
+  jsx,
+  _wrapSignal,
+  type QwikJSX,
+  type ValueOrPromise,
+  component$,
+  Slot,
+} from '@builder.io/qwik';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 

@@ -9,6 +9,7 @@
     "Almeida",
     "amet",
     "antipattern",
+    "apos",
     "Arcrole",
     "asynchronicity",
     "basepath",
@@ -287,5 +288,7 @@
     "wmode",
     "xlink"
   ],
-  "enableFiletypes": ["mdx"]
+  "enableFiletypes": [
+    "mdx"
+  ]
 }

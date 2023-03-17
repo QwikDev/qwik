@@ -66,6 +66,9 @@ export interface AriaAttributes {
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
 // @public
+export const combineInlines: (fns: (string | Function)[], execute?: boolean) => string;
+
+// @public
 export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 
 // @public
@@ -146,6 +149,9 @@ export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
     (props: P, key: string | null, flags: number): JSXNode | null;
 }
+
+// @public
+export const functionToString: (fn: Function, execute?: boolean) => string;
 
 // @internal (undocumented)
 export const _getContextElement: () => unknown;

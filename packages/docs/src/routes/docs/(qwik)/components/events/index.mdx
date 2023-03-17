@@ -19,7 +19,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
-Notice that `onClick$` ends with [`$`](todo/correct-link). This is a hint to both the [Optimizer](/docs/advanced/optimizer) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event.
+Notice that `onClick$` ends with [`$`](todo/correct-link). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -108,9 +108,9 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 
 ## useOn Hooks
 
-- [useOn](../../../docs/components/events/index.mdx#useon)
-- [useOnWindow](../../../docs/components/events/index.mdx#useonwindow)
-- [useOnDocument](../../../docs/components/events/index.mdx#useondocument)
+- [useOn](./index.mdx#useon)
+- [useOnWindow](./index.mdx#useonwindow)
+- [useOnDocument](./index.mdx#useondocument)
 
 ### useOn
 

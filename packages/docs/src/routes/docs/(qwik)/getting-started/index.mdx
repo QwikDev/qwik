@@ -80,7 +80,7 @@ export default component$(() => {
 });
 ```
 
-For more details about how to author components see the [Component API](/docs/components/overview/) section.
+For more details about how to author components see the [Component API](/docs/(qwik)/components/overview/) section.
 
 
 ### Test Your Creation
@@ -129,7 +129,7 @@ What does the above code do?
 - `routeLoader$` is used to retrieve data.
   - The function passed to `routeLoader$` is invoked on the server eagerly before any component is rendered and is responsible for loading data.
   - The `routeLoader$` returns a use-hook (`useDadJoke`) that can be used in the component to retrieve the server data.
-- `useDadJoke` is a use-hook that returns a [signal](/docs/components/state/#usesignal/) of the server data.
+- `useDadJoke` is a use-hook that returns a [signal](/docs/(qwik)/components/state/#usesignal/) of the server data.
 
 Things to note:
 - The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if it's use-hook is not invoked in any component.

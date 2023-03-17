@@ -20,7 +20,7 @@ contributors:
 
 This method allows you to generate computed values asynchronously. The asynchronous function passed as its first argument will be called when the component is mounted and when the tracked values change.
 
-Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/components/overview/index.mdx#component), and all the [hook rules apply](../../../docs/components/lifecycle/index.mdx#use-method-rules).
+Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
 
 ```tsx
 import { useResource$, useSignal } from '@builder.io/qwik';
@@ -51,7 +51,7 @@ The state `resource.state` can be one of the following strings:
 - `'resolved'` - the data is available.
 - `'rejected'` - the data is not available due to an error or timeout.
 
-The callback passed to [`useResource$()`](/docs/components/resource/index.mdx) runs right after the [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
+The callback passed to [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
 
 ## `<Resource />`
 
@@ -72,7 +72,7 @@ It is worth noting that `<Resource />` is not required when using `useResource$(
 
 ### Examples :
 
-- #### [`useResource$()`](/docs/components/resource/index.mdx) with `<Resource />`
+- #### [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) with `<Resource />`
 
 Example showing how `useResource$` is used to perform a fetch call to the agify.io API. This will guess a person's age
 based on the name typed by the user, and will update whenever the user types in the name input.

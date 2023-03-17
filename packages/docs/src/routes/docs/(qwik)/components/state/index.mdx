@@ -64,7 +64,7 @@ Works very similary to `useSignal()`, but it takes an object as its initial valu
 
 `const store = useStore(initialStateObject)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
 
-The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#usestore) is just like any other object, but it is reactive. If you change any property of the object, any component that depends on that property will be updated.
+The reactive object returned by [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) is just like any other object, but it is reactive. If you change any property of the object, any component that depends on that property will be updated.
 
 > **NOTE**
 > For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
@@ -92,7 +92,7 @@ Just accessing the `state.count` property will cause the component to be updated
 
 ### Recursive values
 
-By default, [`useStore()`](/docs/components/state/index.mdx#usestore) only tracks the top level fields in your store, which means that for any updates to be registered, you have to update values at the top level field.
+By default, [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) only tracks the top level fields in your store, which means that for any updates to be registered, you have to update values at the top level field.
 
 THIS EXAMPLE WILL NOT WORK:
 
@@ -244,13 +244,13 @@ export const Child = component$(() => {
 
 Computed values are values that are derived from other values. They are useful when you have a value that is derived from other values, and you want to keep it in sync with the other values.
 
-In Qwik there are two ways to create computed values, using [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) or [`useResource$()`](/docs/components/resource/index.mdx).
+In Qwik there are two ways to create computed values, using [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) or [`useResource$()`](/docs/(qwik)/components/resource/index.mdx).
 
-The main difference between the two is that [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) allows side effects and the execution is serialized, while [`useResource$()`](/docs/components/resource/index.mdx) is asynchronous and multiple `useResource$()` calls can happen in parallel.
+The main difference between the two is that [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) allows side effects and the execution is serialized, while [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) is asynchronous and multiple `useResource$()` calls can happen in parallel.
 
-`useTask$()` is usually used to compute intermediate state, while [`useResource$()`](/docs/components/resource/index.mdx) has better ergonomics to compute the final state, used for rendering. Let's see some examples:
+`useTask$()` is usually used to compute intermediate state, while [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) has better ergonomics to compute the final state, used for rendering. Let's see some examples:
 
-### [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) example
+### [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) example
 
 ```tsx
 import { component$, useStore, useTask$ } from '@builder.io/qwik';
@@ -276,7 +276,7 @@ export default component$(() => {
 });
 ```
 
-### [`useResource$()`](/docs/components/resource/index.mdx) example
+### [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) example
 
 ```tsx
 import { component$, useStore, useResource$ } from '@builder.io/qwik';

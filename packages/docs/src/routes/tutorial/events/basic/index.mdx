@@ -43,7 +43,7 @@ Consider the following simplified HTML of the application below.
 - The `$` is a signal to you that lazy-loading "magic" happens at this point.
 - TypeScript rules ensure you don't skip any places where the `$` should appear.
 
-2. The optimizer looks for the `$` and extracts the function wrapped by `$` into a separate [lazy-loadable chunk](../../../docs/advanced/optimizer/index.mdx).
+2. The optimizer looks for the `$` and extracts the function wrapped by `$` into a separate [lazy-loadable chunk](../../../docs/(qwik)/advanced/optimizer/index.mdx).
 3. As the server renders the page, the JSX is executed and notices that there is a click listener. The click listener is serialized into the `<button>` element as `on:click` attribute. Qwik then knows how to hook this event back up on the client.
 4. Qwikloader scripts get inlined into HTML. The Qwikloader script sets up a global listener for all events in the browser. Qwikloader is about 1kb and executes in about 1ms.
 5. When a user clicks on the button, the Qwikloader intercepts the event and looks for an element with `on:click` attribute.

@@ -1,4 +1,4 @@
-import { $, component$, QwikMouseEvent, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';

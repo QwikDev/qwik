@@ -2871,6 +2871,18 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
+fn example_qwik_sdk_inline() {
+    test_input!(TestInput {
+        code: include_str!("fixtures/index.qwik.mjs").to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Component,
+        explicit_extensions: true,
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn relative_paths() {
     let dep = r#"
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";

@@ -248,6 +248,7 @@ test.describe('signals', () => {
       ]);
 
       await btn.click();
+      await page.waitForTimeout(200);
 
       await expect(results).toHaveText([
         'This text should not change',
@@ -280,8 +281,9 @@ test.describe('signals', () => {
         '{"value":""}',
         '""',
       ]);
-      await input.fill('test');
       await page.waitForTimeout(100);
+      await input.fill('test');
+      await page.waitForTimeout(200);
       await expect(results).toHaveText([
         '{"controls":{"ctrl":{"value":"test"}}}',
         '{"ctrl":{"value":"test"}}',

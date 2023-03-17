@@ -288,7 +288,5 @@
     "wmode",
     "xlink"
   ],
-  "enableFiletypes": [
-    "mdx"
-  ]
+  "enableFiletypes": ["mdx"]
 }

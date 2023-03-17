@@ -10,7 +10,7 @@ import { qError, QError_cannotRenderOverExistingContainer } from '../../error/er
 import { directRemoveAttribute, directSetAttribute } from '../fast-calls';
 import { processData, wrapJSX } from './render-dom';
 import {
-  ContainerState,
+  type ContainerState,
   removeContainerState,
   _getContainerState,
 } from '../../container/container';

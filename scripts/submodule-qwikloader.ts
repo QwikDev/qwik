@@ -1,9 +1,9 @@
-import { InputOptions, OutputOptions, rollup } from 'rollup';
+import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import {
-  BuildConfig,
+  type BuildConfig,
   ensureDir,
   fileSize,
-  PackageJSON,
+  type PackageJSON,
   readFile,
   rollupOnWarn,
   terser,

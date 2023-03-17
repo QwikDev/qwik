@@ -3,11 +3,15 @@ import { qError, QError_invalidContext, QError_notFoundContext } from '../error/
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import {
+  getVirtualElement,
+  type QwikElement,
+  type VirtualElement,
+} from '../render/dom/virtual-element';
 import { isComment } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
-import { getContext, QContext } from '../state/context';
+import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
 import { invoke } from './use-core';
 

@@ -1,7 +1,7 @@
 import { isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
+import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
-import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
+import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
@@ -21,14 +21,14 @@ import { logError, logWarn } from '../../util/log';
 import {
   groupListeners,
   isOnProp,
-  Listener,
+  type Listener,
   PREVENT_DEFAULT,
   setEvent,
 } from '../../state/listeners';
 import { version } from '../../version';
 import {
   addQwikEvent,
-  ContainerState,
+  type ContainerState,
   createContainerState,
   setRef,
 } from '../../container/container';
@@ -46,7 +46,7 @@ import {
   createContext,
   HOST_FLAG_DYNAMIC,
   HOST_FLAG_NEED_ATTACH_LISTENER,
-  QContext,
+  type QContext,
   Q_CTX,
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';

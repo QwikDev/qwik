@@ -5,7 +5,7 @@ import type { IncomingMessage } from 'http';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
@@ -377,8 +377,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
-
-  const srcDir = ${JSON.stringify(srcDir)};
+  const srcDir = new URL(${JSON.stringify(srcDir)}, 'http://local.local');
   const body = document.body;
   const overlay = document.createElement('div');
   overlay.id = 'qwik-inspector-overlay';
@@ -424,13 +423,11 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
         if (event.target && event.target instanceof HTMLElement) {
           if (event.target.dataset.qwikInspector) {
             event.preventDefault();
-            let file = event.target.dataset.qwikInspector;
-            if (!file.startsWith('/')) {
-              file = srcDir + '/' + file;
-            }
+            const file = new URL(file, event.target.dataset.qwikInspector).pathname;
             body.style.setProperty('cursor', 'progress');
-
-            fetch('/__open-in-editor?file=' + file);
+            const params = new URLSearchParams();
+            params.set('file', file);
+            fetch('/__open-in-editor?' + params.toString());
           }
         }
       }

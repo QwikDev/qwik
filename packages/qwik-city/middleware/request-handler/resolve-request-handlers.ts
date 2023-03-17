@@ -14,7 +14,7 @@ import {
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
-  RequestEventInternal,
+  type RequestEventInternal,
   RequestEvQwikSerializer,
   RequestEvSharedActionId,
 } from './request-event';

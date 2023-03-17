@@ -3,8 +3,9 @@
 // DO NOT USE FOR PRODUCTION!!!
 /* eslint-disable no-console */
 
-import express, { NextFunction, Request, Response } from 'express';
-import { build, InlineConfig, PluginOption } from 'vite';
+import type { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { build, type InlineConfig, type PluginOption } from 'vite';
 import { join, resolve } from 'node:path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'node:fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';

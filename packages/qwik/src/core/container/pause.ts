@@ -17,7 +17,7 @@ import { qDev } from '../util/qdev';
 import {
   destroyWatch,
   isResourceTask,
-  ResourceReturnInternal,
+  type ResourceReturnInternal,
   WatchFlagsIsDirty,
 } from '../use/use-task';
 import {
@@ -31,19 +31,23 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import {
-  ContainerState,
+  type ContainerState,
   FILTER_REJECT,
   FILTER_SKIP,
   _getContainerState,
-  GetObjID,
+  type GetObjID,
   intToStr,
   SHOW_COMMENT,
   SHOW_ELEMENT,
-  SnapshotMeta,
-  SnapshotMetaValue,
-  SnapshotResult,
+  type SnapshotMeta,
+  type SnapshotMetaValue,
+  type SnapshotResult,
 } from './container';
-import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import {
+  processVirtualNodes,
+  type QwikElement,
+  type VirtualElement,
+} from '../render/dom/virtual-element';
 import { groupListeners } from '../state/listeners';
 import { serializeSStyle } from '../style/qrl-styles';
 import { serializeQRLs } from '../qrl/qrl';
@@ -56,9 +60,9 @@ import {
   isConnected,
   LocalSubscriptionManager,
   serializeSubscription,
-  Subscriptions,
+  type Subscriptions,
 } from '../state/common';
-import { HOST_FLAG_DYNAMIC, QContext, tryGetContext } from '../state/context';
+import { HOST_FLAG_DYNAMIC, type QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
 

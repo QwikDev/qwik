@@ -33,7 +33,7 @@ export const Counter = component$(() => {
 
 In a real applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
 
-Another option is passing [`QRLs`](/docs/advanced/qrl/) as values for event listeners. For instance, the above example could also be written in the following way:
+Another option is passing [`QRLs`](/docs/(qwik)/advanced/qrl/) as values for event listeners. For instance, the above example could also be written in the following way:
 
 ```tsx
 import { component$, useSignal, $ } from '@builder.io/qwik';

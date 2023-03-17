@@ -16,11 +16,11 @@
 
 /qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
 
-/qwikcity/middleware/azure-swa/ /integrations/deployments/azure-swa/ 308
-/qwikcity/middleware/cloudflare-pages/ /integrations/deployments/cloudflare-pages/ 308
-/qwikcity/middleware/netlify-edge/ /integrations/deployments/netlify-edge/ 308
-/qwikcity/middleware/node/ /integrations/deployments/node/ 308
-/qwikcity/middleware/express/ /integrations/deployments/node/ 308
+/qwikcity/middleware/azure-swa/ /deployments/azure-swa/ 308
+/qwikcity/middleware/cloudflare-pages/ /deployments/cloudflare-pages/ 308
+/qwikcity/middleware/netlify-edge/ /deployments/netlify-edge/ 308
+/qwikcity/middleware/node/ /deployments/node/ 308
+/qwikcity/middleware/express/ /deployments/node/ 308
 
 /qwikcity/directory-layout/ /qwikcity/project-structure/ 308
 /qwikcity/static-assets/ /qwikcity/advanced/static-assets/ 308

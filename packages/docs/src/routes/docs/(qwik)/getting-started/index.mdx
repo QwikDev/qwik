@@ -15,6 +15,7 @@ contributors:
   - the-r3aper7
   - ahmadalfy
   - renomureza
+  - mhevery
 ---
 
 # Getting Started Qwikly
@@ -30,13 +31,13 @@ Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.
 - Your favorite IDE ([vscode](https://code.visualstudio.com/) recommended)
 - Start to [think qwik](../think-qwik/index.mdx)
 
-## Creating an app using the CLI
+## Create an app using the CLI
 
 The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a blank starter so that you can quickly familiarize yourself with it. Qwik supports NPM, yarn and pnpm.
 
 ### Run the Qwik CLI in your shell
 
-Choose the package manager you prefer and run one of the following command:
+Choose the package manager you prefer and run one of the following commands:
 
 ```shell
 npm create qwik@latest
@@ -46,42 +47,185 @@ yarn create qwik
 
 The CLI will guide you through an interactive menu to set the project-name, select one of the starters and asks if you want to install the dependencies.
 
-## Writing Qwik Components
+### Start the development server
 
-Components are basic building blocks of Qwik Applications. 
+```shell
+npm start
+pnpm start
+yarn start
+```
 
-[Qwik Components](../components/overview/index.mdx) should look familiar to many UI developers:
+## Qwik Hello World
+
+To get you familiar with Qwik we have created a very simple "Hello World" application tutorial that touches on the most important concepts of Qwik, so that you can get a good overview. For each part we touch on we will link you to the relevant documentation where you can find out more.
+
+### The Dad Jokes Application
+
+We will use https://icanhazdadjoke.com as our API to get a random joke. We will create a simple application that will display a random joke and a button to get a new joke.
+
+
+## Create A Route
+
+Everything starts by serving a page at a particular route. So let's build a simple app that serves a random dad joke application on `/joke/` route. Qwikcity (Qwik's meta-framework) uses [directory-based](/docs/routing/) routing. To get started let's create a new `index.tsx` file in the `src/routes/joke/` directory in your project. (You will need to create the `joke` directory first.)
+
+### Default Export Component
+
+Each route's `index.tsx` file must have an `export default component$(...)` so that Qwikcity knows what content to serve. Paste the following content to `src/routes/joke/index.tsx`:
 
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 
-export const MyCmp = component$((props: MyCmpProps) => {
-  // Declare local state
-  const count = useSignal(0);
+export default component$(() => {
+  return <div class="section bright">A Joke!</div>;
+});
+```
 
-  // Returns JSX
+For more details about how to author components see the [Component API](/docs/components/overview/) section.
+
+
+### Test Your Creation
+
+Navigate to `http://127.0.0.1:5173/joke/` to see your page.
+
+NOTE: Your `joke` component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
+
+## Loading Data
+
+A common thing a page does is load data to display to the user. This is performed using [route loaders](/docs/route-loader/).
+
+### Code
+
+Open `src/routes/joke/index.tsx` and add this code:
+
+```tsx
+import { routeLoader$ } from "@builder.io/qwik-city";
+
+const useDadJoke = routeLoader$(async () => {
+  const response = await fetch("https://icanhazdadjoke.com/", {
+    headers: { Accept: "application/json" },
+  });
+  return (await response.json()) as {
+    id: string;
+    status: number;
+    joke: string;
+  };
+});
+```
+
+Then add the `useDadJoke()` hook to the `default` component and use the result in the JSX:
+
+```tsx
+export default component$(() => {
+  const dadJokeSignal = useDadJoke();
   return (
-    <>
-      <h3>Hello, {props.name}</h3>
-      <p>You have clicked {count.value} times</p>
-      <button
-        onClick$={() => {
-          // This will update the local state and cause a re-render.
-          // Reactivity is at Qwik's core!
-          count.value++;
-        }}
-      >
-        Increment
-      </button>
-    </>
+    <div class="section bright">
+      <div>{dadJokeSignal.value.joke}</div>
+    </div>
   );
 });
 ```
 
-Qwik components are unique in that:
+What does the above code do?
+- `routeLoader$` is used to retrieve data.
+  - The function passed to `routeLoader$` is invoked on the server eagerly before any component is rendered and is responsible for loading data.
+  - The `routeLoader$` returns a use-hook (`useDadJoke`) that can be used in the component to retrieve the server data.
+- `useDadJoke` is a use-hook that returns a [signal](/docs/components/state/#usesignal/) of the server data.
 
-- Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../advanced/optimizer/index.mdx).
-- They are [resumable](../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
-- They are [reactive](../concepts/reactivity/index.mdx) and render independently of other components on the page. See [rendering](../components/rendering/index.mdx).
+Things to note:
+- The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if it's use-hook is not invoked in any component.
+- The `routeLoader$` return type is inferred in the component without the need for any additional type information.
 
-Learn more about the key concepts of writing [Qwik Components](../components/overview/index.mdx).
+### Whole File (Just in Case)
+
+`src/routes/joke/index.tsx`:
+```tsx
+import { component$ } from "@builder.io/qwik";
+import { routeLoader$ } from "@builder.io/qwik-city";
+
+const useDadJoke = routeLoader$(async () => {
+  const response = await fetch("https://icanhazdadjoke.com/", {
+    headers: { Accept: "application/json" },
+  });
+  return (await response.json()) as {
+    id: string;
+    status: number;
+    joke: string;
+  };
+});
+
+export default component$(() => {
+  const dadJokeSignal = useDadJoke();
+  return (
+    <div class="section bright">
+      <div>{dadJokeSignal.value.joke}</div>
+    </div>
+  );
+});
+```
+
+Navigate to `http://127.0.0.1:5173/` to see the application running.
+
+## Posting Data to Server
+
+Previously we used `routeLoader$` to send data from the server to the client. We use `routeAction$` to post (send) data from the client back to the server.
+
+NOTE: `routeAction$` is the preferred way to send data to the server because it uses the browser native form API which works even if JavaScript is disabled.
+
+### Declaring a `routeAction$`
+
+Open `src/routes/joke/index.tsx` and add this code:
+
+```tsx
+import {routeAction$, Form} from "@builder.io/qwik-city";
+
+const useJokeVoteAction = routeAction$((props) => {
+  // Leave it as an exercise for the reader to implement this.
+  console.log("VOTE", props);
+});
+```
+
+Update the  `export default` component.
+
+```tsx
+export default component$(() => {
+  const dadJokeSignal = useDadJoke();
+  const favoriteJokeAction = useJokeVoteAction();
+  return (
+    <div class="section bright">
+      <div>{dadJokeSignal.value.joke}</div>
+      <Form action={favoriteJokeAction}>
+        <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
+        <button name="vote" value="up">
+          👍
+        </button>
+        <button name="vote" value="down">
+          👎
+        </button>
+      </Form>
+    </div>
+  );
+});
+```
+
+What does the above code do?
+- `routeAction$` is used to receive data.
+  - The function passed to `routeLoader$` is invoked on the server whenever the form is posted.
+  - The `routeLoader$` returns a use-hook (`useJokeVoteAction`) that can be used in the component post the form data.
+- `Form` is a convenience component that wraps the browser's native `<form>` element.
+
+Things to note:
+  - For validation see [zod validation](/docs/action/#zod-validation).
+  - The `routeAction$` works even if JavaScript is disabled.
+  - If JavaScript is enabled the `Form` component will prevent the browser from posting the form and instead post the data using JavaScript and emulate the browser's native form behavior without full refresh.
+
+## Invoking Server Code
+
+## Styling
+
+## Preview
+
+
+
+## Review
+- what have you learned?
+- Where can you get more? 

@@ -1,4 +1,4 @@
-import { component$, useErrorBoundary, Slot, PropFunction } from '@builder.io/qwik';
+import { component$, useErrorBoundary, Slot, type PropFunction } from '@builder.io/qwik';
 
 /**
  * @alpha

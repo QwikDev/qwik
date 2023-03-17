@@ -8,7 +8,7 @@
 
 import { component$ } from './component/component.public';
 import { qrl } from './qrl/qrl';
-import { $, QRL } from './qrl/qrl.public';
+import { $, type QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';

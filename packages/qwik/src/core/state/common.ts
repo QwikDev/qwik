@@ -6,7 +6,11 @@ import { isArray, isFunction, isObject, isSerializableObject } from '../util/typ
 import { isPromise } from '../util/promises';
 import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
-import { isSubscriberDescriptor, SubscriberEffect, SubscriberHost } from '../use/use-task';
+import {
+  isSubscriberDescriptor,
+  type SubscriberEffect,
+  type SubscriberHost,
+} from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
 import { createError, logError } from '../util/log';

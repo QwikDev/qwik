@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { _renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
+import { _renderSSR, Fragment, jsx, _pauseFromContexts, type JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -13,7 +13,7 @@ import type {
 } from './types';
 import { isDev } from '@builder.io/qwik/build';
 import { getQwikLoaderScript } from './scripts';
-import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
+import { getPrefetchResources, type ResolvedManifest } from './prefetch-strategy';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';

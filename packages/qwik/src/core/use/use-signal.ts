@@ -1,4 +1,4 @@
-import { _createSignal, Signal } from '../state/signal';
+import { _createSignal, type Signal } from '../state/signal';
 import { isFunction } from '../util/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';

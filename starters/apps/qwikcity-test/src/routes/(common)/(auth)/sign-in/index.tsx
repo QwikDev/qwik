@@ -3,7 +3,7 @@
  */
 
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, Form, RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
+import { type DocumentHead, Form, type RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 import { z } from 'zod';
 

@@ -1,25 +1,25 @@
-import { Component, componentQrl, isQwikComponent } from '../component/component.public';
+import { type Component, componentQrl, isQwikComponent } from '../component/component.public';
 import { parseQRL, serializeQRL } from '../qrl/qrl';
-import { isQrl, QRLInternal } from '../qrl/qrl-class';
+import { isQrl, type QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { ContainerState, GetObject, MustGetObjID } from './container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
   parseTask,
-  ResourceReturnInternal,
+  type ResourceReturnInternal,
   serializeWatch,
-  SubscriberEffect,
+  type SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
 import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
-import { Collector, collectSubscriptions, collectValue } from './pause';
+import { type Collector, collectSubscriptions, collectValue } from './pause';
 import {
   fastWeakSerialize,
   getProxyManager,
   LocalSubscriptionManager,
-  SubscriptionManager,
-  Subscriptions,
+  type SubscriptionManager,
+  type Subscriptions,
 } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';

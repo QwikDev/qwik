@@ -30,6 +30,6 @@ export function patchGlobalThis() {
     globalThis.ReadableStream = ReadableStream as any;
   }
   if (typeof globalThis.crypto === 'undefined') {
-    globalThis.crypto = crypto.webcrypto;
+    globalThis.crypto = crypto.webcrypto as any;
   }
 }

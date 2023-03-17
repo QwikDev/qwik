@@ -5,13 +5,12 @@ import type { IncomingMessage } from 'http';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
-
 function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
@@ -50,6 +49,7 @@ export async function configureDevServer(
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
+      const { ORIGIN } = process.env;
       const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 
@@ -377,8 +377,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
-
-  const srcDir = ${JSON.stringify(srcDir)};
+  const origin = 'http://local.local';
+  const srcDir = new URL(${JSON.stringify(srcDir + '/')}, origin);
   const body = document.body;
   const overlay = document.createElement('div');
   overlay.id = 'qwik-inspector-overlay';
@@ -424,13 +424,15 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
         if (event.target && event.target instanceof HTMLElement) {
           if (event.target.dataset.qwikInspector) {
             event.preventDefault();
-            let file = event.target.dataset.qwikInspector;
-            if (!file.startsWith('/')) {
-              file = srcDir + '/' + file;
-            }
+            const resolvedURL = new URL(event.target.dataset.qwikInspector, srcDir);
             body.style.setProperty('cursor', 'progress');
-
-            fetch('/__open-in-editor?file=' + file);
+            if (resolvedURL.origin === origin) {
+              const params = new URLSearchParams();
+              params.set('file', resolvedURL.pathname);
+              fetch('/__open-in-editor?' + params.toString());
+            } else {
+              location.href = resolvedURL.href;
+            }
           }
         }
       }

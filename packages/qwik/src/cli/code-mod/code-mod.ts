@@ -225,7 +225,6 @@ function appendImports(
     statements[i] = ts.factory.updateImportDeclaration(
       n,
       undefined,
-      undefined,
       ts.factory.createImportClause(false, defaultIdentifier, namedBindings),
       n.moduleSpecifier,
       undefined

@@ -50,6 +50,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
+    elementAttributeNameCase: 'html',
     remarkPlugins: [
       ...userRemarkPlugins,
       ...coreRemarkPlugins,

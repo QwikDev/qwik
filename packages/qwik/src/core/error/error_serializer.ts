@@ -23,10 +23,9 @@ export const deserializeError = (serializedError: string) => {
     const { message, __constructorName, __instanceOfError, __deepClasses, stack, ...rest }: any =
       errPrims;
     stack;
-    const classOrObject = makeSafeClassOrObjectInstance(
-      __constructorName,
-      __instanceOfError && message
-    );
+    const classOrObject = __constructorName
+      ? makeClassInstance(__constructorName, __instanceOfError && message)
+      : {};
     Object.assign(classOrObject, rest);
     // delete error.stack;
     __deepClasses && deserializeDeepClasses(classOrObject, __deepClasses);
@@ -89,10 +88,9 @@ const deserializeDeepClasses = (obj: any, deepClassPaths: string[] | undefined) 
       if (deepErrObj.__constructorName) {
         const { message, __constructorName, __instanceOfError, stack, ...rest }: any = deepErrObj;
         stack;
-        const classOrObject = makeSafeClassOrObjectInstance(
-          __constructorName,
-          __instanceOfError && message
-        );
+        const classOrObject = __constructorName
+          ? makeClassInstance(__constructorName, __instanceOfError && message)
+          : {};
         Object.assign(classOrObject, rest);
         // delete error.stack;
         parentObj[objKey] = classOrObject;
@@ -101,23 +99,8 @@ const deserializeDeepClasses = (obj: any, deepClassPaths: string[] | undefined) 
   });
 };
 
-// export const makeSafeClassOrObjectInstance = (className: string, errorMessage?: string) => {
-//   if (className === 'Error') return Object.assign(new Error(errorMessage), { stack: undefined }); // Keep it screamin' fast! <--- This is the most common case
-
-//   // INECTION PROTECTION! If not a valid classname, return a plain object
-//   if (!className || !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(className)) return {};
-
-//   // Create a dynamic class or extends Error
-//   const cObj: any = {};
-//   const errEval = `cObj.DynamicClass = class ${className} extends Error {constructor() {super('${errorMessage}');this.name = '${className}';delete this.stack;}}`;
-//   errorMessage ? eval(errEval) : eval(`cObj.DynamicClass = class ${className} {constructor() {}}`);
-//   const instance = new cObj.DynamicClass(errorMessage);
-//   return instance;
-// };
-
-export const makeSafeClassOrObjectInstance = (className: string, errorMessage?: string) => {
+export const makeClassInstance = (className: string, errorMessage?: string) => {
   if (className === 'Error') return Object.assign(new Error(errorMessage), { stack: undefined }); // Keep it screamin' fast! <--- This is the most common case
-
   let instance: any;
   if (errorMessage) {
     // Create a dynamic error

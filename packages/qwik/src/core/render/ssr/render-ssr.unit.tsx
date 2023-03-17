@@ -376,11 +376,7 @@ renderSSRSuite('valid phrasing content', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
         <p>
-          <svg
-            viewBox="0 0 10 10"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-          >
+          <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <path d="M 0 0 L 10 10"></path>
             <circle cx="5" cy="5" rx="5" ry="5"></circle>
           </svg>

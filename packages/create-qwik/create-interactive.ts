@@ -121,9 +121,9 @@ export async function runCreateInteractiveCli() {
     s.start('Git initializing...');
 
     try {
-      await runCommand('git', ['init'], outDir).installing;
-      await runCommand('git', ['add', '-A'], outDir).installing;
-      await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).installing;
+      await runCommand('git', ['init'], outDir).install;
+      await runCommand('git', ['add', '-A'], outDir).install;
+      await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install;
 
       s.stop('Git initialized 🎲');
     } catch (e) {

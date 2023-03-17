@@ -18,14 +18,14 @@ export function runInPkg(pkgManager: string, args: string[], cwd: string) {
 export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
-  const { installing, abort } = installDeps(pkgManager, tmpInstallDir);
+  const { install, abort } = installDeps(pkgManager, tmpInstallDir);
 
   const complete = async (runInstall: boolean, outDir: string) => {
     let success = false;
 
     if (runInstall) {
       try {
-        const installed = await installing;
+        const installed = await install;
         if (installed) {
           const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
           const appNodeModules = path.join(outDir, 'node_modules');

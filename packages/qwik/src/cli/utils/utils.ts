@@ -10,7 +10,7 @@ import type { IntegrationPackageJson } from '../types';
 export function runCommand(cmd: string, args: string[], cwd: string) {
   let child: ChildProcess;
 
-  const installing = new Promise<boolean>((resolve) => {
+  const install = new Promise<boolean>((resolve) => {
     try {
       child = spawn(cmd, args, {
         cwd,
@@ -39,7 +39,7 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
     }
   };
 
-  return { abort, installing };
+  return { abort, install };
 }
 
 export async function readPackageJson(dir: string) {

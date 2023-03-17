@@ -188,6 +188,35 @@ For the given example, the Qwik components will be rendered in the following ord
 </RootLayout>
 ```
 
+## Request Event
+
+Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed in a `RequestEvent` object as the first argument to the handler. The `RequestEvent` object contains utility functions and properties to get and set values to the server's request and response. This object contains the following properties:
+
+- `basePathname`: The base pathname of the request, which can be configured at build time. Defaults to `/`.
+- `cacheControl`: Convenience function to set the [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) response header.
+- `cookie`: HTTP request and response [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies). Use the `get()` method to retrieve a request cookie value. Use the `set()` method to set a response cookie value.
+- `env`: Platform provided environment variables.
+- `error`: When called, the response will immediately end with the given status code. This could be useful to end a response with `404`, and use the 404 handler in the routes directory. See [Status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) for which status code should be used.
+- `getWritableStream`: Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called, the status and headers can no longer be modified and will be sent over the network.
+- `headers`: HTTP [response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header).
+- `html`: Convenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`. An `html()` response can only be called once.
+- `json`: Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to`application/json; charset=utf-8`. A `json()` response can only be called once.
+- `locale`: Which locale the content is in. The locale value can be retrieved from selected methods using `getLocale()`.
+- `method`: HTTP request [method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) value.
+- `next`: Call the next request handler. This is useful for middleware.
+- `params`: URL path params which have been parsed from the current url pathname segments. Use `query` to instead retrieve the query string search params.
+- `parseBody`: This method will check the request headers for a `Content-Type` header and parse the body accordingly. It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types. If the `Content-Type` header is not set, it will return `null`.
+- `pathname`: URL pathname value. Does not include the protocol, domain, query string (search params) or hash.
+- `platform`: Platform specific data and functions.
+- `query`: URL query string [URLSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams) value. Use `params` to instead retrieve the route params found in the url pathname.
+- `redirect`: URL to redirect to. When called, the response will immediately end with the correct redirect status and headers. See [Redirects](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) for which status code should be used.
+- `request`: HTTP [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request).
+- `send`: Send a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.
+- `sharedMap`: Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.
+- `status`: HTTP response [status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status). Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.
+- `text`: Convenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`. An `text()` response can only be called once.
+- `url`: HTTP request [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL).
+
 ## Advanced routing
 
 Qwik City also supports:

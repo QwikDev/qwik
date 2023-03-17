@@ -691,9 +691,6 @@ impl<'a> QwikTransform<'a> {
         }
         .unwrap();
 
-        if symbol_name == JsWord::from("s_wLg5o3ZkpC0") {
-            println!("founded");
-        }
         let o = self.create_qrl(import_path, &symbol_name, &hook_data, &span);
         self.hooks.push(Hook {
             entry,

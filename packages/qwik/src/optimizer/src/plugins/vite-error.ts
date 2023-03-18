@@ -1,9 +1,9 @@
 export const VITE_ERROR_OVERLAY_STYLES = `
 vite-error-overlay {
-  --color-bright: rgba(255, 255, 255, 0.7);
-  --color-yellow: rgba(255,246,85,0.7);
+  --color-bright: rgba(255, 255, 255, 0.8);
+  --color-yellow: rgba(255,246,85,0.8);
   --qwik-dark-blue: #006ce9;
-  --qwik-light-blue: #18b6f6;
+  --qwik-light-blue: #3ec2f7;
   --qwik-light-purple: #ac7ff4;
   --qwik-dark-purple: #713fc2;
   --yellow: #fff;                   /* override vite yellow */

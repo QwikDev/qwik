@@ -81,7 +81,7 @@ export function App() {
 }
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,SAAS,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACX,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,SAAS,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACX,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

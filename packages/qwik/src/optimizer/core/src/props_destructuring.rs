@@ -111,7 +111,7 @@ fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut P
             arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
         }
     }
-    if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut arrow.body {
+    if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut *arrow.body {
         transform_component_body(body, props_transform);
     }
 }
@@ -261,14 +261,14 @@ fn transform_rest(
 ) {
     let new_stmt = create_omit_props(omit_fn, rest_id, props_expr, omit);
     match &mut arrow.body {
-        ast::BlockStmtOrExpr::BlockStmt(block) => {
+        box ast::BlockStmtOrExpr::BlockStmt(block) => {
             block.stmts.insert(0, new_stmt);
         }
-        ast::BlockStmtOrExpr::Expr(ref expr) => {
-            arrow.body = ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+        box ast::BlockStmtOrExpr::Expr(ref expr) => {
+            arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                 span: DUMMY_SP,
                 stmts: vec![new_stmt, create_return_stmt(expr.clone())],
-            });
+            }));
         }
     }
 }

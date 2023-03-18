@@ -74,6 +74,7 @@ const transformFsAsync = async (
     });
     const modulesOpts: Required<TransformModulesOptions> = {
       srcDir: fsOpts.srcDir,
+      rootDir: fsOpts.rootDir!,
       entryStrategy: fsOpts.entryStrategy!,
       minify: fsOpts.minify!,
       sourceMaps: fsOpts.sourceMaps!,
@@ -109,6 +110,7 @@ const convertOptions = (opts: any) => {
     scope: undefined,
     regCtxName: undefined,
     stripEventHandlers: false,
+    rootDir: undefined,
     stripExports: undefined,
     stripCtxName: undefined,
     isServer: undefined,

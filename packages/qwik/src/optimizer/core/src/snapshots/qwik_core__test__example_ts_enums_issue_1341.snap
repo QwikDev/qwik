@@ -34,7 +34,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 export { Thing as _auto_Thing };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;IAEA;UAAK,KAAK;IAAL,MAAA,MACD,OAAA,KAAA;IADC,MAAA,MAED,OAAA,KAAA;GAFC,UAAA;AAKL,OAAO,MAAM,oBAAM,wGAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;IAGA;UAAK,KAAK;IAAL,MAAA,MACD,OAAA,KAAA;IADC,MAAA,MAED,OAAA,KAAA;GAFC,UAAA;AAKL,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { _auto_Thing as Thing } from "./test";

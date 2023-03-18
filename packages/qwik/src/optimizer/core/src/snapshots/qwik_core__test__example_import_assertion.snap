@@ -19,7 +19,7 @@ import { qrl } from "@builder.io/qwik";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,wBAAU,gHAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,wBAAU,gHAEpB\"}")
 ============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
 
 import json from "./foo.json" assert {

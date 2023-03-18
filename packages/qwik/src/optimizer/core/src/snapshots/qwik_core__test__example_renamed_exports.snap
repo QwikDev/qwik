@@ -22,7 +22,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAMhB\"}")
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";

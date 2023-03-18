@@ -26,7 +26,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 export const foo = ()=>console.log('foo');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,2GAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,2GAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { _jsxC } from "@builder.io/qwik";

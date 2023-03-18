@@ -72,7 +72,7 @@ import { qrl } from "@builder.io/qwik";
 export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,sBAAQ,4GAoBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,4GAoBlB\"}")
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import { _fnSignal } from "@builder.io/qwik";

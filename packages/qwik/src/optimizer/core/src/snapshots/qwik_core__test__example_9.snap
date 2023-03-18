@@ -53,7 +53,7 @@ import { qrl } from "@builder.io/qwik";
 /*#__PURE__*/ qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA\"}")
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
 == DIAGNOSTICS ==
 
 []

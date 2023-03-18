@@ -426,6 +426,8 @@ export interface TransformOptions {
     // (undocumented)
     regCtxName?: string[];
     // (undocumented)
+    rootDir?: string;
+    // (undocumented)
     scope?: string;
     // (undocumented)
     sourceMaps?: boolean;

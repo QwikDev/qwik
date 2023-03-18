@@ -77,9 +77,7 @@ export async function configureDevServer(
           return;
         }
 
-        const ssrModule = await server.ssrLoadModule(opts.input[0], {
-          fixStacktrace: false,
-        });
+        const ssrModule = await server.ssrLoadModule(opts.input[0]);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 

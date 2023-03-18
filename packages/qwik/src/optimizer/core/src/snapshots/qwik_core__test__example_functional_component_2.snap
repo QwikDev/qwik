@@ -48,7 +48,7 @@ export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
 ============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";

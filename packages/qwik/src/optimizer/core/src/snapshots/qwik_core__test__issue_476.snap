@@ -25,17 +25,17 @@ export const Root = () => {
 
 import { Counter } from "./counter.tsx";
 export const Root = ()=>{
-    return <html >
+    return <html>
 
-            <head >
+            <head>
 
                 <meta charSet="utf-8"/>
 
-                <title >Qwik Blank App</title>
+                <title>Qwik Blank App</title>
 
             </head>
 
-            <body >
+            <body>
 
                 <Counter initial={3}/>
 
@@ -45,7 +45,7 @@ export const Root = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,OAAO,QAAQ,gBAAgB;AAExC,OAAO,MAAM,OAAO,IAAM;IACtB,QACK,MAAK;;YACF,CAAC,MAAK;;gBACF,CAAC,KAAK,QAAQ,SAAU;;gBACxB,CAAC,OAAM,cAAc,EAAE,MAAM;;YACjC,EAAE,KAAK;;YACP,CAAC,MAAK;;gBACF,CAAC,QAAQ,SAAS,IAAK;;YAC3B,EAAE,KAAK;;QACX,EAAE;AAEV,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,OAAO,QAAQ,gBAAgB;AAExC,OAAO,MAAM,OAAO,IAAM;IACtB,QACK,KAAK;;YACF,CAAC,KAAK;;gBACF,CAAC,KAAK,QAAQ,SAAU;;gBACxB,CAAC,MAAM,cAAc,EAAE,MAAM;;YACjC,EAAE,KAAK;;YACP,CAAC,KAAK;;gBACF,CAAC,QAAQ,SAAS,IAAK;;YAC3B,EAAE,KAAK;;QACX,EAAE;AAEV,EAAE\"}")
 == DIAGNOSTICS ==
 
 []

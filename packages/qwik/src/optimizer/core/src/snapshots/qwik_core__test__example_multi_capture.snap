@@ -67,7 +67,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./fo
 export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./bar_component_l80ps8hxf1y"), "Bar_component_L80pS8Hxf1Y"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAUjB;AAEF,OAAO,MAAM,oBAAM,wGAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAUjB;AAEF,OAAO,MAAM,oBAAM,wGAQjB\"}")
 ============================= bar_component_l80ps8hxf1y.jsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -104,7 +104,7 @@ import { useLexicalScope } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const [props] = useLexicalScope();
     const fn = ({ aaa  })=>aaa;
-    return <div >
+    return <div>
 
               {props.foo}{fn()}{20}
 
@@ -113,7 +113,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACK,KAAI;;cACH,OANkB,KAMZ,MALH,GAKc;;YACnB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACK,IAAI;;cACH,OANkB,KAMZ,MALH,GAKc;;YACnB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -138,7 +138,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { useLexicalScope } from "@builder.io/qwik";
 export const Bar_component_1_0xSyNSnVu3k = ()=>{
     const [props] = useLexicalScope();
-    return <div >
+    return <div>
 
               {props.bar}
 
@@ -147,7 +147,7 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,KAAI;;cACH,OAJkB,IAIb;;YACP,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;;cACH,OAJkB,IAIb;;YACP,EAAE\"}")
 /*
 {
   "origin": "test.tsx",

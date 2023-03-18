@@ -7,9 +7,10 @@ import fs from 'node:fs';
  * @alpha
  */
 export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'azure-swa',
-    origin: process?.env?.URL || 'https://yoursitename.region.2.azurestaticapps.net',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.region.2.azurestaticapps.net',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,

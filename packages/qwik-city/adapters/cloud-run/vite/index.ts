@@ -5,9 +5,10 @@ import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
  * @alpha
  */
 export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'cloud-run',
-    origin: process?.env?.URL || 'https://your-app-name.run.app',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://your-app-name.run.app',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,

@@ -7,9 +7,10 @@ import { join } from 'node:path';
  * @alpha
  */
 export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'cloudflare-pages',
-    origin: process?.env?.CF_PAGES_URL || 'https://your.cloudflare.pages.dev',
+    origin: env?.CF_PAGES_URL ?? env?.ORIGIN ?? 'https://your.cloudflare.pages.dev',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,

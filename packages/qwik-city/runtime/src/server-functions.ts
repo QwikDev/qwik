@@ -87,7 +87,10 @@ Action.run() can only be called on the browser, for example when a user clicks a
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
         data = new FormData(form);
-        if (input.submitter instanceof HTMLInputElement || input.submitter instanceof HTMLButtonElement) {
+        if (
+          input.submitter instanceof HTMLInputElement ||
+          input.submitter instanceof HTMLButtonElement
+        ) {
           data.append(input.submitter.name, input.submitter.value);
         }
       } else {

@@ -1,10 +1,12 @@
-import { isServer } from '@builder.io/qwik/build';
 import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
 import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
+
+const isServer: boolean = /*#__PURE__*/ (() =>
+  typeof process !== 'undefined' && !!process.versions && !!process.versions.node)();
 
 export const createPlatform = (): CorePlatform => {
   return {

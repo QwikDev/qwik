@@ -114,7 +114,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         .core_module
         .map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
     let src_dir = Path::new(&config.src_dir);
-    let root_dir = config.root_dir.as_ref().map(|str| Path::new(str));
+    let root_dir = config.root_dir.as_ref().map(Path::new);
 
     let mut paths = vec![];
     let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
@@ -171,7 +171,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
         .core_module
         .map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
     let src_dir = std::path::Path::new(&config.src_dir);
-    let root_dir = config.root_dir.as_ref().map(|str| Path::new(str));
+    let root_dir = config.root_dir.as_ref().map(Path::new);
 
     let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
     #[cfg(feature = "parallel")]

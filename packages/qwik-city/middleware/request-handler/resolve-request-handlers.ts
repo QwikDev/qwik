@@ -14,7 +14,7 @@ import {
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
-  RequestEventInternal,
+  type RequestEventInternal,
   RequestEvQwikSerializer,
   RequestEvSharedActionId,
 } from './request-event';
@@ -156,13 +156,22 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
     const qwikSerializer = requestEv[RequestEvQwikSerializer];
+    if (isDev && method === 'GET') {
+      if (requestEv.query.has(QACTION_KEY)) {
+        console.warn(
+          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure you <form> has method="POST" attribute, like this: <form method="POST">'
+        );
+      }
+    }
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
-      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
-      if (selectedAction && serverActionsMap) {
+      if (selectedAction) {
+        const serverActionsMap = (globalThis as any)._qwikActionsMap as
+          | Map<string, ActionInternal>
+          | undefined;
         const action =
           routeActions.find((action) => action.__id === selectedAction) ??
-          serverActionsMap.get(selectedAction);
+          serverActionsMap?.get(selectedAction);
         if (action) {
           requestEv.sharedMap.set(RequestEvSharedActionId, selectedAction);
           const data = await requestEv.parseBody();
@@ -314,7 +323,14 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 export const encoder = /*@__PURE__*/ new TextEncoder();
 
 export function securityMiddleware({ url, request, error }: RequestEvent) {
-  const forbidden = request.headers.get('origin') !== url.origin;
+  let inputOrigin = request.headers.get('origin');
+  let origin = url.origin;
+  if (isDev) {
+    // In development, we compare the host instead of the origin.
+    inputOrigin = inputOrigin ? new URL(inputOrigin).host : null;
+    origin = url.host;
+  }
+  const forbidden = inputOrigin !== origin;
   if (forbidden) {
     throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
   }

@@ -136,7 +136,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
 
             if (Array.isArray(opts.ssg?.include) && opts.ssg!.include.length > 0) {
-              let ssgOrigin = opts.origin;
+              let ssgOrigin = opts.ssg?.origin || opts.origin;
               if (!ssgOrigin) {
                 ssgOrigin = `https://yoursite.qwik.builder.io`;
               }
@@ -171,7 +171,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               const staticGenerateResult = await staticGenerate.generate(generateOpts);
               if (staticGenerateResult.errors > 0) {
                 const err = new Error(
-                  `Error while runnning SSG from "${opts.name}" adapter. At least one path failed to render.`
+                  `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
                 );
                 err.stack = undefined;
                 this.error(err);

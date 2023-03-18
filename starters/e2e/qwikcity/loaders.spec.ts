@@ -88,11 +88,17 @@ test.describe('loaders', () => {
         javaScriptEnabled ? 'loader-cmp1' : 'empty',
         'empty',
         'loader-cmp4',
+        '{"message":"loader-cmp5"}',
       ]);
 
       if (javaScriptEnabled) {
         await page.locator('#update-cmp2').click();
-        await expect(loaderData).toHaveText(['loader-cmp1', 'loader-cmp2', 'loader-cmp4']);
+        await expect(loaderData).toHaveText([
+          'loader-cmp1',
+          'loader-cmp2',
+          'loader-cmp4',
+          '{"message":"loader-cmp5"}',
+        ]);
 
         await page.locator('#update-cmp3').click();
         await expect(loaderData).toHaveText([
@@ -100,6 +106,16 @@ test.describe('loaders', () => {
           'loader-cmp2',
           'loader-cmp3',
           'loader-cmp4',
+          '{"message":"loader-cmp5"}',
+        ]);
+
+        await page.locator('#update-cmp5').click();
+        await expect(loaderData).toHaveText([
+          'loader-cmp1',
+          'loader-cmp2',
+          'loader-cmp3',
+          'loader-cmp4',
+          '{"message":"loader-cmp5"}',
         ]);
       }
     });

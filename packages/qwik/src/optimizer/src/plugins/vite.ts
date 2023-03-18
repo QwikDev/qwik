@@ -10,16 +10,16 @@ import type {
 } from '../types';
 import {
   createPlugin,
-  NormalizedQwikPluginOptions,
+  type NormalizedQwikPluginOptions,
   parseId,
-  QwikBuildMode,
-  QwikPluginOptions,
-  QwikBuildTarget,
+  type QwikBuildMode,
+  type QwikPluginOptions,
+  type QwikBuildTarget,
   QWIK_CORE_ID,
   Q_MANIFEST_FILENAME,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_BUILD_ID,
-  QwikPackages,
+  type QwikPackages,
   QWIK_JSX_RUNTIME_ID,
   CLIENT_OUT_DIR,
   QWIK_JSX_DEV_RUNTIME_ID,
@@ -258,7 +258,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
-            output: normalizeRollupOutputOptions(path, opts, {}),
+            output: normalizeRollupOutputOptions(
+              path,
+              opts,
+              viteConfig.build?.rollupOptions?.output
+            ),
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&

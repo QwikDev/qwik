@@ -5,6 +5,14 @@ contributors:
   - adamdbradley
   - the-r3aper7
   - nnelgxorz
+  - cunzaizhuyi
+  - jakovljevic-mladen
+  - barbosajlm
+  - Eucer
+  - eltociear
+  - literalpie
+  - Mhmdrza
+  - ulic75
 ---
 
 # API reference
@@ -74,7 +82,7 @@ Use the [`useLocation()`](/qwikcity/api/index.mdx#uselocation) function to retri
 
 ```tsx
 export interface RouteLocation {
-  readonly params: RouteParams; // Readonly<Record<string, string>>
+  readonly params: PathParams; // Readonly<Record<string, string>>
   readonly url: URL;
   readonly isNavigating: boolean;
 }
@@ -181,7 +189,7 @@ export default component$(() => {
 });
 ```
 
-Please refer to the [Server Loaders](/qwikcity/loader/index.mdx) section for more information.
+Please refer to the [Route Loader](/qwikcity/route-loader/index.mdx) section for more information.
 
 ## `action$()`
 

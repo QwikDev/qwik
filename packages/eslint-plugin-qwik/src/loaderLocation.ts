@@ -37,9 +37,11 @@ export const loaderLocation: Rule.RuleModule = {
     const path = normalizePath(context.getFilename());
     const isLayout = /\/layout(|!|-.+)\.tsx?$/.test(path);
     const isIndex = /\/index(|!|@.+)\.tsx?$/.test(path);
+    const isPlugin = /\/plugin(|@.+)\.tsx?$/.test(path);
+
     const isInsideRoutes = /\/src\/routes\//.test(path);
 
-    const canContainLoader = isInsideRoutes && (isIndex || isLayout);
+    const canContainLoader = isInsideRoutes && (isIndex || isLayout || isPlugin);
     return {
       CallExpression(node) {
         if (node.callee.type !== 'Identifier') {

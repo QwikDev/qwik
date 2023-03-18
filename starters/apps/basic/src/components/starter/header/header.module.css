@@ -1,0 +1,33 @@
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px 70px 0;
+}
+
+.header .logo a {
+  display: inline-block;
+}
+
+.header ul {
+  margin: 0;
+  list-style: none;
+  flex: 1;
+  text-align: right;
+}
+
+.header li {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+.header li a {
+  color: white;
+  display: inline-block;
+  padding: 0 1em;
+  text-decoration: none;
+}
+
+.header li a:hover {
+  color: var(--qwik-dark-purple);
+}

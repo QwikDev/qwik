@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { assertPage, getPage, linkNavigate, load } from './util.js';
 
 test.describe('Qwik City Auth', () => {

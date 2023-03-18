@@ -8,8 +8,8 @@ import type { ContainerState } from '../container/container';
 import {
   fastSkipSerialize,
   LocalSubscriptionManager,
-  Subscriber,
-  Subscriptions,
+  type Subscriber,
+  type Subscriptions,
   unwrapProxy,
   verifySerializable,
 } from './common';
@@ -89,7 +89,7 @@ export const _restProps = (props: Record<string, any>, omit: string[]) => {
   return rest;
 };
 
-class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
+export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
     private $manager$: LocalSubscriptionManager

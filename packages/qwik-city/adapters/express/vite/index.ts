@@ -1,13 +1,14 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /**
  * @alpha
  */
 export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'express',
-    origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.builder.io',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,
@@ -46,4 +47,4 @@ export type ExpressAdaptorOptions = ExpressAdapterOptions;
 /**
  * @alpha
  */
-export { StaticGenerateRenderOptions };
+export type { StaticGenerateRenderOptions };

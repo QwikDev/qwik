@@ -20,6 +20,7 @@ export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderCont
   if (qDev) {
     // Clean vdom
     if (!isServerPlatform() && typeof document !== 'undefined' && isVirtualElement(hostElement)) {
+      // (hostElement as any).$vdom$ = null;
       elCtx.$vdom$ = null;
       const errorDiv = document.createElement('errored-host');
       if (err && err instanceof Error) {

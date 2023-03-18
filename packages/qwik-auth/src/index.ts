@@ -1,7 +1,14 @@
 import { Auth, skipCSRFCheck } from '@auth/core';
 import type { AuthAction, AuthConfig, Session } from '@auth/core/types';
-import { implicit$FirstArg, QRL } from '@builder.io/qwik';
-import { action$, loader$, RequestEvent, RequestEventCommon, z, zod$ } from '@builder.io/qwik-city';
+import { implicit$FirstArg, type QRL } from '@builder.io/qwik';
+import {
+  action$,
+  loader$,
+  type RequestEvent,
+  type RequestEventCommon,
+  z,
+  zod$,
+} from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
@@ -58,7 +65,7 @@ export const fixCookies = (req: RequestEventCommon) => {
   }
 };
 
-export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('/q-')[0];
+export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignin = action$(

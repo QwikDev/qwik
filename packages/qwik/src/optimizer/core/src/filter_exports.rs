@@ -64,7 +64,7 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                     return_type: None,
                     span: DUMMY_SP,
                     type_params: None,
-                    body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                    body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                         span: DUMMY_SP,
                         stmts: vec![ast::Stmt::Throw(ast::ThrowStmt {
                             span: DUMMY_SP,
@@ -74,7 +74,7 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                                 raw: None,
                             }))),
                         })],
-                    }),
+                    })),
                 }))),
             }],
         })),

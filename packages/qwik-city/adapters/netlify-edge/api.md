@@ -7,11 +7,14 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
-// @alpha (undocumented)
-export function netifyEdgeAdapter(opts?: NetlifyEdgeAdapterOptions): any;
+// @alpha @deprecated (undocumented)
+export const netifyEdgeAdapter: typeof netlifyEdgeAdapter;
 
 // @alpha @deprecated (undocumented)
-export const netifyEdgeAdaptor: typeof netifyEdgeAdapter;
+export const netifyEdgeAdaptor: typeof netlifyEdgeAdapter;
+
+// @alpha (undocumented)
+export function netlifyEdgeAdapter(opts?: NetlifyEdgeAdapterOptions): any;
 
 // @alpha (undocumented)
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {

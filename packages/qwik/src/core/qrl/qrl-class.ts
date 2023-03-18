@@ -1,17 +1,17 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
-import { isSignal, SignalInternal } from '../state/signal';
+import { isSignal, type SignalInternal } from '../state/signal';
 import {
-  InvokeContext,
+  type InvokeContext,
   newInvokeContext,
   invoke,
-  InvokeTuple,
+  type InvokeTuple,
   newInvokeContextFromTuple,
 } from '../use/use-core';
 import { then } from '../util/promises';
 import { qDev, qTest, seal } from '../util/qdev';
-import { isArray, isFunction, ValueOrPromise } from '../util/types';
+import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
 
@@ -106,7 +106,7 @@ export const createQRL = <TYPE>(
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvokationContext(currentCtx);
+          const baseContext = createInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
@@ -119,7 +119,7 @@ export const createQRL = <TYPE>(
     }) as any;
   }
 
-  const createInvokationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
     } else if (isArray(invoke)) {
@@ -184,12 +184,17 @@ export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
   }
 }
 
+const EMITTED = /*@__PURE__*/ new Set();
+
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
-  emitEvent('qsymbol', {
-    symbol,
-    element,
-    reqTime,
-  });
+  if (!EMITTED.has(symbol)) {
+    EMITTED.add(symbol);
+    emitEvent('qsymbol', {
+      symbol,
+      element,
+      reqTime,
+    });
+  }
 };
 
 export const emitEvent = (eventName: string, detail: any) => {

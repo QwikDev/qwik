@@ -27,36 +27,36 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import(".
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM;;;;;IAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAMhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { jsxDEV as _jsxDEV } from "@builder.io/qwik/jsx-dev-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ _jsxDEV(Cmp, {
-        children: /*#__PURE__*/ _jsxDEV("p", {
+    return /*#__PURE__*/ _jsxC(Cmp, {
+        children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
             onClick$: /*#__PURE__*/ qrlDEV(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto"), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
                 file: "/user/qwik/src/test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
-            }),
-            children: "Hello Qwik"
-        }, void 0, false, {
-            fileName: "/user/qwik/src/test.tsx",
+            })
+        }, "Hello Qwik", 3, null, {
+            fileName: "test.tsx",
             lineNumber: 7,
             columnNumber: 13
-        }, this)
-    }, "u6_0", false, {
-        fileName: "/user/qwik/src/test.tsx",
+        })
+    }, 3, "u6_0", {
+        fileName: "test.tsx",
         lineNumber: 6,
         columnNumber: 9
-    }, this);
+    });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC,qBACI,QAAC;kBACG,cAAA,QAAC;YAAE,OAAM;YAAQ,QAAQ;;;;;;sBAA6B;;;;;;;;;;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;;;;;;WAA6B;;;;;;;;;;AAGlE\"}")
 /*
 {
   "origin": "test.tsx",

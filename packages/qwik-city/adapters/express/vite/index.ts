@@ -7,7 +7,7 @@ import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
   return viteAdapter({
     name: 'express',
-    origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',
+    origin: process?.env?.ORIGIN ?? 'https://yoursitename.qwik.builder.io',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,

@@ -10,7 +10,7 @@ import { basePathname } from '@qwik-city-plan';
 export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   return viteAdapter({
     name: 'netlify-edge',
-    origin: process?.env?.URL || 'https://yoursitename.netlify.app',
+    origin: process?.env?.ORIGIN ?? 'https://yoursitename.netlify.app',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,

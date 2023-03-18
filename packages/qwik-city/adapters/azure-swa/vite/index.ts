@@ -9,7 +9,7 @@ import fs from 'node:fs';
 export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
   return viteAdapter({
     name: 'azure-swa',
-    origin: process?.env?.URL || 'https://yoursitename.region.2.azurestaticapps.net',
+    origin: process?.env?.ORIGIN ?? 'https://yoursitename.region.2.azurestaticapps.net',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,

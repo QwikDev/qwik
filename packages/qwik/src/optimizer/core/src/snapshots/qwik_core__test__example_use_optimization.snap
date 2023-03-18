@@ -63,7 +63,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAKlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBALP;;;QAKgB,IAAI,qBARpB;;;QAQ6B,GAAG,qBANhC,OAAM;;;QAM2D,UAAU,sBAJ1E,gBAAe,CAAC,GAChB,cAAa;;;0BAJd;;;AASX,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAKlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBALP;;;QAKgB,IAAI,qBARpB;;;QAQ6B,GAAG,qBANhC,OAAM;;;QAM2D,UAAU,sBAJ1E,gBAAe,CAAC,GAChB,cAAa;;;0BAJd;;;AASX,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -232,6 +232,7 @@ pub fn generate_entries(
     mut output: TransformOutput,
     core_module: &JsWord,
     explicit_extensions: bool,
+    root_dir: Option<&Path>,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map: BTreeMap<&str, Vec<&HookAnalysis>> = BTreeMap::new();
@@ -249,8 +250,9 @@ pub fn generate_entries(
 
         for (entry, hooks) in &entries_map {
             let module = new_entry_module(hooks, core_module, explicit_extensions);
-            let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false)
-                .context("Emitting source code")?;
+            let (code, map) =
+                emit_source_code(Lrc::clone(&source_map), None, &module, root_dir, false)
+                    .context("Emitting source code")?;
             new_modules.push(TransformModule {
                 path: [entry, ".js"].concat(),
                 code,
@@ -335,29 +337,29 @@ fn transform_arrow_fn(
     scoped_idents: &[Id],
 ) -> ast::ArrowExpr {
     match arrow.body {
-        ast::BlockStmtOrExpr::BlockStmt(mut block) => {
+        box ast::BlockStmtOrExpr::BlockStmt(mut block) => {
             let mut stmts = Vec::with_capacity(1 + block.stmts.len());
             stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
-                body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                     span: DUMMY_SP,
                     stmts,
-                }),
+                })),
                 ..arrow
             }
         }
-        ast::BlockStmtOrExpr::Expr(expr) => {
+        box ast::BlockStmtOrExpr::Expr(expr) => {
             let mut stmts = Vec::with_capacity(2);
             if !scoped_idents.is_empty() {
                 stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
             }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
-                body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                     span: DUMMY_SP,
                     stmts,
-                }),
+                })),
                 ..arrow
             }
         }

@@ -46,7 +46,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAoBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAoBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";

@@ -37,7 +37,7 @@ export default App;
 export { App as _auto_App };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,0GAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,0GAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
 import { _auto_App as App } from "./test";

@@ -71,7 +71,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./fo
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGA0BhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGA0BhB;IACC,SAAS;AACb,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";

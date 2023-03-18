@@ -46,7 +46,7 @@ import { qrl } from "@builder.io/qwik";
  */ export const RouterHead = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./routerhead_component_dpa76mgiou0"), "RouterHead_component_DPA76mgIou0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA;;CAEC,GACD,OAAO,MAAM,2BAAa,sHAyBvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA;;CAEC,GACD,OAAO,MAAM,2BAAa,sHAyBvB\"}")
 ============================= routerhead_component_dpa76mgiou0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";

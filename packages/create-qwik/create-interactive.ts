@@ -131,9 +131,14 @@ export async function runCreateInteractiveCli() {
     s.start('Git initializing...');
 
     try {
-      await runCommand('fooooooo', ['init'], outDir).install;
-      await runCommand('git', ['add', '-A'], outDir).install;
-      await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install;
+      const p = [];
+      p.push(await runCommand('miau', ['init'], outDir).install);
+      p.push(await runCommand('git', ['add', '-A'], outDir).install);
+      p.push(await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install);
+
+      if (p.some((pe) => pe === false)) {
+        throw '';
+      }
 
       s.stop('Git initialized 🎲');
     } catch (e) {

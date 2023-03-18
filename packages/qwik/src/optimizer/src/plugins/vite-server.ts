@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { IncomingMessage } from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
@@ -182,7 +182,6 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
-      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
       if (e instanceof Error) {
         server.ssrFixStacktrace(e);
         await formatError(sys, e);
@@ -193,6 +192,13 @@ export async function configureDevServer(
         (res as QwikViteDevResponse)._qwikRenderResolve!();
       }
     }
+  });
+
+  server.middlewares.use(function (err: any, _req: any, res: ServerResponse, next: any) {
+    if (!res.writableEnded) {
+      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
+    }
+    return next(err);
   });
 }
 

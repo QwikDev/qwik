@@ -1,89 +1,3 @@
-import type { RollupError } from 'rollup';
-import type { ViteDevServer } from 'vite';
-import { yellow, magenta, cyan } from 'kleur/colors';
-import strip from 'strip-ansi';
-
-/**
- * NOTE
- * the following code is copied from Vite
- * source: https://github.com/vitejs/vite/blob/main/packages/vite/src/node/server/middlewares/error.ts
- * the only change is that we are using `kleur` instead of `picocolors`
- */
-const splitRE = /\r?\n/;
-function pad(source: string, n = 2): string {
-  const lines = source.split(splitRE);
-  return lines.map((l) => ` `.repeat(n) + l).join(`\n`);
-}
-
-function prepareError(err: Error | RollupError) {
-  // only copy the information we need and avoid serializing unnecessary
-  // properties, since some errors may attach full objects (e.g. PostCSS)
-  return {
-    message: strip(err.message),
-    stack: strip(cleanStack(err.stack || '')),
-    id: (err as RollupError).id,
-    frame: strip((err as RollupError).frame || ''),
-    plugin: (err as RollupError).plugin,
-    pluginCode: (err as RollupError).pluginCode,
-    loc: (err as RollupError).loc,
-  };
-}
-
-function buildErrorMessage(err: RollupError, args: string[] = [], includeStack = true): string {
-  if (err.plugin) args.push(`  Plugin: ${magenta(err.plugin)}`);
-  const loc = err.loc ? `:${err.loc.line}:${err.loc.column}` : '';
-  if (err.id) args.push(`  File: ${cyan(err.id)}${loc}`);
-  if (err.frame) args.push(yellow(pad(err.frame)));
-  if (includeStack && err.stack) args.push(pad(cleanStack(err.stack)));
-  return args.join('\n');
-}
-
-function cleanStack(stack: string) {
-  return stack
-    .split(/\n/g)
-    .filter((l) => /^\s*at/.test(l))
-    .join('\n');
-}
-
-export function logError(server: ViteDevServer, err: RollupError): void {
-  const msg = buildErrorMessage(err, [`Internal server error: ${err.message}`]);
-
-  server.config.logger.error(msg, {
-    clear: true,
-    timestamp: true,
-    error: err,
-  });
-
-  server.ws.send({
-    type: 'error',
-    err: prepareError(err),
-  });
-}
-// END VITE FUNCTIONS
-
-export function getErrorMarkdown(err: RollupError): string {
-  return `
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <title>Qwik Error</title>
-            <style>
-              ${VITE_ERROR_OVERLAY_STYLES}
-            </style>
-            <script type="module">
-              import { ErrorOverlay } from '/@vite/client'
-              document.body.appendChild(new ErrorOverlay(${JSON.stringify(
-                prepareError(err)
-              ).replace(/</g, '\\u003c')}))
-            </script>
-          </head>
-          <body>
-          </body>
-        </html>
-  `;
-}
-
 export const VITE_ERROR_OVERLAY_STYLES = `
 vite-error-overlay {
   --color-bright: rgba(255, 255, 255, 0.7);
@@ -99,12 +13,13 @@ vite-error-overlay {
   --vertical-box-spacing: 15px;
   --box-padding: 20px;
   --box-margin: 0 0 var(--vertical-box-spacing) 0;
-  --box-background: rgba(0, 0, 0, 0.15);
+  --box-background: rgba(0, 0, 0, 0.5);
   --box-border-radius: 8px;
 }
 
 vite-error-overlay::part(backdrop) {
-  background: rgba(0, 0, 0, 0.87);
+  background: rgb(2 11 17 / 60%);
+  backdrop-filter: blur(20px) brightness(0.4) saturate(3);
 }
 
 vite-error-overlay::part(window) {
@@ -145,6 +60,7 @@ vite-error-overlay::part(tip) {
 }
 
 vite-error-overlay::part(file) {
+  border-left-color: rgb(25 182 246);
   color: var(--color-bright);
 }
 
@@ -153,8 +69,14 @@ vite-error-overlay::part(frame) {
   color: var(--color-yellow);
 }
 
+vite-error-overlay::part(stack) {
+  border-left-color: #FF5722;
+}
+
+
 vite-error-overlay::part(tip) {
   border-top: none;
+  border-left-color: rgb(172, 127, 244);
 }
 
 vite-error-overlay::part(file):before,
@@ -198,7 +120,7 @@ vite-error-overlay::part(file):after {
 }
 
 vite-error-overlay::part(frame):after {
-  background-image: url("data:image/svg+xml,%3Csvg width='20px' height='20px' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.6602 2.84952H19.1516C20.2555 2.84952 21.1504 3.74444 21.1504 4.84839V8.3398' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3Cpath d='M2.84949 8.33981L2.84949 4.8484C2.84949 3.74446 3.74441 2.84953 4.84836 2.84953L8.33977 2.84953' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3Cpath d='M21.1505 15.6602L21.1505 19.1516C21.1505 20.2555 20.2556 21.1505 19.1516 21.1505L15.6602 21.1505' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3Cpath d='M8.33984 21.1505L4.84843 21.1505C3.74449 21.1505 2.84956 20.2555 2.84956 19.1516L2.84956 15.6602' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3C/svg%3E");        
+  background-image: url("data:image/svg+xml,%3Csvg width='20px' height='20px' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.6602 2.84952H19.1516C20.2555 2.84952 21.1504 3.74444 21.1504 4.84839V8.3398' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3Cpath d='M2.84949 8.33981L2.84949 4.8484C2.84949 3.74446 3.74441 2.84953 4.84836 2.84953L8.33977 2.84953' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3Cpath d='M21.1505 15.6602L21.1505 19.1516C21.1505 20.2555 20.2556 21.1505 19.1516 21.1505L15.6602 21.1505' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3Cpath d='M8.33984 21.1505L4.84843 21.1505C3.74449 21.1505 2.84956 20.2555 2.84956 19.1516L2.84956 15.6602' stroke='rgba(255,255,255,0.7)' stroke-width='1.69904' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 vite-error-overlay::part(stack):after {

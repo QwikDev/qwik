@@ -8,8 +8,7 @@ import { ERROR_HOST } from './errored-host';
 import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
-import { getErrorMarkdown, logError, VITE_ERROR_OVERLAY_STYLES } from './vite-error';
-import type { RollupError } from 'rollup';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -183,6 +182,7 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
+      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
       if (e instanceof Error) {
         server.ssrFixStacktrace(e);
         await formatError(sys, e);
@@ -193,17 +193,6 @@ export async function configureDevServer(
         (res as QwikViteDevResponse)._qwikRenderResolve!();
       }
     }
-  });
-
-  // qwik custom rollup error handler
-  server.middlewares.use((err: RollupError, _req: any, res: any, next: any) => {
-    if (err) {
-      logError(server, err);
-      res.statusCode = 500;
-      res.end(getErrorMarkdown(err));
-      return;
-    }
-    next();
   });
 }
 
@@ -316,10 +305,6 @@ document.addEventListener('qerror', ev => {
   }
   const err = ev.detail.error;
   const overlay = new ErrorOverlay(err);
-  const style = document.createElement('style');
-  style.textContent = ${VITE_ERROR_OVERLAY_STYLES};
-  
-  document.head.appendChild(style);
   document.body.appendChild(overlay);
 });
 </script>`;
@@ -519,6 +504,7 @@ if (!window.__qwikViteLog) {
 </script>`;
 
 const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+<style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}

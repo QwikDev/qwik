@@ -1,7 +1,7 @@
 {
   "description": "Authentication plugin for using battle-tested Auth.js (aka NextAuth)",
   "devDependencies": {
-    "@builder.io/qwik-auth": "0.0.4",
+    "@builder.io/qwik-auth": "0.0.5",
     "@auth/core": "^0.5.1"
   },
   "__qwik__": {
@@ -9,11 +9,7 @@
     "priority": -10,
     "viteConfig": {
       "viteConfig": {
-        "optimizeDeps": {
-          "include": [
-            "@auth/core"
-          ]
-        }
+        "optimizeDeps": "{include:['@auth/core']}"
       }
     },
     "docs": [

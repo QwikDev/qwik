@@ -319,6 +319,17 @@ test.describe('signals', () => {
       await expect(mutable).toHaveText('4');
       await expect(signal).toHaveText('Increment 2');
     });
+
+    test('issue 3415', async ({ page }) => {
+      const result = page.locator('#issue-3415-result');
+      const button = page.locator('#issue-3415-button');
+      await expect(result).toHaveText('foo');
+      await expect(await result.innerHTML()).toEqual('<b>foo</b>');
+
+      await button.click();
+      await expect(result).toHaveText('bar');
+      await expect(await result.innerHTML()).toEqual('<i>bar</i>');
+    });
   }
 
   tests();

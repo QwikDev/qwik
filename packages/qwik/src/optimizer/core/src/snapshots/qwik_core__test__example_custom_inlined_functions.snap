@@ -44,7 +44,7 @@ export const Lightweight = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC,MAAQ;IAC/B,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC;AAGJ,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC,MAAQ;IAC/B,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC;AAGJ,EAAG\"}")
 ============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";

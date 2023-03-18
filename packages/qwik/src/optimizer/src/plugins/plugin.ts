@@ -350,6 +350,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const transformOpts: TransformFsOptions = {
         srcDir,
+        rootDir: opts.rootDir,
         vendorRoots,
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
@@ -562,6 +563,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         explicitExtensions: true,
         preserveFilenames: true,
         srcDir: srcDir,
+        rootDir: opts.rootDir,
         mode: mode,
         scope: opts.scope ? opts.scope : void 0,
       };
@@ -620,6 +622,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           explicitExtensions: true,
           preserveFilenames: true,
           srcDir: srcDir,
+          rootDir: opts.rootDir,
           mode: mode,
           scope: opts.scope ? opts.scope : void 0,
         };

@@ -57,7 +57,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,oBAAM,wGAwChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,wGAwChB\"}")
 ============================= app_component__fragment_div_immutable4_qt1dno4izxo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";

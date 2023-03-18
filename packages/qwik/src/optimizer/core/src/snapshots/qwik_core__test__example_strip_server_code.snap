@@ -80,7 +80,7 @@ import { qrl } from "@builder.io/qwik";
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,8GAiCnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8GAiCnB\"}")
 ============================= parent_component_serverstuff_a_2ca3hldc7yc.js (ENTRY POINT)==
 
 export const Parent_component_serverStuff_a_2ca3HLDC7yc = ()=>{

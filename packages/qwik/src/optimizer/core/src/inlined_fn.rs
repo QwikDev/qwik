@@ -65,7 +65,7 @@ pub fn convert_inlined_fn(
 
     // Wrap around arrow functions
     let expr = ast::Expr::Arrow(ast::ArrowExpr {
-        body: ast::BlockStmtOrExpr::Expr(Box::new(expr)),
+        body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(expr))),
         is_async: false,
         is_generator: false,
         params,

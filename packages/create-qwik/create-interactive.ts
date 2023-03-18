@@ -124,26 +124,25 @@ export async function runCreateInteractiveCli() {
 
   if (gitInitAnswer) {
     if (fs.existsSync(join(outDir, '.git'))) {
-      log.info(`Git has already been initialized`);
-      return;
-    }
+      log.info(`Git has already been initialized before. Skipping...`);
+    } else {
+      s.start('Git initializing...');
 
-    s.start('Git initializing...');
+      try {
+        const res = [];
+        res.push(await runCommand('git', ['init'], outDir).install);
+        res.push(await runCommand('git', ['add', '-A'], outDir).install);
+        res.push(await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install);
 
-    try {
-      const p = [];
-      p.push(await runCommand('miau', ['init'], outDir).install);
-      p.push(await runCommand('git', ['add', '-A'], outDir).install);
-      p.push(await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install);
+        if (res.some((r) => r === false)) {
+          throw '';
+        }
 
-      if (p.some((pe) => pe === false)) {
-        throw '';
+        s.stop('Git initialized 🎲');
+      } catch (e) {
+        s.stop('Git failed to initialize');
+        log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
       }
-
-      s.stop('Git initialized 🎲');
-    } catch (e) {
-      s.stop('Git failed to initialize');
-      log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
     }
   }
 

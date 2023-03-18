@@ -8,6 +8,7 @@ import { ERROR_HOST } from './errored-host';
 import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -47,7 +48,7 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  server.middlewares.use(async (req, res, next) => {
+  server.middlewares.use(async (req: any, res: any, next: any) => {
     try {
       const { ORIGIN } = process.env;
       const domain = ORIGIN ?? getOrigin(req);
@@ -181,6 +182,7 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
+      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
       if (e instanceof Error) {
         server.ssrFixStacktrace(e);
         await formatError(sys, e);
@@ -502,6 +504,7 @@ if (!window.__qwikViteLog) {
 </script>`;
 
 const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+<style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}

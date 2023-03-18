@@ -1,7 +1,17 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
-import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
+import {
+  text,
+  select,
+  confirm,
+  intro,
+  outro,
+  cancel,
+  spinner,
+  isCancel,
+  log,
+} from '@clack/prompts';
 import { bgBlue, red } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
@@ -114,24 +124,21 @@ export async function runCreateInteractiveCli() {
 
   if (gitInitAnswer) {
     if (fs.existsSync(join(outDir, '.git'))) {
-      console.log(`Git has already been initialized`);
-      console.log(``);
+      log.info(`Git has already been initialized`);
       return;
     }
 
     s.start('Git initializing...');
 
     try {
-      await runCommand('git', ['init'], outDir).install;
+      await runCommand('fooooooo', ['init'], outDir).install;
       await runCommand('git', ['add', '-A'], outDir).install;
       await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install;
 
       s.stop('Git initialized 🎲');
     } catch (e) {
       s.stop('Git failed to initialize');
-      console.log(``);
-      console.log(red(`Git failed to initialize. You can do this manually by running: git init`));
-      console.log(``);
+      log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
     }
   }
 

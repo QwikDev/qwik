@@ -5,7 +5,12 @@
 
 export const serializeError = (error: any) => {
   // Serialize Native Error
-  if (Object.keys(error).length === 0) return `{"__qName": "Error","message":"${error.message}"}`; // Keep it screamin' fast! (IN) <--- This is the most common case
+  if (Object.keys(error).length === 0) {
+    // It's shallow error -- Keep it screamin' fast! (IN) <--- This is the most common
+    return error.constructor.name === 'Error'
+      ? `{"message":"${error.message}"}`
+      : `{"__qName": "${error.constructor.name}", "__qIsError": "true", "message":"${error.message}"}`;
+  }
 
   // Serialize Custom Error / Object with errors
   return JSON.stringify(cloneError(error));
@@ -14,8 +19,11 @@ export const serializeError = (error: any) => {
 export const deserializeError = (serializedError: string) => {
   // Deserialize Native Error
   const errPrims = JSON.parse(serializedError);
-  if (errPrims.__qName == 'Error' && !errPrims.__qDeep)
-    return Object.assign(new Error(errPrims.message), { stack: undefined }); // Keep it screamin' fast! (OUT) <--- This is the most common case
+
+  // If there is only one key, we must have a shallow native error message
+  // Keep it screamin' fast! (OUT) <--- This is the most common case
+  if (Object.keys(errPrims).length === 1)
+    return Object.assign(new Error(errPrims.message), { stack: undefined });
 
   // Deserialize Custom Error
   if (typeof errPrims === 'object' && errPrims !== null) {
@@ -34,7 +42,7 @@ export const deserializeError = (serializedError: string) => {
 const cloneError = (obj: any): any => {
   const __qDeep: string[] = [];
 
-  function clone(obj: any, path: string | undefined = undefined, cache: Set<any> = new Set()) {
+  const clone = (obj: any, path: string | undefined = undefined, cache: Set<any> = new Set()) => {
     if (obj === null || typeof obj !== 'object' || typeof obj === 'function') return obj;
 
     // Prevent circular-references
@@ -58,10 +66,10 @@ const cloneError = (obj: any): any => {
     }
 
     return clonedObj;
-  }
+  };
 
   const clonedErr = clone(obj);
-  __qDeep.length > 0 && (clonedErr.__qDeep = __qDeep!);
+  __qDeep.length ? (clonedErr.__qDeep = __qDeep) : delete clonedErr.__qDeep; // If no error paths, clear residual flag
   return clonedErr;
 };
 

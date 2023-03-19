@@ -8,6 +8,7 @@ import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { initializeGitRepo } from './git';
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
@@ -73,10 +74,7 @@ export async function runCreateInteractiveCli() {
     }),
   });
 
-  if (isCancel(starterIdAnswer)) {
-    cancel('Operation cancelled.');
-    process.exit(0);
-  }
+  exitOnCancel(starterIdAnswer);
 
   const starterId = starterIdAnswer as string;
 
@@ -85,10 +83,7 @@ export async function runCreateInteractiveCli() {
     initialValue: true,
   });
 
-  if (isCancel(runInstallAnswer)) {
-    cancel('Operation cancelled.');
-    process.exit(0);
-  }
+  exitOnCancel(runInstallAnswer);
 
   const gitInitAnswer = await confirm({
     message: `Initialize a new git repository?`,
@@ -142,9 +137,18 @@ export async function runCreateInteractiveCli() {
     s.stop(`${successfulDepsInstall ? 'Installed' : 'Failed to install'} dependencies 📋`);
   }
 
+  await initializeGitRepo(outDir, true);
+
   note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
 
   outro('Happy coding! 🐇');
 
   return result;
+}
+
+function exitOnCancel<T>(value: T | symbol): asserts value is T {
+  if (isCancel(value)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
 }

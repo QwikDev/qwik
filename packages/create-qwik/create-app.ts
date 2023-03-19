@@ -5,12 +5,14 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,
   getPackageManager,
+  note,
   panic,
   writePackageJson,
 } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 import { logSuccessFooter } from '../qwik/src/cli/utils/log';
 import { updateApp } from '../qwik/src/cli/add/update-app';
+import { initializeGitRepo } from './git';
 
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
@@ -35,7 +37,9 @@ export async function runCreateCli(starterId: string, outDir: string) {
 
   const result = await createApp(opts);
 
-  logCreateAppResult(pkgManager, result, false);
+  await initializeGitRepo(outDir, false);
+
+  note(logCreateAppResult(pkgManager, result, false), 'Result');
 
   return result;
 }

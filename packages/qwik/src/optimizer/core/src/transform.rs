@@ -1513,7 +1513,7 @@ impl<'a> QwikTransform<'a> {
             };
             return None;
         }
-        if is_immutable_expr(&expr, &self.options.global_collect, Some(immutable_idents)) {
+        if is_immutable_expr(expr, &self.options.global_collect, Some(immutable_idents)) {
             return None;
         }
         let (inlined_expr, immutable) = self.create_synthetic_qqhook(expr.clone(), false);

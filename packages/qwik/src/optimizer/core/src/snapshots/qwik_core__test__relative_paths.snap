@@ -95,7 +95,7 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
 import { _jsxQ } from "@builder.io/qwik";
 import { state } from "./components/sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, state, 1, "zp_0");
+    return /*#__PURE__*/ _jsxQ("div", null, null, state, 3, "zp_0");
 };
 
 

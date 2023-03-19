@@ -9,6 +9,7 @@ use crate::is_immutable::is_immutable_expr;
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
+use base64::Engine;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
@@ -25,7 +26,7 @@ use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
-use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
+use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
 
 macro_rules! id {
     ($ident: expr) => {
@@ -357,7 +358,7 @@ impl<'a> QwikTransform<'a> {
         };
 
         self.hook_stack.push(symbol_name.clone());
-        let folded = fold_expr(self, *first_arg.expr);
+        let folded = *first_arg.expr.fold_with(self);
         self.hook_stack.pop();
 
         let scoped_idents = {
@@ -470,7 +471,7 @@ impl<'a> QwikTransform<'a> {
             .cloned()
             .partition(|(_, t)| matches!(t, IdentType::Var(true)));
 
-        let folded = fold_expr(self, first_arg);
+        let folded = first_arg;
 
         let mut set: HashSet<Id> = HashSet::new();
         for ident in &descendent_idents {
@@ -539,7 +540,7 @@ impl<'a> QwikTransform<'a> {
 
         self.hook_stack.push(symbol_name.clone());
         let span = first_arg.span();
-        let folded = fold_expr(self, first_arg);
+        let folded = first_arg.fold_with(self);
         self.hook_stack.pop();
 
         // Collect local idents
@@ -841,22 +842,24 @@ impl<'a> QwikTransform<'a> {
                 params: vec![],
                 return_type: None,
                 type_params: None,
-                body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
-                    callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-                        js_word!("import"),
-                        DUMMY_SP,
-                    )))),
-                    span: DUMMY_SP,
-                    type_args: None,
-                    args: vec![ast::ExprOrSpread {
-                        spread: None,
-                        expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
-                            span: DUMMY_SP,
-                            value: url,
-                            raw: None,
-                        }))),
-                    }],
-                }))),
+                body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
+                    ast::CallExpr {
+                        callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                            js_word!("import"),
+                            DUMMY_SP,
+                        )))),
+                        span: DUMMY_SP,
+                        type_args: None,
+                        args: vec![ast::ExprOrSpread {
+                            spread: None,
+                            expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                                span: DUMMY_SP,
+                                value: url,
+                                raw: None,
+                            }))),
+                        }],
+                    },
+                )))),
             }),
             ast::Expr::Lit(ast::Lit::Str(ast::Str {
                 span: DUMMY_SP,
@@ -1676,7 +1679,7 @@ impl<'a> Fold for QwikTransform<'a> {
         let mut o = node.fold_children_with(self);
         if is_condition {
             match &mut o.body {
-                ast::BlockStmtOrExpr::BlockStmt(block) => {
+                box ast::BlockStmtOrExpr::BlockStmt(block) => {
                     block.stmts.insert(
                         0,
                         ast::Stmt::Expr(ast::ExprStmt {
@@ -1689,7 +1692,7 @@ impl<'a> Fold for QwikTransform<'a> {
                         }),
                     );
                 }
-                ast::BlockStmtOrExpr::Expr(expr) => {
+                box ast::BlockStmtOrExpr::Expr(expr) => {
                     *expr = Box::new(ast::Expr::Call(self.create_internal_call(
                         &_JSX_BRANCH,
                         vec![*expr.to_owned()],
@@ -2067,7 +2070,9 @@ const fn can_capture_scope(expr: &ast::Expr) -> bool {
 }
 
 fn base64(nu: u64) -> String {
-    base64::encode_config(nu.to_le_bytes(), base64::URL_SAFE_NO_PAD).replace(['-', '_'], "0")
+    base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(nu.to_le_bytes())
+        .replace(['-', '_'], "0")
 }
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool) {

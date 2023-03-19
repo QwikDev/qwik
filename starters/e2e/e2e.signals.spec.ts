@@ -248,6 +248,7 @@ test.describe('signals', () => {
       ]);
 
       await btn.click();
+      await page.waitForTimeout(200);
 
       await expect(results).toHaveText([
         'This text should not change',
@@ -280,8 +281,9 @@ test.describe('signals', () => {
         '{"value":""}',
         '""',
       ]);
-      await input.fill('test');
       await page.waitForTimeout(100);
+      await input.fill('test');
+      await page.waitForTimeout(200);
       await expect(results).toHaveText([
         '{"controls":{"ctrl":{"value":"test"}}}',
         '{"ctrl":{"value":"test"}}',
@@ -316,6 +318,17 @@ test.describe('signals', () => {
       await signal.click();
       await expect(mutable).toHaveText('4');
       await expect(signal).toHaveText('Increment 2');
+    });
+
+    test('issue 3415', async ({ page }) => {
+      const result = page.locator('#issue-3415-result');
+      const button = page.locator('#issue-3415-button');
+      await expect(result).toHaveText('foo');
+      await expect(await result.innerHTML()).toEqual('<b>foo</b>');
+
+      await button.click();
+      await expect(result).toHaveText('bar');
+      await expect(await result.innerHTML()).toEqual('<i>bar</i>');
     });
   }
 

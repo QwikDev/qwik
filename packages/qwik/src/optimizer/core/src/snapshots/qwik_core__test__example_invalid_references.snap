@@ -42,7 +42,7 @@ export { I8 as _auto_I8 };
 export { I9 as _auto_I9 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,KAAK,CAAC;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,wGAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,KAAK,CAAC;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,wGAQjB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { _auto_I2 as I2 } from "./test";

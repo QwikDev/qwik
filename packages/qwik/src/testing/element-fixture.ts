@@ -4,7 +4,7 @@ import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getWrappingContainer } from '../core/use/use-core';
 import { assertDefined } from '../core/error/assert';
-import { tryGetContext, QContext } from '../core/state/context';
+import { tryGetContext, type QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
 
 /**

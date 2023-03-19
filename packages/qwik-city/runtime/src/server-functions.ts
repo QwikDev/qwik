@@ -2,9 +2,9 @@ import {
   $,
   implicit$FirstArg,
   noSerialize,
-  QRL,
+  type QRL,
   useContext,
-  ValueOrPromise,
+  type ValueOrPromise,
   _wrapSignal,
   useStore,
   _serializeData,
@@ -87,6 +87,12 @@ Action.run() can only be called on the browser, for example when a user clicks a
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
         data = new FormData(form);
+        if (
+          input.submitter instanceof HTMLInputElement ||
+          input.submitter instanceof HTMLButtonElement
+        ) {
+          data.append(input.submitter.name, input.submitter.value);
+        }
       } else {
         data = input;
       }
@@ -274,7 +280,7 @@ export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as a
 /**
  * @alpha
  */
-export const serverQrl: ServerConstructorQRL = (qrl) => {
+export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any>) => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -287,8 +293,11 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
       if (isServer) {
         return qrl(...(args as any));
       } else {
+        const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
-          if (arg instanceof Event) {
+          if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+            return new FormData(arg.target);
+          } else if (arg instanceof Event) {
             return null;
           } else if (arg instanceof Node) {
             return null;
@@ -310,7 +319,7 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
           throw new Error(`Server function failed: ${res.statusText}`);
         }
         const str = await res.text();
-        const obj = await _deserializeData(str);
+        const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
         return obj;
       }
     }) as any;

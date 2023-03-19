@@ -1,4 +1,4 @@
-import { BuildConfig, ensureDir, PackageJSON } from './util';
+import { type BuildConfig, ensureDir, type PackageJSON } from './util';
 import { readFile, writeFile } from './util';
 import { join } from 'node:path';
 

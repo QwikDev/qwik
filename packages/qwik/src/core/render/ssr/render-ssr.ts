@@ -1,7 +1,7 @@
 import { isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
+import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
-import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
+import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
@@ -21,14 +21,14 @@ import { logError, logWarn } from '../../util/log';
 import {
   groupListeners,
   isOnProp,
-  Listener,
+  type Listener,
   PREVENT_DEFAULT,
   setEvent,
 } from '../../state/listeners';
 import { version } from '../../version';
 import {
   addQwikEvent,
-  ContainerState,
+  type ContainerState,
   createContainerState,
   setRef,
 } from '../../container/container';
@@ -46,7 +46,7 @@ import {
   createContext,
   HOST_FLAG_DYNAMIC,
   HOST_FLAG_NEED_ATTACH_LISTENER,
-  QContext,
+  type QContext,
   Q_CTX,
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
@@ -515,10 +515,6 @@ const renderNode = (
     }
     for (const prop of Object.keys(props)) {
       let value = props[prop];
-      if (prop === 'dangerouslySetInnerHTML') {
-        htmlStr = value;
-        continue;
-      }
       if (prop === 'ref') {
         setRef(value, elm);
         hasRef = true;
@@ -533,6 +529,10 @@ const renderNode = (
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
         useSignal = true;
+      }
+      if (prop === 'dangerouslySetInnerHTML') {
+        htmlStr = value;
+        continue;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -556,10 +556,6 @@ const renderNode = (
     if (immutable) {
       for (const prop of Object.keys(immutable)) {
         let value = immutable[prop];
-        if (prop === 'dangerouslySetInnerHTML') {
-          htmlStr = value;
-          continue;
-        }
         if (isOnProp(prop)) {
           setEvent(elCtx.li, prop, value, undefined);
           continue;
@@ -569,6 +565,10 @@ const renderNode = (
           assertDefined(hostCtx, 'Signals can not be used outside the root');
           value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
           useSignal = true;
+        }
+        if (prop === 'dangerouslySetInnerHTML') {
+          htmlStr = value;
+          continue;
         }
         if (prop.startsWith(PREVENT_DEFAULT)) {
           addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -716,9 +716,9 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     if (qDev && qInspector && node.dev && !(flags & IS_HEAD)) {
       const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
       if (sanitizedFileName) {
-        openingElement += ` data-qwik-inspector="${encodeURIComponent(sanitizedFileName)}:${
-          node.dev.lineNumber
-        }:${node.dev.columnNumber}"`;
+        openingElement += ` data-qwik-inspector="${escapeAttr(
+          `${sanitizedFileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`
+        )}"`;
       }
     }
     openingElement += '>';

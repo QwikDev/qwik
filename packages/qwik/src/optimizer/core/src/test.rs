@@ -20,6 +20,7 @@ macro_rules! test_input {
 
         let res = transform_modules(TransformModulesOptions {
             src_dir: input.src_dir,
+            root_dir: input.root_dir,
             input: vec![TransformModuleInput {
                 code: input.code.clone(),
                 path: input.filename,
@@ -1549,7 +1550,7 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -1567,6 +1568,13 @@ export const Parent = component$(() => {
 
     serverStuff$(async () => {
         // should be removed too
+        const a = $(() => {
+            // from $(), should not be removed
+        });
+        const b = client$(() => {
+            // from clien$(), should not be removed
+        });
+        return [a,b];
     })
 
     serverLoader$(handler);
@@ -2864,6 +2872,18 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
+fn example_qwik_sdk_inline() {
+    test_input!(TestInput {
+        code: include_str!("fixtures/index.qwik.mjs").to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Component,
+        explicit_extensions: true,
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn relative_paths() {
     let dep = r#"
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
@@ -2914,6 +2934,7 @@ export const Local = component$(() => {
 "#;
     let res = transform_modules(TransformModulesOptions {
         src_dir: "/path/to/app/src/thing".into(),
+        root_dir: Some("/path/to/app/".into()),
         input: vec![
             TransformModuleInput {
                 code: dep.into(),
@@ -3005,6 +3026,7 @@ export const Greeter = component$(() => {
         ],
         source_maps: true,
         minify: MinifyMode::Simplify,
+        root_dir: None,
         explicit_extensions: true,
         mode: EmitMode::Lib,
         manual_chunks: None,
@@ -3040,6 +3062,7 @@ export const Greeter = component$(() => {
                     path: "components/main.tsx".into(),
                 },
             ],
+            root_dir: None,
             source_maps: false,
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
@@ -3090,6 +3113,7 @@ struct TestInput {
     pub code: String,
     pub filename: String,
     pub src_dir: String,
+    pub root_dir: Option<String>,
     pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
@@ -3113,6 +3137,7 @@ impl TestInput {
         Self {
             filename: "test.tsx".to_string(),
             src_dir: "/user/qwik/src/".to_string(),
+            root_dir: None,
             code: "/user/qwik/src/".to_string(),
             manual_chunks: None,
             entry_strategy: EntryStrategy::Hook,

@@ -24,5 +24,5 @@ export const isServer: boolean = !isBrowser;
  * @alpha
  */
 export const isDev: boolean = /*#__PURE__*/ (() => {
-  return (globalThis as any).qDev === true
+  return (globalThis as any).qDev !== false
 })();

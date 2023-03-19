@@ -1,6 +1,6 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import { assertQrl, createQRL, emitEvent, getSymbolHash, QRLInternal } from './qrl-class';
+import { assertQrl, createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
 import {
   qError,

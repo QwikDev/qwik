@@ -1,6 +1,6 @@
-import { BuildConfig, ensureDir, watcher, target, copyFile, PackageJSON } from './util';
+import { type BuildConfig, ensureDir, watcher, target, copyFile, type PackageJSON } from './util';
 import { join } from 'node:path';
-import { BuildOptions, build } from 'esbuild';
+import { type BuildOptions, build } from 'esbuild';
 import { writePackageJson } from './package-json';
 
 export async function submoduleBuild(config: BuildConfig) {

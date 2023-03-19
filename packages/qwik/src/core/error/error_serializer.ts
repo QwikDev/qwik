@@ -5,7 +5,7 @@
 
 export const serializeError = (error: any) => {
   // Serialize Native Error
-  if (Object.keys(error).length === 0) return `{"__name": "Error","message":"${error.message}"}`; // Keep it screamin' fast! (IN) <--- This is the most common case
+  if (Object.keys(error).length === 0) return `{"__qName": "Error","message":"${error.message}"}`; // Keep it screamin' fast! (IN) <--- This is the most common case
 
   // Serialize Custom Error / Object with errors
   return JSON.stringify(cloneErrorPrimitives(error));
@@ -14,17 +14,17 @@ export const serializeError = (error: any) => {
 export const deserializeError = (serializedError: string) => {
   // Deserialize Native Error
   const errPrims = JSON.parse(serializedError);
-  if (errPrims.__name == 'Error' && !errPrims.__deep)
+  if (errPrims.__qName == 'Error' && !errPrims.__qDeep)
     return Object.assign(new Error(errPrims.message), { stack: undefined }); // Keep it screamin' fast! (OUT) <--- This is the most common case
 
   // Deserialize Custom Error
   if (typeof errPrims === 'object' && errPrims !== null) {
-    const { message, __name, __error, __deep, stack, ...rest }: any = errPrims;
+    const { message, __qName, __qIsError, __qDeep, stack, ...rest }: any = errPrims;
     stack;
-    const classOrObject = __name ? makeClassInstance(__name, __error && message) : {};
+    const classOrObject = __qName ? makeClassInstance(__qName, __qIsError && message) : {};
     Object.assign(classOrObject, rest);
     // delete error.stack;
-    __deep && deserializeDeepClasses(classOrObject, __deep);
+    __qDeep && deserializeDeepClasses(classOrObject, __qDeep);
     return classOrObject;
   }
 
@@ -32,7 +32,7 @@ export const deserializeError = (serializedError: string) => {
 };
 
 const cloneErrorPrimitives = (obj: any): any => {
-  const __deep: string[] = [];
+  const __qDeep: string[] = [];
 
   function clone(obj: any, path: string | undefined = undefined, cache: Set<any> = new Set()) {
     if (obj === null || typeof obj !== 'object' || typeof obj === 'function') return obj;
@@ -49,19 +49,19 @@ const cloneErrorPrimitives = (obj: any): any => {
       }
     }
 
-    // If instance of Error, add message and __name
+    // If instance of Error, add message and __qName
     if (obj.constructor.name && obj.constructor !== Object) {
-      path && __deep.push(path);
+      path && __qDeep.push(path);
       clonedObj.message = obj.message;
-      clonedObj.__name = obj.constructor.name;
-      obj instanceof Error && (clonedObj.__error = true);
+      clonedObj.__qName = obj.constructor.name;
+      obj instanceof Error && (clonedObj.__qIsError = true);
     }
 
     return clonedObj;
   }
 
   const clonedErr = clone(obj);
-  __deep.length > 0 && (clonedErr.__deep = __deep!);
+  __qDeep.length > 0 && (clonedErr.__qDeep = __qDeep!);
   return clonedErr;
 };
 
@@ -81,10 +81,10 @@ const deserializeDeepClasses = (obj: any, deepClassPaths: string[] | undefined) 
 
     // Rebuild the object with Error instance
     if (objKey) {
-      if (deepErrObj.__name) {
-        const { message, __name, __error, stack, ...rest }: any = deepErrObj;
+      if (deepErrObj.__qName) {
+        const { message, __qName, __qIsError, stack, ...rest }: any = deepErrObj;
         stack;
-        const classOrObject = __name ? makeClassInstance(__name, __error && message) : {};
+        const classOrObject = __qName ? makeClassInstance(__qName, __qIsError && message) : {};
         Object.assign(classOrObject, rest);
         // delete error.stack;
         parentObj[objKey] = classOrObject;

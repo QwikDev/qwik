@@ -8,7 +8,7 @@ export const serializeError = (error: any) => {
   if (Object.keys(error).length === 0) return `{"__qName": "Error","message":"${error.message}"}`; // Keep it screamin' fast! (IN) <--- This is the most common case
 
   // Serialize Custom Error / Object with errors
-  return JSON.stringify(cloneErrorPrimitives(error));
+  return JSON.stringify(cloneError(error));
 };
 
 export const deserializeError = (serializedError: string) => {
@@ -31,7 +31,7 @@ export const deserializeError = (serializedError: string) => {
   throw new Error(`Unable to deserialize error: ${serializedError}`); // Whoops!
 };
 
-const cloneErrorPrimitives = (obj: any): any => {
+const cloneError = (obj: any): any => {
   const __qDeep: string[] = [];
 
   function clone(obj: any, path: string | undefined = undefined, cache: Set<any> = new Set()) {
@@ -41,7 +41,7 @@ const cloneErrorPrimitives = (obj: any): any => {
     if (cache.has(obj)) return;
     cache.add(obj);
 
-    // Clone the object, "stack" is automatically removed (somehow magically)
+    // Clone the object, "stack" is automagically removed
     const clonedObj: any = Array.isArray(obj) ? [] : {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {

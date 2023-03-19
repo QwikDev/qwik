@@ -1,7 +1,11 @@
 .header {
   display: flex;
   align-items: center;
-  padding: 20px 70px 0;
+  padding: 20px 10px 0;
+
+  @media screen and (min-width: 768px) {
+    padding: 20px 70px 0;
+  }
 }
 
 .header .logo a {
@@ -16,9 +20,13 @@
 }
 
 .header li {
-  display: inline-block;
+  display: none;
   margin: 0;
   padding: 0;
+
+  @media screen and (min-width: 450px) {
+    display: inline-block;
+  }
 }
 
 .header li a {

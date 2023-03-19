@@ -15,10 +15,13 @@
 
 body {
   background: linear-gradient(90deg, rgba(24, 182, 246, 0.3) 0%, rgba(172, 127, 244, 0.3) 100%);
-  /* background-color: #e1e1e1; */
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 200;
-  padding: 60px 0px;
+  padding: 10px 0px;
+
+  @media screen and (min-width: 768px) {
+    padding: 60px 0px;
+  }
 }
 
 ::selection {
@@ -40,9 +43,13 @@ h3 b {
 
 h1 {
   color: white;
-  font-size: 3rem;
+  font-size: 2rem;
   padding: 0;
   margin: 0;
+
+  @media screen and (min-width: 768px) {
+    font-size: 3rem;
+  }
 }
 
 h1.hero {
@@ -112,16 +119,24 @@ ul {
 }
 
 .page {
-  width: 70vw;
+  width: 90vw;
   max-width: 1200px;
   margin: 0 auto;
   background: linear-gradient(90deg, rgba(24, 182, 246, 0.6) 0%, rgba(172, 127, 244, 0.6) 100%);
   overflow: hidden;
   border-radius: 6px;
+
+  @media screen and (min-width: 768px) {
+    width: 70vw;
+  }
 }
 
 .container {
-  padding: 30px 70px;
+  padding: 20px 10px;
+
+  @media screen and (min-width: 768px) {
+    padding: 30px 70px;
+  }
 }
 
 .container.center {
@@ -134,8 +149,12 @@ ul {
 
 .topics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+
+  @media screen and (min-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
 }
 
 /* used icon pack: https://www.svgrepo.com/collection/phosphor-thin-icons */

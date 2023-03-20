@@ -8,12 +8,14 @@
   height: 200px;
   justify-content: center;
   gap: 30px;
-
-  @media screen and (min-width: 768px) {
-    height: 300px;
-  }
 }
 
 .hero button {
   padding: 10px 40px;
+}
+
+@media screen (min-width: 768px) {
+  .hero {
+    height: 300px;
+  }
 }

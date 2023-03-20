@@ -2,10 +2,6 @@
   display: flex;
   align-items: center;
   padding: 20px 10px 0;
-
-  @media screen and (min-width: 768px) {
-    padding: 20px 70px 0;
-  }
 }
 
 .header .logo a {
@@ -23,10 +19,6 @@
   display: none;
   margin: 0;
   padding: 0;
-
-  @media screen and (min-width: 450px) {
-    display: inline-block;
-  }
 }
 
 .header li a {
@@ -38,4 +30,16 @@
 
 .header li a:hover {
   color: var(--qwik-dark-purple);
+}
+
+@media (min-width: 450px) {
+  .header li {
+    display: inline-block;
+  }
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: 20px 70px 0;
+  }
 }

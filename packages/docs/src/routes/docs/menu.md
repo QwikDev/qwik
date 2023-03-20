@@ -4,38 +4,10 @@
 
 - [Overview](</docs/(qwik)/overview/index.mdx>)
 - [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
-
-## Overview (OLD)
-
-- [Intro](</docs/(qwikcity)/qwikcity/index.mdx>)
+- [QwikCity](</docs/(qwikcity)/qwikcity/index.mdx>)
 - [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)
-
-## Basics
-
-- [Routing](</docs/(qwikcity)/routing/index.mdx>)
-- [Route Loaders](</docs/(qwikcity)/route-loader/index.mdx>)
-- [Form actions](</docs/(qwikcity)/action/index.mdx>)
-- [Layouts](</docs/(qwikcity)/layout/index.mdx>)
-- [Pages](</docs/(qwikcity)/pages/index.mdx>)
-- [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
-
-## Guides
-
-- [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
-- [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
-
-## Advanced
-
-- [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
-- [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
-- [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)
-- [Static Assets](</docs/(qwikcity)/advanced/static-assets/index.mdx>)
-- [API reference](</docs/(qwikcity)/api/index.mdx>)
-
-## Intro
-
-- [Overview](</docs/(qwik)/overview/index.mdx>)
-- [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
+- [Qwik vs React](</docs/(qwik)/cheat/qwik-react/index.mdx>)
+- [FAQ](</docs/(qwik)/faq/index.mdx>)
 
 ## Component API
 
@@ -50,22 +22,29 @@
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
 - [Lite components](</docs/(qwik)/components/lite-components/index.mdx>)
 
+## Routing API
+
+- [Routing](</docs/(qwikcity)/routing/index.mdx>)
+- [Route Loaders](</docs/(qwikcity)/route-loader/index.mdx>)
+- [Form actions](</docs/(qwikcity)/action/index.mdx>)
+- [Layouts](</docs/(qwikcity)/layout/index.mdx>)
+- [Pages](</docs/(qwikcity)/pages/index.mdx>)
+- [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
+- [API reference](</docs/(qwikcity)/api/index.mdx>)
+
 ## Guides
 
-- [Think Qwik](</docs/(qwik)/think-qwik/index.mdx>)
-- [FAQ](</docs/(qwik)/faq/index.mdx>)
-
-## Cheat Sheet
-
-- [Qwik vs React](</docs/(qwik)/cheat/qwik-react/index.mdx>)
-- [Serialization](</docs/(qwik)/cheat/serialization/index.mdx>)
+- [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
+- [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
 - [Best Practices](</docs/(qwik)/cheat/best-practices/index.mdx>)
 
 ## Concepts
 
+- [Think Qwik](</docs/(qwik)/think-qwik/index.mdx>)
 - [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
 - [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
 - [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
+- [Serialization](</docs/(qwik)/cheat/serialization/index.mdx>)
 
 ## Advanced
 
@@ -78,6 +57,10 @@
 - [Custom Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Internationalization](</docs/(qwik)/advanced/i18n/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
+- [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
+- [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
+- [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)
+- [Static Assets](</docs/(qwikcity)/advanced/static-assets/index.mdx>)
 
 ## Community
 

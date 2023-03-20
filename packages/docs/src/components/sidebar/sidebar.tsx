@@ -4,14 +4,15 @@ import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
-export const SideBar = component$(() => {
+export const SideBar = component$((props: { allOpen?: boolean }) => {
   useStyles$(styles);
 
   const globalStore = useContext(GlobalStore);
   const { menu } = useContent();
   const { url } = useLocation();
   const breadcrumbs = createBreadcrumbs(menu, url.pathname);
-  const isQwikCity = url.pathname.startsWith('/qwikcity/');
+  const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
+
   return (
     <aside class="sidebar">
       <nav class="breadcrumbs">
@@ -48,7 +49,7 @@ export const SideBar = component$(() => {
         >
           <CloseIcon width={24} height={24} />
         </button>
-        <Items items={menu?.items} pathname={url.pathname} allOpen={isQwikCity} />
+        <Items items={menu?.items} pathname={url.pathname} allOpen={allOpen} />
       </nav>
     </aside>
   );

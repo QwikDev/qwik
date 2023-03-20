@@ -1,0 +1,85 @@
+---
+title: Qwik City - Vercel Edge Adaptor and Middleware
+contributors:
+  - adamdbradley
+  - manucorporat
+  - hamatoyogi
+  - reemardelarosa
+---
+
+# Vercel Edge Adaptor
+
+Qwik City Vercel Edge adaptor allows you to connect Qwik City to [Vercel Edge Functions](https://vercel.com/docs/(qwik)/concepts/functions/edge-functions).
+
+## Installation
+
+To integrate the `vercel-edge` adaptor, use the `add` command:
+
+```shell
+npm run qwik add vercel-edge
+```
+
+> It will automatically install the required dependencies, including the [Vercel CLI](https://vercel.com/docs/cli).
+
+The adaptor will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
+
+```
+└── adapters/
+    └── vercel-edge/
+        └── vite.config.ts
+└── src/
+    └── entry.vercel-edge.tsx
+```
+
+Additionally, within the `package.json`, the `build.server` and `deploy` scripts will be updated.
+
+## Production build
+
+To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
+
+```shell
+npm run build
+```
+
+[Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/adapters/vercel-edge/README.md)
+
+## Dev deploy
+
+To deploy the application for development:
+
+```shell
+npm run deploy
+```
+
+Notice that you might need a [Vercel account](https://vercel.com/docs/(qwik)/concepts/get-started) in order to complete this step!
+
+## Production deploy
+
+After installing the integration using `npm run qwik add vercel-edge`, the project is ready to be deployed to Vercel. However, you will need to create a git repository and push the code to it.
+
+Please refer to the Vercel docs for more information on how to deploy your site: [Vercel docs](https://vercel.com/docs/(qwik)/concepts/deployments/overview)
+
+## Advanced
+
+### Vercel Edge Entry Middleware
+
+When the `vercel-edge` adaptor is added, a new entry file will be created at `src/entry.vercel-edge.tsx`. Below is an example of using the built-in middleware within the entry file.
+
+```tsx
+// src/entry.vercel-edge.tsx
+import { createQwikCity } from '@builder.io/qwik-city/middleware/vercel-edge';
+import qwikCityPlan from '@qwik-city-plan';
+import render from './entry.ssr';
+
+export default createQwikCity({ render, qwikCityPlan });
+```
+
+The compiled middleware will be built in the `.vercel/output` directory.
+
+### Vercel Edge Functions
+
+[Vercel Edge Functions](https://vercel.com/docs/(qwik)/concepts/functions/edge-functions) are deployed globally by default on Vercel's Edge Network and enable you to move server-side logic to the Edge, close to your visitor's origin.
+
+Edge Functions use the Vercel Edge Runtime, which is built on the same high-performance V8 JavaScript and WebAssembly engine that is used by the Chrome browser. By taking advantage of this small runtime, Edge Functions can have faster cold boots and higher scalability than Serverless Functions.
+
+Edge Functions run after the cache, and can both cache and return responses.

@@ -1,0 +1,120 @@
+---
+title: Best Practices
+contributors:
+  - mhevery
+  - the-r3aper7
+  - manucorporat
+  - jakovljevic-mladen
+  - kerbelp
+  - wfairclough
+  - cunzaizhuyi
+  - reemardelarosa
+---
+
+# No-Hydration Tips
+
+## Don't register events eagerly with `useVisibleTask$()`
+
+> ⚠ Use `useVisibleTask$()` with caution ⚠
+
+Instead => `useOn()` methods
+
+**Best Practice**:
+
+```ts
+useVisibleTask$(() => {
+  const listener = (event) => {
+    const mouseEvent = event as MouseEvent;
+    console.log(mouseEvent.x, mouseEvent.y);
+  };
+  document.addEventListener('mousemove', listener);
+
+  return () => {
+    document.removeEventListener('mousemove', listener);
+  };
+});
+```
+
+**Why is above a problem**:
+This forces more javascript to eagerly load, rather than be surgically reactive to user events. More upfront javascript => slower app performance.
+
+It also requires you, the developer, to stay more aware of the server/client relationship (there's a reason you reached for `use > Visible < Task` after all).
+
+While that's sometimes necessary, it should be the job of the framework to keep you from having to worry about it as much as possible.
+
+Not to mention it requires the extra effort for you to manually clean up the listener.
+
+**Do this instead**:
+
+```ts
+useOnDocument(
+  'mousemove',
+  $((event) => {
+    const mouseEvent = event as MouseEvent;
+    console.log(mouseEvent.x, mouseEvent.y);
+    // No manual clean up required!
+  })
+);
+```
+
+> NOTE: Similar hooks exist for window and individual components.
+> `window` -> `useOnWindow` , component -> `useOn`
+>
+> - [useOn / useOnDocument / useOnWindow docs](https://qwik.builder.io/tutorial/hooks/use-on/)
+> - [Example](https://qwik.builder.io/tutorial/hooks/use-on/#example)
+> - [Tutorial](https://qwik.builder.io/tutorial/events/programmatic/)
+
+---
+
+## Don't rely on `window` to get the location
+
+Instead => `useLocation()`
+
+**Best Practice**:
+
+```ts
+useVisibleTask$(()=> {
+    if (window.location.href).includes('foo') {
+        //... do the thing
+    }
+})
+
+//OR
+
+//(in the root of a component)
+if (typeof window !== "undefined") {
+    const queryParams = new URLSearchParams(window.location.search);
+    const query: Record<string, string> = {};
+    queryParams.forEach((value, key) => {
+        query[key] = value;
+    })
+    doTheThing(query);
+}
+```
+
+**Why is above a problem**:
+Many, many things you'll do in response to location information can easily be done on the initial render on the server, and will result in pure HTML with no JS overhead.
+
+If you force that logic to instead run on the client side, it introduces more upfront JS & causes an eager load.
+
+When using the `if typeof window !== "undefined"` pattern you'll soon find it will simply skip that code. It will run one time on the server and skip the code block because window will always be undefined on the server. You're used to code running twice. Qwik doesn't need to! 😎
+
+**Do this instead**:
+
+```ts
+const location = useLocation();
+
+if (location.url.href.includes('foo')) {
+  // Do the thing
+}
+//OR
+doTheThing(location.url.searchParams);
+```
+
+## EXCEPTION
+
+When doing SSG for pure static files, this is a necessary evil. The server won't have current location information when the server generates the files at build time.
+
+But be mindful! If the information you need (e.g., query parameters) won't be necessary until some sort of user event, include the check in your event handling code instead to avoid the eager loading of JS.
+
+> See: [useLocation() Docs](https://qwik.builder.io/docs/(qwikcity)/api/#uselocation)

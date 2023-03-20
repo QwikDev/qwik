@@ -4,7 +4,7 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const pages = require('./pages.json');
 
-const OUTPUT_JSON = 'src/routes/showcase/generated-pages.json';
+const OUTPUT_JSON = 'src/routes/(ecosystem)/showcase/generated-pages.json';
 async function captureMultipleScreenshots() {
   if (!fs.existsSync('public/showcases')) {
     fs.mkdirSync('public/showcases');

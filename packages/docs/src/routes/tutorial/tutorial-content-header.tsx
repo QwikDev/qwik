@@ -1,6 +1,6 @@
 import tutorialSections from '@tutorial-data';
 import { component$ } from '@builder.io/qwik';
-import type { TutorialStore } from './layout!';
+import type { TutorialStore } from './layout';
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
   return (

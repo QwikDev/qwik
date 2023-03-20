@@ -5,11 +5,17 @@
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: center;
-  height: 300px;
+  height: 200px;
   justify-content: center;
   gap: 30px;
 }
 
 .hero button {
   padding: 10px 40px;
+}
+
+@media screen (min-width: 768px) {
+  .hero {
+    height: 300px;
+  }
 }

@@ -15,10 +15,9 @@
 
 body {
   background: linear-gradient(90deg, rgba(24, 182, 246, 0.3) 0%, rgba(172, 127, 244, 0.3) 100%);
-  /* background-color: #e1e1e1; */
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 200;
-  padding: 60px 0px;
+  padding: 10px 0px;
 }
 
 ::selection {
@@ -40,7 +39,7 @@ h3 b {
 
 h1 {
   color: white;
-  font-size: 3rem;
+  font-size: 2rem;
   padding: 0;
   margin: 0;
 }
@@ -112,7 +111,7 @@ ul {
 }
 
 .page {
-  width: 70vw;
+  width: 90vw;
   max-width: 1200px;
   margin: 0 auto;
   background: linear-gradient(90deg, rgba(24, 182, 246, 0.6) 0%, rgba(172, 127, 244, 0.6) 100%);
@@ -121,7 +120,7 @@ ul {
 }
 
 .container {
-  padding: 30px 70px;
+  padding: 20px 10px;
 }
 
 .container.center {
@@ -134,8 +133,7 @@ ul {
 
 .topics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
 }
 
 /* used icon pack: https://www.svgrepo.com/collection/phosphor-thin-icons */
@@ -159,4 +157,27 @@ ul {
 
 .icon-community:before {
   background-image: url("data:image/svg+xml,%3Csvg fill='%23000000' width='20px' height='20px' viewBox='0 0 256 256' id='Flat' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M246.40381 143.19434a4.00061 4.00061 0 0 1-5.60108-.7959A55.57857 55.57857 0 0 0 196 120a4 4 0 0 1 0-8 28 28 0 1 0-27.50732-33.26074 4.00013 4.00013 0 0 1-7.85987-1.49219 36.00191 36.00191 0 1 1 54.06494 37.50513 63.58068 63.58068 0 0 1 32.50147 22.84155A3.99993 3.99993 0 0 1 246.40381 143.19434Zm-57.24268 71.05273a3.9998 3.9998 0 1 1-7.1914 3.50391 60.02582 60.02582 0 0 0-107.93946 0 3.9998 3.9998 0 1 1-7.1914-3.50391 67.56008 67.56008 0 0 1 40.90625-35.20581 44 44 0 1 1 40.50976 0A67.56139 67.56139 0 0 1 189.16113 214.24707ZM128 176a36 36 0 1 0-36-36A36.04061 36.04061 0 0 0 128 176ZM60 112A28 28 0 1 1 87.50732 78.73828a3.99989 3.99989 0 1 0 7.85938-1.49219A36.00177 36.00177 0 1 0 41.30225 114.7522 63.5829 63.5829 0 0 0 8.79883 137.5957a4 4 0 1 0 6.39648 4.80469A55.58072 55.58072 0 0 1 60 120a4 4 0 0 0 0-8Z'/%3E%3C/svg%3E");
+}
+
+@media screen and (min-width: 768px) {
+  body {
+    padding: 60px 0px;
+  }
+
+  h1 {
+    font-size: 3rem;
+  }
+
+  .page {
+    width: 70vw;
+  }
+
+  .container {
+    padding: 30px 70px;
+  }
+
+  .topics {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
 }

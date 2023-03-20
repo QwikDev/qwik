@@ -14,6 +14,6 @@
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/packages/docs/api/qwik-city-vite-vercel.json"
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/vite/vercel/docs.api.json"
   }
 }

@@ -14,6 +14,6 @@
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/packages/docs/api/qwik-city-middleware-cloudflare.json"
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/middleware/cloudflare-pages/docs.api.json"
   }
 }

@@ -14,6 +14,6 @@
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/packages/docs/api/qwik-city-middleware-request-handler.json"
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/middleware/request-handler/docs.api.json"
   }
 }

@@ -14,6 +14,6 @@
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/packages/docs/api/qwik-core.json"
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik/core/docs.api.json"
   }
 }

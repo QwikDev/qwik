@@ -14,6 +14,6 @@
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/packages/docs/api/qwik-city-vite-express.json"
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/vite/express/docs.api.json"
   }
 }

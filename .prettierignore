@@ -27,6 +27,7 @@ packages/docs/src/routes/**/*.mdx
 **/server/**/*.js
 starters/**/*.js
 packages/docs/server
+packages/docs/src/routes/api
 
 # TODO: Figure out why this doesn't pass in CI
 packages/qwik/src/core/props/props.ts

@@ -12,7 +12,7 @@ What follows is a set of tutorials that will help you get started with Qwik. Eac
 
 The tutorials are broken up into these sections:
 
-- [Qwik Introduction](../../../tutorial/introduction/component/index.mdx): A fast-paced introduction to Qwik where we focus more on building a simple application with server-side pre-rendering and client-side interactivity. This tutorial is designed to give you a feel over how Qwik applications are built rather than focusing on details of individual APIs.
+- [Introduction](../../../tutorial/introduction/component/index.mdx): A fast-paced introduction to Qwik where we focus more on building a simple application with server-side pre-rendering and client-side interactivity. This tutorial is designed to give you a feel over how Qwik applications are built rather than focusing on details of individual APIs.
 - [Components](../../component/basic/index.mdx): All about declaring, binding, and composition of components.
 - [Events](../../events/basic/index.mdx): Declaring, binding, and triggering events.
 - [Stores](../../store/basic/index.mdx): Declaring stores, data-binding, reactivity, and serialization.

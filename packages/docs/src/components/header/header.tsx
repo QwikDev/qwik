@@ -102,11 +102,11 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            {/* <DocSearch
+            <DocSearch
               appId={import.meta.env.VITE_ALGOLIA_APP_ID}
               apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
               indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-            /> */}
+            />
           </li>
           <li>
             <ThemeToggle />

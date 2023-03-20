@@ -106,20 +106,20 @@ export const makeClassInstance = (className: string, errorMessage?: string) => {
   let instance: any;
   if (errorMessage) {
     // Create a dynamic error
-    class DynamicError extends Error {
+    class DeserializedError extends Error {
       constructor(message: string) {
         super(message);
         this.name = className;
         delete this.stack;
       }
     }
-    instance = new DynamicError(errorMessage);
+    instance = new DeserializedError(errorMessage);
   } else {
     // Create a dynamic class
-    class DynamicClass {
+    class DeserializedClass {
       constructor() {}
     }
-    instance = new DynamicClass();
+    instance = new DeserializedClass();
   }
 
   Object.defineProperty(instance, 'name', { value: className });

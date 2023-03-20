@@ -99,12 +99,12 @@ export const AppStatic = component$((props: Stuff) => {
 
 ============================= test.js ==
 
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxBranch } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export function Fn1(props) {
     return /*#__PURE__*/ _jsxC(_Fragment, {

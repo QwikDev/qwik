@@ -330,6 +330,48 @@ test.describe('signals', () => {
       await expect(result).toHaveText('bar');
       await expect(await result.innerHTML()).toEqual('<i>bar</i>');
     });
+
+    test('bind value', async ({ page }) => {
+      const input = page.locator('#bind-input-1');
+      const textarea = page.locator('#bind-input-2');
+      const text1 = page.locator('#bind-text-1');
+      const text2 = page.locator('#bind-text-2');
+      const checkbox = page.locator('#bind-checkbox');
+
+      await expect(input).toHaveValue('initial');
+      await expect(textarea).toHaveValue('initial');
+      await expect(text1).toHaveText('Value: initial');
+      await expect(text2).toHaveText('Value: initial');
+
+      await input.clear();
+      await input.fill('from1');
+      await expect(input).toHaveValue('from1');
+      await expect(textarea).toHaveValue('from1');
+      await expect(text1).toHaveText('Value: from1');
+      await expect(text2).toHaveText('Value: from1');
+
+      await input.clear();
+      await textarea.type('from2');
+      await expect(input).toHaveValue('from2');
+      await expect(textarea).toHaveValue('from2');
+      await expect(text1).toHaveText('Value: from2');
+      await expect(text2).toHaveText('Value: from2');
+
+      await input.clear();
+      await expect(input).toHaveValue('');
+      await expect(textarea).toHaveValue('');
+      await expect(text1).toHaveText('Value: ');
+      await expect(text2).toHaveText('Value: ');
+
+      await expect(checkbox).not.toBeChecked();
+      await expect(input).not.toBeDisabled();
+      await expect(textarea).not.toBeDisabled();
+
+      await checkbox.click();
+      await expect(checkbox).toBeChecked();
+      await expect(input).toBeDisabled();
+      await expect(textarea).toBeDisabled();
+    });
   }
 
   tests();

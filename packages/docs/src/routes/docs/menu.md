@@ -6,7 +6,7 @@
 - [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
 - [QwikCity](</docs/(qwikcity)/qwikcity/index.mdx>)
 - [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)
-- [Qwik vs React](</docs/(qwik)/cheat/qwik-react/index.mdx>)
+- [React Cheat Sheet](</docs/(qwik)/cheat/qwik-react/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
 
 ## Component API

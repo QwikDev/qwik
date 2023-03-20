@@ -80,22 +80,6 @@ export const Header = component$(() => {
               <span>Ecosystem</span>
             </a>
           </li>
-          {/* <li>
-            <a href="/community/groups" class={{ active: pathname.startsWith('/community') }}>
-              <span>Community</span>
-            </a>
-          </li>
-          <li>
-            <a href="/showcase/" class={{ active: pathname.startsWith('/showcase') }}>
-              <span>Showcase</span>
-            </a>
-          </li> 
-          <li>
-            <a href="/media/" class={{ active: pathname.startsWith('/media') }}>
-              <span>Media</span>
-            </a>
-          </li>
-          */}
           <li>
             <a
               href="/examples/introduction/hello-world/"
@@ -113,11 +97,16 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            {/* <DocSearch
+            <a href="/playground/" class={{ active: pathname.startsWith('/playground') }}>
+              <span>Playground</span>
+            </a>
+          </li>
+          <li>
+            <DocSearch
               appId={import.meta.env.VITE_ALGOLIA_APP_ID}
               apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
               indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-            /> */}
+            />
           </li>
           <li>
             <ThemeToggle />

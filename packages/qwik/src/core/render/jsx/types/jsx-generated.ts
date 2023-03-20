@@ -1,3 +1,4 @@
+import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
@@ -613,6 +614,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   autoFocus?: boolean | undefined;
   capture?: boolean | 'user' | 'environment' | undefined; // https://www.w3.org/TR/html-media-capture/#the-capture-attribute
   checked?: boolean | undefined;
+  'bind:checked'?: Signal<boolean | undefined>;
   crossOrigin?: HTMLCrossOriginAttribute;
   disabled?: boolean | undefined;
   enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
@@ -639,6 +641,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   step?: number | string | undefined;
   type?: HTMLInputTypeAttribute | undefined;
   value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
+  'bind:value'?: Signal<string | undefined>;
   width?: number | string | undefined;
   children?: undefined;
 }
@@ -775,6 +778,7 @@ export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
   required?: boolean | undefined;
   size?: number | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
+  'bind:value'?: Signal<string | undefined>;
 }
 export interface SourceHTMLAttributes<T> extends HTMLAttributes<T> {
   height?: number | string | undefined;
@@ -828,6 +832,7 @@ export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
   required?: boolean | undefined;
   rows?: number | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
+  'bind:value'?: Signal<string | undefined>;
   wrap?: string | undefined;
 
   /** @deprecated - Use the `value` property instead */

@@ -1734,6 +1734,35 @@ const d = $(()=>console.log('thing'));
 }
 
 #[test]
+fn example_input_bind() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    const value = useSignal(0);
+    const checked = useSignal(false);
+    const stuff = useSignal();
+    return (
+        <>
+            <input bind:value={value} />
+            <input bind:checked={checked} />
+            <input bind:stuff={stuff} />
+            <div>{value}</div>
+            <div>{value.value}</div>
+        </>
+
+    )
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_import_assertion() {
     test_input!(TestInput {
         code: r#"

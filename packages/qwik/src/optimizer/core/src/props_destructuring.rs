@@ -198,12 +198,7 @@ fn transform_pat(
                     span: DUMMY_SP,
                 });
                 if let Some(value) = &v.value {
-                    if is_immutable_expr(
-                        value.as_ref(),
-                        &COMPONENT,
-                        props_transform.global_collect,
-                        None,
-                    ) {
+                    if is_immutable_expr(value.as_ref(), props_transform.global_collect, None) {
                         local.push((
                             id!(v.key),
                             v.key.sym.clone(),

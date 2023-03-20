@@ -95,11 +95,5 @@
     "starters/dev-server.ts",
     "packages/qwik-react/vite"
   ],
-  "exclude": [
-    "packages/create-qwik/dist",
-    "packages/docs/dist",
-    "packages/docs/server",
-    "**/lib",
-    "packages/qwik/**/*.d.ts"
-  ]
+  "exclude": ["packages/create-qwik/dist", "**/lib", "packages/qwik/**/*.d.ts"]
 }

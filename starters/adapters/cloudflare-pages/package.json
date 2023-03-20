@@ -11,7 +11,7 @@
     "priority": 40,
     "displayName": "Adapter: Cloudflare Pages",
     "docs": [
-      "https://qwik.builder.io/integrations/deployments/cloudflare-pages/",
+      "https://qwik.builder.io/deployments/cloudflare-pages/",
       "https://developers.cloudflare.com/pages"
     ]
   }

@@ -226,8 +226,8 @@ More commands can be found in each package's package.json scripts section.
 
 ## Pull Request
 
-- [Open Qwik in Stackblitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
-- Review PR in Stackblitz
+- [Open Qwik in StackBlitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
+- Review PR in StackBlitz
   ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
 ### Committing using "Commitizen":

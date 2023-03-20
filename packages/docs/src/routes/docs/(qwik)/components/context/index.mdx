@@ -1,0 +1,180 @@
+---
+title: Context
+contributors:
+  - manucorporat
+  - RATIU5
+  - nnelgxorz
+  - adamdbradley
+  - the-r3aper7
+  - cunzaizhuyi
+  - forresst
+  - kerbelp
+  - shairez
+---
+
+# Context
+
+Qwik provides a context API, which solves the problem of props drilling and it is very similar to React's functional `useContext()`. In fact, Qwik's context API is the most efficient way to pass down the data to different components, reducing overhead, generating less code, and allowing Qwik to [treeshake](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking) unused data more heavily.
+
+Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
+
+- [`createContextId(contextName: string): ContextId`](#createcontextid)
+- [`useContextProvider(ctx: ContextId, value: VALUE): void`](#usecontextprovider)
+- [`useContext(ctx: ContextId): VALUE`](#usecontext)
+
+### Example
+
+Let's make a global context which holds the state of the theme used by user and this can be accessed by any component down the component tree. Here, `root.tsx` file will act as the `Parent` component and other files/pages will be the `Child` component.
+
+At the same time, the Child component is rendering a button and `h2` tag, creating a reactive subscription that will re-render when the Child changes the value in the click handler: `<button onClick$={() => { themeStore.theme = 'dark' }}>`.
+
+```tsx
+// file: src/root.tsx
+import {
+  component$,
+  useSignal,
+  useContext,
+  useContextProvider,
+  createContextId,
+  useStylesScoped$
+} from '@builder.io/qwik';
+
+export type Theme = 'dark' | 'light';
+
+// Create a new context descriptor
+export const ThemeContext = createContextId<Theme>('io.builder.qwik.docs.theme-context');
+
+export default component$(() => {
+  // Creating reactive storage
+  const themeStore = useSignal<Theme>('dark');
+
+  // Assigning value (state) to the context (ThemeContext)
+  useContextProvider(ThemeContext, themeStore)
+
+  return (
+    // default config
+    ...
+  );
+});
+
+// file: src/components/header/header.tsx
+export default component$(() => {
+
+  // Get reference to state using ThemeContext
+  const theme = useContext(ThemeContext);
+
+  useStylesScoped$(`
+    .dark {
+      color: white;
+      background: black;
+    };
+    .white {
+      color: black;
+      background: white;
+    }
+  `);
+
+  return (
+    <>
+      <h1 class={theme.value}>
+        {theme.value === 'dark' ? 'Welcome to dark side' : 'This component is light themed'}
+      </h1>
+      <button
+        onClick$={() => {
+          theme.value == 'light'
+            ? (theme.value = 'dark')
+            : (theme.value = 'light');
+        }}
+      >
+        Change Theme
+      </button>
+    </>
+  );
+});
+
+```
+
+Let's dig into every API involved:
+
+## API
+
+### `createContextId()`
+
+This method is used to create a new `ContextId`.
+
+```tsx
+export interface GenericType {
+  ...
+}
+
+export const QwikCityContext = createContextId<GenericType>(name: string): ContextId<GenericType>;
+```
+
+#### Parameters
+
+- `name`: it is a unique string given to `createContextId` as an identifier of context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `io.builder.qwik.city`.
+
+#### Returns
+
+Notice that the value returned by `createContextId()` does not hold any state, it is an immutable object i.e. `{ id: 'io.builder.qwik.city' }`. It's only used to describe the name and type of the context, like an address or an identifier.
+
+Since it does not hold any state, it's ok to call it and make it a singleton, exported in some shared module.
+
+### `useContextProvider()`
+
+- This method is used to create a Context for a specific component and its descendants, using the `ContextId` as the key identifier of the context.
+
+- As all [`use-`](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules) methods it is used at the root of the [`component$()`](/docs/(qwik)/components/overview/index.mdx#component).
+
+```tsx
+import { component$, useStore, useContextProvider } from '@builder.io/qwik';
+
+export const Parent = component$(() => {
+
+  const qwikCityObject = useStore<GenricType>({
+    ...
+  });
+
+  useContextProvider(QwikCityContext, qwikCityObject);
+
+  useContextProvider(PlainArrayContext, [1, 2, 3])
+
+  useContextProvider(AppNameContext, "My Qwik App")
+
+  return (
+    <>
+      <Children />
+    </>
+  );
+});
+```
+
+#### Parameters
+
+- `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter).
+
+- `data`: you can provide any data type like Qwik's useSignal, useStore, Array, Objects.
+
+#### Caveats
+
+- The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
+
+### `useContext()`
+
+This method is used to get the value of `Context` which is **provided** by Parent Component.
+
+```tsx
+import { component$, useContext } from '@builder.io/qwik';
+
+export const Children = component$(() => {
+  const qwikCityObject = useContext(QwikCityContext);
+  const plainArray = useContext(PlainArrayContext);
+  const appName = useContext(AppNameContext);
+
+  return (
+    <>
+      <div>Child components can use any of the provided values, such as {appName}</div>
+    </>
+  );
+});
+```

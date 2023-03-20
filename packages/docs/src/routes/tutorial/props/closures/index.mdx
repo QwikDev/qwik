@@ -12,9 +12,9 @@ Props must be serializable so that Qwik can resume and render each component ind
 
 ## QRLs
 
-Functions passing across serializable boundaries must be done through QRLs. QRLs are serialized forms of a function. (See [QRL](../../../docs/advanced/qrl/index.mdx) in advanced section.)
+Functions passing across serializable boundaries must be done through QRLs. QRLs are serialized forms of a function. (See [QRL](/docs/(qwik)/advanced/qrl/index.mdx) in the advanced section.)
 
-Qwik has convenience APIs which end in `$` that are equivalent to calling `$()` directly. These two lines are equivalent:
+Qwik has convenience APIs that end in `$` these are equivalent to calling `$()` directly. These two lines are equivalent:
 
 - inline: `useTask$(() => {...}/>`
 - explicit: `const callbackQrl = $(() => {...}); useTaskQrl(callbackQrl)`

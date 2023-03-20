@@ -7312,12 +7312,12 @@ packages:
     dev: true
     optional: true
 
-  /tsconfck/2.1.0_typescript@5.0.2:
-    resolution: {integrity: sha512-lztI9ohwclQHISVWrM/hlcgsRpphsii94DV9AQtAw2XJSVNiv+3ppdEsrL5J+xc5oTeHXe1qDqlOAGw8VSa9+Q==}
-    engines: {node: ^14.13.1 || ^16 || >=18}
+  /tsconfck/2.0.2_typescript@5.0.2:
+    resolution: {integrity: sha512-H3DWlwKpow+GpVLm/2cpmok72pwRr1YFROV3YzAmvzfGFiC1zEM/mc9b7+1XnrxuXtEbhJ7xUSIqjPFbedp7aQ==}
+    engines: {node: ^14.13.1 || ^16 || >=18, pnpm: ^7.18.0}
     hasBin: true
     peerDependencies:
-      typescript: ^4.3.5 || ^5.0.0
+      typescript: ^4.3.5
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -7619,7 +7619,7 @@ packages:
     dependencies:
       debug: 4.3.4
       globrex: 0.1.2
-      tsconfck: 2.1.0_typescript@5.0.2
+      tsconfck: 2.0.2_typescript@5.0.2
       vite: 4.2.0_67ayhxtn77ihpqz7ip4pro4g64
     transitivePeerDependencies:
       - supports-color

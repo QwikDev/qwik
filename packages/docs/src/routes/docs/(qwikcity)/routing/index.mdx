@@ -85,11 +85,11 @@ export default component$(() => {
 
 Inside the `src/routes` directory, all files named `index` are considered pages/endpoints, Qwik supports the following extensions: `.ts`, `.tsx`, `.md` and `.mdx`.
 
-Pages/endpoints are the leaf nodes of the routing tree, ie, **the modules that will handle the request and return a HTTP response**.
+Pages/endpoints are the leaf nodes of the routing tree, ie, **the modules that will handle the request and return an HTTP response**.
 
 ### Page `index.tsx`
 
-When `index.tsx` or `index.ts` exports a Qwik component as the default export, QwikCity will render the component and return a HTML response as a webpage.
+When `index.tsx` or `index.ts` exports a Qwik component as the default export, Qwik City will render the component and return an HTML response as a webpage.
 
 ```tsx
 // src/routes/index.tsx
@@ -102,7 +102,7 @@ export default component$(() => {
 
 ### Endpoint `index.tsx`
 
-A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending if you only want to handle a specific request given its HTTP method.
+A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending on if you only want to handle a specific request given its HTTP method.
 
 ```tsx
 // src/routes/index.ts
@@ -113,11 +113,11 @@ export const onGet = ({ json }) => {
 };
 ```
 
-> Notice that in the last example, there is not a default export. This is because we are not rendering a Qwik component, but rather we are handling the request directly, and returning a JSON response. This is useful to implement RESTful APIs or any other type of HTTP endpoint.
+> Notice that in the last example, there is no default export. This is because we are not rendering a Qwik component, but rather we are handling the request directly and returning a JSON response. This is useful to implement RESTful APIs or any other type of HTTP endpoint.
 
 ### Page + Endpoint
 
-As you can see in Qwik City there is no a clear separation between pages and endpoints, in both cases it's a `index.tsx` file that exports a Qwik component or a `onRequest` method. However, it's possible to combine both approaches. For example, you can export a `onRequest` method that will handle the request, and then render a Qwik component.
+As you can see in Qwik City there is no clear separation between pages and endpoints, in both cases, it's a `index.tsx` file that exports a Qwik component or an `onRequest` method. However, it's possible to combine both approaches. For example, you can export a `onRequest` method that will handle the request, and then render a Qwik component.
 
 ```tsx
 // src/routes/index.ts
@@ -135,15 +135,15 @@ export default component$(async () => {
 });
 ```
 
-> In this example, a request handle will always set the `Cache-Control` header to `private` and the page will be rendered as a HTML page, but if the request contains a `format=json` query param, the endpoint will return a JSON response instead.
+> In this example, a request handle will always set the `Cache-Control` header to `private` and the page will be rendered as an HTML page, but if the request contains a `format=json` query param, the endpoint will return a JSON response instead.
 
 ## `layout.` files
 
 Layout modules are very similar to `index` files, both can handle requests and render Qwik components, however, layouts are designed to work like a middleware, allowing to **share UI and request handling (middleware)** to a set of routes.
 
-Usually different pages need some common request handling, and share some UI. For example, picture a dashboard site where all the pages under the `/admin/*` directory:
+Usually, different pages need some common request handling and share some UI. For example, picture a dashboard site where all the pages are under the `/admin/*` directory:
 
-- **Shared request handling:** The request cookies need to be validated before even rendering the page, otherwise render a blank 401 page.
+- **Shared request handling:** The request cookies need to be validated before even rendering the page, otherwise, render a blank 401 page.
 - **Shared UI:** All pages share a common header showing the user's name and profile picture.
 
 Instead of repeating the same code in each route, we can use layouts to automatically reuse common parts, and also to add middleware to the route.

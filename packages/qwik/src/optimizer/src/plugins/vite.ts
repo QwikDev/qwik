@@ -282,22 +282,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
-      if (buildMode === 'development') {
-        const qDevKey = 'globalThis.qDev';
-        const qInspectorKey = 'globalThis.qInspector';
-        const qSerializeKey = 'globalThis.qSerialize';
-        const qDev = viteConfig?.define?.[qDevKey] ?? true;
-        const qInspector = viteConfig?.define?.[qInspectorKey] ?? true;
-        const qSerialize = viteConfig?.define?.[qSerializeKey] ?? true;
+      const isDevelopment = buildMode === 'development';
+      const qDevKey = 'globalThis.qDev';
+      const qInspectorKey = 'globalThis.qInspector';
+      const qSerializeKey = 'globalThis.qSerialize';
+      const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
+      const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
+      const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
-        updatedViteConfig.define = {
-          [qDevKey]: qDev,
-          [qInspectorKey]: qInspector,
-          [qSerializeKey]: qSerialize,
-        };
-        (globalThis as any).qDev = qDev;
-        (globalThis as any).qInspector = qInspector;
-      }
+      updatedViteConfig.define = {
+        [qDevKey]: qDev,
+        [qInspectorKey]: qInspector,
+        [qSerializeKey]: qSerialize,
+      };
+      (globalThis as any).qDev = qDev;
+      (globalThis as any).qInspector = qInspector;
 
       if (opts.target === 'ssr') {
         // SSR Build

@@ -20,6 +20,7 @@ macro_rules! test_input {
 
         let res = transform_modules(TransformModulesOptions {
             src_dir: input.src_dir,
+            root_dir: input.root_dir,
             input: vec![TransformModuleInput {
                 code: input.code.clone(),
                 path: input.filename,
@@ -1733,6 +1734,35 @@ const d = $(()=>console.log('thing'));
 }
 
 #[test]
+fn example_input_bind() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    const value = useSignal(0);
+    const checked = useSignal(false);
+    const stuff = useSignal();
+    return (
+        <>
+            <input bind:value={value} />
+            <input bind:checked={checked} />
+            <input bind:stuff={stuff} />
+            <div>{value}</div>
+            <div>{value.value}</div>
+        </>
+
+    )
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_import_assertion() {
     test_input!(TestInput {
         code: r#"
@@ -2933,6 +2963,7 @@ export const Local = component$(() => {
 "#;
     let res = transform_modules(TransformModulesOptions {
         src_dir: "/path/to/app/src/thing".into(),
+        root_dir: Some("/path/to/app/".into()),
         input: vec![
             TransformModuleInput {
                 code: dep.into(),
@@ -3024,6 +3055,7 @@ export const Greeter = component$(() => {
         ],
         source_maps: true,
         minify: MinifyMode::Simplify,
+        root_dir: None,
         explicit_extensions: true,
         mode: EmitMode::Lib,
         manual_chunks: None,
@@ -3059,6 +3091,7 @@ export const Greeter = component$(() => {
                     path: "components/main.tsx".into(),
                 },
             ],
+            root_dir: None,
             source_maps: false,
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
@@ -3109,6 +3142,7 @@ struct TestInput {
     pub code: String,
     pub filename: String,
     pub src_dir: String,
+    pub root_dir: Option<String>,
     pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
@@ -3132,6 +3166,7 @@ impl TestInput {
         Self {
             filename: "test.tsx".to_string(),
             src_dir: "/user/qwik/src/".to_string(),
+            root_dir: None,
             code: "/user/qwik/src/".to_string(),
             manual_chunks: None,
             entry_strategy: EntryStrategy::Hook,

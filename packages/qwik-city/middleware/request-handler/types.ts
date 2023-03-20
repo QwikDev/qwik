@@ -146,6 +146,8 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
    * HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value.
    * Use the `set()` method to set a response cookie value.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
    */
   readonly cookie: Cookie;
 
@@ -172,6 +174,8 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
    * URL Query Strings (URL Search Params).
    * Use `params` to instead retrieve the route params found in the url pathname.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
    */
   readonly query: URLSearchParams;
 
@@ -217,6 +221,8 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 
   /**
    * Convenience method to set the Cache-Control header.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
    */
   readonly cacheControl: (cacheControl: CacheControl) => void;
 }

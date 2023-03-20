@@ -26,6 +26,7 @@ export const useSecretAction = globalAction$(
   zod$({
     username: z.string().min(3).max(10),
     code: z.coerce.number(),
+    button: z.string().startsWith('hello'),
   })
 );
 
@@ -74,7 +75,7 @@ export const SecretForm = component$(() => {
             {action.value.secret}
           </p>
         )}
-        <button id="submit" disabled={action.isRunning}>
+        <button value="hello" name="button" id="submit" disabled={action.isRunning}>
           Submit
         </button>
       </Form>
@@ -85,6 +86,7 @@ export const SecretForm = component$(() => {
           const { value } = await action.run({
             username: 'admin',
             code: 123,
+            button: 'hello',
           });
           console.warn(value?.secret);
           message.value = value!.secret!;

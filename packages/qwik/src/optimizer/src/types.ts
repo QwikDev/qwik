@@ -71,6 +71,7 @@ export type TranspileOption = boolean | undefined | null;
  */
 export interface TransformOptions {
   srcDir: string;
+  rootDir?: string;
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   sourceMaps?: boolean;

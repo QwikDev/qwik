@@ -2,10 +2,9 @@ import { bgRed, cyan, red } from 'kleur/colors';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import spawn from 'cross-spawn';
 import { log } from '@clack/prompts';
-import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
+import { runCommand } from './utils';
 
 export function installDeps(pkgManager: string, dir: string) {
   return runCommand(pkgManager, ['install'], dir);
@@ -14,41 +13,6 @@ export function installDeps(pkgManager: string, dir: string) {
 export function runInPkg(pkgManager: string, args: string[], cwd: string) {
   const cmd = pkgManager === 'npm' ? 'npx' : pkgManager;
   return runCommand(cmd, args, cwd);
-}
-
-export function runCommand(cmd: string, args: string[], cwd: string) {
-  let installChild: ChildProcess;
-
-  const install = new Promise<boolean>((resolve) => {
-    try {
-      installChild = spawn(cmd, args, {
-        cwd,
-        stdio: 'ignore',
-      });
-
-      installChild.on('error', () => {
-        resolve(false);
-      });
-
-      installChild.on('close', (code) => {
-        if (code === 0) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      });
-    } catch (e) {
-      resolve(false);
-    }
-  });
-
-  const abort = async () => {
-    if (installChild) {
-      installChild.kill('SIGINT');
-    }
-  };
-
-  return { abort, install };
 }
 
 export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {

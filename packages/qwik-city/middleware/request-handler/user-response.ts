@@ -1,6 +1,6 @@
 import type { QwikSerializer, ServerRequestEvent } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import { createRequestEvent, type RequestEventInternal } from './request-event';
+import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
@@ -53,20 +53,22 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
         requestEv.html(e.status, html);
       }
     } else if (!(e instanceof AbortMessage)) {
-      try {
-        if (!requestEv.headersSent) {
-          requestEv.headers.set('content-type', 'text/html; charset=utf-8');
-          requestEv.cacheControl({ noCache: true });
-          requestEv.status(500);
+      if (getRequestMode(requestEv) !== 'dev') {
+        try {
+          if (!requestEv.headersSent) {
+            requestEv.headers.set('content-type', 'text/html; charset=utf-8');
+            requestEv.cacheControl({ noCache: true });
+            requestEv.status(500);
+          }
+          const stream = requestEv.getWritableStream();
+          if (!stream.locked) {
+            const writer = stream.getWriter();
+            await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+            await writer.close();
+          }
+        } catch {
+          console.error('Unable to render error page');
         }
-        const stream = requestEv.getWritableStream();
-        if (!stream.locked) {
-          const writer = stream.getWriter();
-          await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
-          await writer.close();
-        }
-      } catch {
-        console.error('Unable to render error page');
       }
       return e;
     }

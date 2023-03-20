@@ -71,7 +71,7 @@ export const Header = component$(() => {
         </button>
         <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
           <li>
-            <a href="/docs/overview/" class={{ active: pathname.startsWith('/docs') }}>
+            <a href="/docs/" class={{ active: pathname.startsWith('/docs') }}>
               <span>Docs</span>
             </a>
           </li>
@@ -102,11 +102,11 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <DocSearch
+            {/* <DocSearch
               appId={import.meta.env.VITE_ALGOLIA_APP_ID}
               apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
               indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-            />
+            /> */}
           </li>
           <li>
             <ThemeToggle />

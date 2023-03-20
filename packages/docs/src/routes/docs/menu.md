@@ -9,7 +9,7 @@
 - [React Cheat Sheet](</docs/(qwik)/cheat/qwik-react/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
 
-## Component API
+## Component
 
 - [Overview](</docs/(qwik)/components/overview/index.mdx>)
 - [State](</docs/(qwik)/components/state/index.mdx>)
@@ -22,7 +22,7 @@
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
 - [Lite components](</docs/(qwik)/components/lite-components/index.mdx>)
 
-## Routing API
+## Routing
 
 - [Routing](</docs/(qwikcity)/routing/index.mdx>)
 - [Route Loaders](</docs/(qwikcity)/route-loader/index.mdx>)

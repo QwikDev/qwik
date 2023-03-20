@@ -121,6 +121,8 @@ export const SignalsChildren = component$(() => {
       <Issue3212 />
       <FineGrainedTextSub />
       <FineGrainedUnsubs />
+      <Issue3415 />
+      <BindSignal />
     </div>
   );
 });
@@ -772,5 +774,38 @@ export const FineGrainedUnsubs = component$(() => {
       )}
       <div>{count.value?.nu ?? 'EMPTY'}</div>
     </div>
+  );
+});
+
+export const Issue3415 = component$(() => {
+  const signal = useSignal('<b>foo</b>');
+
+  return (
+    <>
+      <button
+        id="issue-3415-button"
+        onClick$={() => {
+          signal.value = '<i>bar</i>';
+        }}
+      >
+        Toggle
+      </button>
+      <div id="issue-3415-result" dangerouslySetInnerHTML={signal.value} />
+    </>
+  );
+});
+
+export const BindSignal = component$(() => {
+  const value = useSignal('initial');
+  const checked = useSignal(false);
+
+  return (
+    <>
+      <input id="bind-checkbox" type="checkbox" bind:checked={checked} />
+      <input id="bind-input-1" bind:value={value} disabled={checked.value} />
+      <div id="bind-text-1">Value: {value}</div>
+      <div id="bind-text-2">Value: {value.value}</div>
+      <textarea id="bind-input-2" bind:value={value} disabled={checked.value} />
+    </>
   );
 });

@@ -84,7 +84,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import(".
 export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
 ============================= child_component_usetask_oh4n7zeqjku.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";

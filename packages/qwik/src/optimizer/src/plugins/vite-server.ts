@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { IncomingMessage } from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
@@ -8,6 +8,7 @@ import { ERROR_HOST } from './errored-host';
 import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -47,7 +48,7 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  server.middlewares.use(async (req, res, next) => {
+  server.middlewares.use(async (req: any, res: any, next: any) => {
     try {
       const { ORIGIN } = process.env;
       const domain = ORIGIN ?? getOrigin(req);
@@ -77,9 +78,7 @@ export async function configureDevServer(
           return;
         }
 
-        const ssrModule = await server.ssrLoadModule(opts.input[0], {
-          fixStacktrace: false,
-        });
+        const ssrModule = await server.ssrLoadModule(opts.input[0]);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 
@@ -193,6 +192,13 @@ export async function configureDevServer(
         (res as QwikViteDevResponse)._qwikRenderResolve!();
       }
     }
+  });
+
+  server.middlewares.use(function (err: any, _req: any, res: ServerResponse, next: any) {
+    if (!res.writableEnded) {
+      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
+    }
+    return next(err);
   });
 }
 
@@ -504,6 +510,7 @@ if (!window.__qwikViteLog) {
 </script>`;
 
 const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+<style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}

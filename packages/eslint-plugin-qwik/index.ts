@@ -5,6 +5,7 @@ import { noReactProps } from './src/noReactProps';
 import { preferClasslist } from './src/preferClasslist';
 import { jsxNoScriptUrl } from './src/jsxNoScriptUrl';
 import { jsxKey } from './src/jsxKey';
+import { unusedServer } from './src/unusedServer';
 
 export const rules = {
   'no-use-after-await': noUseAfterAwait,
@@ -14,6 +15,7 @@ export const rules = {
   'prefer-classlist': preferClasslist,
   'jsx-no-script-url': jsxNoScriptUrl,
   'jsx-key': jsxKey,
+  'unused-server': unusedServer,
 };
 
 export const configs = {
@@ -27,6 +29,7 @@ export const configs = {
       'qwik/jsx-no-script-url': 'warn',
       'qwik/loader-location': 'warn',
       'qwik/jsx-key': 'warn',
+      'qwik/unused-server': 'error',
     },
   },
   strict: {
@@ -39,6 +42,7 @@ export const configs = {
       'qwik/prefer-classlist': 'error',
       'qwik/jsx-no-script-url': 'error',
       'qwik/jsx-key': 'error',
+      'qwik/unused-server': 'error',
     },
   },
 };

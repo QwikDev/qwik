@@ -515,10 +515,6 @@ const renderNode = (
     }
     for (const prop of Object.keys(props)) {
       let value = props[prop];
-      if (prop === 'dangerouslySetInnerHTML') {
-        htmlStr = value;
-        continue;
-      }
       if (prop === 'ref') {
         setRef(value, elm);
         hasRef = true;
@@ -533,6 +529,10 @@ const renderNode = (
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
         useSignal = true;
+      }
+      if (prop === 'dangerouslySetInnerHTML') {
+        htmlStr = value;
+        continue;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
         addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
@@ -556,10 +556,6 @@ const renderNode = (
     if (immutable) {
       for (const prop of Object.keys(immutable)) {
         let value = immutable[prop];
-        if (prop === 'dangerouslySetInnerHTML') {
-          htmlStr = value;
-          continue;
-        }
         if (isOnProp(prop)) {
           setEvent(elCtx.li, prop, value, undefined);
           continue;
@@ -569,6 +565,10 @@ const renderNode = (
           assertDefined(hostCtx, 'Signals can not be used outside the root');
           value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
           useSignal = true;
+        }
+        if (prop === 'dangerouslySetInnerHTML') {
+          htmlStr = value;
+          continue;
         }
         if (prop.startsWith(PREVENT_DEFAULT)) {
           addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);

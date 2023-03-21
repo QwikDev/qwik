@@ -8,62 +8,33 @@ expression: output
 import { $, component$, useTask$ } from '@builder.io/qwik';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {value} = useSignal(0);
-    const {foo, ...rest} = useStore({foo: 0});
-    const {bar = 'hello', ...rest2} = useStore({foo: 0});
-    const {hello} = props;
-    const { translations = {} } = props;
-    const { buttonText = 'Search' } = translations;
+    const {countNested} = useStore({value:{count:0}}).value;
+    const countNested2 = countNested;
+    const {hello} = countNested2;
+    const bye = hello.bye;
+    const {ciao} = bye.italian;
+
 
     return (
-        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2} buttonText={buttonText}>{foo}</div>
+        <div ciao={ciao} >{foo}</div>
     );
 });
 
-============================= test.js ==
+============================= test.jsx ==
 
-import { _restProps } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    const signal = useSignal(0);
     const store = useStore({
-        foo: 0
+        value: {
+            count: 0
+        }
     });
-    const rest = _restProps(store, [
-        "foo"
-    ]);
-    const store1 = useStore({
-        foo: 0
-    });
-    const rest2 = _restProps(store1, [
-        "bar"
-    ]);
-    return /*#__PURE__*/ _jsxQ("div", {
-        rest: rest,
-        rest2: rest2
-    }, {
-        hello: _fnSignal((p0)=>p0.hello, [
-            props
-        ]),
-        some: _fnSignal((p0)=>p0.value, [
-            signal
-        ]),
-        bar: _fnSignal((p0)=>p0.bar ?? 'hello', [
-            store1
-        ]),
-        buttonText: _fnSignal((p0)=>(p0.translations ?? {}).buttonText ?? 'Search', [
-            props
-        ])
-    }, _fnSignal((p0)=>p0.foo, [
-        store
-    ]), 3, "u6_0");
+    return <div ciao={store.value.countNested.hello.bye.italian.ciao}>{foo}</div>;
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAKlD,qBACI,MAAC;QAAyC,MAAM;QAAM,OAAO;;QAAxD,KAAK,qBALP;;;QAKgB,IAAI,qBARpB;;;QAQ6B,GAAG,qBANhC,OAAM;;;QAM2D,UAAU,sBAJ1E,gBAAe,CAAC,GAChB,cAAa;;;0BAJd;;;AASX,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACK,IAAI,MAJM,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIgB,MAAM;AAEjC,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

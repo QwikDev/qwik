@@ -26,106 +26,13 @@ export const Greeter = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,wBAAU,gHAcpB\"}")
-============================= greeter_component__fragment_input_bind_checked_vkeboylp0dk.js (ENTRY POINT)==
-
 import { useLexicalScope } from "@builder.io/qwik";
-export const Greeter_component__Fragment_input_bind_checked_VKebOylP0Dk = (_, elm)=>{
-    const [checked] = useLexicalScope();
-    return checked.value = elm.value;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;WAUiC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component__Fragment_input_bind_checked_VKebOylP0Dk",
-  "entry": null,
-  "displayName": "Greeter_component__Fragment_input_bind_checked",
-  "hash": "VKebOylP0Dk",
-  "canonicalFilename": "greeter_component__fragment_input_bind_checked_vkeboylp0dk",
-  "extension": "js",
-  "parent": "Greeter_component_n7HuG2hhU0Q",
-  "ctxKind": "eventHandler",
-  "ctxName": "onInput$",
-  "captures": true,
-  "loc": [
-    0,
-    0
-  ]
-}
-*/
-============================= greeter_component__fragment_input_bind_value_so0wioe0sqc.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@builder.io/qwik";
-export const Greeter_component__Fragment_input_bind_value_SO0WIOE0Sqc = (_, elm)=>{
-    const [value] = useLexicalScope();
-    return value.value = elm.value;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;WAS+B\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component__Fragment_input_bind_value_SO0WIOE0Sqc",
-  "entry": null,
-  "displayName": "Greeter_component__Fragment_input_bind_value",
-  "hash": "SO0WIOE0Sqc",
-  "canonicalFilename": "greeter_component__fragment_input_bind_value_so0wioe0sqc",
-  "extension": "js",
-  "parent": "Greeter_component_n7HuG2hhU0Q",
-  "ctxKind": "eventHandler",
-  "ctxName": "onInput$",
-  "captures": true,
-  "loc": [
-    0,
-    0
-  ]
-}
-*/
-============================= greeter_component__fragment_input_bind_stuff_hplsub3bodg.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@builder.io/qwik";
-export const Greeter_component__Fragment_input_bind_stuff_HplsUb3Bodg = (_, elm)=>{
-    const [stuff] = useLexicalScope();
-    return stuff.value = elm.value;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;WAW+B\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component__Fragment_input_bind_stuff_HplsUb3Bodg",
-  "entry": null,
-  "displayName": "Greeter_component__Fragment_input_bind_stuff",
-  "hash": "HplsUb3Bodg",
-  "canonicalFilename": "greeter_component__fragment_input_bind_stuff_hplsub3bodg",
-  "extension": "js",
-  "parent": "Greeter_component_n7HuG2hhU0Q",
-  "ctxKind": "eventHandler",
-  "ctxName": "onChange$",
-  "captures": true,
-  "loc": [
-    0,
-    0
-  ]
-}
-*/
-============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
-
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { inlinedQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Greeter_component_n7HuG2hhU0Q = ()=>{
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const value = useSignal(0);
     const checked = useSignal(false);
     const stuff = useSignal();
@@ -133,19 +40,28 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
         children: [
             /*#__PURE__*/ _jsxQ("input", null, {
                 "value": value,
-                "onInput$": /*#__PURE__*/ qrl(()=>import("./greeter_component__fragment_input_bind_value_so0wioe0sqc"), "Greeter_component__Fragment_input_bind_value_SO0WIOE0Sqc", [
+                "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
+                    const [value] = useLexicalScope();
+                    return value.value = elm.value;
+                }, "s_SO0WIOE0Sqc", [
                     value
                 ])
             }, null, 3, null),
             /*#__PURE__*/ _jsxQ("input", null, {
                 "checked": checked,
-                "onInput$": /*#__PURE__*/ qrl(()=>import("./greeter_component__fragment_input_bind_checked_vkeboylp0dk"), "Greeter_component__Fragment_input_bind_checked_VKebOylP0Dk", [
+                "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
+                    const [checked] = useLexicalScope();
+                    return checked.value = elm.value;
+                }, "s_VKebOylP0Dk", [
                     checked
                 ])
             }, null, 3, null),
             /*#__PURE__*/ _jsxQ("input", null, {
                 "stuff": stuff,
-                "onChange$": /*#__PURE__*/ qrl(()=>import("./greeter_component__fragment_input_bind_stuff_hplsub3bodg"), "Greeter_component__Fragment_input_bind_stuff_HplsUb3Bodg", [
+                "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
+                    const [stuff] = useLexicalScope();
+                    return stuff.value = elm.value;
+                }, "s_HplsUb3Bodg", [
                     stuff
                 ])
             }, null, 3, null),
@@ -155,29 +71,10 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
             ], "p0.value"), 3, null)
         ]
     }, 3, "u6_0");
-};
+}, "s_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6CAGkC,IAAM;IACpC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU,KAAK;IAC/B,MAAM,QAAQ;IACd,qBACI;;0BACI,MAAC;yBAAkB;;;;;0BACnB,MAAC;2BAAoB;;;;;0BACrB,MAAC;yBAAkB;;;;;0BACnB,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAM,KAAK;;;;;AAI7B\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component_n7HuG2hhU0Q",
-  "entry": null,
-  "displayName": "Greeter_component",
-  "hash": "n7HuG2hhU0Q",
-  "canonicalFilename": "greeter_component_n7hug2hhu0q",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    87,
-    435
-  ]
-}
-*/
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW,IAAM;IACpC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU,KAAK;IAC/B,MAAM,QAAQ;IACd,qBACI;;0BACI,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC;2BAAoB;;;2BAAA;;;;;0BACrB,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAM,KAAK;;;;;AAI7B,qBAAG\"}")
 == DIAGNOSTICS ==
 
 []

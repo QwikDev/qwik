@@ -97,7 +97,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
     }`);
   const logs = useContext(LOGS);
   logs.content += '[RENDER] <Results>\n\n\n';
-  const logscontent = logs.content;
+  const logscontent = logs.content + '';
 
   const state = useStore({
     count: 0,

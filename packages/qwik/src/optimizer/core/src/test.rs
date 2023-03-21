@@ -568,20 +568,20 @@ fn example_use_optimization() {
 import { $, component$, useTask$ } from '@builder.io/qwik';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {value} = useSignal(0);
-    const {foo, ...rest} = useStore({foo: 0});
-    const {bar = 'hello', ...rest2} = useStore({foo: 0});
-    const {hello} = props;
-    const { translations = {} } = props;
-    const { buttonText = 'Search' } = translations;
+    const {countNested} = useStore({value:{count:0}}).value;
+    const countNested2 = countNested;
+    const {hello} = countNested2;
+    const bye = hello.bye;
+    const {ciao} = bye.italian;
+
 
     return (
-        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2} buttonText={buttonText}>{foo}</div>
+        <div ciao={ciao} >{foo}</div>
     );
 });
 "#
         .to_string(),
-        transpile_jsx: true,
+        transpile_jsx: false,
         entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
         is_server: Some(false),
@@ -1756,8 +1756,10 @@ export const Greeter = component$(() => {
 });
 "#
         .to_string(),
+        entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
         transpile_jsx: true,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }

@@ -34,7 +34,7 @@ export const AttributesChild = component$(() => {
     stuff: '',
   });
   renders.count++;
-  const rerenders = renders.count;
+  const rerenders = renders.count + 0;
 
   console.warn(state.stuff);
   return (

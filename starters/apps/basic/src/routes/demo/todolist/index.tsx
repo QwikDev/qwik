@@ -27,7 +27,7 @@ export const useAddToListAction = routeAction$(
     };
   },
   zod$({
-    text: z.string(),
+    text: z.string().trim().min(1),
   })
 );
 

@@ -7625,7 +7625,7 @@ packages:
       esbuild: 0.17.12
       postcss: 8.4.21
       resolve: 1.22.1
-      rollup: 3.20.0
+      rollup: 3.19.1
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
@@ -7659,7 +7659,7 @@ packages:
       esbuild: 0.17.12
       postcss: 8.4.21
       resolve: 1.22.1
-      rollup: 3.20.0
+      rollup: 3.19.1
       terser: 5.16.6
     optionalDependencies:
       fsevents: 2.3.2
@@ -7694,7 +7694,7 @@ packages:
       esbuild: 0.17.12
       postcss: 8.4.21
       resolve: 1.22.1
-      rollup: 3.20.0
+      rollup: 3.19.1
     optionalDependencies:
       fsevents: 2.3.2
     dev: true

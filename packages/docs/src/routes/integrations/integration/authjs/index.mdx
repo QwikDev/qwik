@@ -1,0 +1,49 @@
+---
+title: Qwik City and AuthJS
+keywords: auth, authentication
+contributors:
+  - ulic75
+---
+
+# Auth.js
+
+Authentication for the Web.
+
+Everything you know and love from Auth.js implemented as a Qwik plugin.
+
+## Installation
+
+You can add Auth.js easily by using one of the following Qwik starter scripts for the package manager of your choice:
+
+```shell
+npm run qwik add auth
+pnpm qwik add auth
+yarn qwik add auth
+nr qwik add auth
+```
+
+The previous command updates your app code, dependency and sets the correct configuration in `vite.config.ts`.
+
+It also adds a new file inside to your `src/routes` folder.
+
+- `plugin@auth.ts`
+
+## Usage
+
+You can configure it like you would any other Auth.js implementation.  Check the [Auth.js documentation](https://authjs.dev) for more details.
+
+`pluging@auth.ts`
+```ts
+export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } = serverAuth$(
+  ({ env }) => ({
+    secret: env.get('AUTH_SECRET'),
+    trustHost: true,
+    providers: [
+      GitHub({
+        clientId: env.get('GITHUB_ID')!,
+        clientSecret: env.get('GITHUB_SECRET')!,
+      }),
+    ] as Provider[],
+  })
+);
+```

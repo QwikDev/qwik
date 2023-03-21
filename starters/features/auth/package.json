@@ -15,7 +15,8 @@
       }
     },
     "docs": [
-      "https://authjs.dev/"
+      "https://authjs.dev/",
+      "https://qwik.builder.io/integrations/authjs/"
     ]
   }
 }

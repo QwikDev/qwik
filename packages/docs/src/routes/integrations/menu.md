@@ -3,6 +3,7 @@
 ## Integrations
 
 - [Overview](index.mdx)
+- [Auth.js](authjs/index.mdx)
 - [Partytown](partytown/index.mdx)
 - [Playwright](playwright/index.mdx)
 - [PostCSS](postcss/index.mdx)

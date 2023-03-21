@@ -1,9 +1,9 @@
 {
   "integrations": [
     {
-      "title": "Qwik/React",
-      "href": "/integrations/react/",
-      "imgSrc": "/ecosystem/react.svg"
+      "title": "Auth.js",
+      "href": "/integrations/authjs/",
+      "imgSrc": "/ecosystem/authjs.png"
     },
     {
       "title": "Partytown",
@@ -19,6 +19,11 @@
       "title": "PostCSS",
       "href": "/integrations/postcss/",
       "imgSrc": "/ecosystem/postcss.svg"
+    },
+    {
+      "title": "React",
+      "href": "/integrations/react/",
+      "imgSrc": "/ecosystem/react.svg"
     },
     {
       "title": "Styled-Vanilla-Extract",

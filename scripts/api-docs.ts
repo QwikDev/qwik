@@ -131,19 +131,25 @@ function createApiData(docsApiJsonPath: string, apiOuputDir: string, subPkgName:
 
   function addMembers(a: any) {
     if (Array.isArray(a?.members)) {
-      for (const m of a.members) {
-        if (m.kind !== 'Package' && m.kind !== 'EntryPoint') {
-          apiData.members.push({
-            name: m.name,
-            kind: m.kind,
-          });
+      for (const member of a.members) {
+        if (member.kind !== 'Package' && member.kind !== 'EntryPoint') {
+          if (!apiData.members.some((m) => member.name === m.name && member.kind === m.kind)) {
+            apiData.members.push({
+              name: member.name || '',
+              kind: member.kind || '',
+            });
+          }
         }
-        addMembers(m);
+        addMembers(member);
       }
     }
   }
 
   addMembers(apiExtractedJson);
+
+  apiData.members.sort((a, b) => {
+    return a.name.localeCompare(b.name);
+  });
 
   const apiDataPath = join(apiOuputDir, 'api-data.json');
   writeFileSync(apiDataPath, JSON.stringify(apiData, null, 2));

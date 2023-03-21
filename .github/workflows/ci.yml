@@ -452,6 +452,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  ############ TRIGGER QWIKCITY E2E Test ############
+  trigger-qwikcity-e2e:
+    name: Trigger Qwik City E2E
+    runs-on: ubuntu-latest
+
+    needs:
+      - release
+
+    if: ${{ needs.changes.outputs.fullbuild == 'true' && github.ref_name == 'main' }}
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: builderIO/qwik-city-e2e
+          event-type: main-updated
+
   ############ E2E TEST ############
   test-e2e:
     name: E2E Tests

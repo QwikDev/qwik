@@ -45,6 +45,7 @@ export default (props: RealMetricsOptimizationProps) => (
       try {
         const detail = ev.detail;
         const qsymbol = detail?.symbol;
+        console.debug('Symbol', qsymbol);
         if (qsymbol && !loggedQrls.has(qsymbol)) {
           loggedQrls.add(qsymbol);
 

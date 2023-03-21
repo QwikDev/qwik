@@ -8,6 +8,16 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
   return {
+    ssr: {
+      noExternal: [
+        '@algolia/autocomplete-core/dist/esm/resolve',
+        '@algolia/autocomplete-core',
+        '@algolia/autocomplete-shared',
+        'algoliasearch/lite',
+        'algoliasearch',
+        '@algolia/autocomplete-core/dist/esm/reshape',
+      ],
+    },
     plugins: [
       qwikCity({
         // mdx: {
@@ -20,9 +30,8 @@ export default defineConfig(() => {
         entryStrategy: {
           type: 'smart',
           manual: {
+            ...page,
             ...algoliaSearch,
-            ...leftMenu,
-            ...rightMenu,
             ...repl,
           },
         },
@@ -44,49 +53,37 @@ export default defineConfig(() => {
   };
 });
 
+const page = {
+  xEi06O8vOjU: 'page',
+  '9t1uPE4yoLA': 'page',
+};
+
 const algoliaSearch = {
-  I5CyQjO9FjQ: 'algolia',
-  NsnidK2eXPg: 'algolia',
-  kDw0latGeM0: 'algolia',
-  '9dP8xDD36tk': 'algolia',
-  '7YcOLMha9lM': 'algolia',
-  Ly5oFWTkofs: 'algolia',
-  fTU5LQ1VhcU: 'algolia',
-  X3ZkFa9P7Dc: 'algolia',
-  cuQ7Gs7HxZk: 'algolia',
-  FwHw10iT91I: 'algolia',
-  '8CcNvxhg0Nk': 'algolia',
-  MuhA2XBHGV8: 'algolia',
-  kySyEi4IbWw: 'algolia',
-  J3Nim3Y9sio: 'algolia',
-  aWt0AqHIkGQ: 'algolia',
-  JJa1OmmlJI0: 'algolia',
-  uCl5Lf0Typ8: 'algolia',
-};
-
-const leftMenu = {
-  '80OgQ5lcFr4': 'leftmenu',
-  w5MYBhIX0cA: 'leftmenu',
-  pEMEmtwhXxM: 'leftmenu',
-};
-
-const rightMenu = {
-  QavemLlxiyA: 'rightmenu',
-  w5MYBhIX0cA: 'rightmenu',
+  I5CyQjO9FjQ: 'algoliasearch',
+  NsnidK2eXPg: 'algoliasearch',
+  kDw0latGeM0: 'algoliasearch',
+  '9dP8xDD36tk': 'algoliasearch',
+  '7YcOLMha9lM': 'algoliasearch',
+  Ly5oFWTkofs: 'algoliasearch',
+  fTU5LQ1VhcU: 'algoliasearch',
+  X3ZkFa9P7Dc: 'algoliasearch',
+  cGb8pS0shrs: 'algoliasearch',
+  '0TG0b0n4wNg': 'algoliasearch',
+  qQlSSnFvEvs: 'algoliasearch',
+  '01FQcGhldRU': 'algoliasearch',
+  qolFAthnlPo: 'algoliasearch',
+  J3Nim3Y9sio: 'algoliasearch',
 };
 
 const repl = {
-  '9hTSF08oC0c': 'repl',
-  b0zG7SjJ0mY: 'repl',
-  '2pen08LKHIc': 'repl',
-  '00yssl5ZdQ0': 'repl',
-  dGMbXdytWYw: 'repl',
-  '3LhofjAcE3o': 'repl',
-  Vf8gUl5vM9Q: 'repl',
+  XoQB11UZ1S0: 'repl',
+  AqHBIVNKf34: 'repl',
+  IRhp4u7HN3o: 'repl',
+  Qf2nEuUdHpM: 'repl',
+  oEksvFPgMEM: 'repl',
+  eePwnt3YTI8: 'repl',
   iw211Du0bw8: 'repl',
-  znnkb13Pb1Q: 'repl',
-  JNuA4OQTkdc: 'repl',
-  MbH3hL9RTzs: 'repl',
-  vkZre20bmo0: 'repl',
-  '599ANF7zBGE': 'repl',
+  lWGaPPYlcvs: 'repl',
+  uCl5Lf0Typ8: 'repl',
+  IW29huCoDkc: 'repl',
 };

@@ -2,7 +2,7 @@
 title: \@builder.io/qwik/server API Reference
 ---
 
-# @builder.io/qwik/server API Reference
+# **API** @builder.io/qwik/server
 
 ## qwik package
 

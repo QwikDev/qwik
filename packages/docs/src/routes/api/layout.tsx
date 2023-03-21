@@ -2,15 +2,16 @@ import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
-import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { SideBar } from '../../components/sidebar/sidebar';
-import styles from '../docs/docs.css?inline';
+import apiStyles from './api.css?inline';
+import docsStyles from '../docs/docs.css?inline';
 
 export default component$(() => { 
-  useStyles$(styles);
+  useStyles$(docsStyles);
+  useStyles$(apiStyles);
 
   return (
-    <div class="fixed-header">
+    <div class="docs api fixed-header">
       <Header />
       <SideBar />
       <main

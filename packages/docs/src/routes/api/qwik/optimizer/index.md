@@ -2,7 +2,7 @@
 title: \@builder.io/qwik/optimizer API Reference
 ---
 
-# @builder.io/qwik/optimizer API Reference
+# **API** @builder.io/qwik/optimizer
 
 ## qwik package
 

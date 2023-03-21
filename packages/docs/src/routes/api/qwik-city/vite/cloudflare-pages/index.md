@@ -2,6 +2,6 @@
 title: \@builder.io/qwik-city/vite/cloudflare-pages API Reference
 ---
 
-# @builder.io/qwik-city/vite/cloudflare-pages API Reference
+# **API** @builder.io/qwik-city/vite/cloudflare-pages
 
 ## qwik-city package

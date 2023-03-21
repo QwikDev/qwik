@@ -2,6 +2,6 @@
 title: \@builder.io/qwik-city/vite/cloud-run API Reference
 ---
 
-# @builder.io/qwik-city/vite/cloud-run API Reference
+# **API** @builder.io/qwik-city/vite/cloud-run
 
 ## qwik-city package

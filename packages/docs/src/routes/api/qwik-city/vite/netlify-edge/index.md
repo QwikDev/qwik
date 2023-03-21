@@ -2,6 +2,6 @@
 title: \@builder.io/qwik-city/vite/netlify-edge API Reference
 ---
 
-# @builder.io/qwik-city/vite/netlify-edge API Reference
+# **API** @builder.io/qwik-city/vite/netlify-edge
 
 ## qwik-city package

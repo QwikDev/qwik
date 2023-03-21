@@ -2,6 +2,6 @@
 title: \@builder.io/qwik/testing API Reference
 ---
 
-# @builder.io/qwik/testing API Reference
+# **API** @builder.io/qwik/testing
 
 ## qwik package

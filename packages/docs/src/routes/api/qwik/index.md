@@ -2,7 +2,7 @@
 title: \@builder.io/qwik API Reference
 ---
 
-# @builder.io/qwik API Reference
+# **API** @builder.io/qwik
 
 ## $ variable
 

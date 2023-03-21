@@ -2,6 +2,6 @@
 title: \@builder.io/qwik-city/middleware/node API Reference
 ---
 
-# @builder.io/qwik-city/middleware/node API Reference
+# **API** @builder.io/qwik-city/middleware/node
 
 ## qwik-city package

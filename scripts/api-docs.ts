@@ -95,7 +95,7 @@ async function generateApiMarkdownSubPackageDocs(
     `title: \\${subPkgName} API Reference`,
     '---',
     '',
-    `# ${subPkgName} API Reference`,
+    `# **API** ${subPkgName}`,
     ...indexContent.slice(12),
   ];
 

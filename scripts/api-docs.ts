@@ -36,14 +36,15 @@ async function generateApiMarkdownSubPackageDocs(
   names: string[]
 ) {
   const subPkgInputDir = join(apiJsonInputDir, ...names);
-  if (!existsSync(join(subPkgInputDir, 'docs.api.json'))) {
+  const docsApiJsonPath = join(subPkgInputDir, 'docs.api.json');
+  if (!existsSync(docsApiJsonPath)) {
     return;
   }
 
   const subPkgName = ['@builder.io', ...names].filter((n) => n !== 'core').join('/');
   console.log('📚', `Generate API ${subPkgName} markdown docs`);
 
-  const mdOuputDir = join(
+  const apiOuputDir = join(
     config.packagesDir,
     'docs',
     'src',
@@ -51,59 +52,107 @@ async function generateApiMarkdownSubPackageDocs(
     'api',
     ...names.filter((n) => n !== 'core')
   );
-  mkdirSync(mdOuputDir, { recursive: true });
-  console.log(mdOuputDir);
+  mkdirSync(apiOuputDir, { recursive: true });
+  console.log(apiOuputDir);
 
   await execa(
     'api-documenter',
-    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', mdOuputDir],
+    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', apiOuputDir],
     {
       stdio: 'inherit',
       cwd: join(config.rootDir, 'node_modules', '.bin'),
     }
   );
 
-  const mdDirFiles = readdirSync(mdOuputDir)
+  createApiPage(subPkgName, apiOuputDir);
+  createApiData(docsApiJsonPath, apiOuputDir);
+}
+
+function createApiPage(subPkgName: string, apiOuputDir: string) {
+  const mdDirFiles = readdirSync(apiOuputDir)
     .filter((m) => m.endsWith('.md'))
     .map((mdFileName) => {
-      const mdPath = join(mdOuputDir, mdFileName);
+      const mdPath = join(apiOuputDir, mdFileName);
       return {
         mdFileName,
         mdPath,
       };
     });
 
-  let indexContent: string[] = [];
+  let apiContent: string[] = [];
+
   for (const { mdPath } of mdDirFiles) {
-    const mdSrcLines = readFileSync(mdPath, 'utf-8').split('\n');
-
-    for (const line of mdSrcLines) {
-      if (line.startsWith('[Home]')) {
-        continue;
-      }
-      if (line.startsWith('<!-- ')) {
-        continue;
-      }
-      indexContent.push(line);
-    }
-
+    const mdOutput = getApiMarkdownOutput(mdPath);
+    apiContent = [...apiContent, ...mdOutput];
     rmSync(mdPath);
   }
 
-  indexContent = [
+  apiContent = [
     '---',
     `title: \\${subPkgName} API Reference`,
     '---',
     '',
     `# **API** ${subPkgName}`,
-    ...indexContent.slice(12),
+    ...apiContent.slice(12),
   ];
 
-  const indexPath = join(mdOuputDir, 'index.md');
+  const indexPath = join(apiOuputDir, 'index.md');
 
-  const mdOutput = format(indexContent.join('\n'), {
+  const mdOutput = format(apiContent.join('\n'), {
     parser: 'markdown',
   });
 
   writeFileSync(indexPath, mdOutput);
+}
+
+function getApiMarkdownOutput(mdPath: string) {
+  const output: string[] = [];
+  const mdSrcLines = readFileSync(mdPath, 'utf-8').split('\n');
+
+  for (const line of mdSrcLines) {
+    if (line.startsWith('[Home]')) {
+      continue;
+    }
+    if (line.startsWith('<!-- ')) {
+      continue;
+    }
+    output.push(line);
+  }
+  return output;
+}
+
+function createApiData(docsApiJsonPath: string, apiOuputDir: string) {
+  const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
+
+  const apiData: ApiData = {
+    members: [],
+  };
+
+  function addMembers(a: any) {
+    if (Array.isArray(a?.members)) {
+      for (const m of a.members) {
+        if (m.kind !== 'Package' && m.kind !== 'EntryPoint') {
+          apiData.members.push({
+            name: m.name,
+            kind: m.kind,
+          });
+        }
+        addMembers(m);
+      }
+    }
+  }
+
+  addMembers(apiExtractedJson);
+
+  const apiDataPath = join(apiOuputDir, 'api-data.json');
+  writeFileSync(apiDataPath, JSON.stringify(apiData, null, 2));
+}
+
+interface ApiData {
+  members: ApiMember[];
+}
+
+interface ApiMember {
+  name: string;
+  kind: string;
 }

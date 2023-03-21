@@ -1,0 +1,1289 @@
+{
+  "members": [
+    {
+      "name": "_jsxC",
+      "kind": "Variable"
+    },
+    {
+      "name": "_jsxQ",
+      "kind": "Variable"
+    },
+    {
+      "name": "$",
+      "kind": "Variable"
+    },
+    {
+      "name": "AriaAttributes",
+      "kind": "Interface"
+    },
+    {
+      "name": "\"aria-activedescendant\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-atomic\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-autocomplete\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-busy\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-checked\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-colcount\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-colindex\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-colspan\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-controls\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-current\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-describedby\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-details\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-disabled\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-dropeffect\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-errormessage\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-expanded\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-flowto\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-grabbed\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-haspopup\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-hidden\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-invalid\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-keyshortcuts\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-label\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-labelledby\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-level\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-live\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-modal\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-multiline\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-multiselectable\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-orientation\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-owns\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-placeholder\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-posinset\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-pressed\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-readonly\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-relevant\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-required\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-roledescription\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-rowcount\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-rowindex\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-rowspan\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-selected\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-setsize\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-sort\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-valuemax\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-valuemin\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-valuenow\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "\"aria-valuetext\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "AriaRole",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "Component",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "component$",
+      "kind": "Variable"
+    },
+    {
+      "name": "ComponentBaseProps",
+      "kind": "Interface"
+    },
+    {
+      "name": "\"q:slot\"",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "key",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "componentQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "Context",
+      "kind": "Interface"
+    },
+    {
+      "name": "ContextId",
+      "kind": "Interface"
+    },
+    {
+      "name": "__brand_context_type__",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "id",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "createContext",
+      "kind": "Variable"
+    },
+    {
+      "name": "createContextId",
+      "kind": "Variable"
+    },
+    {
+      "name": "DOMAttributes",
+      "kind": "Interface"
+    },
+    {
+      "name": "children",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "key",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "EagernessOptions",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "Fragment",
+      "kind": "Variable"
+    },
+    {
+      "name": "FunctionComponent",
+      "kind": "Interface"
+    },
+    {
+      "kind": "CallSignature"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Namespace"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "h",
+      "kind": "Function"
+    },
+    {
+      "name": "JSX",
+      "kind": "Namespace"
+    },
+    {
+      "name": "Element",
+      "kind": "Interface"
+    },
+    {
+      "name": "ElementChildrenAttribute",
+      "kind": "Interface"
+    },
+    {
+      "name": "children",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "IntrinsicAttributes",
+      "kind": "Interface"
+    },
+    {
+      "name": "IntrinsicElements",
+      "kind": "Interface"
+    },
+    {
+      "name": "HTMLAttributes",
+      "kind": "Interface"
+    },
+    {
+      "name": "about",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "accessKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "autoCapitalize",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "autoCorrect",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "autoSave",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "className",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "color",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "contentEditable",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "contextMenu",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "datatype",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "dir",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "draggable",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "hidden",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "id",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "inlist",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "inputMode",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "is",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "itemID",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "itemProp",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "itemRef",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "itemScope",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "itemType",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "lang",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "placeholder",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "prefix",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "property",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "radioGroup",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "resource",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "results",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "role",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "security",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "slot",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "spellcheck",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "style",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "tabIndex",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "title",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "translate",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "typeof",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "unselectable",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "vocab",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "jsx",
+      "kind": "Variable"
+    },
+    {
+      "name": "JSXChildren",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "jsxDEV",
+      "kind": "Variable"
+    },
+    {
+      "name": "JSXNode",
+      "kind": "Interface"
+    },
+    {
+      "name": "children",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "dev",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "flags",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "immutableProps",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "key",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "props",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "type",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "JSXTagName",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "MountFn",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeAnimationEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeClipboardEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeCompositionEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeDragEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeFocusEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeKeyboardEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeMouseEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativePointerEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeTouchEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeTransitionEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeUIEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NativeWheelEvent",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "NoSerialize",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "noSerialize",
+      "kind": "Variable"
+    },
+    {
+      "name": "OnRenderFn",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "OnVisibleTaskOptions",
+      "kind": "Interface"
+    },
+    {
+      "name": "eagerness",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "strategy",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "PropFnInterface",
+      "kind": "Interface"
+    },
+    {
+      "kind": "CallSignature"
+    },
+    {
+      "name": "PropFunction",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "PropsOf",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "PublicProps",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "QRL",
+      "kind": "Interface"
+    },
+    {
+      "name": "__brand__QRL__",
+      "kind": "PropertySignature"
+    },
+    {
+      "kind": "CallSignature"
+    },
+    {
+      "name": "dev",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "getCaptured",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "getHash",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "getSymbol",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "resolve",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "QwikAnimationEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "animationName",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "elapsedTime",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pseudoElement",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikChangeEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "target",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikClipboardEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "clipboardData",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikCompositionEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "data",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikDOMAttributes",
+      "kind": "Interface"
+    },
+    {
+      "name": "QwikDragEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "dataTransfer",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikFocusEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "relatedTarget",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "target",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikIntrinsicElements",
+      "kind": "Interface"
+    },
+    {
+      "kind": "IndexSignature"
+    },
+    {
+      "name": "script",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikInvalidEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "target",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikJSX",
+      "kind": "Namespace"
+    },
+    {
+      "name": "Element",
+      "kind": "Interface"
+    },
+    {
+      "name": "ElementChildrenAttribute",
+      "kind": "Interface"
+    },
+    {
+      "name": "children",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "IntrinsicAttributes",
+      "kind": "Interface"
+    },
+    {
+      "name": "IntrinsicElements",
+      "kind": "Interface"
+    },
+    {
+      "name": "QwikKeyboardEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "altKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "charCode",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ctrlKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "getModifierState",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "key",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "keyCode",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "locale",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "location",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "metaKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "repeat",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "shiftKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "which",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikMouseEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "altKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "button",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "buttons",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "clientX",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "clientY",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ctrlKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "getModifierState",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "metaKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "movementX",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "movementY",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pageX",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pageY",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "relatedTarget",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "screenX",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "screenY",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "shiftKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "x",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "y",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikPointerEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "height",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "isPrimary",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pointerId",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pointerType",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pressure",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "tiltX",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "tiltY",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "width",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikSubmitEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "QwikTouchEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "altKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "changedTouches",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ctrlKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "getModifierState",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "metaKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "shiftKey",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "targetTouches",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "touches",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikTransitionEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "elapsedTime",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "propertyName",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "pseudoElement",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikUIEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "detail",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "view",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "QwikWheelEvent",
+      "kind": "Interface"
+    },
+    {
+      "name": "deltaMode",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "deltaX",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "deltaY",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "deltaZ",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "Resource",
+      "kind": "Variable"
+    },
+    {
+      "name": "ResourceCtx",
+      "kind": "Interface"
+    },
+    {
+      "name": "cache",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "cleanup",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "previous",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "track",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ResourceFn",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "ResourceOptions",
+      "kind": "Interface"
+    },
+    {
+      "name": "timeout",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ResourcePending",
+      "kind": "Interface"
+    },
+    {
+      "name": "loading",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "value",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ResourceProps",
+      "kind": "Interface"
+    },
+    {
+      "name": "onPending",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "onRejected",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "onResolved",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "value",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ResourceRejected",
+      "kind": "Interface"
+    },
+    {
+      "name": "loading",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "value",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ResourceResolved",
+      "kind": "Interface"
+    },
+    {
+      "name": "loading",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "value",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "ResourceReturn",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "Slot",
+      "kind": "Variable"
+    },
+    {
+      "name": "TaskCtx",
+      "kind": "Interface"
+    },
+    {
+      "name": "cleanup",
+      "kind": "MethodSignature"
+    },
+    {
+      "name": "track",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "TaskFn",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "Tracker",
+      "kind": "Interface"
+    },
+    {
+      "kind": "CallSignature"
+    },
+    {
+      "kind": "CallSignature"
+    },
+    {
+      "kind": "CallSignature"
+    },
+    {
+      "name": "useClientMount$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useClientMountQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useContext",
+      "kind": "Variable"
+    },
+    {
+      "name": "useContextProvider",
+      "kind": "Variable"
+    },
+    {
+      "name": "useMount$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useMountQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useResource$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useResourceQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useServerMount$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useServerMountQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useStore",
+      "kind": "Variable"
+    },
+    {
+      "name": "UseStoreOptions",
+      "kind": "Interface"
+    },
+    {
+      "name": "deep",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "reactive",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "recursive",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "useStyles$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useStylesQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useTask$",
+      "kind": "Variable"
+    },
+    {
+      "name": "UseTaskOptions",
+      "kind": "Interface"
+    },
+    {
+      "name": "eagerness",
+      "kind": "PropertySignature"
+    },
+    {
+      "name": "useTaskQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useVisibleTask$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useVisibleTaskQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "useWatch$",
+      "kind": "Variable"
+    },
+    {
+      "name": "useWatchQrl",
+      "kind": "Variable"
+    },
+    {
+      "name": "ValueOrPromise",
+      "kind": "TypeAlias"
+    },
+    {
+      "name": "version",
+      "kind": "Variable"
+    },
+    {
+      "name": "VisibleTaskStrategy",
+      "kind": "TypeAlias"
+    }
+  ]
+}

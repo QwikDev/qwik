@@ -77,7 +77,7 @@ You need to have these tools up and running in your local machine:
 If you would like to make use of the devlopment container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
 
 - Build development container locally: `cd .devcontainers; docker build -t qwik-container .`
-- Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v .:/home/circleci/project -t qwik-container`
+- Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v $PWD:/home/circleci/project -t qwik-container`
 
 Docker command does:
 - Create a new container that is removed once stopped,

@@ -10,6 +10,16 @@ import { isServer, isBrowser } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
+import L from 'leaflet';
+
+export const functionThatNeedsWindow = () => {
+  if (isBrowser) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
+};
+
 export const App = component$(() => {
     useMount$(() => {
         if (isServer) {
@@ -31,10 +41,11 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
+export const functionThatNeedsWindow = ()=>{};
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./s_ckepmxzlub0"), "s_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,oBAAM,gFAehB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAQA,OAAO,MAAM,0BAA0B,IAAM,CAM7C,EAAE;AAEF,OAAO,MAAM,oBAAM,gFAehB\"}")
 ============================= s_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { mongodb } from "mondodb";
@@ -42,9 +53,9 @@ export const s_ckEPmXZlub0 = ()=>{
     useMount$(()=>{
         console.log('server', mongodb());
     });
-    return <Cmp >
+    return <Cmp>
 
-            {<p >server</p>}
+            {<p>server</p>}
 
             {false}
 
@@ -52,7 +63,7 @@ export const s_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAM8B,IAAM;IAChC,UAAU,IAAM;QAER,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,KAAI;;YACD,EAAc,GAAE,MAAM,EAAE,GAAG;;YAC3B,OAA4B;;QAChC,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B,IAAM;IAChC,UAAU,IAAM;QAER,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;;YACD,EAAc,EAAE,MAAM,EAAE,GAAG;;YAC3B,OAA4B;;QAChC,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -67,8 +78,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    222,
-    557
+    396,
+    731
   ]
 }
 */

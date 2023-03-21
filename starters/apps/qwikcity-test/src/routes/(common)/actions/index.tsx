@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import { action$, DocumentHead, loader$ } from '@builder.io/qwik-city';
+import { action$, type DocumentHead, loader$ } from '@builder.io/qwik-city';
 import { SecretForm } from './login';
 
 export const useDateLoader = loader$(() => new Date());
@@ -16,6 +16,7 @@ export default component$(() => {
 
   return (
     <div class="actions">
+      <h1>Actions Test</h1>
       <section class="input">
         <SecretForm />
       </section>

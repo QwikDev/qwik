@@ -5,7 +5,7 @@ import { ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 import type { StoredSearchPlugin } from './stored-searches';
-import type { QwikKeyboardEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
+import type { QwikKeyboardEvent } from '../../../../../packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export type DocSearchTranslations = Partial<{
   button: ButtonTranslations;

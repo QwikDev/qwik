@@ -1,7 +1,14 @@
 import { Auth, skipCSRFCheck } from '@auth/core';
 import type { AuthAction, AuthConfig, Session } from '@auth/core/types';
-import { implicit$FirstArg, QRL } from '@builder.io/qwik';
-import { action$, loader$, RequestEvent, RequestEventCommon, z, zod$ } from '@builder.io/qwik-city';
+import { implicit$FirstArg, type QRL } from '@builder.io/qwik';
+import {
+  globalAction$,
+  routeLoader$,
+  type RequestEvent,
+  type RequestEventCommon,
+  z,
+  zod$,
+} from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
@@ -58,10 +65,10 @@ export const fixCookies = (req: RequestEventCommon) => {
   }
 };
 
-export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('/q-')[0];
+export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
-  const useAuthSignin = action$(
+  const useAuthSignin = globalAction$(
     async ({ providerId, callbackUrl, ...rest }, req) => {
       callbackUrl ??= getCurrentPageForAction(req);
       const auth = await authOptions(req);
@@ -81,7 +88,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
     })
   );
 
-  const useAuthSignout = action$(
+  const useAuthSignout = globalAction$(
     async ({ callbackUrl }, req) => {
       callbackUrl ??= getCurrentPageForAction(req);
       const auth = await authOptions(req);
@@ -93,7 +100,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
     })
   );
 
-  const useAuthSession = loader$((req) => {
+  const useAuthSession = routeLoader$((req) => {
     return req.sharedMap.get('session') as Session | null;
   });
 

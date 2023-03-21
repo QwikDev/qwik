@@ -10,16 +10,16 @@ import type {
 } from '../types';
 import {
   createPlugin,
-  NormalizedQwikPluginOptions,
+  type NormalizedQwikPluginOptions,
   parseId,
-  QwikBuildMode,
-  QwikPluginOptions,
-  QwikBuildTarget,
+  type QwikBuildMode,
+  type QwikPluginOptions,
+  type QwikBuildTarget,
   QWIK_CORE_ID,
   Q_MANIFEST_FILENAME,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_BUILD_ID,
-  QwikPackages,
+  type QwikPackages,
   QWIK_JSX_RUNTIME_ID,
   CLIENT_OUT_DIR,
   QWIK_JSX_DEV_RUNTIME_ID,
@@ -258,7 +258,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
-            output: normalizeRollupOutputOptions(path, opts, {}),
+            output: normalizeRollupOutputOptions(
+              path,
+              opts,
+              viteConfig.build?.rollupOptions?.output
+            ),
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -278,22 +282,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
-      if (buildMode === 'development') {
-        const qDevKey = 'globalThis.qDev';
-        const qInspectorKey = 'globalThis.qInspector';
-        const qSerializeKey = 'globalThis.qSerialize';
-        const qDev = viteConfig?.define?.[qDevKey] ?? true;
-        const qInspector = viteConfig?.define?.[qInspectorKey] ?? true;
-        const qSerialize = viteConfig?.define?.[qSerializeKey] ?? true;
+      const isDevelopment = buildMode === 'development';
+      const qDevKey = 'globalThis.qDev';
+      const qInspectorKey = 'globalThis.qInspector';
+      const qSerializeKey = 'globalThis.qSerialize';
+      const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
+      const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
+      const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
-        updatedViteConfig.define = {
-          [qDevKey]: qDev,
-          [qInspectorKey]: qInspector,
-          [qSerializeKey]: qSerialize,
-        };
-        (globalThis as any).qDev = qDev;
-        (globalThis as any).qInspector = qInspector;
-      }
+      updatedViteConfig.define = {
+        [qDevKey]: qDev,
+        [qInspectorKey]: qInspector,
+        [qSerializeKey]: qSerialize,
+      };
+      (globalThis as any).qDev = qDev;
+      (globalThis as any).qInspector = qInspector;
 
       if (opts.target === 'ssr') {
         // SSR Build

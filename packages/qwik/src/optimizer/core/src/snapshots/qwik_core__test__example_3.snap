@@ -81,7 +81,7 @@ export const App = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,MAAM,MAAM,IAAM;IACrB,MAAM,uBAAS;IAMf,OAAO;AACX,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,MAAM,IAAM;IACrB,MAAM,uBAAS;IAMf,OAAO;AACX,EAAG\"}")
 == DIAGNOSTICS ==
 
 []

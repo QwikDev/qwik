@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isQwikElement, isText } from '../util/element';
+import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 
@@ -8,25 +8,24 @@ import { emitEvent } from '../util/event';
 
 import { isArray, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
+import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
 import {
-  ContainerState,
+  type ContainerState,
   _getContainerState,
-  GetObject,
+  type GetObject,
   isContainer,
   SHOW_COMMENT,
-  SnapshotState,
+  type SnapshotState,
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, Subscriptions } from '../state/common';
+import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
-import { getContext } from '../state/context';
-import { domToVnode } from '../render/dom/visitor';
 import { getWrappingContainer } from '../use/use-core';
+import { getContext } from '../state/context';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -63,7 +62,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
   }
   let doc = {} as Document;
   let containerState = {} as any;
-  if (element && isQwikElement(element)) {
+  if (isNode(element) && isQwikElement(element)) {
     const containerEl = getWrappingContainer(element);
     if (containerEl) {
       containerState = _getContainerState(containerEl);
@@ -185,7 +184,7 @@ export const resumeContainer = (containerEl: Element) => {
         return virtual;
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);
-        getContext(rawElement, containerState).$vdom$ = domToVnode(rawElement);
+        getContext(rawElement, containerState);
         return rawElement;
       }
       finalized.set(id, rawElement);

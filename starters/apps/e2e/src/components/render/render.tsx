@@ -1,7 +1,7 @@
 import {
   component$,
-  JSXNode,
-  PropFunction,
+  type JSXNode,
+  type PropFunction,
   useSignal,
   useStore,
   useStylesScoped$,
@@ -55,6 +55,11 @@ export const Render = component$(() => {
         id="props-destructuring-count"
         aria-count={state.count}
       />
+
+      <IssueReorder />
+      <Issue2414 />
+      <Issue3178 />
+      <Issue3398 />
     </>
   );
 });
@@ -184,12 +189,14 @@ export const PropsDestructuring = component$(
       }
     );
     renders.renders++;
+    const rerenders = renders.renders;
+
     return (
       <div id={id}>
         <span {...rest}>
           {message} {c}
         </span>
-        <div class="renders">{renders.renders}</div>
+        <div class="renders">{rerenders}</div>
       </div>
     );
   }
@@ -204,12 +211,13 @@ export const PropsDestructuringNo = component$(
       }
     );
     renders.renders++;
+    const rerenders = renders.renders;
     return (
       <div id={id}>
         <span {...rest}>
           {message} {count}
         </span>
-        <div class="renders">{renders.renders}</div>
+        <div class="renders">{rerenders}</div>
       </div>
     );
   }
@@ -262,7 +270,7 @@ export const Issue2800 = component$(() => {
       </button>
       <ul id="issue-2800-result">
         {Object.entries(store).map(([key, value]) => (
-          <li>
+          <li key={key}>
             {key} - {value}
           </li>
         ))}
@@ -316,5 +324,148 @@ export const Issue3116 = component$(() => {
         render$={(products) => <div id="issue-3116-result">{products.join('hi')}</div>}
       />
     </>
+  );
+});
+
+export const IssueReorder = component$(() => {
+  const cond = useSignal(false);
+
+  return (
+    <div>
+      {!cond.value && (
+        <p id="running" class="issue-order">
+          TOP
+        </p>
+      )}
+
+      <div class="issue-order" data-value="first">
+        1. First
+      </div>
+      <div class="issue-order" data-value="second">
+        2. Second
+      </div>
+
+      {cond.value && (
+        <p id="form-error" class="issue-order">
+          BOTTOM
+        </p>
+      )}
+      <button
+        id="issue-order-btn"
+        type="button"
+        onClick$={() => {
+          cond.value = true;
+        }}
+      >
+        Submit
+      </button>
+    </div>
+  );
+});
+
+const Issue2414 = component$(() => {
+  const sort = useSignal<'id' | 'size' | 'age'>('size');
+  const showTable = useSignal(true);
+  const table = useStore({
+    value: [
+      { id: 1, size: 4, age: 1 },
+      { id: 2, size: 3, age: 3 },
+      { id: 3, size: 2, age: 27 },
+      { id: 4, size: 1, age: 9 },
+      { id: 5, size: 7, age: 21 },
+      { id: 6, size: 8, age: 12 },
+      { id: 7, size: 9, age: 7 },
+    ],
+  });
+
+  useTask$(({ track }) => {
+    track(() => sort.value);
+    table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
+  });
+
+  return (
+    <>
+      <p>Should be currently sorted by: {sort.value}</p>
+      <table>
+        <thead>
+          {(['size', 'age', 'id'] as const).map((c) => {
+            return (
+              <th
+                key={c}
+                id={`issue-2414-${c}`}
+                onClick$={(e) => {
+                  sort.value = c;
+                }}
+              >
+                {c}
+              </th>
+            );
+          })}
+        </thead>
+        {showTable.value ? (
+          <tbody>
+            {table.value.map((row) => {
+              return (
+                <tr key={row.id}>
+                  <td class="issue-2414-size">{row.size}</td>
+                  <td class="issue-2414-age">{row.age}</td>
+                  <td class="issue-2414-id">{row.id}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        ) : (
+          <></>
+        )}
+      </table>
+    </>
+  );
+});
+
+const Issue3178 = component$(() => {
+  const store = useStore(
+    {
+      elements: [] as Element[],
+    },
+    { deep: true }
+  );
+
+  return (
+    <>
+      <div
+        id="issue-3178"
+        ref={(el) => {
+          store.elements.push(el);
+          console.warn(store.elements[0].nodeType);
+        }}
+      >
+        Hello
+      </div>
+    </>
+  );
+});
+
+export type TitleProps = {
+  tag?: 'h1' | 'h2';
+};
+
+export const Title = component$((props: TitleProps) => {
+  const Tag = props.tag ?? 'h1';
+
+  return <Tag id="issue-3398-tag">Hello {Tag}</Tag>;
+});
+
+export const Issue3398 = component$(() => {
+  const tag = useSignal<'h1' | 'h2'>('h1');
+  return (
+    <div>
+      <button
+        id="issue-3398-button"
+        onClick$={() => (tag.value = tag.value === 'h1' ? 'h2' : 'h1')}
+      >
+        Toggle tag
+      </button>
+      <Title tag={tag.value}></Title>
+    </div>
   );
 });

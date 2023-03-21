@@ -1,7 +1,7 @@
-import { build, BuildOptions } from 'esbuild';
+import { build, type BuildOptions } from 'esbuild';
 import {
   access,
-  BuildConfig,
+  type BuildConfig,
   getBanner,
   injectGlobalThisPoly,
   nodeTarget,

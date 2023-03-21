@@ -1,3 +1,10 @@
+[![Qwik CI](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml)
+[![Azure SWA Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml)
+[![Cloudflare Pages Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml)
+[![Netlify Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml)
+[![Node Servers](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml)
+[![Vercel Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml)
+
 <p align="center">
   <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/qwik-logo.svg" />
 </p>

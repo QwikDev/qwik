@@ -137,14 +137,14 @@ import App from './app';
 
 export const Root = () => {
   return (
-    <html>
+    <>
       <head>
         <title>Tutorial</title>
       </head>
       <body>
         <App />
       </body>
-    </html>
+    </>
   );
 };
 `;

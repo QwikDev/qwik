@@ -37,3 +37,10 @@ export function assertNumber(value1: any, text: string, ...parts: any[]): assert
     throw logErrorAndStop(text, ...parts);
   }
 }
+
+export function assertString(value1: any, text: string, ...parts: any[]): asserts value1 is string {
+  if (qDev) {
+    if (typeof value1 === 'string') return;
+    throw logErrorAndStop(text, ...parts);
+  }
+}

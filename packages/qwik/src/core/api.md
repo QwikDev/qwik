@@ -130,6 +130,12 @@ export interface ErrorBoundaryStore {
     error: any | undefined;
 }
 
+// @alpha (undocumented)
+export const event$: <T>(first: T) => QRL<T>;
+
+// @alpha (undocumented)
+export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
+
 // Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)

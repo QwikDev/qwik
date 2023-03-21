@@ -183,11 +183,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (isSignal(immutable)) {
     return immutable;
   }
-  const value = obj[prop];
-  if (isSignal(value)) {
-    return _IMMUTABLE;
-  }
-  return value;
+  return _IMMUTABLE;
 };
 
 /**

@@ -10,6 +10,7 @@ import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
 import { _IMMUTABLE } from '../state/constants';
+import { assertNumber } from '../error/assert';
 
 /**
  * Infers `Props` from the component.
@@ -138,6 +139,7 @@ export const componentQrl = <PROPS extends {}>(
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key: string | null, flags: number): JSXNode {
     assertQrl(componentQrl);
+    assertNumber(flags, 'The Qwik Component was not invocated correctly');
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
     return _jsxC(

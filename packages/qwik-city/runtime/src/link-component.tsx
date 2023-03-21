@@ -1,7 +1,8 @@
-import { component$, Slot, type QwikIntrinsicElements } from '@builder.io/qwik';
+import { component$, Slot, type QwikIntrinsicElements, untrack } from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
+import { event$ } from '../../../qwik/src/core';
 
 /**
  * @alpha
@@ -11,24 +12,26 @@ export const Link = component$<LinkProps>((props) => {
   const loc = useLocation();
   const originalHref = props.href;
   const linkProps = { ...props };
-  const clientNavPath = getClientNavPath(linkProps, loc);
-  const prefetchDataset = getPrefetchDataset(props, clientNavPath, loc);
-
+  const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
+  const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
+  const reload = !!linkProps.reload;
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
-
+  const event = event$((ev: any, elm: HTMLAnchorElement) =>
+    prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
+  );
   return (
     <a
       {...linkProps}
-      onClick$={() => {
-        if (clientNavPath) {
-          nav(linkProps.href, linkProps.reload);
+      onClick$={(_, elm) => {
+        if (elm.href) {
+          nav(elm.href, reload);
         }
       }}
       data-prefetch={prefetchDataset}
-      onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
-      onFocus$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
-      onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement, true)}
+      onMouseOver$={event}
+      onFocus$={event}
+      onQVisible$={event}
     >
       <Slot />
     </a>

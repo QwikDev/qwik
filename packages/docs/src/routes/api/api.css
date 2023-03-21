@@ -1,15 +1,77 @@
 .docs.api h1 {
-    font-size: 2.5rem;
+  font-size: 2.5rem;
 }
 
 .docs.api h1 strong {
-    background: var(--qwik-blue);
-    color: white;
-    display: inline-block;
-    border-radius: 4px;
-    padding: 2px 12px;
+  background: var(--qwik-blue);
+  color: white;
+  display: inline-block;
+  border-radius: 4px;
+  padding: 2px 12px;
 }
 
 .docs.api h2 {
-    font-size: 2rem;
+  font-size: 2rem;
+}
+
+.docs.api h3 {
+  font-size: 1.5rem;
+}
+
+.docs.api a {
+    display: inline-block;
+    color: black;
+    text-decoration: none;
+}
+
+.docs.api ul {
+  margin: 0;
+}
+
+.docs.api ul li {
+  padding: 0;
+}
+
+.docs.api li.variable:before,
+.docs.api li.interface:before,
+.docs.api li.type-alias:before,
+.docs.api li.method-signature:before,
+.docs.api li.function:before,
+.docs.api li.namespace:before,
+.docs.api li.property-signature:before {
+  border-radius: 4px;
+  color: white;
+  display: inline-block;
+  margin-right: 8px;
+  text-align: center;
+  width: 22px;
+}
+
+.docs.api li.variable:before {
+  content: 'V';
+  background: var(--qwik-purple);
+}
+.docs.api li.property-signature:before {
+  content: 'P';
+  background: var(--qwik-blue);
+}
+.docs.api li.interface:before {
+    content: 'I';
+    background: var(--qwik-dark-blue);
+}
+.docs.api li.type-alias:before {
+    content: 'T';
+    background: var(--qwik-dark-purple);
+}
+.docs.api li.method-signature:before {
+    content: 'M';
+    background: #f0ad4e;
+}
+.docs.api li.function:before {
+    content: 'F';
+    background: #5bc0de;
+}
+.docs.api li.namespace:before {
+    content: 'N';
+    background: #5cb85c;
 }

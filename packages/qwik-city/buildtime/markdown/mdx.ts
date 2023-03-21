@@ -75,7 +75,12 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const compiled = await process(file);
       const output = String(compiled.value);
       const hasher = createHash('sha256');
-      const key = hasher.update(output).digest('base64url').slice(0, 8);
+      const key = hasher
+        .update(output)
+        .digest('base64')
+        .slice(0, 8)
+        .replace('+', '-')
+        .replace('/', '_');
       const addImport = `import { _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
       const newDefault = `
 const WrappedMdxContent = () => {

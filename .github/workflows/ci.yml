@@ -460,12 +460,12 @@ jobs:
     needs:
       - release
 
-    if: ${{ needs.changes.outputs.fullbuild == 'true' && github.ref_name == 'main' }}
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
     steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
           repository: builderIO/qwik-city-e2e
           event-type: main-updated
 

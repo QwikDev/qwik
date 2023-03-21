@@ -457,10 +457,10 @@ jobs:
     name: Trigger Qwik City E2E
     runs-on: ubuntu-latest
 
-    # needs:
-    #   - release
+    needs:
+      - release
 
-    # if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
     steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2

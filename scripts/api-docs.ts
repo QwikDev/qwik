@@ -65,7 +65,7 @@ async function generateApiMarkdownSubPackageDocs(
   );
 
   createApiPage(subPkgName, apiOuputDir);
-  createApiData(docsApiJsonPath, apiOuputDir);
+  createApiData(docsApiJsonPath, apiOuputDir, subPkgName);
 }
 
 function createApiPage(subPkgName: string, apiOuputDir: string) {
@@ -121,10 +121,11 @@ function getApiMarkdownOutput(mdPath: string) {
   return output;
 }
 
-function createApiData(docsApiJsonPath: string, apiOuputDir: string) {
+function createApiData(docsApiJsonPath: string, apiOuputDir: string, subPkgName: string) {
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
 
   const apiData: ApiData = {
+    package: subPkgName,
     members: [],
   };
 
@@ -149,6 +150,7 @@ function createApiData(docsApiJsonPath: string, apiOuputDir: string) {
 }
 
 interface ApiData {
+  package: string;
   members: ApiMember[];
 }
 

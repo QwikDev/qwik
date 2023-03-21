@@ -1,4 +1,5 @@
 {
+  "package": "@builder.io/qwik",
   "members": [
     {
       "name": "_jsxC",

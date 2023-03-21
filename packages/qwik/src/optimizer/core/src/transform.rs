@@ -1371,7 +1371,7 @@ impl<'a> QwikTransform<'a> {
                                         )));
                                     }
                                 } else if let Some((getter, is_immutable)) =
-                                    self.convert_to_getter(&node.value)
+                                    self.convert_to_getter(&node.value, is_fn)
                                 {
                                     if is_fn {
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
@@ -1479,7 +1479,7 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<(ast::Expr, bool)> {
+    fn convert_to_getter(&mut self, expr: &ast::Expr, is_fn: bool) -> Option<(ast::Expr, bool)> {
         let inlined = self.create_synthetic_qqhook(expr.clone(), true);
         if let Some(expr) = inlined.0 {
             return Some((expr, inlined.1));
@@ -1488,7 +1488,11 @@ impl<'a> QwikTransform<'a> {
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
             if let Some(prop_sym) = prop_sym {
-                let id = self.ensure_core_import(&_WRAP_PROP);
+                let id = if is_fn {
+                    self.ensure_core_import(&_WRAP_PROP)
+                } else {
+                    self.ensure_core_import(&_WRAP_SIGNAL)
+                };
                 return Some((make_wrap(&id, member.obj.clone(), prop_sym), false));
             }
         }

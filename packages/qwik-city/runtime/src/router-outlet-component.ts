@@ -1,23 +1,16 @@
 import {
   component$,
-  implicit$FirstArg,
   jsx,
   type JSXNode,
-  type QRL,
   SkipRender,
   useContext,
   useOnDocument,
   _IMMUTABLE,
   _jsxBranch,
+  event$,
 } from '@builder.io/qwik';
 import type { ClientHistoryWindow } from './client-navigate';
 import { ContentInternalContext } from './contexts';
-
-export const clientQrl = <T>(qrl: QRL<T>): QRL<T> => {
-  return qrl;
-};
-
-export const client$ = implicit$FirstArg(clientQrl);
 
 /**
  * @alpha
@@ -27,7 +20,7 @@ export const RouterOutlet = component$(() => {
 
   useOnDocument(
     'qinit',
-    client$(() => {
+    event$(() => {
       const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
       const CLIENT_HISTORY_INITIALIZED = '_qCityHistory';
 

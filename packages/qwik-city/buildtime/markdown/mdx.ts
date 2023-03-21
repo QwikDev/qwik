@@ -1,6 +1,6 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug } from './rehype';
+import { rehypePage, rehypeSlug, renameClassname } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
@@ -57,7 +57,13 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       remarkFrontmatter,
       [parseFrontmatter, ctx],
     ],
-    rehypePlugins: [rehypeSlug, ...userRehypePlugins, ...coreRehypePlugins, [rehypePage, ctx]],
+    rehypePlugins: [
+      rehypeSlug,
+      ...userRehypePlugins,
+      ...coreRehypePlugins,
+      [rehypePage, ctx],
+      renameClassname,
+    ],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);
@@ -69,7 +75,12 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const compiled = await process(file);
       const output = String(compiled.value);
       const hasher = createHash('sha256');
-      const key = hasher.update(output).digest('base64url').slice(0, 8);
+      const key = hasher
+        .update(output)
+        .digest('base64')
+        .slice(0, 8)
+        .replace('+', '-')
+        .replace('/', '_');
       const addImport = `import { _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
       const newDefault = `
 const WrappedMdxContent = () => {

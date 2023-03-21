@@ -1,3 +1,4 @@
+import { implicit$FirstArg } from '../util/implicit_dollar';
 import { qRuntimeQrl } from '../util/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
@@ -252,3 +253,15 @@ export const $ = <T>(expression: T): QRL<T> => {
 
   return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
 };
+
+/**
+ * @alpha
+ */
+export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
+  return qrl;
+};
+
+/**
+ * @alpha
+ */
+export const event$ = implicit$FirstArg(eventQrl);

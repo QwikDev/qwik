@@ -1,5 +1,58 @@
 {
   "id": "qwik-city-middleware-azure-swa",
   "package": "@builder.io/qwik-city/middleware/azure-swa",
-  "members": []
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.createqwikcity.md"
+    },
+    {
+      "name": "PlatformAzure",
+      "id": "platformazure",
+      "hierarchy": [
+        {
+          "name": "PlatformAzure",
+          "id": "platformazure"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.platformazure.md"
+    },
+    {
+      "name": "qwikCity",
+      "id": "qwikcity",
+      "hierarchy": [
+        {
+          "name": "qwikCity",
+          "id": "qwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.qwikcity.md"
+    },
+    {
+      "name": "QwikCityAzureOptions",
+      "id": "qwikcityazureoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityAzureOptions",
+          "id": "qwikcityazureoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.qwikcityazureoptions.md"
+    }
+  ]
 }

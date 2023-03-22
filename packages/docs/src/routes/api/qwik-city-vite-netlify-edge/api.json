@@ -1,5 +1,105 @@
 {
   "id": "qwik-city-vite-netlify-edge",
   "package": "@builder.io/qwik-city/vite/netlify-edge",
-  "members": []
+  "members": [
+    {
+      "name": "functionRoutes",
+      "id": "netlifyedgeadapteroptions-functionroutes",
+      "hierarchy": [
+        {
+          "name": "NetlifyEdgeAdapterOptions",
+          "id": "netlifyedgeadapteroptions-functionroutes"
+        },
+        {
+          "name": "functionRoutes",
+          "id": "netlifyedgeadapteroptions-functionroutes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.netlifyedgeadapteroptions.functionroutes.md"
+    },
+    {
+      "name": "netifyEdgeAdapter",
+      "id": "netifyedgeadapter",
+      "hierarchy": [
+        {
+          "name": "netifyEdgeAdapter",
+          "id": "netifyedgeadapter"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.netifyedgeadapter.md"
+    },
+    {
+      "name": "netifyEdgeAdaptor",
+      "id": "netifyedgeadaptor",
+      "hierarchy": [
+        {
+          "name": "netifyEdgeAdaptor",
+          "id": "netifyedgeadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.netifyedgeadaptor.md"
+    },
+    {
+      "name": "netlifyEdgeAdapter",
+      "id": "netlifyedgeadapter",
+      "hierarchy": [
+        {
+          "name": "netlifyEdgeAdapter",
+          "id": "netlifyedgeadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.netlifyedgeadapter.md"
+    },
+    {
+      "name": "NetlifyEdgeAdapterOptions",
+      "id": "netlifyedgeadapteroptions",
+      "hierarchy": [
+        {
+          "name": "NetlifyEdgeAdapterOptions",
+          "id": "netlifyedgeadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.netlifyedgeadapteroptions.md"
+    },
+    {
+      "name": "NetlifyEdgeAdaptorOptions",
+      "id": "netlifyedgeadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "NetlifyEdgeAdaptorOptions",
+          "id": "netlifyedgeadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.netlifyedgeadaptoroptions.md"
+    },
+    {
+      "name": "staticPaths",
+      "id": "netlifyedgeadapteroptions-staticpaths",
+      "hierarchy": [
+        {
+          "name": "NetlifyEdgeAdapterOptions",
+          "id": "netlifyedgeadapteroptions-staticpaths"
+        },
+        {
+          "name": "staticPaths",
+          "id": "netlifyedgeadapteroptions-staticpaths"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.netlifyedgeadapteroptions.staticpaths.md"
+    }
+  ]
 }

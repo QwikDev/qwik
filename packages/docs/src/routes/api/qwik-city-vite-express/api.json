@@ -1,5 +1,58 @@
 {
   "id": "qwik-city-vite-express",
   "package": "@builder.io/qwik-city/vite/express",
-  "members": []
+  "members": [
+    {
+      "name": "expressAdapter",
+      "id": "expressadapter",
+      "hierarchy": [
+        {
+          "name": "expressAdapter",
+          "id": "expressadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.expressadapter.md"
+    },
+    {
+      "name": "ExpressAdapterOptions",
+      "id": "expressadapteroptions",
+      "hierarchy": [
+        {
+          "name": "ExpressAdapterOptions",
+          "id": "expressadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.expressadapteroptions.md"
+    },
+    {
+      "name": "expressAdaptor",
+      "id": "expressadaptor",
+      "hierarchy": [
+        {
+          "name": "expressAdaptor",
+          "id": "expressadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.expressadaptor.md"
+    },
+    {
+      "name": "ExpressAdaptorOptions",
+      "id": "expressadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "ExpressAdaptorOptions",
+          "id": "expressadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.expressadaptoroptions.md"
+    }
+  ]
 }

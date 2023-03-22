@@ -1,5 +1,45 @@
 {
   "id": "qwik-city-middleware-netlify-edge",
   "package": "@builder.io/qwik-city/middleware/netlify-edge",
-  "members": []
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.createqwikcity.md"
+    },
+    {
+      "name": "PlatformNetlify",
+      "id": "platformnetlify",
+      "hierarchy": [
+        {
+          "name": "PlatformNetlify",
+          "id": "platformnetlify"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.platformnetlify.md"
+    },
+    {
+      "name": "QwikCityNetlifyOptions",
+      "id": "qwikcitynetlifyoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityNetlifyOptions",
+          "id": "qwikcitynetlifyoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.qwikcitynetlifyoptions.md"
+    }
+  ]
 }

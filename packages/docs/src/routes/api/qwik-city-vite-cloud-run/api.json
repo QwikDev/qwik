@@ -1,5 +1,58 @@
 {
   "id": "qwik-city-vite-cloud-run",
   "package": "@builder.io/qwik-city/vite/cloud-run",
-  "members": []
+  "members": [
+    {
+      "name": "cloudRunAdapter",
+      "id": "cloudrunadapter",
+      "hierarchy": [
+        {
+          "name": "cloudRunAdapter",
+          "id": "cloudrunadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.cloudrunadapter.md"
+    },
+    {
+      "name": "CloudRunAdapterOptions",
+      "id": "cloudrunadapteroptions",
+      "hierarchy": [
+        {
+          "name": "CloudRunAdapterOptions",
+          "id": "cloudrunadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.cloudrunadapteroptions.md"
+    },
+    {
+      "name": "cloudRunAdaptor",
+      "id": "cloudrunadaptor",
+      "hierarchy": [
+        {
+          "name": "cloudRunAdaptor",
+          "id": "cloudrunadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.cloudrunadaptor.md"
+    },
+    {
+      "name": "CloudRunAdaptorOptions",
+      "id": "cloudrunadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "CloudRunAdaptorOptions",
+          "id": "cloudrunadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.cloudrunadaptoroptions.md"
+    }
+  ]
 }

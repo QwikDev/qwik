@@ -1,5 +1,139 @@
 {
   "id": "qwik-city-middleware-node",
   "package": "@builder.io/qwik-city/middleware/node",
-  "members": []
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.createqwikcity.md"
+    },
+    {
+      "name": "incomingMessage",
+      "id": "platformnode-incomingmessage",
+      "hierarchy": [
+        {
+          "name": "PlatformNode",
+          "id": "platformnode-incomingmessage"
+        },
+        {
+          "name": "incomingMessage",
+          "id": "platformnode-incomingmessage"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.platformnode.incomingmessage.md"
+    },
+    {
+      "name": "node",
+      "id": "platformnode-node",
+      "hierarchy": [
+        {
+          "name": "PlatformNode",
+          "id": "platformnode-node"
+        },
+        {
+          "name": "node",
+          "id": "platformnode-node"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.platformnode.node.md"
+    },
+    {
+      "name": "NodeRequestNextFunction",
+      "id": "noderequestnextfunction",
+      "hierarchy": [
+        {
+          "name": "NodeRequestNextFunction",
+          "id": "noderequestnextfunction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.noderequestnextfunction.md"
+    },
+    {
+      "name": "PlatformNode",
+      "id": "platformnode",
+      "hierarchy": [
+        {
+          "name": "PlatformNode",
+          "id": "platformnode"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.platformnode.md"
+    },
+    {
+      "name": "qwikCity",
+      "id": "qwikcity",
+      "hierarchy": [
+        {
+          "name": "qwikCity",
+          "id": "qwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.qwikcity.md"
+    },
+    {
+      "name": "QwikCityNodeRequestOptions",
+      "id": "qwikcitynoderequestoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityNodeRequestOptions",
+          "id": "qwikcitynoderequestoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.qwikcitynoderequestoptions.md"
+    },
+    {
+      "name": "ssr",
+      "id": "platformnode-ssr",
+      "hierarchy": [
+        {
+          "name": "PlatformNode",
+          "id": "platformnode-ssr"
+        },
+        {
+          "name": "ssr",
+          "id": "platformnode-ssr"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.platformnode.ssr.md"
+    },
+    {
+      "name": "static",
+      "id": "qwikcitynoderequestoptions-static",
+      "hierarchy": [
+        {
+          "name": "QwikCityNodeRequestOptions",
+          "id": "qwikcitynoderequestoptions-static"
+        },
+        {
+          "name": "static",
+          "id": "qwikcitynoderequestoptions-static"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcitynoderequestoptions.static.md"
+    }
+  ]
 }

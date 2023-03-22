@@ -1,5 +1,381 @@
 {
   "id": "qwik-city-static",
   "package": "@builder.io/qwik-city/static",
-  "members": []
+  "members": [
+    {
+      "name": "basePathname",
+      "id": "staticgenerateoptions-basepathname",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateOptions",
+          "id": "staticgenerateoptions-basepathname"
+        },
+        {
+          "name": "basePathname",
+          "id": "staticgenerateoptions-basepathname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateoptions.basepathname.md"
+    },
+    {
+      "name": "duration",
+      "id": "staticgenerateresult-duration",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateResult",
+          "id": "staticgenerateresult-duration"
+        },
+        {
+          "name": "duration",
+          "id": "staticgenerateresult-duration"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateresult.duration.md"
+    },
+    {
+      "name": "emit404Pages",
+      "id": "staticgeneraterenderoptions-emit404pages",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-emit404pages"
+        },
+        {
+          "name": "emit404Pages",
+          "id": "staticgeneraterenderoptions-emit404pages"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.emit404pages.md"
+    },
+    {
+      "name": "emitData",
+      "id": "staticgeneraterenderoptions-emitdata",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-emitdata"
+        },
+        {
+          "name": "emitData",
+          "id": "staticgeneraterenderoptions-emitdata"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.emitdata.md"
+    },
+    {
+      "name": "emitHtml",
+      "id": "staticgeneraterenderoptions-emithtml",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-emithtml"
+        },
+        {
+          "name": "emitHtml",
+          "id": "staticgeneraterenderoptions-emithtml"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.emithtml.md"
+    },
+    {
+      "name": "errors",
+      "id": "staticgenerateresult-errors",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateResult",
+          "id": "staticgenerateresult-errors"
+        },
+        {
+          "name": "errors",
+          "id": "staticgenerateresult-errors"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateresult.errors.md"
+    },
+    {
+      "name": "exclude",
+      "id": "staticgeneraterenderoptions-exclude",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-exclude"
+        },
+        {
+          "name": "exclude",
+          "id": "staticgeneraterenderoptions-exclude"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.exclude.md"
+    },
+    {
+      "name": "generate",
+      "id": "generate",
+      "hierarchy": [
+        {
+          "name": "generate",
+          "id": "generate"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.generate.md"
+    },
+    {
+      "name": "include",
+      "id": "staticgeneraterenderoptions-include",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-include"
+        },
+        {
+          "name": "include",
+          "id": "staticgeneraterenderoptions-include"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.include.md"
+    },
+    {
+      "name": "log",
+      "id": "staticgeneraterenderoptions-log",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-log"
+        },
+        {
+          "name": "log",
+          "id": "staticgeneraterenderoptions-log"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.log.md"
+    },
+    {
+      "name": "maxTasksPerWorker",
+      "id": "staticgeneraterenderoptions-maxtasksperworker",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-maxtasksperworker"
+        },
+        {
+          "name": "maxTasksPerWorker",
+          "id": "staticgeneraterenderoptions-maxtasksperworker"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.maxtasksperworker.md"
+    },
+    {
+      "name": "maxWorkers",
+      "id": "staticgeneraterenderoptions-maxworkers",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-maxworkers"
+        },
+        {
+          "name": "maxWorkers",
+          "id": "staticgeneraterenderoptions-maxworkers"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.maxworkers.md"
+    },
+    {
+      "name": "origin",
+      "id": "staticgeneraterenderoptions-origin",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-origin"
+        },
+        {
+          "name": "origin",
+          "id": "staticgeneraterenderoptions-origin"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.origin.md"
+    },
+    {
+      "name": "outDir",
+      "id": "staticgeneraterenderoptions-outdir",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-outdir"
+        },
+        {
+          "name": "outDir",
+          "id": "staticgeneraterenderoptions-outdir"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.outdir.md"
+    },
+    {
+      "name": "qwikCityPlanModulePath",
+      "id": "staticgenerateoptions-qwikcityplanmodulepath",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateOptions",
+          "id": "staticgenerateoptions-qwikcityplanmodulepath"
+        },
+        {
+          "name": "qwikCityPlanModulePath",
+          "id": "staticgenerateoptions-qwikcityplanmodulepath"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateoptions.qwikcityplanmodulepath.md"
+    },
+    {
+      "name": "rendered",
+      "id": "staticgenerateresult-rendered",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateResult",
+          "id": "staticgenerateresult-rendered"
+        },
+        {
+          "name": "rendered",
+          "id": "staticgenerateresult-rendered"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateresult.rendered.md"
+    },
+    {
+      "name": "renderModulePath",
+      "id": "staticgenerateoptions-rendermodulepath",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateOptions",
+          "id": "staticgenerateoptions-rendermodulepath"
+        },
+        {
+          "name": "renderModulePath",
+          "id": "staticgenerateoptions-rendermodulepath"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateoptions.rendermodulepath.md"
+    },
+    {
+      "name": "rootDir",
+      "id": "staticgenerateoptions-rootdir",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateOptions",
+          "id": "staticgenerateoptions-rootdir"
+        },
+        {
+          "name": "rootDir",
+          "id": "staticgenerateoptions-rootdir"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateoptions.rootdir.md"
+    },
+    {
+      "name": "sitemapOutFile",
+      "id": "staticgeneraterenderoptions-sitemapoutfile",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions-sitemapoutfile"
+        },
+        {
+          "name": "sitemapOutFile",
+          "id": "staticgeneraterenderoptions-sitemapoutfile"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.sitemapoutfile.md"
+    },
+    {
+      "name": "StaticGenerateOptions",
+      "id": "staticgenerateoptions",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateOptions",
+          "id": "staticgenerateoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.staticgenerateoptions.md"
+    },
+    {
+      "name": "StaticGenerateRenderOptions",
+      "id": "staticgeneraterenderoptions",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateRenderOptions",
+          "id": "staticgeneraterenderoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.staticgeneraterenderoptions.md"
+    },
+    {
+      "name": "StaticGenerateResult",
+      "id": "staticgenerateresult",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateResult",
+          "id": "staticgenerateresult"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.staticgenerateresult.md"
+    },
+    {
+      "name": "staticPaths",
+      "id": "staticgenerateresult-staticpaths",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateResult",
+          "id": "staticgenerateresult-staticpaths"
+        },
+        {
+          "name": "staticPaths",
+          "id": "staticgenerateresult-staticpaths"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.staticgenerateresult.staticpaths.md"
+    }
+  ]
 }

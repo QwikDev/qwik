@@ -1,5 +1,126 @@
 {
   "id": "qwik-city-middleware-cloudflare-pages",
   "package": "@builder.io/qwik-city/middleware/cloudflare-pages",
-  "members": []
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.createqwikcity.md"
+    },
+    {
+      "name": "env",
+      "id": "eventplugincontext-env",
+      "hierarchy": [
+        {
+          "name": "EventPluginContext",
+          "id": "eventplugincontext-env"
+        },
+        {
+          "name": "env",
+          "id": "eventplugincontext-env"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.eventplugincontext.env.md"
+    },
+    {
+      "name": "EventPluginContext",
+      "id": "eventplugincontext",
+      "hierarchy": [
+        {
+          "name": "EventPluginContext",
+          "id": "eventplugincontext"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.eventplugincontext.md"
+    },
+    {
+      "name": "next",
+      "id": "eventplugincontext-next",
+      "hierarchy": [
+        {
+          "name": "EventPluginContext",
+          "id": "eventplugincontext-next"
+        },
+        {
+          "name": "next",
+          "id": "eventplugincontext-next"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.eventplugincontext.next.md"
+    },
+    {
+      "name": "PlatformCloudflarePages",
+      "id": "platformcloudflarepages",
+      "hierarchy": [
+        {
+          "name": "PlatformCloudflarePages",
+          "id": "platformcloudflarepages"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.platformcloudflarepages.md"
+    },
+    {
+      "name": "QwikCityCloudflarePagesOptions",
+      "id": "qwikcitycloudflarepagesoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityCloudflarePagesOptions",
+          "id": "qwikcitycloudflarepagesoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.qwikcitycloudflarepagesoptions.md"
+    },
+    {
+      "name": "request",
+      "id": "eventplugincontext-request",
+      "hierarchy": [
+        {
+          "name": "EventPluginContext",
+          "id": "eventplugincontext-request"
+        },
+        {
+          "name": "request",
+          "id": "eventplugincontext-request"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.eventplugincontext.request.md"
+    },
+    {
+      "name": "waitUntil",
+      "id": "eventplugincontext-waituntil",
+      "hierarchy": [
+        {
+          "name": "EventPluginContext",
+          "id": "eventplugincontext-waituntil"
+        },
+        {
+          "name": "waitUntil",
+          "id": "eventplugincontext-waituntil"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.eventplugincontext.waituntil.md"
+    }
+  ]
 }

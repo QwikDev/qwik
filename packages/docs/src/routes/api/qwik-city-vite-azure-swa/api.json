@@ -1,5 +1,58 @@
 {
   "id": "qwik-city-vite-azure-swa",
   "package": "@builder.io/qwik-city/vite/azure-swa",
-  "members": []
+  "members": [
+    {
+      "name": "azureSwaAdapter",
+      "id": "azureswaadapter",
+      "hierarchy": [
+        {
+          "name": "azureSwaAdapter",
+          "id": "azureswaadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.azureswaadapter.md"
+    },
+    {
+      "name": "AzureSwaAdapterOptions",
+      "id": "azureswaadapteroptions",
+      "hierarchy": [
+        {
+          "name": "AzureSwaAdapterOptions",
+          "id": "azureswaadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.azureswaadapteroptions.md"
+    },
+    {
+      "name": "azureSwaAdaptor",
+      "id": "azureswaadaptor",
+      "hierarchy": [
+        {
+          "name": "azureSwaAdaptor",
+          "id": "azureswaadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.azureswaadaptor.md"
+    },
+    {
+      "name": "AzureSwaAdaptorOptions",
+      "id": "azureswaadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "AzureSwaAdaptorOptions",
+          "id": "azureswaadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.azureswaadaptoroptions.md"
+    }
+  ]
 }

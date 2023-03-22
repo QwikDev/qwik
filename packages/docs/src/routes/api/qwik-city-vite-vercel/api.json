@@ -1,5 +1,126 @@
 {
   "id": "qwik-city-vite-vercel",
   "package": "@builder.io/qwik-city/vite/vercel",
-  "members": []
+  "members": [
+    {
+      "name": "outputConfig",
+      "id": "verceledgeadapteroptions-outputconfig",
+      "hierarchy": [
+        {
+          "name": "VercelEdgeAdapterOptions",
+          "id": "verceledgeadapteroptions-outputconfig"
+        },
+        {
+          "name": "outputConfig",
+          "id": "verceledgeadapteroptions-outputconfig"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.verceledgeadapteroptions.outputconfig.md"
+    },
+    {
+      "name": "staticPaths",
+      "id": "verceledgeadapteroptions-staticpaths",
+      "hierarchy": [
+        {
+          "name": "VercelEdgeAdapterOptions",
+          "id": "verceledgeadapteroptions-staticpaths"
+        },
+        {
+          "name": "staticPaths",
+          "id": "verceledgeadapteroptions-staticpaths"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.verceledgeadapteroptions.staticpaths.md"
+    },
+    {
+      "name": "vcConfigEntryPoint",
+      "id": "verceledgeadapteroptions-vcconfigentrypoint",
+      "hierarchy": [
+        {
+          "name": "VercelEdgeAdapterOptions",
+          "id": "verceledgeadapteroptions-vcconfigentrypoint"
+        },
+        {
+          "name": "vcConfigEntryPoint",
+          "id": "verceledgeadapteroptions-vcconfigentrypoint"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.verceledgeadapteroptions.vcconfigentrypoint.md"
+    },
+    {
+      "name": "vcConfigEnvVarsInUse",
+      "id": "verceledgeadapteroptions-vcconfigenvvarsinuse",
+      "hierarchy": [
+        {
+          "name": "VercelEdgeAdapterOptions",
+          "id": "verceledgeadapteroptions-vcconfigenvvarsinuse"
+        },
+        {
+          "name": "vcConfigEnvVarsInUse",
+          "id": "verceledgeadapteroptions-vcconfigenvvarsinuse"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.verceledgeadapteroptions.vcconfigenvvarsinuse.md"
+    },
+    {
+      "name": "vercelEdgeAdapter",
+      "id": "verceledgeadapter",
+      "hierarchy": [
+        {
+          "name": "vercelEdgeAdapter",
+          "id": "verceledgeadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.verceledgeadapter.md"
+    },
+    {
+      "name": "VercelEdgeAdapterOptions",
+      "id": "verceledgeadapteroptions",
+      "hierarchy": [
+        {
+          "name": "VercelEdgeAdapterOptions",
+          "id": "verceledgeadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.verceledgeadapteroptions.md"
+    },
+    {
+      "name": "vercelEdgeAdaptor",
+      "id": "verceledgeadaptor",
+      "hierarchy": [
+        {
+          "name": "vercelEdgeAdaptor",
+          "id": "verceledgeadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.verceledgeadaptor.md"
+    },
+    {
+      "name": "VercelEdgeAdaptorOptions",
+      "id": "verceledgeadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "VercelEdgeAdaptorOptions",
+          "id": "verceledgeadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.verceledgeadaptoroptions.md"
+    }
+  ]
 }

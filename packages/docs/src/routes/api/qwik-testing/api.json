@@ -1,5 +1,19 @@
 {
   "id": "qwik-testing",
   "package": "@builder.io/qwik/testing",
-  "members": []
+  "members": [
+    {
+      "name": "createDOM",
+      "id": "createdom",
+      "hierarchy": [
+        {
+          "name": "createDOM",
+          "id": "createdom"
+        }
+      ],
+      "kind": "Variable",
+      "content": "CreatePlatform and CreateDocument\n\n\n```typescript\ncreateDOM: () => Promise<{\n    render: (jsxElement: JSXNode) => Promise<import(\"@builder.io/qwik\").RenderResult>;\n    screen: HTMLElement;\n    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string) => Promise<void>;\n}>\n```",
+      "mdFile": "qwik.createdom.md"
+    }
+  ]
 }

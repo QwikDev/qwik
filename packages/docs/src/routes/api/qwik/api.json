@@ -37,30 +37,17 @@
       "mdFile": "qwik.contextid.__brand_context_type__.md"
     },
     {
-      "name": "_jsxC",
-      "id": "_jsxc",
+      "name": "_fnSignal",
+      "id": "_fnsignal",
       "hierarchy": [
         {
-          "name": "_jsxC",
-          "id": "_jsxc"
+          "name": "_fnSignal",
+          "id": "_fnsignal"
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\n_jsxC: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>\n```",
-      "mdFile": "qwik._jsxc.md"
-    },
-    {
-      "name": "_jsxQ",
-      "id": "_jsxq",
-      "hierarchy": [
-        {
-          "name": "_jsxQ",
-          "id": "_jsxq"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\n_jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>\n```",
-      "mdFile": "qwik._jsxq.md"
+      "content": "```typescript\n_fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>\n```",
+      "mdFile": "qwik._fnsignal.md"
     },
     {
       "name": "\"aria-activedescendant\"",
@@ -956,7 +943,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\naltKey: boolean;\n```",
+      "content": "```typescript\naltKey: boolean;\n```",
       "mdFile": "qwik.qwikkeyboardevent.altkey.md"
     },
     {
@@ -973,7 +960,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nanimationName: string;\n```",
+      "content": "```typescript\nanimationName: string;\n```",
       "mdFile": "qwik.qwikanimationevent.animationname.md"
     },
     {
@@ -1054,6 +1041,57 @@
       "mdFile": "qwik.htmlattributes.autosave.md"
     },
     {
+      "name": "base",
+      "id": "renderssroptions-base",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-base"
+        },
+        {
+          "name": "base",
+          "id": "renderssroptions-base"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nbase?: string;\n```",
+      "mdFile": "qwik.renderssroptions.base.md"
+    },
+    {
+      "name": "beforeClose",
+      "id": "renderssroptions-beforeclose",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-beforeclose"
+        },
+        {
+          "name": "beforeClose",
+          "id": "renderssroptions-beforeclose"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nbeforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;\n```",
+      "mdFile": "qwik.renderssroptions.beforeclose.md"
+    },
+    {
+      "name": "beforeContent",
+      "id": "renderssroptions-beforecontent",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-beforecontent"
+        },
+        {
+          "name": "beforeContent",
+          "id": "renderssroptions-beforecontent"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nbeforeContent?: JSXNode<string>[];\n```",
+      "mdFile": "qwik.renderssroptions.beforecontent.md"
+    },
+    {
       "name": "button",
       "id": "qwikmouseevent-button",
       "hierarchy": [
@@ -1067,7 +1105,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nbutton: number;\n```",
+      "content": "```typescript\nbutton: number;\n```",
       "mdFile": "qwik.qwikmouseevent.button.md"
     },
     {
@@ -1084,8 +1122,25 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nbuttons: number;\n```",
+      "content": "```typescript\nbuttons: number;\n```",
       "mdFile": "qwik.qwikmouseevent.buttons.md"
+    },
+    {
+      "name": "c",
+      "id": "snapshotmetavalue-c",
+      "hierarchy": [
+        {
+          "name": "SnapshotMetaValue",
+          "id": "snapshotmetavalue-c"
+        },
+        {
+          "name": "c",
+          "id": "snapshotmetavalue-c"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nc?: string;\n```",
+      "mdFile": "qwik.snapshotmetavalue.c.md"
     },
     {
       "name": "cache",
@@ -1118,7 +1173,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nchangedTouches: TouchList;\n```",
+      "content": "```typescript\nchangedTouches: TouchList;\n```",
       "mdFile": "qwik.qwiktouchevent.changedtouches.md"
     },
     {
@@ -1135,7 +1190,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ncharCode: number;\n```",
+      "content": "```typescript\ncharCode: number;\n```",
       "mdFile": "qwik.qwikkeyboardevent.charcode.md"
     },
     {
@@ -1156,38 +1211,38 @@
       "mdFile": "qwik.domattributes.children.md"
     },
     {
-      "name": "className",
-      "id": "htmlattributes-classname",
+      "name": "chunkForSymbol",
+      "id": "coreplatform-chunkforsymbol",
       "hierarchy": [
         {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-classname"
+          "name": "CorePlatform",
+          "id": "coreplatform-chunkforsymbol"
         },
         {
-          "name": "className",
-          "id": "htmlattributes-classname"
+          "name": "chunkForSymbol",
+          "id": "coreplatform-chunkforsymbol"
         }
       ],
       "kind": "PropertySignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> - Use `class` instead\n> \n\n\n```typescript\nclassName?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.classname.md"
+      "content": "Retrieve chunk name for the symbol.\n\nWhen the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)\n\n\n```typescript\nchunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;\n```",
+      "mdFile": "qwik.coreplatform.chunkforsymbol.md"
     },
     {
       "name": "cleanup",
-      "id": "resourcectx-cleanup",
+      "id": "renderresult-cleanup",
       "hierarchy": [
         {
-          "name": "ResourceCtx",
-          "id": "resourcectx-cleanup"
+          "name": "RenderResult",
+          "id": "renderresult-cleanup"
         },
         {
           "name": "cleanup",
-          "id": "resourcectx-cleanup"
+          "id": "renderresult-cleanup"
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\ncleanup(callback: () => void): void;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  callback | () =&gt; void |  |\n\n**Returns:**\n\nvoid",
-      "mdFile": "qwik.resourcectx.cleanup.md"
+      "content": "```typescript\ncleanup(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "qwik.renderresult.cleanup.md"
     },
     {
       "name": "clientX",
@@ -1203,7 +1258,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nclientX: number;\n```",
+      "content": "```typescript\nclientX: number;\n```",
       "mdFile": "qwik.qwikmouseevent.clientx.md"
     },
     {
@@ -1220,7 +1275,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nclientY: number;\n```",
+      "content": "```typescript\nclientY: number;\n```",
       "mdFile": "qwik.qwikmouseevent.clienty.md"
     },
     {
@@ -1237,7 +1292,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nclipboardData: DataTransfer;\n```",
+      "content": "```typescript\nclipboardData: DataTransfer;\n```",
       "mdFile": "qwik.qwikclipboardevent.clipboarddata.md"
     },
     {
@@ -1310,6 +1365,40 @@
       "mdFile": "qwik.componentqrl.md"
     },
     {
+      "name": "containerAttributes",
+      "id": "renderssroptions-containerattributes",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-containerattributes"
+        },
+        {
+          "name": "containerAttributes",
+          "id": "renderssroptions-containerattributes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncontainerAttributes: Record<string, string>;\n```",
+      "mdFile": "qwik.renderssroptions.containerattributes.md"
+    },
+    {
+      "name": "containerTagName",
+      "id": "renderssroptions-containertagname",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-containertagname"
+        },
+        {
+          "name": "containerTagName",
+          "id": "renderssroptions-containertagname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncontainerTagName: string;\n```",
+      "mdFile": "qwik.renderssroptions.containertagname.md"
+    },
+    {
       "name": "contentEditable",
       "id": "htmlattributes-contenteditable",
       "hierarchy": [
@@ -1336,7 +1425,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> Please use `ContextId` instead.\n> \n\n\n```typescript\nexport interface Context<STATE extends object> extends ContextId<STATE> \n```\n**Extends:** [ContextId](#contextid)<!-- -->&lt;STATE&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `ContextId` instead.\n> \n\n\n```typescript\nexport interface Context<STATE extends object> extends ContextId<STATE> \n```\n**Extends:** [ContextId](#contextid)<!-- -->&lt;STATE&gt;",
       "mdFile": "qwik.context.md"
     },
     {
@@ -1370,6 +1459,19 @@
       "mdFile": "qwik.htmlattributes.contextmenu.md"
     },
     {
+      "name": "CorePlatform",
+      "id": "coreplatform",
+      "hierarchy": [
+        {
+          "name": "CorePlatform",
+          "id": "coreplatform"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#coreplatform-chunkforsymbol) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#coreplatform-importsymbol) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#coreplatform-isserver) |  | boolean | True of running on the server platform. |\n|  [nextTick](#coreplatform-nexttick) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#coreplatform-raf) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
+      "mdFile": "qwik.coreplatform.md"
+    },
+    {
       "name": "createContext",
       "id": "createcontext",
       "hierarchy": [
@@ -1379,7 +1481,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> Please use `createContextId` instead.\n> \n\n\n```typescript\ncreateContext: <STATE extends object>(name: string) => ContextId<STATE>\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `createContextId` instead.\n> \n\n\n```typescript\ncreateContext: <STATE extends object>(name: string) => ContextId<STATE>\n```",
       "mdFile": "qwik.createcontext.md"
     },
     {
@@ -1409,8 +1511,42 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nctrlKey: boolean;\n```",
+      "content": "```typescript\nctrlKey: boolean;\n```",
       "mdFile": "qwik.qwikkeyboardevent.ctrlkey.md"
+    },
+    {
+      "name": "ctx",
+      "id": "snapshotstate-ctx",
+      "hierarchy": [
+        {
+          "name": "SnapshotState",
+          "id": "snapshotstate-ctx"
+        },
+        {
+          "name": "ctx",
+          "id": "snapshotstate-ctx"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nctx: SnapshotMeta;\n```",
+      "mdFile": "qwik.snapshotstate.ctx.md"
+    },
+    {
+      "name": "current",
+      "id": "ref-current",
+      "hierarchy": [
+        {
+          "name": "Ref",
+          "id": "ref-current"
+        },
+        {
+          "name": "current",
+          "id": "ref-current"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncurrent: T | undefined;\n```",
+      "mdFile": "qwik.ref.current.md"
     },
     {
       "name": "data",
@@ -1426,7 +1562,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndata: string;\n```",
+      "content": "```typescript\ndata: string;\n```",
       "mdFile": "qwik.qwikcompositionevent.data.md"
     },
     {
@@ -1443,7 +1579,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndataTransfer: DataTransfer;\n```",
+      "content": "```typescript\ndataTransfer: DataTransfer;\n```",
       "mdFile": "qwik.qwikdragevent.datatransfer.md"
     },
     {
@@ -1494,7 +1630,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndeltaMode: number;\n```",
+      "content": "```typescript\ndeltaMode: number;\n```",
       "mdFile": "qwik.qwikwheelevent.deltamode.md"
     },
     {
@@ -1511,7 +1647,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndeltaX: number;\n```",
+      "content": "```typescript\ndeltaX: number;\n```",
       "mdFile": "qwik.qwikwheelevent.deltax.md"
     },
     {
@@ -1528,7 +1664,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndeltaY: number;\n```",
+      "content": "```typescript\ndeltaY: number;\n```",
       "mdFile": "qwik.qwikwheelevent.deltay.md"
     },
     {
@@ -1545,7 +1681,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndeltaZ: number;\n```",
+      "content": "```typescript\ndeltaZ: number;\n```",
       "mdFile": "qwik.qwikwheelevent.deltaz.md"
     },
     {
@@ -1562,7 +1698,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ndetail: number;\n```",
+      "content": "```typescript\ndetail: number;\n```",
       "mdFile": "qwik.qwikuievent.detail.md"
     },
     {
@@ -1630,6 +1766,23 @@
       "mdFile": "qwik.htmlattributes.draggable.md"
     },
     {
+      "name": "dynamic",
+      "id": "ssrhintprops-dynamic",
+      "hierarchy": [
+        {
+          "name": "SSRHintProps",
+          "id": "ssrhintprops-dynamic"
+        },
+        {
+          "name": "dynamic",
+          "id": "ssrhintprops-dynamic"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ndynamic?: boolean;\n```",
+      "mdFile": "qwik.ssrhintprops.dynamic.md"
+    },
+    {
       "name": "eagerness",
       "id": "onvisibletaskoptions-eagerness",
       "hierarchy": [
@@ -1660,6 +1813,23 @@
       "mdFile": "qwik.eagernessoptions.md"
     },
     {
+      "name": "el",
+      "id": "snapshotlistener-el",
+      "hierarchy": [
+        {
+          "name": "SnapshotListener",
+          "id": "snapshotlistener-el"
+        },
+        {
+          "name": "el",
+          "id": "snapshotlistener-el"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nel: Element;\n```",
+      "mdFile": "qwik.snapshotlistener.el.md"
+    },
+    {
       "name": "elapsedTime",
       "id": "qwikanimationevent-elapsedtime",
       "hierarchy": [
@@ -1673,7 +1843,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nelapsedTime: number;\n```",
+      "content": "```typescript\nelapsedTime: number;\n```",
       "mdFile": "qwik.qwikanimationevent.elapsedtime.md"
     },
     {
@@ -1717,6 +1887,62 @@
       "kind": "Interface",
       "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](./qwik.h.jsx.elementchildrenattribute.children.md) |  | any | _(Optional)_ |",
       "mdFile": "qwik.h.jsx.elementchildrenattribute.md"
+    },
+    {
+      "name": "error",
+      "id": "errorboundarystore-error",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryStore",
+          "id": "errorboundarystore-error"
+        },
+        {
+          "name": "error",
+          "id": "errorboundarystore-error"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nerror: any | undefined;\n```",
+      "mdFile": "qwik.errorboundarystore.error.md"
+    },
+    {
+      "name": "ErrorBoundaryStore",
+      "id": "errorboundarystore",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryStore",
+          "id": "errorboundarystore"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ErrorBoundaryStore \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [error](#errorboundarystore-error) |  | any \\| undefined |  |",
+      "mdFile": "qwik.errorboundarystore.md"
+    },
+    {
+      "name": "event$",
+      "id": "event_",
+      "hierarchy": [
+        {
+          "name": "event$",
+          "id": "event_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nevent$: <T>(first: T) => QRL<T>\n```",
+      "mdFile": "qwik.event_.md"
+    },
+    {
+      "name": "eventQrl",
+      "id": "eventqrl",
+      "hierarchy": [
+        {
+          "name": "eventQrl",
+          "id": "eventqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\neventQrl: <T>(qrl: QRL<T>) => QRL<T>\n```",
+      "mdFile": "qwik.eventqrl.md"
     },
     {
       "name": "flags",
@@ -1809,8 +2035,21 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nSee \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method.\n\n\n```typescript\ngetModifierState(key: string): boolean;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  key | string |  |\n\n**Returns:**\n\nboolean",
+      "content": "See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method.\n\n\n```typescript\ngetModifierState(key: string): boolean;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  key | string |  |\n\n**Returns:**\n\nboolean",
       "mdFile": "qwik.qwikkeyboardevent.getmodifierstate.md"
+    },
+    {
+      "name": "getPlatform",
+      "id": "getplatform",
+      "hierarchy": [
+        {
+          "name": "getPlatform",
+          "id": "getplatform"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Retrieve the `CorePlatform`<!-- -->.\n\nThe `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is specific to the application currently running. On server it is possible that many different applications are running in a single server instance, and for this reason the `CorePlatform` is associated with the application document.\n\n\n```typescript\ngetPlatform: () => CorePlatform\n```",
+      "mdFile": "qwik.getplatform.md"
     },
     {
       "name": "getSymbol",
@@ -1856,6 +2095,23 @@
       "mdFile": "qwik.h.md"
     },
     {
+      "name": "h",
+      "id": "snapshotmetavalue-h",
+      "hierarchy": [
+        {
+          "name": "SnapshotMetaValue",
+          "id": "snapshotmetavalue-h"
+        },
+        {
+          "name": "h",
+          "id": "snapshotmetavalue-h"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nh?: string;\n```",
+      "mdFile": "qwik.snapshotmetavalue.h.md"
+    },
+    {
       "name": "height",
       "id": "qwikpointerevent-height",
       "hierarchy": [
@@ -1869,7 +2125,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nheight: number;\n```",
+      "content": "```typescript\nheight: number;\n```",
       "mdFile": "qwik.qwikpointerevent.height.md"
     },
     {
@@ -1899,7 +2155,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#htmlattributes-about) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#htmlattributes-accesskey) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#htmlattributes-autocapitalize) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#htmlattributes-autocorrect) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#htmlattributes-autosave) |  | string \\| undefined | _(Optional)_ |\n|  [className?](#htmlattributes-classname) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#htmlattributes-color) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#htmlattributes-contenteditable) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#htmlattributes-contextmenu) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#htmlattributes-datatype) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#htmlattributes-dir) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#htmlattributes-draggable) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#htmlattributes-hidden) |  | boolean \\| undefined | _(Optional)_ |\n|  [id?](./qwik.htmlattributes.id.md) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#htmlattributes-inlist) |  | any | _(Optional)_ |\n|  [inputMode?](#htmlattributes-inputmode) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#htmlattributes-is) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#htmlattributes-itemid) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#htmlattributes-itemprop) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#htmlattributes-itemref) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#htmlattributes-itemscope) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#htmlattributes-itemtype) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#htmlattributes-lang) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#htmlattributes-placeholder) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#htmlattributes-prefix) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#htmlattributes-property) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#htmlattributes-radiogroup) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#htmlattributes-resource) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#htmlattributes-results) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#htmlattributes-role) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#htmlattributes-security) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#htmlattributes-slot) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#htmlattributes-spellcheck) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#htmlattributes-style) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#htmlattributes-tabindex) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#htmlattributes-title) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#htmlattributes-translate) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#htmlattributes-typeof) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#htmlattributes-unselectable) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#htmlattributes-vocab) |  | string \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#htmlattributes-about) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#htmlattributes-accesskey) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#htmlattributes-autocapitalize) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#htmlattributes-autocorrect) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#htmlattributes-autosave) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#htmlattributes-color) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#htmlattributes-contenteditable) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#htmlattributes-contextmenu) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#htmlattributes-datatype) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#htmlattributes-dir) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#htmlattributes-draggable) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#htmlattributes-hidden) |  | boolean \\| undefined | _(Optional)_ |\n|  [id?](./qwik.htmlattributes.id.md) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#htmlattributes-inlist) |  | any | _(Optional)_ |\n|  [inputMode?](#htmlattributes-inputmode) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#htmlattributes-is) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#htmlattributes-itemid) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#htmlattributes-itemprop) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#htmlattributes-itemref) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#htmlattributes-itemscope) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#htmlattributes-itemtype) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#htmlattributes-lang) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#htmlattributes-placeholder) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#htmlattributes-prefix) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#htmlattributes-property) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#htmlattributes-radiogroup) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#htmlattributes-resource) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#htmlattributes-results) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#htmlattributes-role) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#htmlattributes-security) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#htmlattributes-slot) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#htmlattributes-spellcheck) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#htmlattributes-style) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#htmlattributes-tabindex) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#htmlattributes-title) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#htmlattributes-translate) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#htmlattributes-typeof) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#htmlattributes-unselectable) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#htmlattributes-vocab) |  | string \\| undefined | _(Optional)_ |",
       "mdFile": "qwik.htmlattributes.md"
     },
     {
@@ -1935,6 +2191,36 @@
       "kind": "PropertySignature",
       "content": "```typescript\nimmutableProps: Record<string, any> | null;\n```",
       "mdFile": "qwik.jsxnode.immutableprops.md"
+    },
+    {
+      "name": "implicit$FirstArg",
+      "id": "implicit_firstarg",
+      "hierarchy": [
+        {
+          "name": "implicit$FirstArg",
+          "id": "implicit_firstarg"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET\n```",
+      "mdFile": "qwik.implicit_firstarg.md"
+    },
+    {
+      "name": "importSymbol",
+      "id": "coreplatform-importsymbol",
+      "hierarchy": [
+        {
+          "name": "CorePlatform",
+          "id": "coreplatform-importsymbol"
+        },
+        {
+          "name": "importSymbol",
+          "id": "coreplatform-importsymbol"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Retrieve a symbol value from QRL.\n\nQwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using `importSymbol`<!-- -->.\n\nWhy not use `import()`<!-- -->? Because `import()` is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.\n\n\n```typescript\nimportSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;\n```",
+      "mdFile": "qwik.coreplatform.importsymbol.md"
     },
     {
       "name": "inlist",
@@ -2043,8 +2329,25 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nisPrimary: boolean;\n```",
+      "content": "```typescript\nisPrimary: boolean;\n```",
       "mdFile": "qwik.qwikpointerevent.isprimary.md"
+    },
+    {
+      "name": "isServer",
+      "id": "coreplatform-isserver",
+      "hierarchy": [
+        {
+          "name": "CorePlatform",
+          "id": "coreplatform-isserver"
+        },
+        {
+          "name": "isServer",
+          "id": "coreplatform-isserver"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "True of running on the server platform.\n\n\n```typescript\nisServer: boolean;\n```",
+      "mdFile": "qwik.coreplatform.isserver.md"
     },
     {
       "name": "itemID",
@@ -2171,7 +2474,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [JSXNode](#jsxnode)",
+      "content": "```typescript\nexport type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [Signal](#signal)<!-- -->, [JSXNode](#jsxnode)",
       "mdFile": "qwik.jsxchildren.md"
     },
     {
@@ -2244,7 +2547,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nkeyCode: number;\n```",
+      "content": "```typescript\nkeyCode: number;\n```",
       "mdFile": "qwik.qwikkeyboardevent.keycode.md"
     },
     {
@@ -2295,7 +2598,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nlocale: string;\n```",
+      "content": "```typescript\nlocale: string;\n```",
       "mdFile": "qwik.qwikkeyboardevent.locale.md"
     },
     {
@@ -2312,7 +2615,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nlocation: number;\n```",
+      "content": "```typescript\nlocation: number;\n```",
       "mdFile": "qwik.qwikkeyboardevent.location.md"
     },
     {
@@ -2329,8 +2632,25 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nmetaKey: boolean;\n```",
+      "content": "```typescript\nmetaKey: boolean;\n```",
       "mdFile": "qwik.qwikkeyboardevent.metakey.md"
+    },
+    {
+      "name": "mode",
+      "id": "snapshotresult-mode",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult-mode"
+        },
+        {
+          "name": "mode",
+          "id": "snapshotresult-mode"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmode: 'render' | 'listeners' | 'static';\n```",
+      "mdFile": "qwik.snapshotresult.mode.md"
     },
     {
       "name": "MountFn",
@@ -2359,7 +2679,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nmovementX: number;\n```",
+      "content": "```typescript\nmovementX: number;\n```",
       "mdFile": "qwik.qwikmouseevent.movementx.md"
     },
     {
@@ -2376,8 +2696,21 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nmovementY: number;\n```",
+      "content": "```typescript\nmovementY: number;\n```",
       "mdFile": "qwik.qwikmouseevent.movementy.md"
+    },
+    {
+      "name": "mutable",
+      "id": "mutable",
+      "hierarchy": [
+        {
+          "name": "mutable",
+          "id": "mutable"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Remove it, not needed anymore\n> \n\n\n```typescript\nmutable: <T>(v: T) => T\n```",
+      "mdFile": "qwik.mutable.md"
     },
     {
       "name": "NativeAnimationEvent",
@@ -2389,7 +2722,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeAnimationEvent = AnimationEvent;\n```",
+      "content": "```typescript\nexport type NativeAnimationEvent = AnimationEvent;\n```",
       "mdFile": "qwik.nativeanimationevent.md"
     },
     {
@@ -2402,7 +2735,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeClipboardEvent = ClipboardEvent;\n```",
+      "content": "```typescript\nexport type NativeClipboardEvent = ClipboardEvent;\n```",
       "mdFile": "qwik.nativeclipboardevent.md"
     },
     {
@@ -2415,7 +2748,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeCompositionEvent = CompositionEvent;\n```",
+      "content": "```typescript\nexport type NativeCompositionEvent = CompositionEvent;\n```",
       "mdFile": "qwik.nativecompositionevent.md"
     },
     {
@@ -2428,7 +2761,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeDragEvent = DragEvent;\n```",
+      "content": "```typescript\nexport type NativeDragEvent = DragEvent;\n```",
       "mdFile": "qwik.nativedragevent.md"
     },
     {
@@ -2441,7 +2774,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeFocusEvent = FocusEvent;\n```",
+      "content": "```typescript\nexport type NativeFocusEvent = FocusEvent;\n```",
       "mdFile": "qwik.nativefocusevent.md"
     },
     {
@@ -2454,7 +2787,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeKeyboardEvent = KeyboardEvent;\n```",
+      "content": "```typescript\nexport type NativeKeyboardEvent = KeyboardEvent;\n```",
       "mdFile": "qwik.nativekeyboardevent.md"
     },
     {
@@ -2467,7 +2800,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeMouseEvent = MouseEvent;\n```",
+      "content": "```typescript\nexport type NativeMouseEvent = MouseEvent;\n```",
       "mdFile": "qwik.nativemouseevent.md"
     },
     {
@@ -2480,7 +2813,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativePointerEvent = PointerEvent;\n```",
+      "content": "```typescript\nexport type NativePointerEvent = PointerEvent;\n```",
       "mdFile": "qwik.nativepointerevent.md"
     },
     {
@@ -2493,7 +2826,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeTouchEvent = TouchEvent;\n```",
+      "content": "```typescript\nexport type NativeTouchEvent = TouchEvent;\n```",
       "mdFile": "qwik.nativetouchevent.md"
     },
     {
@@ -2506,7 +2839,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeTransitionEvent = TransitionEvent;\n```",
+      "content": "```typescript\nexport type NativeTransitionEvent = TransitionEvent;\n```",
       "mdFile": "qwik.nativetransitionevent.md"
     },
     {
@@ -2519,7 +2852,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeUIEvent = UIEvent;\n```",
+      "content": "```typescript\nexport type NativeUIEvent = UIEvent;\n```",
       "mdFile": "qwik.nativeuievent.md"
     },
     {
@@ -2532,8 +2865,25 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type NativeWheelEvent = WheelEvent;\n```",
+      "content": "```typescript\nexport type NativeWheelEvent = WheelEvent;\n```",
       "mdFile": "qwik.nativewheelevent.md"
+    },
+    {
+      "name": "nextTick",
+      "id": "coreplatform-nexttick",
+      "hierarchy": [
+        {
+          "name": "CorePlatform",
+          "id": "coreplatform-nexttick"
+        },
+        {
+          "name": "nextTick",
+          "id": "coreplatform-nexttick"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Perform operation on next tick.\n\n\n```typescript\nnextTick: (fn: () => any) => Promise<any>;\n```",
+      "mdFile": "qwik.coreplatform.nexttick.md"
     },
     {
       "name": "noSerialize",
@@ -2560,6 +2910,23 @@
       "kind": "TypeAlias",
       "content": "Marks a property on a store as non-serializable.\n\nAt times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.\n\nYou can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`<!-- -->. You will be responsible for recovering from this.\n\nSee: \\[noSerialize Tutorial\\](http://qwik.builder.io/tutorial/store/no-serialize)\n\n\n```typescript\nnoSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>\n```",
       "mdFile": "qwik.noserialize.md"
+    },
+    {
+      "name": "objs",
+      "id": "snapshotresult-objs",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult-objs"
+        },
+        {
+          "name": "objs",
+          "id": "snapshotresult-objs"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nobjs: any[];\n```",
+      "mdFile": "qwik.snapshotresult.objs.md"
     },
     {
       "name": "onPending",
@@ -2652,7 +3019,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npageX: number;\n```",
+      "content": "```typescript\npageX: number;\n```",
       "mdFile": "qwik.qwikmouseevent.pagex.md"
     },
     {
@@ -2669,7 +3036,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npageY: number;\n```",
+      "content": "```typescript\npageY: number;\n```",
       "mdFile": "qwik.qwikmouseevent.pagey.md"
     },
     {
@@ -2703,7 +3070,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npointerId: number;\n```",
+      "content": "```typescript\npointerId: number;\n```",
       "mdFile": "qwik.qwikpointerevent.pointerid.md"
     },
     {
@@ -2720,7 +3087,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npointerType: 'mouse' | 'pen' | 'touch';\n```",
+      "content": "```typescript\npointerType: 'mouse' | 'pen' | 'touch';\n```",
       "mdFile": "qwik.qwikpointerevent.pointertype.md"
     },
     {
@@ -2754,7 +3121,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npressure: number;\n```",
+      "content": "```typescript\npressure: number;\n```",
       "mdFile": "qwik.qwikpointerevent.pressure.md"
     },
     {
@@ -2805,7 +3172,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npropertyName: string;\n```",
+      "content": "```typescript\npropertyName: string;\n```",
       "mdFile": "qwik.qwiktransitionevent.propertyname.md"
     },
     {
@@ -2878,7 +3245,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\npseudoElement: string;\n```",
+      "content": "```typescript\npseudoElement: string;\n```",
       "mdFile": "qwik.qwikanimationevent.pseudoelement.md"
     },
     {
@@ -2895,6 +3262,36 @@
       "mdFile": "qwik.publicprops.md"
     },
     {
+      "name": "qrl",
+      "id": "qrl",
+      "hierarchy": [
+        {
+          "name": "qrl",
+          "id": "qrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
+      "mdFile": "qwik.qrl.md"
+    },
+    {
+      "name": "qrl",
+      "id": "snapshotlistener-qrl",
+      "hierarchy": [
+        {
+          "name": "SnapshotListener",
+          "id": "snapshotlistener-qrl"
+        },
+        {
+          "name": "qrl",
+          "id": "snapshotlistener-qrl"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nqrl: QRL<any>;\n```",
+      "mdFile": "qwik.snapshotlistener.qrl.md"
+    },
+    {
       "name": "QRL",
       "id": "qrl",
       "hierarchy": [
@@ -2904,8 +3301,25 @@
         }
       ],
       "kind": "Interface",
-      "content": "The `QRL` type represents a lazy-loadable AND serializable resource.\n\nQRL stands for Qwik URL.\n\nUse `QRL` when you want to refer to a lazy-loaded resource. `QRL`<!-- -->s are most often used for code (functions) but can also be used for other resources such as `string`<!-- -->s in the case of styles.\n\n`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)\n\n\\#\\# Creating `QRL` references\n\nCreating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.\n\n```tsx\nuseOnDocument(\n  'mousemove',\n  $((event) => console.log('mousemove', event))\n);\n```\nIn the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:\n\n```tsx\n// FILE: <current file>\nuseOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));\n\n// FILE: chunk-abc.js\nexport const onMousemove = () => console.log('mousemove');\n```\nNOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.\n\n\\#\\# Using `QRL`<!-- -->s\n\nUse `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).\n\n```tsx\n// Example of declaring a custom functions which takes callback as QRL.\nexport function useMyFunction(callback: QRL<() => void>) {\n  doExtraStuff();\n  // The callback passed to `onDocument` requires `QRL`.\n  useOnDocument('mousemove', callback);\n}\n```\nIn the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.\n\n\\#\\# Resolving `QRL` references\n\nAt times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.\n\n```tsx\n// Assume you have QRL reference to a greet function\nconst lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));\n\n// Use `qrlImport` to load / resolve the reference.\nconst greet: () => void = await lazyGreet.resolve();\n\n//  Invoke it\ngreet();\n```\nNOTE: `element` is needed because `QRL`<!-- -->s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base=\"/url\">`<!-- -->.\n\n\\#\\# Question: Why not just use `import()`<!-- -->?\n\nAt first glance, `QRL` serves the same purpose as `import()`<!-- -->. However, there are three subtle differences that need to be taken into account.\n\n1. `QRL`<!-- -->s must be serializable into HTML. 2. `QRL`<!-- -->s must be resolved by framework relative to `q:base`<!-- -->. 3. `QRL`<!-- -->s must be able to capture lexically scoped variables. 4. `QRL`<!-- -->s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`<!-- -->s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.\n\nLet's assume that you intend to write code such as this:\n\n```typescript\nreturn <button onClick={() => (await import('./chunk-abc.js')).onClick}>\n```\nThe above code needs to be serialized into DOM such as:\n\n```\n<div q:base=\"/build/\">\n  <button on:click=\"./chunk-abc.js#onClick\">...</button>\n</div>\n```\n1. Notice there is no easy way to extract chunk (`./chunk-abc.js`<!-- -->) and symbol (`onClick`<!-- -->) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: \"this should be lazy.\"\n\nThese are the main reasons why Qwik introduces its own concept of `QRL`<!-- -->.\n\n\n```typescript\nexport interface QRL<TYPE = any> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_\\_brand\\_\\_QRL\\_\\_](#qrl-__brand__qrl__) |  | TYPE |  |\n|  [dev](./qwik.qrl.dev.md) |  | QRLDev \\| null |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getCaptured()](#qrl-getcaptured) |  |\n|  [getHash()](#qrl-gethash) |  |\n|  [getSymbol()](#qrl-getsymbol) |  |\n|  [resolve()](#qrl-resolve) | Resolve the QRL and return the actual value. |",
+      "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
       "mdFile": "qwik.qrl.md"
+    },
+    {
+      "name": "qrls",
+      "id": "snapshotresult-qrls",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult-qrls"
+        },
+        {
+          "name": "qrls",
+          "id": "snapshotresult-qrls"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nqrls: QRL[];\n```",
+      "mdFile": "qwik.snapshotresult.qrls.md"
     },
     {
       "name": "QwikAnimationEvent",
@@ -2917,7 +3331,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [animationName](#qwikanimationevent-animationname) |  | string | **_(BETA)_** |\n|  [elapsedTime](#qwikanimationevent-elapsedtime) |  | number | **_(BETA)_** |\n|  [pseudoElement](#qwikanimationevent-pseudoelement) |  | string | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [animationName](#qwikanimationevent-animationname) |  | string |  |\n|  [elapsedTime](#qwikanimationevent-elapsedtime) |  | number |  |\n|  [pseudoElement](#qwikanimationevent-pseudoelement) |  | string |  |",
       "mdFile": "qwik.qwikanimationevent.md"
     },
     {
@@ -2930,7 +3344,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](#qwikchangeevent-target) |  | EventTarget &amp; T | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](#qwikchangeevent-target) |  | EventTarget &amp; T |  |",
       "mdFile": "qwik.qwikchangeevent.md"
     },
     {
@@ -2943,7 +3357,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [clipboardData](#qwikclipboardevent-clipboarddata) |  | DataTransfer | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [clipboardData](#qwikclipboardevent-clipboarddata) |  | DataTransfer |  |",
       "mdFile": "qwik.qwikclipboardevent.md"
     },
     {
@@ -2956,7 +3370,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [data](#qwikcompositionevent-data) |  | string | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [data](#qwikcompositionevent-data) |  | string |  |",
       "mdFile": "qwik.qwikcompositionevent.md"
     },
     {
@@ -2982,7 +3396,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeDragEvent](#nativedragevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dataTransfer](#qwikdragevent-datatransfer) |  | DataTransfer | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeDragEvent](#nativedragevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dataTransfer](#qwikdragevent-datatransfer) |  | DataTransfer |  |",
       "mdFile": "qwik.qwikdragevent.md"
     },
     {
@@ -2995,7 +3409,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [relatedTarget](#qwikfocusevent-relatedtarget) |  | EventTarget \\| null | **_(BETA)_** |\n|  [target](./qwik.qwikfocusevent.target.md) |  | EventTarget &amp; T | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [relatedTarget](#qwikfocusevent-relatedtarget) |  | EventTarget \\| null |  |\n|  [target](./qwik.qwikfocusevent.target.md) |  | EventTarget &amp; T |  |",
       "mdFile": "qwik.qwikfocusevent.md"
     },
     {
@@ -3021,7 +3435,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](./qwik.qwikinvalidevent.target.md) |  | EventTarget &amp; T | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](./qwik.qwikinvalidevent.target.md) |  | EventTarget &amp; T |  |",
       "mdFile": "qwik.qwikinvalidevent.md"
     },
     {
@@ -3047,7 +3461,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#qwikkeyboardevent-altkey) |  | boolean | **_(BETA)_** |\n|  [charCode](#qwikkeyboardevent-charcode) |  | number | **_(BETA)_** |\n|  [ctrlKey](#qwikkeyboardevent-ctrlkey) |  | boolean | **_(BETA)_** |\n|  [key](./qwik.qwikkeyboardevent.key.md) |  | string | **_(BETA)_** See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#qwikkeyboardevent-keycode) |  | number | **_(BETA)_** |\n|  [locale](#qwikkeyboardevent-locale) |  | string | **_(BETA)_** |\n|  [location](#qwikkeyboardevent-location) |  | number | **_(BETA)_** |\n|  [metaKey](#qwikkeyboardevent-metakey) |  | boolean | **_(BETA)_** |\n|  [repeat](#qwikkeyboardevent-repeat) |  | boolean | **_(BETA)_** |\n|  [shiftKey](#qwikkeyboardevent-shiftkey) |  | boolean | **_(BETA)_** |\n|  [which](#qwikkeyboardevent-which) |  | number | **_(BETA)_** |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | **_(BETA)_** See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#qwikkeyboardevent-altkey) |  | boolean |  |\n|  [charCode](#qwikkeyboardevent-charcode) |  | number |  |\n|  [ctrlKey](#qwikkeyboardevent-ctrlkey) |  | boolean |  |\n|  [key](./qwik.qwikkeyboardevent.key.md) |  | string | See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#qwikkeyboardevent-keycode) |  | number |  |\n|  [locale](#qwikkeyboardevent-locale) |  | string |  |\n|  [location](#qwikkeyboardevent-location) |  | number |  |\n|  [metaKey](#qwikkeyboardevent-metakey) |  | boolean |  |\n|  [repeat](#qwikkeyboardevent-repeat) |  | boolean |  |\n|  [shiftKey](#qwikkeyboardevent-shiftkey) |  | boolean |  |\n|  [which](#qwikkeyboardevent-which) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "mdFile": "qwik.qwikkeyboardevent.md"
     },
     {
@@ -3060,7 +3474,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> \n```\n**Extends:** SyntheticEvent&lt;T, E&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](./qwik.qwikmouseevent.altkey.md) |  | boolean | **_(BETA)_** |\n|  [button](#qwikmouseevent-button) |  | number | **_(BETA)_** |\n|  [buttons](#qwikmouseevent-buttons) |  | number | **_(BETA)_** |\n|  [clientX](#qwikmouseevent-clientx) |  | number | **_(BETA)_** |\n|  [clientY](#qwikmouseevent-clienty) |  | number | **_(BETA)_** |\n|  [ctrlKey](./qwik.qwikmouseevent.ctrlkey.md) |  | boolean | **_(BETA)_** |\n|  [metaKey](./qwik.qwikmouseevent.metakey.md) |  | boolean | **_(BETA)_** |\n|  [movementX](#qwikmouseevent-movementx) |  | number | **_(BETA)_** |\n|  [movementY](#qwikmouseevent-movementy) |  | number | **_(BETA)_** |\n|  [pageX](#qwikmouseevent-pagex) |  | number | **_(BETA)_** |\n|  [pageY](#qwikmouseevent-pagey) |  | number | **_(BETA)_** |\n|  [relatedTarget](./qwik.qwikmouseevent.relatedtarget.md) |  | EventTarget \\| null | **_(BETA)_** |\n|  [screenX](#qwikmouseevent-screenx) |  | number | **_(BETA)_** |\n|  [screenY](#qwikmouseevent-screeny) |  | number | **_(BETA)_** |\n|  [shiftKey](./qwik.qwikmouseevent.shiftkey.md) |  | boolean | **_(BETA)_** |\n|  [x](#qwikmouseevent-x) |  | number | **_(BETA)_** |\n|  [y](#qwikmouseevent-y) |  | number | **_(BETA)_** |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](./qwik.qwikmouseevent.getmodifierstate.md) | **_(BETA)_** See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> \n```\n**Extends:** SyntheticEvent&lt;T, E&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](./qwik.qwikmouseevent.altkey.md) |  | boolean |  |\n|  [button](#qwikmouseevent-button) |  | number |  |\n|  [buttons](#qwikmouseevent-buttons) |  | number |  |\n|  [clientX](#qwikmouseevent-clientx) |  | number |  |\n|  [clientY](#qwikmouseevent-clienty) |  | number |  |\n|  [ctrlKey](./qwik.qwikmouseevent.ctrlkey.md) |  | boolean |  |\n|  [metaKey](./qwik.qwikmouseevent.metakey.md) |  | boolean |  |\n|  [movementX](#qwikmouseevent-movementx) |  | number |  |\n|  [movementY](#qwikmouseevent-movementy) |  | number |  |\n|  [pageX](#qwikmouseevent-pagex) |  | number |  |\n|  [pageY](#qwikmouseevent-pagey) |  | number |  |\n|  [relatedTarget](./qwik.qwikmouseevent.relatedtarget.md) |  | EventTarget \\| null |  |\n|  [screenX](#qwikmouseevent-screenx) |  | number |  |\n|  [screenY](#qwikmouseevent-screeny) |  | number |  |\n|  [shiftKey](./qwik.qwikmouseevent.shiftkey.md) |  | boolean |  |\n|  [x](#qwikmouseevent-x) |  | number |  |\n|  [y](#qwikmouseevent-y) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](./qwik.qwikmouseevent.getmodifierstate.md) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "mdFile": "qwik.qwikmouseevent.md"
     },
     {
@@ -3073,7 +3487,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativePointerEvent](#nativepointerevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [height](#qwikpointerevent-height) |  | number | **_(BETA)_** |\n|  [isPrimary](#qwikpointerevent-isprimary) |  | boolean | **_(BETA)_** |\n|  [pointerId](#qwikpointerevent-pointerid) |  | number | **_(BETA)_** |\n|  [pointerType](#qwikpointerevent-pointertype) |  | 'mouse' \\| 'pen' \\| 'touch' | **_(BETA)_** |\n|  [pressure](#qwikpointerevent-pressure) |  | number | **_(BETA)_** |\n|  [tiltX](#qwikpointerevent-tiltx) |  | number | **_(BETA)_** |\n|  [tiltY](#qwikpointerevent-tilty) |  | number | **_(BETA)_** |\n|  [width](#qwikpointerevent-width) |  | number | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativePointerEvent](#nativepointerevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [height](#qwikpointerevent-height) |  | number |  |\n|  [isPrimary](#qwikpointerevent-isprimary) |  | boolean |  |\n|  [pointerId](#qwikpointerevent-pointerid) |  | number |  |\n|  [pointerType](#qwikpointerevent-pointertype) |  | 'mouse' \\| 'pen' \\| 'touch' |  |\n|  [pressure](#qwikpointerevent-pressure) |  | number |  |\n|  [tiltX](#qwikpointerevent-tiltx) |  | number |  |\n|  [tiltY](#qwikpointerevent-tilty) |  | number |  |\n|  [width](#qwikpointerevent-width) |  | number |  |",
       "mdFile": "qwik.qwikpointerevent.md"
     },
     {
@@ -3086,7 +3500,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;",
+      "content": "```typescript\nexport interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;",
       "mdFile": "qwik.qwiksubmitevent.md"
     },
     {
@@ -3099,7 +3513,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](./qwik.qwiktouchevent.altkey.md) |  | boolean | **_(BETA)_** |\n|  [changedTouches](#qwiktouchevent-changedtouches) |  | TouchList | **_(BETA)_** |\n|  [ctrlKey](./qwik.qwiktouchevent.ctrlkey.md) |  | boolean | **_(BETA)_** |\n|  [metaKey](./qwik.qwiktouchevent.metakey.md) |  | boolean | **_(BETA)_** |\n|  [shiftKey](./qwik.qwiktouchevent.shiftkey.md) |  | boolean | **_(BETA)_** |\n|  [targetTouches](#qwiktouchevent-targettouches) |  | TouchList | **_(BETA)_** |\n|  [touches](#qwiktouchevent-touches) |  | TouchList | **_(BETA)_** |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](./qwik.qwiktouchevent.getmodifierstate.md) | **_(BETA)_** See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](./qwik.qwiktouchevent.altkey.md) |  | boolean |  |\n|  [changedTouches](#qwiktouchevent-changedtouches) |  | TouchList |  |\n|  [ctrlKey](./qwik.qwiktouchevent.ctrlkey.md) |  | boolean |  |\n|  [metaKey](./qwik.qwiktouchevent.metakey.md) |  | boolean |  |\n|  [shiftKey](./qwik.qwiktouchevent.shiftkey.md) |  | boolean |  |\n|  [targetTouches](#qwiktouchevent-targettouches) |  | TouchList |  |\n|  [touches](#qwiktouchevent-touches) |  | TouchList |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](./qwik.qwiktouchevent.getmodifierstate.md) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "mdFile": "qwik.qwiktouchevent.md"
     },
     {
@@ -3112,7 +3526,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [elapsedTime](./qwik.qwiktransitionevent.elapsedtime.md) |  | number | **_(BETA)_** |\n|  [propertyName](#qwiktransitionevent-propertyname) |  | string | **_(BETA)_** |\n|  [pseudoElement](./qwik.qwiktransitionevent.pseudoelement.md) |  | string | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [elapsedTime](./qwik.qwiktransitionevent.elapsedtime.md) |  | number |  |\n|  [propertyName](#qwiktransitionevent-propertyname) |  | string |  |\n|  [pseudoElement](./qwik.qwiktransitionevent.pseudoelement.md) |  | string |  |",
       "mdFile": "qwik.qwiktransitionevent.md"
     },
     {
@@ -3125,7 +3539,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [detail](#qwikuievent-detail) |  | number | **_(BETA)_** |\n|  [view](#qwikuievent-view) |  | AbstractView | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [detail](#qwikuievent-detail) |  | number |  |\n|  [view](#qwikuievent-view) |  | AbstractView |  |",
       "mdFile": "qwik.qwikuievent.md"
     },
     {
@@ -3138,7 +3552,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeWheelEvent](#nativewheelevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deltaMode](#qwikwheelevent-deltamode) |  | number | **_(BETA)_** |\n|  [deltaX](#qwikwheelevent-deltax) |  | number | **_(BETA)_** |\n|  [deltaY](#qwikwheelevent-deltay) |  | number | **_(BETA)_** |\n|  [deltaZ](#qwikwheelevent-deltaz) |  | number | **_(BETA)_** |",
+      "content": "```typescript\nexport interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeWheelEvent](#nativewheelevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deltaMode](#qwikwheelevent-deltamode) |  | number |  |\n|  [deltaX](#qwikwheelevent-deltax) |  | number |  |\n|  [deltaY](#qwikwheelevent-deltay) |  | number |  |\n|  [deltaZ](#qwikwheelevent-deltaz) |  | number |  |",
       "mdFile": "qwik.qwikwheelevent.md"
     },
     {
@@ -3157,6 +3571,23 @@
       "kind": "PropertySignature",
       "content": "```typescript\nradioGroup?: string | undefined;\n```",
       "mdFile": "qwik.htmlattributes.radiogroup.md"
+    },
+    {
+      "name": "raf",
+      "id": "coreplatform-raf",
+      "hierarchy": [
+        {
+          "name": "CorePlatform",
+          "id": "coreplatform-raf"
+        },
+        {
+          "name": "raf",
+          "id": "coreplatform-raf"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Perform operation on next request-animation-frame.\n\n\n```typescript\nraf: (fn: () => any) => Promise<any>;\n```",
+      "mdFile": "qwik.coreplatform.raf.md"
     },
     {
       "name": "reactive",
@@ -3193,6 +3624,36 @@
       "mdFile": "qwik.usestoreoptions.recursive.md"
     },
     {
+      "name": "Ref",
+      "id": "ref",
+      "hierarchy": [
+        {
+          "name": "Ref",
+          "id": "ref"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Type of the value returned by `useRef()`<!-- -->.\n\n\n```typescript\nexport interface Ref<T = Element> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [current](#ref-current) |  | T \\| undefined |  |",
+      "mdFile": "qwik.ref.md"
+    },
+    {
+      "name": "refs",
+      "id": "snapshotstate-refs",
+      "hierarchy": [
+        {
+          "name": "SnapshotState",
+          "id": "snapshotstate-refs"
+        },
+        {
+          "name": "refs",
+          "id": "snapshotstate-refs"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nrefs: Record<string, string>;\n```",
+      "mdFile": "qwik.snapshotstate.refs.md"
+    },
+    {
       "name": "relatedTarget",
       "id": "qwikfocusevent-relatedtarget",
       "hierarchy": [
@@ -3206,8 +3667,73 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nrelatedTarget: EventTarget | null;\n```",
+      "content": "```typescript\nrelatedTarget: EventTarget | null;\n```",
       "mdFile": "qwik.qwikfocusevent.relatedtarget.md"
+    },
+    {
+      "name": "render",
+      "id": "render",
+      "hierarchy": [
+        {
+          "name": "render",
+          "id": "render"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```",
+      "mdFile": "qwik.render.md"
+    },
+    {
+      "name": "RenderOnce",
+      "id": "renderonce",
+      "hierarchy": [
+        {
+          "name": "RenderOnce",
+          "id": "renderonce"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nRenderOnce: FunctionComponent<{\n    children?: any;\n    key?: string | number | null | undefined;\n}>\n```",
+      "mdFile": "qwik.renderonce.md"
+    },
+    {
+      "name": "RenderOptions",
+      "id": "renderoptions",
+      "hierarchy": [
+        {
+          "name": "RenderOptions",
+          "id": "renderoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RenderOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [serverData?](#renderoptions-serverdata) |  | Record&lt;string, any&gt; | _(Optional)_ |",
+      "mdFile": "qwik.renderoptions.md"
+    },
+    {
+      "name": "RenderResult",
+      "id": "renderresult",
+      "hierarchy": [
+        {
+          "name": "RenderResult",
+          "id": "renderresult"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RenderResult \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cleanup()](#renderresult-cleanup) |  |",
+      "mdFile": "qwik.renderresult.md"
+    },
+    {
+      "name": "RenderSSROptions",
+      "id": "renderssroptions",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#renderssroptions-base) |  | string | _(Optional)_ |\n|  [beforeClose?](#renderssroptions-beforeclose) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#renderssroptions-beforecontent) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#renderssroptions-containerattributes) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#renderssroptions-containertagname) |  | string |  |\n|  [serverData?](./qwik.renderssroptions.serverdata.md) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#renderssroptions-stream) |  | [StreamWriter](#streamwriter) |  |\n|  [url?](#renderssroptions-url) |  | string | _(Optional)_ |",
+      "mdFile": "qwik.renderssroptions.md"
     },
     {
       "name": "repeat",
@@ -3223,7 +3749,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nrepeat: boolean;\n```",
+      "content": "```typescript\nrepeat: boolean;\n```",
       "mdFile": "qwik.qwikkeyboardevent.repeat.md"
     },
     {
@@ -3283,7 +3809,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceCtx<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [previous](#resourcectx-previous) |  | T \\| undefined |  |\n|  [track](#resourcectx-track) |  | [Tracker](#tracker) |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cache(policyOrMilliseconds)](#resourcectx-cache) |  |\n|  [cleanup(callback)](#resourcectx-cleanup) |  |",
+      "content": "```typescript\nexport interface ResourceCtx<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [previous](#resourcectx-previous) |  | T \\| undefined |  |\n|  [track](#resourcectx-track) |  | [Tracker](#tracker) |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cache(policyOrMilliseconds)](#resourcectx-cache) |  |\n|  [cleanup(callback)](./qwik.resourcectx.cleanup.md) |  |",
       "mdFile": "qwik.resourcectx.md"
     },
     {
@@ -3335,7 +3861,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#resourceprops-onpending) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#resourceprops-onrejected) |  | (reason: any) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#resourceprops-onresolved) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](./qwik.resourceprops.value.md) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| Signal&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
+      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#resourceprops-onpending) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#resourceprops-onrejected) |  | (reason: any) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#resourceprops-onresolved) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](./qwik.resourceprops.value.md) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
       "mdFile": "qwik.resourceprops.md"
     },
     {
@@ -3378,6 +3904,23 @@
       "mdFile": "qwik.resourcereturn.md"
     },
     {
+      "name": "resources",
+      "id": "snapshotresult-resources",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult-resources"
+        },
+        {
+          "name": "resources",
+          "id": "snapshotresult-resources"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nresources: ResourceReturnInternal<any>[];\n```",
+      "mdFile": "qwik.snapshotresult.resources.md"
+    },
+    {
       "name": "results",
       "id": "htmlattributes-results",
       "hierarchy": [
@@ -3412,6 +3955,40 @@
       "mdFile": "qwik.htmlattributes.role.md"
     },
     {
+      "name": "s",
+      "id": "snapshotmetavalue-s",
+      "hierarchy": [
+        {
+          "name": "SnapshotMetaValue",
+          "id": "snapshotmetavalue-s"
+        },
+        {
+          "name": "s",
+          "id": "snapshotmetavalue-s"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ns?: string;\n```",
+      "mdFile": "qwik.snapshotmetavalue.s.md"
+    },
+    {
+      "name": "scopeId",
+      "id": "usestylesscoped-scopeid",
+      "hierarchy": [
+        {
+          "name": "UseStylesScoped",
+          "id": "usestylesscoped-scopeid"
+        },
+        {
+          "name": "scopeId",
+          "id": "usestylesscoped-scopeid"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nscopeId: string;\n```",
+      "mdFile": "qwik.usestylesscoped.scopeid.md"
+    },
+    {
       "name": "screenX",
       "id": "qwikmouseevent-screenx",
       "hierarchy": [
@@ -3425,7 +4002,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nscreenX: number;\n```",
+      "content": "```typescript\nscreenX: number;\n```",
       "mdFile": "qwik.qwikmouseevent.screenx.md"
     },
     {
@@ -3442,7 +4019,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nscreenY: number;\n```",
+      "content": "```typescript\nscreenY: number;\n```",
       "mdFile": "qwik.qwikmouseevent.screeny.md"
     },
     {
@@ -3480,6 +4057,36 @@
       "mdFile": "qwik.htmlattributes.security.md"
     },
     {
+      "name": "serverData",
+      "id": "renderoptions-serverdata",
+      "hierarchy": [
+        {
+          "name": "RenderOptions",
+          "id": "renderoptions-serverdata"
+        },
+        {
+          "name": "serverData",
+          "id": "renderoptions-serverdata"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nserverData?: Record<string, any>;\n```",
+      "mdFile": "qwik.renderoptions.serverdata.md"
+    },
+    {
+      "name": "setPlatform",
+      "id": "setplatform",
+      "hierarchy": [
+        {
+          "name": "setPlatform",
+          "id": "setplatform"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Sets the `CorePlatform`<!-- -->.\n\nThis is useful to override the platform in tests to change the behavior of, `requestAnimationFrame`<!-- -->, and import resolution.\n\n\n```typescript\nsetPlatform: (plt: CorePlatform) => CorePlatform\n```",
+      "mdFile": "qwik.setplatform.md"
+    },
+    {
       "name": "shiftKey",
       "id": "qwikkeyboardevent-shiftkey",
       "hierarchy": [
@@ -3493,8 +4100,34 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nshiftKey: boolean;\n```",
+      "content": "```typescript\nshiftKey: boolean;\n```",
       "mdFile": "qwik.qwikkeyboardevent.shiftkey.md"
+    },
+    {
+      "name": "Signal",
+      "id": "signal",
+      "hierarchy": [
+        {
+          "name": "Signal",
+          "id": "signal"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Signal<T = any> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [value](./qwik.signal.value.md) |  | T |  |",
+      "mdFile": "qwik.signal.md"
+    },
+    {
+      "name": "SkipRender",
+      "id": "skiprender",
+      "hierarchy": [
+        {
+          "name": "SkipRender",
+          "id": "skiprender"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSkipRender: JSXNode\n```",
+      "mdFile": "qwik.skiprender.md"
     },
     {
       "name": "slot",
@@ -3527,6 +4160,71 @@
       "mdFile": "qwik.slot.md"
     },
     {
+      "name": "SnapshotListener",
+      "id": "snapshotlistener",
+      "hierarchy": [
+        {
+          "name": "SnapshotListener",
+          "id": "snapshotlistener"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SnapshotListener \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [el](#snapshotlistener-el) |  | Element |  |\n|  [key](./qwik.snapshotlistener.key.md) |  | string |  |\n|  [qrl](#snapshotlistener-qrl) |  | [QRL](#qrl)<!-- -->&lt;any&gt; |  |",
+      "mdFile": "qwik.snapshotlistener.md"
+    },
+    {
+      "name": "SnapshotMeta",
+      "id": "snapshotmeta",
+      "hierarchy": [
+        {
+          "name": "SnapshotMeta",
+          "id": "snapshotmeta"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SnapshotMeta = Record<string, SnapshotMetaValue>;\n```\n**References:** [SnapshotMetaValue](#snapshotmetavalue)",
+      "mdFile": "qwik.snapshotmeta.md"
+    },
+    {
+      "name": "SnapshotMetaValue",
+      "id": "snapshotmetavalue",
+      "hierarchy": [
+        {
+          "name": "SnapshotMetaValue",
+          "id": "snapshotmetavalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SnapshotMetaValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [c?](#snapshotmetavalue-c) |  | string | _(Optional)_ |\n|  [h?](#snapshotmetavalue-h) |  | string | _(Optional)_ |\n|  [s?](#snapshotmetavalue-s) |  | string | _(Optional)_ |\n|  [w?](#snapshotmetavalue-w) |  | string | _(Optional)_ |",
+      "mdFile": "qwik.snapshotmetavalue.md"
+    },
+    {
+      "name": "SnapshotResult",
+      "id": "snapshotresult",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [mode](#snapshotresult-mode) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#snapshotresult-objs) |  | any\\[\\] |  |\n|  [qrls](#snapshotresult-qrls) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#snapshotresult-resources) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#snapshotresult-state) |  | [SnapshotState](#snapshotstate) |  |",
+      "mdFile": "qwik.snapshotresult.md"
+    },
+    {
+      "name": "SnapshotState",
+      "id": "snapshotstate",
+      "hierarchy": [
+        {
+          "name": "SnapshotState",
+          "id": "snapshotstate"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SnapshotState \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#snapshotstate-ctx) |  | [SnapshotMeta](#snapshotmeta) |  |\n|  [objs](./qwik.snapshotstate.objs.md) |  | any\\[\\] |  |\n|  [refs](#snapshotstate-refs) |  | Record&lt;string, string&gt; |  |\n|  [subs](#snapshotstate-subs) |  | any\\[\\] |  |",
+      "mdFile": "qwik.snapshotstate.md"
+    },
+    {
       "name": "spellcheck",
       "id": "htmlattributes-spellcheck",
       "hierarchy": [
@@ -3542,6 +4240,114 @@
       "kind": "PropertySignature",
       "content": "```typescript\nspellcheck?: boolean | undefined;\n```",
       "mdFile": "qwik.htmlattributes.spellcheck.md"
+    },
+    {
+      "name": "SSRComment",
+      "id": "ssrcomment",
+      "hierarchy": [
+        {
+          "name": "SSRComment",
+          "id": "ssrcomment"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSSRComment: FunctionComponent<{\n    data: string;\n}>\n```",
+      "mdFile": "qwik.ssrcomment.md"
+    },
+    {
+      "name": "SSRHint",
+      "id": "ssrhint",
+      "hierarchy": [
+        {
+          "name": "SSRHint",
+          "id": "ssrhint"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSSRHint: FunctionComponent<SSRHintProps>\n```",
+      "mdFile": "qwik.ssrhint.md"
+    },
+    {
+      "name": "SSRHintProps",
+      "id": "ssrhintprops",
+      "hierarchy": [
+        {
+          "name": "SSRHintProps",
+          "id": "ssrhintprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SSRHintProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dynamic?](#ssrhintprops-dynamic) |  | boolean | _(Optional)_ |",
+      "mdFile": "qwik.ssrhintprops.md"
+    },
+    {
+      "name": "SSRRaw",
+      "id": "ssrraw",
+      "hierarchy": [
+        {
+          "name": "SSRRaw",
+          "id": "ssrraw"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSSRRaw: FunctionComponent<{\n    data: string;\n}>\n```",
+      "mdFile": "qwik.ssrraw.md"
+    },
+    {
+      "name": "SSRStream",
+      "id": "ssrstream",
+      "hierarchy": [
+        {
+          "name": "SSRStream",
+          "id": "ssrstream"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSSRStream: FunctionComponent<SSRStreamProps>\n```",
+      "mdFile": "qwik.ssrstream.md"
+    },
+    {
+      "name": "SSRStreamBlock",
+      "id": "ssrstreamblock",
+      "hierarchy": [
+        {
+          "name": "SSRStreamBlock",
+          "id": "ssrstreamblock"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSSRStreamBlock: FunctionComponent<{\n    children?: any;\n}>\n```",
+      "mdFile": "qwik.ssrstreamblock.md"
+    },
+    {
+      "name": "SSRStreamProps",
+      "id": "ssrstreamprops",
+      "hierarchy": [
+        {
+          "name": "SSRStreamProps",
+          "id": "ssrstreamprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SSRStreamProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](./qwik.ssrstreamprops.children.md) |  | AsyncGenerator&lt;[JSXChildren](#jsxchildren)<!-- -->, void, any&gt; \\| ((stream: [StreamWriter](#streamwriter)<!-- -->) =&gt; Promise&lt;void&gt;) \\| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren)<!-- -->, void, any&gt;) |  |",
+      "mdFile": "qwik.ssrstreamprops.md"
+    },
+    {
+      "name": "state",
+      "id": "snapshotresult-state",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult-state"
+        },
+        {
+          "name": "state",
+          "id": "snapshotresult-state"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstate: SnapshotState;\n```",
+      "mdFile": "qwik.snapshotresult.state.md"
     },
     {
       "name": "strategy",
@@ -3561,6 +4367,36 @@
       "mdFile": "qwik.onvisibletaskoptions.strategy.md"
     },
     {
+      "name": "stream",
+      "id": "renderssroptions-stream",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-stream"
+        },
+        {
+          "name": "stream",
+          "id": "renderssroptions-stream"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstream: StreamWriter;\n```",
+      "mdFile": "qwik.renderssroptions.stream.md"
+    },
+    {
+      "name": "StreamWriter",
+      "id": "streamwriter",
+      "hierarchy": [
+        {
+          "name": "StreamWriter",
+          "id": "streamwriter"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StreamWriter = {\n    write: (chunk: string) => void;\n};\n```",
+      "mdFile": "qwik.streamwriter.md"
+    },
+    {
       "name": "style",
       "id": "htmlattributes-style",
       "hierarchy": [
@@ -3576,6 +4412,23 @@
       "kind": "PropertySignature",
       "content": "```typescript\nstyle?: Record<string, string | number | undefined> | string | undefined;\n```",
       "mdFile": "qwik.htmlattributes.style.md"
+    },
+    {
+      "name": "subs",
+      "id": "snapshotstate-subs",
+      "hierarchy": [
+        {
+          "name": "SnapshotState",
+          "id": "snapshotstate-subs"
+        },
+        {
+          "name": "subs",
+          "id": "snapshotstate-subs"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nsubs: any[];\n```",
+      "mdFile": "qwik.snapshotstate.subs.md"
     },
     {
       "name": "tabIndex",
@@ -3608,7 +4461,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ntarget: EventTarget & T;\n```",
+      "content": "```typescript\ntarget: EventTarget & T;\n```",
       "mdFile": "qwik.qwikchangeevent.target.md"
     },
     {
@@ -3625,7 +4478,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ntargetTouches: TouchList;\n```",
+      "content": "```typescript\ntargetTouches: TouchList;\n```",
       "mdFile": "qwik.qwiktouchevent.targettouches.md"
     },
     {
@@ -3668,7 +4521,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ntiltX: number;\n```",
+      "content": "```typescript\ntiltX: number;\n```",
       "mdFile": "qwik.qwikpointerevent.tiltx.md"
     },
     {
@@ -3685,7 +4538,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ntiltY: number;\n```",
+      "content": "```typescript\ntiltY: number;\n```",
       "mdFile": "qwik.qwikpointerevent.tilty.md"
     },
     {
@@ -3736,7 +4589,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ntouches: TouchList;\n```",
+      "content": "```typescript\ntouches: TouchList;\n```",
       "mdFile": "qwik.qwiktouchevent.touches.md"
     },
     {
@@ -3838,6 +4691,114 @@
       "mdFile": "qwik.htmlattributes.unselectable.md"
     },
     {
+      "name": "untrack",
+      "id": "untrack",
+      "hierarchy": [
+        {
+          "name": "untrack",
+          "id": "untrack"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuntrack: <T>(fn: () => T) => T\n```",
+      "mdFile": "qwik.untrack.md"
+    },
+    {
+      "name": "url",
+      "id": "renderssroptions-url",
+      "hierarchy": [
+        {
+          "name": "RenderSSROptions",
+          "id": "renderssroptions-url"
+        },
+        {
+          "name": "url",
+          "id": "renderssroptions-url"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nurl?: string;\n```",
+      "mdFile": "qwik.renderssroptions.url.md"
+    },
+    {
+      "name": "useBrowserVisibleTask$",
+      "id": "usebrowservisibletask_",
+      "hierarchy": [
+        {
+          "name": "useBrowserVisibleTask$",
+          "id": "usebrowservisibletask_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
+      "mdFile": "qwik.usebrowservisibletask_.md"
+    },
+    {
+      "name": "useBrowserVisibleTaskQrl",
+      "id": "usebrowservisibletaskqrl",
+      "hierarchy": [
+        {
+          "name": "useBrowserVisibleTaskQrl",
+          "id": "usebrowservisibletaskqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
+      "mdFile": "qwik.usebrowservisibletaskqrl.md"
+    },
+    {
+      "name": "useCleanup$",
+      "id": "usecleanup_",
+      "hierarchy": [
+        {
+          "name": "useCleanup$",
+          "id": "usecleanup_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use the cleanup() function of `useTask$()`<!-- -->, `useResource$()` or `useVisibleTask$()` instead.\n> \n\nIt can be used to release resources, abort network requests, stop timers...\n\n\n```typescript\nuseCleanup$: (first: () => void) => void\n```",
+      "mdFile": "qwik.usecleanup_.md"
+    },
+    {
+      "name": "useCleanupQrl",
+      "id": "usecleanupqrl",
+      "hierarchy": [
+        {
+          "name": "useCleanupQrl",
+          "id": "usecleanupqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use the cleanup() function of `useTask$()`<!-- -->, `useResource$()` or `useVisibleTask$()` instead.\n> \n\nIt can be used to release resources, abort network requests, stop timers...\n\n\n```typescript\nuseCleanupQrl: (unmountFn: QRL<() => void>) => void\n```",
+      "mdFile": "qwik.usecleanupqrl.md"
+    },
+    {
+      "name": "useClientEffect$",
+      "id": "useclienteffect_",
+      "hierarchy": [
+        {
+          "name": "useClientEffect$",
+          "id": "useclienteffect_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
+      "mdFile": "qwik.useclienteffect_.md"
+    },
+    {
+      "name": "useClientEffectQrl",
+      "id": "useclienteffectqrl",
+      "hierarchy": [
+        {
+          "name": "useClientEffectQrl",
+          "id": "useclienteffectqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
+      "mdFile": "qwik.useclienteffectqrl.md"
+    },
+    {
       "name": "useClientMount$",
       "id": "useclientmount_",
       "hierarchy": [
@@ -3862,6 +4823,32 @@
       "kind": "Variable",
       "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\\#usemountserver\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isBrowser } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isBrowser) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void\n```",
       "mdFile": "qwik.useclientmountqrl.md"
+    },
+    {
+      "name": "useComputed$",
+      "id": "usecomputed_",
+      "hierarchy": [
+        {
+          "name": "useComputed$",
+          "id": "usecomputed_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseComputed$: Computed\n```",
+      "mdFile": "qwik.usecomputed_.md"
+    },
+    {
+      "name": "useComputedQrl",
+      "id": "usecomputedqrl",
+      "hierarchy": [
+        {
+          "name": "useComputedQrl",
+          "id": "usecomputedqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseComputedQrl: ComputedQRL\n```",
+      "mdFile": "qwik.usecomputedqrl.md"
     },
     {
       "name": "useContext",
@@ -3890,6 +4877,45 @@
       "mdFile": "qwik.usecontextprovider.md"
     },
     {
+      "name": "useEnvData",
+      "id": "useenvdata",
+      "hierarchy": [
+        {
+          "name": "useEnvData",
+          "id": "useenvdata"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `useServerData` instead.\n> \n\n\n```typescript\nuseEnvData: typeof useServerData\n```",
+      "mdFile": "qwik.useenvdata.md"
+    },
+    {
+      "name": "useErrorBoundary",
+      "id": "useerrorboundary",
+      "hierarchy": [
+        {
+          "name": "useErrorBoundary",
+          "id": "useerrorboundary"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseErrorBoundary: () => Readonly<ErrorBoundaryStore>\n```",
+      "mdFile": "qwik.useerrorboundary.md"
+    },
+    {
+      "name": "useId",
+      "id": "useid",
+      "hierarchy": [
+        {
+          "name": "useId",
+          "id": "useid"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseId: () => string\n```",
+      "mdFile": "qwik.useid.md"
+    },
+    {
       "name": "useMount$",
       "id": "usemount_",
       "hierarchy": [
@@ -3899,7 +4925,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMount$: (first: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMount$: (first: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
       "mdFile": "qwik.usemount_.md"
     },
     {
@@ -3912,8 +4938,60 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMountQrl: (qrl: QRL<import(\"./use-task\").TaskFn>, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMountQrl: (qrl: QRL<import(\"./use-task\").TaskFn>, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
       "mdFile": "qwik.usemountqrl.md"
+    },
+    {
+      "name": "useOn",
+      "id": "useon",
+      "hierarchy": [
+        {
+          "name": "useOn",
+          "id": "useon"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\n\n```typescript\nuseOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void\n```",
+      "mdFile": "qwik.useon.md"
+    },
+    {
+      "name": "useOnDocument",
+      "id": "useondocument",
+      "hierarchy": [
+        {
+          "name": "useOnDocument",
+          "id": "useondocument"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void\n```",
+      "mdFile": "qwik.useondocument.md"
+    },
+    {
+      "name": "useOnWindow",
+      "id": "useonwindow",
+      "hierarchy": [
+        {
+          "name": "useOnWindow",
+          "id": "useonwindow"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void\n```",
+      "mdFile": "qwik.useonwindow.md"
+    },
+    {
+      "name": "useRef",
+      "id": "useref",
+      "hierarchy": [
+        {
+          "name": "useRef",
+          "id": "useref"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useSignal` instead.\n> \n\nIt's a very thin wrapper around `useStore()`<!-- -->, including the proper type signature to be passed to the `ref` property in JSX.\n\n```tsx\nexport function useRef<T = Element>(current?: T): Ref<T> {\n  return useStore({ current });\n}\n```\n\\#\\#\\# Example\n\n```tsx\nconst Cmp = component$(() => {\n  const input = useRef<HTMLInputElement>();\n\n  useVisibleTask$(({ track }) => {\n    const el = track(() => input.current)!;\n    el.focus();\n  });\n\n  return (\n    <div>\n      <input type=\"text\" ref={input} />\n    </div>\n  );\n});\n\n```\n\n\n```typescript\nuseRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>\n```",
+      "mdFile": "qwik.useref.md"
     },
     {
       "name": "useResource$",
@@ -3942,6 +5020,19 @@
       "mdFile": "qwik.useresourceqrl.md"
     },
     {
+      "name": "useServerData",
+      "id": "useserverdata",
+      "hierarchy": [
+        {
+          "name": "useServerData",
+          "id": "useserverdata"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  key | string |  |\n\n**Returns:**\n\nT \\| undefined",
+      "mdFile": "qwik.useserverdata.md"
+    },
+    {
       "name": "useServerMount$",
       "id": "useservermount_",
       "hierarchy": [
@@ -3966,6 +5057,32 @@
       "kind": "Variable",
       "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isServer` instead. See\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isServer } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isServer) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void\n```",
       "mdFile": "qwik.useservermountqrl.md"
+    },
+    {
+      "name": "useSignal",
+      "id": "usesignal",
+      "hierarchy": [
+        {
+          "name": "useSignal",
+          "id": "usesignal"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseSignal: UseSignal\n```",
+      "mdFile": "qwik.usesignal.md"
+    },
+    {
+      "name": "UseSignal",
+      "id": "usesignal",
+      "hierarchy": [
+        {
+          "name": "UseSignal",
+          "id": "usesignal"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nuseSignal: UseSignal\n```",
+      "mdFile": "qwik.usesignal.md"
     },
     {
       "name": "useStore",
@@ -4020,6 +5137,45 @@
       "mdFile": "qwik.usestylesqrl.md"
     },
     {
+      "name": "UseStylesScoped",
+      "id": "usestylesscoped",
+      "hierarchy": [
+        {
+          "name": "UseStylesScoped",
+          "id": "usestylesscoped"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface UseStylesScoped \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [scopeId](#usestylesscoped-scopeid) |  | string |  |",
+      "mdFile": "qwik.usestylesscoped.md"
+    },
+    {
+      "name": "useStylesScoped$",
+      "id": "usestylesscoped_",
+      "hierarchy": [
+        {
+          "name": "useStylesScoped$",
+          "id": "usestylesscoped_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScoped$: (first: string) => UseStylesScoped\n```",
+      "mdFile": "qwik.usestylesscoped_.md"
+    },
+    {
+      "name": "useStylesScopedQrl",
+      "id": "usestylesscopedqrl",
+      "hierarchy": [
+        {
+          "name": "useStylesScopedQrl",
+          "id": "usestylesscopedqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped\n```",
+      "mdFile": "qwik.usestylesscopedqrl.md"
+    },
+    {
       "name": "useTask$",
       "id": "usetask_",
       "hierarchy": [
@@ -4059,6 +5215,19 @@
       "mdFile": "qwik.usetaskqrl.md"
     },
     {
+      "name": "useUserContext",
+      "id": "useusercontext",
+      "hierarchy": [
+        {
+          "name": "useUserContext",
+          "id": "useusercontext"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `useServerData` instead.\n> \n\n\n```typescript\nuseUserContext: typeof useServerData\n```",
+      "mdFile": "qwik.useusercontext.md"
+    },
+    {
       "name": "useVisibleTask$",
       "id": "usevisibletask_",
       "hierarchy": [
@@ -4094,7 +5263,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```",
       "mdFile": "qwik.usewatch_.md"
     },
     {
@@ -4107,7 +5276,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void\n```",
       "mdFile": "qwik.usewatchqrl.md"
     },
     {
@@ -4167,7 +5336,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nview: AbstractView;\n```",
+      "content": "```typescript\nview: AbstractView;\n```",
       "mdFile": "qwik.qwikuievent.view.md"
     },
     {
@@ -4201,6 +5370,23 @@
       "mdFile": "qwik.htmlattributes.vocab.md"
     },
     {
+      "name": "w",
+      "id": "snapshotmetavalue-w",
+      "hierarchy": [
+        {
+          "name": "SnapshotMetaValue",
+          "id": "snapshotmetavalue-w"
+        },
+        {
+          "name": "w",
+          "id": "snapshotmetavalue-w"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nw?: string;\n```",
+      "mdFile": "qwik.snapshotmetavalue.w.md"
+    },
+    {
       "name": "which",
       "id": "qwikkeyboardevent-which",
       "hierarchy": [
@@ -4214,7 +5400,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nwhich: number;\n```",
+      "content": "```typescript\nwhich: number;\n```",
       "mdFile": "qwik.qwikkeyboardevent.which.md"
     },
     {
@@ -4231,7 +5417,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nwidth: number;\n```",
+      "content": "```typescript\nwidth: number;\n```",
       "mdFile": "qwik.qwikpointerevent.width.md"
     },
     {
@@ -4248,7 +5434,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nx: number;\n```",
+      "content": "```typescript\nx: number;\n```",
       "mdFile": "qwik.qwikmouseevent.x.md"
     },
     {
@@ -4265,7 +5451,7 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\ny: number;\n```",
+      "content": "```typescript\ny: number;\n```",
       "mdFile": "qwik.qwikmouseevent.y.md"
     }
   ]

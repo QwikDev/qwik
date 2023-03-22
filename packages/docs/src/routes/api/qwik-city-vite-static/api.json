@@ -1,5 +1,58 @@
 {
   "id": "qwik-city-vite-static",
   "package": "@builder.io/qwik-city/vite/static",
-  "members": []
+  "members": [
+    {
+      "name": "staticAdapter",
+      "id": "staticadapter",
+      "hierarchy": [
+        {
+          "name": "staticAdapter",
+          "id": "staticadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.staticadapter.md"
+    },
+    {
+      "name": "staticAdaptor",
+      "id": "staticadaptor",
+      "hierarchy": [
+        {
+          "name": "staticAdaptor",
+          "id": "staticadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.staticadaptor.md"
+    },
+    {
+      "name": "StaticGenerateAdapterOptions",
+      "id": "staticgenerateadapteroptions",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateAdapterOptions",
+          "id": "staticgenerateadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.staticgenerateadapteroptions.md"
+    },
+    {
+      "name": "StaticGenerateAdaptorOptions",
+      "id": "staticgenerateadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateAdaptorOptions",
+          "id": "staticgenerateadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.staticgenerateadaptoroptions.md"
+    }
+  ]
 }

@@ -1,5 +1,1870 @@
 {
   "id": "qwik-city",
   "package": "@builder.io/qwik-city",
-  "members": []
+  "members": [
+    {
+      "name": "action",
+      "id": "formprops-action",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops-action"
+        },
+        {
+          "name": "action",
+          "id": "formprops-action"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.formprops.action.md"
+    },
+    {
+      "name": "Action",
+      "id": "action",
+      "hierarchy": [
+        {
+          "name": "Action",
+          "id": "action"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.action.md"
+    },
+    {
+      "name": "action$",
+      "id": "action_",
+      "hierarchy": [
+        {
+          "name": "action$",
+          "id": "action_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.action_.md"
+    },
+    {
+      "name": "ActionConstructor",
+      "id": "actionconstructor",
+      "hierarchy": [
+        {
+          "name": "ActionConstructor",
+          "id": "actionconstructor"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.actionconstructor.md"
+    },
+    {
+      "name": "ActionOptions",
+      "id": "actionoptions",
+      "hierarchy": [
+        {
+          "name": "ActionOptions",
+          "id": "actionoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.actionoptions.md"
+    },
+    {
+      "name": "ActionOptionsWithValidation",
+      "id": "actionoptionswithvalidation",
+      "hierarchy": [
+        {
+          "name": "ActionOptionsWithValidation",
+          "id": "actionoptionswithvalidation"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.actionoptionswithvalidation.md"
+    },
+    {
+      "name": "actionPath",
+      "id": "actionstore-actionpath",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-actionpath"
+        },
+        {
+          "name": "actionPath",
+          "id": "actionstore-actionpath"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.actionpath.md"
+    },
+    {
+      "name": "actionQrl",
+      "id": "actionqrl",
+      "hierarchy": [
+        {
+          "name": "actionQrl",
+          "id": "actionqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.actionqrl.md"
+    },
+    {
+      "name": "ActionStore",
+      "id": "actionstore",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.actionstore.md"
+    },
+    {
+      "name": "as",
+      "id": "documentlink-as",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-as"
+        },
+        {
+          "name": "as",
+          "id": "documentlink-as"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.as.md"
+    },
+    {
+      "name": "basePathname",
+      "id": "qwikcityplan-basepathname",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan-basepathname"
+        },
+        {
+          "name": "basePathname",
+          "id": "qwikcityplan-basepathname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.basepathname.md"
+    },
+    {
+      "name": "cacheModules",
+      "id": "qwikcityplan-cachemodules",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan-cachemodules"
+        },
+        {
+          "name": "cacheModules",
+          "id": "qwikcityplan-cachemodules"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.cachemodules.md"
+    },
+    {
+      "name": "content",
+      "id": "documentmeta-content",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta-content"
+        },
+        {
+          "name": "content",
+          "id": "documentmeta-content"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentmeta.content.md"
+    },
+    {
+      "name": "Content",
+      "id": "content",
+      "hierarchy": [
+        {
+          "name": "Content",
+          "id": "content"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.content.md"
+    },
+    {
+      "name": "ContentHeading",
+      "id": "contentheading",
+      "hierarchy": [
+        {
+          "name": "ContentHeading",
+          "id": "contentheading"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.contentheading.md"
+    },
+    {
+      "name": "ContentMenu",
+      "id": "contentmenu",
+      "hierarchy": [
+        {
+          "name": "ContentMenu",
+          "id": "contentmenu"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.contentmenu.md"
+    },
+    {
+      "name": "crossorigin",
+      "id": "documentlink-crossorigin",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-crossorigin"
+        },
+        {
+          "name": "crossorigin",
+          "id": "documentlink-crossorigin"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.crossorigin.md"
+    },
+    {
+      "name": "default",
+      "id": "pagemodule-default",
+      "hierarchy": [
+        {
+          "name": "PageModule",
+          "id": "pagemodule-default"
+        },
+        {
+          "name": "default",
+          "id": "pagemodule-default"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.pagemodule.default.md"
+    },
+    {
+      "name": "disabled",
+      "id": "documentlink-disabled",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-disabled"
+        },
+        {
+          "name": "disabled",
+          "id": "documentlink-disabled"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.disabled.md"
+    },
+    {
+      "name": "DocumentHead",
+      "id": "documenthead",
+      "hierarchy": [
+        {
+          "name": "DocumentHead",
+          "id": "documenthead"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.documenthead.md"
+    },
+    {
+      "name": "DocumentHeadProps",
+      "id": "documentheadprops",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadProps",
+          "id": "documentheadprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.documentheadprops.md"
+    },
+    {
+      "name": "DocumentHeadValue",
+      "id": "documentheadvalue",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.documentheadvalue.md"
+    },
+    {
+      "name": "DocumentLink",
+      "id": "documentlink",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.documentlink.md"
+    },
+    {
+      "name": "DocumentMeta",
+      "id": "documentmeta",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.documentmeta.md"
+    },
+    {
+      "name": "DocumentStyle",
+      "id": "documentstyle",
+      "hierarchy": [
+        {
+          "name": "DocumentStyle",
+          "id": "documentstyle"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.documentstyle.md"
+    },
+    {
+      "name": "EndpointHandler",
+      "id": "endpointhandler",
+      "hierarchy": [
+        {
+          "name": "EndpointHandler",
+          "id": "endpointhandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.endpointhandler.md"
+    },
+    {
+      "name": "FailReturn",
+      "id": "failreturn",
+      "hierarchy": [
+        {
+          "name": "FailReturn",
+          "id": "failreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.failreturn.md"
+    },
+    {
+      "name": "Form",
+      "id": "form",
+      "hierarchy": [
+        {
+          "name": "Form",
+          "id": "form"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.form.md"
+    },
+    {
+      "name": "formData",
+      "id": "actionstore-formdata",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-formdata"
+        },
+        {
+          "name": "formData",
+          "id": "actionstore-formdata"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.formdata.md"
+    },
+    {
+      "name": "FormProps",
+      "id": "formprops",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.formprops.md"
+    },
+    {
+      "name": "FormSubmitSuccessDetail",
+      "id": "formsubmitsuccessdetail",
+      "hierarchy": [
+        {
+          "name": "FormSubmitSuccessDetail",
+          "id": "formsubmitsuccessdetail"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.formsubmitsuccessdetail.md"
+    },
+    {
+      "name": "frontmatter",
+      "id": "documentheadvalue-frontmatter",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue-frontmatter"
+        },
+        {
+          "name": "frontmatter",
+          "id": "documentheadvalue-frontmatter"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadvalue.frontmatter.md"
+    },
+    {
+      "name": "globalAction$",
+      "id": "globalaction_",
+      "hierarchy": [
+        {
+          "name": "globalAction$",
+          "id": "globalaction_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.globalaction_.md"
+    },
+    {
+      "name": "globalActionQrl",
+      "id": "globalactionqrl",
+      "hierarchy": [
+        {
+          "name": "globalActionQrl",
+          "id": "globalactionqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.globalactionqrl.md"
+    },
+    {
+      "name": "head",
+      "id": "documentheadprops-head",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadProps",
+          "id": "documentheadprops-head"
+        },
+        {
+          "name": "head",
+          "id": "documentheadprops-head"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadprops.head.md"
+    },
+    {
+      "name": "headings",
+      "id": "pagemodule-headings",
+      "hierarchy": [
+        {
+          "name": "PageModule",
+          "id": "pagemodule-headings"
+        },
+        {
+          "name": "headings",
+          "id": "pagemodule-headings"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.pagemodule.headings.md"
+    },
+    {
+      "name": "href",
+      "id": "contentmenu-href",
+      "hierarchy": [
+        {
+          "name": "ContentMenu",
+          "id": "contentmenu-href"
+        },
+        {
+          "name": "href",
+          "id": "contentmenu-href"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.contentmenu.href.md"
+    },
+    {
+      "name": "hreflang",
+      "id": "documentlink-hreflang",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-hreflang"
+        },
+        {
+          "name": "hreflang",
+          "id": "documentlink-hreflang"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.hreflang.md"
+    },
+    {
+      "name": "Html",
+      "id": "html",
+      "hierarchy": [
+        {
+          "name": "Html",
+          "id": "html"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.html.md"
+    },
+    {
+      "name": "httpEquiv",
+      "id": "documentmeta-httpequiv",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta-httpequiv"
+        },
+        {
+          "name": "httpEquiv",
+          "id": "documentmeta-httpequiv"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentmeta.httpequiv.md"
+    },
+    {
+      "name": "id",
+      "id": "actionoptions-id",
+      "hierarchy": [
+        {
+          "name": "ActionOptions",
+          "id": "actionoptions-id"
+        },
+        {
+          "name": "id",
+          "id": "actionoptions-id"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionoptions.id.md"
+    },
+    {
+      "name": "imagesizes",
+      "id": "documentlink-imagesizes",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-imagesizes"
+        },
+        {
+          "name": "imagesizes",
+          "id": "documentlink-imagesizes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.imagesizes.md"
+    },
+    {
+      "name": "imagesrcset",
+      "id": "documentlink-imagesrcset",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-imagesrcset"
+        },
+        {
+          "name": "imagesrcset",
+          "id": "documentlink-imagesrcset"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.imagesrcset.md"
+    },
+    {
+      "name": "integrity",
+      "id": "documentlink-integrity",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-integrity"
+        },
+        {
+          "name": "integrity",
+          "id": "documentlink-integrity"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.integrity.md"
+    },
+    {
+      "name": "isNavigating",
+      "id": "routelocation-isnavigating",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation-isnavigating"
+        },
+        {
+          "name": "isNavigating",
+          "id": "routelocation-isnavigating"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.routelocation.isnavigating.md"
+    },
+    {
+      "name": "isRunning",
+      "id": "actionstore-isrunning",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-isrunning"
+        },
+        {
+          "name": "isRunning",
+          "id": "actionstore-isrunning"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.isrunning.md"
+    },
+    {
+      "name": "itemprop",
+      "id": "documentmeta-itemprop",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta-itemprop"
+        },
+        {
+          "name": "itemprop",
+          "id": "documentmeta-itemprop"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentmeta.itemprop.md"
+    },
+    {
+      "name": "items",
+      "id": "contentmenu-items",
+      "hierarchy": [
+        {
+          "name": "ContentMenu",
+          "id": "contentmenu-items"
+        },
+        {
+          "name": "items",
+          "id": "contentmenu-items"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.contentmenu.items.md"
+    },
+    {
+      "name": "key",
+      "id": "documentlink-key",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-key"
+        },
+        {
+          "name": "key",
+          "id": "documentlink-key"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.key.md"
+    },
+    {
+      "name": "level",
+      "id": "contentheading-level",
+      "hierarchy": [
+        {
+          "name": "ContentHeading",
+          "id": "contentheading-level"
+        },
+        {
+          "name": "level",
+          "id": "contentheading-level"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.contentheading.level.md"
+    },
+    {
+      "name": "Link",
+      "id": "link",
+      "hierarchy": [
+        {
+          "name": "Link",
+          "id": "link"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.link.md"
+    },
+    {
+      "name": "LinkProps",
+      "id": "linkprops",
+      "hierarchy": [
+        {
+          "name": "LinkProps",
+          "id": "linkprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.linkprops.md"
+    },
+    {
+      "name": "links",
+      "id": "documentheadvalue-links",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue-links"
+        },
+        {
+          "name": "links",
+          "id": "documentheadvalue-links"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadvalue.links.md"
+    },
+    {
+      "name": "Loader",
+      "id": "loader",
+      "hierarchy": [
+        {
+          "name": "Loader",
+          "id": "loader"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.loader.md"
+    },
+    {
+      "name": "loader$",
+      "id": "loader_",
+      "hierarchy": [
+        {
+          "name": "loader$",
+          "id": "loader_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.loader_.md"
+    },
+    {
+      "name": "loaderQrl",
+      "id": "loaderqrl",
+      "hierarchy": [
+        {
+          "name": "loaderQrl",
+          "id": "loaderqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.loaderqrl.md"
+    },
+    {
+      "name": "LoaderSignal",
+      "id": "loadersignal",
+      "hierarchy": [
+        {
+          "name": "LoaderSignal",
+          "id": "loadersignal"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.loadersignal.md"
+    },
+    {
+      "name": "media",
+      "id": "documentlink-media",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-media"
+        },
+        {
+          "name": "media",
+          "id": "documentlink-media"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.media.md"
+    },
+    {
+      "name": "MenuData",
+      "id": "menudata",
+      "hierarchy": [
+        {
+          "name": "MenuData",
+          "id": "menudata"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.menudata.md"
+    },
+    {
+      "name": "menus",
+      "id": "qwikcityplan-menus",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan-menus"
+        },
+        {
+          "name": "menus",
+          "id": "qwikcityplan-menus"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.menus.md"
+    },
+    {
+      "name": "meta",
+      "id": "documentheadvalue-meta",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue-meta"
+        },
+        {
+          "name": "meta",
+          "id": "documentheadvalue-meta"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadvalue.meta.md"
+    },
+    {
+      "name": "name",
+      "id": "documentmeta-name",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta-name"
+        },
+        {
+          "name": "name",
+          "id": "documentmeta-name"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentmeta.name.md"
+    },
+    {
+      "name": "onStaticGenerate",
+      "id": "pagemodule-onstaticgenerate",
+      "hierarchy": [
+        {
+          "name": "PageModule",
+          "id": "pagemodule-onstaticgenerate"
+        },
+        {
+          "name": "onStaticGenerate",
+          "id": "pagemodule-onstaticgenerate"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.pagemodule.onstaticgenerate.md"
+    },
+    {
+      "name": "onSubmit$",
+      "id": "formprops-onsubmit_",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops-onsubmit_"
+        },
+        {
+          "name": "onSubmit$",
+          "id": "formprops-onsubmit_"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.formprops.onsubmit_.md"
+    },
+    {
+      "name": "onSubmitCompleted$",
+      "id": "formprops-onsubmitcompleted_",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops-onsubmitcompleted_"
+        },
+        {
+          "name": "onSubmitCompleted$",
+          "id": "formprops-onsubmitcompleted_"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.formprops.onsubmitcompleted_.md"
+    },
+    {
+      "name": "PageModule",
+      "id": "pagemodule",
+      "hierarchy": [
+        {
+          "name": "PageModule",
+          "id": "pagemodule"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.pagemodule.md"
+    },
+    {
+      "name": "params",
+      "id": "routelocation-params",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation-params"
+        },
+        {
+          "name": "params",
+          "id": "routelocation-params"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.routelocation.params.md"
+    },
+    {
+      "name": "pathname",
+      "id": "routelocation-pathname",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation-pathname"
+        },
+        {
+          "name": "pathname",
+          "id": "routelocation-pathname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.routelocation.pathname.md"
+    },
+    {
+      "name": "PathParams",
+      "id": "pathparams",
+      "hierarchy": [
+        {
+          "name": "PathParams",
+          "id": "pathparams"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.pathparams.md"
+    },
+    {
+      "name": "prefetch",
+      "id": "documentlink-prefetch",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-prefetch"
+        },
+        {
+          "name": "prefetch",
+          "id": "documentlink-prefetch"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.prefetch.md"
+    },
+    {
+      "name": "property",
+      "id": "documentmeta-property",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta-property"
+        },
+        {
+          "name": "property",
+          "id": "documentmeta-property"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentmeta.property.md"
+    },
+    {
+      "name": "props",
+      "id": "documentstyle-props",
+      "hierarchy": [
+        {
+          "name": "DocumentStyle",
+          "id": "documentstyle-props"
+        },
+        {
+          "name": "props",
+          "id": "documentstyle-props"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentstyle.props.md"
+    },
+    {
+      "name": "query",
+      "id": "routelocation-query",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation-query"
+        },
+        {
+          "name": "query",
+          "id": "routelocation-query"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.routelocation.query.md"
+    },
+    {
+      "name": "QwikCity",
+      "id": "qwikcity",
+      "hierarchy": [
+        {
+          "name": "QwikCity",
+          "id": "qwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.qwikcity.md"
+    },
+    {
+      "name": "QwikCityMockProvider",
+      "id": "qwikcitymockprovider",
+      "hierarchy": [
+        {
+          "name": "QwikCityMockProvider",
+          "id": "qwikcitymockprovider"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.qwikcitymockprovider.md"
+    },
+    {
+      "name": "QwikCityPlan",
+      "id": "qwikcityplan",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.md"
+    },
+    {
+      "name": "QwikCityProvider",
+      "id": "qwikcityprovider",
+      "hierarchy": [
+        {
+          "name": "QwikCityProvider",
+          "id": "qwikcityprovider"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.qwikcityprovider.md"
+    },
+    {
+      "name": "referrerpolicy",
+      "id": "documentlink-referrerpolicy",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-referrerpolicy"
+        },
+        {
+          "name": "referrerpolicy",
+          "id": "documentlink-referrerpolicy"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.referrerpolicy.md"
+    },
+    {
+      "name": "rel",
+      "id": "documentlink-rel",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-rel"
+        },
+        {
+          "name": "rel",
+          "id": "documentlink-rel"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.rel.md"
+    },
+    {
+      "name": "reload",
+      "id": "linkprops-reload",
+      "hierarchy": [
+        {
+          "name": "LinkProps",
+          "id": "linkprops-reload"
+        },
+        {
+          "name": "reload",
+          "id": "linkprops-reload"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.linkprops.reload.md"
+    },
+    {
+      "name": "reloadDocument",
+      "id": "formprops-reloaddocument",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops-reloaddocument"
+        },
+        {
+          "name": "reloadDocument",
+          "id": "formprops-reloaddocument"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.formprops.reloaddocument.md"
+    },
+    {
+      "name": "ResolvedDocumentHead",
+      "id": "resolveddocumenthead",
+      "hierarchy": [
+        {
+          "name": "ResolvedDocumentHead",
+          "id": "resolveddocumenthead"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.resolveddocumenthead.md"
+    },
+    {
+      "name": "resolveValue",
+      "id": "documentheadprops-resolvevalue",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadProps",
+          "id": "documentheadprops-resolvevalue"
+        },
+        {
+          "name": "resolveValue",
+          "id": "documentheadprops-resolvevalue"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadprops.resolvevalue.md"
+    },
+    {
+      "name": "routeAction$",
+      "id": "routeaction_",
+      "hierarchy": [
+        {
+          "name": "routeAction$",
+          "id": "routeaction_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.routeaction_.md"
+    },
+    {
+      "name": "routeActionQrl",
+      "id": "routeactionqrl",
+      "hierarchy": [
+        {
+          "name": "routeActionQrl",
+          "id": "routeactionqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.routeactionqrl.md"
+    },
+    {
+      "name": "RouteData",
+      "id": "routedata",
+      "hierarchy": [
+        {
+          "name": "RouteData",
+          "id": "routedata"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.routedata.md"
+    },
+    {
+      "name": "routeLoader$",
+      "id": "routeloader_",
+      "hierarchy": [
+        {
+          "name": "routeLoader$",
+          "id": "routeloader_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.routeloader_.md"
+    },
+    {
+      "name": "routeLoaderQrl",
+      "id": "routeloaderqrl",
+      "hierarchy": [
+        {
+          "name": "routeLoaderQrl",
+          "id": "routeloaderqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.routeloaderqrl.md"
+    },
+    {
+      "name": "RouteLocation",
+      "id": "routelocation",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.routelocation.md"
+    },
+    {
+      "name": "RouteNavigate",
+      "id": "routenavigate",
+      "hierarchy": [
+        {
+          "name": "RouteNavigate",
+          "id": "routenavigate"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.routenavigate.md"
+    },
+    {
+      "name": "RouteParams",
+      "id": "routeparams",
+      "hierarchy": [
+        {
+          "name": "RouteParams",
+          "id": "routeparams"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.routeparams.md"
+    },
+    {
+      "name": "RouterOutlet",
+      "id": "routeroutlet",
+      "hierarchy": [
+        {
+          "name": "RouterOutlet",
+          "id": "routeroutlet"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.routeroutlet.md"
+    },
+    {
+      "name": "routes",
+      "id": "qwikcityplan-routes",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan-routes"
+        },
+        {
+          "name": "routes",
+          "id": "qwikcityplan-routes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.routes.md"
+    },
+    {
+      "name": "run",
+      "id": "actionstore-run",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-run"
+        },
+        {
+          "name": "run",
+          "id": "actionstore-run"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.run.md"
+    },
+    {
+      "name": "server$",
+      "id": "server_",
+      "hierarchy": [
+        {
+          "name": "server$",
+          "id": "server_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.server_.md"
+    },
+    {
+      "name": "serverPlugins",
+      "id": "qwikcityplan-serverplugins",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan-serverplugins"
+        },
+        {
+          "name": "serverPlugins",
+          "id": "qwikcityplan-serverplugins"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.serverplugins.md"
+    },
+    {
+      "name": "serverQrl",
+      "id": "serverqrl",
+      "hierarchy": [
+        {
+          "name": "serverQrl",
+          "id": "serverqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.serverqrl.md"
+    },
+    {
+      "name": "ServiceWorkerRegister",
+      "id": "serviceworkerregister",
+      "hierarchy": [
+        {
+          "name": "ServiceWorkerRegister",
+          "id": "serviceworkerregister"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.serviceworkerregister.md"
+    },
+    {
+      "name": "sizes",
+      "id": "documentlink-sizes",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-sizes"
+        },
+        {
+          "name": "sizes",
+          "id": "documentlink-sizes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.sizes.md"
+    },
+    {
+      "name": "spaReset",
+      "id": "formprops-spareset",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops-spareset"
+        },
+        {
+          "name": "spaReset",
+          "id": "formprops-spareset"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.formprops.spareset.md"
+    },
+    {
+      "name": "StaticGenerate",
+      "id": "staticgenerate",
+      "hierarchy": [
+        {
+          "name": "StaticGenerate",
+          "id": "staticgenerate"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.staticgenerate.md"
+    },
+    {
+      "name": "StaticGenerateHandler",
+      "id": "staticgeneratehandler",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateHandler",
+          "id": "staticgeneratehandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.staticgeneratehandler.md"
+    },
+    {
+      "name": "status",
+      "id": "actionstore-status",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-status"
+        },
+        {
+          "name": "status",
+          "id": "actionstore-status"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.status.md"
+    },
+    {
+      "name": "style",
+      "id": "documentstyle-style",
+      "hierarchy": [
+        {
+          "name": "DocumentStyle",
+          "id": "documentstyle-style"
+        },
+        {
+          "name": "style",
+          "id": "documentstyle-style"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentstyle.style.md"
+    },
+    {
+      "name": "styles",
+      "id": "documentheadvalue-styles",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue-styles"
+        },
+        {
+          "name": "styles",
+          "id": "documentheadvalue-styles"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadvalue.styles.md"
+    },
+    {
+      "name": "submit",
+      "id": "actionstore-submit",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-submit"
+        },
+        {
+          "name": "submit",
+          "id": "actionstore-submit"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.submit.md"
+    },
+    {
+      "name": "text",
+      "id": "contentheading-text",
+      "hierarchy": [
+        {
+          "name": "ContentHeading",
+          "id": "contentheading-text"
+        },
+        {
+          "name": "text",
+          "id": "contentheading-text"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.contentheading.text.md"
+    },
+    {
+      "name": "title",
+      "id": "documentheadvalue-title",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue-title"
+        },
+        {
+          "name": "title",
+          "id": "documentheadvalue-title"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadvalue.title.md"
+    },
+    {
+      "name": "trailingSlash",
+      "id": "qwikcityplan-trailingslash",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan-trailingslash"
+        },
+        {
+          "name": "trailingSlash",
+          "id": "qwikcityplan-trailingslash"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.qwikcityplan.trailingslash.md"
+    },
+    {
+      "name": "type",
+      "id": "documentlink-type",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink-type"
+        },
+        {
+          "name": "type",
+          "id": "documentlink-type"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentlink.type.md"
+    },
+    {
+      "name": "url",
+      "id": "routelocation-url",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation-url"
+        },
+        {
+          "name": "url",
+          "id": "routelocation-url"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.routelocation.url.md"
+    },
+    {
+      "name": "use",
+      "id": "action-use",
+      "hierarchy": [
+        {
+          "name": "Action",
+          "id": "action-use"
+        },
+        {
+          "name": "use",
+          "id": "action-use"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.action.use.md"
+    },
+    {
+      "name": "useContent",
+      "id": "usecontent",
+      "hierarchy": [
+        {
+          "name": "useContent",
+          "id": "usecontent"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.usecontent.md"
+    },
+    {
+      "name": "useDocumentHead",
+      "id": "usedocumenthead",
+      "hierarchy": [
+        {
+          "name": "useDocumentHead",
+          "id": "usedocumenthead"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.usedocumenthead.md"
+    },
+    {
+      "name": "useLocation",
+      "id": "uselocation",
+      "hierarchy": [
+        {
+          "name": "useLocation",
+          "id": "uselocation"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.uselocation.md"
+    },
+    {
+      "name": "useNavigate",
+      "id": "usenavigate",
+      "hierarchy": [
+        {
+          "name": "useNavigate",
+          "id": "usenavigate"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.usenavigate.md"
+    },
+    {
+      "name": "validation",
+      "id": "actionoptions-validation",
+      "hierarchy": [
+        {
+          "name": "ActionOptions",
+          "id": "actionoptions-validation"
+        },
+        {
+          "name": "validation",
+          "id": "actionoptions-validation"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionoptions.validation.md"
+    },
+    {
+      "name": "validator$",
+      "id": "validator_",
+      "hierarchy": [
+        {
+          "name": "validator$",
+          "id": "validator_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.validator_.md"
+    },
+    {
+      "name": "validatorQrl",
+      "id": "validatorqrl",
+      "hierarchy": [
+        {
+          "name": "validatorQrl",
+          "id": "validatorqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.validatorqrl.md"
+    },
+    {
+      "name": "value",
+      "id": "actionstore-value",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore-value"
+        },
+        {
+          "name": "value",
+          "id": "actionstore-value"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.actionstore.value.md"
+    },
+    {
+      "name": "withLocale",
+      "id": "documentheadprops-withlocale",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadProps",
+          "id": "documentheadprops-withlocale"
+        },
+        {
+          "name": "withLocale",
+          "id": "documentheadprops-withlocale"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.documentheadprops.withlocale.md"
+    },
+    {
+      "name": "zod$",
+      "id": "zod_",
+      "hierarchy": [
+        {
+          "name": "zod$",
+          "id": "zod_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.zod_.md"
+    },
+    {
+      "name": "ZodConstructor",
+      "id": "zodconstructor",
+      "hierarchy": [
+        {
+          "name": "ZodConstructor",
+          "id": "zodconstructor"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.zodconstructor.md"
+    },
+    {
+      "name": "zodQrl",
+      "id": "zodqrl",
+      "hierarchy": [
+        {
+          "name": "zodQrl",
+          "id": "zodqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.zodqrl.md"
+    }
+  ]
 }

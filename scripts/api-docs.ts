@@ -226,7 +226,10 @@ function createApiMarkdown(a: ApiData) {
       `<h2 id="${m.id}"><a aria-hidden="true" tabindex="-1" href="#${m.id}"><span class="icon icon-link"></span></a>${m.name}</h2>`
     );
     md.push(``);
-    md.push(m.content);
+
+    // sanitize output
+    const content = m.content.replace(/<!--(.|\s)*?-->/g, '').replace(/<Slot\/>/g, '');
+    md.push(content);
     md.push(``);
   }
 

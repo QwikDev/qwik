@@ -1,5 +1,45 @@
 {
   "id": "qwik-city-middleware-vercel-edge",
   "package": "@builder.io/qwik-city/middleware/vercel-edge",
-  "members": []
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.createqwikcity.md"
+    },
+    {
+      "name": "PlatformVercel",
+      "id": "platformvercel",
+      "hierarchy": [
+        {
+          "name": "PlatformVercel",
+          "id": "platformvercel"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.platformvercel.md"
+    },
+    {
+      "name": "QwikCityVercelEdgeOptions",
+      "id": "qwikcityverceledgeoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityVercelEdgeOptions",
+          "id": "qwikcityverceledgeoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.qwikcityverceledgeoptions.md"
+    }
+  ]
 }

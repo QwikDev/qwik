@@ -1,5 +1,92 @@
 {
   "id": "qwik-city-vite-cloudflare-pages",
   "package": "@builder.io/qwik-city/vite/cloudflare-pages",
-  "members": []
+  "members": [
+    {
+      "name": "cloudflarePagesAdapter",
+      "id": "cloudflarepagesadapter",
+      "hierarchy": [
+        {
+          "name": "cloudflarePagesAdapter",
+          "id": "cloudflarepagesadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.cloudflarepagesadapter.md"
+    },
+    {
+      "name": "CloudflarePagesAdapterOptions",
+      "id": "cloudflarepagesadapteroptions",
+      "hierarchy": [
+        {
+          "name": "CloudflarePagesAdapterOptions",
+          "id": "cloudflarepagesadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.cloudflarepagesadapteroptions.md"
+    },
+    {
+      "name": "cloudflarePagesAdaptor",
+      "id": "cloudflarepagesadaptor",
+      "hierarchy": [
+        {
+          "name": "cloudflarePagesAdaptor",
+          "id": "cloudflarepagesadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.cloudflarepagesadaptor.md"
+    },
+    {
+      "name": "CloudflarePagesAdaptorOptions",
+      "id": "cloudflarepagesadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "CloudflarePagesAdaptorOptions",
+          "id": "cloudflarepagesadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.cloudflarepagesadaptoroptions.md"
+    },
+    {
+      "name": "functionRoutes",
+      "id": "cloudflarepagesadapteroptions-functionroutes",
+      "hierarchy": [
+        {
+          "name": "CloudflarePagesAdapterOptions",
+          "id": "cloudflarepagesadapteroptions-functionroutes"
+        },
+        {
+          "name": "functionRoutes",
+          "id": "cloudflarepagesadapteroptions-functionroutes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cloudflarepagesadapteroptions.functionroutes.md"
+    },
+    {
+      "name": "staticPaths",
+      "id": "cloudflarepagesadapteroptions-staticpaths",
+      "hierarchy": [
+        {
+          "name": "CloudflarePagesAdapterOptions",
+          "id": "cloudflarepagesadapteroptions-staticpaths"
+        },
+        {
+          "name": "staticPaths",
+          "id": "cloudflarepagesadapteroptions-staticpaths"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cloudflarepagesadapteroptions.staticpaths.md"
+    }
+  ]
 }

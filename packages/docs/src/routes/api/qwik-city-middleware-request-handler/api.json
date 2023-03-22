@@ -1,5 +1,1082 @@
 {
   "id": "qwik-city-middleware-request-handler",
   "package": "@builder.io/qwik-city/middleware/request-handler",
-  "members": []
+  "members": [
+    {
+      "name": "basePathname",
+      "id": "requesteventbase-basepathname",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-basepathname"
+        },
+        {
+          "name": "basePathname",
+          "id": "requesteventbase-basepathname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.basepathname.md"
+    },
+    {
+      "name": "cacheControl",
+      "id": "requesteventbase-cachecontrol",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-cachecontrol"
+        },
+        {
+          "name": "cacheControl",
+          "id": "requesteventbase-cachecontrol"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.cachecontrol.md"
+    },
+    {
+      "name": "CacheControl",
+      "id": "cachecontrol",
+      "hierarchy": [
+        {
+          "name": "CacheControl",
+          "id": "cachecontrol"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.cachecontrol.md"
+    },
+    {
+      "name": "cookie",
+      "id": "requesteventbase-cookie",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-cookie"
+        },
+        {
+          "name": "cookie",
+          "id": "requesteventbase-cookie"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.cookie.md"
+    },
+    {
+      "name": "Cookie",
+      "id": "cookie",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.cookie.md"
+    },
+    {
+      "name": "CookieOptions",
+      "id": "cookieoptions",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.md"
+    },
+    {
+      "name": "CookieValue",
+      "id": "cookievalue",
+      "hierarchy": [
+        {
+          "name": "CookieValue",
+          "id": "cookievalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.cookievalue.md"
+    },
+    {
+      "name": "defer",
+      "id": "requesteventloader-defer",
+      "hierarchy": [
+        {
+          "name": "RequestEventLoader",
+          "id": "requesteventloader-defer"
+        },
+        {
+          "name": "defer",
+          "id": "requesteventloader-defer"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventloader.defer.md"
+    },
+    {
+      "name": "DeferReturn",
+      "id": "deferreturn",
+      "hierarchy": [
+        {
+          "name": "DeferReturn",
+          "id": "deferreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.deferreturn.md"
+    },
+    {
+      "name": "delete",
+      "id": "cookie-delete",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-delete"
+        },
+        {
+          "name": "delete",
+          "id": "cookie-delete"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.cookie.delete.md"
+    },
+    {
+      "name": "domain",
+      "id": "cookieoptions-domain",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-domain"
+        },
+        {
+          "name": "domain",
+          "id": "cookieoptions-domain"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.domain.md"
+    },
+    {
+      "name": "env",
+      "id": "requesteventbase-env",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-env"
+        },
+        {
+          "name": "env",
+          "id": "requesteventbase-env"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.env.md"
+    },
+    {
+      "name": "error",
+      "id": "requesteventcommon-error",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-error"
+        },
+        {
+          "name": "error",
+          "id": "requesteventcommon-error"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.error.md"
+    },
+    {
+      "name": "exit",
+      "id": "requesteventcommon-exit",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-exit"
+        },
+        {
+          "name": "exit",
+          "id": "requesteventcommon-exit"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.exit.md"
+    },
+    {
+      "name": "exited",
+      "id": "requestevent-exited",
+      "hierarchy": [
+        {
+          "name": "RequestEvent",
+          "id": "requestevent-exited"
+        },
+        {
+          "name": "exited",
+          "id": "requestevent-exited"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requestevent.exited.md"
+    },
+    {
+      "name": "expires",
+      "id": "cookieoptions-expires",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-expires"
+        },
+        {
+          "name": "expires",
+          "id": "cookieoptions-expires"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.expires.md"
+    },
+    {
+      "name": "fail",
+      "id": "requesteventaction-fail",
+      "hierarchy": [
+        {
+          "name": "RequestEventAction",
+          "id": "requesteventaction-fail"
+        },
+        {
+          "name": "fail",
+          "id": "requesteventaction-fail"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventaction.fail.md"
+    },
+    {
+      "name": "get",
+      "id": "cookie-get",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-get"
+        },
+        {
+          "name": "get",
+          "id": "cookie-get"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.cookie.get.md"
+    },
+    {
+      "name": "getAll",
+      "id": "cookie-getall",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-getall"
+        },
+        {
+          "name": "getAll",
+          "id": "cookie-getall"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.cookie.getall.md"
+    },
+    {
+      "name": "getErrorHtml",
+      "id": "geterrorhtml",
+      "hierarchy": [
+        {
+          "name": "getErrorHtml",
+          "id": "geterrorhtml"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.geterrorhtml.md"
+    },
+    {
+      "name": "getWritableStream",
+      "id": "requestevent-getwritablestream",
+      "hierarchy": [
+        {
+          "name": "RequestEvent",
+          "id": "requestevent-getwritablestream"
+        },
+        {
+          "name": "getWritableStream",
+          "id": "requestevent-getwritablestream"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requestevent.getwritablestream.md"
+    },
+    {
+      "name": "has",
+      "id": "cookie-has",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-has"
+        },
+        {
+          "name": "has",
+          "id": "cookie-has"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.cookie.has.md"
+    },
+    {
+      "name": "headers",
+      "id": "cookie-headers",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-headers"
+        },
+        {
+          "name": "headers",
+          "id": "cookie-headers"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.cookie.headers.md"
+    },
+    {
+      "name": "headers",
+      "id": "requesteventbase-headers",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-headers"
+        },
+        {
+          "name": "headers",
+          "id": "requesteventbase-headers"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.headers.md"
+    },
+    {
+      "name": "headersSent",
+      "id": "requestevent-headerssent",
+      "hierarchy": [
+        {
+          "name": "RequestEvent",
+          "id": "requestevent-headerssent"
+        },
+        {
+          "name": "headersSent",
+          "id": "requestevent-headerssent"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requestevent.headerssent.md"
+    },
+    {
+      "name": "html",
+      "id": "requesteventcommon-html",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-html"
+        },
+        {
+          "name": "html",
+          "id": "requesteventcommon-html"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.html.md"
+    },
+    {
+      "name": "httpOnly",
+      "id": "cookieoptions-httponly",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-httponly"
+        },
+        {
+          "name": "httpOnly",
+          "id": "cookieoptions-httponly"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.httponly.md"
+    },
+    {
+      "name": "json",
+      "id": "cookievalue-json",
+      "hierarchy": [
+        {
+          "name": "CookieValue",
+          "id": "cookievalue-json"
+        },
+        {
+          "name": "json",
+          "id": "cookievalue-json"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookievalue.json.md"
+    },
+    {
+      "name": "locale",
+      "id": "requesteventcommon-locale",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-locale"
+        },
+        {
+          "name": "locale",
+          "id": "requesteventcommon-locale"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.locale.md"
+    },
+    {
+      "name": "maxAge",
+      "id": "cookieoptions-maxage",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-maxage"
+        },
+        {
+          "name": "maxAge",
+          "id": "cookieoptions-maxage"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.maxage.md"
+    },
+    {
+      "name": "mergeHeadersCookies",
+      "id": "mergeheaderscookies",
+      "hierarchy": [
+        {
+          "name": "mergeHeadersCookies",
+          "id": "mergeheaderscookies"
+        }
+      ],
+      "kind": "Variable",
+      "content": "",
+      "mdFile": "qwik.mergeheaderscookies.md"
+    },
+    {
+      "name": "method",
+      "id": "requesteventbase-method",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-method"
+        },
+        {
+          "name": "method",
+          "id": "requesteventbase-method"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.method.md"
+    },
+    {
+      "name": "mode",
+      "id": "serverrequestevent-mode",
+      "hierarchy": [
+        {
+          "name": "ServerRequestEvent",
+          "id": "serverrequestevent-mode"
+        },
+        {
+          "name": "mode",
+          "id": "serverrequestevent-mode"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.serverrequestevent.mode.md"
+    },
+    {
+      "name": "next",
+      "id": "requestevent-next",
+      "hierarchy": [
+        {
+          "name": "RequestEvent",
+          "id": "requestevent-next"
+        },
+        {
+          "name": "next",
+          "id": "requestevent-next"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requestevent.next.md"
+    },
+    {
+      "name": "number",
+      "id": "cookievalue-number",
+      "hierarchy": [
+        {
+          "name": "CookieValue",
+          "id": "cookievalue-number"
+        },
+        {
+          "name": "number",
+          "id": "cookievalue-number"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookievalue.number.md"
+    },
+    {
+      "name": "params",
+      "id": "requesteventbase-params",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-params"
+        },
+        {
+          "name": "params",
+          "id": "requesteventbase-params"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.params.md"
+    },
+    {
+      "name": "parseBody",
+      "id": "requesteventbase-parsebody",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-parsebody"
+        },
+        {
+          "name": "parseBody",
+          "id": "requesteventbase-parsebody"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.parsebody.md"
+    },
+    {
+      "name": "path",
+      "id": "cookieoptions-path",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-path"
+        },
+        {
+          "name": "path",
+          "id": "cookieoptions-path"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.path.md"
+    },
+    {
+      "name": "pathname",
+      "id": "requesteventbase-pathname",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-pathname"
+        },
+        {
+          "name": "pathname",
+          "id": "requesteventbase-pathname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.pathname.md"
+    },
+    {
+      "name": "platform",
+      "id": "requesteventbase-platform",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-platform"
+        },
+        {
+          "name": "platform",
+          "id": "requesteventbase-platform"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.platform.md"
+    },
+    {
+      "name": "query",
+      "id": "requesteventbase-query",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-query"
+        },
+        {
+          "name": "query",
+          "id": "requesteventbase-query"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.query.md"
+    },
+    {
+      "name": "qwikCityPlan",
+      "id": "serverrenderoptions-qwikcityplan",
+      "hierarchy": [
+        {
+          "name": "ServerRenderOptions",
+          "id": "serverrenderoptions-qwikcityplan"
+        },
+        {
+          "name": "qwikCityPlan",
+          "id": "serverrenderoptions-qwikcityplan"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.serverrenderoptions.qwikcityplan.md"
+    },
+    {
+      "name": "redirect",
+      "id": "requesteventcommon-redirect",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-redirect"
+        },
+        {
+          "name": "redirect",
+          "id": "requesteventcommon-redirect"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.redirect.md"
+    },
+    {
+      "name": "render",
+      "id": "serverrenderoptions-render",
+      "hierarchy": [
+        {
+          "name": "ServerRenderOptions",
+          "id": "serverrenderoptions-render"
+        },
+        {
+          "name": "render",
+          "id": "serverrenderoptions-render"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.serverrenderoptions.render.md"
+    },
+    {
+      "name": "request",
+      "id": "requesteventbase-request",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-request"
+        },
+        {
+          "name": "request",
+          "id": "requesteventbase-request"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.request.md"
+    },
+    {
+      "name": "RequestEvent",
+      "id": "requestevent",
+      "hierarchy": [
+        {
+          "name": "RequestEvent",
+          "id": "requestevent"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.requestevent.md"
+    },
+    {
+      "name": "RequestEventAction",
+      "id": "requesteventaction",
+      "hierarchy": [
+        {
+          "name": "RequestEventAction",
+          "id": "requesteventaction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.requesteventaction.md"
+    },
+    {
+      "name": "RequestEventBase",
+      "id": "requesteventbase",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.md"
+    },
+    {
+      "name": "RequestEventCommon",
+      "id": "requesteventcommon",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.md"
+    },
+    {
+      "name": "RequestEventLoader",
+      "id": "requesteventloader",
+      "hierarchy": [
+        {
+          "name": "RequestEventLoader",
+          "id": "requesteventloader"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.requesteventloader.md"
+    },
+    {
+      "name": "requestHandler",
+      "id": "requesthandler",
+      "hierarchy": [
+        {
+          "name": "requestHandler",
+          "id": "requesthandler"
+        }
+      ],
+      "kind": "Function",
+      "content": "",
+      "mdFile": "qwik.requesthandler.md"
+    },
+    {
+      "name": "RequestHandler",
+      "id": "requesthandler",
+      "hierarchy": [
+        {
+          "name": "RequestHandler",
+          "id": "requesthandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.requesthandler.md"
+    },
+    {
+      "name": "ResolveSyncValue",
+      "id": "resolvesyncvalue",
+      "hierarchy": [
+        {
+          "name": "ResolveSyncValue",
+          "id": "resolvesyncvalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.resolvesyncvalue.md"
+    },
+    {
+      "name": "resolveValue",
+      "id": "requesteventloader-resolvevalue",
+      "hierarchy": [
+        {
+          "name": "RequestEventLoader",
+          "id": "requesteventloader-resolvevalue"
+        },
+        {
+          "name": "resolveValue",
+          "id": "requesteventloader-resolvevalue"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventloader.resolvevalue.md"
+    },
+    {
+      "name": "ResolveValue",
+      "id": "resolvevalue",
+      "hierarchy": [
+        {
+          "name": "ResolveValue",
+          "id": "resolvevalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.resolvevalue.md"
+    },
+    {
+      "name": "sameSite",
+      "id": "cookieoptions-samesite",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-samesite"
+        },
+        {
+          "name": "sameSite",
+          "id": "cookieoptions-samesite"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.samesite.md"
+    },
+    {
+      "name": "secure",
+      "id": "cookieoptions-secure",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions-secure"
+        },
+        {
+          "name": "secure",
+          "id": "cookieoptions-secure"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookieoptions.secure.md"
+    },
+    {
+      "name": "send",
+      "id": "requesteventcommon-send",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-send"
+        },
+        {
+          "name": "send",
+          "id": "requesteventcommon-send"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.send.md"
+    },
+    {
+      "name": "ServerRenderOptions",
+      "id": "serverrenderoptions",
+      "hierarchy": [
+        {
+          "name": "ServerRenderOptions",
+          "id": "serverrenderoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.serverrenderoptions.md"
+    },
+    {
+      "name": "ServerRequestEvent",
+      "id": "serverrequestevent",
+      "hierarchy": [
+        {
+          "name": "ServerRequestEvent",
+          "id": "serverrequestevent"
+        }
+      ],
+      "kind": "Interface",
+      "content": "",
+      "mdFile": "qwik.serverrequestevent.md"
+    },
+    {
+      "name": "ServerRequestMode",
+      "id": "serverrequestmode",
+      "hierarchy": [
+        {
+          "name": "ServerRequestMode",
+          "id": "serverrequestmode"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.serverrequestmode.md"
+    },
+    {
+      "name": "ServerResponseHandler",
+      "id": "serverresponsehandler",
+      "hierarchy": [
+        {
+          "name": "ServerResponseHandler",
+          "id": "serverresponsehandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "",
+      "mdFile": "qwik.serverresponsehandler.md"
+    },
+    {
+      "name": "set",
+      "id": "cookie-set",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-set"
+        },
+        {
+          "name": "set",
+          "id": "cookie-set"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "",
+      "mdFile": "qwik.cookie.set.md"
+    },
+    {
+      "name": "sharedMap",
+      "id": "requesteventbase-sharedmap",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-sharedmap"
+        },
+        {
+          "name": "sharedMap",
+          "id": "requesteventbase-sharedmap"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.sharedmap.md"
+    },
+    {
+      "name": "status",
+      "id": "requesteventcommon-status",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-status"
+        },
+        {
+          "name": "status",
+          "id": "requesteventcommon-status"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.status.md"
+    },
+    {
+      "name": "text",
+      "id": "requesteventcommon-text",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon-text"
+        },
+        {
+          "name": "text",
+          "id": "requesteventcommon-text"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventcommon.text.md"
+    },
+    {
+      "name": "url",
+      "id": "requesteventbase-url",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase-url"
+        },
+        {
+          "name": "url",
+          "id": "requesteventbase-url"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.requesteventbase.url.md"
+    },
+    {
+      "name": "value",
+      "id": "cookievalue-value",
+      "hierarchy": [
+        {
+          "name": "CookieValue",
+          "id": "cookievalue-value"
+        },
+        {
+          "name": "value",
+          "id": "cookievalue-value"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "",
+      "mdFile": "qwik.cookievalue.value.md"
+    }
+  ]
 }

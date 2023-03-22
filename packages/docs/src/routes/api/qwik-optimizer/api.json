@@ -3,6 +3,2396 @@
   "package": "@builder.io/qwik/optimizer",
   "members": [
     {
+      "name": "_qwikEnvData",
+      "id": "qwikvitedevresponse-_qwikenvdata",
+      "hierarchy": [
+        {
+          "name": "QwikViteDevResponse",
+          "id": "qwikvitedevresponse-_qwikenvdata"
+        },
+        {
+          "name": "_qwikEnvData",
+          "id": "qwikvitedevresponse-_qwikenvdata"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\n_qwikEnvData?: Record<string, any>;\n```",
+      "mdFile": "qwik.qwikvitedevresponse._qwikenvdata.md"
+    },
+    {
+      "name": "_qwikRenderResolve",
+      "id": "qwikvitedevresponse-_qwikrenderresolve",
+      "hierarchy": [
+        {
+          "name": "QwikViteDevResponse",
+          "id": "qwikvitedevresponse-_qwikrenderresolve"
+        },
+        {
+          "name": "_qwikRenderResolve",
+          "id": "qwikvitedevresponse-_qwikrenderresolve"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\n_qwikRenderResolve?: () => void;\n```",
+      "mdFile": "qwik.qwikvitedevresponse._qwikrenderresolve.md"
+    },
+    {
+      "name": "api",
+      "id": "qwikviteplugin-api",
+      "hierarchy": [
+        {
+          "name": "QwikVitePlugin",
+          "id": "qwikviteplugin-api"
+        },
+        {
+          "name": "api",
+          "id": "qwikviteplugin-api"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\napi: QwikVitePluginApi;\n```",
+      "mdFile": "qwik.qwikviteplugin.api.md"
+    },
+    {
+      "name": "attributes",
+      "id": "globalinjections-attributes",
+      "hierarchy": [
+        {
+          "name": "GlobalInjections",
+          "id": "globalinjections-attributes"
+        },
+        {
+          "name": "attributes",
+          "id": "globalinjections-attributes"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nattributes?: {\n        [key: string]: string;\n    };\n```",
+      "mdFile": "qwik.globalinjections.attributes.md"
+    },
+    {
+      "name": "basename",
+      "id": "path-basename",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-basename"
+        },
+        {
+          "name": "basename",
+          "id": "path-basename"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nbasename(path: string, ext?: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n|  ext | string | _(Optional)_ |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.basename.md"
+    },
+    {
+      "name": "binding",
+      "id": "optimizeroptions-binding",
+      "hierarchy": [
+        {
+          "name": "OptimizerOptions",
+          "id": "optimizeroptions-binding"
+        },
+        {
+          "name": "binding",
+          "id": "optimizeroptions-binding"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nbinding?: any;\n```",
+      "mdFile": "qwik.optimizeroptions.binding.md"
+    },
+    {
+      "name": "buildMode",
+      "id": "qwikrolluppluginoptions-buildmode",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-buildmode"
+        },
+        {
+          "name": "buildMode",
+          "id": "qwikrolluppluginoptions-buildmode"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Build `production` or `development`<!-- -->. Default `development`\n\n\n```typescript\nbuildMode?: QwikBuildMode;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.buildmode.md"
+    },
+    {
+      "name": "bundles",
+      "id": "qwikmanifest-bundles",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest-bundles"
+        },
+        {
+          "name": "bundles",
+          "id": "qwikmanifest-bundles"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nbundles: {\n        [fileName: string]: QwikBundle;\n    };\n```",
+      "mdFile": "qwik.qwikmanifest.bundles.md"
+    },
+    {
+      "name": "canonicalFilename",
+      "id": "hookanalysis-canonicalfilename",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-canonicalfilename"
+        },
+        {
+          "name": "canonicalFilename",
+          "id": "hookanalysis-canonicalfilename"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncanonicalFilename: string;\n```",
+      "mdFile": "qwik.hookanalysis.canonicalfilename.md"
+    },
+    {
+      "name": "captures",
+      "id": "hookanalysis-captures",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-captures"
+        },
+        {
+          "name": "captures",
+          "id": "hookanalysis-captures"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncaptures: boolean;\n```",
+      "mdFile": "qwik.hookanalysis.captures.md"
+    },
+    {
+      "name": "category",
+      "id": "diagnostic-category",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-category"
+        },
+        {
+          "name": "category",
+          "id": "diagnostic-category"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncategory: DiagnosticCategory;\n```",
+      "mdFile": "qwik.diagnostic.category.md"
+    },
+    {
+      "name": "client",
+      "id": "qwikvitepluginoptions-client",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginOptions",
+          "id": "qwikvitepluginoptions-client"
+        },
+        {
+          "name": "client",
+          "id": "qwikvitepluginoptions-client"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nclient?: {\n        input?: string[] | string;\n        devInput?: string;\n        outDir?: string;\n        manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;\n    };\n```",
+      "mdFile": "qwik.qwikvitepluginoptions.client.md"
+    },
+    {
+      "name": "code",
+      "id": "diagnostic-code",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-code"
+        },
+        {
+          "name": "code",
+          "id": "diagnostic-code"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncode: string | null;\n```",
+      "mdFile": "qwik.diagnostic.code.md"
+    },
+    {
+      "name": "ComponentEntryStrategy",
+      "id": "componententrystrategy",
+      "hierarchy": [
+        {
+          "name": "ComponentEntryStrategy",
+          "id": "componententrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ComponentEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual?](#componententrystrategy-manual) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [type](#componententrystrategy-type) |  | 'component' |  |",
+      "mdFile": "qwik.componententrystrategy.md"
+    },
+    {
+      "name": "createOptimizer",
+      "id": "createoptimizer",
+      "hierarchy": [
+        {
+          "name": "createOptimizer",
+          "id": "createoptimizer"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```",
+      "mdFile": "qwik.createoptimizer.md"
+    },
+    {
+      "name": "ctxKind",
+      "id": "hookanalysis-ctxkind",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-ctxkind"
+        },
+        {
+          "name": "ctxKind",
+          "id": "hookanalysis-ctxkind"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nctxKind: 'event' | 'function';\n```",
+      "mdFile": "qwik.hookanalysis.ctxkind.md"
+    },
+    {
+      "name": "ctxName",
+      "id": "hookanalysis-ctxname",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-ctxname"
+        },
+        {
+          "name": "ctxName",
+          "id": "hookanalysis-ctxname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nctxName: string;\n```",
+      "mdFile": "qwik.hookanalysis.ctxname.md"
+    },
+    {
+      "name": "cwd",
+      "id": "optimizersystem-cwd",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-cwd"
+        },
+        {
+          "name": "cwd",
+          "id": "optimizersystem-cwd"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ncwd: () => string;\n```",
+      "mdFile": "qwik.optimizersystem.cwd.md"
+    },
+    {
+      "name": "debug",
+      "id": "qwikrolluppluginoptions-debug",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-debug"
+        },
+        {
+          "name": "debug",
+          "id": "qwikrolluppluginoptions-debug"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Prints verbose Qwik plugin debug logs. Default `false`\n\n\n```typescript\ndebug?: boolean;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.debug.md"
+    },
+    {
+      "name": "delimiter",
+      "id": "path-delimiter",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-delimiter"
+        },
+        {
+          "name": "delimiter",
+          "id": "path-delimiter"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nreadonly delimiter: string;\n```",
+      "mdFile": "qwik.path.delimiter.md"
+    },
+    {
+      "name": "devTools",
+      "id": "qwikvitepluginoptions-devtools",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginOptions",
+          "id": "qwikvitepluginoptions-devtools"
+        },
+        {
+          "name": "devTools",
+          "id": "qwikvitepluginoptions-devtools"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ndevTools?: {\n        clickToSource: string[] | false;\n    };\n```",
+      "mdFile": "qwik.qwikvitepluginoptions.devtools.md"
+    },
+    {
+      "name": "Diagnostic",
+      "id": "diagnostic",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Diagnostic \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [category](#diagnostic-category) |  | [DiagnosticCategory](#diagnosticcategory) |  |\n|  [code](#diagnostic-code) |  | string \\| null |  |\n|  [file](#diagnostic-file) |  | string |  |\n|  [highlights](#diagnostic-highlights) |  | [SourceLocation](#sourcelocation)<!-- -->\\[\\] |  |\n|  [message](#diagnostic-message) |  | string |  |\n|  [scope](#diagnostic-scope) |  | string |  |\n|  [suggestions](#diagnostic-suggestions) |  | string\\[\\] \\| null |  |",
+      "mdFile": "qwik.diagnostic.md"
+    },
+    {
+      "name": "DiagnosticCategory",
+      "id": "diagnosticcategory",
+      "hierarchy": [
+        {
+          "name": "DiagnosticCategory",
+          "id": "diagnosticcategory"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DiagnosticCategory = 'error' | 'warning' | 'sourceError';\n```",
+      "mdFile": "qwik.diagnosticcategory.md"
+    },
+    {
+      "name": "diagnostics",
+      "id": "transformoutput-diagnostics",
+      "hierarchy": [
+        {
+          "name": "TransformOutput",
+          "id": "transformoutput-diagnostics"
+        },
+        {
+          "name": "diagnostics",
+          "id": "transformoutput-diagnostics"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ndiagnostics: Diagnostic[];\n```",
+      "mdFile": "qwik.transformoutput.diagnostics.md"
+    },
+    {
+      "name": "dirname",
+      "id": "path-dirname",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-dirname"
+        },
+        {
+          "name": "dirname",
+          "id": "path-dirname"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\ndirname(path: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.dirname.md"
+    },
+    {
+      "name": "displayName",
+      "id": "hookanalysis-displayname",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-displayname"
+        },
+        {
+          "name": "displayName",
+          "id": "hookanalysis-displayname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ndisplayName: string;\n```",
+      "mdFile": "qwik.hookanalysis.displayname.md"
+    },
+    {
+      "name": "dynamicImport",
+      "id": "optimizersystem-dynamicimport",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-dynamicimport"
+        },
+        {
+          "name": "dynamicImport",
+          "id": "optimizersystem-dynamicimport"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ndynamicImport: (path: string) => Promise<any>;\n```",
+      "mdFile": "qwik.optimizersystem.dynamicimport.md"
+    },
+    {
+      "name": "dynamicImports",
+      "id": "qwikbundle-dynamicimports",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle-dynamicimports"
+        },
+        {
+          "name": "dynamicImports",
+          "id": "qwikbundle-dynamicimports"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ndynamicImports?: string[];\n```",
+      "mdFile": "qwik.qwikbundle.dynamicimports.md"
+    },
+    {
+      "name": "endCol",
+      "id": "sourcelocation-endcol",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation-endcol"
+        },
+        {
+          "name": "endCol",
+          "id": "sourcelocation-endcol"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nendCol: number;\n```",
+      "mdFile": "qwik.sourcelocation.endcol.md"
+    },
+    {
+      "name": "endLine",
+      "id": "sourcelocation-endline",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation-endline"
+        },
+        {
+          "name": "endLine",
+          "id": "sourcelocation-endline"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nendLine: number;\n```",
+      "mdFile": "qwik.sourcelocation.endline.md"
+    },
+    {
+      "name": "entry",
+      "id": "hookanalysis-entry",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-entry"
+        },
+        {
+          "name": "entry",
+          "id": "hookanalysis-entry"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nentry: string | null;\n```",
+      "mdFile": "qwik.hookanalysis.entry.md"
+    },
+    {
+      "name": "entryStrategy",
+      "id": "qwikrolluppluginoptions-entrystrategy",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-entrystrategy"
+        },
+        {
+          "name": "entryStrategy",
+          "id": "qwikrolluppluginoptions-entrystrategy"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "The Qwik entry strategy to use while building for production. During development the type is always `hook`<!-- -->. Default `{ type: \"smart\" }`<!-- -->)\n\n\n```typescript\nentryStrategy?: EntryStrategy;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.entrystrategy.md"
+    },
+    {
+      "name": "EntryStrategy",
+      "id": "entrystrategy",
+      "hierarchy": [
+        {
+          "name": "EntryStrategy",
+          "id": "entrystrategy"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;\n```\n**References:** [InlineEntryStrategy](#inlineentrystrategy)<!-- -->, [SingleEntryStrategy](#singleentrystrategy)<!-- -->, [HookEntryStrategy](#hookentrystrategy)<!-- -->, [ComponentEntryStrategy](#componententrystrategy)<!-- -->, [SmartEntryStrategy](#smartentrystrategy)",
+      "mdFile": "qwik.entrystrategy.md"
+    },
+    {
+      "name": "env",
+      "id": "optimizersystem-env",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-env"
+        },
+        {
+          "name": "env",
+          "id": "optimizersystem-env"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nenv: SystemEnvironment;\n```",
+      "mdFile": "qwik.optimizersystem.env.md"
+    },
+    {
+      "name": "explicitExtensions",
+      "id": "transformoptions-explicitextensions",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-explicitextensions"
+        },
+        {
+          "name": "explicitExtensions",
+          "id": "transformoptions-explicitextensions"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nexplicitExtensions?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.explicitextensions.md"
+    },
+    {
+      "name": "extension",
+      "id": "hookanalysis-extension",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-extension"
+        },
+        {
+          "name": "extension",
+          "id": "hookanalysis-extension"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nextension: string;\n```",
+      "mdFile": "qwik.hookanalysis.extension.md"
+    },
+    {
+      "name": "extname",
+      "id": "path-extname",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-extname"
+        },
+        {
+          "name": "extname",
+          "id": "path-extname"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nextname(path: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.extname.md"
+    },
+    {
+      "name": "file",
+      "id": "diagnostic-file",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-file"
+        },
+        {
+          "name": "file",
+          "id": "diagnostic-file"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nfile: string;\n```",
+      "mdFile": "qwik.diagnostic.file.md"
+    },
+    {
+      "name": "forceFullBuild",
+      "id": "qwikrolluppluginoptions-forcefullbuild",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-forcefullbuild"
+        },
+        {
+          "name": "forceFullBuild",
+          "id": "qwikrolluppluginoptions-forcefullbuild"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nforceFullBuild?: boolean;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.forcefullbuild.md"
+    },
+    {
+      "name": "format",
+      "id": "path-format",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-format"
+        },
+        {
+          "name": "format",
+          "id": "path-format"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nformat(pathObject: {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    }): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  pathObject | { root: string; dir: string; base: string; ext: string; name: string; } |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.format.md"
+    },
+    {
+      "name": "getClientOutDir",
+      "id": "qwikvitepluginapi-getclientoutdir",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi-getclientoutdir"
+        },
+        {
+          "name": "getClientOutDir",
+          "id": "qwikvitepluginapi-getclientoutdir"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ngetClientOutDir: () => string | null;\n```",
+      "mdFile": "qwik.qwikvitepluginapi.getclientoutdir.md"
+    },
+    {
+      "name": "getInputFiles",
+      "id": "optimizersystem-getinputfiles",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-getinputfiles"
+        },
+        {
+          "name": "getInputFiles",
+          "id": "optimizersystem-getinputfiles"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ngetInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;\n```",
+      "mdFile": "qwik.optimizersystem.getinputfiles.md"
+    },
+    {
+      "name": "getManifest",
+      "id": "qwikvitepluginapi-getmanifest",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi-getmanifest"
+        },
+        {
+          "name": "getManifest",
+          "id": "qwikvitepluginapi-getmanifest"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ngetManifest: () => QwikManifest | null;\n```",
+      "mdFile": "qwik.qwikvitepluginapi.getmanifest.md"
+    },
+    {
+      "name": "getOptimizer",
+      "id": "qwikvitepluginapi-getoptimizer",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi-getoptimizer"
+        },
+        {
+          "name": "getOptimizer",
+          "id": "qwikvitepluginapi-getoptimizer"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ngetOptimizer: () => Optimizer | null;\n```",
+      "mdFile": "qwik.qwikvitepluginapi.getoptimizer.md"
+    },
+    {
+      "name": "getOptions",
+      "id": "qwikvitepluginapi-getoptions",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi-getoptions"
+        },
+        {
+          "name": "getOptions",
+          "id": "qwikvitepluginapi-getoptions"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ngetOptions: () => NormalizedQwikPluginOptions;\n```",
+      "mdFile": "qwik.qwikvitepluginapi.getoptions.md"
+    },
+    {
+      "name": "getRootDir",
+      "id": "qwikvitepluginapi-getrootdir",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi-getrootdir"
+        },
+        {
+          "name": "getRootDir",
+          "id": "qwikvitepluginapi-getrootdir"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ngetRootDir: () => string | null;\n```",
+      "mdFile": "qwik.qwikvitepluginapi.getrootdir.md"
+    },
+    {
+      "name": "GlobalInjections",
+      "id": "globalinjections",
+      "hierarchy": [
+        {
+          "name": "GlobalInjections",
+          "id": "globalinjections"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface GlobalInjections \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [attributes?](#globalinjections-attributes) |  | { \\[key: string\\]: string; } | _(Optional)_ |\n|  [location](#globalinjections-location) |  | 'head' \\| 'body' |  |\n|  [tag](#globalinjections-tag) |  | string |  |",
+      "mdFile": "qwik.globalinjections.md"
+    },
+    {
+      "name": "hash",
+      "id": "hookanalysis-hash",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-hash"
+        },
+        {
+          "name": "hash",
+          "id": "hookanalysis-hash"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nhash: string;\n```",
+      "mdFile": "qwik.hookanalysis.hash.md"
+    },
+    {
+      "name": "hi",
+      "id": "sourcelocation-hi",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation-hi"
+        },
+        {
+          "name": "hi",
+          "id": "sourcelocation-hi"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nhi: number;\n```",
+      "mdFile": "qwik.sourcelocation.hi.md"
+    },
+    {
+      "name": "highlights",
+      "id": "diagnostic-highlights",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-highlights"
+        },
+        {
+          "name": "highlights",
+          "id": "diagnostic-highlights"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nhighlights: SourceLocation[];\n```",
+      "mdFile": "qwik.diagnostic.highlights.md"
+    },
+    {
+      "name": "hook",
+      "id": "transformmodule-hook",
+      "hierarchy": [
+        {
+          "name": "TransformModule",
+          "id": "transformmodule-hook"
+        },
+        {
+          "name": "hook",
+          "id": "transformmodule-hook"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nhook: HookAnalysis | null;\n```",
+      "mdFile": "qwik.transformmodule.hook.md"
+    },
+    {
+      "name": "HookAnalysis",
+      "id": "hookanalysis",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HookAnalysis \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#hookanalysis-canonicalfilename) |  | string |  |\n|  [captures](#hookanalysis-captures) |  | boolean |  |\n|  [ctxKind](#hookanalysis-ctxkind) |  | 'event' \\| 'function' |  |\n|  [ctxName](#hookanalysis-ctxname) |  | string |  |\n|  [displayName](#hookanalysis-displayname) |  | string |  |\n|  [entry](#hookanalysis-entry) |  | string \\| null |  |\n|  [extension](#hookanalysis-extension) |  | string |  |\n|  [hash](#hookanalysis-hash) |  | string |  |\n|  [name](#hookanalysis-name) |  | string |  |\n|  [origin](#hookanalysis-origin) |  | string |  |\n|  [parent](#hookanalysis-parent) |  | string \\| null |  |",
+      "mdFile": "qwik.hookanalysis.md"
+    },
+    {
+      "name": "HookEntryStrategy",
+      "id": "hookentrystrategy",
+      "hierarchy": [
+        {
+          "name": "HookEntryStrategy",
+          "id": "hookentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HookEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [type](./qwik.hookentrystrategy.type.md) |  | 'hook' |  |",
+      "mdFile": "qwik.hookentrystrategy.md"
+    },
+    {
+      "name": "imports",
+      "id": "qwikbundle-imports",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle-imports"
+        },
+        {
+          "name": "imports",
+          "id": "qwikbundle-imports"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nimports?: string[];\n```",
+      "mdFile": "qwik.qwikbundle.imports.md"
+    },
+    {
+      "name": "injections",
+      "id": "qwikmanifest-injections",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest-injections"
+        },
+        {
+          "name": "injections",
+          "id": "qwikmanifest-injections"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ninjections?: GlobalInjections[];\n```",
+      "mdFile": "qwik.qwikmanifest.injections.md"
+    },
+    {
+      "name": "InlineEntryStrategy",
+      "id": "inlineentrystrategy",
+      "hierarchy": [
+        {
+          "name": "InlineEntryStrategy",
+          "id": "inlineentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface InlineEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [type](./qwik.inlineentrystrategy.type.md) |  | 'inline' |  |",
+      "mdFile": "qwik.inlineentrystrategy.md"
+    },
+    {
+      "name": "input",
+      "id": "transformmodulesoptions-input",
+      "hierarchy": [
+        {
+          "name": "TransformModulesOptions",
+          "id": "transformmodulesoptions-input"
+        },
+        {
+          "name": "input",
+          "id": "transformmodulesoptions-input"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ninput: TransformModuleInput[];\n```",
+      "mdFile": "qwik.transformmodulesoptions.input.md"
+    },
+    {
+      "name": "isAbsolute",
+      "id": "path-isabsolute",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-isabsolute"
+        },
+        {
+          "name": "isAbsolute",
+          "id": "path-isabsolute"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nisAbsolute(path: string): boolean;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nboolean",
+      "mdFile": "qwik.path.isabsolute.md"
+    },
+    {
+      "name": "isEntry",
+      "id": "transformmodule-isentry",
+      "hierarchy": [
+        {
+          "name": "TransformModule",
+          "id": "transformmodule-isentry"
+        },
+        {
+          "name": "isEntry",
+          "id": "transformmodule-isentry"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nisEntry: boolean;\n```",
+      "mdFile": "qwik.transformmodule.isentry.md"
+    },
+    {
+      "name": "isJsx",
+      "id": "transformoutput-isjsx",
+      "hierarchy": [
+        {
+          "name": "TransformOutput",
+          "id": "transformoutput-isjsx"
+        },
+        {
+          "name": "isJsx",
+          "id": "transformoutput-isjsx"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nisJsx: boolean;\n```",
+      "mdFile": "qwik.transformoutput.isjsx.md"
+    },
+    {
+      "name": "isServer",
+      "id": "transformoptions-isserver",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-isserver"
+        },
+        {
+          "name": "isServer",
+          "id": "transformoptions-isserver"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nisServer?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.isserver.md"
+    },
+    {
+      "name": "isTypeScript",
+      "id": "transformoutput-istypescript",
+      "hierarchy": [
+        {
+          "name": "TransformOutput",
+          "id": "transformoutput-istypescript"
+        },
+        {
+          "name": "isTypeScript",
+          "id": "transformoutput-istypescript"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nisTypeScript: boolean;\n```",
+      "mdFile": "qwik.transformoutput.istypescript.md"
+    },
+    {
+      "name": "join",
+      "id": "path-join",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-join"
+        },
+        {
+          "name": "join",
+          "id": "path-join"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\njoin(...paths: string[]): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  paths | string\\[\\] |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.join.md"
+    },
+    {
+      "name": "lo",
+      "id": "sourcelocation-lo",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation-lo"
+        },
+        {
+          "name": "lo",
+          "id": "sourcelocation-lo"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nlo: number;\n```",
+      "mdFile": "qwik.sourcelocation.lo.md"
+    },
+    {
+      "name": "location",
+      "id": "globalinjections-location",
+      "hierarchy": [
+        {
+          "name": "GlobalInjections",
+          "id": "globalinjections-location"
+        },
+        {
+          "name": "location",
+          "id": "globalinjections-location"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nlocation: 'head' | 'body';\n```",
+      "mdFile": "qwik.globalinjections.location.md"
+    },
+    {
+      "name": "manifestInput",
+      "id": "qwikrolluppluginoptions-manifestinput",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-manifestinput"
+        },
+        {
+          "name": "manifestInput",
+          "id": "qwikrolluppluginoptions-manifestinput"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "The SSR build requires the manifest generated during the client build. The `manifestInput` option can be used to manually provide a manifest. Default `undefined`\n\n\n```typescript\nmanifestInput?: QwikManifest;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.manifestinput.md"
+    },
+    {
+      "name": "manifestOutput",
+      "id": "qwikrolluppluginoptions-manifestoutput",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-manifestoutput"
+        },
+        {
+          "name": "manifestOutput",
+          "id": "qwikrolluppluginoptions-manifestoutput"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "The client build will create a manifest and this hook is called with the generated build data. Default `undefined`\n\n\n```typescript\nmanifestOutput?: (manifest: QwikManifest) => Promise<void> | void;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.manifestoutput.md"
+    },
+    {
+      "name": "manual",
+      "id": "componententrystrategy-manual",
+      "hierarchy": [
+        {
+          "name": "ComponentEntryStrategy",
+          "id": "componententrystrategy-manual"
+        },
+        {
+          "name": "manual",
+          "id": "componententrystrategy-manual"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmanual?: Record<string, string>;\n```",
+      "mdFile": "qwik.componententrystrategy.manual.md"
+    },
+    {
+      "name": "map",
+      "id": "transformmodule-map",
+      "hierarchy": [
+        {
+          "name": "TransformModule",
+          "id": "transformmodule-map"
+        },
+        {
+          "name": "map",
+          "id": "transformmodule-map"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmap: string | null;\n```",
+      "mdFile": "qwik.transformmodule.map.md"
+    },
+    {
+      "name": "mapping",
+      "id": "qwikmanifest-mapping",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest-mapping"
+        },
+        {
+          "name": "mapping",
+          "id": "qwikmanifest-mapping"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmapping: {\n        [symbolName: string]: string;\n    };\n```",
+      "mdFile": "qwik.qwikmanifest.mapping.md"
+    },
+    {
+      "name": "message",
+      "id": "diagnostic-message",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-message"
+        },
+        {
+          "name": "message",
+          "id": "diagnostic-message"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmessage: string;\n```",
+      "mdFile": "qwik.diagnostic.message.md"
+    },
+    {
+      "name": "minify",
+      "id": "transformoptions-minify",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-minify"
+        },
+        {
+          "name": "minify",
+          "id": "transformoptions-minify"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nminify?: MinifyMode;\n```",
+      "mdFile": "qwik.transformoptions.minify.md"
+    },
+    {
+      "name": "MinifyMode",
+      "id": "minifymode",
+      "hierarchy": [
+        {
+          "name": "MinifyMode",
+          "id": "minifymode"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type MinifyMode = 'simplify' | 'none';\n```",
+      "mdFile": "qwik.minifymode.md"
+    },
+    {
+      "name": "mode",
+      "id": "transformoptions-mode",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-mode"
+        },
+        {
+          "name": "mode",
+          "id": "transformoptions-mode"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmode?: EmitMode;\n```",
+      "mdFile": "qwik.transformoptions.mode.md"
+    },
+    {
+      "name": "modules",
+      "id": "transformoutput-modules",
+      "hierarchy": [
+        {
+          "name": "TransformOutput",
+          "id": "transformoutput-modules"
+        },
+        {
+          "name": "modules",
+          "id": "transformoutput-modules"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nmodules: TransformModule[];\n```",
+      "mdFile": "qwik.transformoutput.modules.md"
+    },
+    {
+      "name": "name",
+      "id": "hookanalysis-name",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-name"
+        },
+        {
+          "name": "name",
+          "id": "hookanalysis-name"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nname: string;\n```",
+      "mdFile": "qwik.hookanalysis.name.md"
+    },
+    {
+      "name": "normalize",
+      "id": "path-normalize",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-normalize"
+        },
+        {
+          "name": "normalize",
+          "id": "path-normalize"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nnormalize(path: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.normalize.md"
+    },
+    {
+      "name": "Optimizer",
+      "id": "optimizer",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Optimizer \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [sys](#optimizer-sys) |  | [OptimizerSystem](#optimizersystem) | Optimizer system use. This can be updated with a custom file system. |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [transformFs(opts)](#optimizer-transformfs) | Transforms the directory from the file system. |\n|  [transformFsSync(opts)](#optimizer-transformfssync) | Transforms the directory from the file system. |\n|  [transformModules(opts)](#optimizer-transformmodules) | Transforms the input code string, does not access the file system. |\n|  [transformModulesSync(opts)](#optimizer-transformmodulessync) | Transforms the input code string, does not access the file system. |",
+      "mdFile": "qwik.optimizer.md"
+    },
+    {
+      "name": "optimizerOptions",
+      "id": "qwikrolluppluginoptions-optimizeroptions",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-optimizeroptions"
+        },
+        {
+          "name": "optimizerOptions",
+          "id": "qwikrolluppluginoptions-optimizeroptions"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\noptimizerOptions?: OptimizerOptions;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.optimizeroptions.md"
+    },
+    {
+      "name": "OptimizerOptions",
+      "id": "optimizeroptions",
+      "hierarchy": [
+        {
+          "name": "OptimizerOptions",
+          "id": "optimizeroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface OptimizerOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [binding?](#optimizeroptions-binding) |  | any | _(Optional)_ |\n|  [sys?](./qwik.optimizeroptions.sys.md) |  | [OptimizerSystem](#optimizersystem) | _(Optional)_ |",
+      "mdFile": "qwik.optimizeroptions.md"
+    },
+    {
+      "name": "OptimizerSystem",
+      "id": "optimizersystem",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface OptimizerSystem \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [cwd](#optimizersystem-cwd) |  | () =&gt; string |  |\n|  [dynamicImport](#optimizersystem-dynamicimport) |  | (path: string) =&gt; Promise&lt;any&gt; |  |\n|  [env](#optimizersystem-env) |  | [SystemEnvironment](#systemenvironment) |  |\n|  [getInputFiles?](#optimizersystem-getinputfiles) |  | (rootDir: string) =&gt; Promise&lt;[TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\]&gt; | _(Optional)_ |\n|  [os](#optimizersystem-os) |  | string |  |\n|  [path](#optimizersystem-path) |  | [Path](#path) |  |\n|  [strictDynamicImport](#optimizersystem-strictdynamicimport) |  | (path: string) =&gt; Promise&lt;any&gt; |  |",
+      "mdFile": "qwik.optimizersystem.md"
+    },
+    {
+      "name": "options",
+      "id": "qwikmanifest-options",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest-options"
+        },
+        {
+          "name": "options",
+          "id": "qwikmanifest-options"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\noptions?: {\n        target?: string;\n        buildMode?: string;\n        forceFullBuild?: boolean;\n        entryStrategy?: {\n            [key: string]: any;\n        };\n    };\n```",
+      "mdFile": "qwik.qwikmanifest.options.md"
+    },
+    {
+      "name": "origin",
+      "id": "hookanalysis-origin",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-origin"
+        },
+        {
+          "name": "origin",
+          "id": "hookanalysis-origin"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\norigin: string;\n```",
+      "mdFile": "qwik.hookanalysis.origin.md"
+    },
+    {
+      "name": "origins",
+      "id": "qwikbundle-origins",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle-origins"
+        },
+        {
+          "name": "origins",
+          "id": "qwikbundle-origins"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\norigins?: string[];\n```",
+      "mdFile": "qwik.qwikbundle.origins.md"
+    },
+    {
+      "name": "os",
+      "id": "optimizersystem-os",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-os"
+        },
+        {
+          "name": "os",
+          "id": "optimizersystem-os"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nos: string;\n```",
+      "mdFile": "qwik.optimizersystem.os.md"
+    },
+    {
+      "name": "parent",
+      "id": "hookanalysis-parent",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis-parent"
+        },
+        {
+          "name": "parent",
+          "id": "hookanalysis-parent"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nparent: string | null;\n```",
+      "mdFile": "qwik.hookanalysis.parent.md"
+    },
+    {
+      "name": "parse",
+      "id": "path-parse",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-parse"
+        },
+        {
+          "name": "parse",
+          "id": "path-parse"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nparse(path: string): {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    };\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\n{ root: string; dir: string; base: string; ext: string; name: string; }",
+      "mdFile": "qwik.path.parse.md"
+    },
+    {
+      "name": "path",
+      "id": "optimizersystem-path",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-path"
+        },
+        {
+          "name": "path",
+          "id": "optimizersystem-path"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\npath: Path;\n```",
+      "mdFile": "qwik.optimizersystem.path.md"
+    },
+    {
+      "name": "Path",
+      "id": "path",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Path \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [delimiter](#path-delimiter) | <code>readonly</code> | string |  |\n|  [posix](#path-posix) | <code>readonly</code> | [Path](#path) |  |\n|  [sep](#path-sep) | <code>readonly</code> | string |  |\n|  [win32](#path-win32) | <code>readonly</code> | null |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [basename(path, ext)](#path-basename) |  |\n|  [dirname(path)](#path-dirname) |  |\n|  [extname(path)](#path-extname) |  |\n|  [format(pathObject)](#path-format) |  |\n|  [isAbsolute(path)](#path-isabsolute) |  |\n|  [join(paths)](#path-join) |  |\n|  [normalize(path)](#path-normalize) |  |\n|  [parse(path)](#path-parse) |  |\n|  [relative(from, to)](#path-relative) |  |\n|  [resolve(paths)](#path-resolve) |  |",
+      "mdFile": "qwik.path.md"
+    },
+    {
+      "name": "platform",
+      "id": "qwikmanifest-platform",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest-platform"
+        },
+        {
+          "name": "platform",
+          "id": "qwikmanifest-platform"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nplatform?: {\n        [name: string]: string;\n    };\n```",
+      "mdFile": "qwik.qwikmanifest.platform.md"
+    },
+    {
+      "name": "posix",
+      "id": "path-posix",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-posix"
+        },
+        {
+          "name": "posix",
+          "id": "path-posix"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nreadonly posix: Path;\n```",
+      "mdFile": "qwik.path.posix.md"
+    },
+    {
+      "name": "preserveFilenames",
+      "id": "transformoptions-preservefilenames",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-preservefilenames"
+        },
+        {
+          "name": "preserveFilenames",
+          "id": "transformoptions-preservefilenames"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\npreserveFilenames?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.preservefilenames.md"
+    },
+    {
+      "name": "QwikBuildMode",
+      "id": "qwikbuildmode",
+      "hierarchy": [
+        {
+          "name": "QwikBuildMode",
+          "id": "qwikbuildmode"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type QwikBuildMode = 'production' | 'development';\n```",
+      "mdFile": "qwik.qwikbuildmode.md"
+    },
+    {
+      "name": "QwikBuildTarget",
+      "id": "qwikbuildtarget",
+      "hierarchy": [
+        {
+          "name": "QwikBuildTarget",
+          "id": "qwikbuildtarget"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';\n```",
+      "mdFile": "qwik.qwikbuildtarget.md"
+    },
+    {
+      "name": "QwikBundle",
+      "id": "qwikbundle",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikBundle \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dynamicImports?](#qwikbundle-dynamicimports) |  | string\\[\\] | _(Optional)_ |\n|  [imports?](#qwikbundle-imports) |  | string\\[\\] | _(Optional)_ |\n|  [origins?](#qwikbundle-origins) |  | string\\[\\] | _(Optional)_ |\n|  [size](#qwikbundle-size) |  | number |  |\n|  [symbols?](#qwikbundle-symbols) |  | string\\[\\] | _(Optional)_ |",
+      "mdFile": "qwik.qwikbundle.md"
+    },
+    {
+      "name": "QwikManifest",
+      "id": "qwikmanifest",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikManifest \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [bundles](#qwikmanifest-bundles) |  | { \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; } |  |\n|  [injections?](#qwikmanifest-injections) |  | [GlobalInjections](#globalinjections)<!-- -->\\[\\] | _(Optional)_ |\n|  [mapping](#qwikmanifest-mapping) |  | { \\[symbolName: string\\]: string; } |  |\n|  [options?](#qwikmanifest-options) |  | { target?: string; buildMode?: string; forceFullBuild?: boolean; entryStrategy?: { \\[key: string\\]: any; }; } | _(Optional)_ |\n|  [platform?](#qwikmanifest-platform) |  | { \\[name: string\\]: string; } | _(Optional)_ |\n|  [symbols](./qwik.qwikmanifest.symbols.md) |  | { \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; } |  |\n|  [version](#qwikmanifest-version) |  | string |  |",
+      "mdFile": "qwik.qwikmanifest.md"
+    },
+    {
+      "name": "qwikRollup",
+      "id": "qwikrollup",
+      "hierarchy": [
+        {
+          "name": "qwikRollup",
+          "id": "qwikrollup"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  qwikRollupOpts | [QwikRollupPluginOptions](#qwikrolluppluginoptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "mdFile": "qwik.qwikrollup.md"
+    },
+    {
+      "name": "QwikRollupPluginOptions",
+      "id": "qwikrolluppluginoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRollupPluginOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [buildMode?](#qwikrolluppluginoptions-buildmode) |  | [QwikBuildMode](#qwikbuildmode) | _(Optional)_ Build <code>production</code> or <code>development</code>. Default <code>development</code> |\n|  [debug?](#qwikrolluppluginoptions-debug) |  | boolean | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code> |\n|  [entryStrategy?](#qwikrolluppluginoptions-entrystrategy) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>) |\n|  [forceFullBuild?](#qwikrolluppluginoptions-forcefullbuild) |  | boolean | _(Optional)_ |\n|  [manifestInput?](#qwikrolluppluginoptions-manifestinput) |  | [QwikManifest](#qwikmanifest) | _(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest. Default <code>undefined</code> |\n|  [manifestOutput?](#qwikrolluppluginoptions-manifestoutput) |  | (manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void | _(Optional)_ The client build will create a manifest and this hook is called with the generated build data. Default <code>undefined</code> |\n|  [optimizerOptions?](#qwikrolluppluginoptions-optimizeroptions) |  | [OptimizerOptions](#optimizeroptions) | _(Optional)_ |\n|  [rootDir?](#qwikrolluppluginoptions-rootdir) |  | string | _(Optional)_ The root of the application, which is commonly the same directory as <code>package.json</code> and <code>rollup.config.js</code>. Default <code>process.cwd()</code> |\n|  [srcDir?](#qwikrolluppluginoptions-srcdir) |  | string | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |\n|  [srcInputs?](#qwikrolluppluginoptions-srcinputs) |  | [TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] \\| null | _(Optional)_ Alternative to <code>srcDir</code>, where <code>srcInputs</code> is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker. Default: <code>null</code> |\n|  [target?](#qwikrolluppluginoptions-target) |  | [QwikBuildTarget](#qwikbuildtarget) | _(Optional)_ Target <code>client</code> or <code>ssr</code>. Default <code>client</code> |\n|  [transformedModuleOutput?](#qwikrolluppluginoptions-transformedmoduleoutput) |  | ((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling. |",
+      "mdFile": "qwik.qwikrolluppluginoptions.md"
+    },
+    {
+      "name": "QwikSymbol",
+      "id": "qwiksymbol",
+      "hierarchy": [
+        {
+          "name": "QwikSymbol",
+          "id": "qwiksymbol"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikSymbol \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](./qwik.qwiksymbol.canonicalfilename.md) |  | string |  |\n|  [captures](./qwik.qwiksymbol.captures.md) |  | boolean |  |\n|  [ctxKind](./qwik.qwiksymbol.ctxkind.md) |  | 'function' \\| 'event' |  |\n|  [ctxName](./qwik.qwiksymbol.ctxname.md) |  | string |  |\n|  [displayName](./qwik.qwiksymbol.displayname.md) |  | string |  |\n|  [hash](./qwik.qwiksymbol.hash.md) |  | string |  |\n|  [origin](./qwik.qwiksymbol.origin.md) |  | string |  |\n|  [parent](./qwik.qwiksymbol.parent.md) |  | string \\| null |  |",
+      "mdFile": "qwik.qwiksymbol.md"
+    },
+    {
+      "name": "qwikVite",
+      "id": "qwikvite",
+      "hierarchy": [
+        {
+          "name": "qwikVite",
+          "id": "qwikvite"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  qwikViteOpts | [QwikVitePluginOptions](#qwikvitepluginoptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "mdFile": "qwik.qwikvite.md"
+    },
+    {
+      "name": "QwikViteDevResponse",
+      "id": "qwikvitedevresponse",
+      "hierarchy": [
+        {
+          "name": "QwikViteDevResponse",
+          "id": "qwikvitedevresponse"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikViteDevResponse \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_qwikEnvData?](#qwikvitedevresponse-_qwikenvdata) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [\\_qwikRenderResolve?](#qwikvitedevresponse-_qwikrenderresolve) |  | () =&gt; void | _(Optional)_ |",
+      "mdFile": "qwik.qwikvitedevresponse.md"
+    },
+    {
+      "name": "QwikVitePlugin",
+      "id": "qwikviteplugin",
+      "hierarchy": [
+        {
+          "name": "QwikVitePlugin",
+          "id": "qwikviteplugin"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikVitePlugin \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [api](#qwikviteplugin-api) |  | [QwikVitePluginApi](#qwikvitepluginapi) |  |\n|  [name](./qwik.qwikviteplugin.name.md) |  | 'vite-plugin-qwik' |  |",
+      "mdFile": "qwik.qwikviteplugin.md"
+    },
+    {
+      "name": "QwikVitePluginApi",
+      "id": "qwikvitepluginapi",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientOutDir](#qwikvitepluginapi-getclientoutdir) |  | () =&gt; string \\| null |  |\n|  [getManifest](#qwikvitepluginapi-getmanifest) |  | () =&gt; [QwikManifest](#qwikmanifest) \\| null |  |\n|  [getOptimizer](#qwikvitepluginapi-getoptimizer) |  | () =&gt; [Optimizer](#optimizer) \\| null |  |\n|  [getOptions](#qwikvitepluginapi-getoptions) |  | () =&gt; NormalizedQwikPluginOptions |  |\n|  [getRootDir](#qwikvitepluginapi-getrootdir) |  | () =&gt; string \\| null |  |",
+      "mdFile": "qwik.qwikvitepluginapi.md"
+    },
+    {
+      "name": "QwikVitePluginOptions",
+      "id": "qwikvitepluginoptions",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginOptions",
+          "id": "qwikvitepluginoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikVitePluginOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [client?](#qwikvitepluginoptions-client) |  | { input?: string\\[\\] \\| string; devInput?: string; outDir?: string; manifestOutput?: (manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void; } | _(Optional)_ |\n|  [debug?](./qwik.qwikvitepluginoptions.debug.md) |  | boolean | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code> |\n|  [devTools?](#qwikvitepluginoptions-devtools) |  | { clickToSource: string\\[\\] \\| false; } | _(Optional)_ |\n|  [entryStrategy?](./qwik.qwikvitepluginoptions.entrystrategy.md) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>) |\n|  [optimizerOptions?](./qwik.qwikvitepluginoptions.optimizeroptions.md) |  | [OptimizerOptions](#optimizeroptions) | _(Optional)_ Options for the Qwik optimizer. Default <code>undefined</code> |\n|  [srcDir?](./qwik.qwikvitepluginoptions.srcdir.md) |  | string | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |\n|  [ssr?](#qwikvitepluginoptions-ssr) |  | { input?: string; outDir?: string; manifestInput?: [QwikManifest](#qwikmanifest)<!-- -->; } | _(Optional)_ |\n|  [transformedModuleOutput?](./qwik.qwikvitepluginoptions.transformedmoduleoutput.md) |  | ((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling. |\n|  [vendorRoots?](#qwikvitepluginoptions-vendorroots) |  | string\\[\\] | _(Optional)_ List of directories to recursively search for Qwik components or Vendors. Default <code>[]</code> |",
+      "mdFile": "qwik.qwikvitepluginoptions.md"
+    },
+    {
+      "name": "regCtxName",
+      "id": "transformoptions-regctxname",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-regctxname"
+        },
+        {
+          "name": "regCtxName",
+          "id": "transformoptions-regctxname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nregCtxName?: string[];\n```",
+      "mdFile": "qwik.transformoptions.regctxname.md"
+    },
+    {
+      "name": "relative",
+      "id": "path-relative",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-relative"
+        },
+        {
+          "name": "relative",
+          "id": "path-relative"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nrelative(from: string, to: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  from | string |  |\n|  to | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.relative.md"
+    },
+    {
+      "name": "resolve",
+      "id": "path-resolve",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-resolve"
+        },
+        {
+          "name": "resolve",
+          "id": "path-resolve"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nresolve(...paths: string[]): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  paths | string\\[\\] |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.resolve.md"
+    },
+    {
+      "name": "rootDir",
+      "id": "qwikrolluppluginoptions-rootdir",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-rootdir"
+        },
+        {
+          "name": "rootDir",
+          "id": "qwikrolluppluginoptions-rootdir"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "The root of the application, which is commonly the same directory as `package.json` and `rollup.config.js`<!-- -->. Default `process.cwd()`\n\n\n```typescript\nrootDir?: string;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.rootdir.md"
+    },
+    {
+      "name": "scope",
+      "id": "diagnostic-scope",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-scope"
+        },
+        {
+          "name": "scope",
+          "id": "diagnostic-scope"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nscope: string;\n```",
+      "mdFile": "qwik.diagnostic.scope.md"
+    },
+    {
+      "name": "sep",
+      "id": "path-sep",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-sep"
+        },
+        {
+          "name": "sep",
+          "id": "path-sep"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nreadonly sep: string;\n```",
+      "mdFile": "qwik.path.sep.md"
+    },
+    {
+      "name": "SingleEntryStrategy",
+      "id": "singleentrystrategy",
+      "hierarchy": [
+        {
+          "name": "SingleEntryStrategy",
+          "id": "singleentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SingleEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual?](./qwik.singleentrystrategy.manual.md) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [type](./qwik.singleentrystrategy.type.md) |  | 'single' |  |",
+      "mdFile": "qwik.singleentrystrategy.md"
+    },
+    {
+      "name": "size",
+      "id": "qwikbundle-size",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle-size"
+        },
+        {
+          "name": "size",
+          "id": "qwikbundle-size"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nsize: number;\n```",
+      "mdFile": "qwik.qwikbundle.size.md"
+    },
+    {
+      "name": "SmartEntryStrategy",
+      "id": "smartentrystrategy",
+      "hierarchy": [
+        {
+          "name": "SmartEntryStrategy",
+          "id": "smartentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SmartEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual?](./qwik.smartentrystrategy.manual.md) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [type](./qwik.smartentrystrategy.type.md) |  | 'smart' |  |",
+      "mdFile": "qwik.smartentrystrategy.md"
+    },
+    {
+      "name": "SourceLocation",
+      "id": "sourcelocation",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SourceLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [endCol](#sourcelocation-endcol) |  | number |  |\n|  [endLine](#sourcelocation-endline) |  | number |  |\n|  [hi](#sourcelocation-hi) |  | number |  |\n|  [lo](#sourcelocation-lo) |  | number |  |\n|  [startCol](#sourcelocation-startcol) |  | number |  |\n|  [startLine](#sourcelocation-startline) |  | number |  |",
+      "mdFile": "qwik.sourcelocation.md"
+    },
+    {
+      "name": "sourceMaps",
+      "id": "transformoptions-sourcemaps",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-sourcemaps"
+        },
+        {
+          "name": "sourceMaps",
+          "id": "transformoptions-sourcemaps"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nsourceMaps?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.sourcemaps.md"
+    },
+    {
+      "name": "SourceMapsOption",
+      "id": "sourcemapsoption",
+      "hierarchy": [
+        {
+          "name": "SourceMapsOption",
+          "id": "sourcemapsoption"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SourceMapsOption = 'external' | 'inline' | undefined | null;\n```",
+      "mdFile": "qwik.sourcemapsoption.md"
+    },
+    {
+      "name": "srcDir",
+      "id": "qwikrolluppluginoptions-srcdir",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-srcdir"
+        },
+        {
+          "name": "srcDir",
+          "id": "qwikrolluppluginoptions-srcdir"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "The source directory to find all the Qwik components. Since Qwik does not have a single input, the `srcDir` is used to recursively find Qwik files. Default `src`\n\n\n```typescript\nsrcDir?: string;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.srcdir.md"
+    },
+    {
+      "name": "srcInputs",
+      "id": "qwikrolluppluginoptions-srcinputs",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-srcinputs"
+        },
+        {
+          "name": "srcInputs",
+          "id": "qwikrolluppluginoptions-srcinputs"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Alternative to `srcDir`<!-- -->, where `srcInputs` is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker. Default: `null`\n\n\n```typescript\nsrcInputs?: TransformModuleInput[] | null;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.srcinputs.md"
+    },
+    {
+      "name": "ssr",
+      "id": "qwikvitepluginoptions-ssr",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginOptions",
+          "id": "qwikvitepluginoptions-ssr"
+        },
+        {
+          "name": "ssr",
+          "id": "qwikvitepluginoptions-ssr"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nssr?: {\n        input?: string;\n        outDir?: string;\n        manifestInput?: QwikManifest;\n    };\n```",
+      "mdFile": "qwik.qwikvitepluginoptions.ssr.md"
+    },
+    {
+      "name": "startCol",
+      "id": "sourcelocation-startcol",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation-startcol"
+        },
+        {
+          "name": "startCol",
+          "id": "sourcelocation-startcol"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstartCol: number;\n```",
+      "mdFile": "qwik.sourcelocation.startcol.md"
+    },
+    {
+      "name": "startLine",
+      "id": "sourcelocation-startline",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation-startline"
+        },
+        {
+          "name": "startLine",
+          "id": "sourcelocation-startline"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstartLine: number;\n```",
+      "mdFile": "qwik.sourcelocation.startline.md"
+    },
+    {
+      "name": "strictDynamicImport",
+      "id": "optimizersystem-strictdynamicimport",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem-strictdynamicimport"
+        },
+        {
+          "name": "strictDynamicImport",
+          "id": "optimizersystem-strictdynamicimport"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstrictDynamicImport: (path: string) => Promise<any>;\n```",
+      "mdFile": "qwik.optimizersystem.strictdynamicimport.md"
+    },
+    {
+      "name": "stripCtxName",
+      "id": "transformoptions-stripctxname",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-stripctxname"
+        },
+        {
+          "name": "stripCtxName",
+          "id": "transformoptions-stripctxname"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstripCtxName?: string[];\n```",
+      "mdFile": "qwik.transformoptions.stripctxname.md"
+    },
+    {
+      "name": "stripEventHandlers",
+      "id": "transformoptions-stripeventhandlers",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-stripeventhandlers"
+        },
+        {
+          "name": "stripEventHandlers",
+          "id": "transformoptions-stripeventhandlers"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstripEventHandlers?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.stripeventhandlers.md"
+    },
+    {
+      "name": "stripExports",
+      "id": "transformoptions-stripexports",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-stripexports"
+        },
+        {
+          "name": "stripExports",
+          "id": "transformoptions-stripexports"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nstripExports?: string[];\n```",
+      "mdFile": "qwik.transformoptions.stripexports.md"
+    },
+    {
+      "name": "suggestions",
+      "id": "diagnostic-suggestions",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic-suggestions"
+        },
+        {
+          "name": "suggestions",
+          "id": "diagnostic-suggestions"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nsuggestions: string[] | null;\n```",
+      "mdFile": "qwik.diagnostic.suggestions.md"
+    },
+    {
+      "name": "SymbolMapper",
+      "id": "symbolmapper",
+      "hierarchy": [
+        {
+          "name": "SymbolMapper",
+          "id": "symbolmapper"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;\n```",
+      "mdFile": "qwik.symbolmapper.md"
+    },
+    {
+      "name": "SymbolMapperFn",
+      "id": "symbolmapperfn",
+      "hierarchy": [
+        {
+          "name": "SymbolMapperFn",
+          "id": "symbolmapperfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;\n```\n**References:** [SymbolMapper](#symbolmapper)",
+      "mdFile": "qwik.symbolmapperfn.md"
+    },
+    {
+      "name": "symbols",
+      "id": "qwikbundle-symbols",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle-symbols"
+        },
+        {
+          "name": "symbols",
+          "id": "qwikbundle-symbols"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nsymbols?: string[];\n```",
+      "mdFile": "qwik.qwikbundle.symbols.md"
+    },
+    {
+      "name": "sys",
+      "id": "optimizer-sys",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-sys"
+        },
+        {
+          "name": "sys",
+          "id": "optimizer-sys"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Optimizer system use. This can be updated with a custom file system.\n\n\n```typescript\nsys: OptimizerSystem;\n```",
+      "mdFile": "qwik.optimizer.sys.md"
+    },
+    {
+      "name": "SystemEnvironment",
+      "id": "systemenvironment",
+      "hierarchy": [
+        {
+          "name": "SystemEnvironment",
+          "id": "systemenvironment"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';\n```",
+      "mdFile": "qwik.systemenvironment.md"
+    },
+    {
+      "name": "tag",
+      "id": "globalinjections-tag",
+      "hierarchy": [
+        {
+          "name": "GlobalInjections",
+          "id": "globalinjections-tag"
+        },
+        {
+          "name": "tag",
+          "id": "globalinjections-tag"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ntag: string;\n```",
+      "mdFile": "qwik.globalinjections.tag.md"
+    },
+    {
+      "name": "target",
+      "id": "qwikrolluppluginoptions-target",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-target"
+        },
+        {
+          "name": "target",
+          "id": "qwikrolluppluginoptions-target"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Target `client` or `ssr`<!-- -->. Default `client`\n\n\n```typescript\ntarget?: QwikBuildTarget;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.target.md"
+    },
+    {
+      "name": "transformedModuleOutput",
+      "id": "qwikrolluppluginoptions-transformedmoduleoutput",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions-transformedmoduleoutput"
+        },
+        {
+          "name": "transformedModuleOutput",
+          "id": "qwikrolluppluginoptions-transformedmoduleoutput"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Hook that's called after the build and provides all of the transformed modules that were used before bundling.\n\n\n```typescript\ntransformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;\n```",
+      "mdFile": "qwik.qwikrolluppluginoptions.transformedmoduleoutput.md"
+    },
+    {
+      "name": "transformFs",
+      "id": "optimizer-transformfs",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformfs"
+        },
+        {
+          "name": "transformFs",
+          "id": "optimizer-transformfs"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFs(opts: TransformFsOptions): Promise<TransformOutput>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformFsOptions](#transformfsoptions) |  |\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "mdFile": "qwik.optimizer.transformfs.md"
+    },
+    {
+      "name": "TransformFsOptions",
+      "id": "transformfsoptions",
+      "hierarchy": [
+        {
+          "name": "TransformFsOptions",
+          "id": "transformfsoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformFsOptions extends TransformOptions \n```\n**Extends:** [TransformOptions](#transformoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [vendorRoots](./qwik.transformfsoptions.vendorroots.md) |  | string\\[\\] |  |",
+      "mdFile": "qwik.transformfsoptions.md"
+    },
+    {
+      "name": "transformFsSync",
+      "id": "optimizer-transformfssync",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformfssync"
+        },
+        {
+          "name": "transformFsSync",
+          "id": "optimizer-transformfssync"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFsSync(opts: TransformFsOptions): TransformOutput;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformFsOptions](#transformfsoptions) |  |\n\n**Returns:**\n\n[TransformOutput](#transformoutput)",
+      "mdFile": "qwik.optimizer.transformfssync.md"
+    },
+    {
+      "name": "TransformModule",
+      "id": "transformmodule",
+      "hierarchy": [
+        {
+          "name": "TransformModule",
+          "id": "transformmodule"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformModule \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [code](./qwik.transformmodule.code.md) |  | string |  |\n|  [hook](#transformmodule-hook) |  | [HookAnalysis](#hookanalysis) \\| null |  |\n|  [isEntry](#transformmodule-isentry) |  | boolean |  |\n|  [map](#transformmodule-map) |  | string \\| null |  |\n|  [path](./qwik.transformmodule.path.md) |  | string |  |",
+      "mdFile": "qwik.transformmodule.md"
+    },
+    {
+      "name": "TransformModuleInput",
+      "id": "transformmoduleinput",
+      "hierarchy": [
+        {
+          "name": "TransformModuleInput",
+          "id": "transformmoduleinput"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformModuleInput \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [code](./qwik.transformmoduleinput.code.md) |  | string |  |\n|  [path](./qwik.transformmoduleinput.path.md) |  | string |  |",
+      "mdFile": "qwik.transformmoduleinput.md"
+    },
+    {
+      "name": "transformModules",
+      "id": "optimizer-transformmodules",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformmodules"
+        },
+        {
+          "name": "transformModules",
+          "id": "optimizer-transformmodules"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModules(opts: TransformModulesOptions): Promise<TransformOutput>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformModulesOptions](#transformmodulesoptions) |  |\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "mdFile": "qwik.optimizer.transformmodules.md"
+    },
+    {
+      "name": "TransformModulesOptions",
+      "id": "transformmodulesoptions",
+      "hierarchy": [
+        {
+          "name": "TransformModulesOptions",
+          "id": "transformmodulesoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformModulesOptions extends TransformOptions \n```\n**Extends:** [TransformOptions](#transformoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [input](#transformmodulesoptions-input) |  | [TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] |  |",
+      "mdFile": "qwik.transformmodulesoptions.md"
+    },
+    {
+      "name": "transformModulesSync",
+      "id": "optimizer-transformmodulessync",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformmodulessync"
+        },
+        {
+          "name": "transformModulesSync",
+          "id": "optimizer-transformmodulessync"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModulesSync(opts: TransformModulesOptions): TransformOutput;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformModulesOptions](#transformmodulesoptions) |  |\n\n**Returns:**\n\n[TransformOutput](#transformoutput)",
+      "mdFile": "qwik.optimizer.transformmodulessync.md"
+    },
+    {
+      "name": "TransformOptions",
+      "id": "transformoptions",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [entryStrategy?](./qwik.transformoptions.entrystrategy.md) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ |\n|  [explicitExtensions?](#transformoptions-explicitextensions) |  | boolean | _(Optional)_ |\n|  [isServer?](#transformoptions-isserver) |  | boolean | _(Optional)_ |\n|  [minify?](#transformoptions-minify) |  | [MinifyMode](#minifymode) | _(Optional)_ |\n|  [mode?](#transformoptions-mode) |  | EmitMode | _(Optional)_ |\n|  [preserveFilenames?](#transformoptions-preservefilenames) |  | boolean | _(Optional)_ |\n|  [regCtxName?](#transformoptions-regctxname) |  | string\\[\\] | _(Optional)_ |\n|  [rootDir?](./qwik.transformoptions.rootdir.md) |  | string | _(Optional)_ |\n|  [scope?](./qwik.transformoptions.scope.md) |  | string | _(Optional)_ |\n|  [sourceMaps?](#transformoptions-sourcemaps) |  | boolean | _(Optional)_ |\n|  [srcDir](./qwik.transformoptions.srcdir.md) |  | string |  |\n|  [stripCtxName?](#transformoptions-stripctxname) |  | string\\[\\] | _(Optional)_ |\n|  [stripEventHandlers?](#transformoptions-stripeventhandlers) |  | boolean | _(Optional)_ |\n|  [stripExports?](#transformoptions-stripexports) |  | string\\[\\] | _(Optional)_ |\n|  [transpileJsx?](#transformoptions-transpilejsx) |  | boolean | _(Optional)_ |\n|  [transpileTs?](#transformoptions-transpilets) |  | boolean | _(Optional)_ |",
+      "mdFile": "qwik.transformoptions.md"
+    },
+    {
+      "name": "TransformOutput",
+      "id": "transformoutput",
+      "hierarchy": [
+        {
+          "name": "TransformOutput",
+          "id": "transformoutput"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformOutput \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [diagnostics](#transformoutput-diagnostics) |  | [Diagnostic](#diagnostic)<!-- -->\\[\\] |  |\n|  [isJsx](#transformoutput-isjsx) |  | boolean |  |\n|  [isTypeScript](#transformoutput-istypescript) |  | boolean |  |\n|  [modules](#transformoutput-modules) |  | [TransformModule](#transformmodule)<!-- -->\\[\\] |  |",
+      "mdFile": "qwik.transformoutput.md"
+    },
+    {
+      "name": "transpileJsx",
+      "id": "transformoptions-transpilejsx",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-transpilejsx"
+        },
+        {
+          "name": "transpileJsx",
+          "id": "transformoptions-transpilejsx"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ntranspileJsx?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.transpilejsx.md"
+    },
+    {
+      "name": "TranspileOption",
+      "id": "transpileoption",
+      "hierarchy": [
+        {
+          "name": "TranspileOption",
+          "id": "transpileoption"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type TranspileOption = boolean | undefined | null;\n```",
+      "mdFile": "qwik.transpileoption.md"
+    },
+    {
+      "name": "transpileTs",
+      "id": "transformoptions-transpilets",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions-transpilets"
+        },
+        {
+          "name": "transpileTs",
+          "id": "transformoptions-transpilets"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ntranspileTs?: boolean;\n```",
+      "mdFile": "qwik.transformoptions.transpilets.md"
+    },
+    {
+      "name": "type",
+      "id": "componententrystrategy-type",
+      "hierarchy": [
+        {
+          "name": "ComponentEntryStrategy",
+          "id": "componententrystrategy-type"
+        },
+        {
+          "name": "type",
+          "id": "componententrystrategy-type"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\ntype: 'component';\n```",
+      "mdFile": "qwik.componententrystrategy.type.md"
+    },
+    {
+      "name": "vendorRoots",
+      "id": "qwikvitepluginoptions-vendorroots",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginOptions",
+          "id": "qwikvitepluginoptions-vendorroots"
+        },
+        {
+          "name": "vendorRoots",
+          "id": "qwikvitepluginoptions-vendorroots"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "List of directories to recursively search for Qwik components or Vendors. Default `[]`\n\n\n```typescript\nvendorRoots?: string[];\n```",
+      "mdFile": "qwik.qwikvitepluginoptions.vendorroots.md"
+    },
+    {
+      "name": "version",
+      "id": "qwikmanifest-version",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest-version"
+        },
+        {
+          "name": "version",
+          "id": "qwikmanifest-version"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nversion: string;\n```",
+      "mdFile": "qwik.qwikmanifest.version.md"
+    },
+    {
       "name": "versions",
       "id": "versions",
       "hierarchy": [
@@ -14,6 +2404,23 @@
       "kind": "Variable",
       "content": "```typescript\nversions: {\n    qwik: string;\n}\n```",
       "mdFile": "qwik.versions.md"
+    },
+    {
+      "name": "win32",
+      "id": "path-win32",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-win32"
+        },
+        {
+          "name": "win32",
+          "id": "path-win32"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nreadonly win32: null;\n```",
+      "mdFile": "qwik.path.win32.md"
     }
   ]
 }

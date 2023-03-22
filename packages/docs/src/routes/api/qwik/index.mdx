@@ -19,16 +19,10 @@ Design-time property to store type information for the context.
 readonly __brand_context_type__: STATE;
 ```
 
-<h2 id="_jsxc"><a aria-hidden="true" tabindex="-1" href="#_jsxc"><span class="icon icon-link"></span></a>_jsxC</h2>
+<h2 id="_fnsignal"><a aria-hidden="true" tabindex="-1" href="#_fnsignal"><span class="icon icon-link"></span></a>_fnSignal</h2>
 
 ```typescript
-_jsxC: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>
-```
-
-<h2 id="_jsxq"><a aria-hidden="true" tabindex="-1" href="#_jsxq"><span class="icon icon-link"></span></a>_jsxQ</h2>
-
-```typescript
-_jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>
+_fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>
 ```
 
 <h2 id="ariaattributes-_aria-activedescendant_"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-activedescendant_"><span class="icon icon-link"></span></a>"aria-activedescendant"</h2>
@@ -483,7 +477,7 @@ Defines the human readable text alternative of aria-valuenow for a range widget.
 
 Qwik Optimizer marker function.
 
-Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`<!-- -->.
+Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`.
 
 
 ```typescript
@@ -504,19 +498,11 @@ accessKey?: string | undefined;
 
 <h2 id="qwikkeyboardevent-altkey"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-altkey"><span class="icon icon-link"></span></a>altKey</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 altKey: boolean;
 ```
 
 <h2 id="qwikanimationevent-animationname"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent-animationname"><span class="icon icon-link"></span></a>animationName</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 animationName: string;
@@ -604,11 +590,25 @@ autoCorrect?: string | undefined;
 autoSave?: string | undefined;
 ```
 
+<h2 id="renderssroptions-base"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-base"><span class="icon icon-link"></span></a>base</h2>
+
+```typescript
+base?: string;
+```
+
+<h2 id="renderssroptions-beforeclose"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-beforeclose"><span class="icon icon-link"></span></a>beforeClose</h2>
+
+```typescript
+beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
+```
+
+<h2 id="renderssroptions-beforecontent"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-beforecontent"><span class="icon icon-link"></span></a>beforeContent</h2>
+
+```typescript
+beforeContent?: JSXNode<string>[];
+```
+
 <h2 id="qwikmouseevent-button"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-button"><span class="icon icon-link"></span></a>button</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 button: number;
@@ -616,12 +616,14 @@ button: number;
 
 <h2 id="qwikmouseevent-buttons"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-buttons"><span class="icon icon-link"></span></a>buttons</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 buttons: number;
+```
+
+<h2 id="snapshotmetavalue-c"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-c"><span class="icon icon-link"></span></a>c</h2>
+
+```typescript
+c?: string;
 ```
 
 <h2 id="resourcectx-cache"><a aria-hidden="true" tabindex="-1" href="#resourcectx-cache"><span class="icon icon-link"></span></a>cache</h2>
@@ -641,19 +643,11 @@ void
 
 <h2 id="qwiktouchevent-changedtouches"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent-changedtouches"><span class="icon icon-link"></span></a>changedTouches</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 changedTouches: TouchList;
 ```
 
 <h2 id="qwikkeyboardevent-charcode"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-charcode"><span class="icon icon-link"></span></a>charCode</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 charCode: number;
@@ -665,38 +659,27 @@ charCode: number;
 children?: JSXChildren;
 ```
 
-<h2 id="htmlattributes-classname"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-classname"><span class="icon icon-link"></span></a>className</h2>
+<h2 id="coreplatform-chunkforsymbol"><a aria-hidden="true" tabindex="-1" href="#coreplatform-chunkforsymbol"><span class="icon icon-link"></span></a>chunkForSymbol</h2>
 
-> Warning: This API is now obsolete.
-> 
-> - Use `class` instead
-> 
+Retrieve chunk name for the symbol.
+
+When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)
 
 
 ```typescript
-className?: string | undefined;
+chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
 ```
 
-<h2 id="resourcectx-cleanup"><a aria-hidden="true" tabindex="-1" href="#resourcectx-cleanup"><span class="icon icon-link"></span></a>cleanup</h2>
+<h2 id="renderresult-cleanup"><a aria-hidden="true" tabindex="-1" href="#renderresult-cleanup"><span class="icon icon-link"></span></a>cleanup</h2>
 
 ```typescript
-cleanup(callback: () => void): void;
+cleanup(): void;
 ```
-
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  callback | () =&gt; void |  |
-
 **Returns:**
 
 void
 
 <h2 id="qwikmouseevent-clientx"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-clientx"><span class="icon icon-link"></span></a>clientX</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 clientX: number;
@@ -704,19 +687,11 @@ clientX: number;
 
 <h2 id="qwikmouseevent-clienty"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-clienty"><span class="icon icon-link"></span></a>clientY</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 clientY: number;
 ```
 
 <h2 id="qwikclipboardevent-clipboarddata"><a aria-hidden="true" tabindex="-1" href="#qwikclipboardevent-clipboarddata"><span class="icon icon-link"></span></a>clipboardData</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 clipboardData: DataTransfer;
@@ -732,7 +707,7 @@ color?: string | undefined;
 
 Type representing the Qwik component.
 
-`Component` is the type returned by invoking `component$`<!-- -->.
+`Component` is the type returned by invoking `component$`.
 
 ```
 interface MyComponentProps {
@@ -747,7 +722,7 @@ const MyComponent: Component<MyComponentProps> = component$((props: MyComponentP
 ```typescript
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 ```
-**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)
+**References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
 
 <h2 id="component_"><a aria-hidden="true" tabindex="-1" href="#component_"><span class="icon icon-link"></span></a>component$</h2>
 
@@ -787,7 +762,7 @@ export const OtherComponent = component$(() => {
   return <Counter initialValue={100} />;
 });
 ```
-See also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`
+See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 
 ```typescript
@@ -844,11 +819,23 @@ export const OtherComponent = component$(() => {
   return <Counter initialValue={100} />;
 });
 ```
-See also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`
+See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 
 ```typescript
 componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>
+```
+
+<h2 id="renderssroptions-containerattributes"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-containerattributes"><span class="icon icon-link"></span></a>containerAttributes</h2>
+
+```typescript
+containerAttributes: Record<string, string>;
+```
+
+<h2 id="renderssroptions-containertagname"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-containertagname"><span class="icon icon-link"></span></a>containerTagName</h2>
+
+```typescript
+containerTagName: string;
 ```
 
 <h2 id="htmlattributes-contenteditable"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-contenteditable"><span class="icon icon-link"></span></a>contentEditable</h2>
@@ -859,9 +846,6 @@ contentEditable?: 'true' | 'false' | 'inherit' | undefined;
 
 <h2 id="context"><a aria-hidden="true" tabindex="-1" href="#context"><span class="icon icon-link"></span></a>Context</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 > Warning: This API is now obsolete.
 > 
 > Please use `ContextId` instead.
@@ -871,7 +855,7 @@ contentEditable?: 'true' | 'false' | 'inherit' | undefined;
 ```typescript
 export interface Context<STATE extends object> extends ContextId<STATE> 
 ```
-**Extends:** [ContextId](#contextid)<!-- -->&lt;STATE&gt;
+**Extends:** [ContextId](#contextid)&lt;STATE&gt;
 
 <h2 id="contextid"><a aria-hidden="true" tabindex="-1" href="#contextid"><span class="icon icon-link"></span></a>ContextId</h2>
 
@@ -879,7 +863,7 @@ ContextId is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 \#\#\# Example
 
@@ -935,10 +919,31 @@ export interface ContextId<STATE>
 contextMenu?: string | undefined;
 ```
 
-<h2 id="createcontext"><a aria-hidden="true" tabindex="-1" href="#createcontext"><span class="icon icon-link"></span></a>createContext</h2>
+<h2 id="coreplatform"><a aria-hidden="true" tabindex="-1" href="#coreplatform"><span class="icon icon-link"></span></a>CorePlatform</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Low-level API for platform abstraction.
+
+Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.
+
+`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.
+
+This is a low-level API and there should not be a need for you to access this.
+
+
+```typescript
+export interface CorePlatform 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [chunkForSymbol](#coreplatform-chunkforsymbol) |  | (symbolName: string, chunk: string \| null) =&gt; readonly \[symbol: string, chunk: string\] \| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |
+|  [importSymbol](#coreplatform-importsymbol) |  | (containerEl: Element \| undefined, url: string \| URL \| undefined \| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |
+|  [isServer](#coreplatform-isserver) |  | boolean | True of running on the server platform. |
+|  [nextTick](#coreplatform-nexttick) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |
+|  [raf](#coreplatform-raf) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |
+
+<h2 id="createcontext"><a aria-hidden="true" tabindex="-1" href="#createcontext"><span class="icon icon-link"></span></a>createContext</h2>
 
 > Warning: This API is now obsolete.
 > 
@@ -956,7 +961,7 @@ Create a context ID to be used in your application. The name should be written w
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 \#\#\# Example
 
@@ -1002,29 +1007,29 @@ createContextId: <STATE = unknown>(name: string) => ContextId<STATE>
 
 <h2 id="qwikkeyboardevent-ctrlkey"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-ctrlkey"><span class="icon icon-link"></span></a>ctrlKey</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 ctrlKey: boolean;
 ```
 
+<h2 id="snapshotstate-ctx"><a aria-hidden="true" tabindex="-1" href="#snapshotstate-ctx"><span class="icon icon-link"></span></a>ctx</h2>
+
+```typescript
+ctx: SnapshotMeta;
+```
+
+<h2 id="ref-current"><a aria-hidden="true" tabindex="-1" href="#ref-current"><span class="icon icon-link"></span></a>current</h2>
+
+```typescript
+current: T | undefined;
+```
+
 <h2 id="qwikcompositionevent-data"><a aria-hidden="true" tabindex="-1" href="#qwikcompositionevent-data"><span class="icon icon-link"></span></a>data</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 data: string;
 ```
 
 <h2 id="qwikdragevent-datatransfer"><a aria-hidden="true" tabindex="-1" href="#qwikdragevent-datatransfer"><span class="icon icon-link"></span></a>dataTransfer</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 dataTransfer: DataTransfer;
@@ -1038,7 +1043,7 @@ datatype?: string | undefined;
 
 <h2 id="usestoreoptions-deep"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions-deep"><span class="icon icon-link"></span></a>deep</h2>
 
-If `true` then all nested objects and arrays will be tracked as well. Default is `false`<!-- -->.
+If `true` then all nested objects and arrays will be tracked as well. Default is `false`.
 
 
 ```typescript
@@ -1047,19 +1052,11 @@ deep?: boolean;
 
 <h2 id="qwikwheelevent-deltamode"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltamode"><span class="icon icon-link"></span></a>deltaMode</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 deltaMode: number;
 ```
 
 <h2 id="qwikwheelevent-deltax"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltax"><span class="icon icon-link"></span></a>deltaX</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 deltaX: number;
@@ -1067,29 +1064,17 @@ deltaX: number;
 
 <h2 id="qwikwheelevent-deltay"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltay"><span class="icon icon-link"></span></a>deltaY</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 deltaY: number;
 ```
 
 <h2 id="qwikwheelevent-deltaz"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltaz"><span class="icon icon-link"></span></a>deltaZ</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 deltaZ: number;
 ```
 
 <h2 id="qwikuievent-detail"><a aria-hidden="true" tabindex="-1" href="#qwikuievent-detail"><span class="icon icon-link"></span></a>detail</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 detail: number;
@@ -1126,6 +1111,12 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T>
 draggable?: boolean | undefined;
 ```
 
+<h2 id="ssrhintprops-dynamic"><a aria-hidden="true" tabindex="-1" href="#ssrhintprops-dynamic"><span class="icon icon-link"></span></a>dynamic</h2>
+
+```typescript
+dynamic?: boolean;
+```
+
 <h2 id="onvisibletaskoptions-eagerness"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions-eagerness"><span class="icon icon-link"></span></a>eagerness</h2>
 
 > Warning: This API is now obsolete.
@@ -1144,11 +1135,13 @@ eagerness?: EagernessOptions;
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 ```
 
+<h2 id="snapshotlistener-el"><a aria-hidden="true" tabindex="-1" href="#snapshotlistener-el"><span class="icon icon-link"></span></a>el</h2>
+
+```typescript
+el: Element;
+```
+
 <h2 id="qwikanimationevent-elapsedtime"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent-elapsedtime"><span class="icon icon-link"></span></a>elapsedTime</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 elapsedTime: number;
@@ -1171,6 +1164,35 @@ interface ElementChildrenAttribute
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [children?](./qwik.h.jsx.elementchildrenattribute.children.md) |  | any | _(Optional)_ |
+
+<h2 id="errorboundarystore-error"><a aria-hidden="true" tabindex="-1" href="#errorboundarystore-error"><span class="icon icon-link"></span></a>error</h2>
+
+```typescript
+error: any | undefined;
+```
+
+<h2 id="errorboundarystore"><a aria-hidden="true" tabindex="-1" href="#errorboundarystore"><span class="icon icon-link"></span></a>ErrorBoundaryStore</h2>
+
+```typescript
+export interface ErrorBoundaryStore 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [error](#errorboundarystore-error) |  | any \| undefined |  |
+
+<h2 id="event_"><a aria-hidden="true" tabindex="-1" href="#event_"><span class="icon icon-link"></span></a>event$</h2>
+
+```typescript
+event$: <T>(first: T) => QRL<T>
+```
+
+<h2 id="eventqrl"><a aria-hidden="true" tabindex="-1" href="#eventqrl"><span class="icon icon-link"></span></a>eventQrl</h2>
+
+```typescript
+eventQrl: <T>(qrl: QRL<T>) => QRL<T>
+```
 
 <h2 id="jsxnode-flags"><a aria-hidden="true" tabindex="-1" href="#jsxnode-flags"><span class="icon icon-link"></span></a>flags</h2>
 
@@ -1213,9 +1235,6 @@ string
 
 <h2 id="qwikkeyboardevent-getmodifierstate"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-getmodifierstate"><span class="icon icon-link"></span></a>getModifierState</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
 
 
@@ -1231,6 +1250,17 @@ getModifierState(key: string): boolean;
 **Returns:**
 
 boolean
+
+<h2 id="getplatform"><a aria-hidden="true" tabindex="-1" href="#getplatform"><span class="icon icon-link"></span></a>getPlatform</h2>
+
+Retrieve the `CorePlatform`.
+
+The `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is specific to the application currently running. On server it is possible that many different applications are running in a single server instance, and for this reason the `CorePlatform` is associated with the application document.
+
+
+```typescript
+getPlatform: () => CorePlatform
+```
 
 <h2 id="qrl-getsymbol"><a aria-hidden="true" tabindex="-1" href="#qrl-getsymbol"><span class="icon icon-link"></span></a>getSymbol</h2>
 
@@ -1285,11 +1315,13 @@ export declare namespace h
 |  --- | --- |
 |  [JSX](#h-jsx) |  |
 
+<h2 id="snapshotmetavalue-h"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-h"><span class="icon icon-link"></span></a>h</h2>
+
+```typescript
+h?: string;
+```
+
 <h2 id="qwikpointerevent-height"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-height"><span class="icon icon-link"></span></a>height</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 height: number;
@@ -1306,7 +1338,7 @@ hidden?: boolean | undefined;
 ```typescript
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> 
 ```
-**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;
+**Extends:** [AriaAttributes](#ariaattributes), [DOMAttributes](#domattributes)&lt;T&gt;
 
 
 |  Property | Modifiers | Type | Description |
@@ -1316,7 +1348,6 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 |  [autoCapitalize?](#htmlattributes-autocapitalize) |  | string \| undefined | _(Optional)_ |
 |  [autoCorrect?](#htmlattributes-autocorrect) |  | string \| undefined | _(Optional)_ |
 |  [autoSave?](#htmlattributes-autosave) |  | string \| undefined | _(Optional)_ |
-|  [className?](#htmlattributes-classname) |  | string \| undefined | _(Optional)_ |
 |  [color?](#htmlattributes-color) |  | string \| undefined | _(Optional)_ |
 |  [contentEditable?](#htmlattributes-contenteditable) |  | 'true' \| 'false' \| 'inherit' \| undefined | _(Optional)_ |
 |  [contextMenu?](#htmlattributes-contextmenu) |  | string \| undefined | _(Optional)_ |
@@ -1367,6 +1398,55 @@ readonly id: string;
 immutableProps: Record<string, any> | null;
 ```
 
+<h2 id="implicit_firstarg"><a aria-hidden="true" tabindex="-1" href="#implicit_firstarg"><span class="icon icon-link"></span></a>implicit$FirstArg</h2>
+
+Create a `____$(...)` convenience method from `___(...)`.
+
+It is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`.
+
+This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.
+
+For example, these function calls are equivalent:
+
+- `component$(() => {...})` is same as `component($(() => {...}))`
+
+```tsx
+export function myApi(callback: QRL<() => void>): void {
+  // ...
+}
+
+export const myApi$ = implicit$FirstArg(myApi);
+// type of myApi$: (callback: () => void): void
+
+// can be used as:
+myApi$(() => console.log('callback'));
+
+// will be transpiled to:
+// FILE: <current file>
+myApi(qrl('./chunk-abc.js', 'callback'));
+
+// FILE: chunk-abc.js
+export const callback = () => console.log('callback');
+```
+
+
+```typescript
+implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET
+```
+
+<h2 id="coreplatform-importsymbol"><a aria-hidden="true" tabindex="-1" href="#coreplatform-importsymbol"><span class="icon icon-link"></span></a>importSymbol</h2>
+
+Retrieve a symbol value from QRL.
+
+Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using `importSymbol`.
+
+Why not use `import()`? Because `import()` is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.
+
+
+```typescript
+importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
+```
+
 <h2 id="htmlattributes-inlist"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-inlist"><span class="icon icon-link"></span></a>inlist</h2>
 
 ```typescript
@@ -1407,12 +1487,17 @@ is?: string | undefined;
 
 <h2 id="qwikpointerevent-isprimary"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-isprimary"><span class="icon icon-link"></span></a>isPrimary</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+```typescript
+isPrimary: boolean;
+```
+
+<h2 id="coreplatform-isserver"><a aria-hidden="true" tabindex="-1" href="#coreplatform-isserver"><span class="icon icon-link"></span></a>isServer</h2>
+
+True of running on the server platform.
 
 
 ```typescript
-isPrimary: boolean;
+isServer: boolean;
 ```
 
 <h2 id="htmlattributes-itemid"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-itemid"><span class="icon icon-link"></span></a>itemID</h2>
@@ -1470,7 +1555,7 @@ namespace JSX
 ```typescript
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 ```
-**References:** [JSXChildren](#jsxchildren)<!-- -->, [JSXNode](#jsxnode)
+**References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
 
 <h2 id="jsxdev"><a aria-hidden="true" tabindex="-1" href="#jsxdev"><span class="icon icon-link"></span></a>jsxDEV</h2>
 
@@ -1492,7 +1577,7 @@ export interface JSXNode<T = string | FunctionComponent>
 |  [flags](#jsxnode-flags) |  | number |  |
 |  [immutableProps](#jsxnode-immutableprops) |  | Record&lt;string, any&gt; \| null |  |
 |  [key](./qwik.jsxnode.key.md) |  | string \| null |  |
-|  [props](#jsxnode-props) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;string, any&gt; |  |
+|  [props](#jsxnode-props) |  | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;string, any&gt; |  |
 |  [type](#jsxnode-type) |  | T |  |
 
 <h2 id="jsxtagname"><a aria-hidden="true" tabindex="-1" href="#jsxtagname"><span class="icon icon-link"></span></a>JSXTagName</h2>
@@ -1508,10 +1593,6 @@ key?: string | number | null | undefined;
 ```
 
 <h2 id="qwikkeyboardevent-keycode"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-keycode"><span class="icon icon-link"></span></a>keyCode</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 keyCode: number;
@@ -1531,19 +1612,11 @@ readonly loading: boolean;
 
 <h2 id="qwikkeyboardevent-locale"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-locale"><span class="icon icon-link"></span></a>locale</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 locale: string;
 ```
 
 <h2 id="qwikkeyboardevent-location"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-location"><span class="icon icon-link"></span></a>location</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 location: number;
@@ -1551,12 +1624,14 @@ location: number;
 
 <h2 id="qwikkeyboardevent-metakey"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-metakey"><span class="icon icon-link"></span></a>metaKey</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 metaKey: boolean;
+```
+
+<h2 id="snapshotresult-mode"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-mode"><span class="icon icon-link"></span></a>mode</h2>
+
+```typescript
+mode: 'render' | 'listeners' | 'static';
 ```
 
 <h2 id="mountfn"><a aria-hidden="true" tabindex="-1" href="#mountfn"><span class="icon icon-link"></span></a>MountFn</h2>
@@ -1568,30 +1643,29 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 
 <h2 id="qwikmouseevent-movementx"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-movementx"><span class="icon icon-link"></span></a>movementX</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 movementX: number;
 ```
 
 <h2 id="qwikmouseevent-movementy"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-movementy"><span class="icon icon-link"></span></a>movementY</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 movementY: number;
 ```
 
-<h2 id="nativeanimationevent"><a aria-hidden="true" tabindex="-1" href="#nativeanimationevent"><span class="icon icon-link"></span></a>NativeAnimationEvent</h2>
+<h2 id="mutable"><a aria-hidden="true" tabindex="-1" href="#mutable"><span class="icon icon-link"></span></a>mutable</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> Warning: This API is now obsolete.
+> 
+> Remove it, not needed anymore
 > 
 
 
+```typescript
+mutable: <T>(v: T) => T
+```
+
+<h2 id="nativeanimationevent"><a aria-hidden="true" tabindex="-1" href="#nativeanimationevent"><span class="icon icon-link"></span></a>NativeAnimationEvent</h2>
 
 ```typescript
 export type NativeAnimationEvent = AnimationEvent;
@@ -1599,21 +1673,11 @@ export type NativeAnimationEvent = AnimationEvent;
 
 <h2 id="nativeclipboardevent"><a aria-hidden="true" tabindex="-1" href="#nativeclipboardevent"><span class="icon icon-link"></span></a>NativeClipboardEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export type NativeClipboardEvent = ClipboardEvent;
 ```
 
 <h2 id="nativecompositionevent"><a aria-hidden="true" tabindex="-1" href="#nativecompositionevent"><span class="icon icon-link"></span></a>NativeCompositionEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export type NativeCompositionEvent = CompositionEvent;
@@ -1621,21 +1685,11 @@ export type NativeCompositionEvent = CompositionEvent;
 
 <h2 id="nativedragevent"><a aria-hidden="true" tabindex="-1" href="#nativedragevent"><span class="icon icon-link"></span></a>NativeDragEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export type NativeDragEvent = DragEvent;
 ```
 
 <h2 id="nativefocusevent"><a aria-hidden="true" tabindex="-1" href="#nativefocusevent"><span class="icon icon-link"></span></a>NativeFocusEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export type NativeFocusEvent = FocusEvent;
@@ -1643,21 +1697,11 @@ export type NativeFocusEvent = FocusEvent;
 
 <h2 id="nativekeyboardevent"><a aria-hidden="true" tabindex="-1" href="#nativekeyboardevent"><span class="icon icon-link"></span></a>NativeKeyboardEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export type NativeKeyboardEvent = KeyboardEvent;
 ```
 
 <h2 id="nativemouseevent"><a aria-hidden="true" tabindex="-1" href="#nativemouseevent"><span class="icon icon-link"></span></a>NativeMouseEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export type NativeMouseEvent = MouseEvent;
@@ -1665,21 +1709,11 @@ export type NativeMouseEvent = MouseEvent;
 
 <h2 id="nativepointerevent"><a aria-hidden="true" tabindex="-1" href="#nativepointerevent"><span class="icon icon-link"></span></a>NativePointerEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export type NativePointerEvent = PointerEvent;
 ```
 
 <h2 id="nativetouchevent"><a aria-hidden="true" tabindex="-1" href="#nativetouchevent"><span class="icon icon-link"></span></a>NativeTouchEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export type NativeTouchEvent = TouchEvent;
@@ -1687,21 +1721,11 @@ export type NativeTouchEvent = TouchEvent;
 
 <h2 id="nativetransitionevent"><a aria-hidden="true" tabindex="-1" href="#nativetransitionevent"><span class="icon icon-link"></span></a>NativeTransitionEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export type NativeTransitionEvent = TransitionEvent;
 ```
 
 <h2 id="nativeuievent"><a aria-hidden="true" tabindex="-1" href="#nativeuievent"><span class="icon icon-link"></span></a>NativeUIEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export type NativeUIEvent = UIEvent;
@@ -1709,13 +1733,17 @@ export type NativeUIEvent = UIEvent;
 
 <h2 id="nativewheelevent"><a aria-hidden="true" tabindex="-1" href="#nativewheelevent"><span class="icon icon-link"></span></a>NativeWheelEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+```typescript
+export type NativeWheelEvent = WheelEvent;
+```
 
+<h2 id="coreplatform-nexttick"><a aria-hidden="true" tabindex="-1" href="#coreplatform-nexttick"><span class="icon icon-link"></span></a>nextTick</h2>
+
+Perform operation on next tick.
 
 
 ```typescript
-export type NativeWheelEvent = WheelEvent;
+nextTick: (fn: () => any) => Promise<any>;
 ```
 
 <h2 id="noserialize"><a aria-hidden="true" tabindex="-1" href="#noserialize"><span class="icon icon-link"></span></a>noSerialize</h2>
@@ -1724,7 +1752,7 @@ Marks a property on a store as non-serializable.
 
 At times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.
 
-You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`<!-- -->. You will be responsible for recovering from this.
+You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
 
 See: \[noSerialize Tutorial\](http://qwik.builder.io/tutorial/store/no-serialize)
 
@@ -1739,13 +1767,19 @@ Marks a property on a store as non-serializable.
 
 At times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.
 
-You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`<!-- -->. You will be responsible for recovering from this.
+You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
 
 See: \[noSerialize Tutorial\](http://qwik.builder.io/tutorial/store/no-serialize)
 
 
 ```typescript
 noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>
+```
+
+<h2 id="snapshotresult-objs"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-objs"><span class="icon icon-link"></span></a>objs</h2>
+
+```typescript
+objs: any[];
 ```
 
 <h2 id="resourceprops-onpending"><a aria-hidden="true" tabindex="-1" href="#resourceprops-onpending"><span class="icon icon-link"></span></a>onPending</h2>
@@ -1787,19 +1821,11 @@ export interface OnVisibleTaskOptions
 
 <h2 id="qwikmouseevent-pagex"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-pagex"><span class="icon icon-link"></span></a>pageX</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 pageX: number;
 ```
 
 <h2 id="qwikmouseevent-pagey"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-pagey"><span class="icon icon-link"></span></a>pageY</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 pageY: number;
@@ -1813,19 +1839,11 @@ placeholder?: string | undefined;
 
 <h2 id="qwikpointerevent-pointerid"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-pointerid"><span class="icon icon-link"></span></a>pointerId</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 pointerId: number;
 ```
 
 <h2 id="qwikpointerevent-pointertype"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-pointertype"><span class="icon icon-link"></span></a>pointerType</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 pointerType: 'mouse' | 'pen' | 'touch';
@@ -1838,10 +1856,6 @@ prefix?: string | undefined;
 ```
 
 <h2 id="qwikpointerevent-pressure"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-pressure"><span class="icon icon-link"></span></a>pressure</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 pressure: number;
@@ -1860,10 +1874,6 @@ property?: string | undefined;
 ```
 
 <h2 id="qwiktransitionevent-propertyname"><a aria-hidden="true" tabindex="-1" href="#qwiktransitionevent-propertyname"><span class="icon icon-link"></span></a>propertyName</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 propertyName: string;
@@ -1906,10 +1916,6 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
 
 <h2 id="qwikanimationevent-pseudoelement"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent-pseudoelement"><span class="icon icon-link"></span></a>pseudoElement</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 pseudoElement: string;
 ```
@@ -1924,133 +1930,55 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBas
 ```
 **References:** [ComponentBaseProps](#componentbaseprops)
 
+<h2 id="qrl"><a aria-hidden="true" tabindex="-1" href="#qrl"><span class="icon icon-link"></span></a>qrl</h2>
+
+Used by Qwik Optimizer to point to lazy-loaded resources.
+
+This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
+
+
+```typescript
+qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>
+```
+
+<h2 id="snapshotlistener-qrl"><a aria-hidden="true" tabindex="-1" href="#snapshotlistener-qrl"><span class="icon icon-link"></span></a>qrl</h2>
+
+```typescript
+qrl: QRL<any>;
+```
+
 <h2 id="qrl"><a aria-hidden="true" tabindex="-1" href="#qrl"><span class="icon icon-link"></span></a>QRL</h2>
 
-The `QRL` type represents a lazy-loadable AND serializable resource.
+Used by Qwik Optimizer to point to lazy-loaded resources.
 
-QRL stands for Qwik URL.
-
-Use `QRL` when you want to refer to a lazy-loaded resource. `QRL`<!-- -->s are most often used for code (functions) but can also be used for other resources such as `string`<!-- -->s in the case of styles.
-
-`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)
-
-\#\# Creating `QRL` references
-
-Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.
-
-```tsx
-useOnDocument(
-  'mousemove',
-  $((event) => console.log('mousemove', event))
-);
-```
-In the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:
-
-```tsx
-// FILE: <current file>
-useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
-
-// FILE: chunk-abc.js
-export const onMousemove = () => console.log('mousemove');
-```
-NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.
-
-\#\# Using `QRL`<!-- -->s
-
-Use `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).
-
-```tsx
-// Example of declaring a custom functions which takes callback as QRL.
-export function useMyFunction(callback: QRL<() => void>) {
-  doExtraStuff();
-  // The callback passed to `onDocument` requires `QRL`.
-  useOnDocument('mousemove', callback);
-}
-```
-In the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.
-
-\#\# Resolving `QRL` references
-
-At times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.
-
-```tsx
-// Assume you have QRL reference to a greet function
-const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
-
-// Use `qrlImport` to load / resolve the reference.
-const greet: () => void = await lazyGreet.resolve();
-
-//  Invoke it
-greet();
-```
-NOTE: `element` is needed because `QRL`<!-- -->s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base="/url">`<!-- -->.
-
-\#\# Question: Why not just use `import()`<!-- -->?
-
-At first glance, `QRL` serves the same purpose as `import()`<!-- -->. However, there are three subtle differences that need to be taken into account.
-
-1. `QRL`<!-- -->s must be serializable into HTML. 2. `QRL`<!-- -->s must be resolved by framework relative to `q:base`<!-- -->. 3. `QRL`<!-- -->s must be able to capture lexically scoped variables. 4. `QRL`<!-- -->s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`<!-- -->s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.
-
-Let's assume that you intend to write code such as this:
-
-```typescript
-return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
-```
-The above code needs to be serialized into DOM such as:
-
-```
-<div q:base="/build/">
-  <button on:click="./chunk-abc.js#onClick">...</button>
-</div>
-```
-1. Notice there is no easy way to extract chunk (`./chunk-abc.js`<!-- -->) and symbol (`onClick`<!-- -->) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: "this should be lazy."
-
-These are the main reasons why Qwik introduces its own concept of `QRL`<!-- -->.
+This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
 
 
 ```typescript
-export interface QRL<TYPE = any> 
+qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>
 ```
 
+<h2 id="snapshotresult-qrls"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-qrls"><span class="icon icon-link"></span></a>qrls</h2>
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [\_\_brand\_\_QRL\_\_](#qrl-__brand__qrl__) |  | TYPE |  |
-|  [dev](./qwik.qrl.dev.md) |  | QRLDev \| null |  |
-
-
-|  Method | Description |
-|  --- | --- |
-|  [getCaptured()](#qrl-getcaptured) |  |
-|  [getHash()](#qrl-gethash) |  |
-|  [getSymbol()](#qrl-getsymbol) |  |
-|  [resolve()](#qrl-resolve) | Resolve the QRL and return the actual value. |
+```typescript
+qrls: QRL[];
+```
 
 <h2 id="qwikanimationevent"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent"><span class="icon icon-link"></span></a>QwikAnimationEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [animationName](#qwikanimationevent-animationname) |  | string | **_(BETA)_** |
-|  [elapsedTime](#qwikanimationevent-elapsedtime) |  | number | **_(BETA)_** |
-|  [pseudoElement](#qwikanimationevent-pseudoelement) |  | string | **_(BETA)_** |
+|  [animationName](#qwikanimationevent-animationname) |  | string |  |
+|  [elapsedTime](#qwikanimationevent-elapsedtime) |  | number |  |
+|  [pseudoElement](#qwikanimationevent-pseudoelement) |  | string |  |
 
 <h2 id="qwikchangeevent"><a aria-hidden="true" tabindex="-1" href="#qwikchangeevent"><span class="icon icon-link"></span></a>QwikChangeEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> 
@@ -2060,83 +1988,63 @@ export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [target](#qwikchangeevent-target) |  | EventTarget &amp; T | **_(BETA)_** |
+|  [target](#qwikchangeevent-target) |  | EventTarget &amp; T |  |
 
 <h2 id="qwikclipboardevent"><a aria-hidden="true" tabindex="-1" href="#qwikclipboardevent"><span class="icon icon-link"></span></a>QwikClipboardEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [clipboardData](#qwikclipboardevent-clipboarddata) |  | DataTransfer | **_(BETA)_** |
+|  [clipboardData](#qwikclipboardevent-clipboarddata) |  | DataTransfer |  |
 
 <h2 id="qwikcompositionevent"><a aria-hidden="true" tabindex="-1" href="#qwikcompositionevent"><span class="icon icon-link"></span></a>QwikCompositionEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [data](#qwikcompositionevent-data) |  | string | **_(BETA)_** |
+|  [data](#qwikcompositionevent-data) |  | string |  |
 
 <h2 id="qwikdomattributes"><a aria-hidden="true" tabindex="-1" href="#qwikdomattributes"><span class="icon icon-link"></span></a>QwikDOMAttributes</h2>
 
 ```typescript
 export interface QwikDOMAttributes extends DOMAttributes<any> 
 ```
-**Extends:** [DOMAttributes](#domattributes)<!-- -->&lt;any&gt;
+**Extends:** [DOMAttributes](#domattributes)&lt;any&gt;
 
 <h2 id="qwikdragevent"><a aria-hidden="true" tabindex="-1" href="#qwikdragevent"><span class="icon icon-link"></span></a>QwikDragEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> 
 ```
-**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeDragEvent](#nativedragevent)<!-- -->&gt;
+**Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativeDragEvent](#nativedragevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [dataTransfer](#qwikdragevent-datatransfer) |  | DataTransfer | **_(BETA)_** |
+|  [dataTransfer](#qwikdragevent-datatransfer) |  | DataTransfer |  |
 
 <h2 id="qwikfocusevent"><a aria-hidden="true" tabindex="-1" href="#qwikfocusevent"><span class="icon icon-link"></span></a>QwikFocusEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [relatedTarget](#qwikfocusevent-relatedtarget) |  | EventTarget \| null | **_(BETA)_** |
-|  [target](./qwik.qwikfocusevent.target.md) |  | EventTarget &amp; T | **_(BETA)_** |
+|  [relatedTarget](#qwikfocusevent-relatedtarget) |  | EventTarget \| null |  |
+|  [target](./qwik.qwikfocusevent.target.md) |  | EventTarget &amp; T |  |
 
 <h2 id="qwikintrinsicelements"><a aria-hidden="true" tabindex="-1" href="#qwikintrinsicelements"><span class="icon icon-link"></span></a>QwikIntrinsicElements</h2>
 
@@ -2152,11 +2060,6 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 
 <h2 id="qwikinvalidevent"><a aria-hidden="true" tabindex="-1" href="#qwikinvalidevent"><span class="icon icon-link"></span></a>QwikInvalidEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> 
 ```
@@ -2165,7 +2068,7 @@ export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [target](./qwik.qwikinvalidevent.target.md) |  | EventTarget &amp; T | **_(BETA)_** |
+|  [target](./qwik.qwikinvalidevent.target.md) |  | EventTarget &amp; T |  |
 
 <h2 id="qwikjsx"><a aria-hidden="true" tabindex="-1" href="#qwikjsx"><span class="icon icon-link"></span></a>QwikJSX</h2>
 
@@ -2183,42 +2086,32 @@ export declare namespace QwikJSX
 
 <h2 id="qwikkeyboardevent"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent"><span class="icon icon-link"></span></a>QwikKeyboardEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [altKey](#qwikkeyboardevent-altkey) |  | boolean | **_(BETA)_** |
-|  [charCode](#qwikkeyboardevent-charcode) |  | number | **_(BETA)_** |
-|  [ctrlKey](#qwikkeyboardevent-ctrlkey) |  | boolean | **_(BETA)_** |
-|  [key](./qwik.qwikkeyboardevent.key.md) |  | string | **_(BETA)_** See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
-|  [keyCode](#qwikkeyboardevent-keycode) |  | number | **_(BETA)_** |
-|  [locale](#qwikkeyboardevent-locale) |  | string | **_(BETA)_** |
-|  [location](#qwikkeyboardevent-location) |  | number | **_(BETA)_** |
-|  [metaKey](#qwikkeyboardevent-metakey) |  | boolean | **_(BETA)_** |
-|  [repeat](#qwikkeyboardevent-repeat) |  | boolean | **_(BETA)_** |
-|  [shiftKey](#qwikkeyboardevent-shiftkey) |  | boolean | **_(BETA)_** |
-|  [which](#qwikkeyboardevent-which) |  | number | **_(BETA)_** |
+|  [altKey](#qwikkeyboardevent-altkey) |  | boolean |  |
+|  [charCode](#qwikkeyboardevent-charcode) |  | number |  |
+|  [ctrlKey](#qwikkeyboardevent-ctrlkey) |  | boolean |  |
+|  [key](./qwik.qwikkeyboardevent.key.md) |  | string | See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
+|  [keyCode](#qwikkeyboardevent-keycode) |  | number |  |
+|  [locale](#qwikkeyboardevent-locale) |  | string |  |
+|  [location](#qwikkeyboardevent-location) |  | number |  |
+|  [metaKey](#qwikkeyboardevent-metakey) |  | boolean |  |
+|  [repeat](#qwikkeyboardevent-repeat) |  | boolean |  |
+|  [shiftKey](#qwikkeyboardevent-shiftkey) |  | boolean |  |
+|  [which](#qwikkeyboardevent-which) |  | number |  |
 
 
 |  Method | Description |
 |  --- | --- |
-|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | **_(BETA)_** See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 <h2 id="qwikmouseevent"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent"><span class="icon icon-link"></span></a>QwikMouseEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> 
@@ -2228,59 +2121,49 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [altKey](./qwik.qwikmouseevent.altkey.md) |  | boolean | **_(BETA)_** |
-|  [button](#qwikmouseevent-button) |  | number | **_(BETA)_** |
-|  [buttons](#qwikmouseevent-buttons) |  | number | **_(BETA)_** |
-|  [clientX](#qwikmouseevent-clientx) |  | number | **_(BETA)_** |
-|  [clientY](#qwikmouseevent-clienty) |  | number | **_(BETA)_** |
-|  [ctrlKey](./qwik.qwikmouseevent.ctrlkey.md) |  | boolean | **_(BETA)_** |
-|  [metaKey](./qwik.qwikmouseevent.metakey.md) |  | boolean | **_(BETA)_** |
-|  [movementX](#qwikmouseevent-movementx) |  | number | **_(BETA)_** |
-|  [movementY](#qwikmouseevent-movementy) |  | number | **_(BETA)_** |
-|  [pageX](#qwikmouseevent-pagex) |  | number | **_(BETA)_** |
-|  [pageY](#qwikmouseevent-pagey) |  | number | **_(BETA)_** |
-|  [relatedTarget](./qwik.qwikmouseevent.relatedtarget.md) |  | EventTarget \| null | **_(BETA)_** |
-|  [screenX](#qwikmouseevent-screenx) |  | number | **_(BETA)_** |
-|  [screenY](#qwikmouseevent-screeny) |  | number | **_(BETA)_** |
-|  [shiftKey](./qwik.qwikmouseevent.shiftkey.md) |  | boolean | **_(BETA)_** |
-|  [x](#qwikmouseevent-x) |  | number | **_(BETA)_** |
-|  [y](#qwikmouseevent-y) |  | number | **_(BETA)_** |
+|  [altKey](./qwik.qwikmouseevent.altkey.md) |  | boolean |  |
+|  [button](#qwikmouseevent-button) |  | number |  |
+|  [buttons](#qwikmouseevent-buttons) |  | number |  |
+|  [clientX](#qwikmouseevent-clientx) |  | number |  |
+|  [clientY](#qwikmouseevent-clienty) |  | number |  |
+|  [ctrlKey](./qwik.qwikmouseevent.ctrlkey.md) |  | boolean |  |
+|  [metaKey](./qwik.qwikmouseevent.metakey.md) |  | boolean |  |
+|  [movementX](#qwikmouseevent-movementx) |  | number |  |
+|  [movementY](#qwikmouseevent-movementy) |  | number |  |
+|  [pageX](#qwikmouseevent-pagex) |  | number |  |
+|  [pageY](#qwikmouseevent-pagey) |  | number |  |
+|  [relatedTarget](./qwik.qwikmouseevent.relatedtarget.md) |  | EventTarget \| null |  |
+|  [screenX](#qwikmouseevent-screenx) |  | number |  |
+|  [screenY](#qwikmouseevent-screeny) |  | number |  |
+|  [shiftKey](./qwik.qwikmouseevent.shiftkey.md) |  | boolean |  |
+|  [x](#qwikmouseevent-x) |  | number |  |
+|  [y](#qwikmouseevent-y) |  | number |  |
 
 
 |  Method | Description |
 |  --- | --- |
-|  [getModifierState(key)](./qwik.qwikmouseevent.getmodifierstate.md) | **_(BETA)_** See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+|  [getModifierState(key)](./qwik.qwikmouseevent.getmodifierstate.md) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 <h2 id="qwikpointerevent"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent"><span class="icon icon-link"></span></a>QwikPointerEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> 
 ```
-**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativePointerEvent](#nativepointerevent)<!-- -->&gt;
+**Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativePointerEvent](#nativepointerevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [height](#qwikpointerevent-height) |  | number | **_(BETA)_** |
-|  [isPrimary](#qwikpointerevent-isprimary) |  | boolean | **_(BETA)_** |
-|  [pointerId](#qwikpointerevent-pointerid) |  | number | **_(BETA)_** |
-|  [pointerType](#qwikpointerevent-pointertype) |  | 'mouse' \| 'pen' \| 'touch' | **_(BETA)_** |
-|  [pressure](#qwikpointerevent-pressure) |  | number | **_(BETA)_** |
-|  [tiltX](#qwikpointerevent-tiltx) |  | number | **_(BETA)_** |
-|  [tiltY](#qwikpointerevent-tilty) |  | number | **_(BETA)_** |
-|  [width](#qwikpointerevent-width) |  | number | **_(BETA)_** |
+|  [height](#qwikpointerevent-height) |  | number |  |
+|  [isPrimary](#qwikpointerevent-isprimary) |  | boolean |  |
+|  [pointerId](#qwikpointerevent-pointerid) |  | number |  |
+|  [pointerType](#qwikpointerevent-pointertype) |  | 'mouse' \| 'pen' \| 'touch' |  |
+|  [pressure](#qwikpointerevent-pressure) |  | number |  |
+|  [tiltX](#qwikpointerevent-tiltx) |  | number |  |
+|  [tiltY](#qwikpointerevent-tilty) |  | number |  |
+|  [width](#qwikpointerevent-width) |  | number |  |
 
 <h2 id="qwiksubmitevent"><a aria-hidden="true" tabindex="-1" href="#qwiksubmitevent"><span class="icon icon-link"></span></a>QwikSubmitEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> 
@@ -2289,88 +2172,68 @@ export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T>
 
 <h2 id="qwiktouchevent"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent"><span class="icon icon-link"></span></a>QwikTouchEvent</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
-
 ```typescript
 export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [altKey](./qwik.qwiktouchevent.altkey.md) |  | boolean | **_(BETA)_** |
-|  [changedTouches](#qwiktouchevent-changedtouches) |  | TouchList | **_(BETA)_** |
-|  [ctrlKey](./qwik.qwiktouchevent.ctrlkey.md) |  | boolean | **_(BETA)_** |
-|  [metaKey](./qwik.qwiktouchevent.metakey.md) |  | boolean | **_(BETA)_** |
-|  [shiftKey](./qwik.qwiktouchevent.shiftkey.md) |  | boolean | **_(BETA)_** |
-|  [targetTouches](#qwiktouchevent-targettouches) |  | TouchList | **_(BETA)_** |
-|  [touches](#qwiktouchevent-touches) |  | TouchList | **_(BETA)_** |
+|  [altKey](./qwik.qwiktouchevent.altkey.md) |  | boolean |  |
+|  [changedTouches](#qwiktouchevent-changedtouches) |  | TouchList |  |
+|  [ctrlKey](./qwik.qwiktouchevent.ctrlkey.md) |  | boolean |  |
+|  [metaKey](./qwik.qwiktouchevent.metakey.md) |  | boolean |  |
+|  [shiftKey](./qwik.qwiktouchevent.shiftkey.md) |  | boolean |  |
+|  [targetTouches](#qwiktouchevent-targettouches) |  | TouchList |  |
+|  [touches](#qwiktouchevent-touches) |  | TouchList |  |
 
 
 |  Method | Description |
 |  --- | --- |
-|  [getModifierState(key)](./qwik.qwiktouchevent.getmodifierstate.md) | **_(BETA)_** See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+|  [getModifierState(key)](./qwik.qwiktouchevent.getmodifierstate.md) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 <h2 id="qwiktransitionevent"><a aria-hidden="true" tabindex="-1" href="#qwiktransitionevent"><span class="icon icon-link"></span></a>QwikTransitionEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [elapsedTime](./qwik.qwiktransitionevent.elapsedtime.md) |  | number | **_(BETA)_** |
-|  [propertyName](#qwiktransitionevent-propertyname) |  | string | **_(BETA)_** |
-|  [pseudoElement](./qwik.qwiktransitionevent.pseudoelement.md) |  | string | **_(BETA)_** |
+|  [elapsedTime](./qwik.qwiktransitionevent.elapsedtime.md) |  | number |  |
+|  [propertyName](#qwiktransitionevent-propertyname) |  | string |  |
+|  [pseudoElement](./qwik.qwiktransitionevent.pseudoelement.md) |  | string |  |
 
 <h2 id="qwikuievent"><a aria-hidden="true" tabindex="-1" href="#qwikuievent"><span class="icon icon-link"></span></a>QwikUIEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> 
 ```
-**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)<!-- -->&gt;
+**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [detail](#qwikuievent-detail) |  | number | **_(BETA)_** |
-|  [view](#qwikuievent-view) |  | AbstractView | **_(BETA)_** |
+|  [detail](#qwikuievent-detail) |  | number |  |
+|  [view](#qwikuievent-view) |  | AbstractView |  |
 
 <h2 id="qwikwheelevent"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent"><span class="icon icon-link"></span></a>QwikWheelEvent</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 
 ```typescript
 export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> 
 ```
-**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeWheelEvent](#nativewheelevent)<!-- -->&gt;
+**Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativeWheelEvent](#nativewheelevent)&gt;
 
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [deltaMode](#qwikwheelevent-deltamode) |  | number | **_(BETA)_** |
-|  [deltaX](#qwikwheelevent-deltax) |  | number | **_(BETA)_** |
-|  [deltaY](#qwikwheelevent-deltay) |  | number | **_(BETA)_** |
-|  [deltaZ](#qwikwheelevent-deltaz) |  | number | **_(BETA)_** |
+|  [deltaMode](#qwikwheelevent-deltamode) |  | number |  |
+|  [deltaX](#qwikwheelevent-deltax) |  | number |  |
+|  [deltaY](#qwikwheelevent-deltay) |  | number |  |
+|  [deltaZ](#qwikwheelevent-deltaz) |  | number |  |
 
 <h2 id="htmlattributes-radiogroup"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-radiogroup"><span class="icon icon-link"></span></a>radioGroup</h2>
 
@@ -2378,9 +2241,18 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
 radioGroup?: string | undefined;
 ```
 
+<h2 id="coreplatform-raf"><a aria-hidden="true" tabindex="-1" href="#coreplatform-raf"><span class="icon icon-link"></span></a>raf</h2>
+
+Perform operation on next request-animation-frame.
+
+
+```typescript
+raf: (fn: () => any) => Promise<any>;
+```
+
 <h2 id="usestoreoptions-reactive"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions-reactive"><span class="icon icon-link"></span></a>reactive</h2>
 
-If `false` then the object will not be tracked for changes. Default is `true`<!-- -->.
+If `false` then the object will not be tracked for changes. Default is `true`.
 
 
 ```typescript
@@ -2399,21 +2271,93 @@ reactive?: boolean;
 recursive?: boolean;
 ```
 
+<h2 id="ref"><a aria-hidden="true" tabindex="-1" href="#ref"><span class="icon icon-link"></span></a>Ref</h2>
+
+Type of the value returned by `useRef()`.
+
+
+```typescript
+export interface Ref<T = Element> 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [current](#ref-current) |  | T \| undefined |  |
+
+<h2 id="snapshotstate-refs"><a aria-hidden="true" tabindex="-1" href="#snapshotstate-refs"><span class="icon icon-link"></span></a>refs</h2>
+
+```typescript
+refs: Record<string, string>;
+```
+
 <h2 id="qwikfocusevent-relatedtarget"><a aria-hidden="true" tabindex="-1" href="#qwikfocusevent-relatedtarget"><span class="icon icon-link"></span></a>relatedTarget</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 relatedTarget: EventTarget | null;
 ```
 
+<h2 id="render"><a aria-hidden="true" tabindex="-1" href="#render"><span class="icon icon-link"></span></a>render</h2>
+
+Render JSX.
+
+Use this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.
+
+
+```typescript
+render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>
+```
+
+<h2 id="renderonce"><a aria-hidden="true" tabindex="-1" href="#renderonce"><span class="icon icon-link"></span></a>RenderOnce</h2>
+
+```typescript
+RenderOnce: FunctionComponent<{
+    children?: any;
+    key?: string | number | null | undefined;
+}>
+```
+
+<h2 id="renderoptions"><a aria-hidden="true" tabindex="-1" href="#renderoptions"><span class="icon icon-link"></span></a>RenderOptions</h2>
+
+```typescript
+export interface RenderOptions 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [serverData?](#renderoptions-serverdata) |  | Record&lt;string, any&gt; | _(Optional)_ |
+
+<h2 id="renderresult"><a aria-hidden="true" tabindex="-1" href="#renderresult"><span class="icon icon-link"></span></a>RenderResult</h2>
+
+```typescript
+export interface RenderResult 
+```
+
+
+|  Method | Description |
+|  --- | --- |
+|  [cleanup()](#renderresult-cleanup) |  |
+
+<h2 id="renderssroptions"><a aria-hidden="true" tabindex="-1" href="#renderssroptions"><span class="icon icon-link"></span></a>RenderSSROptions</h2>
+
+```typescript
+export interface RenderSSROptions 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [base?](#renderssroptions-base) |  | string | _(Optional)_ |
+|  [beforeClose?](#renderssroptions-beforeclose) |  | (contexts: QContext\[\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
+|  [beforeContent?](#renderssroptions-beforecontent) |  | [JSXNode](#jsxnode)&lt;string&gt;\[\] | _(Optional)_ |
+|  [containerAttributes](#renderssroptions-containerattributes) |  | Record&lt;string, string&gt; |  |
+|  [containerTagName](#renderssroptions-containertagname) |  | string |  |
+|  [serverData?](./qwik.renderssroptions.serverdata.md) |  | Record&lt;string, any&gt; | _(Optional)_ |
+|  [stream](#renderssroptions-stream) |  | [StreamWriter](#streamwriter) |  |
+|  [url?](#renderssroptions-url) |  | string | _(Optional)_ |
+
 <h2 id="qwikkeyboardevent-repeat"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-repeat"><span class="icon icon-link"></span></a>repeat</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 repeat: boolean;
@@ -2503,14 +2447,14 @@ export interface ResourceCtx<T>
 |  Method | Description |
 |  --- | --- |
 |  [cache(policyOrMilliseconds)](#resourcectx-cache) |  |
-|  [cleanup(callback)](#resourcectx-cleanup) |  |
+|  [cleanup(callback)](./qwik.resourcectx.cleanup.md) |  |
 
 <h2 id="resourcefn"><a aria-hidden="true" tabindex="-1" href="#resourcefn"><span class="icon icon-link"></span></a>ResourceFn</h2>
 
 ```typescript
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 ```
-**References:** [ResourceCtx](#resourcectx)<!-- -->, [ValueOrPromise](#valueorpromise)
+**References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
 
 <h2 id="resourceoptions"><a aria-hidden="true" tabindex="-1" href="#resourceoptions"><span class="icon icon-link"></span></a>ResourceOptions</h2>
 
@@ -2550,7 +2494,7 @@ export interface ResourceProps<T>
 |  [onPending?](#resourceprops-onpending) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |
 |  [onRejected?](#resourceprops-onrejected) |  | (reason: any) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |
 |  [onResolved](#resourceprops-onresolved) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |
-|  [value](./qwik.resourceprops.value.md) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \| Signal&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |  |
+|  [value](./qwik.resourceprops.value.md) | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |  |
 
 <h2 id="resourcerejected"><a aria-hidden="true" tabindex="-1" href="#resourcerejected"><span class="icon icon-link"></span></a>ResourceRejected</h2>
 
@@ -2581,7 +2525,13 @@ export interface ResourceResolved<T>
 ```typescript
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 ```
-**References:** [ResourcePending](#resourcepending)<!-- -->, [ResourceResolved](#resourceresolved)<!-- -->, [ResourceRejected](#resourcerejected)
+**References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
+
+<h2 id="snapshotresult-resources"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-resources"><span class="icon icon-link"></span></a>resources</h2>
+
+```typescript
+resources: ResourceReturnInternal<any>[];
+```
 
 <h2 id="htmlattributes-results"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-results"><span class="icon icon-link"></span></a>results</h2>
 
@@ -2595,21 +2545,25 @@ results?: number | undefined;
 role?: AriaRole | undefined;
 ```
 
+<h2 id="snapshotmetavalue-s"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-s"><span class="icon icon-link"></span></a>s</h2>
+
+```typescript
+s?: string;
+```
+
+<h2 id="usestylesscoped-scopeid"><a aria-hidden="true" tabindex="-1" href="#usestylesscoped-scopeid"><span class="icon icon-link"></span></a>scopeId</h2>
+
+```typescript
+scopeId: string;
+```
+
 <h2 id="qwikmouseevent-screenx"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-screenx"><span class="icon icon-link"></span></a>screenX</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 screenX: number;
 ```
 
 <h2 id="qwikmouseevent-screeny"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-screeny"><span class="icon icon-link"></span></a>screenY</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 screenY: number;
@@ -2627,14 +2581,44 @@ script: QwikScriptHTMLAttributes<HTMLScriptElement>;
 security?: string | undefined;
 ```
 
-<h2 id="qwikkeyboardevent-shiftkey"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-shiftkey"><span class="icon icon-link"></span></a>shiftKey</h2>
+<h2 id="renderoptions-serverdata"><a aria-hidden="true" tabindex="-1" href="#renderoptions-serverdata"><span class="icon icon-link"></span></a>serverData</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+```typescript
+serverData?: Record<string, any>;
+```
+
+<h2 id="setplatform"><a aria-hidden="true" tabindex="-1" href="#setplatform"><span class="icon icon-link"></span></a>setPlatform</h2>
+
+Sets the `CorePlatform`.
+
+This is useful to override the platform in tests to change the behavior of, `requestAnimationFrame`, and import resolution.
 
 
 ```typescript
+setPlatform: (plt: CorePlatform) => CorePlatform
+```
+
+<h2 id="qwikkeyboardevent-shiftkey"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-shiftkey"><span class="icon icon-link"></span></a>shiftKey</h2>
+
+```typescript
 shiftKey: boolean;
+```
+
+<h2 id="signal"><a aria-hidden="true" tabindex="-1" href="#signal"><span class="icon icon-link"></span></a>Signal</h2>
+
+```typescript
+export interface Signal<T = any> 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [value](./qwik.signal.value.md) |  | T |  |
+
+<h2 id="skiprender"><a aria-hidden="true" tabindex="-1" href="#skiprender"><span class="icon icon-link"></span></a>SkipRender</h2>
+
+```typescript
+SkipRender: JSXNode
 ```
 
 <h2 id="htmlattributes-slot"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-slot"><span class="icon icon-link"></span></a>slot</h2>
@@ -2645,7 +2629,7 @@ slot?: string | undefined;
 
 <h2 id="slot"><a aria-hidden="true" tabindex="-1" href="#slot"><span class="icon icon-link"></span></a>Slot</h2>
 
-Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`<!-- -->.
+Allows to project the children of the current component.  can only be used within the context of a component defined with `component$`.
 
 
 ```typescript
@@ -2654,27 +2638,174 @@ Slot: FunctionComponent<{
 }>
 ```
 
+<h2 id="snapshotlistener"><a aria-hidden="true" tabindex="-1" href="#snapshotlistener"><span class="icon icon-link"></span></a>SnapshotListener</h2>
+
+```typescript
+export interface SnapshotListener 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [el](#snapshotlistener-el) |  | Element |  |
+|  [key](./qwik.snapshotlistener.key.md) |  | string |  |
+|  [qrl](#snapshotlistener-qrl) |  | [QRL](#qrl)&lt;any&gt; |  |
+
+<h2 id="snapshotmeta"><a aria-hidden="true" tabindex="-1" href="#snapshotmeta"><span class="icon icon-link"></span></a>SnapshotMeta</h2>
+
+```typescript
+export type SnapshotMeta = Record<string, SnapshotMetaValue>;
+```
+**References:** [SnapshotMetaValue](#snapshotmetavalue)
+
+<h2 id="snapshotmetavalue"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue"><span class="icon icon-link"></span></a>SnapshotMetaValue</h2>
+
+```typescript
+export interface SnapshotMetaValue 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [c?](#snapshotmetavalue-c) |  | string | _(Optional)_ |
+|  [h?](#snapshotmetavalue-h) |  | string | _(Optional)_ |
+|  [s?](#snapshotmetavalue-s) |  | string | _(Optional)_ |
+|  [w?](#snapshotmetavalue-w) |  | string | _(Optional)_ |
+
+<h2 id="snapshotresult"><a aria-hidden="true" tabindex="-1" href="#snapshotresult"><span class="icon icon-link"></span></a>SnapshotResult</h2>
+
+```typescript
+export interface SnapshotResult 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [mode](#snapshotresult-mode) |  | 'render' \| 'listeners' \| 'static' |  |
+|  [objs](#snapshotresult-objs) |  | any\[\] |  |
+|  [qrls](#snapshotresult-qrls) |  | [QRL](#qrl)\[\] |  |
+|  [resources](#snapshotresult-resources) |  | ResourceReturnInternal&lt;any&gt;\[\] |  |
+|  [state](#snapshotresult-state) |  | [SnapshotState](#snapshotstate) |  |
+
+<h2 id="snapshotstate"><a aria-hidden="true" tabindex="-1" href="#snapshotstate"><span class="icon icon-link"></span></a>SnapshotState</h2>
+
+```typescript
+export interface SnapshotState 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [ctx](#snapshotstate-ctx) |  | [SnapshotMeta](#snapshotmeta) |  |
+|  [objs](./qwik.snapshotstate.objs.md) |  | any\[\] |  |
+|  [refs](#snapshotstate-refs) |  | Record&lt;string, string&gt; |  |
+|  [subs](#snapshotstate-subs) |  | any\[\] |  |
+
 <h2 id="htmlattributes-spellcheck"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-spellcheck"><span class="icon icon-link"></span></a>spellcheck</h2>
 
 ```typescript
 spellcheck?: boolean | undefined;
 ```
 
+<h2 id="ssrcomment"><a aria-hidden="true" tabindex="-1" href="#ssrcomment"><span class="icon icon-link"></span></a>SSRComment</h2>
+
+```typescript
+SSRComment: FunctionComponent<{
+    data: string;
+}>
+```
+
+<h2 id="ssrhint"><a aria-hidden="true" tabindex="-1" href="#ssrhint"><span class="icon icon-link"></span></a>SSRHint</h2>
+
+```typescript
+SSRHint: FunctionComponent<SSRHintProps>
+```
+
+<h2 id="ssrhintprops"><a aria-hidden="true" tabindex="-1" href="#ssrhintprops"><span class="icon icon-link"></span></a>SSRHintProps</h2>
+
+```typescript
+export interface SSRHintProps 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [dynamic?](#ssrhintprops-dynamic) |  | boolean | _(Optional)_ |
+
+<h2 id="ssrraw"><a aria-hidden="true" tabindex="-1" href="#ssrraw"><span class="icon icon-link"></span></a>SSRRaw</h2>
+
+```typescript
+SSRRaw: FunctionComponent<{
+    data: string;
+}>
+```
+
+<h2 id="ssrstream"><a aria-hidden="true" tabindex="-1" href="#ssrstream"><span class="icon icon-link"></span></a>SSRStream</h2>
+
+```typescript
+SSRStream: FunctionComponent<SSRStreamProps>
+```
+
+<h2 id="ssrstreamblock"><a aria-hidden="true" tabindex="-1" href="#ssrstreamblock"><span class="icon icon-link"></span></a>SSRStreamBlock</h2>
+
+```typescript
+SSRStreamBlock: FunctionComponent<{
+    children?: any;
+}>
+```
+
+<h2 id="ssrstreamprops"><a aria-hidden="true" tabindex="-1" href="#ssrstreamprops"><span class="icon icon-link"></span></a>SSRStreamProps</h2>
+
+```typescript
+export interface SSRStreamProps 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [children](./qwik.ssrstreamprops.children.md) |  | AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt; \| ((stream: [StreamWriter](#streamwriter)) =&gt; Promise&lt;void&gt;) \| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt;) |  |
+
+<h2 id="snapshotresult-state"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-state"><span class="icon icon-link"></span></a>state</h2>
+
+```typescript
+state: SnapshotState;
+```
+
 <h2 id="onvisibletaskoptions-strategy"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions-strategy"><span class="icon icon-link"></span></a>strategy</h2>
 
 The strategy to use to determine when the "VisibleTask" should first execute.
 
-- `intersection-observer`<!-- -->: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`<!-- -->: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`<!-- -->: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.
+- `intersection-observer`: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.
 
 
 ```typescript
 strategy?: VisibleTaskStrategy;
 ```
 
+<h2 id="renderssroptions-stream"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-stream"><span class="icon icon-link"></span></a>stream</h2>
+
+```typescript
+stream: StreamWriter;
+```
+
+<h2 id="streamwriter"><a aria-hidden="true" tabindex="-1" href="#streamwriter"><span class="icon icon-link"></span></a>StreamWriter</h2>
+
+```typescript
+export type StreamWriter = {
+    write: (chunk: string) => void;
+};
+```
+
 <h2 id="htmlattributes-style"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-style"><span class="icon icon-link"></span></a>style</h2>
 
 ```typescript
 style?: Record<string, string | number | undefined> | string | undefined;
+```
+
+<h2 id="snapshotstate-subs"><a aria-hidden="true" tabindex="-1" href="#snapshotstate-subs"><span class="icon icon-link"></span></a>subs</h2>
+
+```typescript
+subs: any[];
 ```
 
 <h2 id="htmlattributes-tabindex"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-tabindex"><span class="icon icon-link"></span></a>tabIndex</h2>
@@ -2685,19 +2816,11 @@ tabIndex?: number | undefined;
 
 <h2 id="qwikchangeevent-target"><a aria-hidden="true" tabindex="-1" href="#qwikchangeevent-target"><span class="icon icon-link"></span></a>target</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 target: EventTarget & T;
 ```
 
 <h2 id="qwiktouchevent-targettouches"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent-targettouches"><span class="icon icon-link"></span></a>targetTouches</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 targetTouches: TouchList;
@@ -2724,23 +2847,15 @@ export interface TaskCtx
 ```typescript
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 ```
-**References:** [TaskCtx](#taskctx)<!-- -->, [ValueOrPromise](#valueorpromise)
+**References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)
 
 <h2 id="qwikpointerevent-tiltx"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-tiltx"><span class="icon icon-link"></span></a>tiltX</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 tiltX: number;
 ```
 
 <h2 id="qwikpointerevent-tilty"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-tilty"><span class="icon icon-link"></span></a>tiltY</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 tiltY: number;
@@ -2763,10 +2878,6 @@ title?: string | undefined;
 
 <h2 id="qwiktouchevent-touches"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent-touches"><span class="icon icon-link"></span></a>touches</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 touches: TouchList;
 ```
@@ -2781,7 +2892,7 @@ track: Tracker;
 
 Used to signal to Qwik which state should be watched for changes.
 
-The `Tracker` is passed into the `taskFn` of `useTask`<!-- -->. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.
+The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.
 
 \#\#\# Example
 
@@ -2834,6 +2945,94 @@ typeof?: string | undefined;
 unselectable?: 'on' | 'off' | undefined;
 ```
 
+<h2 id="untrack"><a aria-hidden="true" tabindex="-1" href="#untrack"><span class="icon icon-link"></span></a>untrack</h2>
+
+```typescript
+untrack: <T>(fn: () => T) => T
+```
+
+<h2 id="renderssroptions-url"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-url"><span class="icon icon-link"></span></a>url</h2>
+
+```typescript
+url?: string;
+```
+
+<h2 id="usebrowservisibletask_"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletask_"><span class="icon icon-link"></span></a>useBrowserVisibleTask$</h2>
+
+> Warning: This API is now obsolete.
+> 
+> - use `useVisibleTask$()` instead
+> 
+
+
+```typescript
+useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+```
+
+<h2 id="usebrowservisibletaskqrl"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletaskqrl"><span class="icon icon-link"></span></a>useBrowserVisibleTaskQrl</h2>
+
+> Warning: This API is now obsolete.
+> 
+> - use `useVisibleTask$()` instead
+> 
+
+
+```typescript
+useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
+```
+
+<h2 id="usecleanup_"><a aria-hidden="true" tabindex="-1" href="#usecleanup_"><span class="icon icon-link"></span></a>useCleanup$</h2>
+
+> Warning: This API is now obsolete.
+> 
+> Use the cleanup() function of `useTask$()`, `useResource$()` or `useVisibleTask$()` instead.
+> 
+
+It can be used to release resources, abort network requests, stop timers...
+
+
+```typescript
+useCleanup$: (first: () => void) => void
+```
+
+<h2 id="usecleanupqrl"><a aria-hidden="true" tabindex="-1" href="#usecleanupqrl"><span class="icon icon-link"></span></a>useCleanupQrl</h2>
+
+> Warning: This API is now obsolete.
+> 
+> Use the cleanup() function of `useTask$()`, `useResource$()` or `useVisibleTask$()` instead.
+> 
+
+It can be used to release resources, abort network requests, stop timers...
+
+
+```typescript
+useCleanupQrl: (unmountFn: QRL<() => void>) => void
+```
+
+<h2 id="useclienteffect_"><a aria-hidden="true" tabindex="-1" href="#useclienteffect_"><span class="icon icon-link"></span></a>useClientEffect$</h2>
+
+> Warning: This API is now obsolete.
+> 
+> - use `useVisibleTask$()` instead
+> 
+
+
+```typescript
+useClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+```
+
+<h2 id="useclienteffectqrl"><a aria-hidden="true" tabindex="-1" href="#useclienteffectqrl"><span class="icon icon-link"></span></a>useClientEffectQrl</h2>
+
+> Warning: This API is now obsolete.
+> 
+> - use `useVisibleTask$()` instead
+> 
+
+
+```typescript
+useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
+```
+
 <h2 id="useclientmount_"><a aria-hidden="true" tabindex="-1" href="#useclientmount_"><span class="icon icon-link"></span></a>useClientMount$</h2>
 
 > Warning: This API is now obsolete.
@@ -2880,6 +3079,18 @@ useTask$(() => {
 
 ```typescript
 useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void
+```
+
+<h2 id="usecomputed_"><a aria-hidden="true" tabindex="-1" href="#usecomputed_"><span class="icon icon-link"></span></a>useComputed$</h2>
+
+```typescript
+useComputed$: Computed
+```
+
+<h2 id="usecomputedqrl"><a aria-hidden="true" tabindex="-1" href="#usecomputedqrl"><span class="icon icon-link"></span></a>useComputedQrl</h2>
+
+```typescript
+useComputedQrl: ComputedQRL
 ```
 
 <h2 id="usecontext"><a aria-hidden="true" tabindex="-1" href="#usecontext"><span class="icon icon-link"></span></a>useContext</h2>
@@ -2980,10 +3191,31 @@ export const Items = component$(() => {
 useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void
 ```
 
-<h2 id="usemount_"><a aria-hidden="true" tabindex="-1" href="#usemount_"><span class="icon icon-link"></span></a>useMount$</h2>
+<h2 id="useenvdata"><a aria-hidden="true" tabindex="-1" href="#useenvdata"><span class="icon icon-link"></span></a>useEnvData</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> Warning: This API is now obsolete.
 > 
+> Please use `useServerData` instead.
+> 
+
+
+```typescript
+useEnvData: typeof useServerData
+```
+
+<h2 id="useerrorboundary"><a aria-hidden="true" tabindex="-1" href="#useerrorboundary"><span class="icon icon-link"></span></a>useErrorBoundary</h2>
+
+```typescript
+useErrorBoundary: () => Readonly<ErrorBoundaryStore>
+```
+
+<h2 id="useid"><a aria-hidden="true" tabindex="-1" href="#useid"><span class="icon icon-link"></span></a>useId</h2>
+
+```typescript
+useId: () => string
+```
+
+<h2 id="usemount_"><a aria-hidden="true" tabindex="-1" href="#usemount_"><span class="icon icon-link"></span></a>useMount$</h2>
 
 > Warning: This API is now obsolete.
 > 
@@ -2997,9 +3229,6 @@ useMount$: (first: import("./use-task").TaskFn, opts?: import("./use-task").UseT
 
 <h2 id="usemountqrl"><a aria-hidden="true" tabindex="-1" href="#usemountqrl"><span class="icon icon-link"></span></a>useMountQrl</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 > Warning: This API is now obsolete.
 > 
 > - use `useTask$()` instead
@@ -3008,6 +3237,78 @@ useMount$: (first: import("./use-task").TaskFn, opts?: import("./use-task").UseT
 
 ```typescript
 useMountQrl: (qrl: QRL<import("./use-task").TaskFn>, opts?: import("./use-task").UseTaskOptions | undefined) => void
+```
+
+<h2 id="useon"><a aria-hidden="true" tabindex="-1" href="#useon"><span class="icon icon-link"></span></a>useOn</h2>
+
+Register a listener on the current component's host element.
+
+Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
+
+
+```typescript
+useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
+```
+
+<h2 id="useondocument"><a aria-hidden="true" tabindex="-1" href="#useondocument"><span class="icon icon-link"></span></a>useOnDocument</h2>
+
+Register a listener on `document`.
+
+Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+
+```typescript
+useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
+```
+
+<h2 id="useonwindow"><a aria-hidden="true" tabindex="-1" href="#useonwindow"><span class="icon icon-link"></span></a>useOnWindow</h2>
+
+Register a listener on `window`.
+
+Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+
+```typescript
+useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
+```
+
+<h2 id="useref"><a aria-hidden="true" tabindex="-1" href="#useref"><span class="icon icon-link"></span></a>useRef</h2>
+
+> Warning: This API is now obsolete.
+> 
+> Use `useSignal` instead.
+> 
+
+It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
+
+```tsx
+export function useRef<T = Element>(current?: T): Ref<T> {
+  return useStore({ current });
+}
+```
+\#\#\# Example
+
+```tsx
+const Cmp = component$(() => {
+  const input = useRef<HTMLInputElement>();
+
+  useVisibleTask$(({ track }) => {
+    const el = track(() => input.current)!;
+    el.focus();
+  });
+
+  return (
+    <div>
+      <input type="text" ref={input} />
+    </div>
+  );
+});
+
+```
+
+
+```typescript
+useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>
 ```
 
 <h2 id="useresource_"><a aria-hidden="true" tabindex="-1" href="#useresource_"><span class="icon icon-link"></span></a>useResource$</h2>
@@ -3110,6 +3411,21 @@ const Cmp = component$(() => {
 useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>
 ```
 
+<h2 id="useserverdata"><a aria-hidden="true" tabindex="-1" href="#useserverdata"><span class="icon icon-link"></span></a>useServerData</h2>
+
+```typescript
+export declare function useServerData<T>(key: string): T | undefined;
+```
+
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  key | string |  |
+
+**Returns:**
+
+T \| undefined
+
 <h2 id="useservermount_"><a aria-hidden="true" tabindex="-1" href="#useservermount_"><span class="icon icon-link"></span></a>useServerMount$</h2>
 
 > Warning: This API is now obsolete.
@@ -3158,11 +3474,23 @@ useTask$(() => {
 useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void
 ```
 
+<h2 id="usesignal"><a aria-hidden="true" tabindex="-1" href="#usesignal"><span class="icon icon-link"></span></a>useSignal</h2>
+
+```typescript
+useSignal: UseSignal
+```
+
+<h2 id="usesignal"><a aria-hidden="true" tabindex="-1" href="#usesignal"><span class="icon icon-link"></span></a>UseSignal</h2>
+
+```typescript
+useSignal: UseSignal
+```
+
 <h2 id="usestore"><a aria-hidden="true" tabindex="-1" href="#usestore"><span class="icon icon-link"></span></a>useStore</h2>
 
 Creates an object that Qwik can track across serializations.
 
-Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`<!-- -->s to refer to the store.
+Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
 
 \#\#\# Example
 
@@ -3275,6 +3603,59 @@ export const CmpStyles = component$(() => {
 useStylesQrl: (styles: QRL<string>) => void
 ```
 
+<h2 id="usestylesscoped"><a aria-hidden="true" tabindex="-1" href="#usestylesscoped"><span class="icon icon-link"></span></a>UseStylesScoped</h2>
+
+```typescript
+export interface UseStylesScoped 
+```
+
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [scopeId](#usestylesscoped-scopeid) |  | string |  |
+
+<h2 id="usestylesscoped_"><a aria-hidden="true" tabindex="-1" href="#usestylesscoped_"><span class="icon icon-link"></span></a>useStylesScoped$</h2>
+
+A lazy-loadable reference to a component's styles, that is scoped to the component.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+```tsx
+import scoped from './code-block.css?inline';
+
+export const CmpScopedStyles = component$(() => {
+  useStylesScoped$(scoped);
+
+  return <div>Some text</div>;
+});
+```
+
+
+```typescript
+useStylesScoped$: (first: string) => UseStylesScoped
+```
+
+<h2 id="usestylesscopedqrl"><a aria-hidden="true" tabindex="-1" href="#usestylesscopedqrl"><span class="icon icon-link"></span></a>useStylesScopedQrl</h2>
+
+A lazy-loadable reference to a component's styles, that is scoped to the component.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+```tsx
+import scoped from './code-block.css?inline';
+
+export const CmpScopedStyles = component$(() => {
+  useStylesScoped$(scoped);
+
+  return <div>Some text</div>;
+});
+```
+
+
+```typescript
+useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped
+```
+
 <h2 id="usetask_"><a aria-hidden="true" tabindex="-1" href="#usetask_"><span class="icon icon-link"></span></a>useTask$</h2>
 
 Reruns the `taskFn` when the observed inputs change.
@@ -3310,6 +3691,18 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 
 ```typescript
 useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
+```
+
+<h2 id="useusercontext"><a aria-hidden="true" tabindex="-1" href="#useusercontext"><span class="icon icon-link"></span></a>useUserContext</h2>
+
+> Warning: This API is now obsolete.
+> 
+> Please use `useServerData` instead.
+> 
+
+
+```typescript
+useUserContext: typeof useServerData
 ```
 
 <h2 id="usevisibletask_"><a aria-hidden="true" tabindex="-1" href="#usevisibletask_"><span class="icon icon-link"></span></a>useVisibleTask$</h2>
@@ -3368,9 +3761,6 @@ useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
 
 <h2 id="usewatch_"><a aria-hidden="true" tabindex="-1" href="#usewatch_"><span class="icon icon-link"></span></a>useWatch$</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 > Warning: This API is now obsolete.
 > 
 > - use `useTask$()` instead
@@ -3382,9 +3772,6 @@ useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
 ```
 
 <h2 id="usewatchqrl"><a aria-hidden="true" tabindex="-1" href="#usewatchqrl"><span class="icon icon-link"></span></a>useWatchQrl</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 > Warning: This API is now obsolete.
 > 
@@ -3422,10 +3809,6 @@ version: string
 
 <h2 id="qwikuievent-view"><a aria-hidden="true" tabindex="-1" href="#qwikuievent-view"><span class="icon icon-link"></span></a>view</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 view: AbstractView;
 ```
@@ -3442,11 +3825,13 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 vocab?: string | undefined;
 ```
 
+<h2 id="snapshotmetavalue-w"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-w"><span class="icon icon-link"></span></a>w</h2>
+
+```typescript
+w?: string;
+```
+
 <h2 id="qwikkeyboardevent-which"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-which"><span class="icon icon-link"></span></a>which</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 which: number;
@@ -3454,29 +3839,17 @@ which: number;
 
 <h2 id="qwikpointerevent-width"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-width"><span class="icon icon-link"></span></a>width</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 width: number;
 ```
 
 <h2 id="qwikmouseevent-x"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-x"><span class="icon icon-link"></span></a>x</h2>
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 ```typescript
 x: number;
 ```
 
 <h2 id="qwikmouseevent-y"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-y"><span class="icon icon-link"></span></a>y</h2>
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 
 ```typescript
 y: number;

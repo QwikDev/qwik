@@ -87,6 +87,15 @@ export const jsx = <T extends string | FunctionComponent<any>>(
     }
     return c;
   });
+  if (isString(type)) {
+    if ('className' in (props as any)) {
+      (props as any)['class'] = (props as any)['className'];
+      delete (props as any)['className'];
+      if (qDev) {
+        logOnceWarn('jsx: `className` is deprecated. Use `class` instead.');
+      }
+    }
+  }
   const node = new JSXNodeImpl<T>(type, props, null, children, 0, processed);
   seal(node);
   return node;
@@ -207,15 +216,6 @@ In order to disable content escaping use '<script dangerouslySetInnerHTML={conte
         }
       });
     }
-    if (isString(type)) {
-      if ('className' in (props as any)) {
-        (props as any)['class'] = (props as any)['className'];
-        delete (props as any)['className'];
-        if (qDev) {
-          logOnceWarn('jsx: `className` is deprecated. Use `class` instead.');
-        }
-      }
-    }
   }
 }
 
@@ -292,6 +292,15 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
     }
     return c;
   });
+  if (isString(type)) {
+    if ('className' in (props as any)) {
+      (props as any)['class'] = (props as any)['className'];
+      delete (props as any)['className'];
+      if (qDev) {
+        logOnceWarn('jsx: `className` is deprecated. Use `class` instead.');
+      }
+    }
+  }
   const node = new JSXNodeImpl<T>(type, props, null, children, 0, processed);
   node.dev = {
     stack: new Error().stack,

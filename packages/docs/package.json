@@ -42,8 +42,8 @@
     "typescript": "5.0.2",
     "undici": "5.21.0",
     "uvu": "0.5.6",
-    "vite": "4.2.0",
-    "wrangler": "^2.12.3"
+    "vite": "4.2.1",
+    "wrangler": "^2.13.0"
   },
   "author": "Builder.io Team",
   "bugs": {

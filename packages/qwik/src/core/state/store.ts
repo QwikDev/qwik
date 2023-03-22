@@ -97,8 +97,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   // no need to handle `immutable` and `recursive` for now
   deleteProperty(target: TargetType, prop: string | symbol): boolean {
-    if(!delete target[prop])return false;
-    if(typeof prop=="string")this.$manager$.$notifySubs$(isArray(target)?undefined:prop);
+    if (!delete target[prop]) return false;
+    if (typeof prop == 'string') this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
     return true;
   }
 

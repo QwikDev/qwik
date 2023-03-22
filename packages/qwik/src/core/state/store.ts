@@ -99,8 +99,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   deleteProperty(target: TargetType, prop: string | symbol): boolean{
     // intentionally prevents deletion of symbols(like `QOjectTargetSymbol`)
     if (typeof prop == "string" && Object.prototype.hasOwnProperty.call(target, prop)) {
-      delete target[prop]; this.$manager$.$notifySubs$(prop); return true;
-    }; return false;
+      delete target[prop]; this.$manager$.$notifySubs$(prop); return true
+    } return false;
   }
 
   get(target: TargetType, prop: string | symbol): any {

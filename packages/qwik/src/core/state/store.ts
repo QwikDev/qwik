@@ -97,13 +97,9 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   // no need to handle `immutable` and `recursive` for now
   deleteProperty(target: TargetType, prop: string | symbol): boolean {
-    // intentionally prevents deletion of symbols(like `QOjectTargetSymbol`)
-    if (typeof prop == 'string' && Object.prototype.hasOwnProperty.call(target, prop)) {
-      delete target[prop];
-      this.$manager$.$notifySubs$(prop);
-      return true;
-    }
-    return false;
+    if(!delete target[prop])return false;
+    if(typeof prop=="string")this.$manager$.$notifySubs$(isArray(target)?undefined:prop);
+    return true;
   }
 
   get(target: TargetType, prop: string | symbol): any {

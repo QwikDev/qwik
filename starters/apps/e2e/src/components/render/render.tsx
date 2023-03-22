@@ -6,6 +6,7 @@ import {
   useStore,
   useStylesScoped$,
   useTask$,
+  event$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 
@@ -60,6 +61,7 @@ export const Render = component$(() => {
       <Issue2414 />
       <Issue3178 />
       <Issue3398 />
+      <Issue3479 />
     </>
   );
 });
@@ -466,6 +468,22 @@ export const Issue3398 = component$(() => {
         Toggle tag
       </button>
       <Title tag={tag.value}></Title>
+    </div>
+  );
+});
+
+export const Issue3479 = component$(() => {
+  const count = useSignal(0);
+  const attributes = {
+    onClick$: event$(() => count.value++),
+  };
+  const countStr = String(count.value) + '';
+  return (
+    <div>
+      <button id="issue-3479-button" {...attributes}>
+        Increment
+      </button>
+      <div id="issue-3479-result">{countStr}</div>
     </div>
   );
 });

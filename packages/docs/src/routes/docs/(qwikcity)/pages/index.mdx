@@ -1,0 +1,190 @@
+---
+title: Qwik City - Page
+contributors:
+  - adamdbradley
+  - manucorporat
+  - Oyemade
+  - the-r3aper7
+  - mhevery
+  - nnelgxorz
+---
+
+# Pages
+
+Both pages and endpoints in Qwik City are created by adding a new `index.tsx` file in the `src/routes` directory.
+
+The only difference is that a page exports a `default` Qwik component, which will be rendered as the content of the page, while an endpoint only exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
+
+## Components
+
+Page content can be created using Qwik components. The component representing the content should be exported as a `default` export.
+
+Let's assume you have your routes set up like this:
+
+```
+src/
+└── routes/
+    └── some/
+        └── path/
+            └── index.tsx              # https://example.com/some/path
+```
+
+```tsx
+// File: src/routes/some/path/index.tsx
+import { component$ } from '@builder.io/qwik';
+
+// Notice the default export
+export default component$(() => {
+  return <h1>Hello World!</h1>;
+});
+```
+
+### Importing other components
+
+You can build complex views by composing multiple components within each other. To do that import other components into your `index.tsx` file.
+
+```
+src/
+├── components/
+│   └── heading.tsx
+└── routes/
+    └── some/
+        └── path/
+            ├── index.tsx              # https://example.com/some/path
+            └── sub_component.tsx
+```
+
+Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/(qwik)/components/overview/index.mdx).
+The following component will be rendered at `https://example.com/some/path` according to the directory-structure, we have set up above.
+
+```tsx
+// File: src/routes/some/path/index.tsx
+import { component$ } from '@builder.io/qwik';
+import Heading from '../../../components/heading';
+import SubComponent from './sub_component';
+
+export default component$(() => {
+  return (
+    <>
+      <Heading />
+      <h2>Hello World!</h2>
+      <SubComponent />
+    </>
+  );
+});
+```
+
+```tsx
+// File: src/components/heading.tsx
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <h1>Site Heading</h1>;
+});
+```
+
+```tsx
+// File: src/routes/some/path/sub_component.tsx
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <div>Other component content.</div>;
+});
+```
+
+## `head` export
+
+HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly, yet you still need to control its content. This can be achieved by exporting a `head` property (or function) from your page component.
+
+```tsx
+// src/routes/index.tsx
+
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <h1>Hello World</h1>;
+});
+
+export const head = {
+  title: 'My Page',
+  meta: [
+    {
+      name: 'description',
+      content: 'My page description',
+    },
+  ],
+};
+```
+
+> Every endpoint (index) and layout can export a `head` property (or function) that returns a `DocumentHead` object. The `DocumentHead` object is used to resolve the title of the page, as well as the meta, links and styles.
+
+### Dynamic head
+
+In the example above, the `head` is static. However, you can also export a function that returns a `DocumentHead` object. This allows you to dynamically set the title of the page based on the data that is retrieved from `loaders` or request handlers that executed before the page component is rendered.
+
+```tsx
+// src/routes/product/[productId]/index.tsx
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import type { DocumentHead } from '@builder.io/qwik-city';
+
+export const useGetProductData = routeLoader$(({ params }) => {
+  const product = db.getProduct({ id: params.productId });
+  return product;
+});
+
+export default component$(() => {
+  const product = useGetProductData();
+
+  return (
+    <div>
+      <h1>{product.value.title}</h1>
+      <h1>{product.value.description}</h1>
+    </div>
+  );
+});
+
+export const head: DocumentHead = ({ params, resolveValue }) => {
+  const product = resolveValue(useGetProductData);
+  return {
+    title: `Product "${product.title}"`,
+    meta: [
+      {
+        name: 'description',
+        content: product.description,
+      },
+      {
+        name: 'id',
+        content: params.productId,
+      },
+    ],
+  };
+};
+```
+
+### Nested layouts and head
+
+An advanced case is that a [layout](/docs/(qwikcity)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
+
+```
+──src/
+  └─routes/
+    ├─index.tsx
+    └─layout.tsx
+```
+
+```tsx
+// File: src/routes/index.tsx
+export const head: DocumentHead = {
+  title: `Foo`,
+};
+```
+
+```tsx
+// File: src/routes/layout.tsx
+export const head: DocumentHead<EndpointData> = ({ head }) => {
+  return {
+    title: `MyCompany - ${head.title}`,
+  };
+};
+```

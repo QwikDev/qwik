@@ -1,0 +1,114 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export const App2 = component$(() => {
+    const signal = useSignal();
+    const computed = signal.value + 'foo';
+    return (
+        <>
+            <div className="hola"></div>
+            <div className={signal.value}></div>
+            <div className={signal}></div>
+            <div className={computed}></div>
+
+            <Foo className="hola"></Foo>
+            <Foo className={signal.value}></Foo>
+            <Foo className={signal}></Foo>
+            <Foo className={computed}></Foo>
+        </>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app2_component_3yvemqbq3fs.js"), "App2_component_3yveMqbQ3Fs"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,6GAgBjB\"}")
+============================= app2_component_3yvemqbq3fs.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _IMMUTABLE } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+export const App2_component_3yveMqbQ3Fs = ()=>{
+    const signal = useSignal();
+    const computed = signal.value + 'foo';
+    return /*#__PURE__*/ _jsxC(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxQ("div", null, {
+                class: "hola"
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, {
+                class: _fnSignal((p0)=>p0.value, [
+                    signal
+                ], "p0.value")
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, {
+                class: signal
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", {
+                class: computed
+            }, null, null, 3, null),
+            /*#__PURE__*/ _jsxC(Foo, {
+                className: "hola",
+                [_IMMUTABLE]: {
+                    className: _IMMUTABLE
+                }
+            }, 3, "u6_0"),
+            /*#__PURE__*/ _jsxC(Foo, {
+                get className () {
+                    return signal.value;
+                },
+                [_IMMUTABLE]: {
+                    className: _fnSignal((p0)=>p0.value, [
+                        signal
+                    ], "p0.value")
+                }
+            }, 3, "u6_1"),
+            /*#__PURE__*/ _jsxC(Foo, {
+                className: signal,
+                [_IMMUTABLE]: {
+                    className: _IMMUTABLE
+                }
+            }, 3, "u6_2"),
+            /*#__PURE__*/ _jsxC(Foo, {
+                className: computed
+            }, 3, "u6_3")
+        ]
+    }, 1, "u6_4");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG+B,IAAM;IACjC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;;0BACI,MAAC;uBAAc;;0BACf,MAAC;uCAAe,GAAO,KAAK;;;;0BAC5B,MAAC;uBAAe;;0BAChB,MAAC;uBAAe;;0BAEhB,MAAC;gBAAI,WAAU;;oBAAV,SAAS;;;0BACd,MAAC;oBAAI;2BAAW,OAAO,KAAK;;;oBAAvB,SAAS,kBAAE,GAAO,KAAK;;;;;0BAC5B,MAAC;gBAAI,WAAW;;oBAAX,SAAS;;;0BACd,MAAC;gBAAI,WAAW;;;;AAG5B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App2_component_3yveMqbQ3Fs",
+  "entry": null,
+  "displayName": "App2_component",
+  "hash": "3yveMqbQ3Fs",
+  "canonicalFilename": "app2_component_3yvemqbq3fs",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    81,
+    565
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -42,8 +42,8 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
@@ -61,9 +61,7 @@ const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsxQ("div", null, null, true, 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, `text${12}`, 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0, [
-                signal
-            ], "p0"), 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, signal, 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.value, [
                 signal
             ], "p0.value"), 3, null),
@@ -76,7 +74,7 @@ const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
                 store
             ], 'p0.address.city.name?"true":"false"'), 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, dep, 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, dep, 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, _wrapSignal(dep, "thing"), 1, null),
             /*#__PURE__*/ _jsxQ("div", null, null, dep.thing + 'stuff', 1, null),
             /*#__PURE__*/ _jsxQ("div", null, null, globalThing, 3, null),
@@ -92,7 +90,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,MAAC,mBAAI;0BACL,MAAC,mBAAK,CAAC,IAAI,CAAC;0BACZ,MAAC,mBAAK;0BACN,MAAC,mBAAK,IAAI;0BACV,MAAC,mBAAK,CAAC,IAAI,EAAE,GAAG,CAAC;0BACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;0BAC/C,MAAC;;;0BACD,MAAC,mCAAK,GAAO,KAAK;;;0BAClB,MAAC,mCAAK,KAAK,GAAO,KAAK;;;0BACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;0BAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;0BAChD,MAAC,mBAAK;0BACN,MAAC,+BAAK;0BACN,MAAC,mBAAK,IAAI,KAAK,GAAG;0BAClB,MAAC,mBAAK;0BACN,MAAC,+BAAK;0BACN,MAAC,mBAAK,YAAY,KAAK,GAAG;0BAC1B,MAAC,mBAAK,OAAO,KAAK;0BAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;0BACrB,MAAC,mBAAK,QAAQ;0BACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;;AAGjC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,MAAC,mBAAI;0BACL,MAAC,mBAAK,CAAC,IAAI,CAAC;0BACZ,MAAC,mBAAK;0BACN,MAAC,mBAAK,IAAI;0BACV,MAAC,mBAAK,CAAC,IAAI,EAAE,GAAG,CAAC;0BACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;0BAC/C,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAO,KAAK;;;0BAClB,MAAC,mCAAK,KAAK,GAAO,KAAK;;;0BACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;0BAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;0BAChD,MAAC,mBAAK;0BACN,MAAC,+BAAK;0BACN,MAAC,mBAAK,IAAI,KAAK,GAAG;0BAClB,MAAC,mBAAK;0BACN,MAAC,+BAAK;0BACN,MAAC,mBAAK,YAAY,KAAK,GAAG;0BAC1B,MAAC,mBAAK,OAAO,KAAK;0BAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;0BACrB,MAAC,mBAAK,QAAQ;0BACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;;AAGjC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -130,6 +130,12 @@ export interface ErrorBoundaryStore {
     error: any | undefined;
 }
 
+// @alpha (undocumented)
+export const event$: <T>(first: T) => QRL<T>;
+
+// @alpha (undocumented)
+export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
+
 // Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
@@ -208,8 +214,6 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     autoCorrect?: string | undefined;
     // (undocumented)
     autoSave?: string | undefined;
-    // @deprecated (undocumented)
-    className?: string | undefined;
     // (undocumented)
     color?: string | undefined;
     // (undocumented)

@@ -59,7 +59,7 @@ export const SignalsChildren = component$(() => {
   });
 
   renders.count++;
-  const rerenders = renders.count;
+  const rerenders = renders.count + 0;
   return (
     <div aria-label={store.attribute}>
       <button
@@ -122,6 +122,7 @@ export const SignalsChildren = component$(() => {
       <FineGrainedTextSub />
       <FineGrainedUnsubs />
       <Issue3415 />
+      <BindSignal />
     </div>
   );
 });
@@ -144,7 +145,7 @@ export const Child = component$((props: ChildProps) => {
     { reactive: false }
   );
   renders.count++;
-  const rerenders = renders.count;
+  const rerenders = renders.count + 0;
   return (
     <>
       <div id="child-renders">Child renders: {rerenders}</div>
@@ -790,6 +791,21 @@ export const Issue3415 = component$(() => {
         Toggle
       </button>
       <div id="issue-3415-result" dangerouslySetInnerHTML={signal.value} />
+    </>
+  );
+});
+
+export const BindSignal = component$(() => {
+  const value = useSignal('initial');
+  const checked = useSignal(false);
+
+  return (
+    <>
+      <input id="bind-checkbox" type="checkbox" bind:checked={checked} />
+      <input id="bind-input-1" bind:value={value} disabled={checked.value} />
+      <div id="bind-text-1">Value: {value}</div>
+      <div id="bind-text-2">Value: {value.value}</div>
+      <textarea id="bind-input-2" bind:value={value} disabled={checked.value} />
     </>
   );
 });

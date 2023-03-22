@@ -1,0 +1,71 @@
+.ecosystem {
+  margin: 10px auto;
+  padding: 0 30px;
+  max-width: 1060px;
+}
+
+.ecosystem section {
+  margin: 10px auto 60px auto;
+}
+
+/* .grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  display: grid;
+  gap: 30px;
+}
+
+.grid-card {
+  display: block;
+  text-align: center;
+}
+
+.grid-img {
+  display: block;
+  padding: 10px;
+  margin: 0 0 10px 0;
+  background-color: rgba(68, 68, 68, 1);
+  border-radius: 5px;
+  transition: all 250ms ease-out;
+  transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+}
+
+.grid.full-item .grid-img {
+  padding: 0;
+  background-color: transparent;
+}
+
+.grid.transparent-item .grid-img {
+  padding: 0;
+  background-color: transparent;
+}
+
+.grid a:hover .grid-img {
+  background-color: rgba(68, 68, 68, 0.6);
+  transform: scale3d(1.05, 1.05, 1.05) translate3d(0, 0, 0);
+  box-shadow: 0px 0px 8px rgb(151, 151, 151);
+}
+
+.grid.transparent-item a:hover .grid-img {
+  background-color: transparent;
+}
+
+.grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  aspect-ratio: 16/9;
+}
+
+.grid.full-item img {
+  object-fit: cover;
+}
+
+.grid span {
+  display: block;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+} */

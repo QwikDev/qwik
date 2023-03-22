@@ -568,20 +568,20 @@ fn example_use_optimization() {
 import { $, component$, useTask$ } from '@builder.io/qwik';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {value} = useSignal(0);
-    const {foo, ...rest} = useStore({foo: 0});
-    const {bar = 'hello', ...rest2} = useStore({foo: 0});
-    const {hello} = props;
-    const { translations = {} } = props;
-    const { buttonText = 'Search' } = translations;
+    const {countNested} = useStore({value:{count:0}}).value;
+    const countNested2 = countNested;
+    const {hello} = countNested2;
+    const bye = hello.bye;
+    const {ciao} = bye.italian;
+
 
     return (
-        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2} buttonText={buttonText}>{foo}</div>
+        <div ciao={ciao} >{foo}</div>
     );
 });
 "#
         .to_string(),
-        transpile_jsx: true,
+        transpile_jsx: false,
         entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
         is_server: Some(false),
@@ -1734,6 +1734,37 @@ const d = $(()=>console.log('thing'));
 }
 
 #[test]
+fn example_input_bind() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    const value = useSignal(0);
+    const checked = useSignal(false);
+    const stuff = useSignal();
+    return (
+        <>
+            <input bind:value={value} />
+            <input bind:checked={checked} />
+            <input bind:stuff={stuff} />
+            <div>{value}</div>
+            <div>{value.value}</div>
+        </>
+
+    )
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_import_assertion() {
     test_input!(TestInput {
         code: r#"
@@ -2284,6 +2315,38 @@ export const App = component$((props: Stuff) => {
         entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
         transpile_jsx: false,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_class_name() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const App2 = component$(() => {
+    const signal = useSignal();
+    const computed = signal.value + 'foo';
+    return (
+        <>
+            <div className="hola"></div>
+            <div className={signal.value}></div>
+            <div className={signal}></div>
+            <div className={computed}></div>
+
+            <Foo className="hola"></Foo>
+            <Foo className={signal.value}></Foo>
+            <Foo className={signal}></Foo>
+            <Foo className={computed}></Foo>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
         explicit_extensions: true,
         ..TestInput::default()
     });

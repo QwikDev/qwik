@@ -7,7 +7,7 @@
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { RenderResult } from '@builder.io/qwik';
 
-// @alpha
+// @public
 export const createDOM: () => Promise<{
     render: (jsxElement: JSXNode) => Promise<RenderResult>;
     screen: HTMLElement;

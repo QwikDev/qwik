@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from './use-functions';
 import { event$ } from '../../../qwik/src/core';
 
 /**
- * @alpha
+ * @public
  */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
@@ -60,7 +60,7 @@ let windowInnerWidth = 0;
 type AnchorAttributes = QwikIntrinsicElements['a'];
 
 /**
- * @alpha
+ * @public
  */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;

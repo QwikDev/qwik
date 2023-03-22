@@ -7,14 +7,14 @@
 import type { Context } from '@netlify/edge-functions';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {
 }
 

@@ -18,7 +18,7 @@ import { normalizeOnProp } from '../core/state/listeners';
  * </host>
  * ```
  *
- * @alpha
+ * @public
  *
  */
 export class ElementFixture {
@@ -44,7 +44,7 @@ export class ElementFixture {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ElementFixtureOptions {
   tagName?: string;
@@ -57,7 +57,7 @@ export interface ElementFixtureOptions {
  * @param selector
  * @param event
  * @returns
- * @alpha
+ * @public
  */
 export async function trigger(
   root: Element,

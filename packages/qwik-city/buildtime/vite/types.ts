@@ -2,7 +2,7 @@ import type { MdxTransform } from '../markdown/mdx';
 import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } from '../types';
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
   mdxPlugins?: MdxPlugins;
@@ -14,7 +14,7 @@ export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePath
 }
 
 /**
- * @alpha
+ * @public
  */
 export type MdxOptions = import('@mdx-js/mdx/lib/compile').CompileOptions;
 
@@ -26,7 +26,7 @@ export interface PluginContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityPlugin {
   name: 'vite-plugin-qwik-city';
@@ -34,7 +34,7 @@ export interface QwikCityPlugin {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityPluginApi {
   getBasePathname: () => string;

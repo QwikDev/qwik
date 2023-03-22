@@ -117,7 +117,7 @@ export interface ParsedMenuItem {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PluginOptions {
   /**

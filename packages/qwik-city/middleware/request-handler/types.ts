@@ -10,7 +10,7 @@ export interface EnvGetter {
 }
 
 /**
- * @alpha
+ * @public
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = any> {
@@ -24,12 +24,12 @@ export interface ServerRequestEvent<T = any> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type ServerRequestMode = 'dev' | 'static' | 'server';
 
 /**
- * @alpha
+ * @public
  */
 export type ServerResponseHandler<T = any> = (
   status: number,
@@ -40,7 +40,7 @@ export type ServerResponseHandler<T = any> = (
 ) => WritableStream<Uint8Array>;
 
 /**
- * @alpha
+ * @public
  */
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
@@ -48,14 +48,14 @@ export interface ServerRenderOptions extends RenderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
   ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
 
 /**
- * @alpha
+ * @public
  */
 export interface SendMethod {
   (statusCode: number, data: any): AbortMessage;
@@ -65,7 +65,7 @@ export interface SendMethod {
 export type RedirectCode = 301 | 302 | 303 | 307 | 308;
 
 /**
- * @alpha
+ * @public
  */
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
   extends RequestEventBase<PLATFORM> {
@@ -133,7 +133,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
@@ -228,7 +228,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type CacheControl =
   | CacheControlOptions
@@ -242,7 +242,7 @@ export type CacheControl =
   | 'private';
 
 /**
- * @alpha
+ * @public
  */
 export interface CacheControlOptions {
   /**
@@ -293,7 +293,7 @@ export interface CacheControlOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
@@ -312,7 +312,7 @@ declare global {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RequestEventAction<PLATFORM = QwikCityPlatform>
   extends RequestEventCommon<PLATFORM> {
@@ -320,12 +320,12 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform>
 }
 
 /**
- * @alpha
+ * @public
  */
 export type DeferReturn<T> = () => Promise<T>;
 
 /**
- * @alpha
+ * @public
  */
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
@@ -334,7 +334,7 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ResolveValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
@@ -342,7 +342,7 @@ export interface ResolveValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ResolveSyncValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
@@ -350,7 +350,7 @@ export interface ResolveSyncValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface Cookie {
   /**
@@ -380,12 +380,12 @@ export interface Cookie {
 }
 
 /**
- * @alpha
+ * @public
  */
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
- * @alpha
+ * @public
  */
 export interface CookieOptions {
   /**
@@ -426,7 +426,7 @@ export interface CookieOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface CookieValue {
   value: string;
@@ -435,7 +435,7 @@ export interface CookieValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikSerializer {
   _deserializeData: typeof _deserializeData;
@@ -444,7 +444,7 @@ export interface QwikSerializer {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type HttpMethod =
   | 'GET'

@@ -37,7 +37,7 @@ import { $, type QRL } from '../qrl/qrl.public';
  * ```
  *
  * @param fn - a function that should have its first argument automatically `$`.
- * @alpha
+ * @public
  */
 // </docs>
 export const implicit$FirstArg = <FIRST, REST extends any[], RET>(

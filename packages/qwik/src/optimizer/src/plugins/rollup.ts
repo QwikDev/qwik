@@ -20,7 +20,7 @@ import {
 import { versions } from '../versions';
 
 /**
- * @alpha
+ * @public
  */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createPlugin(qwikRollupOpts.optimizerOptions);
@@ -239,7 +239,7 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikRollupPluginOptions {
   /**

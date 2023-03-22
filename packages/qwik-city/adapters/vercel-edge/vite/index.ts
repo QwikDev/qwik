@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 
 /**
- * @alpha
+ * @public
  */
 export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
   return viteAdapter({
@@ -103,13 +103,13 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `vercelEdgeAdapter` exported from `@builder.io/qwik-city/adapters/vercel-edge/vite` instead.
  */
 export const vercelEdgeAdaptor = vercelEdgeAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -141,12 +141,12 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `VercelEdgeAdapterOptions` instead.
  */
 export type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

@@ -33,7 +33,7 @@ import { versions } from '../versions';
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 /**
- * @alpha
+ * @public
  */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
@@ -677,7 +677,7 @@ const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
 const CLIENT_DEV_INPUT = 'entry.dev.tsx';
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikVitePluginOptions {
   /**
@@ -776,7 +776,7 @@ export interface QwikVitePluginOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
@@ -787,7 +787,7 @@ export interface QwikVitePluginApi {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikVitePlugin {
   name: 'vite-plugin-qwik';
@@ -795,7 +795,7 @@ export interface QwikVitePlugin {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;

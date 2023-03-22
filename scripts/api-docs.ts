@@ -202,6 +202,12 @@ function createApiMarkdown(a: ApiData) {
     const content = m.content.replace(/<!--(.|\s)*?-->/g, '').replace(/<Slot\/>/g, '');
     md.push(content);
     md.push(``);
+
+    if (m.editUrl) {
+      md.push(``);
+      md.push(`<p class="api-edit"><a href="${m.editUrl}" target="_blanks">Edit</a></p>`);
+      md.push(``);
+    }
   }
 
   const mdOutput = format(md.join('\n'), {

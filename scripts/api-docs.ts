@@ -1,8 +1,8 @@
 import { execa } from 'execa';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { type BuildConfig } from './util';
-import { format } from 'prettier';
+// import { format } from 'prettier';
 
 export async function generateApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -45,12 +45,10 @@ async function generateApiMarkdownSubPackageDocs(
   console.log('📚', `Generate API ${subPkgName} markdown docs`);
 
   const apiOuputDir = join(
-    config.packagesDir,
-    'docs',
-    'src',
-    'routes',
-    'api',
-    ...names.filter((n) => n !== 'core')
+    config.rootDir,
+    'dist-dev',
+    'api-docs',
+    names.filter((n) => n !== 'core').join('-')
   );
   mkdirSync(apiOuputDir, { recursive: true });
   console.log(apiOuputDir);
@@ -64,103 +62,178 @@ async function generateApiMarkdownSubPackageDocs(
     }
   );
 
-  createApiPage(subPkgName, apiOuputDir);
-  createApiData(docsApiJsonPath, apiOuputDir, subPkgName);
+  // createApiPage(subPkgName, apiOuputDir);
+  createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
 }
 
-function createApiPage(subPkgName: string, apiOuputDir: string) {
-  const mdDirFiles = readdirSync(apiOuputDir)
-    .filter((m) => m.endsWith('.md'))
-    .map((mdFileName) => {
-      const mdPath = join(apiOuputDir, mdFileName);
-      return {
-        mdFileName,
-        mdPath,
-      };
-    });
+// function createApiPage(subPkgName: string, apiOuputDir: string) {
+//   const mdDirFiles = readdirSync(apiOuputDir)
+//     .filter((m) => m.endsWith('.md'))
+//     .map((mdFileName) => {
+//       const mdPath = join(apiOuputDir, mdFileName);
+//       return {
+//         mdFileName,
+//         mdPath,
+//       };
+//     });
 
-  let apiContent: string[] = [];
+//   let apiContent: string[] = [];
 
-  for (const { mdPath } of mdDirFiles) {
-    const mdOutput = getApiMarkdownOutput(mdPath);
-    apiContent = [...apiContent, ...mdOutput];
-    rmSync(mdPath);
-  }
+//   for (const { mdPath } of mdDirFiles) {
+//     const mdOutput = getApiMarkdownOutput(mdPath);
+//     apiContent = [...apiContent, ...mdOutput];
+//     rmSync(mdPath);
+//   }
 
-  apiContent = [
-    '---',
-    `title: \\${subPkgName} API Reference`,
-    '---',
-    '',
-    `# **API** ${subPkgName}`,
-    ...apiContent.slice(12),
-  ];
+//   apiContent = [
+//     '---',
+//     `title: ${subPkgName} API Reference`,
+//     '---',
+//     '',
+//     `# **API** ${subPkgName}`,
+//     ...apiContent.slice(12),
+//   ];
 
-  const indexPath = join(apiOuputDir, 'index.md');
+//   const indexPath = join(apiOuputDir, 'index.md');
 
-  const mdOutput = format(apiContent.join('\n'), {
-    parser: 'markdown',
-  });
+//   const mdOutput = format(apiContent.join('\n'), {
+//     parser: 'markdown',
+//   });
 
-  writeFileSync(indexPath, mdOutput);
-}
+//   writeFileSync(indexPath, mdOutput);
+// }
 
-function getApiMarkdownOutput(mdPath: string) {
-  const output: string[] = [];
-  const mdSrcLines = readFileSync(mdPath, 'utf-8').split('\n');
-
-  for (const line of mdSrcLines) {
-    if (line.startsWith('[Home]')) {
-      continue;
-    }
-    if (line.startsWith('<!-- ')) {
-      continue;
-    }
-    output.push(line);
-  }
-  return output;
-}
-
-function createApiData(docsApiJsonPath: string, apiOuputDir: string, subPkgName: string) {
+function createApiData(
+  config: BuildConfig,
+  docsApiJsonPath: string,
+  apiOuputDir: string,
+  subPkgName: string
+) {
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
 
   const apiData: ApiData = {
+    id: subPkgName.replace('@builder.io/', '').replace(/\//g, '-'),
     package: subPkgName,
     members: [],
   };
 
-  function addMembers(a: any) {
-    if (Array.isArray(a?.members)) {
-      for (const member of a.members) {
-        if (member.kind !== 'Package' && member.kind !== 'EntryPoint') {
-          if (!apiData.members.some((m) => member.name === m.name && member.kind === m.kind)) {
-            apiData.members.push({
-              name: member.name || '',
-              kind: member.kind || '',
-            });
-          }
+  function addMember(apiExtract: any, hierarchyStr: string) {
+    const apiName = apiExtract.name || '';
+    if (apiName.length === 0) {
+      return;
+    }
+
+    const hierarchySplit = hierarchyStr.split('/').filter((m) => m.length > 0);
+    hierarchySplit.push(apiName);
+
+    const hierarchy = hierarchySplit.map((h) => {
+      return {
+        name: h,
+        id: getCanonical(hierarchySplit),
+      };
+    });
+
+    const id = getCanonical(hierarchySplit);
+
+    const mdFile = getMdFile(hierarchySplit);
+    const mdPath = join(apiOuputDir, mdFile);
+
+    const content: string[] = [];
+
+    if (existsSync(mdPath)) {
+      const mdSrcLines = readFileSync(mdPath, 'utf-8').split(/\r?\n/);
+
+      for (const line of mdSrcLines) {
+        if (line.startsWith('## ')) {
+          continue;
         }
-        addMembers(member);
+        if (line.startsWith('[Home]')) {
+          continue;
+        }
+        if (line.startsWith('<!-- ')) {
+          continue;
+        }
+        if (line.startsWith('**Signature:**')) {
+          continue;
+        }
+        content.push(line);
+      }
+    } else {
+      console.log('Unable to find md for', mdFile);
+    }
+
+    apiData.members.push({
+      name: apiName,
+      id,
+      hierarchy,
+      kind: apiExtract.kind || '',
+      content: content.join('\n').trim(),
+      mdFile,
+    });
+  }
+
+  function addMembers(apiExtract: any, hierarchyStr: string) {
+    if (Array.isArray(apiExtract?.members)) {
+      for (const member of apiExtract.members) {
+        addMembers(member, hierarchyStr + '/' + member.name);
+        if (member.kind === 'Package' || member.kind === 'EntryPoint') {
+          continue;
+        }
+        if (apiData.members.some((m) => member.name === m.name && member.kind === m.kind)) {
+          continue;
+        }
+        addMember(member, hierarchyStr);
       }
     }
   }
 
-  addMembers(apiExtractedJson);
+  addMembers(apiExtractedJson, '');
+
+  apiData.members.forEach((m1) => {
+    apiData.members.forEach((m2) => {
+      while (m1.content.includes(`./${m2.mdFile}`)) {
+        m1.content = m1.content.replace(`./${m2.mdFile}`, `#${m2.id}`);
+      }
+    });
+  });
 
   apiData.members.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
 
-  const apiDataPath = join(apiOuputDir, 'api-data.json');
+  const apiDataName = `${apiData.id}.json`;
+  const apiDataPath = join(config.packagesDir, 'docs', 'src', 'routes', 'api', apiDataName);
   writeFileSync(apiDataPath, JSON.stringify(apiData, null, 2));
 }
 
 interface ApiData {
+  id: string;
   package: string;
   members: ApiMember[];
 }
 
 interface ApiMember {
+  id: string;
   name: string;
+  hierarchy: { name: string; id: string }[];
   kind: string;
+  content: string;
+  mdFile: string;
+}
+
+function getCanonical(hierarchy: string[]) {
+  return hierarchy.map((h) => getSafeFilenameForName(h)).join('-');
+}
+
+function getMdFile(hierarchy: string[]) {
+  let mdFile = '';
+  for (const h of hierarchy) {
+    mdFile += '.' + getSafeFilenameForName(h);
+  }
+  return `qwik${mdFile}.md`;
+}
+
+function getSafeFilenameForName(name: string): string {
+  // https://github.com/microsoft/rushstack/blob/d0f8f10a9ce1ce4158ca2da5b79c54c71d028d89/apps/api-documenter/src/utils/Utilities.ts
+  return name.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
 }

@@ -1,9 +1,0 @@
-{
-  "package": "@builder.io/qwik/server",
-  "members": [
-    {
-      "name": "versions",
-      "kind": "Variable"
-    }
-  ]
-}

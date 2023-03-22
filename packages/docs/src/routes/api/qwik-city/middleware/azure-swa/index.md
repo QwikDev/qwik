@@ -1,7 +1,0 @@
----
-title: \@builder.io/qwik-city/middleware/azure-swa API Reference
----
-
-# **API** @builder.io/qwik-city/middleware/azure-swa
-
-## qwik-city package

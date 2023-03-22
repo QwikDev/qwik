@@ -1,9 +1,0 @@
-{
-  "package": "@builder.io/qwik/optimizer",
-  "members": [
-    {
-      "name": "versions",
-      "kind": "Variable"
-    }
-  ]
-}

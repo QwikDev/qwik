@@ -1,0 +1,19 @@
+{
+  "id": "qwik-optimizer",
+  "package": "@builder.io/qwik/optimizer",
+  "members": [
+    {
+      "name": "versions",
+      "id": "versions",
+      "hierarchy": [
+        {
+          "name": "versions",
+          "id": "versions"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nversions: {\n    qwik: string;\n}\n```",
+      "mdFile": "qwik.versions.md"
+    }
+  ]
+}

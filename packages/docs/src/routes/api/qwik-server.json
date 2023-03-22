@@ -1,0 +1,19 @@
+{
+  "id": "qwik-server",
+  "package": "@builder.io/qwik/server",
+  "members": [
+    {
+      "name": "versions",
+      "id": "versions",
+      "hierarchy": [
+        {
+          "name": "versions",
+          "id": "versions"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nversions: {\n    readonly qwik: string;\n    readonly qwikDom: string;\n}\n```",
+      "mdFile": "qwik.versions.md"
+    }
+  ]
+}

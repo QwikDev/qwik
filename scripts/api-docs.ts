@@ -215,7 +215,7 @@ function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
 
   md.push(`---`);
-  md.push(`title: ${a.package} API Reference`);
+  md.push(`title: \\${a.package} API Reference`);
   md.push(`---`);
   md.push(``);
   md.push(`# **API** ${a.package}`);

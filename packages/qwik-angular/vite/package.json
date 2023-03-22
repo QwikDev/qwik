@@ -1,0 +1,15 @@
+{
+  "name": "@builder.io/qwik-angular/vite",
+  "version": "0.0.1",
+  "exports": {
+    ".": {
+      "import": "../lib/vite.mjs",
+      "require": "../lib/vite.cjs",
+      "types": "../lib/types/vite.d.ts"
+    }
+  },
+  "type": "module",
+  "main": "../lib/vite.mjs",
+  "qwik": "../lib/vite.mjs",
+  "types": "../lib/types/vite.d.ts"
+}

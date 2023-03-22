@@ -30,6 +30,7 @@ import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
 import { buildQwikWorker } from './qwik-worker';
 import { buildQwikLabs } from './qwik-labs';
+import { buildQwikAngular } from './qwik-angular';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -102,6 +103,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikcity) {
       await buildQwikCity(config);
+    }
+
+    if (config.qwikangular) {
+      await buildQwikAngular(config);
     }
 
     if (config.qwikreact) {

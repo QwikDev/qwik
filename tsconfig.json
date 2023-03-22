@@ -11,6 +11,7 @@
     "declaration": true,
     "outDir": "./dist-dev/tsc-out",
     "declarationDir": "./dist-dev/dts-out",
+    "experimentalDecorators": true,
     "strict": true,
     "verbatimModuleSyntax": true,
     "moduleResolution": "node",
@@ -25,6 +26,7 @@
       "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index.ts"],
       "@builder.io/qwik/server": ["packages/qwik/src/server/index.ts"],
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index.ts"],
+      "@builder.io/qwik-angular": ["packages/qwik-angular/src/index.ts"],
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik-city/service-worker": [
@@ -91,12 +93,14 @@
     "packages/qwik-auth",
     "packages/qwik-worker",
     "packages/supabase-auth-helpers-qwik",
+    "packages/qwik-angular/src",
     "packages/qwik-react/src",
     "scripts",
     "starters/apps/e2e",
     "starters/apps/qwikcity-test/**/*",
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
+    "packages/qwik-angular/vite",
     "@types/deno.d.ts"
   ],
   "exclude": [

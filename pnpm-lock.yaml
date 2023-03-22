@@ -421,6 +421,40 @@ importers:
         specifier: 4.1.5
         version: 4.1.5
 
+  packages/qwik-angular:
+    specifiers:
+      '@analogjs/vite-plugin-angular': 0.2.0-alpha.28
+      '@angular-devkit/build-angular': ^15.1.0
+      '@angular/animations': ^15.1.0
+      '@angular/common': ^15.1.0
+      '@angular/compiler': ^15.1.0
+      '@angular/compiler-cli': ^15.1.0
+      '@angular/core': ^15.1.0
+      '@angular/platform-browser': ^15.1.0
+      '@angular/platform-browser-dynamic': ^15.1.0
+      '@angular/platform-server': ^15.1.0
+      '@builder.io/qwik': workspace:*
+      rxjs: 7.8.0
+      typescript: 4.9.5
+      vite: 4.1.4
+      zone.js: 0.13.0
+    devDependencies:
+      '@analogjs/vite-plugin-angular': 0.2.0-alpha.28_yurikyawiwtmb3hxgu3oeqibgi
+      '@angular-devkit/build-angular': 15.2.4_zrlzwzhwastpm2ivst3hjfl35e
+      '@angular/animations': 15.2.2_@angular+core@15.2.2
+      '@angular/common': 15.2.2_w2xujjrbhynr6cc5m4376evic4
+      '@angular/compiler': 15.2.2_@angular+core@15.2.2
+      '@angular/compiler-cli': 15.2.2_melnpt72bdyyrlmw2gkt7zh2xe
+      '@angular/core': 15.2.2_rxjs@7.8.0+zone.js@0.13.0
+      '@angular/platform-browser': 15.2.2_67tth7lseo52y77w7j2bbt7gai
+      '@angular/platform-browser-dynamic': 15.2.2_pbblcghlnqr2rvkrg2skpac4ri
+      '@angular/platform-server': 15.2.2_xn4gfyrzx6dp6hw5nk6xatrzyi
+      '@builder.io/qwik': link:../qwik
+      rxjs: 7.8.0
+      typescript: 4.9.5
+      vite: 4.1.4
+      zone.js: 0.13.0
+
   packages/qwik-auth:
     devDependencies:
       '@auth/core':
@@ -784,10 +818,7 @@ packages:
   /@auth/core@0.7.1:
     resolution: {integrity: sha512-aAgzC/VlfnvxsFYp5Wau1pfIltRUBvfVxECR0imDPUznwXIkD9alvrai60tfImtPfXp1fnJpcKfiONpF5Rg8VQ==}
     peerDependencies:
-      nodemailer: ^6.8.0
-    peerDependenciesMeta:
-      nodemailer:
-        optional: true
+      '@babel/core': ^7.0.0-0
     dependencies:
       '@panva/hkdf': 1.1.1
       cookie: 0.5.0
@@ -800,9 +831,7 @@ packages:
   /@azure/functions@3.5.1:
     resolution: {integrity: sha512-6UltvJiuVpvHSwLcK/Zc6NfUwlkDLOFFx97BHCJzlWNsfiWwzwmTsxJXg4kE/LemKTHxPpfoPE+kOJ8hAdiKFQ==}
     dependencies:
-      iconv-lite: 0.6.3
-      long: 4.0.0
-      uuid: 8.3.2
+      regenerator-runtime: 0.13.11
     dev: true
 
   /@babel/code-frame@7.22.5:
@@ -832,6 +861,10 @@ packages:
   /@babel/helper-validator-identifier@7.22.5:
     resolution: {integrity: sha512-aJXu+6lErq8ltp+JhkJUfk1MTGyuA4v7f3pA+BJ5HLfNC6nAQ0Cpi9uOquUj8Hehg0aUiHzWQbOVJGao6ztBAQ==}
     engines: {node: '>=6.9.0'}
+    dependencies:
+      '@babel/code-frame': 7.18.6
+      '@babel/parser': 7.21.3
+      '@babel/types': 7.21.3
     dev: true
 
   /@babel/highlight@7.22.5:
@@ -862,7 +895,9 @@ packages:
     resolution: {integrity: sha512-ecjvYlnAaZ/KVneE/OdKYBYfgXV3Ptu6zQWmgEF7vwKhQnvVS6bjMD2XYgj+SNvQ1GfK/pjgokfPkC/2CO8CuA==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      regenerator-runtime: 0.13.11
+      '@babel/helper-string-parser': 7.19.4
+      '@babel/helper-validator-identifier': 7.19.1
+      to-fast-properties: 2.0.0
     dev: true
 
   /@babel/types@7.22.4:
@@ -5028,7 +5063,7 @@ packages:
     dependencies:
       buffer: 6.0.3
       inherits: 2.0.4
-      readable-stream: 3.6.2
+      readable-stream: 3.6.0
     dev: true
 
   /blake3-wasm@2.1.5:

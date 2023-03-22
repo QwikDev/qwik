@@ -50,6 +50,7 @@ export interface BuildConfig {
   api?: boolean;
   build?: boolean;
   qwikcity?: boolean;
+  qwikangular?: boolean;
   qwikreact?: boolean;
   qwiklabs?: boolean;
   qwikauth?: boolean;

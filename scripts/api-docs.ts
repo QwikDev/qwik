@@ -131,6 +131,7 @@ function createApiData(
       hierarchy,
       kind: apiExtract.kind || '',
       content: content.join('\n').trim(),
+      editUrl: getEditUrl(config, apiExtract.fileUrlPath),
       mdFile,
     });
   }
@@ -201,6 +202,12 @@ function createApiMarkdown(a: ApiData) {
     const content = m.content.replace(/<!--(.|\s)*?-->/g, '').replace(/<Slot\/>/g, '');
     md.push(content);
     md.push(``);
+
+    if (m.editUrl) {
+      md.push(``);
+      md.push(`<p class="api-edit"><a href="${m.editUrl}" target="_blanks">Edit</a></p>`);
+      md.push(``);
+    }
   }
 
   const mdOutput = format(md.join('\n'), {
@@ -221,6 +228,7 @@ interface ApiMember {
   hierarchy: { name: string; id: string }[];
   kind: string;
   content: string;
+  editUrl?: string;
   mdFile: string;
 }
 
@@ -239,4 +247,23 @@ function getMdFile(hierarchy: string[]) {
 function getSafeFilenameForName(name: string): string {
   // https://github.com/microsoft/rushstack/blob/d0f8f10a9ce1ce4158ca2da5b79c54c71d028d89/apps/api-documenter/src/utils/Utilities.ts
   return name.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
+}
+
+function getEditUrl(config: BuildConfig, fileUrlPath: string | undefined) {
+  if (fileUrlPath) {
+    const rootRelPath = fileUrlPath.split(`/`).slice(2).join('/');
+
+    const tsxPath = join(config.rootDir, rootRelPath).replace(`.d.ts`, `.tsx`);
+    if (existsSync(tsxPath)) {
+      const url = new URL(rootRelPath, `https://github.com/BuilderIO/qwik/tree/main/`);
+      return url.href.replace(`.d.ts`, `.tsx`);
+    }
+
+    const tsPath = join(config.rootDir, rootRelPath).replace(`.d.ts`, `.ts`);
+    if (existsSync(tsPath)) {
+      const url = new URL(rootRelPath, `https://github.com/BuilderIO/qwik/tree/main/`);
+      return url.href.replace(`.d.ts`, `.ts`);
+    }
+  }
+  return undefined;
 }

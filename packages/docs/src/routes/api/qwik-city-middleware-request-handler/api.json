@@ -47,6 +47,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.cachecontrol.md"
     },
     {
@@ -77,6 +78,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.cookie.md"
     },
     {
@@ -90,6 +92,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.cookieoptions.md"
     },
     {
@@ -103,6 +106,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.cookievalue.md"
     },
     {
@@ -133,6 +137,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.deferreturn.md"
     },
     {
@@ -316,6 +321,7 @@
       ],
       "kind": "Function",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts",
       "mdFile": "qwik.geterrorhtml.md"
     },
     {
@@ -499,6 +505,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/cookie.ts",
       "mdFile": "qwik.mergeheaderscookies.md"
     },
     {
@@ -750,6 +757,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.requestevent.md"
     },
     {
@@ -763,6 +771,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.requesteventaction.md"
     },
     {
@@ -776,6 +785,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.requesteventbase.md"
     },
     {
@@ -789,6 +799,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.requesteventcommon.md"
     },
     {
@@ -802,6 +813,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.requesteventloader.md"
     },
     {
@@ -815,6 +827,7 @@
       ],
       "kind": "Function",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/request-handler.ts",
       "mdFile": "qwik.requesthandler.md"
     },
     {
@@ -828,6 +841,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.requesthandler.md"
     },
     {
@@ -841,6 +855,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.resolvesyncvalue.md"
     },
     {
@@ -871,6 +886,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.resolvevalue.md"
     },
     {
@@ -935,6 +951,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.serverrenderoptions.md"
     },
     {
@@ -948,6 +965,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.serverrequestevent.md"
     },
     {
@@ -961,6 +979,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.serverrequestmode.md"
     },
     {
@@ -974,6 +993,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik.serverresponsehandler.md"
     },
     {

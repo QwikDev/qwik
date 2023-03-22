@@ -2321,6 +2321,38 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_class_name() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const App2 = component$(() => {
+    const signal = useSignal();
+    const computed = signal.value + 'foo';
+    return (
+        <>
+            <div className="hola"></div>
+            <div className={signal.value}></div>
+            <div className={signal}></div>
+            <div className={computed}></div>
+
+            <Foo className="hola"></Foo>
+            <Foo className={signal.value}></Foo>
+            <Foo className={signal}></Foo>
+            <Foo className={computed}></Foo>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_preserve_filenames() {
     test_input!(TestInput {
         code: r#"

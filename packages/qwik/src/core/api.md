@@ -214,8 +214,6 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     autoCorrect?: string | undefined;
     // (undocumented)
     autoSave?: string | undefined;
-    // @deprecated (undocumented)
-    className?: string | undefined;
     // (undocumented)
     color?: string | undefined;
     // (undocumented)

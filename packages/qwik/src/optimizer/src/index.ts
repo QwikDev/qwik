@@ -42,7 +42,12 @@ export type {
   QwikVitePlugin,
   QwikViteDevResponse,
 } from './plugins/vite';
-export type { QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
+export type {
+  QwikBuildMode,
+  QwikBuildTarget,
+  QwikPluginAddon,
+  NormalizedQwikPluginOptions,
+} from './plugins/plugin';
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';

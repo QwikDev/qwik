@@ -256,4 +256,17 @@ test.describe('render', () => {
     await expect(page.locator('h1#issue-3398-tag')).toHaveText('Hello h1');
     await expect(page.locator('h1#issue-3398-tag')).not.hasAttribute('children');
   });
+
+  test('issue3479', async ({ page }) => {
+    const increment = page.locator('#issue-3479-button');
+    const result = page.locator('#issue-3479-result');
+
+    await expect(result).toHaveText('0');
+    await increment.click();
+    await expect(result).toHaveText('1');
+    await increment.click();
+    await expect(result).toHaveText('2');
+    await increment.click();
+    await expect(result).toHaveText('3');
+  });
 });

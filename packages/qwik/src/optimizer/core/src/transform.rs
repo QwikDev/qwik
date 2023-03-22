@@ -1422,6 +1422,7 @@ impl<'a> QwikTransform<'a> {
                             }
                         }
                         prop => {
+                            static_listeners = false;
                             mutable_props.push(prop.fold_with(self));
                         }
                     };

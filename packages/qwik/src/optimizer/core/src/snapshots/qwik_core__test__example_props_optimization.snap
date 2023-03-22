@@ -86,7 +86,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         ], "p0.count")
     }, _fnSignal((p0)=>p0.count, [
         props
-    ], "p0.count"), 3, "u6_0");
+    ], "p0.count"), 2, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count , stuff: { hey  }  })=>{
     console.log(hey);

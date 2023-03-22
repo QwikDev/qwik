@@ -47,6 +47,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\n_fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/inlined-fn.ts",
       "mdFile": "qwik._fnsignal.md"
     },
     {
@@ -859,6 +860,7 @@
       ],
       "kind": "Variable",
       "content": "Qwik Optimizer marker function.\n\nUse `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`<!-- -->.\n\n\n```typescript\n$: <T>(expression: T) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik._.md"
     },
     {
@@ -940,6 +942,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface AriaAttributes \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"aria-activedescendant\"?](#ariaattributes-_aria-activedescendant_) |  | string \\| undefined | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. |\n|  [\"aria-atomic\"?](#ariaattributes-_aria-atomic_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. |\n|  [\"aria-autocomplete\"?](#ariaattributes-_aria-autocomplete_) |  | 'none' \\| 'inline' \\| 'list' \\| 'both' \\| undefined | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made. |\n|  [\"aria-busy\"?](#ariaattributes-_aria-busy_) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. |\n|  [\"aria-checked\"?](#ariaattributes-_aria-checked_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"checked\" state of checkboxes, radio buttons, and other widgets. |\n|  [\"aria-colcount\"?](#ariaattributes-_aria-colcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid. |\n|  [\"aria-colindex\"?](#ariaattributes-_aria-colindex_) |  | number \\| undefined | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid. |\n|  [\"aria-colspan\"?](#ariaattributes-_aria-colspan_) |  | number \\| undefined | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-controls\"?](#ariaattributes-_aria-controls_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element. |\n|  [\"aria-current\"?](#ariaattributes-_aria-current_) |  | boolean \\| 'false' \\| 'true' \\| 'page' \\| 'step' \\| 'location' \\| 'date' \\| 'time' \\| undefined | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements. |\n|  [\"aria-describedby\"?](#ariaattributes-_aria-describedby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that describes the object. |\n|  [\"aria-details\"?](#ariaattributes-_aria-details_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides a detailed, extended description for the object. |\n|  [\"aria-disabled\"?](#ariaattributes-_aria-disabled_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable. |\n|  [\"aria-dropeffect\"?](./qwik.ariaattributes._aria-dropeffect_.md) |  | 'none' \\| 'copy' \\| 'execute' \\| 'link' \\| 'move' \\| 'popup' \\| undefined | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target. |\n|  [\"aria-errormessage\"?](#ariaattributes-_aria-errormessage_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides an error message for the object. |\n|  [\"aria-expanded\"?](#ariaattributes-_aria-expanded_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. |\n|  [\"aria-flowto\"?](#ariaattributes-_aria-flowto_) |  | string \\| undefined | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |\n|  [\"aria-grabbed\"?](./qwik.ariaattributes._aria-grabbed_.md) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element's \"grabbed\" state in a drag-and-drop operation. |\n|  [\"aria-haspopup\"?](#ariaattributes-_aria-haspopup_) |  | boolean \\| 'false' \\| 'true' \\| 'menu' \\| 'listbox' \\| 'tree' \\| 'grid' \\| 'dialog' \\| undefined | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. |\n|  [\"aria-hidden\"?](#ariaattributes-_aria-hidden_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element is exposed to an accessibility API. |\n|  [\"aria-invalid\"?](#ariaattributes-_aria-invalid_) |  | boolean \\| 'false' \\| 'true' \\| 'grammar' \\| 'spelling' \\| undefined | _(Optional)_ Indicates the entered value does not conform to the format expected by the application. |\n|  [\"aria-keyshortcuts\"?](#ariaattributes-_aria-keyshortcuts_) |  | string \\| undefined | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. |\n|  [\"aria-label\"?](#ariaattributes-_aria-label_) |  | string \\| undefined | _(Optional)_ Defines a string value that labels the current element. |\n|  [\"aria-labelledby\"?](#ariaattributes-_aria-labelledby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that labels the current element. |\n|  [\"aria-level\"?](#ariaattributes-_aria-level_) |  | number \\| undefined | _(Optional)_ Defines the hierarchical level of an element within a structure. |\n|  [\"aria-live\"?](#ariaattributes-_aria-live_) |  | 'off' \\| 'assertive' \\| 'polite' \\| undefined | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. |\n|  [\"aria-modal\"?](#ariaattributes-_aria-modal_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether an element is modal when displayed. |\n|  [\"aria-multiline\"?](#ariaattributes-_aria-multiline_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line. |\n|  [\"aria-multiselectable\"?](#ariaattributes-_aria-multiselectable_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants. |\n|  [\"aria-orientation\"?](#ariaattributes-_aria-orientation_) |  | 'horizontal' \\| 'vertical' \\| undefined | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. |\n|  [\"aria-owns\"?](#ariaattributes-_aria-owns_) |  | string \\| undefined | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship. |\n|  [\"aria-placeholder\"?](#ariaattributes-_aria-placeholder_) |  | string \\| undefined | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format. |\n|  [\"aria-posinset\"?](#ariaattributes-_aria-posinset_) |  | number \\| undefined | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-pressed\"?](#ariaattributes-_aria-pressed_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"pressed\" state of toggle buttons. |\n|  [\"aria-readonly\"?](#ariaattributes-_aria-readonly_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is not editable, but is otherwise operable. |\n|  [\"aria-relevant\"?](#ariaattributes-_aria-relevant_) |  | 'additions' \\| 'additions removals' \\| 'additions text' \\| 'all' \\| 'removals' \\| 'removals additions' \\| 'removals text' \\| 'text' \\| 'text additions' \\| 'text removals' \\| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified. |\n|  [\"aria-required\"?](#ariaattributes-_aria-required_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that user input is required on the element before a form may be submitted. |\n|  [\"aria-roledescription\"?](#ariaattributes-_aria-roledescription_) |  | string \\| undefined | _(Optional)_ Defines a human-readable, author-localized description for the role of an element. |\n|  [\"aria-rowcount\"?](#ariaattributes-_aria-rowcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid. |\n|  [\"aria-rowindex\"?](#ariaattributes-_aria-rowindex_) |  | number \\| undefined | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid. |\n|  [\"aria-rowspan\"?](#ariaattributes-_aria-rowspan_) |  | number \\| undefined | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-selected\"?](#ariaattributes-_aria-selected_) |  | Booleanish \\| undefined | _(Optional)_ Indicates the current \"selected\" state of various widgets. |\n|  [\"aria-setsize\"?](#ariaattributes-_aria-setsize_) |  | number \\| undefined | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-sort\"?](#ariaattributes-_aria-sort_) |  | 'none' \\| 'ascending' \\| 'descending' \\| 'other' \\| undefined | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order. |\n|  [\"aria-valuemax\"?](#ariaattributes-_aria-valuemax_) |  | number \\| undefined | _(Optional)_ Defines the maximum allowed value for a range widget. |\n|  [\"aria-valuemin\"?](#ariaattributes-_aria-valuemin_) |  | number \\| undefined | _(Optional)_ Defines the minimum allowed value for a range widget. |\n|  [\"aria-valuenow\"?](#ariaattributes-_aria-valuenow_) |  | number \\| undefined | _(Optional)_ Defines the current value for a range widget. |\n|  [\"aria-valuetext\"?](#ariaattributes-_aria-valuetext_) |  | string \\| undefined | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.ariaattributes.md"
     },
     {
@@ -953,6 +956,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.ariarole.md"
     },
     {
@@ -1289,6 +1293,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component.md"
     },
     {
@@ -1302,6 +1307,7 @@
       ],
       "kind": "Variable",
       "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component_.md"
     },
     {
@@ -1315,6 +1321,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ComponentBaseProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"q:slot\"?](#componentbaseprops-_q_slot_) |  | string | _(Optional)_ |\n|  [key?](#componentbaseprops-key) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.componentbaseprops.md"
     },
     {
@@ -1328,6 +1335,7 @@
       ],
       "kind": "Variable",
       "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.componentqrl.md"
     },
     {
@@ -1392,6 +1400,7 @@
       ],
       "kind": "Interface",
       "content": "ContextId is a typesafe ID for your context.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nexport interface ContextId<STATE> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_\\_brand\\_context\\_type\\_\\_](#contextid-__brand_context_type__) | <code>readonly</code> | STATE | Design-time property to store type information for the context. |\n|  [id](#contextid-id) | <code>readonly</code> | string | A unique ID for the context. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.contextid.md"
     },
     {
@@ -1422,6 +1431,7 @@
       ],
       "kind": "Interface",
       "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#coreplatform-chunkforsymbol) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#coreplatform-importsymbol) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#coreplatform-isserver) |  | boolean | True of running on the server platform. |\n|  [nextTick](#coreplatform-nexttick) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#coreplatform-raf) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts",
       "mdFile": "qwik.coreplatform.md"
     },
     {
@@ -1435,6 +1445,7 @@
       ],
       "kind": "Variable",
       "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.createcontextid.md"
     },
     {
@@ -1686,6 +1697,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> \n```\n**Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#domattributes-children) |  | [JSXChildren](#jsxchildren) | _(Optional)_ |\n|  [key?](./qwik.domattributes.key.md) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.domattributes.md"
     },
     {
@@ -1750,6 +1762,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type EagernessOptions = 'visible' | 'load' | 'idle';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.eagernessoptions.md"
     },
     {
@@ -1856,6 +1869,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ErrorBoundaryStore \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [error](#errorboundarystore-error) |  | any \\| undefined |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts",
       "mdFile": "qwik.errorboundarystore.md"
     },
     {
@@ -1869,6 +1883,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nevent$: <T>(first: T) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.event_.md"
     },
     {
@@ -1882,6 +1897,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\neventQrl: <T>(qrl: QRL<T>) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.eventqrl.md"
     },
     {
@@ -1912,6 +1928,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nFragment: FunctionComponent<{\n    children?: any;\n    key?: string | number | null;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.fragment.md"
     },
     {
@@ -1925,6 +1942,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface FunctionComponent<P = Record<string, any>> \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.functioncomponent.md"
     },
     {
@@ -1989,6 +2007,7 @@
       ],
       "kind": "Variable",
       "content": "Retrieve the `CorePlatform`<!-- -->.\n\nThe `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is specific to the application currently running. On server it is possible that many different applications are running in a single server instance, and for this reason the `CorePlatform` is associated with the application document.\n\n\n```typescript\ngetPlatform: () => CorePlatform\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts",
       "mdFile": "qwik.getplatform.md"
     },
     {
@@ -2019,6 +2038,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](./qwik.h.h.md) |  |\n|  [h(type, data)](./qwik.h.h_1.md) |  |\n|  [h(type, text)](./qwik.h.h_2.md) |  |\n|  [h(type, children)](./qwik.h.h_3.md) |  |\n|  [h(type, data, text)](./qwik.h.h_4.md) |  |\n|  [h(type, data, children)](./qwik.h.h_5.md) |  |\n|  [h(sel, data, children)](./qwik.h.h_6.md) |  |\n\n\n|  Namespace | Description |\n|  --- | --- |\n|  [JSX](#h-jsx) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts",
       "mdFile": "qwik.h.md"
     },
     {
@@ -2032,6 +2052,7 @@
       ],
       "kind": "Namespace",
       "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](./qwik.h.h.md) |  |\n|  [h(type, data)](./qwik.h.h_1.md) |  |\n|  [h(type, text)](./qwik.h.h_2.md) |  |\n|  [h(type, children)](./qwik.h.h_3.md) |  |\n|  [h(type, data, text)](./qwik.h.h_4.md) |  |\n|  [h(type, data, children)](./qwik.h.h_5.md) |  |\n|  [h(sel, data, children)](./qwik.h.h_6.md) |  |\n\n\n|  Namespace | Description |\n|  --- | --- |\n|  [JSX](#h-jsx) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts",
       "mdFile": "qwik.h.md"
     },
     {
@@ -2096,6 +2117,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#htmlattributes-about) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#htmlattributes-accesskey) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#htmlattributes-autocapitalize) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#htmlattributes-autocorrect) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#htmlattributes-autosave) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#htmlattributes-color) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#htmlattributes-contenteditable) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#htmlattributes-contextmenu) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#htmlattributes-datatype) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#htmlattributes-dir) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#htmlattributes-draggable) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#htmlattributes-hidden) |  | boolean \\| undefined | _(Optional)_ |\n|  [id?](./qwik.htmlattributes.id.md) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#htmlattributes-inlist) |  | any | _(Optional)_ |\n|  [inputMode?](#htmlattributes-inputmode) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#htmlattributes-is) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#htmlattributes-itemid) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#htmlattributes-itemprop) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#htmlattributes-itemref) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#htmlattributes-itemscope) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#htmlattributes-itemtype) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#htmlattributes-lang) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#htmlattributes-placeholder) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#htmlattributes-prefix) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#htmlattributes-property) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#htmlattributes-radiogroup) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#htmlattributes-resource) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#htmlattributes-results) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#htmlattributes-role) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#htmlattributes-security) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#htmlattributes-slot) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#htmlattributes-spellcheck) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#htmlattributes-style) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#htmlattributes-tabindex) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#htmlattributes-title) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#htmlattributes-translate) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#htmlattributes-typeof) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#htmlattributes-unselectable) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#htmlattributes-vocab) |  | string \\| undefined | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
     },
     {
@@ -2143,6 +2165,7 @@
       ],
       "kind": "Variable",
       "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts",
       "mdFile": "qwik.implicit_firstarg.md"
     },
     {
@@ -2385,6 +2408,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsx.md"
     },
     {
@@ -2415,6 +2439,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [Signal](#signal)<!-- -->, [JSXNode](#jsxnode)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.jsxchildren.md"
     },
     {
@@ -2428,6 +2453,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\njsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: any) => JSXNode<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsxdev.md"
     },
     {
@@ -2441,6 +2467,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface JSXNode<T = string | FunctionComponent> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](./qwik.jsxnode.children.md) |  | any \\| null |  |\n|  [dev?](#jsxnode-dev) |  | DevJSX | _(Optional)_ |\n|  [flags](#jsxnode-flags) |  | number |  |\n|  [immutableProps](#jsxnode-immutableprops) |  | Record&lt;string, any&gt; \\| null |  |\n|  [key](./qwik.jsxnode.key.md) |  | string \\| null |  |\n|  [props](#jsxnode-props) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;string, any&gt; |  |\n|  [type](#jsxnode-type) |  | T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.jsxnode.md"
     },
     {
@@ -2454,6 +2481,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.jsxtagname.md"
     },
     {
@@ -2603,6 +2631,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type MountFn<T> = () => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
       "mdFile": "qwik.mountfn.md"
     },
     {
@@ -2650,6 +2679,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeAnimationEvent = AnimationEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativeanimationevent.md"
     },
     {
@@ -2663,6 +2693,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeClipboardEvent = ClipboardEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativeclipboardevent.md"
     },
     {
@@ -2676,6 +2707,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeCompositionEvent = CompositionEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativecompositionevent.md"
     },
     {
@@ -2689,6 +2721,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeDragEvent = DragEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativedragevent.md"
     },
     {
@@ -2702,6 +2735,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeFocusEvent = FocusEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativefocusevent.md"
     },
     {
@@ -2715,6 +2749,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeKeyboardEvent = KeyboardEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativekeyboardevent.md"
     },
     {
@@ -2728,6 +2763,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeMouseEvent = MouseEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativemouseevent.md"
     },
     {
@@ -2741,6 +2777,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativePointerEvent = PointerEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativepointerevent.md"
     },
     {
@@ -2754,6 +2791,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeTouchEvent = TouchEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativetouchevent.md"
     },
     {
@@ -2767,6 +2805,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeTransitionEvent = TransitionEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativetransitionevent.md"
     },
     {
@@ -2780,6 +2819,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeUIEvent = UIEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativeuievent.md"
     },
     {
@@ -2793,6 +2833,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NativeWheelEvent = WheelEvent;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativewheelevent.md"
     },
     {
@@ -2823,6 +2864,7 @@
       ],
       "kind": "Variable",
       "content": "Marks a property on a store as non-serializable.\n\nAt times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.\n\nYou can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`<!-- -->. You will be responsible for recovering from this.\n\nSee: \\[noSerialize Tutorial\\](http://qwik.builder.io/tutorial/store/no-serialize)\n\n\n```typescript\nnoSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts",
       "mdFile": "qwik.noserialize.md"
     },
     {
@@ -2836,6 +2878,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Marks a property on a store as non-serializable.\n\nAt times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.\n\nYou can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`<!-- -->. You will be responsible for recovering from this.\n\nSee: \\[noSerialize Tutorial\\](http://qwik.builder.io/tutorial/store/no-serialize)\n\n\n```typescript\nnoSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts",
       "mdFile": "qwik.noserialize.md"
     },
     {
@@ -2900,6 +2943,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;\n```\n**References:** [JSXNode](#jsxnode)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.onrenderfn.md"
     },
     {
@@ -2930,6 +2974,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](./qwik.onvisibletaskoptions.eagerness.md) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ |\n|  [strategy?](#onvisibletaskoptions-strategy) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.onvisibletaskoptions.md"
     },
     {
@@ -3113,6 +3158,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface PropFnInterface<ARGS extends any[], RET> \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfninterface.md"
     },
     {
@@ -3126,6 +3172,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfunction.md"
     },
     {
@@ -3156,6 +3203,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Infers `Props` from the component.\n\n```typescript\nexport const OtherComponent = component$(() => {\n  return $(() => <Counter value={100} />);\n});\n```\n\n\n```typescript\nexport type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;\n```\n**References:** [Component](#component)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propsof.md"
     },
     {
@@ -3186,6 +3234,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Extends the defined component PROPS, adding the default ones (children and q:slot)..\n\n\n```typescript\nexport type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;\n```\n**References:** [ComponentBaseProps](#componentbaseprops)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.publicprops.md"
     },
     {
@@ -3199,6 +3248,7 @@
       ],
       "kind": "Variable",
       "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts",
       "mdFile": "qwik.qrl.md"
     },
     {
@@ -3229,6 +3279,7 @@
       ],
       "kind": "Interface",
       "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.qrl.md"
     },
     {
@@ -3259,6 +3310,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [animationName](#qwikanimationevent-animationname) |  | string |  |\n|  [elapsedTime](#qwikanimationevent-elapsedtime) |  | number |  |\n|  [pseudoElement](#qwikanimationevent-pseudoelement) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikanimationevent.md"
     },
     {
@@ -3272,6 +3324,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](#qwikchangeevent-target) |  | EventTarget &amp; T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikchangeevent.md"
     },
     {
@@ -3285,6 +3338,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [clipboardData](#qwikclipboardevent-clipboarddata) |  | DataTransfer |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikclipboardevent.md"
     },
     {
@@ -3298,6 +3352,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [data](#qwikcompositionevent-data) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikcompositionevent.md"
     },
     {
@@ -3311,6 +3366,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikDOMAttributes extends DOMAttributes<any> \n```\n**Extends:** [DOMAttributes](#domattributes)<!-- -->&lt;any&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts",
       "mdFile": "qwik.qwikdomattributes.md"
     },
     {
@@ -3324,6 +3380,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeDragEvent](#nativedragevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dataTransfer](#qwikdragevent-datatransfer) |  | DataTransfer |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikdragevent.md"
     },
     {
@@ -3337,6 +3394,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [relatedTarget](#qwikfocusevent-relatedtarget) |  | EventTarget \\| null |  |\n|  [target](./qwik.qwikfocusevent.target.md) |  | EventTarget &amp; T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikfocusevent.md"
     },
     {
@@ -3350,6 +3408,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [script](#qwikintrinsicelements-script) |  | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts",
       "mdFile": "qwik.qwikintrinsicelements.md"
     },
     {
@@ -3363,6 +3422,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](./qwik.qwikinvalidevent.target.md) |  | EventTarget &amp; T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikinvalidevent.md"
     },
     {
@@ -3376,6 +3436,7 @@
       ],
       "kind": "Namespace",
       "content": "```typescript\nexport declare namespace QwikJSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [Element](./qwik.qwikjsx.element.md) |  |\n|  [ElementChildrenAttribute](./qwik.qwikjsx.elementchildrenattribute.md) |  |\n|  [IntrinsicAttributes](./qwik.qwikjsx.intrinsicattributes.md) |  |\n|  [IntrinsicElements](./qwik.qwikjsx.intrinsicelements.md) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts",
       "mdFile": "qwik.qwikjsx.md"
     },
     {
@@ -3389,6 +3450,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#qwikkeyboardevent-altkey) |  | boolean |  |\n|  [charCode](#qwikkeyboardevent-charcode) |  | number |  |\n|  [ctrlKey](#qwikkeyboardevent-ctrlkey) |  | boolean |  |\n|  [key](./qwik.qwikkeyboardevent.key.md) |  | string | See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#qwikkeyboardevent-keycode) |  | number |  |\n|  [locale](#qwikkeyboardevent-locale) |  | string |  |\n|  [location](#qwikkeyboardevent-location) |  | number |  |\n|  [metaKey](#qwikkeyboardevent-metakey) |  | boolean |  |\n|  [repeat](#qwikkeyboardevent-repeat) |  | boolean |  |\n|  [shiftKey](#qwikkeyboardevent-shiftkey) |  | boolean |  |\n|  [which](#qwikkeyboardevent-which) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikkeyboardevent.md"
     },
     {
@@ -3402,6 +3464,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> \n```\n**Extends:** SyntheticEvent&lt;T, E&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](./qwik.qwikmouseevent.altkey.md) |  | boolean |  |\n|  [button](#qwikmouseevent-button) |  | number |  |\n|  [buttons](#qwikmouseevent-buttons) |  | number |  |\n|  [clientX](#qwikmouseevent-clientx) |  | number |  |\n|  [clientY](#qwikmouseevent-clienty) |  | number |  |\n|  [ctrlKey](./qwik.qwikmouseevent.ctrlkey.md) |  | boolean |  |\n|  [metaKey](./qwik.qwikmouseevent.metakey.md) |  | boolean |  |\n|  [movementX](#qwikmouseevent-movementx) |  | number |  |\n|  [movementY](#qwikmouseevent-movementy) |  | number |  |\n|  [pageX](#qwikmouseevent-pagex) |  | number |  |\n|  [pageY](#qwikmouseevent-pagey) |  | number |  |\n|  [relatedTarget](./qwik.qwikmouseevent.relatedtarget.md) |  | EventTarget \\| null |  |\n|  [screenX](#qwikmouseevent-screenx) |  | number |  |\n|  [screenY](#qwikmouseevent-screeny) |  | number |  |\n|  [shiftKey](./qwik.qwikmouseevent.shiftkey.md) |  | boolean |  |\n|  [x](#qwikmouseevent-x) |  | number |  |\n|  [y](#qwikmouseevent-y) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](./qwik.qwikmouseevent.getmodifierstate.md) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikmouseevent.md"
     },
     {
@@ -3415,6 +3478,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativePointerEvent](#nativepointerevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [height](#qwikpointerevent-height) |  | number |  |\n|  [isPrimary](#qwikpointerevent-isprimary) |  | boolean |  |\n|  [pointerId](#qwikpointerevent-pointerid) |  | number |  |\n|  [pointerType](#qwikpointerevent-pointertype) |  | 'mouse' \\| 'pen' \\| 'touch' |  |\n|  [pressure](#qwikpointerevent-pressure) |  | number |  |\n|  [tiltX](#qwikpointerevent-tiltx) |  | number |  |\n|  [tiltY](#qwikpointerevent-tilty) |  | number |  |\n|  [width](#qwikpointerevent-width) |  | number |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikpointerevent.md"
     },
     {
@@ -3428,6 +3492,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiksubmitevent.md"
     },
     {
@@ -3441,6 +3506,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](./qwik.qwiktouchevent.altkey.md) |  | boolean |  |\n|  [changedTouches](#qwiktouchevent-changedtouches) |  | TouchList |  |\n|  [ctrlKey](./qwik.qwiktouchevent.ctrlkey.md) |  | boolean |  |\n|  [metaKey](./qwik.qwiktouchevent.metakey.md) |  | boolean |  |\n|  [shiftKey](./qwik.qwiktouchevent.shiftkey.md) |  | boolean |  |\n|  [targetTouches](#qwiktouchevent-targettouches) |  | TouchList |  |\n|  [touches](#qwiktouchevent-touches) |  | TouchList |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](./qwik.qwiktouchevent.getmodifierstate.md) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiktouchevent.md"
     },
     {
@@ -3454,6 +3520,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [elapsedTime](./qwik.qwiktransitionevent.elapsedtime.md) |  | number |  |\n|  [propertyName](#qwiktransitionevent-propertyname) |  | string |  |\n|  [pseudoElement](./qwik.qwiktransitionevent.pseudoelement.md) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiktransitionevent.md"
     },
     {
@@ -3467,6 +3534,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [detail](#qwikuievent-detail) |  | number |  |\n|  [view](#qwikuievent-view) |  | AbstractView |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikuievent.md"
     },
     {
@@ -3480,6 +3548,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeWheelEvent](#nativewheelevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deltaMode](#qwikwheelevent-deltamode) |  | number |  |\n|  [deltaX](#qwikwheelevent-deltax) |  | number |  |\n|  [deltaY](#qwikwheelevent-deltay) |  | number |  |\n|  [deltaZ](#qwikwheelevent-deltaz) |  | number |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikwheelevent.md"
     },
     {
@@ -3544,6 +3613,7 @@
       ],
       "kind": "Interface",
       "content": "Type of the value returned by `useRef()`<!-- -->.\n\n\n```typescript\nexport interface Ref<T = Element> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [current](#ref-current) |  | T \\| undefined |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts",
       "mdFile": "qwik.ref.md"
     },
     {
@@ -3591,6 +3661,7 @@
       ],
       "kind": "Variable",
       "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
       "mdFile": "qwik.render.md"
     },
     {
@@ -3604,6 +3675,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nRenderOnce: FunctionComponent<{\n    children?: any;\n    key?: string | number | null | undefined;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.renderonce.md"
     },
     {
@@ -3617,6 +3689,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [serverData?](#renderoptions-serverdata) |  | Record&lt;string, any&gt; | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
       "mdFile": "qwik.renderoptions.md"
     },
     {
@@ -3630,6 +3703,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderResult \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cleanup()](#renderresult-cleanup) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
       "mdFile": "qwik.renderresult.md"
     },
     {
@@ -3643,6 +3717,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#renderssroptions-base) |  | string | _(Optional)_ |\n|  [beforeClose?](#renderssroptions-beforeclose) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#renderssroptions-beforecontent) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#renderssroptions-containerattributes) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#renderssroptions-containertagname) |  | string |  |\n|  [serverData?](./qwik.renderssroptions.serverdata.md) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#renderssroptions-stream) |  | [StreamWriter](#streamwriter) |  |\n|  [url?](#renderssroptions-url) |  | string | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts",
       "mdFile": "qwik.renderssroptions.md"
     },
     {
@@ -3707,6 +3782,7 @@
       ],
       "kind": "Variable",
       "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({\n    city: '',\n  });\n\n  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {\n    const cityName = track(() => store.city);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = res.json();\n    return data;\n  });\n\n  return (\n    <div>\n      <input name=\"city\" onInput$={(ev: any) => (store.city = ev.target.value)} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nResource: <T>(props: ResourceProps<T>) => JSXNode\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resource.md"
     },
     {
@@ -3720,6 +3796,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceCtx<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [previous](#resourcectx-previous) |  | T \\| undefined |  |\n|  [track](#resourcectx-track) |  | [Tracker](#tracker) |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cache(policyOrMilliseconds)](#resourcectx-cache) |  |\n|  [cleanup(callback)](./qwik.resourcectx.cleanup.md) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcectx.md"
     },
     {
@@ -3733,6 +3810,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;\n```\n**References:** [ResourceCtx](#resourcectx)<!-- -->, [ValueOrPromise](#valueorpromise)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcefn.md"
     },
     {
@@ -3746,6 +3824,7 @@
       ],
       "kind": "Interface",
       "content": "Options to pass to `useResource$()`\n\n\n```typescript\nexport interface ResourceOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [timeout?](#resourceoptions-timeout) |  | number | _(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceoptions.md"
     },
     {
@@ -3759,6 +3838,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourcePending<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [loading](#resourcepending-loading) | <code>readonly</code> | boolean |  |\n|  [value](#resourcepending-value) | <code>readonly</code> | Promise&lt;T&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcepending.md"
     },
     {
@@ -3772,6 +3852,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#resourceprops-onpending) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#resourceprops-onrejected) |  | (reason: any) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#resourceprops-onresolved) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](./qwik.resourceprops.value.md) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceprops.md"
     },
     {
@@ -3785,6 +3866,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceRejected<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [loading](./qwik.resourcerejected.loading.md) | <code>readonly</code> | boolean |  |\n|  [value](./qwik.resourcerejected.value.md) | <code>readonly</code> | Promise&lt;T&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcerejected.md"
     },
     {
@@ -3798,6 +3880,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceResolved<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [loading](./qwik.resourceresolved.loading.md) | <code>readonly</code> | boolean |  |\n|  [value](./qwik.resourceresolved.value.md) | <code>readonly</code> | Promise&lt;T&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourceresolved.md"
     },
     {
@@ -3811,6 +3894,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;\n```\n**References:** [ResourcePending](#resourcepending)<!-- -->, [ResourceResolved](#resourceresolved)<!-- -->, [ResourceRejected](#resourcerejected)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcereturn.md"
     },
     {
@@ -3994,6 +4078,7 @@
       ],
       "kind": "Variable",
       "content": "Sets the `CorePlatform`<!-- -->.\n\nThis is useful to override the platform in tests to change the behavior of, `requestAnimationFrame`<!-- -->, and import resolution.\n\n\n```typescript\nsetPlatform: (plt: CorePlatform) => CorePlatform\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts",
       "mdFile": "qwik.setplatform.md"
     },
     {
@@ -4024,6 +4109,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface Signal<T = any> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [value](./qwik.signal.value.md) |  | T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
       "mdFile": "qwik.signal.md"
     },
     {
@@ -4037,6 +4123,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nSkipRender: JSXNode\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.skiprender.md"
     },
     {
@@ -4067,6 +4154,7 @@
       ],
       "kind": "Variable",
       "content": "Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts",
       "mdFile": "qwik.slot.md"
     },
     {
@@ -4080,6 +4168,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface SnapshotListener \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [el](#snapshotlistener-el) |  | Element |  |\n|  [key](./qwik.snapshotlistener.key.md) |  | string |  |\n|  [qrl](#snapshotlistener-qrl) |  | [QRL](#qrl)<!-- -->&lt;any&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotlistener.md"
     },
     {
@@ -4093,6 +4182,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type SnapshotMeta = Record<string, SnapshotMetaValue>;\n```\n**References:** [SnapshotMetaValue](#snapshotmetavalue)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotmeta.md"
     },
     {
@@ -4106,6 +4196,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface SnapshotMetaValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [c?](#snapshotmetavalue-c) |  | string | _(Optional)_ |\n|  [h?](#snapshotmetavalue-h) |  | string | _(Optional)_ |\n|  [s?](#snapshotmetavalue-s) |  | string | _(Optional)_ |\n|  [w?](#snapshotmetavalue-w) |  | string | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotmetavalue.md"
     },
     {
@@ -4119,6 +4210,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [mode](#snapshotresult-mode) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#snapshotresult-objs) |  | any\\[\\] |  |\n|  [qrls](#snapshotresult-qrls) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#snapshotresult-resources) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#snapshotresult-state) |  | [SnapshotState](#snapshotstate) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotresult.md"
     },
     {
@@ -4132,6 +4224,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface SnapshotState \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#snapshotstate-ctx) |  | [SnapshotMeta](#snapshotmeta) |  |\n|  [objs](./qwik.snapshotstate.objs.md) |  | any\\[\\] |  |\n|  [refs](#snapshotstate-refs) |  | Record&lt;string, string&gt; |  |\n|  [subs](#snapshotstate-subs) |  | any\\[\\] |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotstate.md"
     },
     {
@@ -4162,6 +4255,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nSSRComment: FunctionComponent<{\n    data: string;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrcomment.md"
     },
     {
@@ -4175,6 +4269,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nSSRHint: FunctionComponent<SSRHintProps>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrhint.md"
     },
     {
@@ -4188,6 +4283,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface SSRHintProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dynamic?](#ssrhintprops-dynamic) |  | boolean | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrhintprops.md"
     },
     {
@@ -4201,6 +4297,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nSSRRaw: FunctionComponent<{\n    data: string;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrraw.md"
     },
     {
@@ -4214,6 +4311,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nSSRStream: FunctionComponent<SSRStreamProps>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrstream.md"
     },
     {
@@ -4227,6 +4325,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nSSRStreamBlock: FunctionComponent<{\n    children?: any;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrstreamblock.md"
     },
     {
@@ -4240,6 +4339,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface SSRStreamProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](./qwik.ssrstreamprops.children.md) |  | AsyncGenerator&lt;[JSXChildren](#jsxchildren)<!-- -->, void, any&gt; \\| ((stream: [StreamWriter](#streamwriter)<!-- -->) =&gt; Promise&lt;void&gt;) \\| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren)<!-- -->, void, any&gt;) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrstreamprops.md"
     },
     {
@@ -4304,6 +4404,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type StreamWriter = {\n    write: (chunk: string) => void;\n};\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts",
       "mdFile": "qwik.streamwriter.md"
     },
     {
@@ -4402,6 +4503,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface TaskCtx \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [track](./qwik.taskctx.track.md) |  | [Tracker](#tracker) |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cleanup(callback)](./qwik.taskctx.cleanup.md) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.taskctx.md"
     },
     {
@@ -4415,6 +4517,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;\n```\n**References:** [TaskCtx](#taskctx)<!-- -->, [ValueOrPromise](#valueorpromise)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.taskfn.md"
     },
     {
@@ -4530,6 +4633,7 @@
       ],
       "kind": "Interface",
       "content": "Used to signal to Qwik which state should be watched for changes.\n\nThe `Tracker` is passed into the `taskFn` of `useTask`<!-- -->. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.\n\n\\#\\#\\# Example\n\nThe `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({ count: 0, doubleCount: 0 });\n  useTask$(({ track }) => {\n    const count = track(() => store.count);\n    store.doubleCount = 2 * count;\n  });\n  return (\n    <div>\n      <span>\n        {store.count} / {store.doubleCount}\n      </span>\n      <button onClick$={() => store.count++}>+</button>\n    </div>\n  );\n});\n```\n\n\n```typescript\nexport interface Tracker \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.tracker.md"
     },
     {
@@ -4611,6 +4715,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuntrack: <T>(fn: () => T) => T\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts",
       "mdFile": "qwik.untrack.md"
     },
     {
@@ -4641,6 +4746,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuseComputed$: Computed\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usecomputed_.md"
     },
     {
@@ -4654,6 +4760,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuseComputedQrl: ComputedQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usecomputedqrl.md"
     },
     {
@@ -4667,6 +4774,7 @@
       ],
       "kind": "Variable",
       "content": "Retrieve Context value.\n\nUse `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nuseContext: UseContext\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.usecontext.md"
     },
     {
@@ -4680,6 +4788,7 @@
       ],
       "kind": "Variable",
       "content": "Assign a value to a Context.\n\nUse `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nuseContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.usecontextprovider.md"
     },
     {
@@ -4693,6 +4802,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuseErrorBoundary: () => Readonly<ErrorBoundaryStore>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts",
       "mdFile": "qwik.useerrorboundary.md"
     },
     {
@@ -4706,6 +4816,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuseId: () => string\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts",
       "mdFile": "qwik.useid.md"
     },
     {
@@ -4719,6 +4830,7 @@
       ],
       "kind": "Variable",
       "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\n\n```typescript\nuseOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "qwik.useon.md"
     },
     {
@@ -4732,6 +4844,7 @@
       ],
       "kind": "Variable",
       "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "qwik.useondocument.md"
     },
     {
@@ -4745,6 +4858,7 @@
       ],
       "kind": "Variable",
       "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "qwik.useonwindow.md"
     },
     {
@@ -4758,6 +4872,7 @@
       ],
       "kind": "Variable",
       "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({\n    city: '',\n  });\n\n  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {\n    const cityName = track(() => store.city);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = res.json();\n    return data;\n  });\n\n  return (\n    <div>\n      <input name=\"city\" onInput$={(ev: any) => (store.city = ev.target.value)} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.useresource_.md"
     },
     {
@@ -4771,6 +4886,7 @@
       ],
       "kind": "Variable",
       "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({\n    city: '',\n  });\n\n  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {\n    const cityName = track(() => store.city);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = res.json();\n    return data;\n  });\n\n  return (\n    <div>\n      <input name=\"city\" onInput$={(ev: any) => (store.city = ev.target.value)} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.useresourceqrl.md"
     },
     {
@@ -4784,6 +4900,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  key | string |  |\n\n**Returns:**\n\nT \\| undefined",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
       "mdFile": "qwik.useserverdata.md"
     },
     {
@@ -4797,6 +4914,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuseSignal: UseSignal\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.usesignal.md"
     },
     {
@@ -4810,6 +4928,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nuseSignal: UseSignal\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.usesignal.md"
     },
     {
@@ -4823,6 +4942,7 @@
       ],
       "kind": "Variable",
       "content": "Creates an object that Qwik can track across serializations.\n\nUse `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`<!-- -->s to refer to the store.\n\n\\#\\#\\# Example\n\nExample showing how `useStore` is used in Counter example to keep track of the count.\n\n```tsx\nconst Stores = component$(() => {\n  const counter = useCounter(1);\n\n  // Reactivity happens even for nested objects and arrays\n  const userData = useStore({\n    name: 'Manu',\n    address: {\n      address: '',\n      city: '',\n    },\n    orgs: [],\n  });\n\n  // useStore() can also accept a function to calculate the initial value\n  const state = useStore(() => {\n    return {\n      value: expensiveInitialValue(),\n    };\n  });\n\n  return (\n    <div>\n      <div>Counter: {counter.value}</div>\n      <Child userData={userData} state={state} />\n    </div>\n  );\n});\n\nfunction useCounter(step: number) {\n  // Multiple stores can be created in custom hooks for convenience and composability\n  const counterStore = useStore({\n    value: 0,\n  });\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      counterStore.value += step;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n  return counterStore;\n}\n```\n\n\n```typescript\nuseStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "qwik.usestore.md"
     },
     {
@@ -4836,6 +4956,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#usestoreoptions-deep) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#usestoreoptions-reactive) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |\n|  [recursive?](./qwik.usestoreoptions.recursive.md) |  | boolean | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "qwik.usestoreoptions.md"
     },
     {
@@ -4849,6 +4970,7 @@
       ],
       "kind": "Variable",
       "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStyles$: (first: string) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestyles_.md"
     },
     {
@@ -4862,6 +4984,7 @@
       ],
       "kind": "Variable",
       "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesQrl: (styles: QRL<string>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesqrl.md"
     },
     {
@@ -4875,6 +4998,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface UseStylesScoped \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [scopeId](#usestylesscoped-scopeid) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesscoped.md"
     },
     {
@@ -4888,6 +5012,7 @@
       ],
       "kind": "Variable",
       "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScoped$: (first: string) => UseStylesScoped\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesscoped_.md"
     },
     {
@@ -4901,6 +5026,7 @@
       ],
       "kind": "Variable",
       "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesscopedqrl.md"
     },
     {
@@ -4914,6 +5040,7 @@
       ],
       "kind": "Variable",
       "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetask_.md"
     },
     {
@@ -4927,6 +5054,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface UseTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](#usetaskoptions-eagerness) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetaskoptions.md"
     },
     {
@@ -4940,6 +5068,7 @@
       ],
       "kind": "Variable",
       "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetaskqrl.md"
     },
     {
@@ -4953,6 +5082,7 @@
       ],
       "kind": "Variable",
       "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usevisibletask_.md"
     },
     {
@@ -4966,6 +5096,7 @@
       ],
       "kind": "Variable",
       "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usevisibletaskqrl.md"
     },
     {
@@ -4996,6 +5127,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Type representing a value which is either resolve or a promise.\n\n\n```typescript\nexport type ValueOrPromise<T> = T | Promise<T>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/types.ts",
       "mdFile": "qwik.valueorpromise.md"
     },
     {
@@ -5009,6 +5141,7 @@
       ],
       "kind": "Variable",
       "content": "QWIK\\_VERSION\n\n\n```typescript\nversion: string\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/version.ts",
       "mdFile": "qwik.version.md"
     },
     {
@@ -5039,6 +5172,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.visibletaskstrategy.md"
     },
     {

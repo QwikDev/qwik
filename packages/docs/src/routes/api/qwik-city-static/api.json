@@ -132,6 +132,7 @@
       ],
       "kind": "Function",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/index.ts",
       "mdFile": "qwik.generate.md"
     },
     {
@@ -332,6 +333,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts",
       "mdFile": "qwik.staticgenerateoptions.md"
     },
     {
@@ -345,6 +347,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts",
       "mdFile": "qwik.staticgeneraterenderoptions.md"
     },
     {
@@ -358,6 +361,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts",
       "mdFile": "qwik.staticgenerateresult.md"
     },
     {

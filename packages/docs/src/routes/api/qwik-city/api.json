@@ -30,6 +30,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.action.md"
     },
     {
@@ -43,6 +44,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.actionconstructor.md"
     },
     {
@@ -56,6 +58,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.actionoptions.md"
     },
     {
@@ -69,6 +72,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.actionoptionswithvalidation.md"
     },
     {
@@ -99,6 +103,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.actionstore.md"
     },
     {
@@ -180,6 +185,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.contentheading.md"
     },
     {
@@ -193,6 +199,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.contentmenu.md"
     },
     {
@@ -257,6 +264,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.documenthead.md"
     },
     {
@@ -270,6 +278,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.documentheadprops.md"
     },
     {
@@ -283,6 +292,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.documentheadvalue.md"
     },
     {
@@ -296,6 +306,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.documentlink.md"
     },
     {
@@ -309,6 +320,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.documentmeta.md"
     },
     {
@@ -322,6 +334,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.documentstyle.md"
     },
     {
@@ -335,6 +348,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.failreturn.md"
     },
     {
@@ -348,6 +362,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
       "mdFile": "qwik.form.md"
     },
     {
@@ -378,6 +393,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
       "mdFile": "qwik.formprops.md"
     },
     {
@@ -391,6 +407,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
       "mdFile": "qwik.formsubmitsuccessdetail.md"
     },
     {
@@ -421,6 +438,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.globalaction_.md"
     },
     {
@@ -434,6 +452,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.globalactionqrl.md"
     },
     {
@@ -702,6 +721,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
       "mdFile": "qwik.link.md"
     },
     {
@@ -715,6 +735,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
       "mdFile": "qwik.linkprops.md"
     },
     {
@@ -745,6 +766,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.loader.md"
     },
     {
@@ -758,6 +780,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.loadersignal.md"
     },
     {
@@ -788,6 +811,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.menudata.md"
     },
     {
@@ -903,6 +927,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.pagemodule.md"
     },
     {
@@ -933,6 +958,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.pathparams.md"
     },
     {
@@ -997,6 +1023,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik.qwikcitymockprovider.md"
     },
     {
@@ -1010,6 +1037,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.qwikcityplan.md"
     },
     {
@@ -1023,6 +1051,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik.qwikcityprovider.md"
     },
     {
@@ -1104,6 +1133,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.resolveddocumenthead.md"
     },
     {
@@ -1134,6 +1164,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.routeaction_.md"
     },
     {
@@ -1147,6 +1178,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.routeactionqrl.md"
     },
     {
@@ -1160,6 +1192,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.routedata.md"
     },
     {
@@ -1173,6 +1206,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.routeloader_.md"
     },
     {
@@ -1186,6 +1220,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.routeloaderqrl.md"
     },
     {
@@ -1199,6 +1234,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.routelocation.md"
     },
     {
@@ -1212,6 +1248,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.routenavigate.md"
     },
     {
@@ -1225,6 +1262,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts",
       "mdFile": "qwik.routeroutlet.md"
     },
     {
@@ -1255,6 +1293,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.server_.md"
     },
     {
@@ -1285,6 +1324,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.serverqrl.md"
     },
     {
@@ -1298,6 +1338,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx",
       "mdFile": "qwik.serviceworkerregister.md"
     },
     {
@@ -1345,6 +1386,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.staticgenerate.md"
     },
     {
@@ -1358,6 +1400,7 @@
       ],
       "kind": "TypeAlias",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.staticgeneratehandler.md"
     },
     {
@@ -1524,6 +1567,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik.usecontent.md"
     },
     {
@@ -1537,6 +1581,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik.usedocumenthead.md"
     },
     {
@@ -1550,6 +1595,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik.uselocation.md"
     },
     {
@@ -1563,6 +1609,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik.usenavigate.md"
     },
     {
@@ -1593,6 +1640,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.validator_.md"
     },
     {
@@ -1606,6 +1654,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.validatorqrl.md"
     },
     {
@@ -1653,6 +1702,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.zod_.md"
     },
     {
@@ -1666,6 +1716,7 @@
       ],
       "kind": "Interface",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik.zodconstructor.md"
     },
     {
@@ -1679,6 +1730,7 @@
       ],
       "kind": "Variable",
       "content": "",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik.zodqrl.md"
     }
   ]

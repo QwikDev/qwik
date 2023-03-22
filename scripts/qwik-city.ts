@@ -435,7 +435,11 @@ async function buildAdapterExpressVite(config: BuildConfig, inputDir: string, ou
   });
 }
 
-async function buildAdapterNodeServerVite(config: BuildConfig, inputDir: string, outputDir: string) {
+async function buildAdapterNodeServerVite(
+  config: BuildConfig,
+  inputDir: string,
+  outputDir: string
+) {
   const entryPoints = [join(inputDir, 'adapters', 'node-server', 'vite', 'index.ts')];
 
   await build({

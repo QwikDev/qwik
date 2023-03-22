@@ -28,7 +28,7 @@
   margin: 0;
 }
 
-.docs.api ul li {
+.docs.api ul li.api-item {
   padding: 0;
 }
 

@@ -31,7 +31,7 @@ export const ApiMemberList = component$(({ data }: any) => (
 
       // TODO: link must be adjusted!
       return (
-        <li key="member" class={`list-none text-sm ${kindClass}`}>
+        <li key="member" class={`api-item list-none text-sm ${kindClass}`}>
           <a href={`qwik#${member.name}`}>{member.name}</a>
         </li>
       );

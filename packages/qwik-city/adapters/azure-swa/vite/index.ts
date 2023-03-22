@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import fs from 'node:fs';
 
 /**
- * @alpha
+ * @public
  */
 export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
   const env = process?.env;
@@ -68,23 +68,23 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `azureSwaAdapter` exported from `@builder.io/qwik-city/adapters/azure-swa/vite` instead.
  */
 export const azureSwaAdaptor = azureSwaAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export interface AzureSwaAdapterOptions extends ServerAdapterOptions {}
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `AzureSwaAdapterOptions` instead.
  */
 export type AzureSwaAdaptorOptions = AzureSwaAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

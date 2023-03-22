@@ -79,7 +79,7 @@ export interface ContextId<STATE> {
 }
 
 /**
- * @beta
+ * @public
  * @deprecated Please use `ContextId` instead.
  */
 export interface Context<STATE extends object> extends ContextId<STATE> {}
@@ -146,7 +146,7 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
 };
 
 /**
- * @beta
+ * @public
  * @deprecated Please use `createContextId` instead.
  */
 
@@ -230,7 +230,7 @@ export const useContextProvider = <STATE extends object>(
 };
 
 /**
- * @alpha
+ * @public
  */
 export const useContextBoundary = (...ids: ContextId<any>[]) => {
   const { get, set, elCtx, iCtx } = useSequentialScope<boolean>();

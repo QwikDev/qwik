@@ -6,7 +6,7 @@ import { normalizeUrl } from './util';
  * Create emulated `Document` for server environment. Does not implement the full browser
  * `document` and `window` API. This api may be removed in the future.
  *
- * @alpha
+ * @public
  *
  */
 export function createDocument(opts?: MockDocumentOptions) {
@@ -18,7 +18,7 @@ export function createDocument(opts?: MockDocumentOptions) {
 /**
  * Create emulated `window` useful for testing.
  *
- * @alpha
+ * @public
  *
  */
 export function createWindow(opts: MockDocumentOptions = {}): MockWindow {

@@ -27,7 +27,7 @@ const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 const announcedQRL = /*@__PURE__*/ new Set<string>();
 
 /**
- * @alpha
+ * @public
  */
 export interface QRLDev {
   file: string;
@@ -49,7 +49,7 @@ export interface QRLDev {
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
  * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @alpha
+ * @public
  */
 // </docs>
 export const qrl = <T = any>(

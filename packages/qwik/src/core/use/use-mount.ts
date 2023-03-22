@@ -129,13 +129,13 @@ export const useClientMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl);
 
 /**
- * @beta
+ * @public
  * @deprecated - use `useTask$()` instead
  */
 export const useMountQrl = useTaskQrl;
 
 /**
- * @beta
+ * @public
  * @deprecated - use `useTask$()` instead
  */
 export const useMount$ = /*#__PURE__*/ useTask$;

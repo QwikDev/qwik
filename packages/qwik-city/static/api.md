@@ -8,10 +8,10 @@
 
 import type { RenderOptions } from '@builder.io/qwik/server';
 
-// @alpha
+// @public
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
     basePathname?: string;
     qwikCityPlanModulePath: string;
@@ -20,7 +20,7 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
     rootDir?: string;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateRenderOptions extends RenderOptions {
     emit404Pages?: boolean;
     emitData?: boolean;
@@ -35,7 +35,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
     sitemapOutFile?: string | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateResult {
     // (undocumented)
     duration: number;

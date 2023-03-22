@@ -2,7 +2,7 @@ import { normalize } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /**
- * @alpha
+ * @public
  */
 export function toFileUrl(filePath: string) {
   return pathToFileURL(filePath).href;

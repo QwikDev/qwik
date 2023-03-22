@@ -127,7 +127,7 @@ export class Cookie implements CookieInterface {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const mergeHeadersCookies = (headers: Headers, cookies: CookieInterface) => {
   const cookieHeaders = cookies.headers();

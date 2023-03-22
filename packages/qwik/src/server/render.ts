@@ -25,7 +25,7 @@ const DOCTYPE = '<!DOCTYPE html>';
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
  *
- * @alpha
+ * @public
  *
  */
 export async function renderToStream(
@@ -245,7 +245,7 @@ export async function renderToStream(
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
  *
- * @alpha
+ * @public
  *
  */
 export async function renderToString(
@@ -269,7 +269,7 @@ export async function renderToString(
 }
 
 /**
- * @alpha
+ * @public
  */
 export function resolveManifest(
   manifest: QwikManifest | ResolvedManifest | undefined

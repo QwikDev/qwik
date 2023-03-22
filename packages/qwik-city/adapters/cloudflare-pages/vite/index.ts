@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * @alpha
+ * @public
  */
 export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {}): any {
   const env = process?.env;
@@ -54,13 +54,13 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `cloudflarePagesAdapter` exported from `@builder.io/qwik-city/adapters/cloudflare-pages/vite` instead.
  */
 export const cloudflarePagesAdaptor = cloudflarePagesAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
   /**
@@ -80,12 +80,12 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `CloudflarePagesAdapterOptions` instead.
  */
 export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

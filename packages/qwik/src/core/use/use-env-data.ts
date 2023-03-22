@@ -1,17 +1,17 @@
 import { useInvokeContext } from './use-core';
 
 /**
- * @alpha
+ * @public
  */
 export function useServerData<T>(key: string): T | undefined;
 
 /**
- * @alpha
+ * @public
  */
 export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 
 /**
- * @alpha
+ * @public
  */
 export function useServerData(key: string, defaultValue?: any) {
   const ctx = useInvokeContext();
@@ -19,13 +19,13 @@ export function useServerData(key: string, defaultValue?: any) {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `useServerData` instead.
  */
 export const useUserContext = useServerData;
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `useServerData` instead.
  */
 export const useEnvData = useServerData;

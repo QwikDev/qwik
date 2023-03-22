@@ -25,7 +25,7 @@ async function triggerUserEvent(
 
 /**
  * CreatePlatform and CreateDocument
- * @alpha
+ * @public
  */
 export const createDOM = async function () {
   const qwik = await getQwik();

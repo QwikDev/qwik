@@ -255,13 +255,13 @@ export const $ = <T>(expression: T): QRL<T> => {
 };
 
 /**
- * @alpha
+ * @public
  */
 export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
   return qrl;
 };
 
 /**
- * @alpha
+ * @public
  */
 export const event$ = implicit$FirstArg(eventQrl);

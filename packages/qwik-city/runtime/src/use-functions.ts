@@ -15,23 +15,23 @@ import type {
 } from './types';
 
 /**
- * @alpha
+ * @public
  */
 export const useContent = () => useContext(ContentContext);
 
 /**
- * @alpha
+ * @public
  */
 export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
   useContext(DocumentHeadContext);
 
 /**
- * @alpha
+ * @public
  */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
 
 /**
- * @alpha
+ * @public
  */
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 

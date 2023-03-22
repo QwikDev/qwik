@@ -7,17 +7,17 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function expressAdapter(opts?: ExpressAdapterOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface ExpressAdapterOptions extends ServerAdapterOptions {
 }
 
-// @alpha @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export const expressAdaptor: typeof expressAdapter;
 
-// @alpha @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export type ExpressAdaptorOptions = ExpressAdapterOptions;
 
 export { StaticGenerateRenderOptions }

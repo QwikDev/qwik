@@ -92,7 +92,7 @@ let _platform = /* @__PURE__ */ createPlatform();
  *
  * @param doc - The document of the application for which the platform is needed.
  * @param platform - The platform to use.
- * @alpha
+ * @public
  */
 // </docs>
 export const setPlatform = (plt: CorePlatform) => (_platform = plt);
@@ -110,7 +110,7 @@ export const setPlatform = (plt: CorePlatform) => (_platform = plt);
  * is associated with the application document.
  *
  * @param docOrNode - The document (or node) of the application for which the platform is needed.
- * @alpha
+ * @public
  */
 // </docs>
 export const getPlatform = (): CorePlatform => {

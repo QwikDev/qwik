@@ -2,7 +2,7 @@
 import { type ConfigEnv, mergeConfig, type UserConfigExport } from 'vite';
 
 /**
- * @alpha
+ * @public
  */
 export function extendConfig(
   baseConfigExport: UserConfigExport,

@@ -162,7 +162,7 @@ export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial
 };
 
 /**
- * @alpha
+ * @public
  * @deprecated Remove it, not needed anymore
  */
 export const mutable = <T>(v: T): T => {
@@ -187,7 +187,7 @@ export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => 
 };
 
 /**
- * @alpha
+ * @public
  */
 export const unwrapProxy = <T>(proxy: T): T => {
   return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;

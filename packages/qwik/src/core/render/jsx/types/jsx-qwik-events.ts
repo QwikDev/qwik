@@ -16,33 +16,33 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
   type: string;
 }
 
-/** @beta */
+/** @public */
 export type NativeAnimationEvent = AnimationEvent;
-/** @beta */
+/** @public */
 export type NativeClipboardEvent = ClipboardEvent;
-/** @beta */
+/** @public */
 export type NativeCompositionEvent = CompositionEvent;
-/** @beta */
+/** @public */
 export type NativeDragEvent = DragEvent;
-/** @beta */
+/** @public */
 export type NativeFocusEvent = FocusEvent;
-/** @beta */
+/** @public */
 export type NativeKeyboardEvent = KeyboardEvent;
-/** @beta */
+/** @public */
 export type NativeMouseEvent = MouseEvent;
-/** @beta */
+/** @public */
 export type NativeTouchEvent = TouchEvent;
-/** @beta */
+/** @public */
 export type NativePointerEvent = PointerEvent;
-/** @beta */
+/** @public */
 export type NativeTransitionEvent = TransitionEvent;
-/** @beta */
+/** @public */
 export type NativeUIEvent = UIEvent;
-/** @beta */
+/** @public */
 export type NativeWheelEvent = WheelEvent;
 
 /**
- * @beta
+ * @public
  */
 export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> {
   animationName: string;
@@ -51,14 +51,14 @@ export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, Nativ
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> {
   clipboardData: DataTransfer;
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikCompositionEvent<T = Element>
   extends SyntheticEvent<T, NativeCompositionEvent> {
@@ -66,14 +66,14 @@ export interface QwikCompositionEvent<T = Element>
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> {
   dataTransfer: DataTransfer;
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> {
   pointerId: number;
@@ -87,7 +87,7 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> {
   relatedTarget: EventTarget | null;
@@ -95,26 +95,26 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> {}
 
 /**
- * @beta
+ * @public
  */
 export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> {
   target: EventTarget & T;
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
   target: EventTarget & T;
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
   altKey: boolean;
@@ -138,7 +138,7 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> {
   altKey: boolean;
@@ -165,7 +165,7 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> {
   altKey: boolean;
@@ -182,7 +182,7 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> {
   detail: number;
@@ -190,7 +190,7 @@ export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEven
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> {
   deltaMode: number;
@@ -200,7 +200,7 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
 }
 
 /**
- * @beta
+ * @public
  */
 export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> {
   elapsedTime: number;

@@ -14,7 +14,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 // @builder.io/qwik-city/middleware/vercel-edge
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
   const qwikSerializer = {
@@ -94,11 +94,11 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformVercel {}

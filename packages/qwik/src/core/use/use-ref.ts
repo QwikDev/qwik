@@ -3,7 +3,7 @@ import { useStore } from './use-store.public';
 /**
  * Type of the value returned by `useRef()`.
  *
- * @alpha
+ * @public
  */
 export interface Ref<T = Element> {
   current: T | undefined;
@@ -43,7 +43,7 @@ export interface Ref<T = Element> {
  * ```
  *
  * @deprecated Use `useSignal` instead.
- * @alpha
+ * @public
  */
 // </docs>
 export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {

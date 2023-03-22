@@ -30,7 +30,7 @@ export { versions } from './utils';
 export { getQwikLoaderScript } from './scripts';
 
 /**
- * @alpha
+ * @public
  */
 export async function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined) {
   const platform = createPlatform({ manifest }, resolveManifest(manifest));

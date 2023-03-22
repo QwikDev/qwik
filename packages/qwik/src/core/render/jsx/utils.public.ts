@@ -5,12 +5,12 @@ import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 /**
- * @alpha
+ * @public
  */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
 /**
- * @alpha
+ * @public
  */
 export const RenderOnce: FunctionComponent<{
   children?: any;
@@ -20,29 +20,29 @@ export const RenderOnce: FunctionComponent<{
 };
 
 /**
- * @alpha
+ * @public
  */
 export const Fragment: FunctionComponent<{}> = ((props: any) => props.children) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
   jsx(SSRRaw, { data: `<!--${props.data}-->` }, null) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const Virtual: FunctionComponent<Record<string, any>> = ((props: any) =>
   props.children) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => {
   return [
@@ -53,7 +53,7 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
 };
 
 /**
- * @alpha
+ * @public
  */
 export interface SSRStreamProps {
   children:
@@ -63,20 +63,20 @@ export interface SSRStreamProps {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
   jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
 
 /**
- * @alpha
+ * @public
  */
 export interface SSRHintProps {
   dynamic?: boolean;
 }
 
 /**
- * @alpha
+ * @public
  */
 export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 

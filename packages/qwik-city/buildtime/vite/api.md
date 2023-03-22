@@ -8,16 +8,16 @@ import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { ConfigEnv } from 'vite';
 import { UserConfigExport } from 'vite';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function extendConfig(baseConfigExport: UserConfigExport, serverConfigExport: UserConfigExport): (env: ConfigEnv) => Promise<Record<string, any>>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type MdxOptions = CompileOptions;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityPlugin {
     // Warning: (ae-forgotten-export) The symbol "QwikCityPluginApi" needs to be exported by the entry point index.d.ts
     //
@@ -29,7 +29,7 @@ export interface QwikCityPlugin {
 
 // Warning: (ae-forgotten-export) The symbol "PluginOptions" needs to be exported by the entry point index.d.ts
 //
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
     // @deprecated (undocumented)
     basePathname?: string;

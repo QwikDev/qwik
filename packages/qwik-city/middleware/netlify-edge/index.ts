@@ -17,7 +17,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 declare const Deno: any;
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   const qwikSerializer = {
@@ -89,11 +89,11 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

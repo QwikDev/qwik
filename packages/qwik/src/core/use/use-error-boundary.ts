@@ -5,7 +5,7 @@ import { useOn } from './use-on';
 import { useStore } from './use-store.public';
 
 /**
- * @alpha
+ * @public
  */
 export const useErrorBoundary = (): Readonly<ErrorBoundaryStore> => {
   const store: ErrorBoundaryStore = useStore({

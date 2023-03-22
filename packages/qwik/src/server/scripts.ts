@@ -6,7 +6,7 @@ const QWIK_LOADER_OPTIMIZE_DEBUG: string = (global as any).QWIK_LOADER_OPTIMIZE_
 /**
  * Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader
  * script into HTML.
- * @alpha
+ * @public
  */
 export function getQwikLoaderScript(opts: { events?: string[]; debug?: boolean } = {}) {
   if (Array.isArray(opts.events) && opts.events.length > 0) {

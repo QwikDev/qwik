@@ -16,14 +16,14 @@ import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants
 import { _fnSignal } from '../qrl/inlined-fn';
 
 /**
- * @alpha
+ * @public
  */
 export interface Signal<T = any> {
   value: T;
 }
 
 /**
- * @alpha
+ * @public
  */
 export type ValueOrSignal<T> = T | Signal<T>;
 

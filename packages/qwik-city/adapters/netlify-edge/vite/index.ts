@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { basePathname } from '@qwik-city-plan';
 
 /**
- * @alpha
+ * @public
  */
 export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   const env = process?.env;
@@ -79,19 +79,19 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
  */
 export const netifyEdgeAdapter = netlifyEdgeAdapter;
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
  */
 export const netifyEdgeAdaptor = netlifyEdgeAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -111,12 +111,12 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `NetlifyEdgeAdapterOptions` instead.
  */
 export type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

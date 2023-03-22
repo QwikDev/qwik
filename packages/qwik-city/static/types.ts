@@ -38,7 +38,7 @@ export interface Logger {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateRenderOptions extends RenderOptions {
   /**
@@ -110,7 +110,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   /**
@@ -163,7 +163,7 @@ export interface StaticWorkerRenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateResult {
   duration: number;

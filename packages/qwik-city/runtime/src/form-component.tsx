@@ -10,7 +10,7 @@ import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
 /**
- * @alpha
+ * @public
  */
 export interface FormSubmitCompletedDetail<T> {
   status: number;
@@ -18,7 +18,7 @@ export interface FormSubmitCompletedDetail<T> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface FormProps<O, I>
   extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -56,7 +56,7 @@ export interface FormProps<O, I>
 }
 
 /**
- * @alpha
+ * @public
  */
 export const Form = <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,

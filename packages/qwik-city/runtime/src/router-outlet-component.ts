@@ -13,7 +13,7 @@ import type { ClientHistoryWindow } from './client-navigate';
 import { ContentInternalContext } from './contexts';
 
 /**
- * @alpha
+ * @public
  */
 export const RouterOutlet = component$(() => {
   _jsxBranch();
@@ -61,6 +61,6 @@ export const RouterOutlet = component$(() => {
 
 /**
  * @deprecated Please use `RouterOutlet` instead.
- * @alpha
+ * @public
  */
 export const Content = RouterOutlet;

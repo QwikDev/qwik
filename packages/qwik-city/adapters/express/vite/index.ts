@@ -2,7 +2,7 @@ import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /**
- * @alpha
+ * @public
  */
 export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
   const env = process?.env;
@@ -28,23 +28,23 @@ export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `expressAdapter` exported from `@builder.io/qwik-city/adapters/express/vite` instead.
  */
 export const expressAdaptor = expressAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export interface ExpressAdapterOptions extends ServerAdapterOptions {}
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `ExpressAdapterOptions` instead.
  */
 export type ExpressAdaptorOptions = ExpressAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

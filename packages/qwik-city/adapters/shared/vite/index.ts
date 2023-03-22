@@ -11,7 +11,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { postBuild } from './post-build';
 
 /**
- * @alpha
+ * @public
  */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikCityPlugin: QwikCityPlugin | null = null;
@@ -220,13 +220,13 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `viteAdapter` instead.
  */
 export const viteAdaptor = viteAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export function getParentDir(startDir: string, dirName: string) {
   const root = resolve('/');
@@ -244,7 +244,7 @@ export function getParentDir(startDir: string, dirName: string) {
 }
 
 /**
- * @alpha
+ * @public
  */
 interface ViteAdapterPluginOptions {
   name: string;
@@ -270,7 +270,7 @@ interface ViteAdapterPluginOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ServerAdapterOptions {
   /**
@@ -288,13 +288,13 @@ export interface ServerAdapterOptions {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `ServerAdapterOptions` instead.
  */
 export type ServerAdaptorOptions = ServerAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
   /**
@@ -324,27 +324,27 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'ou
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `AdapterSSGOptions` instead.
  */
 export type AdaptorSSGOptions = AdapterSSGOptions;
 
 /**
- * @alpha
+ * @public
  */
 export const STATIC_PATHS_ID = '@qwik-city-static-paths';
 
 /**
- * @alpha
+ * @public
  */
 export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
 
 /**
- * @alpha
+ * @public
  */
 export const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
 
 /**
- * @alpha
+ * @public
  */
 export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

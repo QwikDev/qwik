@@ -17,7 +17,7 @@ import { _deserializeData, _serializeData, _verifySerializable } from '@builder.
 // @builder.io/qwik-city/middleware/node
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
@@ -115,7 +115,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformNode {
   ssr?: true;
@@ -124,7 +124,7 @@ export interface PlatformNode {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
   /** Options for serving static files */
@@ -137,13 +137,13 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */ export interface NodeRequestNextFunction {
   (err?: any): void;
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `createQwikCity()` instead.
  *
  * Example:

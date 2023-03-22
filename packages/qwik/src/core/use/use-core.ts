@@ -53,7 +53,7 @@ export interface InvokeContext {
 let _context: InvokeContext | undefined;
 
 /**
- * @alpha
+ * @public
  */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
@@ -167,7 +167,7 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
 };
 
 /**
- * @alpha
+ * @public
  */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
@@ -176,7 +176,7 @@ export const untrack = <T>(fn: () => T): T => {
 const trackInvocation = newInvokeContext(undefined, undefined, undefined, RenderEvent);
 
 /**
- * @alpha
+ * @public
  */
 export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub;

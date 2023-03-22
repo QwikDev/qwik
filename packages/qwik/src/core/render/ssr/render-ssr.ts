@@ -55,14 +55,14 @@ import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
 /**
- * @alpha
+ * @public
  */
 export type StreamWriter = {
   write: (chunk: string) => void;
 };
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderSSROptions {
   containerTagName: string;

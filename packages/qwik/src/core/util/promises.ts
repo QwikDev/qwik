@@ -3,7 +3,7 @@ import type { ValueOrPromise } from './types';
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 
 export const isPromise = (value: any): value is Promise<any> => {
-  return value instanceof Promise;
+  return value && typeof value.then === 'function';
 };
 
 export const safeCall = <T, B, C>(

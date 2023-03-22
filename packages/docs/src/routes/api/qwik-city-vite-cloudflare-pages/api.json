@@ -29,32 +29,6 @@
       "mdFile": "qwik.cloudflarepagesadapteroptions.md"
     },
     {
-      "name": "cloudflarePagesAdaptor",
-      "id": "cloudflarepagesadaptor",
-      "hierarchy": [
-        {
-          "name": "cloudflarePagesAdaptor",
-          "id": "cloudflarepagesadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.cloudflarepagesadaptor.md"
-    },
-    {
-      "name": "CloudflarePagesAdaptorOptions",
-      "id": "cloudflarepagesadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "CloudflarePagesAdaptorOptions",
-          "id": "cloudflarepagesadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.cloudflarepagesadaptoroptions.md"
-    },
-    {
       "name": "functionRoutes",
       "id": "cloudflarepagesadapteroptions-functionroutes",
       "hierarchy": [

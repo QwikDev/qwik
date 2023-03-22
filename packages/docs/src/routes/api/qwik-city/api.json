@@ -33,19 +33,6 @@
       "mdFile": "qwik.action.md"
     },
     {
-      "name": "action$",
-      "id": "action_",
-      "hierarchy": [
-        {
-          "name": "action$",
-          "id": "action_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.action_.md"
-    },
-    {
       "name": "ActionConstructor",
       "id": "actionconstructor",
       "hierarchy": [
@@ -100,19 +87,6 @@
       "kind": "PropertySignature",
       "content": "",
       "mdFile": "qwik.actionstore.actionpath.md"
-    },
-    {
-      "name": "actionQrl",
-      "id": "actionqrl",
-      "hierarchy": [
-        {
-          "name": "actionQrl",
-          "id": "actionqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.actionqrl.md"
     },
     {
       "name": "ActionStore",
@@ -194,19 +168,6 @@
       "kind": "PropertySignature",
       "content": "",
       "mdFile": "qwik.documentmeta.content.md"
-    },
-    {
-      "name": "Content",
-      "id": "content",
-      "hierarchy": [
-        {
-          "name": "Content",
-          "id": "content"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.content.md"
     },
     {
       "name": "ContentHeading",
@@ -362,19 +323,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.documentstyle.md"
-    },
-    {
-      "name": "EndpointHandler",
-      "id": "endpointhandler",
-      "hierarchy": [
-        {
-          "name": "EndpointHandler",
-          "id": "endpointhandler"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.endpointhandler.md"
     },
     {
       "name": "FailReturn",
@@ -555,19 +503,6 @@
       "kind": "PropertySignature",
       "content": "",
       "mdFile": "qwik.documentlink.hreflang.md"
-    },
-    {
-      "name": "Html",
-      "id": "html",
-      "hierarchy": [
-        {
-          "name": "Html",
-          "id": "html"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.html.md"
     },
     {
       "name": "httpEquiv",
@@ -813,32 +748,6 @@
       "mdFile": "qwik.loader.md"
     },
     {
-      "name": "loader$",
-      "id": "loader_",
-      "hierarchy": [
-        {
-          "name": "loader$",
-          "id": "loader_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.loader_.md"
-    },
-    {
-      "name": "loaderQrl",
-      "id": "loaderqrl",
-      "hierarchy": [
-        {
-          "name": "loaderQrl",
-          "id": "loaderqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.loaderqrl.md"
-    },
-    {
       "name": "LoaderSignal",
       "id": "loadersignal",
       "hierarchy": [
@@ -1014,23 +923,6 @@
       "mdFile": "qwik.routelocation.params.md"
     },
     {
-      "name": "pathname",
-      "id": "routelocation-pathname",
-      "hierarchy": [
-        {
-          "name": "RouteLocation",
-          "id": "routelocation-pathname"
-        },
-        {
-          "name": "pathname",
-          "id": "routelocation-pathname"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.routelocation.pathname.md"
-    },
-    {
       "name": "PathParams",
       "id": "pathparams",
       "hierarchy": [
@@ -1093,36 +985,6 @@
       "kind": "PropertySignature",
       "content": "",
       "mdFile": "qwik.documentstyle.props.md"
-    },
-    {
-      "name": "query",
-      "id": "routelocation-query",
-      "hierarchy": [
-        {
-          "name": "RouteLocation",
-          "id": "routelocation-query"
-        },
-        {
-          "name": "query",
-          "id": "routelocation-query"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.routelocation.query.md"
-    },
-    {
-      "name": "QwikCity",
-      "id": "qwikcity",
-      "hierarchy": [
-        {
-          "name": "QwikCity",
-          "id": "qwikcity"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.qwikcity.md"
     },
     {
       "name": "QwikCityMockProvider",
@@ -1353,19 +1215,6 @@
       "mdFile": "qwik.routenavigate.md"
     },
     {
-      "name": "RouteParams",
-      "id": "routeparams",
-      "hierarchy": [
-        {
-          "name": "RouteParams",
-          "id": "routeparams"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.routeparams.md"
-    },
-    {
       "name": "RouterOutlet",
       "id": "routeroutlet",
       "hierarchy": [
@@ -1394,23 +1243,6 @@
       "kind": "PropertySignature",
       "content": "",
       "mdFile": "qwik.qwikcityplan.routes.md"
-    },
-    {
-      "name": "run",
-      "id": "actionstore-run",
-      "hierarchy": [
-        {
-          "name": "ActionStore",
-          "id": "actionstore-run"
-        },
-        {
-          "name": "run",
-          "id": "actionstore-run"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.run.md"
     },
     {
       "name": "server$",
@@ -1680,23 +1512,6 @@
       "kind": "PropertySignature",
       "content": "",
       "mdFile": "qwik.routelocation.url.md"
-    },
-    {
-      "name": "use",
-      "id": "action-use",
-      "hierarchy": [
-        {
-          "name": "Action",
-          "id": "action-use"
-        },
-        {
-          "name": "use",
-          "id": "action-use"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.action.use.md"
     },
     {
       "name": "useContent",

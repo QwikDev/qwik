@@ -95,32 +95,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.verceledgeadapteroptions.md"
-    },
-    {
-      "name": "vercelEdgeAdaptor",
-      "id": "verceledgeadaptor",
-      "hierarchy": [
-        {
-          "name": "vercelEdgeAdaptor",
-          "id": "verceledgeadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.verceledgeadaptor.md"
-    },
-    {
-      "name": "VercelEdgeAdaptorOptions",
-      "id": "verceledgeadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "VercelEdgeAdaptorOptions",
-          "id": "verceledgeadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.verceledgeadaptoroptions.md"
     }
   ]
 }

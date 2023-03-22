@@ -27,32 +27,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.azureswaadapteroptions.md"
-    },
-    {
-      "name": "azureSwaAdaptor",
-      "id": "azureswaadaptor",
-      "hierarchy": [
-        {
-          "name": "azureSwaAdaptor",
-          "id": "azureswaadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.azureswaadaptor.md"
-    },
-    {
-      "name": "AzureSwaAdaptorOptions",
-      "id": "azureswaadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "AzureSwaAdaptorOptions",
-          "id": "azureswaadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.azureswaadaptoroptions.md"
     }
   ]
 }

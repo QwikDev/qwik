@@ -27,32 +27,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.expressadapteroptions.md"
-    },
-    {
-      "name": "expressAdaptor",
-      "id": "expressadaptor",
-      "hierarchy": [
-        {
-          "name": "expressAdaptor",
-          "id": "expressadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.expressadaptor.md"
-    },
-    {
-      "name": "ExpressAdaptorOptions",
-      "id": "expressadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "ExpressAdaptorOptions",
-          "id": "expressadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.expressadaptoroptions.md"
     }
   ]
 }

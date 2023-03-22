@@ -20,32 +20,6 @@
       "mdFile": "qwik.netlifyedgeadapteroptions.functionroutes.md"
     },
     {
-      "name": "netifyEdgeAdapter",
-      "id": "netifyedgeadapter",
-      "hierarchy": [
-        {
-          "name": "netifyEdgeAdapter",
-          "id": "netifyedgeadapter"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.netifyedgeadapter.md"
-    },
-    {
-      "name": "netifyEdgeAdaptor",
-      "id": "netifyedgeadaptor",
-      "hierarchy": [
-        {
-          "name": "netifyEdgeAdaptor",
-          "id": "netifyedgeadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.netifyedgeadaptor.md"
-    },
-    {
       "name": "netlifyEdgeAdapter",
       "id": "netlifyedgeadapter",
       "hierarchy": [
@@ -70,19 +44,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.netlifyedgeadapteroptions.md"
-    },
-    {
-      "name": "NetlifyEdgeAdaptorOptions",
-      "id": "netlifyedgeadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "NetlifyEdgeAdaptorOptions",
-          "id": "netlifyedgeadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.netlifyedgeadaptoroptions.md"
     },
     {
       "name": "staticPaths",

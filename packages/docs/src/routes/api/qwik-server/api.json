@@ -71,23 +71,6 @@
       "mdFile": "qwik.serializedocumentoptions.debug.md"
     },
     {
-      "name": "envData",
-      "id": "renderoptions-envdata",
-      "hierarchy": [
-        {
-          "name": "RenderOptions",
-          "id": "renderoptions-envdata"
-        },
-        {
-          "name": "envData",
-          "id": "renderoptions-envdata"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `serverData`\n> \n\n\n```typescript\nenvData?: Record<string, any>;\n```",
-      "mdFile": "qwik.renderoptions.envdata.md"
-    },
-    {
       "name": "events",
       "id": "qwikloaderoptions-events",
       "hierarchy": [
@@ -537,7 +520,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderOptions extends SerializeDocumentOptions \n```\n**Extends:** [SerializeDocumentOptions](#serializedocumentoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#renderoptions-base) |  | string \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string) | _(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the <code>q:base</code> attribute in the <code>q:container</code> element. |\n|  [containerAttributes?](#renderoptions-containerattributes) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [containerTagName?](#renderoptions-containertagname) |  | string | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code> |\n|  [envData?](#renderoptions-envdata) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [locale?](#renderoptions-locale) |  | string \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string) | _(Optional)_ Language to use when rendering the document. |\n|  [prefetchStrategy?](#renderoptions-prefetchstrategy) |  | [PrefetchStrategy](#prefetchstrategy) \\| null | _(Optional)_ |\n|  [qwikLoader?](#renderoptions-qwikloader) |  | [QwikLoaderOptions](#qwikloaderoptions) | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>{ include: true }</code>. |\n|  [serverData?](#renderoptions-serverdata) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [snapshot?](#renderoptions-snapshot) |  | boolean | _(Optional)_ Defaults to <code>true</code> |",
+      "content": "```typescript\nexport interface RenderOptions extends SerializeDocumentOptions \n```\n**Extends:** [SerializeDocumentOptions](#serializedocumentoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#renderoptions-base) |  | string \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string) | _(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the <code>q:base</code> attribute in the <code>q:container</code> element. |\n|  [containerAttributes?](#renderoptions-containerattributes) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [containerTagName?](#renderoptions-containertagname) |  | string | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code> |\n|  [envData?](./qwik.renderoptions.envdata.md) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [locale?](#renderoptions-locale) |  | string \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string) | _(Optional)_ Language to use when rendering the document. |\n|  [prefetchStrategy?](#renderoptions-prefetchstrategy) |  | [PrefetchStrategy](#prefetchstrategy) \\| null | _(Optional)_ |\n|  [qwikLoader?](#renderoptions-qwikloader) |  | [QwikLoaderOptions](#qwikloaderoptions) | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>{ include: true }</code>. |\n|  [serverData?](#renderoptions-serverdata) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [snapshot?](#renderoptions-snapshot) |  | boolean | _(Optional)_ Defaults to <code>true</code> |",
       "mdFile": "qwik.renderoptions.md"
     },
     {

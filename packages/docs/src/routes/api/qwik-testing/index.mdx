@@ -4,15 +4,20 @@ title: \@builder.io/qwik/testing API Reference
 
 # **API** @builder.io/qwik/testing
 
-<h2 id="createdom"><a aria-hidden="true" tabindex="-1" href="#createdom"><span class="icon icon-link"></span></a>createDOM</h2>
+<h2 id="createdom" data-kind="Variable"><a aria-hidden="true" tabindex="-1" href="#createdom"><span class="icon icon-link"></span></a>createDOM </h2>
 
 CreatePlatform and CreateDocument
 
-
 ```typescript
-createDOM: () => Promise<{
-    render: (jsxElement: JSXNode) => Promise<import("@builder.io/qwik").RenderResult>;
+createDOM: () =>
+  Promise<{
+    render: (
+      jsxElement: JSXNode
+    ) => Promise<import("@builder.io/qwik").RenderResult>;
     screen: HTMLElement;
-    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string) => Promise<void>;
-}>
+    userEvent: (
+      queryOrElement: string | Element | null,
+      eventNameCamel: string
+    ) => Promise<void>;
+  }>;
 ```

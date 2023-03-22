@@ -16,19 +16,6 @@
       "mdFile": "qwik.staticadapter.md"
     },
     {
-      "name": "staticAdaptor",
-      "id": "staticadaptor",
-      "hierarchy": [
-        {
-          "name": "staticAdaptor",
-          "id": "staticadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.staticadaptor.md"
-    },
-    {
       "name": "StaticGenerateAdapterOptions",
       "id": "staticgenerateadapteroptions",
       "hierarchy": [
@@ -40,19 +27,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.staticgenerateadapteroptions.md"
-    },
-    {
-      "name": "StaticGenerateAdaptorOptions",
-      "id": "staticgenerateadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateAdaptorOptions",
-          "id": "staticgenerateadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.staticgenerateadaptoroptions.md"
     }
   ]
 }

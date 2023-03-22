@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { type BuildConfig } from './util';
-// import { format } from 'prettier';
+import { format } from 'prettier';
 
 export async function generateApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -62,46 +62,8 @@ async function generateApiMarkdownSubPackageDocs(
     }
   );
 
-  // createApiPage(subPkgName, apiOuputDir);
   createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
 }
-
-// function createApiPage(subPkgName: string, apiOuputDir: string) {
-//   const mdDirFiles = readdirSync(apiOuputDir)
-//     .filter((m) => m.endsWith('.md'))
-//     .map((mdFileName) => {
-//       const mdPath = join(apiOuputDir, mdFileName);
-//       return {
-//         mdFileName,
-//         mdPath,
-//       };
-//     });
-
-//   let apiContent: string[] = [];
-
-//   for (const { mdPath } of mdDirFiles) {
-//     const mdOutput = getApiMarkdownOutput(mdPath);
-//     apiContent = [...apiContent, ...mdOutput];
-//     rmSync(mdPath);
-//   }
-
-//   apiContent = [
-//     '---',
-//     `title: ${subPkgName} API Reference`,
-//     '---',
-//     '',
-//     `# **API** ${subPkgName}`,
-//     ...apiContent.slice(12),
-//   ];
-
-//   const indexPath = join(apiOuputDir, 'index.md');
-
-//   const mdOutput = format(apiContent.join('\n'), {
-//     parser: 'markdown',
-//   });
-
-//   writeFileSync(indexPath, mdOutput);
-// }
 
 function createApiData(
   config: BuildConfig,
@@ -182,6 +144,9 @@ function createApiData(
         if (apiData.members.some((m) => member.name === m.name && member.kind === m.kind)) {
           continue;
         }
+        if (member.docComment?.includes('@deprecated')) {
+          continue;
+        }
         addMember(member, hierarchyStr);
       }
     }
@@ -223,7 +188,7 @@ function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     md.push(
-      `<h2 id="${m.id}"><a aria-hidden="true" tabindex="-1" href="#${m.id}"><span class="icon icon-link"></span></a>${m.name}</h2>`
+      `<h2 id="${m.id}" data-kind="${m.kind}"><a aria-hidden="true" tabindex="-1" href="#${m.id}"><span class="icon icon-link"></span></a>${m.name} </h2>`
     );
     md.push(``);
 
@@ -233,7 +198,10 @@ function createApiMarkdown(a: ApiData) {
     md.push(``);
   }
 
-  return md.join('\n');
+  const mdOutput = format(md.join('\n'), {
+    parser: 'markdown',
+  });
+  return mdOutput;
 }
 
 interface ApiData {

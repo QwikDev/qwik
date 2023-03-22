@@ -76,19 +76,6 @@
       "mdFile": "qwik.platformnode.md"
     },
     {
-      "name": "qwikCity",
-      "id": "qwikcity",
-      "hierarchy": [
-        {
-          "name": "qwikCity",
-          "id": "qwikcity"
-        }
-      ],
-      "kind": "Function",
-      "content": "",
-      "mdFile": "qwik.qwikcity.md"
-    },
-    {
       "name": "QwikCityNodeRequestOptions",
       "id": "qwikcitynoderequestoptions",
       "hierarchy": [

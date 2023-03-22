@@ -27,32 +27,6 @@
       "kind": "Interface",
       "content": "",
       "mdFile": "qwik.cloudrunadapteroptions.md"
-    },
-    {
-      "name": "cloudRunAdaptor",
-      "id": "cloudrunadaptor",
-      "hierarchy": [
-        {
-          "name": "cloudRunAdaptor",
-          "id": "cloudrunadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "",
-      "mdFile": "qwik.cloudrunadaptor.md"
-    },
-    {
-      "name": "CloudRunAdaptorOptions",
-      "id": "cloudrunadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "CloudRunAdaptorOptions",
-          "id": "cloudrunadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "",
-      "mdFile": "qwik.cloudrunadaptoroptions.md"
     }
   ]
 }

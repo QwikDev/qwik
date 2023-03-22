@@ -1,13 +1,14 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /**
  * @alpha
  */
 export function nodeServerAdapter(opts: NodeServerAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: opts.name || 'node-server',
-    origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.builder.io',
     ssg: opts.ssg,
     cleanStaticGenerated: true,
 
@@ -35,4 +36,4 @@ export interface NodeServerAdapterOptions extends ServerAdapterOptions {
 /**
  * @alpha
  */
-export { StaticGenerateRenderOptions };
+export type { StaticGenerateRenderOptions };

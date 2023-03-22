@@ -20,12 +20,16 @@
 
 .docs.api h3 {
   font-size: 1rem;
+  margin-top: 0;
 }
 
 .docs.api a {
     display: inline-block;
     color: black;
     text-decoration: none;
+}
+[data-theme="dark"] .docs.api a {
+    color: inherit;
 }
 
 .docs.api ul {
@@ -47,7 +51,7 @@
 }
 
 .docs.api h2[data-kind-label]:before {
-  /* min-width: 42px; ensure the label is always the same width on detail view */
+  margin-right: 24px;
 }
 
 .docs.api [data-kind-label="V"]:before {

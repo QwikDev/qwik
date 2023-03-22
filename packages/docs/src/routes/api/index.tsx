@@ -25,11 +25,16 @@ export const ApiMemberList = component$(({ data }: any) => (
       }
 
       // pascal to snake case
-      const kind = toSnakeCase(member.kind)
+      const kind = toSnakeCase(member.kind);
 
       // TODO: link must be adjusted!
       return (
-        <li key="member" data-kind={kind} data-kind-label={kind.substring(0,1).toUpperCase()} class="api-item list-none text-sm">
+        <li
+          key="member"
+          data-kind={kind}
+          data-kind-label={kind.substring(0, 1).toUpperCase()}
+          class="api-item list-none text-sm"
+        >
           <a href={`qwik#${member.name}`}>{member.name}</a>
         </li>
       );

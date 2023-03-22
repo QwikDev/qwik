@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import qwikApiData from './qwik/api-data.json';
+import qwikApiData from './qwik/api.json';
 
 export default component$(() => {
   return (

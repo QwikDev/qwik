@@ -201,9 +201,36 @@ function createApiData(
     return a.name.localeCompare(b.name);
   });
 
-  const apiDataName = `${apiData.id}.json`;
-  const apiDataPath = join(config.packagesDir, 'docs', 'src', 'routes', 'api', apiDataName);
-  writeFileSync(apiDataPath, JSON.stringify(apiData, null, 2));
+  const docsDir = join(config.packagesDir, 'docs', 'src', 'routes', 'api', apiData.id);
+  mkdirSync(docsDir, { recursive: true });
+
+  const apiJsonPath = join(docsDir, `api.json`);
+  writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
+
+  const apiMdPath = join(docsDir, `index.mdx`);
+  writeFileSync(apiMdPath, createApiMarkdown(apiData));
+}
+
+function createApiMarkdown(a: ApiData) {
+  let md: string[] = [];
+
+  md.push(`---`);
+  md.push(`title: ${a.package} API Reference`);
+  md.push(`---`);
+  md.push(``);
+  md.push(`# **API** ${a.package}`);
+  md.push(``);
+
+  for (const m of a.members) {
+    md.push(
+      `<h2 id="${m.id}"><a aria-hidden="true" tabindex="-1" href="#${m.id}"><span class="icon icon-link"></span></a>${m.name}</h2>`
+    );
+    md.push(``);
+    md.push(m.content);
+    md.push(``);
+  }
+
+  return md.join('\n');
 }
 
 interface ApiData {

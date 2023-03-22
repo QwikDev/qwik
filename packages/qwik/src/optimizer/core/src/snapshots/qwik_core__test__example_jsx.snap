@@ -58,7 +58,7 @@ export const Lightweight = (props)=>{
             /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
             /*#__PURE__*/ _jsxQ("button", {
                 ...props
-            }, null, null, 3, null)
+            }, null, null, 2, null)
         ]
     }, 1, "u6_0"), 1, "u6_1");
 };
@@ -125,7 +125,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
             class: "class"
         }, /*#__PURE__*/ _jsxC(Lightweight, {
             ...props
-        }, 3, "u6_3"), 1, null),
+        }, 2, "u6_3"), 1, null),
         /*#__PURE__*/ _jsxQ("div", null, {
             class: "class"
         }, [

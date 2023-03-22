@@ -117,7 +117,7 @@ function toPath(url: URL) {
 const testPlatform = createPlatform();
 
 /**
- * @alpha
+ * @public
  */
 export function getTestPlatform(): TestPlatform {
   return testPlatform;

@@ -22,14 +22,14 @@ import { appendQwikDevTools } from '../../container/resume';
 import type { RenderContext } from '../types';
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderOptions {
   serverData?: Record<string, any>;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderResult {
   cleanup(): void;
@@ -47,7 +47,7 @@ export interface RenderResult {
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
  * @returns an object containing a cleanup function.
- * @alpha
+ * @public
  */
 export const render = async (
   parent: Element | Document,

@@ -7,19 +7,19 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function cloudflarePagesAdapter(opts?: CloudflarePagesAdapterOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
     functionRoutes?: boolean;
     staticPaths?: string[];
 }
 
-// @alpha @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export const cloudflarePagesAdaptor: typeof cloudflarePagesAdapter;
 
-// @alpha @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
 
 export { StaticGenerateRenderOptions }

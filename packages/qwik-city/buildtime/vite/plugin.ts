@@ -34,7 +34,7 @@ import {
 import { postBuild } from '../../adapters/shared/vite/post-build';
 
 /**
- * @alpha
+ * @public
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let ctx: BuildContext | null = null;

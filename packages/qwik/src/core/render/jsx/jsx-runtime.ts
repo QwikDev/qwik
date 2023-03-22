@@ -15,7 +15,7 @@ import { _IMMUTABLE } from '../../internal';
 import { isBrowser } from '@builder.io/qwik/build';
 
 /**
- * @public
+ * @internal
  */
 export const _jsxQ = <T extends string | FunctionComponent<any>>(
   type: T,
@@ -46,7 +46,7 @@ export const _jsxQ = <T extends string | FunctionComponent<any>>(
 };
 
 /**
- * @public
+ * @internal
  */
 export const _jsxC = <T extends string | FunctionComponent<any>>(
   type: T,

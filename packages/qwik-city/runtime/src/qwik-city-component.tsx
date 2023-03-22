@@ -47,7 +47,7 @@ import { useQwikCityEnv } from './use-functions';
 import { toPath } from './utils';
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityProps {
   /**
@@ -66,7 +66,7 @@ export interface QwikCityProps {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const QwikCityProvider = component$<QwikCityProps>(() => {
   const env = useQwikCityEnv();
@@ -243,19 +243,19 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 });
 
 /**
- * @alpha
+ * @public
  * @deprecated - The "QwikCity" component has been renamed to "QwikCityProvider".
  */
 export const QwikCity = QwikCityProvider;
 
 /**
- * @alpha
+ * @public
  * @deprecated - The "Html" component has been renamed to "QwikCityProvider".
  */
 export const Html = QwikCityProvider;
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityMockProps {
   url?: string;
@@ -263,7 +263,7 @@ export interface QwikCityMockProps {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';

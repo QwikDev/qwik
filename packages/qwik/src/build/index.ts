@@ -1,7 +1,7 @@
 /**
  * True when build is made for browser, client-side execution.
  *
- * @alpha
+ * @public
  */
 export const isBrowser: boolean = /*#__PURE__*/ (() => (
   typeof window !== "undefined" &&
@@ -13,7 +13,7 @@ export const isBrowser: boolean = /*#__PURE__*/ (() => (
 /**
  * True when build is made for SSR purposes.
  *
- * @alpha
+ * @public
  */
 export const isServer: boolean = !isBrowser;
 
@@ -21,7 +21,7 @@ export const isServer: boolean = !isBrowser;
 /**
  * True when build is in dev mode.
  *
- * @alpha
+ * @public
  */
 export const isDev: boolean = /*#__PURE__*/ (() => {
   return (globalThis as any).qDev === true

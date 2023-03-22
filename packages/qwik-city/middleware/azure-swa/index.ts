@@ -22,7 +22,7 @@ interface AzureResponse {
 }
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   const qwikSerializer = {
@@ -113,17 +113,17 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityAzureOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformAzure extends Partial<Context> {}
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `createQwikCity()` instead.
  *
  * Example:

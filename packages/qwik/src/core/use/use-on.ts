@@ -13,7 +13,7 @@ import { Task, WatchFlagsIsCleanup } from './use-task';
 /**
  * It can be used to release resources, abort network requests, stop timers...
  *
- * @alpha
+ * @public
  * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
  * `useVisibleTask$()` instead.
  */
@@ -37,7 +37,7 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
 /**
  * It can be used to release resources, abort network requests, stop timers...
  *
- * @alpha
+ * @public
  * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
  * `useVisibleTask$()` instead.
  */
@@ -55,7 +55,7 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  *
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
@@ -88,7 +88,7 @@ export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => voi
  * });
  * ```
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
@@ -122,7 +122,7 @@ export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event
  * });
  * ```
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>

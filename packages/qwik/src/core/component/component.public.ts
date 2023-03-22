@@ -73,7 +73,7 @@ export type TransformProp<T> = T extends PropFnInterface<infer ARGS, infer RET>
   : T;
 
 /**
- * @alpha
+ * @public
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 

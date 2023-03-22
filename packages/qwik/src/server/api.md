@@ -10,13 +10,13 @@ import type { StreamWriter } from '@builder.io/qwik';
 import type { SymbolMapper } from '@builder.io/qwik/optimizer';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
-// @alpha
+// @public
 export function getQwikLoaderScript(opts?: {
     events?: string[];
     debug?: boolean;
 }): string;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface InOrderAuto {
     // (undocumented)
     maximunChunk?: number;
@@ -26,7 +26,7 @@ export interface InOrderAuto {
     strategy: 'auto';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface InOrderDisabled {
     // (undocumented)
     strategy: 'disabled';
@@ -34,10 +34,10 @@ export interface InOrderDisabled {
 
 // Warning: (ae-forgotten-export) The symbol "InOrderDirect" needs to be exported by the entry point index.d.ts
 //
-// @alpha (undocumented)
+// @public (undocumented)
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface PrefetchImplementation {
     linkInsert?: 'js-append' | 'html-append' | null;
     linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
@@ -45,7 +45,7 @@ export interface PrefetchImplementation {
     workerFetchInsert?: 'always' | 'no-link-support' | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface PrefetchResource {
     // (undocumented)
     imports: PrefetchResource[];
@@ -53,7 +53,7 @@ export interface PrefetchResource {
     url: string;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface PrefetchStrategy {
     // (undocumented)
     implementation?: PrefetchImplementation;
@@ -61,7 +61,7 @@ export interface PrefetchStrategy {
     symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikLoaderOptions {
     // (undocumented)
     events?: string[];
@@ -71,10 +71,10 @@ export interface QwikLoaderOptions {
     position?: 'top' | 'bottom';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type Render = RenderToString | RenderToStream;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
     base?: string | ((options: RenderOptions) => string);
     // (undocumented)
@@ -91,7 +91,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     snapshot?: boolean;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface RenderResult {
     // (undocumented)
     isStatic: boolean;
@@ -105,13 +105,13 @@ export interface RenderResult {
     _symbols?: string[];
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
-// @alpha
+// @public
 export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Promise<RenderToStreamResult>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
     // (undocumented)
     stream: StreamWriter;
@@ -119,7 +119,7 @@ export interface RenderToStreamOptions extends RenderOptions {
     streaming?: StreamingOptions;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface RenderToStreamResult extends RenderResult {
     // (undocumented)
     flushes: number;
@@ -133,17 +133,17 @@ export interface RenderToStreamResult extends RenderResult {
     };
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
-// @alpha
+// @public
 export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface RenderToStringOptions extends RenderOptions {
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface RenderToStringResult extends RenderResult {
     // (undocumented)
     html: string;
@@ -156,10 +156,10 @@ export interface RenderToStringResult extends RenderResult {
 
 // Warning: (ae-forgotten-export) The symbol "ResolvedManifest" needs to be exported by the entry point index.d.ts
 //
-// @alpha (undocumented)
+// @public (undocumented)
 export function resolveManifest(manifest: QwikManifest | ResolvedManifest | undefined): ResolvedManifest | undefined;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface SerializeDocumentOptions {
     // (undocumented)
     debug?: boolean;
@@ -169,16 +169,16 @@ export interface SerializeDocumentOptions {
     symbolMapper?: SymbolMapperFn;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined): Promise<void>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StreamingOptions {
     // (undocumented)
     inOrder?: InOrderStreaming;
 }
 
-// @alpha
+// @public
 export type SymbolsToPrefetch = 'auto' | ((opts: {
     manifest: QwikManifest;
 }) => PrefetchResource[]);

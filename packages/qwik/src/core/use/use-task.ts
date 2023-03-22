@@ -173,7 +173,7 @@ export interface ResourceReturnInternal<T> {
   loading: boolean;
 }
 /**
- * @alpha
+ * @public
  */
 export interface DescriptorBase<T = any, B = undefined> {
   $qrl$: QRLInternal<T>;
@@ -315,7 +315,7 @@ interface Computed {
   <T>(qrl: ComputedFn<T>): Readonly<Signal<T>>;
 }
 /**
- * @alpha
+ * @public
  */
 export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<T> => {
   const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<T>>();
@@ -349,7 +349,7 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
 };
 
 /**
- * @alpha
+ * @public
  */
 export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 
@@ -418,13 +418,13 @@ export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
 
 /**
- * @beta
+ * @public
  * @deprecated - use `useTask$()` instead
  */
 export const useWatch$ = /*#__PURE__*/ useTask$;
 
 /**
- * @beta
+ * @public
  * @deprecated - use `useTask$()` instead
  */
 export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
@@ -510,25 +510,25 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
 export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useClientEffectQrl = useVisibleTaskQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useClientEffect$ = useVisibleTask$;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useBrowserVisibleTaskQrl = useVisibleTaskQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useBrowserVisibleTask$ = useVisibleTask$;

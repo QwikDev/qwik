@@ -13,7 +13,7 @@ import type {
 } from './types';
 
 /**
- * @alpha
+ * @public
  */
 export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) => {
   const sys = optimizerOptions?.sys || (await getSystem());

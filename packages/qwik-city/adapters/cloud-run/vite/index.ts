@@ -2,7 +2,7 @@ import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /**
- * @alpha
+ * @public
  */
 export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
   const env = process?.env;
@@ -25,23 +25,23 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `cloudRunAdapter` exported from `@builder.io/qwik-city/adapters/cloud-run/vite` instead.
  */
 export const cloudRunAdaptor = cloudRunAdapter;
 
 /**
- * @alpha
+ * @public
  */
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {}
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `CloudRunAdapterOptions` instead.
  */
 export type CloudRunAdaptorOptions = CloudRunAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

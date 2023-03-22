@@ -6,17 +6,17 @@
 
 import type { StaticGenerateRenderOptions } from '../../../static';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function staticAdapter(opts: StaticGenerateAdapterOptions): any;
 
-// @alpha @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export const staticAdaptor: typeof staticAdapter;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateAdapterOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> {
 }
 
-// @alpha @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export type StaticGenerateAdaptorOptions = StaticGenerateAdapterOptions;
 
 // (No @packageDocumentation comment for this package)

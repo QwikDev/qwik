@@ -871,11 +871,11 @@ export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions>
 }
 
 /**
- * @alpha
+ * @public
  */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 /**
- * @alpha
+ * @public
  */
 export type QwikBuildMode = 'production' | 'development';

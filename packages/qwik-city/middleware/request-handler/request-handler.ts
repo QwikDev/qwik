@@ -7,7 +7,7 @@ import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-
 import { loadRoute } from '../../runtime/src/routing';
 
 /**
- * @alpha
+ * @public
  */
 export async function requestHandler<T = unknown>(
   serverRequestEv: ServerRequestEvent<T>,

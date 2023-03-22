@@ -6,14 +6,14 @@
 
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface PlatformVercel {
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {
 }
 

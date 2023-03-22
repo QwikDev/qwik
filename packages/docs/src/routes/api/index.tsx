@@ -1,5 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 import qwikApiData from './qwik/api.json';
+import { toSnakeCase } from '../../utils/utils';
 
 export default component$(() => {
   return (
@@ -24,14 +25,11 @@ export const ApiMemberList = component$(({ data }: any) => (
       }
 
       // pascal to snake case
-      const kindClass = member.kind
-        .split(/\.?(?=[A-Z])/)
-        .join('-')
-        .toLowerCase();
+      const kind = toSnakeCase(member.kind)
 
       // TODO: link must be adjusted!
       return (
-        <li key="member" class={`api-item list-none text-sm ${kindClass}`}>
+        <li key="member" data-kind={kind} data-kind-label={kind.substring(0,1).toUpperCase()} class="api-item list-none text-sm">
           <a href={`qwik#${member.name}`}>{member.name}</a>
         </li>
       );

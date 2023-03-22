@@ -4,7 +4,7 @@ title: \@builder.io/qwik/server API Reference
 
 # **API** @builder.io/qwik/server
 
-<h2 id="renderoptions-base" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-base"><span class="icon icon-link"></span></a>base </h2>
+<h2 id="renderoptions-base" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-base"><span class="icon icon-link"></span></a>base </h2>
 
 Specifies the root of the JS files of the client build. Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
 
@@ -12,13 +12,13 @@ Specifies the root of the JS files of the client build. Setting a base, will cau
 base?: string | ((options: RenderOptions) => string);
 ```
 
-<h2 id="renderoptions-containerattributes" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-containerattributes"><span class="icon icon-link"></span></a>containerAttributes </h2>
+<h2 id="renderoptions-containerattributes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-containerattributes"><span class="icon icon-link"></span></a>containerAttributes </h2>
 
 ```typescript
 containerAttributes?: Record<string, string>;
 ```
 
-<h2 id="renderoptions-containertagname" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-containertagname"><span class="icon icon-link"></span></a>containerTagName </h2>
+<h2 id="renderoptions-containertagname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-containertagname"><span class="icon icon-link"></span></a>containerTagName </h2>
 
 When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to `html`
 
@@ -26,25 +26,25 @@ When set, the app is serialized into a fragment. And the returned html is not a 
 containerTagName?: string;
 ```
 
-<h2 id="serializedocumentoptions-debug" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions-debug"><span class="icon icon-link"></span></a>debug </h2>
+<h2 id="serializedocumentoptions-debug" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions-debug"><span class="icon icon-link"></span></a>debug </h2>
 
 ```typescript
 debug?: boolean;
 ```
 
-<h2 id="qwikloaderoptions-events" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-events"><span class="icon icon-link"></span></a>events </h2>
+<h2 id="qwikloaderoptions-events" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-events"><span class="icon icon-link"></span></a>events </h2>
 
 ```typescript
 events?: string[];
 ```
 
-<h2 id="rendertostreamresult-flushes" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-flushes"><span class="icon icon-link"></span></a>flushes </h2>
+<h2 id="rendertostreamresult-flushes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-flushes"><span class="icon icon-link"></span></a>flushes </h2>
 
 ```typescript
 flushes: number;
 ```
 
-<h2 id="getqwikloaderscript" data-kind="Function"><a aria-hidden="true" tabindex="-1" href="#getqwikloaderscript"><span class="icon icon-link"></span></a>getQwikLoaderScript </h2>
+<h2 id="getqwikloaderscript" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#getqwikloaderscript"><span class="icon icon-link"></span></a>getQwikLoaderScript </h2>
 
 Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader script into HTML.
 
@@ -63,37 +63,37 @@ export declare function getQwikLoaderScript(opts?: {
 
 string
 
-<h2 id="rendertostringresult-html" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#rendertostringresult-html"><span class="icon icon-link"></span></a>html </h2>
+<h2 id="rendertostringresult-html" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostringresult-html"><span class="icon icon-link"></span></a>html </h2>
 
 ```typescript
 html: string;
 ```
 
-<h2 id="prefetchstrategy-implementation" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy-implementation"><span class="icon icon-link"></span></a>implementation </h2>
+<h2 id="prefetchstrategy-implementation" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy-implementation"><span class="icon icon-link"></span></a>implementation </h2>
 
 ```typescript
 implementation?: PrefetchImplementation;
 ```
 
-<h2 id="prefetchresource-imports" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchresource-imports"><span class="icon icon-link"></span></a>imports </h2>
+<h2 id="prefetchresource-imports" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchresource-imports"><span class="icon icon-link"></span></a>imports </h2>
 
 ```typescript
 imports: PrefetchResource[];
 ```
 
-<h2 id="qwikloaderoptions-include" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-include"><span class="icon icon-link"></span></a>include </h2>
+<h2 id="qwikloaderoptions-include" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-include"><span class="icon icon-link"></span></a>include </h2>
 
 ```typescript
 include?: 'always' | 'never' | 'auto';
 ```
 
-<h2 id="streamingoptions-inorder" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#streamingoptions-inorder"><span class="icon icon-link"></span></a>inOrder </h2>
+<h2 id="streamingoptions-inorder" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#streamingoptions-inorder"><span class="icon icon-link"></span></a>inOrder </h2>
 
 ```typescript
 inOrder?: InOrderStreaming;
 ```
 
-<h2 id="inorderauto" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#inorderauto"><span class="icon icon-link"></span></a>InOrderAuto </h2>
+<h2 id="inorderauto" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#inorderauto"><span class="icon icon-link"></span></a>InOrderAuto </h2>
 
 ```typescript
 export interface InOrderAuto
@@ -105,7 +105,7 @@ export interface InOrderAuto
 | [maximunInitialChunk?](#inorderauto-maximuninitialchunk) |           | number | _(Optional)_ |
 | [strategy](#inorderauto-strategy)                        |           | 'auto' |              |
 
-<h2 id="inorderdisabled" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#inorderdisabled"><span class="icon icon-link"></span></a>InOrderDisabled </h2>
+<h2 id="inorderdisabled" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#inorderdisabled"><span class="icon icon-link"></span></a>InOrderDisabled </h2>
 
 ```typescript
 export interface InOrderDisabled
@@ -115,7 +115,7 @@ export interface InOrderDisabled
 | ---------------------------------------------- | --------- | ---------- | ----------- |
 | [strategy](./qwik.inorderdisabled.strategy.md) |           | 'disabled' |             |
 
-<h2 id="inorderstreaming" data-kind="TypeAlias"><a aria-hidden="true" tabindex="-1" href="#inorderstreaming"><span class="icon icon-link"></span></a>InOrderStreaming </h2>
+<h2 id="inorderstreaming" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#inorderstreaming"><span class="icon icon-link"></span></a>InOrderStreaming </h2>
 
 ```typescript
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
@@ -123,13 +123,13 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 **References:** [InOrderAuto](#inorderauto), [InOrderDisabled](#inorderdisabled)
 
-<h2 id="renderresult-isstatic" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderresult-isstatic"><span class="icon icon-link"></span></a>isStatic </h2>
+<h2 id="renderresult-isstatic" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-isstatic"><span class="icon icon-link"></span></a>isStatic </h2>
 
 ```typescript
 isStatic: boolean;
 ```
 
-<h2 id="prefetchimplementation-linkinsert" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-linkinsert"><span class="icon icon-link"></span></a>linkInsert </h2>
+<h2 id="prefetchimplementation-linkinsert" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-linkinsert"><span class="icon icon-link"></span></a>linkInsert </h2>
 
 `js-append`: Use JS runtime to create each `<link>` and append to the body.
 
@@ -139,7 +139,7 @@ isStatic: boolean;
 linkInsert?: 'js-append' | 'html-append' | null;
 ```
 
-<h2 id="prefetchimplementation-linkrel" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-linkrel"><span class="icon icon-link"></span></a>linkRel </h2>
+<h2 id="prefetchimplementation-linkrel" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-linkrel"><span class="icon icon-link"></span></a>linkRel </h2>
 
 Value of the `<link rel="...">` attribute when link is used. Defaults to `prefetch` if links are inserted.
 
@@ -147,7 +147,7 @@ Value of the `<link rel="...">` attribute when link is used. Defaults to `prefet
 linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
 ```
 
-<h2 id="renderoptions-locale" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-locale"><span class="icon icon-link"></span></a>locale </h2>
+<h2 id="renderoptions-locale" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-locale"><span class="icon icon-link"></span></a>locale </h2>
 
 Language to use when rendering the document.
 
@@ -155,31 +155,31 @@ Language to use when rendering the document.
 locale?: string | ((options: RenderOptions) => string);
 ```
 
-<h2 id="renderresult-manifest" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderresult-manifest"><span class="icon icon-link"></span></a>manifest </h2>
+<h2 id="renderresult-manifest" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-manifest"><span class="icon icon-link"></span></a>manifest </h2>
 
 ```typescript
 manifest?: QwikManifest;
 ```
 
-<h2 id="inorderauto-maximunchunk" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#inorderauto-maximunchunk"><span class="icon icon-link"></span></a>maximunChunk </h2>
+<h2 id="inorderauto-maximunchunk" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#inorderauto-maximunchunk"><span class="icon icon-link"></span></a>maximunChunk </h2>
 
 ```typescript
 maximunChunk?: number;
 ```
 
-<h2 id="inorderauto-maximuninitialchunk" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#inorderauto-maximuninitialchunk"><span class="icon icon-link"></span></a>maximunInitialChunk </h2>
+<h2 id="inorderauto-maximuninitialchunk" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#inorderauto-maximuninitialchunk"><span class="icon icon-link"></span></a>maximunInitialChunk </h2>
 
 ```typescript
 maximunInitialChunk?: number;
 ```
 
-<h2 id="qwikloaderoptions-position" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-position"><span class="icon icon-link"></span></a>position </h2>
+<h2 id="qwikloaderoptions-position" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-position"><span class="icon icon-link"></span></a>position </h2>
 
 ```typescript
 position?: 'top' | 'bottom';
 ```
 
-<h2 id="prefetchimplementation-prefetchevent" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-prefetchevent"><span class="icon icon-link"></span></a>prefetchEvent </h2>
+<h2 id="prefetchimplementation-prefetchevent" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-prefetchevent"><span class="icon icon-link"></span></a>prefetchEvent </h2>
 
 Dispatch a `qprefetch` event with detail data containing the bundles that should be prefetched. The event dispatch script will be inlined into the document's HTML so any listeners of this event should already be ready to handle the event.
 
@@ -197,7 +197,7 @@ By default, the `prefetchEvent` implementation will be set to `always`.
 prefetchEvent?: 'always' | null;
 ```
 
-<h2 id="prefetchimplementation" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation"><span class="icon icon-link"></span></a>PrefetchImplementation </h2>
+<h2 id="prefetchimplementation" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation"><span class="icon icon-link"></span></a>PrefetchImplementation </h2>
 
 ```typescript
 export interface PrefetchImplementation
@@ -218,7 +218,7 @@ export interface PrefetchImplementation
 <p>By default, the <code>prefetchEvent</code> implementation will be set to <code>always</code>.</p> |
 |  [workerFetchInsert?](#prefetchimplementation-workerfetchinsert) |  | 'always' \| 'no-link-support' \| null | <p>_(Optional)_ <code>always</code>: Always include the worker fetch JS runtime.</p><p><code>no-link-support</code>: Only include the worker fetch JS runtime when the browser doesn't support <code>&lt;link&gt;</code> prefetch/preload/modulepreload.</p> |
 
-<h2 id="prefetchresource" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#prefetchresource"><span class="icon icon-link"></span></a>PrefetchResource </h2>
+<h2 id="prefetchresource" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#prefetchresource"><span class="icon icon-link"></span></a>PrefetchResource </h2>
 
 ```typescript
 export interface PrefetchResource
@@ -229,19 +229,19 @@ export interface PrefetchResource
 | [imports](#prefetchresource-imports) |           | [PrefetchResource](#prefetchresource)\[\] |             |
 | [url](#prefetchresource-url)         |           | string                                    |             |
 
-<h2 id="renderresult-prefetchresources" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderresult-prefetchresources"><span class="icon icon-link"></span></a>prefetchResources </h2>
+<h2 id="renderresult-prefetchresources" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-prefetchresources"><span class="icon icon-link"></span></a>prefetchResources </h2>
 
 ```typescript
 prefetchResources: PrefetchResource[];
 ```
 
-<h2 id="renderoptions-prefetchstrategy" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-prefetchstrategy"><span class="icon icon-link"></span></a>prefetchStrategy </h2>
+<h2 id="renderoptions-prefetchstrategy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-prefetchstrategy"><span class="icon icon-link"></span></a>prefetchStrategy </h2>
 
 ```typescript
 prefetchStrategy?: PrefetchStrategy | null;
 ```
 
-<h2 id="prefetchstrategy" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy"><span class="icon icon-link"></span></a>PrefetchStrategy </h2>
+<h2 id="prefetchstrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy"><span class="icon icon-link"></span></a>PrefetchStrategy </h2>
 
 ```typescript
 export interface PrefetchStrategy
@@ -252,7 +252,7 @@ export interface PrefetchStrategy
 | [implementation?](#prefetchstrategy-implementation)       |           | [PrefetchImplementation](#prefetchimplementation) | _(Optional)_ |
 | [symbolsToPrefetch?](#prefetchstrategy-symbolstoprefetch) |           | [SymbolsToPrefetch](#symbolstoprefetch)           | _(Optional)_ |
 
-<h2 id="renderoptions-qwikloader" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-qwikloader"><span class="icon icon-link"></span></a>qwikLoader </h2>
+<h2 id="renderoptions-qwikloader" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-qwikloader"><span class="icon icon-link"></span></a>qwikLoader </h2>
 
 Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
 
@@ -260,7 +260,7 @@ Specifies if the Qwik Loader script is added to the document or not. Defaults to
 qwikLoader?: QwikLoaderOptions;
 ```
 
-<h2 id="qwikloaderoptions" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions"><span class="icon icon-link"></span></a>QwikLoaderOptions </h2>
+<h2 id="qwikloaderoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions"><span class="icon icon-link"></span></a>QwikLoaderOptions </h2>
 
 ```typescript
 export interface QwikLoaderOptions
@@ -272,7 +272,7 @@ export interface QwikLoaderOptions
 | [include?](#qwikloaderoptions-include)   |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
 | [position?](#qwikloaderoptions-position) |           | 'top' \| 'bottom'             | _(Optional)_ |
 
-<h2 id="render" data-kind="TypeAlias"><a aria-hidden="true" tabindex="-1" href="#render"><span class="icon icon-link"></span></a>Render </h2>
+<h2 id="render" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#render"><span class="icon icon-link"></span></a>Render </h2>
 
 ```typescript
 export type Render = RenderToString | RenderToStream;
@@ -280,7 +280,7 @@ export type Render = RenderToString | RenderToStream;
 
 **References:** [RenderToString](#rendertostring), [RenderToStream](#rendertostream)
 
-<h2 id="renderoptions" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#renderoptions"><span class="icon icon-link"></span></a>RenderOptions </h2>
+<h2 id="renderoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#renderoptions"><span class="icon icon-link"></span></a>RenderOptions </h2>
 
 ```typescript
 export interface RenderOptions extends SerializeDocumentOptions
@@ -300,7 +300,7 @@ export interface RenderOptions extends SerializeDocumentOptions
 | [serverData?](#renderoptions-serverdata)                   |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
 | [snapshot?](#renderoptions-snapshot)                       |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                               |
 
-<h2 id="renderresult" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#renderresult"><span class="icon icon-link"></span></a>RenderResult </h2>
+<h2 id="renderresult" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#renderresult"><span class="icon icon-link"></span></a>RenderResult </h2>
 
 ```typescript
 export interface RenderResult
@@ -313,7 +313,7 @@ export interface RenderResult
 | [prefetchResources](#renderresult-prefetchresources) |           | [PrefetchResource](#prefetchresource)\[\] |              |
 | [snapshotResult](#renderresult-snapshotresult)       |           | SnapshotResult \| undefined               |              |
 
-<h2 id="rendertostream" data-kind="Function"><a aria-hidden="true" tabindex="-1" href="#rendertostream"><span class="icon icon-link"></span></a>renderToStream </h2>
+<h2 id="rendertostream" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#rendertostream"><span class="icon icon-link"></span></a>renderToStream </h2>
 
 ```typescript
 export type RenderToStream = (
@@ -323,7 +323,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-<h2 id="rendertostream" data-kind="TypeAlias"><a aria-hidden="true" tabindex="-1" href="#rendertostream"><span class="icon icon-link"></span></a>RenderToStream </h2>
+<h2 id="rendertostream" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#rendertostream"><span class="icon icon-link"></span></a>RenderToStream </h2>
 
 ```typescript
 export type RenderToStream = (
@@ -333,7 +333,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-<h2 id="rendertostreamoptions" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions"><span class="icon icon-link"></span></a>RenderToStreamOptions </h2>
+<h2 id="rendertostreamoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions"><span class="icon icon-link"></span></a>RenderToStreamOptions </h2>
 
 ```typescript
 export interface RenderToStreamOptions extends RenderOptions
@@ -346,7 +346,7 @@ export interface RenderToStreamOptions extends RenderOptions
 | [stream](#rendertostreamoptions-stream)        |           | StreamWriter                          |              |
 | [streaming?](#rendertostreamoptions-streaming) |           | [StreamingOptions](#streamingoptions) | _(Optional)_ |
 
-<h2 id="rendertostreamresult" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult"><span class="icon icon-link"></span></a>RenderToStreamResult </h2>
+<h2 id="rendertostreamresult" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult"><span class="icon icon-link"></span></a>RenderToStreamResult </h2>
 
 ```typescript
 export interface RenderToStreamResult extends RenderResult
@@ -360,7 +360,7 @@ export interface RenderToStreamResult extends RenderResult
 | [size](#rendertostreamresult-size)       |           | number                                                    |             |
 | [timing](#rendertostreamresult-timing)   |           | { firstFlush: number; render: number; snapshot: number; } |             |
 
-<h2 id="rendertostring" data-kind="Function"><a aria-hidden="true" tabindex="-1" href="#rendertostring"><span class="icon icon-link"></span></a>renderToString </h2>
+<h2 id="rendertostring" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#rendertostring"><span class="icon icon-link"></span></a>renderToString </h2>
 
 ```typescript
 export type RenderToString = (
@@ -370,7 +370,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-<h2 id="rendertostring" data-kind="TypeAlias"><a aria-hidden="true" tabindex="-1" href="#rendertostring"><span class="icon icon-link"></span></a>RenderToString </h2>
+<h2 id="rendertostring" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#rendertostring"><span class="icon icon-link"></span></a>RenderToString </h2>
 
 ```typescript
 export type RenderToString = (
@@ -380,7 +380,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-<h2 id="rendertostringoptions" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#rendertostringoptions"><span class="icon icon-link"></span></a>RenderToStringOptions </h2>
+<h2 id="rendertostringoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#rendertostringoptions"><span class="icon icon-link"></span></a>RenderToStringOptions </h2>
 
 ```typescript
 export interface RenderToStringOptions extends RenderOptions
@@ -388,7 +388,7 @@ export interface RenderToStringOptions extends RenderOptions
 
 **Extends:** [RenderOptions](#renderoptions)
 
-<h2 id="rendertostringresult" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#rendertostringresult"><span class="icon icon-link"></span></a>RenderToStringResult </h2>
+<h2 id="rendertostringresult" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#rendertostringresult"><span class="icon icon-link"></span></a>RenderToStringResult </h2>
 
 ```typescript
 export interface RenderToStringResult extends RenderResult
@@ -401,7 +401,7 @@ export interface RenderToStringResult extends RenderResult
 | [html](#rendertostringresult-html)              |           | string                                |             |
 | [timing](./qwik.rendertostringresult.timing.md) |           | { render: number; snapshot: number; } |             |
 
-<h2 id="resolvemanifest" data-kind="Function"><a aria-hidden="true" tabindex="-1" href="#resolvemanifest"><span class="icon icon-link"></span></a>resolveManifest </h2>
+<h2 id="resolvemanifest" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#resolvemanifest"><span class="icon icon-link"></span></a>resolveManifest </h2>
 
 ```typescript
 export declare function resolveManifest(
@@ -417,7 +417,7 @@ export declare function resolveManifest(
 
 ResolvedManifest \| undefined
 
-<h2 id="serializedocumentoptions" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions"><span class="icon icon-link"></span></a>SerializeDocumentOptions </h2>
+<h2 id="serializedocumentoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions"><span class="icon icon-link"></span></a>SerializeDocumentOptions </h2>
 
 ```typescript
 export interface SerializeDocumentOptions
@@ -429,13 +429,13 @@ export interface SerializeDocumentOptions
 | [manifest?](./qwik.serializedocumentoptions.manifest.md) |           | QwikManifest \| ResolvedManifest | _(Optional)_ |
 | [symbolMapper?](#serializedocumentoptions-symbolmapper)  |           | SymbolMapperFn                   | _(Optional)_ |
 
-<h2 id="renderoptions-serverdata" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-serverdata"><span class="icon icon-link"></span></a>serverData </h2>
+<h2 id="renderoptions-serverdata" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-serverdata"><span class="icon icon-link"></span></a>serverData </h2>
 
 ```typescript
 serverData?: Record<string, any>;
 ```
 
-<h2 id="setserverplatform" data-kind="Function"><a aria-hidden="true" tabindex="-1" href="#setserverplatform"><span class="icon icon-link"></span></a>setServerPlatform </h2>
+<h2 id="setserverplatform" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#setserverplatform"><span class="icon icon-link"></span></a>setServerPlatform </h2>
 
 ```typescript
 export declare function setServerPlatform(
@@ -451,13 +451,13 @@ export declare function setServerPlatform(
 
 Promise&lt;void&gt;
 
-<h2 id="rendertostreamresult-size" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-size"><span class="icon icon-link"></span></a>size </h2>
+<h2 id="rendertostreamresult-size" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-size"><span class="icon icon-link"></span></a>size </h2>
 
 ```typescript
 size: number;
 ```
 
-<h2 id="renderoptions-snapshot" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderoptions-snapshot"><span class="icon icon-link"></span></a>snapshot </h2>
+<h2 id="renderoptions-snapshot" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-snapshot"><span class="icon icon-link"></span></a>snapshot </h2>
 
 Defaults to `true`
 
@@ -465,31 +465,31 @@ Defaults to `true`
 snapshot?: boolean;
 ```
 
-<h2 id="renderresult-snapshotresult" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#renderresult-snapshotresult"><span class="icon icon-link"></span></a>snapshotResult </h2>
+<h2 id="renderresult-snapshotresult" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-snapshotresult"><span class="icon icon-link"></span></a>snapshotResult </h2>
 
 ```typescript
 snapshotResult: SnapshotResult | undefined;
 ```
 
-<h2 id="inorderauto-strategy" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#inorderauto-strategy"><span class="icon icon-link"></span></a>strategy </h2>
+<h2 id="inorderauto-strategy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#inorderauto-strategy"><span class="icon icon-link"></span></a>strategy </h2>
 
 ```typescript
 strategy: "auto";
 ```
 
-<h2 id="rendertostreamoptions-stream" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions-stream"><span class="icon icon-link"></span></a>stream </h2>
+<h2 id="rendertostreamoptions-stream" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions-stream"><span class="icon icon-link"></span></a>stream </h2>
 
 ```typescript
 stream: StreamWriter;
 ```
 
-<h2 id="rendertostreamoptions-streaming" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions-streaming"><span class="icon icon-link"></span></a>streaming </h2>
+<h2 id="rendertostreamoptions-streaming" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions-streaming"><span class="icon icon-link"></span></a>streaming </h2>
 
 ```typescript
 streaming?: StreamingOptions;
 ```
 
-<h2 id="streamingoptions" data-kind="Interface"><a aria-hidden="true" tabindex="-1" href="#streamingoptions"><span class="icon icon-link"></span></a>StreamingOptions </h2>
+<h2 id="streamingoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#streamingoptions"><span class="icon icon-link"></span></a>StreamingOptions </h2>
 
 ```typescript
 export interface StreamingOptions
@@ -499,19 +499,19 @@ export interface StreamingOptions
 | ------------------------------------- | --------- | ------------------------------------- | ------------ |
 | [inOrder?](#streamingoptions-inorder) |           | [InOrderStreaming](#inorderstreaming) | _(Optional)_ |
 
-<h2 id="serializedocumentoptions-symbolmapper" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions-symbolmapper"><span class="icon icon-link"></span></a>symbolMapper </h2>
+<h2 id="serializedocumentoptions-symbolmapper" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions-symbolmapper"><span class="icon icon-link"></span></a>symbolMapper </h2>
 
 ```typescript
 symbolMapper?: SymbolMapperFn;
 ```
 
-<h2 id="prefetchstrategy-symbolstoprefetch" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy-symbolstoprefetch"><span class="icon icon-link"></span></a>symbolsToPrefetch </h2>
+<h2 id="prefetchstrategy-symbolstoprefetch" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy-symbolstoprefetch"><span class="icon icon-link"></span></a>symbolsToPrefetch </h2>
 
 ```typescript
 symbolsToPrefetch?: SymbolsToPrefetch;
 ```
 
-<h2 id="symbolstoprefetch" data-kind="TypeAlias"><a aria-hidden="true" tabindex="-1" href="#symbolstoprefetch"><span class="icon icon-link"></span></a>SymbolsToPrefetch </h2>
+<h2 id="symbolstoprefetch" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#symbolstoprefetch"><span class="icon icon-link"></span></a>SymbolsToPrefetch </h2>
 
 auto: Prefetch all possible QRLs used by the document. Default
 
@@ -523,7 +523,7 @@ export type SymbolsToPrefetch =
 
 **References:** [PrefetchResource](#prefetchresource)
 
-<h2 id="rendertostreamresult-timing" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-timing"><span class="icon icon-link"></span></a>timing </h2>
+<h2 id="rendertostreamresult-timing" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-timing"><span class="icon icon-link"></span></a>timing </h2>
 
 ```typescript
 timing: {
@@ -533,13 +533,13 @@ timing: {
 }
 ```
 
-<h2 id="prefetchresource-url" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchresource-url"><span class="icon icon-link"></span></a>url </h2>
+<h2 id="prefetchresource-url" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchresource-url"><span class="icon icon-link"></span></a>url </h2>
 
 ```typescript
 url: string;
 ```
 
-<h2 id="versions" data-kind="Variable"><a aria-hidden="true" tabindex="-1" href="#versions"><span class="icon icon-link"></span></a>versions </h2>
+<h2 id="versions" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#versions"><span class="icon icon-link"></span></a>versions </h2>
 
 ```typescript
 versions: {
@@ -548,7 +548,7 @@ versions: {
 }
 ```
 
-<h2 id="prefetchimplementation-workerfetchinsert" data-kind="PropertySignature"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-workerfetchinsert"><span class="icon icon-link"></span></a>workerFetchInsert </h2>
+<h2 id="prefetchimplementation-workerfetchinsert" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-workerfetchinsert"><span class="icon icon-link"></span></a>workerFetchInsert </h2>
 
 `always`: Always include the worker fetch JS runtime.
 

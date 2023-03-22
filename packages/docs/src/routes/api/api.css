@@ -1,5 +1,5 @@
 .docs.api h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
 }
 
 .docs.api h1 strong {
@@ -11,11 +11,15 @@
 }
 
 .docs.api h2 {
-  font-size: 2rem;
+  font-size: 1.25rem;
+}
+
+.docs.api h2[data-kind-label]:before {
+  content: attr(data-kind-label);
 }
 
 .docs.api h3 {
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .docs.api a {
@@ -32,46 +36,45 @@
   padding: 0;
 }
 
-.docs.api li.variable:before,
-.docs.api li.interface:before,
-.docs.api li.type-alias:before,
-.docs.api li.method-signature:before,
-.docs.api li.function:before,
-.docs.api li.namespace:before,
-.docs.api li.property-signature:before {
+.docs.api [data-kind-label]:before {
   border-radius: 4px;
   color: white;
   display: inline-block;
   margin-right: 8px;
   text-align: center;
-  width: 22px;
+  min-width: 32px; /* ensure the label is always the same width on the overview */
+  padding: 2px 10px;
 }
 
-.docs.api li.variable:before {
+.docs.api h2[data-kind-label]:before {
+  /* min-width: 42px; ensure the label is always the same width on detail view */
+}
+
+.docs.api [data-kind-label="V"]:before {
   content: 'V';
   background: var(--qwik-purple);
 }
-.docs.api li.property-signature:before {
+.docs.api [data-kind-label="P"]:before {
   content: 'P';
   background: var(--qwik-blue);
 }
-.docs.api li.interface:before {
+.docs.api [data-kind-label="I"]:before {
     content: 'I';
     background: var(--qwik-dark-blue);
 }
-.docs.api li.type-alias:before {
+.docs.api [data-kind-label="T"]:before {
     content: 'T';
     background: var(--qwik-dark-purple);
 }
-.docs.api li.method-signature:before {
+.docs.api [data-kind-label="M"]:before {
     content: 'M';
     background: #f0ad4e;
 }
-.docs.api li.function:before {
+.docs.api [data-kind-label="F"]:before {
     content: 'F';
     background: #5bc0de;
 }
-.docs.api li.namespace:before {
+.docs.api [data-kind-label="N"]:before {
     content: 'N';
     background: #5cb85c;
 }

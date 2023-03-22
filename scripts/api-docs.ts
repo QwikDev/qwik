@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path';
 import { type BuildConfig } from './util';
 import { format } from 'prettier';
+import { toSnakeCase } from '../packages/docs/src/utils/utils';
 
 export async function generateApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -188,7 +189,11 @@ function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     md.push(
-      `<h2 id="${m.id}" data-kind="${m.kind}"><a aria-hidden="true" tabindex="-1" href="#${m.id}"><span class="icon icon-link"></span></a>${m.name} </h2>`
+      `<h2 id="${m.id}" data-kind="${toSnakeCase(m.kind)}" data-kind-label="${m.kind
+        .substring(0, 1)
+        .toUpperCase()}"><a aria-hidden="true" tabindex="-1" href="#${
+        m.id
+      }"><span class="icon icon-link"></span></a>${m.name} </h2>`
     );
     md.push(``);
 

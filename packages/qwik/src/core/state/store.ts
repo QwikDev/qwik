@@ -95,6 +95,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     private $manager$: LocalSubscriptionManager
   ) {}
 
+  
+
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;

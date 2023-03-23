@@ -96,7 +96,7 @@ export async function createApp(opts: CreateAppOptions) {
     throw new Error(`outDir must be an absolute path`);
   }
   if (!fs.existsSync(opts.outDir)) {
-    fs.mkdirSync(opts.outDir, { recursive: true });
+    fs.mkdirSync(decodeURIComponent(opts.outDir), { recursive: true });
   }
 
   const result: CreateAppResult = {

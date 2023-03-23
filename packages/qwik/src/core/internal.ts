@@ -10,3 +10,4 @@ export { _deserializeData } from './container/resume';
 export { verifySerializable as _verifySerializable } from './state/common';
 export { _getContextElement, _jsxBranch } from './use/use-core';
 export { _jsxQ, _jsxC } from './render/jsx/jsx-runtime';
+export { _fnSignal } from './qrl/inlined-fn';

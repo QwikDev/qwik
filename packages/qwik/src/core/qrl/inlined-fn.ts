@@ -6,7 +6,7 @@ import { SignalDerived } from '../state/signal';
 import { qSerialize } from '../util/qdev';
 
 /**
- * @public
+ * @internal
  */
 export const _fnSignal = <T extends (...args: any[]) => any>(
   fn: T,

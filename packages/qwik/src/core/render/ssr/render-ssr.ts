@@ -623,7 +623,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       } else {
         if (flags & IS_TABLE && !tableContent[tagName]) {
           throw createJSXError(
-            `The <table> element requires that its direct children to be '<tbody>' or '<thead>', instead, '<${tagName}>' was rendered.`,
+            `The <table> element requires that its direct children to be '<tbody>', '<thead>' or '<tfoot>', instead, '<${tagName}>' was rendered.`,
             node
           );
         }
@@ -1051,6 +1051,7 @@ const htmlContent: Record<string, true | undefined> = {
 const tableContent: Record<string, true | undefined> = {
   tbody: true,
   thead: true,
+  tfoot: true,
 };
 
 const headContent: Record<string, true | undefined> = {

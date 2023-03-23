@@ -432,6 +432,11 @@ const Issue2414 = component$(() => {
         ) : (
           <></>
         )}
+        <tfoot>
+          <tr>
+            <td colSpan={3}>{table.value === undefined ? '' : table.value.length}</td>
+          </tr>
+        </tfoot>
       </table>
     </>
   );

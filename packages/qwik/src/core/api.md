@@ -165,42 +165,44 @@ export function getLocale(defaultLocale?: string): string;
 export const getPlatform: () => CorePlatform;
 
 // @public (undocumented)
-export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
+function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 
 // @public (undocumented)
-export namespace h {
+namespace h {
     // (undocumented)
-    export function h(type: any): JSXNode<any>;
+    function h(type: any): JSXNode<any>;
     // (undocumented)
-    export function h(type: Node, data: any): JSXNode<any>;
+    function h(type: Node, data: any): JSXNode<any>;
     // (undocumented)
-    export function h(type: any, text: string): JSXNode<any>;
+    function h(type: any, text: string): JSXNode<any>;
     // (undocumented)
-    export function h(type: any, children: Array<any>): JSXNode<any>;
+    function h(type: any, children: Array<any>): JSXNode<any>;
     // (undocumented)
-    export function h(type: any, data: any, text: string): JSXNode<any>;
+    function h(type: any, data: any, text: string): JSXNode<any>;
     // (undocumented)
-    export function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
+    function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
     // (undocumented)
-    export function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
+    function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
     // (undocumented)
-    export namespace JSX {
+    namespace JSX {
         // (undocumented)
-        export interface Element extends QwikJSX.Element {
+        interface Element extends QwikJSX.Element {
         }
         // (undocumented)
-        export interface ElementChildrenAttribute {
+        interface ElementChildrenAttribute {
             // (undocumented)
             children?: any;
         }
         // (undocumented)
-        export interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {
+        interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {
         }
         // (undocumented)
-        export interface IntrinsicElements extends QwikJSX.IntrinsicElements {
+        interface IntrinsicElements extends QwikJSX.IntrinsicElements {
         }
     }
 }
+export { h as createElement }
+export { h }
 
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {

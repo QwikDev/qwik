@@ -97,8 +97,12 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
-      if (prop === QOjectTargetSymbol) return target;
-      if (prop === QObjectManagerSymbol) return this.$manager$;
+      if (prop === QOjectTargetSymbol) {
+        return target;
+      }
+      if (prop === QObjectManagerSymbol) {
+        return this.$manager$;
+      }
       return target[prop];
     }
     let subscriber: Subscriber | undefined | null;
@@ -173,7 +177,9 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   has(target: TargetType, property: string | symbol) {
-    if (property === QOjectTargetSymbol) return true;
+    if (property === QOjectTargetSymbol) {
+      return true;
+    }
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     if (hasOwnProperty.call(target, property)) {
       return true;

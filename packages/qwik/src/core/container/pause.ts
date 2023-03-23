@@ -607,7 +607,9 @@ export const getNodesInScope = <T>(
       return FILTER_SKIP;
     },
   });
-  while (walker.nextNode());
+  while (walker.nextNode()) {
+    // do nothing
+  }
 
   return results;
 };

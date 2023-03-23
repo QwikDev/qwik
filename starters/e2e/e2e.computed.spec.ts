@@ -55,6 +55,16 @@ test.describe('slot', () => {
       await expect(classEl).toHaveText('class: class-2');
       await expect(datanuEl).toHaveText('data-nu: 2');
     });
+
+    test('issue 3488', async ({ page }) => {
+      const result = page.locator('#issue-3488-result');
+      const button = page.locator('#issue-3488-button');
+      await expect(result).toHaveText('class-0');
+      await button.click();
+      await expect(result).toHaveText('class-1');
+      await button.click();
+      await expect(result).toHaveText('class-2');
+    });
   }
 
   test.beforeEach(async ({ page }) => {

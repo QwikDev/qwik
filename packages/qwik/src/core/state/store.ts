@@ -95,10 +95,11 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     private $manager$: LocalSubscriptionManager
   ) {}
 
-  // no need to handle `immutable` and `recursive` for now
   deleteProperty(target: TargetType, prop: string | symbol): boolean {
-    if (!delete target[prop]) return false;
-    if (typeof prop == 'string') this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
+    const flags = target[QObjectFlagsSymbol] ?? 0
+    if (flags & QObjectImmutable) throw qError(QError_immutableProps);
+    if (!delete target[prop]) return false
+    this.$manager$.$notifySubs$(typeof prop != 'string'||isArray(target) ? undefined : prop);
     return true;
   }
 

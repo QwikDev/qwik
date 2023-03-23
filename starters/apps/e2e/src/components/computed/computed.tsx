@@ -70,7 +70,6 @@ export const TextContent = component$((props: { 'data-nu'?: string; class?: stri
   );
 });
 
-
 export const Issue3488 = component$(() => {
   const count = useSignal(0);
 

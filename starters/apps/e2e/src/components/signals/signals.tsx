@@ -123,6 +123,7 @@ export const SignalsChildren = component$(() => {
       <FineGrainedUnsubs />
       <Issue3415 />
       <BindSignal />
+      <Issue3482 />
     </div>
   );
 });
@@ -806,6 +807,27 @@ export const BindSignal = component$(() => {
       <div id="bind-text-1">Value: {value}</div>
       <div id="bind-text-2">Value: {value.value}</div>
       <textarea id="bind-input-2" bind:value={value} disabled={checked.value} />
+    </>
+  );
+});
+
+export const Issue3482 = component$((props) => {
+  const count = useStore({
+    'data-foo': 0,
+  });
+
+  return (
+    <>
+      <button
+        id="issue-3482-button"
+        data-count={count['data-foo']}
+        onClick$={() => count['data-foo']++}
+      >
+        Increment {count['data-foo']}
+      </button>
+      <div id="issue-3482-result" data-count={count['data-foo']}>
+        {count['data-foo']}
+      </div>
     </>
   );
 });

@@ -115,6 +115,19 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   ) {
     if (qDev) {
       invoke(undefined, () => {
+        if (props && immutableProps) {
+          const propsKeys = Object.keys(props);
+          const immutablePropsKeys = Object.keys(immutableProps);
+          // check if there are any duplicate keys
+          const duplicateKeys = propsKeys.filter((key) => immutablePropsKeys.includes(key));
+          if (duplicateKeys.length > 0) {
+            logOnceWarn(
+              `JSX is receiving duplicate props (${duplicateKeys.join(
+                ', '
+              )}). This is likely because you are spreading {...props}, make sure the props you are spreading are not already defined in the JSX.`
+            );
+          }
+        }
         const isQwikC = isQwikComponent(type);
         if (!isString(type) && !isFunction(type)) {
           throw createJSXError(

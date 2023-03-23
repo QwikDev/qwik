@@ -24,7 +24,7 @@ export type GetObjID = (obj: any) => string | null;
 export type MustGetObjID = (obj: any) => string;
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotMetaValue {
   w?: string; // q:watches
@@ -34,12 +34,12 @@ export interface SnapshotMetaValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotState {
   ctx: SnapshotMeta;
@@ -49,7 +49,7 @@ export interface SnapshotState {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotListener {
   key: string;
@@ -58,7 +58,7 @@ export interface SnapshotListener {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotResult {
   state: SnapshotState;
@@ -71,7 +71,7 @@ export interface SnapshotResult {
 export type ObjToProxyMap = WeakMap<any, any>;
 
 /**
- * @alpha
+ * @public
  */
 export interface PauseContext {
   getObject: GetObject;
@@ -80,7 +80,7 @@ export interface PauseContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContainerState {
   readonly $containerEl$: Element;

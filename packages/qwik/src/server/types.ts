@@ -3,7 +3,7 @@ import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwi
 import type { ResolvedManifest } from './prefetch-strategy';
 
 /**
- * @alpha
+ * @public
  */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest | ResolvedManifest;
@@ -12,7 +12,7 @@ export interface SerializeDocumentOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PrefetchStrategy {
   implementation?: PrefetchImplementation;
@@ -20,7 +20,7 @@ export interface PrefetchStrategy {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PrefetchImplementation {
   /**
@@ -61,12 +61,12 @@ export interface PrefetchImplementation {
 /**
  * auto: Prefetch all possible QRLs used by the document. Default
  *
- * @alpha
+ * @public
  */
 export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 
 /**
- * @alpha
+ * @public
  */
 export interface PrefetchResource {
   url: string;
@@ -74,7 +74,7 @@ export interface PrefetchResource {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStreamResult extends RenderResult {
   flushes: number;
@@ -87,7 +87,7 @@ export interface RenderToStreamResult extends RenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStringResult extends RenderResult {
   html: string;
@@ -98,7 +98,7 @@ export interface RenderToStringResult extends RenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
@@ -110,7 +110,7 @@ export interface RenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikLoaderOptions {
   events?: string[];
@@ -119,7 +119,7 @@ export interface QwikLoaderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderOptions extends SerializeDocumentOptions {
   /**
@@ -159,12 +159,12 @@ export interface RenderOptions extends SerializeDocumentOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface InOrderAuto {
   strategy: 'auto';
@@ -173,33 +173,33 @@ export interface InOrderAuto {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface InOrderDisabled {
   strategy: 'disabled';
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface InOrderDirect {
   strategy: 'direct';
 }
 
 /**
- * @alpha
+ * @public
  */
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /**
- * @alpha
+ * @public
  */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
@@ -207,17 +207,17 @@ export interface RenderToStreamOptions extends RenderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
 /**
- * @alpha
+ * @public
  */
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
 /**
- * @alpha
+ * @public
  */
 export type Render = RenderToString | RenderToStream;
 

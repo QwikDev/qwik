@@ -633,13 +633,11 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
       for (const sub of subs) {
-        if (sub[1] === el) {
-          if (sub[0] === 0) {
-            collectElement(el, collector);
-            return;
-          } else {
-            collectValue(props, collector, false);
-          }
+        if (sub[0] === 0 && sub[1] === el) {
+          collectElement(el, collector);
+          return;
+        } else {
+          collectValue(props, collector, false);
         }
       }
     }

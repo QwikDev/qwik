@@ -36,7 +36,7 @@ export interface RouteModule<BODY = unknown> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PageModule extends RouteModule {
   readonly default: any;
@@ -55,7 +55,7 @@ export interface MenuModule {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RouteLocation {
   readonly params: Readonly<Record<string, string>>;
@@ -76,7 +76,7 @@ export interface RouteLocation {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
 
@@ -97,7 +97,7 @@ export type MutableRouteLocation = Mutable<RouteLocation>;
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentHeadValue {
   /**
@@ -127,12 +127,12 @@ export interface DocumentHeadValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentMeta {
   readonly content?: string;
@@ -144,7 +144,7 @@ export interface DocumentMeta {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentLink {
   as?: string;
@@ -167,7 +167,7 @@ export interface DocumentLink {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentStyle {
   readonly style: string;
@@ -176,7 +176,7 @@ export interface DocumentStyle {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
@@ -185,14 +185,14 @@ export interface DocumentHeadProps extends RouteLocation {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
 export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
 /**
- * @alpha
+ * @public
  */
 export interface ContentState {
   readonly headings: ContentHeading[] | undefined;
@@ -200,7 +200,7 @@ export interface ContentState {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContentMenu {
   readonly text: string;
@@ -209,7 +209,7 @@ export interface ContentMenu {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContentHeading {
   readonly text: string;
@@ -223,7 +223,7 @@ export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
 /**
- * @alpha
+ * @public
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -237,12 +237,12 @@ export type RouteData =
     ];
 
 /**
- * @alpha
+ * @public
  */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityPlan {
   readonly routes: RouteData[];
@@ -254,13 +254,13 @@ export interface QwikCityPlan {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please update to `PathParams` instead
  */
 export declare type RouteParams = Record<string, string>;
 
 /**
- * @alpha
+ * @public
  */
 export declare type PathParams = Record<string, string>;
 
@@ -280,7 +280,7 @@ export interface LoadedContent extends LoadedRoute {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Please use `RequestHandler` instead.
  */
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
@@ -305,12 +305,12 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerate {
   params?: PathParams[];
@@ -348,12 +348,12 @@ type Prettify<T> = {} & {
 };
 
 /**
- * @alpha
+ * @public
  */
 export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
 
 /**
- * @alpha
+ * @public
  */
 export type JSONObject = { [x: string]: JSONValue };
 
@@ -364,7 +364,7 @@ export type GetValidatorType<B extends TypedDataValidator> = B extends TypedData
   : never;
 
 /**
- * @alpha
+ * @public
  */
 export interface ActionOptions {
   readonly id?: string;
@@ -372,7 +372,7 @@ export interface ActionOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
   readonly id?: string;
@@ -380,7 +380,7 @@ export interface ActionOptionsWithValidation<B extends TypedDataValidator = Type
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface CommonLoaderActionOptions {
   readonly id?: string;
@@ -394,7 +394,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
   : never;
 
 /**
- * @alpha
+ * @public
  */
 export interface ActionConstructor {
   // With validation
@@ -440,7 +440,7 @@ export interface ActionConstructor {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ActionConstructorQRL {
   // With validation
@@ -484,14 +484,14 @@ export interface ActionConstructorQRL {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface LoaderOptions {
   id?: string;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface LoaderConstructor {
   // Without validation
@@ -508,7 +508,7 @@ export interface LoaderConstructor {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface LoaderConstructorQRL {
   // Without validation
@@ -527,7 +527,7 @@ export interface LoaderConstructorQRL {
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
 /**
- * @alpha
+ * @public
  */
 export interface ActionReturn<RETURN> {
   readonly status?: number;
@@ -535,7 +535,7 @@ export interface ActionReturn<RETURN> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   /**
@@ -615,21 +615,21 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type FailReturn<T> = T & {
   failed: true;
 };
 
 /**
- * @alpha
+ * @public
  */
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
   ? Readonly<Signal<ValueOrPromise<B>>>
   : Readonly<Signal<T>>;
 
 /**
- * @alpha
+ * @public
  */
 export interface Loader<RETURN> {
   /**
@@ -653,7 +653,7 @@ export interface LoaderInternal extends Loader<any> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
   /**
@@ -693,14 +693,14 @@ export interface ValidatorReturnFail<T extends Record<string, any> = {}> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface DataValidator<T extends Record<string, any> = {}> {
   validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface TypedDataValidator<T extends zod.ZodType = any> {
   __zod: zod.ZodSchema<T>;
@@ -720,7 +720,7 @@ export interface ValidatorConstructorQRL {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ZodConstructor {
   <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
@@ -730,7 +730,7 @@ export interface ZodConstructor {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ZodConstructorQRL {
   <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;

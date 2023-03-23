@@ -44,7 +44,7 @@ import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /**
- * @alpha
+ * @public
  */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
@@ -150,7 +150,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 }) as unknown as ActionConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
@@ -167,21 +167,21 @@ export const globalActionQrl = ((
 }) as ActionConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   routeActionQrl
 ) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
@@ -209,12 +209,12 @@ export const routeLoaderQrl = ((
 }) as LoaderConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
 /**
- * @alpha
+ * @public
  */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
@@ -228,12 +228,12 @@ export const validatorQrl = ((
 }) as ValidatorConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
 /**
- * @alpha
+ * @public
  */
 export const zodQrl = ((
   qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
@@ -276,12 +276,12 @@ export const zodQrl = ((
 }) as ZodConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any>) => {
   if (isServer) {
@@ -331,7 +331,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
 };
 
 /**
- * @alpha
+ * @public
  */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
@@ -371,25 +371,25 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 };
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `globalAction$()` instead
  */
 export const actionQrl = globalActionQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `globalAction$()` instead
  */
 export const action$ = globalAction$;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `routeLoader$()` instead
  */
 export const loaderQrl = routeLoaderQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `routeLoader$()` instead
  */
 export const loader$ = routeLoader$;

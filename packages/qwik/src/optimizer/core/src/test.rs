@@ -2515,6 +2515,15 @@ import { component$, useStore, mutable } from '@builder.io/qwik';
 
 import {dep} from './file';
 
+export const TextContent = component$((props) => {
+    return (
+        <>
+            <div>data-nu: {props['data-nu']}</div>
+            <div>class: {props.class}</div>
+        </>
+    );
+});
+
 export const App = component$(() => {
     const signal = useSignal(0);
     const store = useStore({});

@@ -14,7 +14,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   (globalThis as any).TextEncoderStream = TextEncoderStream;
@@ -112,12 +112,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface EventPluginContext {
   request: Request;
@@ -127,7 +127,7 @@ export interface EventPluginContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformCloudflarePages {
   env?: EventPluginContext['env'];

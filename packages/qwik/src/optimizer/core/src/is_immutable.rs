@@ -43,6 +43,10 @@ impl<'a> Visit for ImmutableCollector<'a> {
         self.is_immutable = false;
     }
 
+    fn visit_member_expr(&mut self, _: &ast::MemberExpr) {
+        self.is_immutable = false;
+    }
+
     fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
 
     fn visit_ident(&mut self, ident: &ast::Ident) {

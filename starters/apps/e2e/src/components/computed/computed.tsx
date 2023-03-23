@@ -10,6 +10,7 @@ export const ComputedRoot = component$(() => {
         Rerender
       </button>
       <ComputedBasic />
+      <Issue3482 />
     </div>
   );
 });
@@ -32,6 +33,38 @@ export const ComputedBasic = component$(() => {
       <button id="increment" onClick$={() => count.value++}>
         Increment
       </button>
+    </div>
+  );
+});
+
+export const Issue3482 = component$((props) => {
+  const count = useSignal(0);
+
+  const attributes = useComputed$(() => {
+    return {
+      'data-nu': String(count.value),
+      class: `class-${count.value}`,
+    };
+  });
+
+  return (
+    <>
+      <button id="issue-3482-button" onClick$={() => count.value++}>
+        Increment
+      </button>
+      <div id="issue-3482-div" {...attributes.value}>
+        Div
+      </div>
+      <TextContent {...attributes.value}></TextContent>
+    </>
+  );
+});
+
+export const TextContent = component$((props: { 'data-nu'?: string; class?: string }) => {
+  return (
+    <div>
+      <div id="issue-3482-datanu">data-nu: {props['data-nu']}</div>
+      <div id="issue-3482-class">class: {props.class}</div>
     </div>
   );
 });

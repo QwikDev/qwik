@@ -3,7 +3,7 @@ import type { QContext } from '../state/context';
 import type { QwikElement } from './dom/virtual-element';
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderOperation {
   $operation$: (...args: any[]) => void;
@@ -11,7 +11,7 @@ export interface RenderOperation {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
@@ -33,6 +33,6 @@ export interface RenderStaticContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderContext2 {}

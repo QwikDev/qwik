@@ -473,10 +473,10 @@ export const Issue3398 = component$(() => {
   );
 });
 
-export const Pr3475 = component$(() => {
-  const store = useStore<{key?:string}>({key:"data"})
-  return <button
-        id="pr-3475-button"
-        onClick$={() => delete store.key}
-      >{store.key}</button>
-});
+export const Pr3475 = component$(() =>
+  ((store) => (
+    <button id="pr-3475-button" onClick$={() => delete store.key}>
+      {store.key}
+    </button>
+  ))(useStore<{ key?: string }>({ key: 'data' }))
+);

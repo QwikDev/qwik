@@ -257,10 +257,10 @@ test.describe('render', () => {
     await expect(page.locator('h1#issue-3398-tag')).not.hasAttribute('children');
   });
 
-  test("pr3475",async({page})=>{
+  test('pr3475', async ({ page }) => {
     const ref = page.locator('#pr-3475-button');
     await expect(page.locator('h1#issue-3398-tag')).toHaveText('data');
     await ref.click();
-    await expect(page.locator('h1#issue-3398-tag')).not.toHaveText("data");
-  })
+    await expect(page.locator('h1#issue-3398-tag')).not.toHaveText('data');
+  });
 });

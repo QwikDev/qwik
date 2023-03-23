@@ -6,6 +6,8 @@ import {
   useStore,
   useStylesScoped$,
   useTask$,
+  useBrowserVisibleTask$,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 
@@ -60,6 +62,7 @@ export const Render = component$(() => {
       <Issue2414 />
       <Issue3178 />
       <Issue3398 />
+      <Pr3475 />
     </>
   );
 });
@@ -468,4 +471,12 @@ export const Issue3398 = component$(() => {
       <Title tag={tag.value}></Title>
     </div>
   );
+});
+
+export const Pr3475 = component$(() => {
+  const store = useStore<{key?:string}>({key:"data"})
+  return <button
+        id="pr-3475-button"
+        onClick$={() => delete store.key}
+      >{store.key}</button>
 });

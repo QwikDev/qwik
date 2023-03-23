@@ -119,7 +119,6 @@ export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
 export { noSerialize, mutable } from './state/common';
-export { _fnSignal } from './qrl/inlined-fn';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////

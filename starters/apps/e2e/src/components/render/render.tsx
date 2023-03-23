@@ -74,6 +74,7 @@ export const RenderChildren = component$(() => {
       <Issue3398 />
       <Issue3479 />
       <Issue3481 />
+      <Issue3468 />
     </>
   );
 });
@@ -525,6 +526,26 @@ export const Issue3481 = component$(() => {
       <div id="issue-3481-result2" {...attr} class="from-static">
         Hello {countStr}
       </div>
+    </>
+  );
+});
+
+const DATA = [{ name: 'a' }, { name: 'b' }, { name: 'c' }, { name: 'd' }];
+
+export const Card = component$((props: any) => {
+  return (
+    <div class="issue-3468-card">
+      {props.name}:{props.key}
+    </div>
+  );
+});
+
+export const Issue3468 = component$(() => {
+  return (
+    <>
+      {DATA.map((post) => (
+        <Card {...post} key={post.name} />
+      ))}
     </>
   );
 });

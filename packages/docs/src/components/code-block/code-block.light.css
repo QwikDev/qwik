@@ -170,3 +170,13 @@
 /*  background: -webkit-linear-gradient(left, rgba(193, 222, 241, 0.2) 70%, rgba(221, 222, 241, 0));*/
 /*  background: linear-gradient(to right, rgba(193, 222, 241, 0.2) 70%, rgba(221, 222, 241, 0));*/
 /*}*/
+
+pre code .token.builtin {
+  color: #3cd0ce;
+}
+pre code .token.string {
+  color: #d0b1ff;
+}
+pre code .token.attr-name {
+  color: #60a6f3;
+}

@@ -41,6 +41,7 @@ pre[class*='language-'] {
   font-feature-settings: 'liga' 0, 'calt' 0;
   line-height: 18px;
   letter-spacing: 0px;
+  text-shadow: none;
 }
 
 @tailwind base;

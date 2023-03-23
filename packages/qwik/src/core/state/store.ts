@@ -96,10 +96,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   ) {}
 
   deleteProperty(target: TargetType, prop: string | symbol): boolean {
-    if (typeof prop != 'string') return false;
-    const flags = target[QObjectFlagsSymbol] ?? 0;
-    if (flags & QObjectImmutable) throw qError(QError_immutableProps);
-    if (!delete target[prop]) return false;
+    if (target[QObjectFlagsSymbol] & QObjectImmutable) throw qError(QError_immutableProps);
+    if (typeof prop != 'string' || !delete target[prop]) return false;
     this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
     return true;
   }

@@ -6,8 +6,6 @@ import {
   useStore,
   useStylesScoped$,
   useTask$,
-  useBrowserVisibleTask$,
-  useVisibleTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 

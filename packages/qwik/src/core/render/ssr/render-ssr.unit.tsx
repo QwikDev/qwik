@@ -335,6 +335,17 @@ renderSSRSuite('valid phrasing content', async () => {
   await testSSR(
     <body>
       <p>
+        <select>
+          <option>A</option>
+          <option>B</option>
+        </select>
+      </p>
+    </body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p><select><option>A</option><option>B</option></select></p></body>'
+  );
+  await testSSR(
+    <body>
+      <p>
         <link rel="example" />
       </p>
     </body>,

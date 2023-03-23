@@ -138,7 +138,7 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @internal (undocumented)
 export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>;
 
 // @public (undocumented)

@@ -677,12 +677,12 @@ const createElm = (
         );
       }
     }
+    if (vnode.$immutableProps$) {
+      setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
+    }
     if (props !== EMPTY_OBJ) {
       elCtx.$vdom$ = vnode;
       vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
-    }
-    if (vnode.$immutableProps$) {
-      setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
     }
     if (isSvg && tag === 'foreignObject') {
       isSvg = false;

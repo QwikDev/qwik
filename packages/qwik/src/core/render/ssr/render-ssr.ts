@@ -513,6 +513,43 @@ const renderNode = (
     if (qDev && props.class && props.className) {
       throw new TypeError('Can only have one of class or className');
     }
+    if (immutable) {
+      for (const prop of Object.keys(immutable)) {
+        let value = immutable[prop];
+        if (isOnProp(prop)) {
+          setEvent(elCtx.li, prop, value, undefined);
+          continue;
+        }
+        const attrName = processPropKey(prop);
+        if (isSignal(value)) {
+          assertDefined(hostCtx, 'Signals can not be used outside the root');
+          value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
+          useSignal = true;
+        }
+        if (prop === 'dangerouslySetInnerHTML') {
+          htmlStr = value;
+          continue;
+        }
+        if (prop.startsWith(PREVENT_DEFAULT)) {
+          addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+        }
+        const attrValue = processPropValue(attrName, value);
+        if (attrValue != null) {
+          if (attrName === 'class') {
+            classStr = attrValue;
+          } else if (attrName === 'value' && tagName === 'textarea') {
+            htmlStr = escapeHtml(attrValue);
+          } else if (isSSRUnsafeAttr(attrName)) {
+            if (qDev) {
+              logError('Attribute value is unsafe for SSR');
+            }
+          } else {
+            openingElement +=
+              ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+          }
+        }
+      }
+    }
     for (const prop of Object.keys(props)) {
       let value = props[prop];
       if (prop === 'ref') {
@@ -550,43 +587,6 @@ const renderNode = (
         } else {
           openingElement +=
             ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-        }
-      }
-    }
-    if (immutable) {
-      for (const prop of Object.keys(immutable)) {
-        let value = immutable[prop];
-        if (isOnProp(prop)) {
-          setEvent(elCtx.li, prop, value, undefined);
-          continue;
-        }
-        const attrName = processPropKey(prop);
-        if (isSignal(value)) {
-          assertDefined(hostCtx, 'Signals can not be used outside the root');
-          value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
-          useSignal = true;
-        }
-        if (prop === 'dangerouslySetInnerHTML') {
-          htmlStr = value;
-          continue;
-        }
-        if (prop.startsWith(PREVENT_DEFAULT)) {
-          addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
-        }
-        const attrValue = processPropValue(attrName, value);
-        if (attrValue != null) {
-          if (attrName === 'class') {
-            classStr = attrValue;
-          } else if (attrName === 'value' && tagName === 'textarea') {
-            htmlStr = escapeHtml(attrValue);
-          } else if (isSSRUnsafeAttr(attrName)) {
-            if (qDev) {
-              logError('Attribute value is unsafe for SSR');
-            }
-          } else {
-            openingElement +=
-              ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-          }
         }
       }
     }

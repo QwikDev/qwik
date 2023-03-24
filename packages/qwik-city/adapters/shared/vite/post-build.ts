@@ -64,10 +64,18 @@ export async function postBuild(
 
 function createNotFoundPathsModule(basePathname: string, notFounds: string[][], format: string) {
   notFounds.sort((a, b) => {
-    if (a[0].length > b[0].length) return -1;
-    if (a[0].length < b[0].length) return 1;
-    if (a[0] < b[0]) return -1;
-    if (a[0] > b[0]) return 1;
+    if (a[0].length > b[0].length) {
+      return -1;
+    }
+    if (a[0].length < b[0].length) {
+      return 1;
+    }
+    if (a[0] < b[0]) {
+      return -1;
+    }
+    if (a[0] > b[0]) {
+      return 1;
+    }
     return 0;
   });
 

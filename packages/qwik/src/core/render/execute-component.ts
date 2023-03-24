@@ -138,14 +138,19 @@ export const serializeClassWithHost = (
 };
 
 export const serializeClass = (obj: ClassList): string => {
-  if (!obj) return '';
-  if (isString(obj)) return obj.trim();
+  if (!obj) {
+    return '';
+  }
+  if (isString(obj)) {
+    return obj.trim();
+  }
 
-  if (isArray(obj))
+  if (isArray(obj)) {
     return obj.reduce((result: string, o) => {
       const classList = serializeClass(o);
       return classList ? (result ? `${result} ${classList}` : classList) : result;
     }, '');
+  }
 
   return Object.entries(obj).reduce(
     (result, [key, value]) => (value ? (result ? `${result} ${key.trim()}` : key.trim()) : result),
@@ -176,7 +181,9 @@ export const serializeClass = (obj: ClassList): string => {
 // };
 
 export const stringifyStyle = (obj: any): string => {
-  if (obj == null) return '';
+  if (obj == null) {
+    return '';
+  }
   if (typeof obj == 'object') {
     if (isArray(obj)) {
       throw qError(QError_stringifyClassOrStyle, obj, 'style');

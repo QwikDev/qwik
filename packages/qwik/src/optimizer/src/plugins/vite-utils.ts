@@ -92,8 +92,12 @@ export function posToNumber(
   source: string,
   pos: number | { line: number; column: number; lo: number }
 ): number {
-  if (typeof pos === 'number') return pos;
-  if (pos.lo != null) return pos.lo;
+  if (typeof pos === 'number') {
+    return pos;
+  }
+  if (pos.lo != null) {
+    return pos.lo;
+  }
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
@@ -117,7 +121,9 @@ export function generateCodeFrame(
     count += lines[i].length + 1;
     if (count >= start) {
       for (let j = i - range; j <= i + range || end > count; j++) {
-        if (j < 0 || j >= lines.length) continue;
+        if (j < 0 || j >= lines.length) {
+          continue;
+        }
         const line = j + 1;
         res.push(`${line}${' '.repeat(Math.max(3 - String(line).length, 0))}|  ${lines[j]}`);
         const lineLength = lines[j].length;

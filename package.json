@@ -43,6 +43,7 @@
     "docs.sync": "tsm scripts/docs_sync/index.ts",
     "lint": "pnpm lint.eslint && pnpm lint.prettier && pnpm lint.rust",
     "lint.eslint": "eslint --cache \"**/*.ts*\"",
+    "lint.fix": "eslint --fix \"**/*.ts*\" && pnpm prettier.fix",
     "lint.rust": "make lint",
     "lint.prettier": "prettier --check .",
     "prettier.fix": "prettier --write .",

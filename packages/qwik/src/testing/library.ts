@@ -37,8 +37,9 @@ export const createDOM = async function () {
     },
     screen: host,
     userEvent: async function (queryOrElement: string | Element | null, eventNameCamel: string) {
-      if (typeof queryOrElement === 'string')
+      if (typeof queryOrElement === 'string') {
         return triggerUserEvent(host, queryOrElement, eventNameCamel);
+      }
       const kebabEventName = fromCamelToKebabCase(eventNameCamel);
       const event = { type: kebabEventName };
       const attrName = 'on:' + kebabEventName;

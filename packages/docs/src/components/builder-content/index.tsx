@@ -8,10 +8,11 @@ export default component$<{
   model: string;
   tag: 'main' | 'div';
 }>((props) => {
-  if (isDev)
+  if (isDev) {
     return (
       <div>BUILDER CONTENT DISABLED IN DEV MODE TO MAKE LOCAL DEV POSSIBLE WITHOUT NETWORK</div>
     );
+  }
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
     const query = location.url.searchParams;

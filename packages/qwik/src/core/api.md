@@ -856,6 +856,8 @@ export interface SnapshotMetaValue {
 // @public (undocumented)
 export interface SnapshotResult {
     // (undocumented)
+    funcs: string[];
+    // (undocumented)
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];

@@ -46,4 +46,4 @@ export const QSlotInertName = '\u0000';
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';
-export const ELEMENT_ID_Q_PROPS_PREFIX = '&';
+export const INLINE_FN_PREFIX = '@';

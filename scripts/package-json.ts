@@ -133,8 +133,8 @@ export async function generateLegacyCjsSubmodule(
   pkgName: string,
   index = pkgName
 ) {
-  // Modern nodejs will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
-  // however, legacy nodejs still needs a directory and its own package.json
+  // Modern Node.js will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
+  // however, legacy Node.js still needs a directory and its own package.json
   // this can be removed once node12 is in the distant past
   const pkg: PackageJSON = {
     name: `@builder.io/qwik/${pkgName}`,

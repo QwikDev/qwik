@@ -62,6 +62,7 @@ export interface SnapshotListener {
  */
 export interface SnapshotResult {
   state: SnapshotState;
+  funcs: string[];
   qrls: QRL[];
   objs: any[];
   resources: ResourceReturnInternal<any>[];

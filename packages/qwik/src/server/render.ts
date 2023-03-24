@@ -162,6 +162,15 @@ export async function renderToStream(
           nonce: opts.serverData?.nonce,
         }),
       ];
+      if (snapshotResult.funcs.length > 0) {
+        children.push(
+          jsx('script', {
+            'q:func': 'qwik/json',
+            dangerouslySetInnerHTML: serializeFunctions(snapshotResult.funcs),
+            nonce: opts.serverData?.nonce,
+          })
+        );
+      }
 
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
@@ -316,4 +325,8 @@ function normalizeOptions<T extends RenderOptions>(opts: T | undefined): T {
     }
   }
   return normalizedOpts;
+}
+
+function serializeFunctions(funcs: string[]) {
+  return `document.currentScript.qFuncs=[${funcs.join(',\n')}]`;
 }

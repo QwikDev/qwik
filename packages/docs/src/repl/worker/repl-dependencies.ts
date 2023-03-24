@@ -33,6 +33,7 @@ const exec = async (cache: Cache, pkgName: string, pkgVersion: string, pkgPath: 
   const res = await depResponse(cache, pkgName, pkgVersion, pkgPath);
   if (res) {
     console.debug(`Run: ${res.url}`);
+    // eslint-disable-next-line no-new-func
     const run = new Function(await res.clone().text());
     run();
   } else {

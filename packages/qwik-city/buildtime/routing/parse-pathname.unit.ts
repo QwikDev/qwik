@@ -35,7 +35,7 @@ const tests = {
   },
   '/blog.json': {
     basePathname: '/',
-    pattern: /^\/blog\.json$/,
+    pattern: /^\/blog\.json\/?$/,
     paramNames: [],
   },
   '/blog/[slug]': {
@@ -45,7 +45,7 @@ const tests = {
   },
   '/blog/[slug].json': {
     basePathname: '/',
-    pattern: /^\/blog\/([^/]+?)\.json$/,
+    pattern: /^\/blog\/([^/]+?)\.json\/?$/,
     paramNames: ['slug'],
   },
   '/[...rest]': {
@@ -57,6 +57,11 @@ const tests = {
     basePathname: '/',
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
     paramNames: ['rest'],
+  },
+  '/xyz/abc.dot/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/abc\.dot\/?$/,
+    paramNames: [],
   },
 };
 

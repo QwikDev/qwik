@@ -3,18 +3,28 @@ import qwikApiData from './qwik/api.json';
 import qwikCityApiData from './qwik-city/api.json';
 import { toSnakeCase } from '../../utils/utils';
 
-const KINDS = new Set();
+const _KINDS = new Set();
 const getUniqueKinds = () => {
-  if (KINDS.size) {
-    return;
+  if (_KINDS.size) {
+    return _KINDS;
   }
 
-  qwikApiData.members.forEach((member) => KINDS.add(toSnakeCase(member.kind)));
+  qwikApiData.members.forEach((member) => _KINDS.add(toSnakeCase(member.kind)));
+  return _KINDS;
+};
+
+const getInitialFilterState = () => {
+  return Array.from(getUniqueKinds()).reduce((acc: any, kind) => {
+    if (typeof kind !== 'string') {
+      return acc;
+    }
+    acc[kind] = true;
+    return acc;
+  },{}) || {};
 };
 
 export default component$(() => {
-  getUniqueKinds();
-  const filters = useStore({});
+  const filters = useStore(getInitialFilterState());
 
   return (
     <>
@@ -22,17 +32,17 @@ export default component$(() => {
 
       <h2>Filter</h2>
       <div class="grid grid-cols-4 gap-2">
-        {Array.from(KINDS).map((kind) => (
+        {Array.from(getUniqueKinds()).map((kind) => (
           <button
             key={`filter-${kind}`}
             onClick$={() => {
               filters[kind] = !filters[kind];
               console.log(filters);
             }}
-            class={`block bg-slate-200 text-sm rounded-md text-left ${filters[kind] ? 'bg-blue-200' : ''}`}
+            class={`filter-item block text-sm rounded-md text-left ${filters[kind] ? 'active' : ''}`}
             data-kind-label={kind.substring(0, 1).toUpperCase()}
           >
-            {kind}
+            {kind.split('-').join(' ')}
           </button>
         ))}
       </div>

@@ -40,6 +40,15 @@
   padding: 0;
 }
 
+.docs.api .filter-item {
+  background: #eee;
+}
+
+.docs.api .filter-item[data-kind-label]:not(.active):before {
+  background: #aaa;
+  color: black;
+}
+
 .docs.api [data-kind-label]:before {
   border-radius: 4px;
   color: white;

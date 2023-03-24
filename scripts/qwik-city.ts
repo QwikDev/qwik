@@ -23,6 +23,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildAdapterCloudflarePagesVite(config, inputDir, outputDir),
     buildAdapterCloudRunVite(config, inputDir, outputDir),
     buildAdapterExpressVite(config, inputDir, outputDir),
+    buildAdapterNodeServerVite(config, inputDir, outputDir),
     buildAdapterNetlifyEdgeVite(config, inputDir, outputDir),
     buildAdapterSharedVite(config, inputDir, outputDir),
     buildAdapterStaticVite(config, inputDir, outputDir),
@@ -71,6 +72,11 @@ export async function buildQwikCity(config: BuildConfig) {
         types: './adapters/express/vite/index.d.ts',
         import: './adapters/express/vite/index.mjs',
         require: './adapters/express/vite/index.cjs',
+      },
+      './adapters/node-server/vite': {
+        types: './adapters/node-server/vite/index.d.ts',
+        import: './adapters/node-server/vite/index.mjs',
+        require: './adapters/node-server/vite/index.cjs',
       },
       './adapters/netlify-edge/vite': {
         types: './adapters/netlify-edge/vite/index.d.ts',
@@ -419,6 +425,38 @@ async function buildAdapterExpressVite(config: BuildConfig, inputDir: string, ou
   await build({
     entryPoints,
     outfile: join(outputDir, 'adapters', 'express', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
+  });
+}
+
+async function buildAdapterNodeServerVite(
+  config: BuildConfig,
+  inputDir: string,
+  outputDir: string
+) {
+  const entryPoints = [join(inputDir, 'adapters', 'node-server', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adapters', 'node-server', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adapters', 'node-server', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

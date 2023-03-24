@@ -460,7 +460,7 @@ jobs:
     needs:
       - release
 
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+    if: ${{ needs.changes.outputs.fullbuild == 'true' && github.ref_name == 'main' }}
     steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2

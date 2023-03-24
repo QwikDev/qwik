@@ -1,6 +1,5 @@
 import { component$, useSignal, useStore, useTask$ } from '@builder.io/qwik';
 import qwikApiData from './qwik/api.json';
-import qwikCityApiData from './qwik-city/api.json';
 import { toSnakeCase } from '../../utils/utils';
 
 const _KINDS = new Set();
@@ -25,6 +24,7 @@ const getInitialFilterState = () => {
 
 export default component$(() => {
   const filters = useStore(getInitialFilterState());
+
 
   return (
     <>
@@ -52,19 +52,13 @@ export default component$(() => {
         <h3>Qwik</h3>
       </a>
       <ApiMemberList id="qwik" data={qwikApiData} />
-
-      <h2>Qwik City</h2>
-      <a href="qwik-city">
-        <h3>Qwik-City</h3>
-      </a>
-      <ApiMemberList id="qwik-city" data={qwikCityApiData} />
     </>
   );
 });
 
 // TODO: move into standalone cmp and adjust typings!
 export const ApiMemberList = component$(({ id, data}: any) => (
-  <ul class="grid md:grid-cols-2 lg:grid-cols-3">
+  <ul class="grid md:grid-cols-2 lg:grid-cols-4">
     {data.members.map((member) => {
       if (!member.name) {
         return;
@@ -79,7 +73,7 @@ export const ApiMemberList = component$(({ id, data}: any) => (
           key={`${id}-member-${member.id}`}
           data-kind={kind}
           data-kind-label={kind.substring(0, 1).toUpperCase()}
-          class="api-item list-none text-sm"
+          class="api-item list-none text-xs"
         >
           <a href={`qwik#${member.id}`}>{member.name}</a>
         </li>

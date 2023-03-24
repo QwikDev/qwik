@@ -40,13 +40,24 @@
   padding: 0;
 }
 
+.docs.api .api-edit {
+  margin-top: 0px;
+  text-align: right;
+}
+.docs.api .api-edit a {
+  font-size: 0.8rem;
+  background: #eee;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
 .docs.api .filter-item {
   background: #eee;
 }
 
 .docs.api .filter-item[data-kind-label]:not(.active):before {
-  background: #aaa;
-  color: black;
+  background: #bbb;
+  color: #444;
 }
 
 .docs.api [data-kind-label]:before {

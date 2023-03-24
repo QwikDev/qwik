@@ -37,20 +37,6 @@
       "mdFile": "qwik.contextid.__brand_context_type__.md"
     },
     {
-      "name": "_fnSignal",
-      "id": "_fnsignal",
-      "hierarchy": [
-        {
-          "name": "_fnSignal",
-          "id": "_fnsignal"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\n_fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/inlined-fn.ts",
-      "mdFile": "qwik._fnsignal.md"
-    },
-    {
       "name": "\"aria-activedescendant\"",
       "id": "ariaattributes-_aria-activedescendant_",
       "hierarchy": [
@@ -1930,6 +1916,23 @@
       "content": "```typescript\nFragment: FunctionComponent<{\n    children?: any;\n    key?: string | number | null;\n}>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.fragment.md"
+    },
+    {
+      "name": "funcs",
+      "id": "snapshotresult-funcs",
+      "hierarchy": [
+        {
+          "name": "SnapshotResult",
+          "id": "snapshotresult-funcs"
+        },
+        {
+          "name": "funcs",
+          "id": "snapshotresult-funcs"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "```typescript\nfuncs: string[];\n```",
+      "mdFile": "qwik.snapshotresult.funcs.md"
     },
     {
       "name": "FunctionComponent",
@@ -4209,7 +4212,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [mode](#snapshotresult-mode) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#snapshotresult-objs) |  | any\\[\\] |  |\n|  [qrls](#snapshotresult-qrls) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#snapshotresult-resources) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#snapshotresult-state) |  | [SnapshotState](#snapshotstate) |  |",
+      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [funcs](#snapshotresult-funcs) |  | string\\[\\] |  |\n|  [mode](#snapshotresult-mode) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#snapshotresult-objs) |  | any\\[\\] |  |\n|  [qrls](#snapshotresult-qrls) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#snapshotresult-resources) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#snapshotresult-state) |  | [SnapshotState](#snapshotstate) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotresult.md"
     },

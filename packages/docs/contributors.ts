@@ -53,8 +53,12 @@ async function updateGithubCommits(filePath: string) {
   }
 
   contributors.sort((a, b) => {
-    if (a.count > b.count) return -1;
-    if (a.count < b.count) return 1;
+    if (a.count > b.count) {
+      return -1;
+    }
+    if (a.count < b.count) {
+      return 1;
+    }
     return 0;
   });
 

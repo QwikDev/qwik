@@ -309,4 +309,11 @@ test.describe('render', () => {
     });
     tests();
   });
+
+  test('pr3475', async ({ page }) => {
+    const ref = page.locator('#pr-3475-button');
+    await expect(ref).toHaveText('data');
+    await ref.click();
+    await expect(ref).not.toHaveText('data');
+  });
 });

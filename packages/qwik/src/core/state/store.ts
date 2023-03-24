@@ -95,6 +95,13 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     private $manager$: LocalSubscriptionManager
   ) {}
 
+  deleteProperty(target: TargetType, prop: string | symbol): boolean {
+    if (target[QObjectFlagsSymbol] & QObjectImmutable) throw qError(QError_immutableProps);
+    if (typeof prop != 'string' || !delete target[prop]) return false;
+    this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
+    return true;
+  }
+
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;

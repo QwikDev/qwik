@@ -14,6 +14,15 @@
       "https://qwik.builder.io/deployments/vercel-edge/",
       "https://vercel.com/docs/concepts/functions/edge-functions",
       "https://vercel.com/docs"
-    ]
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build and deploy to Vercel with:",
+        "",
+        "  - pnpm run build: production build for Vercel",
+        "  - pnpm run deploy: it will use the Vercel CLI to deploy your site"
+      ]
+    }
   }
 }

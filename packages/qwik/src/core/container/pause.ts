@@ -135,7 +135,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
       case 'boolean':
         return obj;
     }
-    const value = serializeValue(obj, mustGetObjId, containerState);
+    const value = serializeValue(obj, mustGetObjId, collector, containerState);
     if (value !== undefined) {
       return value;
     }
@@ -290,6 +290,7 @@ export const _pauseFromContexts = async (
         subs: [],
       },
       objs: [],
+      funcs: [],
       qrls: [],
       resources: collector.$resources$,
       mode: 'static',
@@ -469,7 +470,7 @@ export const _pauseFromContexts = async (
       case 'boolean':
         return obj;
     }
-    const value = serializeValue(obj, mustGetObjId, containerState);
+    const value = serializeValue(obj, mustGetObjId, collector, containerState);
     if (value !== undefined) {
       return value;
     }
@@ -580,6 +581,7 @@ export const _pauseFromContexts = async (
       subs,
     },
     objs,
+    funcs: collector.$inlinedFunctions$,
     resources: collector.$resources$,
     qrls: collector.$qrls$,
     mode: canRender ? 'render' : 'listeners',
@@ -620,6 +622,7 @@ export interface Collector {
   $noSerialize$: any[];
   $elements$: QContext[];
   $qrls$: QRL[];
+  $inlinedFunctions$: string[];
   $resources$: ResourceReturnInternal<any>[];
   $prefetch$: number;
   $deferElements$: QContext[];
@@ -653,6 +656,7 @@ const createCollector = (containerState: ContainerState): Collector => {
     $objSet$: new Set(),
     $prefetch$: 0,
     $noSerialize$: [],
+    $inlinedFunctions$: [],
     $resources$: [],
     $elements$: [],
     $qrls$: [],

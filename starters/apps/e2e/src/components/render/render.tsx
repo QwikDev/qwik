@@ -402,6 +402,8 @@ const Issue2414 = component$(() => {
     <>
       <p>Should be currently sorted by: {sort.value}</p>
       <table>
+        <caption>Hello</caption>
+        <colgroup></colgroup>
         <thead>
           {(['size', 'age', 'id'] as const).map((c) => {
             return (

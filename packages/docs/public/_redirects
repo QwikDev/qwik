@@ -50,3 +50,4 @@
 /qwikcity/prefetching/parallelizing-network-requests/ /docs/advanced/speculative-module-fetching/ 308
 /qwikcity/* /docs/:splat 308
 /docs/overview /docs/ 308
+/docs/overview/ /docs/ 308

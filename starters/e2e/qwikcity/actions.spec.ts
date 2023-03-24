@@ -128,5 +128,19 @@ test.describe('actions', () => {
         await expect(page.locator('#issue2644-list > li')).toHaveText(['AAA', 'BBB']);
       });
     });
+
+    test.describe('issue3497', () => {
+      test('should parse formdata', async ({ page }) => {
+        await page.goto('/qwikcity-test/actions/issue3497/');
+        const success = page.locator('#issue3497-success');
+
+        await expect(success).toBeHidden();
+        await page.locator('#issue3497-button').click();
+        await expect(success).toHaveText(
+          '{"credentials":{"username":"user","password":"pass"},"array":["1","2"]}'
+        );
+        await expect(true).toBeTruthy();
+      });
+    });
   }
 });

@@ -315,7 +315,7 @@ const formToObj = (formData: FormData): Record<string, any> => {
           current[k] = value;
         }
       } else {
-        current = current[k] = {};
+        current = current[k] = { ...current[k] };
       }
     }
   });

@@ -77,7 +77,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
     s.stop('Post install script complete');
   }
-  logUpdateAppCommitResult(result);
+  logUpdateAppCommitResult(result, pkgManager);
 
   // close the process
   process.exit(0);
@@ -152,10 +152,10 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   }
 }
 
-function logUpdateAppCommitResult(result: UpdateAppResult) {
+function logUpdateAppCommitResult(result: UpdateAppResult, packageManager: string) {
   const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
   if (nextSteps) {
-    note(logNextStep(nextSteps), 'Note');
+    note(logNextStep(nextSteps, packageManager), 'Note');
   }
 
   outro(`🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`);

@@ -38,6 +38,9 @@
       "@builder.io/qwik-city/adapters/express/vite": [
         "packages/qwik-city/adapters/express/vite/index.ts"
       ],
+      "@builder.io/qwik-city/adapters/node-server/vite": [
+        "packages/qwik-city/adapters/node-server/vite/index.ts"
+      ],
       "@builder.io/qwik-city/adapters/netlify-edge/vite": [
         "packages/qwik-city/adapters/netlify-edge/vite/index.ts"
       ],

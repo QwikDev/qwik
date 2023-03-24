@@ -28,6 +28,10 @@
       "import": "./lib/adapters/express/vite/index.mjs",
       "require": "./lib/adapters/express/vite/index.cjs"
     },
+    "./adapters/node-server/vite": {
+      "import": "./lib/adapters/node-server/vite/index.mjs",
+      "require": "./lib/adapters/node-server/vite/index.cjs"
+    },
     "./adapters/netlify-edge/vite": {
       "import": "./lib/adapters/netlify-edge/vite/index.mjs",
       "require": "./lib/adapters/netlify-edge/vite/index.cjs"

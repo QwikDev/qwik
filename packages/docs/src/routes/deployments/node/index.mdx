@@ -12,15 +12,24 @@ contributors:
 Qwik City Node middleware allows you to connect Qwik City to a Nodejs server which uses the common middleware functionality. Some Node servers include:
 
 - [Express](https://expressjs.com/)
+- [Fastify](https://fastify.io/)
 - [Connect](https://www.npmjs.com/package/connect)
 - [Polka](https://www.npmjs.com/package/polka)
 
 ## Installation
 
-To integrate the `node` adaptor, use the `add` command:
+To integrate the `node` adapter, use the `add` command:
+
+- For [Express](https://expressjs.com/):
 
 ```shell
 npm run qwik add express
+```
+
+- For [Fastify](https://fastify.io/)
+
+```shell
+npm run qwik add fastify
 ```
 
 ## Production build
@@ -48,4 +57,4 @@ Since you are choosing Node, here you are in your own, after running `npm run bu
 - The `dist` folder will be created including all the static files.
 - The `server` folder will be created including all node server files.
 
-In order to deploy the server, you need to run the `server/entry.express.js` file in the server of your choice.
+In order to deploy the server, you need to run the `server/entry.[server].js` file in the server of your choice, where `[server]` can be [express](https://expressjs.com/) or [fastify](https://fastify.io/).

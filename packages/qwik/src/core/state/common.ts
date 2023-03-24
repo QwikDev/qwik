@@ -52,8 +52,12 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
     const typeObj = typeof unwrapped;
     switch (typeObj) {
       case 'object':
-        if (isPromise(unwrapped)) return value;
-        if (isNode(unwrapped)) return value;
+        if (isPromise(unwrapped)) {
+          return value;
+        }
+        if (isNode(unwrapped)) {
+          return value;
+        }
         if (isArray(unwrapped)) {
           let expectIndex = 0;
           // Make sure the array has no holes

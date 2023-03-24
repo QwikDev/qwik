@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.6.6",
+  "version": "0.7.0",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
@@ -27,6 +27,10 @@
     "./adapters/express/vite": {
       "import": "./lib/adapters/express/vite/index.mjs",
       "require": "./lib/adapters/express/vite/index.cjs"
+    },
+    "./adapters/node-server/vite": {
+      "import": "./lib/adapters/node-server/vite/index.mjs",
+      "require": "./lib/adapters/node-server/vite/index.cjs"
     },
     "./adapters/netlify-edge/vite": {
       "import": "./lib/adapters/netlify-edge/vite/index.mjs",

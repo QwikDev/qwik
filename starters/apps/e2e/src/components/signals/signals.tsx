@@ -440,7 +440,9 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
         onClick$={() => {
           store.n++;
           store.flag = !store.flag;
-          if (store.n >= colors.length) store.n = 0;
+          if (store.n >= colors.length) {
+            store.n = 0;
+          }
           store.color = colors[store.n];
           colorSignal.value = colors[store.n];
         }}
@@ -494,7 +496,9 @@ export const Issue2245B = component$(() => {
           store.n++;
           store.flag = !store.flag;
           flagSignal.value = !flagSignal.value;
-          if (store.n >= colors.length) store.n = 0;
+          if (store.n >= colors.length) {
+            store.n = 0;
+          }
           store.color = colors[store.n];
           colorSignal.value = colors[store.n];
         }}

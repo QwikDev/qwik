@@ -74,6 +74,8 @@ export const RenderChildren = component$(() => {
       <Issue3398 />
       <Issue3479 />
       <Issue3481 />
+      <Issue3468 />
+      <Pr3475 />
     </>
   );
 });
@@ -401,6 +403,8 @@ const Issue2414 = component$(() => {
     <>
       <p>Should be currently sorted by: {sort.value}</p>
       <table>
+        <caption>Hello</caption>
+        <colgroup></colgroup>
         <thead>
           {(['size', 'age', 'id'] as const).map((c) => {
             return (
@@ -431,6 +435,11 @@ const Issue2414 = component$(() => {
         ) : (
           <></>
         )}
+        <tfoot>
+          <tr>
+            <td colSpan={3}>{table.value === undefined ? '' : table.value.length}</td>
+          </tr>
+        </tfoot>
       </table>
     </>
   );
@@ -528,3 +537,31 @@ export const Issue3481 = component$(() => {
     </>
   );
 });
+
+const DATA = [{ name: 'a' }, { name: 'b' }, { name: 'c' }, { name: 'd' }];
+
+export const Card = component$((props: any) => {
+  return (
+    <div class="issue-3468-card">
+      {props.name}:{props.key}
+    </div>
+  );
+});
+
+export const Issue3468 = component$(() => {
+  return (
+    <>
+      {DATA.map((post) => (
+        <Card {...post} key={post.name} />
+      ))}
+    </>
+  );
+});
+
+export const Pr3475 = component$(() =>
+  ((store) => (
+    <button id="pr-3475-button" onClick$={() => delete store.key}>
+      {store.key}
+    </button>
+  ))(useStore<{ key?: string }>({ key: 'data' }))
+);

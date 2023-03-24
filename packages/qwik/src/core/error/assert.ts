@@ -7,7 +7,9 @@ export function assertDefined<T>(
   ...parts: any[]
 ): asserts value is NonNullable<T> {
   if (qDev) {
-    if (value != null) return;
+    if (value != null) {
+      return;
+    }
     throw logErrorAndStop(text, ...parts);
   }
 }
@@ -19,28 +21,36 @@ export function assertEqual(
   ...parts: any[]
 ): asserts value1 is typeof value2 {
   if (qDev) {
-    if (value1 === value2) return;
+    if (value1 === value2) {
+      return;
+    }
     throw logErrorAndStop(text, ...parts);
   }
 }
 
 export function assertTrue(value1: any, text: string, ...parts: any[]): asserts value1 is true {
   if (qDev) {
-    if (value1 === true) return;
+    if (value1 === true) {
+      return;
+    }
     throw logErrorAndStop(text, ...parts);
   }
 }
 
 export function assertNumber(value1: any, text: string, ...parts: any[]): asserts value1 is number {
   if (qDev) {
-    if (typeof value1 === 'number') return;
+    if (typeof value1 === 'number') {
+      return;
+    }
     throw logErrorAndStop(text, ...parts);
   }
 }
 
 export function assertString(value1: any, text: string, ...parts: any[]): asserts value1 is string {
   if (qDev) {
-    if (typeof value1 === 'string') return;
+    if (typeof value1 === 'string') {
+      return;
+    }
     throw logErrorAndStop(text, ...parts);
   }
 }

@@ -17,12 +17,11 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
 
   const segments = pathname.split('/');
   const paramNames: string[] = [];
-  let addTrailingSlash = true;
 
   const pattern = new RegExp(
     `^${segments
       .filter((segment) => segment.length > 0)
-      .map((s, i, segments) => {
+      .map((s) => {
         const segment = decodeURIComponent(s);
 
         // special case — /[...rest]/ could contain zero segments
@@ -31,8 +30,6 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
           paramNames.push(catchAll[1]);
           return '(?:/(.*))?';
         }
-
-        const isLast = i === segments.length - 1;
 
         return (
           '/' +
@@ -46,11 +43,6 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
                   paramNames.push(name);
                   return rest ? '(.*?)' : '([^/]+?)';
                 }
-              }
-
-              // TODO, remove once basepath is refactored
-              if (isLast && content.includes('.')) {
-                addTrailingSlash = false;
               }
 
               return (
@@ -74,7 +66,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
             .join('')
         );
       })
-      .join('')}${addTrailingSlash ? '/?' : ''}$`
+      .join('')}/?$` // always match with and without a trailing slash
   );
 
   return {

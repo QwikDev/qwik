@@ -37,7 +37,7 @@ storeSuite.skip('should serialize content', async () => {
   </body>`
   );
   await pauseContainer(document.body);
-  const script = getQwikJSON(document.body)!;
+  const script = getQwikJSON(document.body, 'type')!;
   script.remove();
 
   await expectDOM(

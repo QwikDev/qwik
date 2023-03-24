@@ -54,6 +54,7 @@ export async function getSystem() {
         const cjsRsp = await fetch(path);
         const cjsCode = await cjsRsp.text();
         const cjsModule: any = { exports: {} };
+        // eslint-disable-next-line no-new-func
         const cjsRun = new Function('module', 'exports', cjsCode);
         cjsRun(cjsModule, cjsModule.exports);
         return cjsModule.exports;
@@ -114,8 +115,12 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
           })
         )
       ).sort((a, b) => {
-        if (a.path < b.path) return -1;
-        if (a.path > b.path) return 1;
+        if (a.path < b.path) {
+          return -1;
+        }
+        if (a.path > b.path) {
+          return 1;
+        }
         return 0;
       });
 
@@ -207,6 +212,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
       }
 
       const cjsModule: any = { exports: {} };
+      // eslint-disable-next-line no-new-func
       const cjsRun = new Function('module', 'exports', cjsCode);
       cjsRun(cjsModule, cjsModule.exports);
       const mod = cjsModule.exports;

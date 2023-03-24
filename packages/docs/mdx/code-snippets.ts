@@ -60,7 +60,9 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
   const makeVisitor =
     (format: 'md' | 'mdx'): BuildVisitor<Root, 'code'> =>
     (code, index, parent) => {
-      if (index === null || parent === null) return;
+      if (index === null || parent === null) {
+        return;
+      }
       const isMDX = format === 'mdx';
 
       // Parse optional meta information after the opening code fence,
@@ -267,7 +269,9 @@ function preprocessCode(code: string, lang: string, extractFileName: boolean) {
   }
 
   // If only one line is left, trim any leading indentation
-  if (lines.length === 1) lines[0] = lines[0].trimStart();
+  if (lines.length === 1) {
+    lines[0] = lines[0].trimStart();
+  }
 
   // Rebuild code with normalized line endings
   let preprocessedCode = lines.join('\n');
@@ -290,7 +294,9 @@ export function encodeMarkdownStringProp(input: string | undefined) {
 
 /** Encodes an optional string array to allow passing it through Markdown/MDX component props */
 export function encodeMarkdownStringArrayProp(arrInput: string[] | undefined) {
-  if (arrInput === undefined) return undefined;
+  if (arrInput === undefined) {
+    return undefined;
+  }
   return arrInput.map((input) => encodeURIComponent(input)).join(',') || undefined;
 }
 

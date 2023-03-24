@@ -1002,7 +1002,9 @@ export const setProperties = (
     }
 
     if (prop === 'class') {
-      if (qDev && values.class) throw new TypeError('Can only provide one of class or className');
+      if (qDev && values.class) {
+        throw new TypeError('Can only provide one of class or className');
+      }
       newValue = serializeClassWithHost(newValue, hostCtx);
       if (!newValue) {
         continue;

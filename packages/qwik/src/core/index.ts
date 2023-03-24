@@ -35,7 +35,7 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { h } from './render/jsx/factory';
+export { h, h as createElement } from './render/jsx/factory';
 export {
   SSRStreamBlock,
   SSRRaw,
@@ -119,7 +119,6 @@ export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
 export { noSerialize, mutable } from './state/common';
-export { _fnSignal } from './qrl/inlined-fn';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////

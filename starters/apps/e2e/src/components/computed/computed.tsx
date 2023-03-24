@@ -11,6 +11,7 @@ export const ComputedRoot = component$(() => {
       </button>
       <ComputedBasic />
       <Issue3482 />
+      <Issue3488 />
     </div>
   );
 });
@@ -66,5 +67,24 @@ export const TextContent = component$((props: { 'data-nu'?: string; class?: stri
       <div id="issue-3482-datanu">data-nu: {props['data-nu']}</div>
       <div id="issue-3482-class">class: {props.class}</div>
     </div>
+  );
+});
+
+export const Issue3488 = component$(() => {
+  const count = useSignal(0);
+
+  const data = useComputed$(() => {
+    return {
+      class: `class-${count.value}`,
+    };
+  });
+
+  return (
+    <>
+      <button id="issue-3488-button" onClick$={() => count.value++}>
+        Increment
+      </button>
+      <div id="issue-3488-result">{data.value.class}</div>
+    </>
   );
 });

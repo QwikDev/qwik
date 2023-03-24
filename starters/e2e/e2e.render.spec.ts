@@ -292,6 +292,11 @@ test.describe('render', () => {
       await expect(result1).toHaveCSS('color', 'rgb(0, 0, 255)');
       await expect(result2).toHaveCSS('color', 'rgb(0, 0, 255)');
     });
+
+    test('issue3468', async ({ page }) => {
+      const cards = page.locator('.issue-3468-card');
+      await expect(cards).toHaveText(['a:', 'b:', 'c:', 'd:']);
+    });
   }
 
   tests();

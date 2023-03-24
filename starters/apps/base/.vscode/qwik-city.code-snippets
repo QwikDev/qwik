@@ -4,7 +4,7 @@
     "prefix": "qonRequest",
     "description": "onRequest function for a route index",
     "body": [
-      "export const nRequest: RequestHandler = (request) => {",
+      "export const onRequest: RequestHandler = (request) => {",
       "  $0",
       "};"
     ]

@@ -1,0 +1,48 @@
+{
+  "description": "Use Angular components into your Qwik app",
+  "dependencies": {
+    "@angular/common": "^15.0.0",
+    "@angular/core": "^15.0.0",
+    "@angular/platform-browser": "^15.0.0",
+    "@angular/platform-browser-dynamic": "^15.0.0"
+  },
+  "devDependencies": {
+    "@analogjs/vite-plugin-angular": "0.2.0-alpha.29",
+    "@builder.io/qwik-angular": "0.1.0",
+    "@angular-devkit/build-angular": "^15.1.4",
+    "@angular/compiler": "^15.1.3",
+    "@angular/compiler-cli": "^15.1.3",
+    "@angular/core": "^15.1.3",
+    "@angular/forms": "^15.1.3",
+    "@angular/platform-browser": "^15.1.3",
+    "@angular/platform-server": "^15.1.3",
+    "typescript": "4.9.5"
+  },
+  "__qwik__": {
+    "displayName": "Framework: Angular",
+    "priority": -1,
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/angular/TODO"
+    ],
+    "nextSteps": {
+      "title": "New folders created!",
+      "lines": [
+        " - /src/routes/angular: New public route showcasing angular integration",
+        " - /src/integrations/angular: Here's where the angular component lives"
+      ]
+    },
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "angular"
+          ],
+          "importPath": "@builder.io/qwik-angular/vite"
+        }
+      ],
+      "vitePlugins": [
+        "angular({ tsconfig: './tsconfig.json', componentsDir: 'integrations/angular' })"
+      ]
+    }
+  }
+}

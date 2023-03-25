@@ -1,5 +1,5 @@
 ---
-title: Qwik City - action$()
+title: Qwik City - routeAction$()
 contributors:
   - manucorporat
   - cunzaizhuyi
@@ -7,17 +7,43 @@ contributors:
   - keuller
 ---
 
-# `action$()`
+# `routeAction$()`
 
-Actions can be declared using the `action$()` function anywhere. Actions are similar to [loaders](/qwikcity/loader/) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
+Actions are similar to [loaders](/qwikcity/loader/) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
+
+## Declaring an action
+
+Actions can be declared using the `routeAction$()` or `globalAction$()`. Essencially, the do the same thing and share exactly the same API, the only difference between the two is that `routeAction$()` is scoped to a route, while `globalAction$()` is globally available across the whole app.
+
+
+- `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$(). Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
+
+```tsx
+export const useChangePassword = routeAction$((data) => {
+  // ...
+});
+```
+
+- `globalAction$()` however, can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user.  Think about it like a "public" action.
+
+```tsx
+export const useChangePassword = globalAction$((data) => {
+  // ...
+});
+```
+
+> We recommend starting with `routeAction$()` and only use `globalAction$()` when you need to share an action across multiple routes, or if you wish to use the action in a component that is not a route.
+
+## Using an action
 
 Actions are referenced using the `.use()` method from within a Qwik Component. The `use()` method returns `ActionStore` object with methods to trigger the action and get its state.
 
 ```tsx
 // src/routes/layout.tsx
 import { component$ } from '@builder.io/qwik';
-import { action$ } from '@builder.io/qwik-city';
-export const useAddUser = action$((user) => {
+import { routeAction$ } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -47,10 +73,10 @@ The best way to trigger an action is by using the `<Form/>` component exported i
 ```tsx
 // src/routes/index.tsx
 
-import { action$, Form } from '@builder.io/qwik-city';
+import { routeAction$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useAddUser = action$((user) => {
+export const useAddUser = routeAction$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -79,10 +105,10 @@ Actions can also be triggered programatically using the `action.run()` method, i
 ```tsx
 // src/routes/index.tsx
 
-import { action$ } from '@builder.io/qwik-city';
+import { routeAction$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useAddUser = action$((user) => {
+export const useAddUser = routeAction$((user) => {
   const userID = db.users.add(user);
   return {
     success: true,
@@ -117,9 +143,9 @@ When submitting data to an action by default, the data is not validated.
 ```tsx
 // src/routes/index.tsx
 
-import { action$ } from '@builder.io/qwik-city';
+import { routeAction$ } from '@builder.io/qwik-city';
 
-export const addUser = action$((user) => {
+export const useAddUser = routeAction$((user) => {
   // `user` is typed Record<string, any>
   const userID = db.users.add(user);
   return {
@@ -134,9 +160,9 @@ Fortunately, actions have first class support for [Zod](https://zod.dev/), a Typ
 ```tsx
 // src/routes/index.tsx
 
-import { action$, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
-export const addUser = action$(
+export const useAddUser = routeAction$(
   (user) => {
     // `user` is typed { name: string }
     const userID = db.users.add(user);
@@ -155,9 +181,9 @@ When submitting data to an action, the data is validated against the Zod schema.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { action$, Form, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
-export const addUser = action$(
+export const useAddUser = routeAction$(
   (user) => {
     // `user` is typed { name: string }
     const userID = db.users.add(user);
@@ -191,9 +217,9 @@ Please refer to the [Zod documentation](https://zod.dev/) for more information o
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx
-import { action$, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
-export const addUser = action$(
+export const useAddUser = routeAction$(
   (user, { fail }) => {
     // `user` is typed { name: string }
     const userID = db.users.add(user);
@@ -239,9 +265,9 @@ When an action is triggered, the previous state is stored in the `action.formDat
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { action$, Form, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
-export const useAddUser = action$(
+export const useAddUser = routeAction$(
   (user) => {
     // `user` is typed { name: string }
     const userID = db.users.add(user);

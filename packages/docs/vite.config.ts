@@ -16,6 +16,7 @@ export default defineConfig(() => {
         'algoliasearch/lite',
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
+        'algoliasearch/dist/algoliasearch-lite.esm.browser',
       ],
     },
     plugins: [

@@ -11,6 +11,7 @@ import {
 } from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
+import { GetSessionResult, Providers } from './types';
 
 export interface QwikAuthConfig extends AuthConfig {}
 
@@ -128,6 +129,20 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
     return req.sharedMap.get('session') as Session | null;
   });
 
+  const useAuthProviders = routeLoader$(async (req) => {
+    const options = await authOptions(req);
+    const url = new URL(`/api/auth/providers`, req.url);
+    const response = await Auth(new Request(url, { headers: req.headers }), options);
+
+    const data = await response.json();
+    if (!data || !Object.keys(data).length) {
+      return null;
+    } else if (response.status === 200) {
+      return data as Providers;
+    }
+    throw new Error(data.message);
+  });
+
   const onRequest = async (req: RequestEvent) => {
     if (isServer) {
       const prefix: string = '/api/auth';
@@ -151,6 +166,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   };
 
   return {
+    useAuthProviders,
     useAuthSignin,
     useAuthSignout,
     useAuthSession,
@@ -166,8 +182,6 @@ export const ensureAuthMiddleware = (req: RequestEvent) => {
     throw req.error(403, 'sfs');
   }
 };
-
-export type GetSessionResult = Promise<Session | null>;
 
 export async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
   options.secret ??= process.env.AUTH_SECRET;

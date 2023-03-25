@@ -5,7 +5,7 @@ import {
   useTask$,
   useStore,
   useSignal,
-  Signal,
+  type Signal,
   createContextId,
   useContext,
   useContextProvider,

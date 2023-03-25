@@ -1,3 +1,4 @@
+import { implicit$FirstArg } from '../util/implicit_dollar';
 import { qRuntimeQrl } from '../util/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
@@ -132,7 +133,7 @@ export interface QRL<TYPE = any> {
 
   /**
    * Resolve the QRL of closure and invoke it.
-   * @param args - Clousure arguments.
+   * @param args - Closure arguments.
    * @returns A promise of the return value of the closure.
    */
   (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<
@@ -252,3 +253,15 @@ export const $ = <T>(expression: T): QRL<T> => {
 
   return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
 };
+
+/**
+ * @public
+ */
+export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
+  return qrl;
+};
+
+/**
+ * @public
+ */
+export const event$ = implicit$FirstArg(eventQrl);

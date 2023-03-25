@@ -1,53 +1,48 @@
-import { jsx } from '../jsx/jsx-runtime';
+import { static_subtree } from '../execute-component';
+import { jsx, _jsxQ } from '../jsx/jsx-runtime';
 import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
-export const QOnce = 'qonce';
-
 /**
- * @alpha
+ * @public
  */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
 /**
- * @alpha
+ * @public
  */
-export const RenderOnce: FunctionComponent<{ children?: any }> = (props: any, key) => {
-  return jsx(
-    Virtual,
-    {
-      ...props,
-      [QOnce]: '',
-    },
-    key
-  );
+export const RenderOnce: FunctionComponent<{
+  children?: any;
+  key?: string | number | null | undefined;
+}> = (props: any, key) => {
+  return _jsxQ(Virtual, null, null, props.children, static_subtree, key);
 };
 
 /**
- * @alpha
+ * @public
  */
 export const Fragment: FunctionComponent<{}> = ((props: any) => props.children) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
   jsx(SSRRaw, { data: `<!--${props.data}-->` }, null) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const Virtual: FunctionComponent<Record<string, any>> = ((props: any) =>
   props.children) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => {
   return [
@@ -58,7 +53,7 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
 };
 
 /**
- * @alpha
+ * @public
  */
 export interface SSRStreamProps {
   children:
@@ -68,21 +63,21 @@ export interface SSRStreamProps {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
   jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
 
 /**
- * @alpha
+ * @public
  */
 export interface SSRHintProps {
   dynamic?: boolean;
 }
 
 /**
- * @alpha
+ * @public
  */
-export const SSRHint: FunctionComponent<SSRHintProps> = ((props: any) => props.children) as any;
+export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 
 export const InternalSSRStream: FunctionComponent<SSRStreamProps> = () => null;

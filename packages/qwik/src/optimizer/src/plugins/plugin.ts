@@ -15,8 +15,8 @@ import type {
   TransformModulesOptions,
   TransformOutput,
 } from '../types';
-import { createLinter, QwikLinter } from './eslint-plugin';
-import type { PluginContext } from 'rollup';
+import { createLinter, type QwikLinter } from './eslint-plugin';
+import type { Rollup } from 'vite';
 
 const REG_CTX_NAME = ['server$'];
 
@@ -350,6 +350,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const transformOpts: TransformFsOptions = {
         srcDir,
+        rootDir: opts.rootDir,
         vendorRoots,
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
@@ -388,7 +389,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveId = async (
-    _ctx: PluginContext,
+    _ctx: Rollup.PluginContext,
     id: string,
     importer: string | undefined,
     resolveIdOpts?: { ssr?: boolean }
@@ -515,7 +516,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const transform = async function (
-    ctx: PluginContext,
+    ctx: Rollup.PluginContext,
     code: string,
     id: string,
     ssrOpts: { ssr?: boolean } = {}
@@ -562,6 +563,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         explicitExtensions: true,
         preserveFilenames: true,
         srcDir: srcDir,
+        rootDir: opts.rootDir,
         mode: mode,
         scope: opts.scope ? opts.scope : void 0,
       };
@@ -620,6 +622,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           explicitExtensions: true,
           preserveFilenames: true,
           srcDir: srcDir,
+          rootDir: opts.rootDir,
           mode: mode,
           scope: opts.scope ? opts.scope : void 0,
         };
@@ -868,11 +871,11 @@ export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions>
 }
 
 /**
- * @alpha
+ * @public
  */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 /**
- * @alpha
+ * @public
  */
 export type QwikBuildMode = 'production' | 'development';

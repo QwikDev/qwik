@@ -10,16 +10,16 @@ import type {
 } from '../types';
 import {
   createPlugin,
-  NormalizedQwikPluginOptions,
+  type NormalizedQwikPluginOptions,
   parseId,
-  QwikBuildMode,
-  QwikPluginOptions,
-  QwikBuildTarget,
+  type QwikBuildMode,
+  type QwikPluginOptions,
+  type QwikBuildTarget,
   QWIK_CORE_ID,
   Q_MANIFEST_FILENAME,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_BUILD_ID,
-  QwikPackages,
+  type QwikPackages,
   QWIK_JSX_RUNTIME_ID,
   CLIENT_OUT_DIR,
   QWIK_JSX_DEV_RUNTIME_ID,
@@ -33,7 +33,7 @@ import { versions } from '../versions';
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 /**
- * @alpha
+ * @public
  */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
@@ -172,10 +172,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             console.error(e);
           }
         } catch (e) {
-          // error reading package.json from nodejs fs, ok to ignore
+          // error reading package.json from Node.js fs, ok to ignore
         }
 
-        // In a NodeJs environment, create a path to a q-manifest.json file within the
+        // In a Node.js environment, create a path to a q-manifest.json file within the
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
         // the Client build should always start and finish before the SSR build.
@@ -258,7 +258,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
-            output: normalizeRollupOutputOptions(path, opts, {}),
+            output: normalizeRollupOutputOptions(
+              path,
+              opts,
+              viteConfig.build?.rollupOptions?.output
+            ),
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -278,22 +282,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
-      if (buildMode === 'development') {
-        const qDevKey = 'globalThis.qDev';
-        const qInspectorKey = 'globalThis.qInspector';
-        const qSerializeKey = 'globalThis.qSerialize';
-        const qDev = viteConfig?.define?.[qDevKey] ?? true;
-        const qInspector = viteConfig?.define?.[qInspectorKey] ?? true;
-        const qSerialize = viteConfig?.define?.[qSerializeKey] ?? true;
+      const isDevelopment = buildMode === 'development';
+      const qDevKey = 'globalThis.qDev';
+      const qInspectorKey = 'globalThis.qInspector';
+      const qSerializeKey = 'globalThis.qSerialize';
+      const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
+      const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
+      const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
-        updatedViteConfig.define = {
-          [qDevKey]: qDev,
-          [qInspectorKey]: qInspector,
-          [qSerializeKey]: qSerialize,
-        };
-        (globalThis as any).qDev = qDev;
-        (globalThis as any).qInspector = qInspector;
-      }
+      updatedViteConfig.define = {
+        [qDevKey]: qDev,
+        [qInspectorKey]: qInspector,
+        [qSerializeKey]: qSerialize,
+      };
+      (globalThis as any).qDev = qDev;
+      (globalThis as any).qInspector = qInspector;
 
       if (opts.target === 'ssr') {
         // SSR Build
@@ -674,7 +677,7 @@ const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
 const CLIENT_DEV_INPUT = 'entry.dev.tsx';
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikVitePluginOptions {
   /**
@@ -730,7 +733,7 @@ export interface QwikVitePluginOptions {
     /**
      * The entry point for the SSR renderer. This file should export
      * a `render()` function. This entry point and `render()` export
-     * function is also used for Vite's SSR development and Nodejs
+     * function is also used for Vite's SSR development and Node.js
      * debug mode.
      * Default `src/entry.ssr.tsx`
      */
@@ -773,7 +776,7 @@ export interface QwikVitePluginOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
@@ -784,7 +787,7 @@ export interface QwikVitePluginApi {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikVitePlugin {
   name: 'vite-plugin-qwik';
@@ -792,7 +795,7 @@ export interface QwikVitePlugin {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;

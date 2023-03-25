@@ -24,23 +24,25 @@ import { componentQrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
 import { _regSymbol } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { _noopQrl } from "@builder.io/qwik";
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    return /*#__PURE__*/ _jsxs(_Fragment, {
+    return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsx("div", {
+            /*#__PURE__*/ _jsxQ("div", {
                 onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "07DGQ0fITXs"), "Works_component__Fragment_div_onClick_server_07DGQ0fITXs"))
-            }),
-            /*#__PURE__*/ _jsx("div", {
+            }, null, null, 2, null),
+            /*#__PURE__*/ _jsxQ("div", null, {
                 onClick$: /*#__PURE__*/ _noopQrl("Works_component__Fragment_div_onClick_YhOCqfqU0Rc")
-            })
+            }, null, 3, null)
         ]
-    }, "u6_0");
+    }, 1, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAEvC,qBACI;;0BACA,KAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,KAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAEvC,qBACI;;0BACA,MAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,MAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

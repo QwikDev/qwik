@@ -1,7 +1,7 @@
-import { build, BuildOptions, Plugin } from 'esbuild';
+import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
 import {
-  BuildConfig,
+  type BuildConfig,
   getBanner,
   importPath,
   injectGlobalThisPoly,
@@ -33,7 +33,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     target,
     external: [
-      /* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom',
+      /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
       '@builder.io/qwik/build',
     ],
   };

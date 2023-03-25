@@ -103,9 +103,9 @@ function generateLinkBundles(ctx: BuildContext, appBundles: AppBundle[], manifes
         if (bundle.origins) {
           for (const bundleOrigin of bundle.origins) {
             const srcPath = removeExtension(filePath);
-            const bundleOrginPath = removeExtension(bundleOrigin);
+            const bundleOriginPath = removeExtension(bundleOrigin);
 
-            if (srcPath.endsWith(bundleOrginPath)) {
+            if (srcPath.endsWith(bundleOriginPath)) {
               if (!linkBundleNames.includes(bundleName)) {
                 linkBundleNames.push(bundleName);
               }

@@ -11,8 +11,12 @@ export async function sortIntegrationsAndReturnAsClackOptions(
 ) {
   return integrations
     .sort((a, b) => {
-      if (a.priority > b.priority) return -1;
-      if (a.priority < b.priority) return 1;
+      if (a.priority > b.priority) {
+        return -1;
+      }
+      if (a.priority < b.priority) {
+        return 1;
+      }
       return a.id < b.id ? -1 : 1;
     })
     .map((i) => ({
@@ -61,8 +65,12 @@ export async function loadIntegrations() {
     );
 
     loadingIntegrations.sort((a, b) => {
-      if (a.priority > b.priority) return -1;
-      if (a.priority < b.priority) return 1;
+      if (a.priority > b.priority) {
+        return -1;
+      }
+      if (a.priority < b.priority) {
+        return 1;
+      }
       return a.id < b.id ? -1 : 1;
     });
 

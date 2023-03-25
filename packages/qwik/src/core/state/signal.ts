@@ -9,21 +9,21 @@ import {
   getProxyManager,
   getProxyTarget,
   LocalSubscriptionManager,
-  Subscriptions,
+  type Subscriptions,
   verifySerializable,
 } from './common';
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
-import { _fnSignal, SignalDerived } from '../qrl/inlined-fn';
+import { _fnSignal } from '../qrl/inlined-fn';
 
 /**
- * @alpha
+ * @public
  */
 export interface Signal<T = any> {
   value: T;
 }
 
 /**
- * @alpha
+ * @public
  */
 export type ValueOrSignal<T> = T | Signal<T>;
 
@@ -34,9 +34,9 @@ export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
   flags: number,
-  subcriptions?: Subscriptions[]
+  subscriptions?: Subscriptions[]
 ): SignalInternal<T> => {
-  const manager = containerState.$subsManager$.$createManager$(subcriptions);
+  const manager = containerState.$subsManager$.$createManager$(subscriptions);
   const signal = new SignalImpl<T>(value, manager, flags);
   return signal;
 };
@@ -46,7 +46,7 @@ export const QObjectSignalFlags = Symbol('proxy manager');
 export const SIGNAL_IMMUTABLE = 1 << 0;
 export const SIGNAL_UNASSIGNED = 1 << 1;
 
-export const SignalUnassignedException = Symbol('unasigned signal');
+export const SignalUnassignedException = Symbol('unassigned signal');
 
 export interface SignalInternal<T> extends Signal<T> {
   untrackedValue: T;
@@ -54,12 +54,15 @@ export interface SignalInternal<T> extends Signal<T> {
   [QObjectSignalFlags]: number;
 }
 
-export class SignalImpl<T> implements Signal<T> {
+export class SignalBase {}
+
+export class SignalImpl<T> extends SignalBase implements Signal<T> {
   untrackedValue: T;
   [QObjectManagerSymbol]: LocalSubscriptionManager;
   [QObjectSignalFlags]: number = 0;
 
   constructor(v: T, manager: LocalSubscriptionManager, flags: number) {
+    super();
     this.untrackedValue = v;
     this[QObjectManagerSymbol] = manager;
     this[QObjectSignalFlags] = flags;
@@ -77,11 +80,11 @@ export class SignalImpl<T> implements Signal<T> {
   }
 
   get value() {
+    if (this[QObjectSignalFlags] & SIGNAL_UNASSIGNED) {
+      throw SignalUnassignedException;
+    }
     const sub = tryGetInvokeContext()?.$subscriber$;
     if (sub) {
-      if (this[QObjectSignalFlags] & SIGNAL_UNASSIGNED) {
-        throw SignalUnassignedException;
-      }
       this[QObjectManagerSymbol].$addSub$(sub);
     }
     return this.untrackedValue;
@@ -118,12 +121,20 @@ export class SignalImpl<T> implements Signal<T> {
   }
 }
 
-export const isSignal = (obj: any): obj is Signal<any> => {
-  return obj instanceof SignalImpl || obj instanceof SignalWrapper || obj instanceof SignalDerived;
-};
+export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBase {
+  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$?: string) {
+    super();
+  }
 
-export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
-  constructor(public ref: T, public prop: P) {}
+  get value(): T {
+    return this.$func$.apply(undefined, this.$args$);
+  }
+}
+
+export class SignalWrapper<T extends Record<string, any>, P extends keyof T> extends SignalBase {
+  constructor(public ref: T, public prop: P) {
+    super();
+  }
 
   get [QObjectManagerSymbol]() {
     return getProxyManager(this.ref);
@@ -137,6 +148,10 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
     this.ref[this.prop] = value;
   }
 }
+
+export const isSignal = (obj: any): obj is Signal<any> => {
+  return obj instanceof SignalBase;
+};
 
 /**
  * @internal
@@ -168,11 +183,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (isSignal(immutable)) {
     return immutable;
   }
-  const value = obj[prop];
-  if (isSignal(value)) {
-    return _IMMUTABLE;
-  }
-  return value;
+  return _IMMUTABLE;
 };
 
 /**

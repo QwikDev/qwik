@@ -37,17 +37,17 @@ export default App;
 export { App as _auto_App };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,0GAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,0GAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
 import { _auto_App as App } from "./test";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = (props)=>{
-    return /*#__PURE__*/ _jsx(App, {}, "u6_1");
+    return /*#__PURE__*/ _jsxC(App, null, 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC,QAAiB;IAC7C,qBACI,KAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC,QAAiB;IAC7C,qBACI,MAAC;AAET\"}")
 /*
 {
   "origin": "test.tsx",
@@ -69,15 +69,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxQ } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ _jsx("div", {
-        children: "hola"
-    }, "u6_0");
+    return /*#__PURE__*/ _jsxQ("div", null, null, "hola", 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB,IAAM;IACzB,qBACI,KAAC;kBAAI;;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB,IAAM;IACzB,qBACI,MAAC,mBAAI;AAEb\"}")
 /*
 {
   "origin": "test.tsx",

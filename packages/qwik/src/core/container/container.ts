@@ -5,23 +5,26 @@ import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
-import type { QwikElement } from '../render/dom/virtual-element';
-import type { RenderContext } from '../render/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
 import { isElement } from '../util/element';
-import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from '../state/common';
+import {
+  createSubscriptionManager,
+  type SubscriberSignal,
+  type SubscriptionManager,
+} from '../state/common';
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertTrue } from '../error/assert';
+import type { QContext } from '../state/context';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
 export type MustGetObjID = (obj: any) => string;
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotMetaValue {
   w?: string; // q:watches
@@ -31,12 +34,12 @@ export interface SnapshotMetaValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotState {
   ctx: SnapshotMeta;
@@ -46,7 +49,7 @@ export interface SnapshotState {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotListener {
   key: string;
@@ -55,10 +58,11 @@ export interface SnapshotListener {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotResult {
   state: SnapshotState;
+  funcs: string[];
   qrls: QRL[];
   objs: any[];
   resources: ResourceReturnInternal<any>[];
@@ -68,7 +72,7 @@ export interface SnapshotResult {
 export type ObjToProxyMap = WeakMap<any, any>;
 
 /**
- * @alpha
+ * @public
  */
 export interface PauseContext {
   getObject: GetObject;
@@ -77,7 +81,7 @@ export interface PauseContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContainerState {
   readonly $containerEl$: Element;
@@ -90,12 +94,12 @@ export interface ContainerState {
 
   readonly $opsNext$: Set<SubscriberSignal>;
 
-  readonly $hostsNext$: Set<QwikElement>;
-  readonly $hostsStaging$: Set<QwikElement>;
+  readonly $hostsNext$: Set<QContext>;
+  readonly $hostsStaging$: Set<QContext>;
   readonly $base$: string;
 
-  $hostsRendering$: Set<QwikElement> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
+  $hostsRendering$: Set<QContext> | undefined;
+  $renderPromise$: Promise<void> | undefined;
 
   $serverData$: Record<string, any>;
   $elementIndex$: number;
@@ -151,6 +155,10 @@ export const createContainerState = (containerEl: Element, base: string) => {
   seal(containerState);
   containerState.$subsManager$ = createSubscriptionManager(containerState);
   return containerState;
+};
+
+export const removeContainerState = (containerEl: Element) => {
+  delete (containerEl as any)[CONTAINER_STATE];
 };
 
 export const setRef = (value: any, elm: Element) => {

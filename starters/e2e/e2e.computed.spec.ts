@@ -32,11 +32,49 @@ test.describe('slot', () => {
         'sum: 32',
       ]);
     });
+
+    test('issue 3482', async ({ page }) => {
+      const button = page.locator('#issue-3482-button');
+      const div = page.locator('#issue-3482-div');
+      const classEl = page.locator('#issue-3482-class');
+      const datanuEl = page.locator('#issue-3482-datanu');
+      await expect(div).toHaveAttribute('class', 'class-0');
+      await expect(div).toHaveAttribute('data-nu', '0');
+      await expect(classEl).toHaveText('class: class-0');
+      await expect(datanuEl).toHaveText('data-nu: 0');
+
+      await button.click();
+      await expect(div).toHaveAttribute('class', 'class-1');
+      await expect(div).toHaveAttribute('data-nu', '1');
+      await expect(classEl).toHaveText('class: class-1');
+      await expect(datanuEl).toHaveText('data-nu: 1');
+
+      await button.click();
+      await expect(div).toHaveAttribute('class', 'class-2');
+      await expect(div).toHaveAttribute('data-nu', '2');
+      await expect(classEl).toHaveText('class: class-2');
+      await expect(datanuEl).toHaveText('data-nu: 2');
+    });
+
+    test('issue 3488', async ({ page }) => {
+      const result = page.locator('#issue-3488-result');
+      const button = page.locator('#issue-3488-button');
+      await expect(result).toHaveText('class-0');
+      await button.click();
+      await expect(result).toHaveText('class-1');
+      await button.click();
+      await expect(result).toHaveText('class-2');
+    });
   }
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/computed');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   tests();

@@ -10,9 +10,8 @@
     "declaration": true,
     "outDir": "./dist-dev/tsc-out",
     "declarationDir": "./dist-dev/dts-out",
-    "isolatedModules": true,
     "strict": true,
-    "importsNotUsedAsValues": "error",
+    "verbatimModuleSyntax": true,
     "moduleResolution": "node",
     "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true,
@@ -38,6 +37,9 @@
       ],
       "@builder.io/qwik-city/adapters/express/vite": [
         "packages/qwik-city/adapters/express/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adapters/node-server/vite": [
+        "packages/qwik-city/adapters/node-server/vite/index.ts"
       ],
       "@builder.io/qwik-city/adapters/netlify-edge/vite": [
         "packages/qwik-city/adapters/netlify-edge/vite/index.ts"
@@ -96,11 +98,5 @@
     "starters/dev-server.ts",
     "packages/qwik-react/vite"
   ],
-  "exclude": [
-    "packages/create-qwik/dist",
-    "packages/docs/dist",
-    "packages/docs/server",
-    "**/lib",
-    "packages/qwik/**/*.d.ts"
-  ]
+  "exclude": ["packages/create-qwik/dist", "**/lib", "packages/qwik/**/*.d.ts"]
 }

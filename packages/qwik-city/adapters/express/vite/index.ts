@@ -1,13 +1,15 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /**
- * @alpha
+ * @public
+ * @deprecated - Use `nodeServerAdapter` exported from `@builder.io/qwik-city/adapters/node-server/vite` instead.
  */
 export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'express',
-    origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.builder.io',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,
@@ -27,23 +29,25 @@ export function expressAdapter(opts: ExpressAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
- * @deprecated Use `expressAdapter` exported from `@builder.io/qwik-city/adapters/express/vite` instead.
+ * @public
+ * @deprecated - Use `nodeServerAdapter` exported from `@builder.io/qwik-city/adapters/node-server/vite` instead.
  */
 export const expressAdaptor = expressAdapter;
 
 /**
- * @alpha
+ * @public
+ * @deprecated - Use `NodeServerAdapterOptions` exported from `@builder.io/qwik-city/adapters/node-server/vite` instead.
  */
 export interface ExpressAdapterOptions extends ServerAdapterOptions {}
 
 /**
- * @alpha
- * @deprecated Use `ExpressAdapterOptions` instead.
+ * @public
+ * @deprecated - Use `NodeServerAdapterOptions` exported from `@builder.io/qwik-city/adapters/node-server/vite` instead.
  */
 export type ExpressAdaptorOptions = ExpressAdapterOptions;
 
 /**
- * @alpha
+ * @public
+ * @deprecated - Use `StaticGenerateRenderOptions` exported from `@builder.io/qwik-city/adapters/node-server/vite` instead.
  */
-export { StaticGenerateRenderOptions };
+export type { StaticGenerateRenderOptions };

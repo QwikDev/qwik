@@ -1,6 +1,5 @@
 use crate::collector::GlobalCollect;
 use crate::transform::{IdPlusType, IdentType};
-use swc_atoms::JsWord;
 use swc_ecmascript::ast;
 use swc_ecmascript::visit::{noop_visit_type, Visit};
 
@@ -12,14 +11,9 @@ macro_rules! id {
 
 pub fn is_immutable_expr(
     expr: &ast::Expr,
-    key: &JsWord,
     global: &GlobalCollect,
     current_stack: Option<&Vec<IdPlusType>>,
 ) -> bool {
-    if key == "key" {
-        return false;
-    }
-
     let mut collector = ImmutableCollector::new(global, current_stack);
     collector.visit_expr(expr);
     collector.is_immutable
@@ -46,6 +40,10 @@ impl<'a> Visit for ImmutableCollector<'a> {
     noop_visit_type!();
 
     fn visit_call_expr(&mut self, _: &ast::CallExpr) {
+        self.is_immutable = false;
+    }
+
+    fn visit_member_expr(&mut self, _: &ast::MemberExpr) {
         self.is_immutable = false;
     }
 

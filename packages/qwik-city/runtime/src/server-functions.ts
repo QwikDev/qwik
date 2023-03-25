@@ -2,9 +2,9 @@ import {
   $,
   implicit$FirstArg,
   noSerialize,
-  QRL,
+  type QRL,
   useContext,
-  ValueOrPromise,
+  type ValueOrPromise,
   _wrapSignal,
   useStore,
   _serializeData,
@@ -44,7 +44,7 @@ import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /**
- * @alpha
+ * @public
  */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
@@ -77,7 +77,7 @@ export const routeActionQrl = ((
       return initialState as ActionStore<any, any>;
     });
 
-    initialState.run = $((input: any | FormData | SubmitEvent = {}) => {
+    const submit = $((input: any | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
@@ -87,6 +87,15 @@ Action.run() can only be called on the browser, for example when a user clicks a
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
         data = new FormData(form);
+        if (
+          (input.submitter instanceof HTMLInputElement ||
+            input.submitter instanceof HTMLButtonElement) &&
+          input.submitter.name
+        ) {
+          if (input.submitter.name) {
+            data.append(input.submitter.name, input.submitter.value);
+          }
+        }
       } else {
         data = input;
       }
@@ -125,6 +134,9 @@ Action.run() can only be called on the browser, for example when a user clicks a
         };
       });
     });
+    initialState.submit = submit;
+    initialState.run = submit;
+
     return state;
   }
   action.__brand = 'server_action' as const;
@@ -132,12 +144,13 @@ Action.run() can only be called on the browser, for example when a user clicks a
   action.__qrl = actionQrl;
   action.__id = id;
   action.use = action;
+  Object.freeze(action);
 
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
@@ -154,21 +167,21 @@ export const globalActionQrl = ((
 }) as ActionConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   routeActionQrl
 ) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
 /**
- * @alpha
+ * @public
  */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
@@ -180,7 +193,7 @@ export const routeLoaderQrl = ((
       if (!(id in state)) {
         throw new Error(`Loader (${id}) was used in a path where the 'loader$' was not declared.
     This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
-    For more information check: https://qwik.builder.io/qwikcity/loader`);
+    For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
       }
       return _wrapSignal(state, id);
     });
@@ -190,17 +203,18 @@ export const routeLoaderQrl = ((
   loader.__validators = validators;
   loader.__id = id;
   loader.use = loader;
+  Object.freeze(loader);
 
   return loader;
 }) as LoaderConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
 /**
- * @alpha
+ * @public
  */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
@@ -214,12 +228,12 @@ export const validatorQrl = ((
 }) as ValidatorConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
 /**
- * @alpha
+ * @public
  */
 export const zodQrl = ((
   qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
@@ -262,14 +276,14 @@ export const zodQrl = ((
 }) as ZodConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
 /**
- * @alpha
+ * @public
  */
-export const serverQrl: ServerConstructorQRL = (qrl) => {
+export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any>) => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -277,13 +291,16 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
     }
   }
 
-  function client() {
+  function stuff() {
     return $(async (...args: any[]) => {
       if (isServer) {
         return qrl(...(args as any));
       } else {
+        const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
-          if (arg instanceof Event) {
+          if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+            return new FormData(arg.target);
+          } else if (arg instanceof Event) {
             return null;
           } else if (arg instanceof Node) {
             return null;
@@ -305,16 +322,16 @@ export const serverQrl: ServerConstructorQRL = (qrl) => {
           throw new Error(`Server function failed: ${res.statusText}`);
         }
         const str = await res.text();
-        const obj = await _deserializeData(str);
+        const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
         return obj;
       }
     }) as any;
   }
-  return client();
+  return stuff();
 };
 
 /**
- * @alpha
+ * @public
  */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
@@ -354,25 +371,25 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 };
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `globalAction$()` instead
  */
 export const actionQrl = globalActionQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `globalAction$()` instead
  */
 export const action$ = globalAction$;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `routeLoader$()` instead
  */
 export const loaderQrl = routeLoaderQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `routeLoader$()` instead
  */
 export const loader$ = routeLoader$;

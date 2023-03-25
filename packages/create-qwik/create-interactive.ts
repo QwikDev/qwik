@@ -1,11 +1,22 @@
+/* eslint-disable no-console */
 import fs from 'node:fs';
-import { relative } from 'node:path';
-import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
-import { bgBlue } from 'kleur/colors';
+import { join, relative } from 'node:path';
+import {
+  text,
+  select,
+  confirm,
+  intro,
+  outro,
+  cancel,
+  spinner,
+  isCancel,
+  log,
+} from '@clack/prompts';
+import { bgBlue, red } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
-import { getPackageManager, note, wait } from '../qwik/src/cli/utils/utils';
+import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
@@ -77,7 +88,7 @@ export async function runCreateInteractiveCli() {
     process.exit(0);
   }
 
-  const starterId = starterIdAnswer;
+  const starterId = starterIdAnswer as string;
 
   const runInstallAnswer = await confirm({
     message: `Would you like to install ${pkgManager} dependencies?`,
@@ -88,6 +99,11 @@ export async function runCreateInteractiveCli() {
     cancel('Operation cancelled.');
     process.exit(0);
   }
+
+  const gitInitAnswer = await confirm({
+    message: `Initialize a new git repository?`,
+    initialValue: true,
+  });
 
   if (removeExistingOutDirPromise) {
     await removeExistingOutDirPromise;
@@ -102,9 +118,33 @@ export async function runCreateInteractiveCli() {
 
   const s = spinner();
 
-  s.start('Creating App');
+  s.start('Creating App...');
   const result = await createApp(opts);
   s.stop('Created App 🐰');
+
+  if (gitInitAnswer) {
+    if (fs.existsSync(join(outDir, '.git'))) {
+      log.info(`Git has already been initialized before. Skipping...`);
+    } else {
+      s.start('Git initializing...');
+
+      try {
+        const res = [];
+        res.push(await runCommand('git', ['init'], outDir).install);
+        res.push(await runCommand('git', ['add', '-A'], outDir).install);
+        res.push(await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install);
+
+        if (res.some((r) => r === false)) {
+          throw '';
+        }
+
+        s.stop('Git initialized 🎲');
+      } catch (e) {
+        s.stop('Git failed to initialize');
+        log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
+      }
+    }
+  }
 
   let successfulDepsInstall = false;
   if (runInstall) {

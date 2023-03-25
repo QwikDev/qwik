@@ -20,6 +20,8 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $ } from './qrl/qrl.public';
+export { event$, eventQrl } from './qrl/qrl.public';
+
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
@@ -33,7 +35,7 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { h } from './render/jsx/factory';
+export { h, h as createElement } from './render/jsx/factory';
 export {
   SSRStreamBlock,
   SSRRaw,
@@ -58,7 +60,7 @@ export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/dom/render.public';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
-export type { RenderOptions } from './render/dom/render.public';
+export type { RenderOptions, RenderResult } from './render/dom/render.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -117,7 +119,6 @@ export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
 export { noSerialize, mutable } from './state/common';
-export { _fnSignal } from './qrl/inlined-fn';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////

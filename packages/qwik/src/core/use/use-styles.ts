@@ -10,7 +10,7 @@ import { assertDefined } from '../error/assert';
 import { ComponentStylesPrefixContent } from '../util/markers';
 
 /**
- * @alpha
+ * @public
  */
 export interface UseStylesScoped {
   scopeId: string;
@@ -91,7 +91,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  *
  * @see `useStyles`
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
@@ -121,7 +121,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
  *
  * @see `useStyles`
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);

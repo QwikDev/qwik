@@ -8,8 +8,8 @@ import type { ContainerState } from '../container/container';
 import {
   fastSkipSerialize,
   LocalSubscriptionManager,
-  Subscriber,
-  Subscriptions,
+  type Subscriber,
+  type Subscriptions,
   unwrapProxy,
   verifySerializable,
 } from './common';
@@ -89,16 +89,31 @@ export const _restProps = (props: Record<string, any>, omit: string[]) => {
   return rest;
 };
 
-class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
+export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
     private $manager$: LocalSubscriptionManager
   ) {}
 
+  deleteProperty(target: TargetType, prop: string | symbol): boolean {
+    if (target[QObjectFlagsSymbol] & QObjectImmutable) {
+      throw qError(QError_immutableProps);
+    }
+    if (typeof prop != 'string' || !delete target[prop]) {
+      return false;
+    }
+    this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
+    return true;
+  }
+
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
-      if (prop === QOjectTargetSymbol) return target;
-      if (prop === QObjectManagerSymbol) return this.$manager$;
+      if (prop === QOjectTargetSymbol) {
+        return target;
+      }
+      if (prop === QObjectManagerSymbol) {
+        return this.$manager$;
+      }
       return target[prop];
     }
     let subscriber: Subscriber | undefined | null;
@@ -173,7 +188,9 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   has(target: TargetType, property: string | symbol) {
-    if (property === QOjectTargetSymbol) return true;
+    if (property === QOjectTargetSymbol) {
+      return true;
+    }
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     if (hasOwnProperty.call(target, property)) {
       return true;

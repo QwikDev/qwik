@@ -1,32 +1,38 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isQwikElement, isText } from '../util/element';
+import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_ID_PREFIX,
+  INLINE_FN_PREFIX,
+  QContainerAttr,
+  QStyle,
+} from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
 import { isArray, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
+import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
 import {
-  ContainerState,
+  type ContainerState,
   _getContainerState,
-  GetObject,
+  type GetObject,
   isContainer,
   SHOW_COMMENT,
-  SnapshotState,
+  type SnapshotState,
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, Subscriptions } from '../state/common';
+import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
-import { qSerialize } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
-import { getContext } from '../state/context';
-import { domToVnode } from '../render/dom/visitor';
 import { getWrappingContainer } from '../use/use-core';
+import { getContext } from '../state/context';
+import { EMPTY_ARRAY } from '../util/flyweight';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -42,7 +48,7 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
-  const script = getQwikJSON(parentJSON);
+  const script = getQwikJSON(parentJSON, 'type');
   if (script) {
     const data = (script.firstChild! as any).data;
     return JSON.parse(unescapeText(data) || '{}') as SnapshotState;
@@ -63,7 +69,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
   }
   let doc = {} as Document;
   let containerState = {} as any;
-  if (element && isQwikElement(element)) {
+  if (isNode(element) && isQwikElement(element)) {
     const containerEl = getWrappingContainer(element);
     if (containerEl) {
       containerState = _getContainerState(containerEl);
@@ -97,11 +103,15 @@ export const resumeContainer = (containerEl: Element) => {
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
-  const script = getQwikJSON(parentJSON);
-  if (!script) {
-    logWarn('Skipping hydration qwik/json metadata was not found.');
-    return;
+  if (qDev) {
+    const script = getQwikJSON(parentJSON, 'type');
+    if (!script) {
+      logWarn('Skipping hydration qwik/json metadata was not found.');
+      return;
+    }
   }
+
+  const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
   const containerState = _getContainerState(containerEl);
   moveStyles(containerEl, containerState);
 
@@ -185,11 +195,17 @@ export const resumeContainer = (containerEl: Element) => {
         return virtual;
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);
-        getContext(rawElement, containerState).$vdom$ = domToVnode(rawElement);
+        getContext(rawElement, containerState);
         return rawElement;
       }
       finalized.set(id, rawElement);
       return rawElement;
+    } else if (id.startsWith(INLINE_FN_PREFIX)) {
+      const funcId = id.slice(INLINE_FN_PREFIX.length);
+      const index = strToInt(funcId);
+      const func = inlinedFunctions[index];
+      assertDefined(func, `missing inlined function for id:`, funcId);
+      return func;
     }
     const index = strToInt(id);
     const objs = pauseState.objs;
@@ -302,10 +318,21 @@ const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
+interface ExtraScript extends HTMLScriptElement {
+  qFuncs?: Function[];
+}
+export const getQwikInlinedFuncs = (parentElm: Element): Function[] => {
+  const elm = getQwikJSON(parentElm, 'q:func') as ExtraScript | undefined;
+  return elm?.qFuncs ?? EMPTY_ARRAY;
+};
+
+export const getQwikJSON = (
+  parentElm: Element,
+  attribute: string
+): HTMLScriptElement | undefined => {
   let child = parentElm.lastElementChild;
   while (child) {
-    if (child.tagName === 'SCRIPT' && directGetAttribute(child, 'type') === 'qwik/json') {
+    if (child.tagName === 'SCRIPT' && directGetAttribute(child, attribute) === 'qwik/json') {
       return child as HTMLScriptElement;
     }
     child = child.previousElementSibling;

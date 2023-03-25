@@ -1,26 +1,26 @@
 import {
-  $,
   component$,
   jsx,
-  JSXNode,
+  type JSXNode,
   SkipRender,
   useContext,
   useOnDocument,
   _IMMUTABLE,
   _jsxBranch,
+  event$,
 } from '@builder.io/qwik';
 import type { ClientHistoryWindow } from './client-navigate';
 import { ContentInternalContext } from './contexts';
 
 /**
- * @alpha
+ * @public
  */
 export const RouterOutlet = component$(() => {
   _jsxBranch();
 
   useOnDocument(
     'qinit',
-    $(() => {
+    event$(() => {
       const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
       const CLIENT_HISTORY_INITIALIZED = '_qCityHistory';
 
@@ -61,6 +61,6 @@ export const RouterOutlet = component$(() => {
 
 /**
  * @deprecated Please use `RouterOutlet` instead.
- * @alpha
+ * @public
  */
 export const Content = RouterOutlet;

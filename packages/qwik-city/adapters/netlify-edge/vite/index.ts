@@ -1,16 +1,17 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { basePathname } from '@qwik-city-plan';
 
 /**
- * @alpha
+ * @public
  */
-export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
+export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'netlify-edge',
-    origin: process?.env?.URL || 'https://yoursitename.netlify.app',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.netlify.app',
     staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
@@ -78,13 +79,19 @@ export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
- * @deprecated Use `netifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
+ * @public
+ * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
  */
-export const netifyEdgeAdaptor = netifyEdgeAdapter;
+export const netifyEdgeAdapter = netlifyEdgeAdapter;
 
 /**
- * @alpha
+ * @public
+ * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
+ */
+export const netifyEdgeAdaptor = netlifyEdgeAdapter;
+
+/**
+ * @public
  */
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -104,12 +111,12 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
+ * @public
  * @deprecated Use `NetlifyEdgeAdapterOptions` instead.
  */
 export type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;
 
 /**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

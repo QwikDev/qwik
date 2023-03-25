@@ -1,26 +1,26 @@
 import { newInvokeContext, invoke, waitAndRun, untrack } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
-import { isFunction, isObject, ValueOrPromise } from '../util/types';
+import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
-import { assertQrl, assertSignal, createQRL, QRLInternal } from '../qrl/qrl-class';
+import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
-import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
+import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../container/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
-import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
+import { getProxyManager, noSerialize, type NoSerialize, unwrapProxy } from '../state/common';
 import {
   isSignal,
   QObjectSignalFlags,
-  Signal,
-  SignalInternal,
+  type Signal,
+  type SignalInternal,
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
   _createSignal,
@@ -173,7 +173,7 @@ export interface ResourceReturnInternal<T> {
   loading: boolean;
 }
 /**
- * @alpha
+ * @public
  */
 export interface DescriptorBase<T = any, B = undefined> {
   $qrl$: QRLInternal<T>;
@@ -315,7 +315,7 @@ interface Computed {
   <T>(qrl: ComputedFn<T>): Readonly<Signal<T>>;
 }
 /**
- * @alpha
+ * @public
  */
 export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<T> => {
   const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<T>>();
@@ -349,7 +349,7 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
 };
 
 /**
- * @alpha
+ * @public
  */
 export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 
@@ -418,13 +418,13 @@ export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
 
 /**
- * @beta
+ * @public
  * @deprecated - use `useTask$()` instead
  */
 export const useWatch$ = /*#__PURE__*/ useTask$;
 
 /**
- * @beta
+ * @public
  * @deprecated - use `useTask$()` instead
  */
 export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
@@ -510,25 +510,25 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
 export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useClientEffectQrl = useVisibleTaskQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useClientEffect$ = useVisibleTask$;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useBrowserVisibleTaskQrl = useVisibleTaskQrl;
 
 /**
- * @alpha
+ * @public
  * @deprecated - use `useVisibleTask$()` instead
  */
 export const useBrowserVisibleTask$ = useVisibleTask$;
@@ -656,7 +656,7 @@ export const runResource = <T>(
     return false;
   };
 
-  // Execute mutation inside empty invokation
+  // Execute mutation inside empty invocation
   invoke(invocationContext, () => {
     resource._state = 'pending';
     resource.loading = !isServerPlatform();

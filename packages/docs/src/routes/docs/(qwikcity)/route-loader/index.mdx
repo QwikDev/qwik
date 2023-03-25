@@ -41,7 +41,7 @@ import { component$ } from '@builder.io/qwik';
 
 export const useGetServerTime = routeLoader$(() => {
   return {
-    time: Date.now();
+    time: Date.now(),
   }
 });
 
@@ -71,7 +71,7 @@ import { Footer } from '../components/footer.tsx';
 
 export const useGetServerTime = routeLoader$(() => {
   return {
-    time: Date.now();
+    time: Date.now(),
   }
 });
 
@@ -109,13 +109,13 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useIsLogged = routeLoader$(({cookie}) => {
   return {
-    logged: checkcookie(cookie);
+    logged: checkcookie(cookie),
   }
 });
 
 export const useGetCurrentUser = routeLoader$(({cookie}) => {
   return {
-    user: currentUserFromcookie(cookie);
+    user: currentUserFromcookie(cookie),
   }
 });
 
@@ -152,7 +152,7 @@ export const getServerTime = routeLoader$((ev) => {
   console.log('Request params:', ev.params);
 
   return {
-    time: Date.now();
+    time: Date.now(),
   }
 });
 ```

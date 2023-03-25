@@ -11,7 +11,7 @@ import {
 } from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
-import { GetSessionResult, Providers } from './types';
+import type { GetSessionResult, Providers } from './types';
 
 export interface QwikAuthConfig extends AuthConfig {}
 

@@ -89,7 +89,7 @@ export default component$(() => {
             </td>
             <td>
               <a href="https://expressjs.com/" target="_blank">
-                Nodejs Express Server
+                Node.js Express Server
               </a>
             </td>
           </tr>

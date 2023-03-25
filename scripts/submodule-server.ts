@@ -33,7 +33,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     target,
     external: [
-      /* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom',
+      /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
       '@builder.io/qwik/build',
     ],
   };

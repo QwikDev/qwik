@@ -30,7 +30,7 @@ export async function configureDevServer(
   clientDevInput: string | undefined
 ) {
   if (typeof fetch !== 'function' && sys.env === 'node') {
-    // polyfill fetch() when not available in NodeJS
+    // polyfill fetch() when not available in Node.js
 
     try {
       if (!globalThis.fetch) {

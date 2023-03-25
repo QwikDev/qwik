@@ -172,10 +172,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             console.error(e);
           }
         } catch (e) {
-          // error reading package.json from nodejs fs, ok to ignore
+          // error reading package.json from Node.js fs, ok to ignore
         }
 
-        // In a NodeJs environment, create a path to a q-manifest.json file within the
+        // In a Node.js environment, create a path to a q-manifest.json file within the
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
         // the Client build should always start and finish before the SSR build.
@@ -733,7 +733,7 @@ export interface QwikVitePluginOptions {
     /**
      * The entry point for the SSR renderer. This file should export
      * a `render()` function. This entry point and `render()` export
-     * function is also used for Vite's SSR development and Nodejs
+     * function is also used for Vite's SSR development and Node.js
      * debug mode.
      * Default `src/entry.ssr.tsx`
      */

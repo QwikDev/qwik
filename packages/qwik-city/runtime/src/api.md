@@ -250,6 +250,32 @@ export const globalActionQrl: ActionConstructorQRL;
 // @public @deprecated (undocumented)
 export const Html: Component<QwikCityProps>;
 
+// @alpha (undocumented)
+const Image_2: Component<ImageProps>;
+export { Image_2 as Image }
+
+// Warning: (ae-forgotten-export) The symbol "ImageAttributes" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface ImageProps extends ImageAttributes {
+    // (undocumented)
+    aspectRatio?: number;
+    // (undocumented)
+    layout: 'fixed' | 'constrained' | 'fullWidth';
+    // (undocumented)
+    objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' | 'inherit' | 'initial';
+    // (undocumented)
+    placeholder?: string;
+    // (undocumented)
+    style?: Record<string, string | number>;
+}
+
+// @alpha (undocumented)
+export type ImageState = {
+    resolutions?: number[];
+    imageTransformer$?: QRL<(params: ImageTransformerProps) => string>;
+};
+
 // @public (undocumented)
 export const Link: Component<LinkProps>;
 
@@ -428,6 +454,9 @@ export const useContent: () => ContentState;
 
 // @public (undocumented)
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
+
+// @alpha (undocumented)
+export const useImageProvider: (state: ImageState) => void;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

@@ -12,11 +12,12 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 async function triggerUserEvent(
   root: Element,
   selector: string,
-  eventNameCamel: string
+  eventNameCamel: string,
+  eventPayload: any = {}
 ): Promise<void> {
   for (const element of Array.from(root.querySelectorAll(selector))) {
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = { type: kebabEventName };
+    const event = { type: kebabEventName, ...eventPayload };
     const attrName = 'on:' + kebabEventName;
     await dispatch(element, attrName, event);
   }
@@ -36,12 +37,16 @@ export const createDOM = async function () {
       return qwik.render(host, jsxElement);
     },
     screen: host,
-    userEvent: async function (queryOrElement: string | Element | null, eventNameCamel: string) {
+    userEvent: async function (
+      queryOrElement: string | Element | null,
+      eventNameCamel: string,
+      eventPayload: any = {}
+    ) {
       if (typeof queryOrElement === 'string') {
-        return triggerUserEvent(host, queryOrElement, eventNameCamel);
+        return triggerUserEvent(host, queryOrElement, eventNameCamel, eventPayload);
       }
       const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-      const event = { type: kebabEventName };
+      const event = { type: kebabEventName, ...eventPayload };
       const attrName = 'on:' + kebabEventName;
       await dispatch(queryOrElement, attrName, event);
       await getTestPlatform().flush();

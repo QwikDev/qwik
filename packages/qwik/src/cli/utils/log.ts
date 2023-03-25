@@ -22,12 +22,14 @@ export function logSuccessFooter(docs: string[]) {
 /**
  * Log the next STEPS *ACTION REQUIRED*
  */
-export function logNextStep(nextSteps: NextSteps | undefined) {
+export function logNextStep(nextSteps: NextSteps | undefined, packageManager: string) {
   const outString = [];
   if (nextSteps) {
     outString.push(`🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`);
     outString.push(``);
-    nextSteps.lines.forEach((step) => outString.push(`   ${step}`));
+    nextSteps.lines.forEach((step) =>
+      outString.push(`   ${step.replace(/\bpnpm\b/g, packageManager)}`)
+    );
   }
   return outString.join('\n');
 }

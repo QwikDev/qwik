@@ -3,8 +3,8 @@
 
 /examples /examples/introduction/hello-world/ 307
 /examples/ /examples/introduction/hello-world/ 307
-/guide /docs/overview/ 307
-/guide/ /docs/overview/ 307
+/guide /docs/ 307
+/guide/ /docs/ 307
 /tutorial /tutorial/welcome/overview/ 307
 /tutorial/ /tutorial/welcome/overview/ 307
 /tutorials /tutorial/welcome/overview/ 307
@@ -50,3 +50,4 @@
 /qwikcity/prefetching/parallelizing-network-requests/ /docs/advanced/speculative-module-fetching/ 308
 /qwikcity/* /docs/:splat 308
 /docs/overview /docs/ 308
+/docs/overview/ /docs/ 308

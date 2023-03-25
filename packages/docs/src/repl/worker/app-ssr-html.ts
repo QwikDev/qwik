@@ -11,6 +11,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   const start = performance.now();
 
   const mod: any = { exports: {} };
+  // eslint-disable-next-line no-new-func
   const run = new Function('module', 'exports', 'require', ssrModule.code);
   run(mod, mod.exports, noopRequire);
 

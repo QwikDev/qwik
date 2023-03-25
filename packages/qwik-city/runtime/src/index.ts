@@ -46,7 +46,7 @@ export { Html, QwikCity, QwikCityProvider, QwikCityMockProvider } from './qwik-c
 export { Link } from './link-component';
 export type { LinkProps } from './link-component';
 export { Image, useImageProvider } from './image-component';
-export type { ImageState, ImageProps } from './image-component';
+export type { ImageState, ImageProps, ImageTransformerProps } from './image-component';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { action$, actionQrl, routeAction$, routeActionQrl } from './server-functions';

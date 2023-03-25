@@ -276,6 +276,13 @@ export type ImageState = {
     imageTransformer$?: QRL<(params: ImageTransformerProps) => string>;
 };
 
+// @alpha (undocumented)
+export type ImageTransformerProps = {
+    src: string;
+    width: number;
+    height: number | undefined;
+};
+
 // @public (undocumented)
 export const Link: Component<LinkProps>;
 
@@ -495,10 +502,6 @@ export interface ZodConstructor {
 //
 // @public (undocumented)
 export const zodQrl: ZodConstructorQRL;
-
-// Warnings were encountered during analysis:
-//
-// /Users/gioboa/Desktop/dev-null/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/image-component.d.ts:9:5 - (ae-forgotten-export) The symbol "ImageTransformerProps" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

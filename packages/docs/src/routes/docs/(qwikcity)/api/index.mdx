@@ -307,3 +307,76 @@ export default component$(() => {
   );
 });
 ```
+
+## `<Image>`
+
+The `Image` component works like the `<img>` element, but load images at the right size, defined by properties or following responsive breakpoints.
+
+> Notice that there is the possibility to globally define some properties like resolutions or imageTransformer$.
+
+### Global Provider
+
+```
+const imageTransformer$ = $(({ src, width, height }: ImageTransformerProps): string => {
+  return `${src}?w=${width}&h=${height}&format=webp`;
+});
+
+// Provide your default options
+useImageProvider({
+  // you can set this property to overwrite default values [640, 960, 1280, 1920, 3840]
+  resolutions: [640],
+  // you we can define the source from which to load our image
+  imageTransformer$,
+});
+```
+
+### Usage
+
+```
+<Image
+  layout="fixed"
+  objectFit="cover"
+  width="300"
+  height="300"
+  src={...}
+  alt={...}
+  placeholder={...}
+/>
+```
+
+## layout values:
+
+### `constrained`
+If the width of the image is larger than the screen, the screen size is taken, otherwise the actual image size is kept
+
+### `fixed`
+regardless of the screen width, the width of the image is kept
+
+### `fullWidth`
+the width of the image is always equal to the width of the screen
+
+## objectFit values:
+
+Here is the objectFit values and behaviors https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit
+default: `cover`
+
+## placeholder values:
+
+You can define a placeholder to wait for the image to load
+
+#### `background: 'rgba(37,99,235,1)';`
+
+<img width="312" alt="Screenshot 2023-03-08 at 13 39 18" src="https://user-images.githubusercontent.com/35845425/223715512-d097de71-09a8-4e55-aa54-f59850e0a3a3.png">
+
+#### `background: 'linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(166,206,247,1) 0%, rgba(37,99,235,1) 83%);';`
+
+<img width="312" alt="Screenshot 2023-03-08 at 13 37 43" src="https://user-images.githubusercontent.com/35845425/223715243-a058998c-f2c3-4811-b15d-344d3fd3a891.png">
+
+#### `background: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNUTX59BgAEaQJBWyqr7QAAAABJRU5ErkJggg==")';`
+
+<img width="312" alt="Screenshot 2023-03-09 at 09 01 05" src="https://user-images.githubusercontent.com/35845425/223958138-bdb0f110-460b-4fb3-a114-e7b9d63c12b6.png">
+
+
+#### `background: 'url("/public/placeholder.jpg") no-repeat center / cover';`
+
+<img width="312" alt="Screenshot 2023-03-08 at 13 38 23" src="https://user-images.githubusercontent.com/35845425/223715374-ea5a41fa-a7df-42e1-af1b-2c0322608397.png">

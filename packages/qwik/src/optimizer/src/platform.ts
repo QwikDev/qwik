@@ -136,13 +136,13 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
   // Try native build
   if (sysEnv === 'node') {
-    // NodeJS
+    // Node.js
     const platform = (QWIK_BINDING_MAP as any)[process.platform];
     if (platform) {
       const triples = platform[process.arch];
       if (triples) {
         for (const triple of triples) {
-          // NodeJS - Native Binding
+          // Node.js - Native Binding
           try {
             if (globalThis.IS_ESM) {
               const module = await sys.dynamicImport('node:module');
@@ -165,7 +165,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
     // CJS WASM
 
     if (sysEnv === 'node') {
-      // CJS WASM NodeJS
+      // CJS WASM Node.js
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
       const mod = await sys.dynamicImport(`./bindings/qwik.wasm.cjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
@@ -226,7 +226,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
   if (globalThis.IS_ESM) {
     if (sysEnv === 'node') {
-      // CJS WASM NodeJS
+      // CJS WASM Node.js
       const url: typeof import('url') = await sys.dynamicImport('node:url');
       const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');

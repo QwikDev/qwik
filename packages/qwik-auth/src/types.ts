@@ -1,4 +1,4 @@
-import { Session } from '@auth/core/types';
+import type { Session } from '@auth/core/types';
 
 export interface Provider {
   id: string;

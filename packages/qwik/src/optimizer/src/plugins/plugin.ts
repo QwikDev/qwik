@@ -217,11 +217,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
       } else if (opts.target === 'client') {
         // client input default
-        const rootTsxLocation = path.resolve(srcDir, 'root.tsx')
+        const rootTsxLocation = path.resolve(srcDir, 'root.tsx');
         if (await isPathExist(rootTsxLocation)) {
           opts.input = [rootTsxLocation];
         }
-        
       } else if (opts.target === 'lib') {
         // lib input default
         opts.input = [path.resolve(srcDir, 'index.ts')];
@@ -287,11 +286,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (!hasValidatedSource) {
       hasValidatedSource = true;
 
-      if (!await isPathExist(opts.rootDir)) {
+      if (!(await isPathExist(opts.rootDir))) {
         throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
       }
 
-      if (typeof opts.srcDir === 'string' && !await isPathExist(opts.srcDir)) {
+      if (typeof opts.srcDir === 'string' && !(await isPathExist(opts.srcDir))) {
         throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
       }
 
@@ -302,7 +301,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           throw new Error(`Qwik input "${input}" not found.`);
         }
       }
-
     }
   };
 
@@ -765,8 +763,8 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     const sys = getSys();
     if (sys.env === 'node') {
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        
-      return (fs.existsSync(path));
+
+      return fs.existsSync(path);
     }
     return false;
   }

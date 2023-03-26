@@ -26,8 +26,9 @@ import { QObjectManagerSymbol } from '../state/constants';
 import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { assertString } from '../error/assert';
-import { JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Slot } from '../render/jsx/slot.public';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -369,17 +370,29 @@ const JSXNodeSerializer: Serializer<JSXNode> = {
     collectValue(node.children, collector, leaks);
     collectValue(node.props, collector, leaks);
     collectValue(node.immutableProps, collector, leaks);
-    collectValue(node.type, collector, leaks);
+    let type = node.type;
+    if (type === Slot) {
+      type = ':slot';
+    } else if (type === Fragment) {
+      type = ':fragment';
+    }
+    collectValue(type, collector, leaks);
   },
   serialize: (node, getObjID) => {
-    return `${getObjID(node.type)} ${getObjID(node.props)} ${getObjID(
-      node.immutableProps
-    )} ${getObjID(node.children)} ${node.flags}`;
+    let type = node.type;
+    if (type === Slot) {
+      type = ':slot';
+    } else if (type === Fragment) {
+      type = ':fragment';
+    }
+    return `${getObjID(type)} ${getObjID(node.props)} ${getObjID(node.immutableProps)} ${getObjID(
+      node.children
+    )} ${node.flags}`;
   },
   prepare: (data) => {
     const [type, props, immutableProps, children, flags] = data.split(' ');
     const node = new JSXNodeImpl(
-      type,
+      type as string,
       props as any,
       immutableProps as any,
       children,
@@ -388,7 +401,7 @@ const JSXNodeSerializer: Serializer<JSXNode> = {
     return node;
   },
   fill: (node, getObject) => {
-    node.type = getObject(node.type as string);
+    node.type = getResolveJSXType(getObject(node.type as string));
     node.props = getObject(node.props as any as string);
     node.immutableProps = getObject(node.immutableProps as any as string);
     node.children = getObject(node.children);
@@ -528,4 +541,14 @@ const isTreeShakeable = (
     return true;
   }
   return false;
+};
+
+const getResolveJSXType = (type: any) => {
+  if (type === ':slot') {
+    return Slot;
+  }
+  if (type === ':fragment') {
+    return Fragment;
+  }
+  return type;
 };

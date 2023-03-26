@@ -111,6 +111,13 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
         suffix += '_';
       }
     }
+    if (isObject(obj)) {
+      const target = getProxyTarget(obj);
+      if (target) {
+        suffix += '!';
+        obj = target;
+      }
+    }
     const key = objToId.get(obj);
     if (key === undefined) {
       throw qError(QError_missingObjectId, obj);

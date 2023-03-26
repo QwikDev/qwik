@@ -16,7 +16,6 @@ import {
 } from '../state/common';
 import type { Signal } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
-import { assertTrue } from '../error/assert';
 import type { QContext } from '../state/context';
 
 export type GetObject = (id: string) => any;
@@ -117,7 +116,6 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export const _getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    assertTrue(!isServerPlatform(), 'Container state can only be created lazily on the browser');
     (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
       containerEl,
       directGetAttribute(containerEl, 'q:base') ?? '/'

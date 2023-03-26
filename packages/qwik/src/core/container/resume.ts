@@ -77,7 +77,14 @@ export const _deserializeData = (data: string, element?: unknown) => {
     }
   }
   const parser = createParser(containerState, doc);
-  reviveValues(_objs, parser);
+
+  for (let i = 0; i < _objs.length; i++) {
+    const value = _objs[i];
+    if (isString(value)) {
+      _objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
+    }
+  }
+
   const getObject: GetObject = (id) => _objs[strToInt(id)];
   for (const obj of _objs) {
     reviveNestedObjects(obj, getObject, parser);
@@ -210,7 +217,10 @@ export const resumeContainer = (containerEl: Element) => {
     const index = strToInt(id);
     const objs = pauseState.objs;
     assertTrue(objs.length > index, 'resume: index is out of bounds', id);
-    const value = objs[index];
+    let value = objs[index];
+    if (isString(value)) {
+      value = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
+    }
     let obj = value;
     for (let i = id.length - 1; i >= 0; i--) {
       const code = id[i];
@@ -237,19 +247,9 @@ export const resumeContainer = (containerEl: Element) => {
     refs: pauseState.refs,
   };
 
-  reviveValues(pauseState.objs, parser);
   directSetAttribute(containerEl, QContainerAttr, 'resumed');
   logDebug('Container resumed');
   emitEvent(containerEl, 'qresume', undefined, true);
-};
-
-const reviveValues = (objs: any[], parser: Parser) => {
-  for (let i = 0; i < objs.length; i++) {
-    const value = objs[i];
-    if (isString(value)) {
-      objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
-    }
-  }
 };
 
 const reviveSubscriptions = (

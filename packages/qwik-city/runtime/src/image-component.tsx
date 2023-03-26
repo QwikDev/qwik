@@ -1,10 +1,9 @@
-import type { QRL, QwikIntrinsicElements } from '@builder.io/qwik';
+import { useId, type QRL, type QwikIntrinsicElements } from '@builder.io/qwik';
 import {
   component$,
   createContextId,
   useContext,
   useContextProvider,
-  useId,
   useSignal,
   useTask$,
 } from '@builder.io/qwik';
@@ -191,7 +190,7 @@ export const getBreakpoints = ({
  */
 export const Image = component$<ImageProps>((props) => {
   const state = useContext(ImageContext);
-  const { resolutions, imageTransformer$, ...imageAttributes } = {
+  const { resolutions, imageTransformer$, loading, ...imageAttributes } = {
     ...state,
     ...props,
   };
@@ -199,7 +198,7 @@ export const Image = component$<ImageProps>((props) => {
   const sizes = getSizes(props);
   const srcSetSignal = useSignal('');
 
-  const { src, width, height, aspectRatio, layout } = props;
+  const { src, width, height, aspectRatio, layout } = imageAttributes;
   useTask$(async () => {
     srcSetSignal.value = await getSrcSet({
       src,
@@ -215,6 +214,7 @@ export const Image = component$<ImageProps>((props) => {
   return (
     <img
       id={useId()}
+      loading={loading || 'lazy'}
       decoding="async"
       {...imageAttributes}
       style={style}

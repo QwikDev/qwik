@@ -68,12 +68,12 @@ export default component$(() => {
       </div>
 
       {Object.keys(apiData).map((key) => (
-        <>
+        <div key={`block-${key}`}>
           <a href={apiData[key].id}>
             <h2>{apiData[key].package}</h2>
           </a>
           <ApiMemberList id={apiData[key].id} data={apiData[key]} />
-        </>
+        </div>
       ))}
     </>
   );

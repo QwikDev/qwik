@@ -18,7 +18,7 @@ import type {
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { Rollup } from 'vite';
 
-const REG_CTX_NAME = ['server$'];
+const REG_CTX_NAME = ['server'];
 
 const SERVER_STRIP_EXPORTS = [
   'onGet',

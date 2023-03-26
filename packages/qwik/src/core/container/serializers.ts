@@ -26,6 +26,8 @@ import { QObjectManagerSymbol } from '../state/constants';
 import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { assertString } from '../error/assert';
+import { JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -360,6 +362,39 @@ const FormDataSerializer: Serializer<FormData> = {
   fill: undefined,
 };
 
+const JSXNodeSerializer: Serializer<JSXNode> = {
+  prefix: '\u0017',
+  test: (v) => isJSXNode(v),
+  collect: (node, collector, leaks) => {
+    collectValue(node.children, collector, leaks);
+    collectValue(node.props, collector, leaks);
+    collectValue(node.immutableProps, collector, leaks);
+    collectValue(node.type, collector, leaks);
+  },
+  serialize: (node, getObjID) => {
+    return `${getObjID(node.type)} ${getObjID(node.props)} ${getObjID(
+      node.immutableProps
+    )} ${getObjID(node.children)} ${node.flags}`;
+  },
+  prepare: (data) => {
+    const [type, props, immutableProps, children, flags] = data.split(' ');
+    const node = new JSXNodeImpl(
+      type,
+      props as any,
+      immutableProps as any,
+      children,
+      parseInt(flags, 10)
+    );
+    return node;
+  },
+  fill: (node, getObject) => {
+    node.type = getObject(node.type as string);
+    node.props = getObject(node.props as any as string);
+    node.immutableProps = getObject(node.immutableProps as any as string);
+    node.children = getObject(node.children);
+  },
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
@@ -376,6 +411,7 @@ const serializers: Serializer<any>[] = [
   NoFiniteNumberSerializer, /// \u0014
   URLSearchParamsSerializer, // \u0015
   FormDataSerializer, ///////// \u0016
+  JSXNodeSerializer, ////////// \u0017
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

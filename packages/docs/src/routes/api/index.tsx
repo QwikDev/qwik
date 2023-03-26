@@ -1,14 +1,35 @@
 import { component$, useSignal, useStore, useTask$ } from '@builder.io/qwik';
-import qwikApiData from './qwik/api.json';
 import { toSnakeCase } from '../../utils/utils';
+import qwikApiData from './qwik/api.json';
+import qwikCityApiData from './qwik-city/api.json';
+// import fs from 'node:fs';
 
+// const _API_DOC_FILE_NAME = 'api.json';
 const _KINDS = new Set();
+
+// const apiData = fs
+//   .readdirSync('./src/routes/api/', {withFileTypes: true})
+//   .filter(dirent => dirent.isDirectory())
+//   .map(dirent => {
+//     return fs.existsSync(`./src/routes/api/${dirent.name}/${_API_DOC_FILE_NAME}`) ? dirent.name : null;
+//   })
+//   .reduce((acc, file) => {
+//     const data = JSON.parse(fs.readFileSync(`./src/routes/api/${file}/${_API_DOC_FILE_NAME}`, 'utf-8'));
+//     acc[data.id] = data;
+//     return acc;
+//   }, {});
+
+const apiData = {
+  qwik: qwikApiData,
+  'qwik-city': qwikCityApiData
+}
+
 const getUniqueKinds = () => {
   if (_KINDS.size) {
     return _KINDS;
   }
 
-  qwikApiData.members.forEach((member) => _KINDS.add(toSnakeCase(member.kind)));
+  apiData['qwik'].members.forEach((member) => _KINDS.add(toSnakeCase(member.kind)));
   return _KINDS;
 };
 
@@ -25,13 +46,12 @@ const getInitialFilterState = () => {
 export default component$(() => {
   const filters = useStore(getInitialFilterState());
 
-
   return (
     <>
       <h1>API Reference</h1>
 
       <h2>Filter</h2>
-      <div class="grid grid-cols-4 gap-2">
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {Array.from(getUniqueKinds()).map((kind) => (
           <button
             key={`filter-${kind}`}
@@ -47,18 +67,21 @@ export default component$(() => {
         ))}
       </div>
 
-      <h2>Qwik</h2>
-      <a href="qwik">
-        <h3>Qwik</h3>
-      </a>
-      <ApiMemberList id="qwik" data={qwikApiData} />
+      {Object.keys(apiData).map((key) => (
+        <>
+          <a href={apiData[key].id}>
+            <h2>{apiData[key].package}</h2>
+          </a>
+          <ApiMemberList id={apiData[key].id} data={apiData[key]} />
+        </>
+      ))}
     </>
   );
 });
 
 // TODO: move into standalone cmp and adjust typings!
 export const ApiMemberList = component$(({ id, data}: any) => (
-  <ul class="grid md:grid-cols-2 lg:grid-cols-4">
+  <ul class="grid md:grid-cols-2 lg:grid-cols-3">
     {data.members.map((member) => {
       if (!member.name) {
         return;

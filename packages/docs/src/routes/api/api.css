@@ -2,14 +2,6 @@
   font-size: 2rem;
 }
 
-.docs.api h1 strong {
-  background: var(--qwik-blue);
-  color: white;
-  display: inline-block;
-  border-radius: 4px;
-  padding: 2px 12px;
-}
-
 .docs.api h2 {
   font-size: 1.25rem;
 }

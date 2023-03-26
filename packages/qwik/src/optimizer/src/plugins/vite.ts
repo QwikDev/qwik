@@ -202,7 +202,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
 
-      const opts = qwikPlugin.normalizeOptions(pluginOpts);
+      const opts = await qwikPlugin.normalizeOptions(pluginOpts);
 
       manifestInput = pluginOpts.manifestInput || null;
 

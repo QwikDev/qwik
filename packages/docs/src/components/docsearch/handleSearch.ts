@@ -1,8 +1,4 @@
 // @ts-ignore
-<<<<<<< HEAD
-// import algoliasearch from 'algoliasearch';
-=======
->>>>>>> @{-1}
 import algoliasearch from 'algoliasearch/dist/algoliasearch-lite.esm.browser';
 import type { SearchClient } from 'algoliasearch/lite';
 import { preResolve, postResolve, resolve } from '@algolia/autocomplete-core/dist/esm/resolve';

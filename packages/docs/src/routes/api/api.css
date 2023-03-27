@@ -84,7 +84,7 @@
 }
 .docs.api [data-kind-label="M"]:before {
     content: 'M';
-    background: #f0ad4e;
+    background: #c3ba4c;
 }
 .docs.api [data-kind-label="F"]:before {
     content: 'F';

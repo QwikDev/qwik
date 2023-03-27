@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 import { toSnakeCase } from '../../utils/utils';
 import qwikApiData from './qwik/api.json';
 import qwikCityApiData from './qwik-city/api.json';
@@ -57,7 +57,6 @@ export default component$(() => {
             key={`filter-${kind}`}
             onClick$={() => {
               filters[kind] = !filters[kind];
-              console.log(filters);
             }}
             class={`filter-item block text-sm rounded-md text-left ${filters[kind] ? 'active' : ''}`}
             data-kind-label={kind.substring(0, 1).toUpperCase()}
@@ -72,7 +71,7 @@ export default component$(() => {
           <a href={apiData[key].id}>
             <h2>{apiData[key].package}</h2>
           </a>
-          <ApiMemberList id={apiData[key].id} data={apiData[key]} />
+          <ApiMemberList id={apiData[key].id} data={apiData[key]} filters={filters} />
         </div>
       ))}
     </>
@@ -80,23 +79,21 @@ export default component$(() => {
 });
 
 // TODO: move into standalone cmp and adjust typings!
-export const ApiMemberList = component$(({ id, data}: any) => (
+export const ApiMemberList = component$(({ id, data, filters}: any) => (
   <ul class="grid md:grid-cols-2 lg:grid-cols-3">
     {data.members.map((member) => {
+      const kind = toSnakeCase(member.kind);
+
       if (!member.name) {
         return;
       }
 
-      // pascal to snake case
-      const kind = toSnakeCase(member.kind);
-
-      // TODO: link must be adjusted!
       return (
         <li
           key={`${id}-member-${member.id}`}
           data-kind={kind}
           data-kind-label={kind.substring(0, 1).toUpperCase()}
-          class="api-item list-none text-xs"
+          class={`api-item list-none text-xs ${kind in filters && !filters[kind] && 'hidden' || ''}`}
         >
           <a href={`qwik#${member.id}`}>{member.name}</a>
         </li>

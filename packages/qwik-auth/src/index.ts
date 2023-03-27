@@ -97,7 +97,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
       }
     },
     zod$({
-      providerId: z.string(),
+      providerId: z.string().optional(),
       callbackUrl: z.string().optional(),
       options: z
         .object({

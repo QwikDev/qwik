@@ -70,11 +70,16 @@
   padding-bottom: 15px;
   margin-bottom: 25px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  max-width: 300px;
 }
 
 .ecosystem h2 {
   margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.ecosystem h2 span:last-child {
+  text-align: right;
 }
 
 .ecosystem-menu a {

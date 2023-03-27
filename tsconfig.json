@@ -87,7 +87,7 @@
   },
   "include": [
     "packages/create-qwik",
-    "packages/docs",
+    // "packages/docs",
     "packages/qwik/src",
     "packages/qwik-city",
     "packages/qwik-auth",

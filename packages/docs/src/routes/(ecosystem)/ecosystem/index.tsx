@@ -52,7 +52,14 @@ export default component$(() => {
 
           <section id="integrations">
             <h2>
-              <Link href="/integrations/">Integrations</Link>
+              <span>
+                <Link href="/integrations/">Integrations</Link>
+              </span>
+              <span>
+                <Link href="/media/#videos" class="text-sm">
+                  See All
+                </Link>
+              </span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {data.integrations.map((item, i) => (
@@ -67,9 +74,16 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="media">
+          <section id="videos">
             <h2>
-              <Link href="/media/#videos">Media</Link>
+              <span>
+                <Link href="/media/#videos">Videos</Link>
+              </span>
+              <span>
+                <Link href="/media/#videos" class="text-sm">
+                  See All
+                </Link>
+              </span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {videos.map((item, i) => (
@@ -86,7 +100,14 @@ export default component$(() => {
 
           <section id="podcasts">
             <h2>
-              <Link href="/media/#podcasts">Podcasts</Link>
+              <span>
+                <Link href="/media/#podcasts">Podcasts</Link>
+              </span>
+              <span>
+                <Link href="/media/#videos" class="text-sm">
+                  See All
+                </Link>
+              </span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {podcasts.map((item, i) => (
@@ -103,7 +124,14 @@ export default component$(() => {
 
           <section id="showcase">
             <h2>
-              <Link href="/showcase/">Showcase</Link>
+              <span>
+                <Link href="/showcase/">Showcase</Link>
+              </span>
+              <span>
+                <Link href="/media/#videos" class="text-sm">
+                  See All
+                </Link>
+              </span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {showcaseSites.map((item, i) => (
@@ -120,7 +148,14 @@ export default component$(() => {
 
           <section id="presentations">
             <h2>
-              <Link href="/media/#presentations">Presentations</Link>
+              <span>
+                <Link href="/media/#presentations">Presentations</Link>
+              </span>
+              <span>
+                <Link href="/media/#videos" class="text-sm">
+                  See All
+                </Link>
+              </span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {presentations.map((item, i) => (

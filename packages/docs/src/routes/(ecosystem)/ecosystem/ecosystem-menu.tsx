@@ -187,7 +187,7 @@ export const EcosystemMenu = () => {
           </li>
 
           <li>
-            <a href="#media" onClick$={scrollIntoView} preventdefault:click>
+            <a href="#videos" onClick$={scrollIntoView} preventdefault:click>
               <svg
                 width="20"
                 height="18"
@@ -222,7 +222,7 @@ export const EcosystemMenu = () => {
                   fill="#BBBDCC"
                 />
               </svg>
-              <span>Media</span>
+              <span>Videos</span>
             </a>
           </li>
 

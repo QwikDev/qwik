@@ -9,10 +9,10 @@ export default defineConfig(() => {
       target: 'es2020',
       lib: {
         entry: [
-          './src/index.qwik.ts', 
-          './src/angular/client.ts', 
-          './src/angular/server.tsx', 
-          './src/vite.ts'
+          './src/index.qwik.ts',
+          './src/angular/client.ts',
+          './src/angular/server.tsx',
+          './src/vite.ts',
         ],
         formats: ['es', 'cjs'],
         fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'mjs' : 'cjs'}`,
@@ -27,7 +27,7 @@ export default defineConfig(() => {
           'rxjs',
           'rxjs/operators',
           'zone.js/bundles/zone-node.umd.js',
-          'domino'
+          'domino',
         ],
       },
     },

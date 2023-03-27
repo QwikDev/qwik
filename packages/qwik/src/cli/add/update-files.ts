@@ -26,6 +26,8 @@ export async function mergeIntegrationDir(
           await mergePackageJsons(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === 'settings.json') {
           await mergeJsons(fileUpdates, srcChildPath, destChildPath);
+        } else if (destName === 'tsconfig.json') {
+          await mergeTsConfigJsons(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === 'README.md') {
           await mergeReadmes(fileUpdates, srcChildPath, destChildPath);
         } else if (
@@ -54,6 +56,58 @@ export async function mergeIntegrationDir(
       }
     })
   );
+}
+
+async function mergeTsConfigJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+  try {
+    const srcTsConfig = await readTsConfig(srcPath);
+    const destTsConfig = await readTsConfig(destPath);
+    const result = mergeObjects(destTsConfig, srcTsConfig);
+    fileUpdates.files.push({
+      path: destPath,
+      content: JSON.stringify(result, null, 2) + '\n',
+      type: 'modify',
+    });
+  } catch {
+    //
+  }
+}
+
+function isMergeableObject(obj: any) {
+  return typeof obj === 'object' && !Array.isArray(obj);
+}
+
+function mergeObjects(obj1: Record<string, any>, obj2: Record<string, any>) {
+  const result: Record<string, any> = {};
+
+  for (const key in obj1) {
+    // If the current key exists in both objects, merge the values recursively
+    if (key in obj2) {
+      if (isMergeableObject(obj1[key]) && isMergeableObject(obj2[key])) {
+        result[key] = mergeObjects(obj1[key], obj2[key]);
+      } else {
+        result[key] = obj2[key];
+      }
+    } else {
+      // Otherwise, just add the value from obj1 to the result object
+      result[key] = obj1[key];
+    }
+  }
+
+  // Loop through all properties in obj2 that were not in obj1
+  for (const key in obj2) {
+    if (!(key in obj1)) {
+      result[key] = obj2[key];
+    }
+  }
+
+  return result;
+}
+
+export async function readTsConfig(tsConfigPath: string) {
+  const ts = (await import('typescript')).default;
+  // tsconfig may contain trailing commas, thus cannot use JSON.parse
+  return ts.readConfigFile(tsConfigPath, (path) => fs.readFileSync(path, 'utf-8')).config;
 }
 
 async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {

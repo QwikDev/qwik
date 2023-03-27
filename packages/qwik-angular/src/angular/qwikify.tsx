@@ -17,6 +17,9 @@ import { ClientRenderer } from './client';
 import { getHostProps, useWakeupSignal } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 import { renderFromServer } from './server';
+import zoneJs from 'zone.js/dist/zone.min.js?url';
+
+declare const Zone: unknown;
 
 export function qwikifyQrl<PROPS extends {}>(
   angularCmp$: QRL<Type<unknown>>,
@@ -49,6 +52,7 @@ export function qwikifyQrl<PROPS extends {}>(
           internalState.value.renderer.setInputProps(trackedProps);
         }
       } else {
+        await loadZoneJs();
         const component = await angularCmp$.resolve();
         const hostElement = hostRef.value;
         const renderer = new ClientRenderer(component, trackedProps);
@@ -57,6 +61,20 @@ export function qwikifyQrl<PROPS extends {}>(
         }
         internalState.value = noSerialize({
           renderer,
+        });
+      }
+
+      function loadZoneJs(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+          if (typeof Zone === 'function') {
+            return resolve();
+          }
+          const script = document.createElement('script');
+          script.src = zoneJs;
+          script.onload = () => resolve();
+          script.onerror = reject;
+          document.head.appendChild(script);
+          script.remove();
         });
       }
     });

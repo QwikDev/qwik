@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-angular",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "QwikAngular allows adding Angular components into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
@@ -31,7 +31,6 @@
     "@analogjs/vite-plugin-angular": "0.2.0-alpha.28",
     "rxjs": "7.8.0",
     "zone.js": "0.13.0",
-    "typescript": "4.9.5",
     "vite": "4.1.4"
   },
   "peerDependencies": {

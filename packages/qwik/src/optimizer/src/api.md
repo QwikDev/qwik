@@ -297,12 +297,12 @@ export interface QwikVitePluginApi {
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
+    // Warning: (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
-    // (undocumented)
-    registerQwikPluginAddon: (addon: QwikPluginAddon) => void;
 }
 
 // @public (undocumented)

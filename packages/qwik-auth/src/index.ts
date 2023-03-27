@@ -69,15 +69,29 @@ export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignin = globalAction$(
-    async ({ providerId, callbackUrl, ...rest }, req) => {
-      callbackUrl ??= getCurrentPageForAction(req);
+    async ({ providerId, callbackUrl: deprecated, options, authorizationParams }, req) => {
+      if (deprecated) {
+        console.warn(
+          '\x1b[33mWARNING: callbackUrl is deprecated - use options.callbackUrl instead\x1b[0m'
+        );
+      }
+      const { callbackUrl = deprecated ?? getCurrentPageForAction(req), ...rest } = options ?? {};
+
+      const isCredentials = providerId === 'credentials';
+
       const auth = await authOptions(req);
-      const body = new URLSearchParams({ callbackUrl });
+      const body = new URLSearchParams({ callbackUrl: callbackUrl as string });
       Object.entries(rest).forEach(([key, value]) => {
         body.set(key, String(value));
       });
-      const pathname = '/api/auth/signin' + (providerId ? `/${providerId}` : '');
-      const data = await authAction(body, req, pathname, auth);
+
+      const baseSignInUrl = `/api/auth/${isCredentials ? 'callback' : 'signin'}${
+        providerId ? `/${providerId}` : ''
+      }`;
+      const signInUrl = `${baseSignInUrl}?${new URLSearchParams(authorizationParams)}`;
+
+      const data = await authAction(body, req, signInUrl, auth);
+
       if (data.url) {
         throw req.redirect(301, data.url);
       }
@@ -85,6 +99,16 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
     zod$({
       providerId: z.string().optional(),
       callbackUrl: z.string().optional(),
+      options: z
+        .object({
+          callbackUrl: z.string(),
+        })
+        .passthrough()
+        .partial()
+        .optional(),
+      authorizationParams: z
+        .union([z.string(), z.custom<URLSearchParams>(), z.record(z.string())])
+        .optional(),
     })
   );
 

@@ -169,7 +169,7 @@ export const target = 'es2020';
 export const nodeTarget = 'node14';
 
 /**
- * Helper just to know which NodeJS modules that should stay external.
+ * Helper just to know which Node.js modules that should stay external.
  */
 export const nodeBuiltIns = [
   'assert',

@@ -6,6 +6,7 @@
   position: relative;
   z-index: 1;
   margin: 0 auto 80px auto;
+  scroll-margin-top: 100px;
 }
 
 .qwik-plus-logo {

@@ -189,7 +189,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen;
+  @apply antialiased min-h-screen;
 }
 
 @media (max-width: 1023px) {
@@ -304,6 +304,7 @@ body {
 
 .purple-bg {
   background-color: var(--qwik-dark-purple-bg);
+  height: auto;
 }
 
 .purple-bg header.header-container {

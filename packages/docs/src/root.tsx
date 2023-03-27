@@ -28,6 +28,7 @@ export default component$(() => {
     headerMenuOpen: false,
     sideMenuOpen: false,
     theme: 'auto',
+    bodyClass: 'qwik-bg',
   });
 
   useContextProvider(GlobalStore, store);
@@ -42,6 +43,7 @@ export default component$(() => {
         class={{
           'header-open': store.headerMenuOpen,
           'menu-open': store.sideMenuOpen,
+          [store.bodyClass]: true,
         }}
       >
         <RouterOutlet />

@@ -88,7 +88,7 @@ export default component$(() => {
             <h2>
               <Link href="/media/#podcasts">Podcasts</Link>
             </h2>
-            <ul class="grid gap-1 grid-cols-2 md:grid-cols-3">
+            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {podcasts.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -105,7 +105,7 @@ export default component$(() => {
             <h2>
               <Link href="/showcase/">Showcase</Link>
             </h2>
-            <ul class="grid gap-1 grid-cols-2 md:grid-cols-3">
+            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {showcaseSites.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -122,7 +122,7 @@ export default component$(() => {
             <h2>
               <Link href="/media/#presentations">Presentations</Link>
             </h2>
-            <ul class="grid gap-1 grid-cols-2 md:grid-cols-3">
+            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {presentations.map((item, i) => (
                 <GridItem
                   title={item.title}

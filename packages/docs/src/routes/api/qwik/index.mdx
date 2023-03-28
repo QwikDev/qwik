@@ -122,6 +122,18 @@ Indicates that the element is perceivable but disabled, so it is not editable or
 'aria-disabled'?: Booleanish | undefined;
 ```
 
+<h2 id="ariaattributes-_aria-dropeffect_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-dropeffect_"><span class="icon icon-link"></span></a>"aria-dropeffect" </h2>
+
+> Warning: This API is now obsolete.
+>
+> in ARIA 1.1
+
+Indicates what functions can be performed when a dragged object is released on the drop target.
+
+```typescript
+'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
+```
+
 <h2 id="ariaattributes-_aria-errormessage_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-errormessage_"><span class="icon icon-link"></span></a>"aria-errormessage" </h2>
 
 Identifies the element that provides an error message for the object.
@@ -144,6 +156,18 @@ Identifies the next element (or elements) in an alternate reading order of conte
 
 ```typescript
 'aria-flowto'?: string | undefined;
+```
+
+<h2 id="ariaattributes-_aria-grabbed_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-grabbed_"><span class="icon icon-link"></span></a>"aria-grabbed" </h2>
+
+> Warning: This API is now obsolete.
+>
+> in ARIA 1.1
+
+Indicates an element's "grabbed" state in a drag-and-drop operation.
+
+```typescript
+'aria-grabbed'?: Booleanish | undefined;
 ```
 
 <h2 id="ariaattributes-_aria-haspopup_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-haspopup_"><span class="icon icon-link"></span></a>"aria-haspopup" </h2>
@@ -449,11 +473,11 @@ export interface AriaAttributes
 | ["aria-describedby"?](#ariaattributes-_aria-describedby_)           |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that describes the object.                                                                                                                                                      |
 | ["aria-details"?](#ariaattributes-_aria-details_)                   |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides a detailed, extended description for the object.                                                                                                                                |
 | ["aria-disabled"?](#ariaattributes-_aria-disabled_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.                                                                                                                 |
-| ["aria-dropeffect"?](./qwik.ariaattributes._aria-dropeffect_.md)    |           | 'none' \| 'copy' \| 'execute' \| 'link' \| 'move' \| 'popup' \| undefined                                                                                                               | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target.                                                                                                                      |
+| ["aria-dropeffect"?](#ariaattributes-_aria-dropeffect_)             |           | 'none' \| 'copy' \| 'execute' \| 'link' \| 'move' \| 'popup' \| undefined                                                                                                               | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target.                                                                                                                      |
 | ["aria-errormessage"?](#ariaattributes-_aria-errormessage_)         |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides an error message for the object.                                                                                                                                                |
 | ["aria-expanded"?](#ariaattributes-_aria-expanded_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.                                                                                                          |
 | ["aria-flowto"?](#ariaattributes-_aria-flowto_)                     |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |
-| ["aria-grabbed"?](./qwik.ariaattributes._aria-grabbed_.md)          |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element's "grabbed" state in a drag-and-drop operation.                                                                                                                                                 |
+| ["aria-grabbed"?](#ariaattributes-_aria-grabbed_)                   |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element's "grabbed" state in a drag-and-drop operation.                                                                                                                                                 |
 | ["aria-haspopup"?](#ariaattributes-_aria-haspopup_)                 |           | boolean \| 'false' \| 'true' \| 'menu' \| 'listbox' \| 'tree' \| 'grid' \| 'dialog' \| undefined                                                                                        | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.                                                                                       |
 | ["aria-hidden"?](#ariaattributes-_aria-hidden_)                     |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element is exposed to an accessibility API.                                                                                                                                                    |
 | ["aria-invalid"?](#ariaattributes-_aria-invalid_)                   |           | boolean \| 'false' \| 'true' \| 'grammar' \| 'spelling' \| undefined                                                                                                                    | _(Optional)_ Indicates the entered value does not conform to the format expected by the application.                                                                                                                              |
@@ -846,6 +870,20 @@ containerTagName: string;
 contentEditable?: 'true' | 'false' | 'inherit' | undefined;
 ```
 
+<h2 id="context" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#context"><span class="icon icon-link"></span></a>Context </h2>
+
+> Warning: This API is now obsolete.
+>
+> Please use `ContextId` instead.
+
+```typescript
+export interface Context<STATE extends object> extends ContextId<STATE>
+```
+
+**Extends:** [ContextId](#contextid)&lt;STATE&gt;
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
+
 <h2 id="contextid" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#contextid"><span class="icon icon-link"></span></a>ContextId </h2>
 
 ContextId is a typesafe ID for your context.
@@ -930,6 +968,18 @@ export interface CorePlatform
 | [raf](#coreplatform-raf)                       |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next request-animation-frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="createcontext" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#createcontext"><span class="icon icon-link"></span></a>createContext </h2>
+
+> Warning: This API is now obsolete.
+>
+> Please use `createContextId` instead.
+
+```typescript
+createContext: <STATE extends object>(name: string) => ContextId<STATE>;
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="createcontextid" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#createcontextid"><span class="icon icon-link"></span></a>createContextId </h2>
 
@@ -1094,9 +1144,11 @@ draggable?: boolean | undefined;
 dynamic?: boolean;
 ```
 
-<h2 id="usetaskoptions-eagerness" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#usetaskoptions-eagerness"><span class="icon icon-link"></span></a>eagerness </h2>
+<h2 id="onvisibletaskoptions-eagerness" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions-eagerness"><span class="icon icon-link"></span></a>eagerness </h2>
 
-- `visible`: run the effect when the element is visible. - `load`: eagerly run the effect when the application resumes.
+> Warning: This API is now obsolete.
+>
+> Use `strategy` instead.
 
 ```typescript
 eagerness?: EagernessOptions;
@@ -1689,6 +1741,18 @@ movementX: number;
 movementY: number;
 ```
 
+<h2 id="mutable" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#mutable"><span class="icon icon-link"></span></a>mutable </h2>
+
+> Warning: This API is now obsolete.
+>
+> Remove it, not needed anymore
+
+```typescript
+mutable: <T>(v: T) => T;
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts" target="_blanks">Edit this section</a></p>
+
 <h2 id="nativeanimationevent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativeanimationevent"><span class="icon icon-link"></span></a>NativeAnimationEvent </h2>
 
 ```typescript
@@ -1865,10 +1929,10 @@ onResolved: (value: T) => JSXNode;
 export interface OnVisibleTaskOptions
 ```
 
-| Property                                               | Modifiers | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------------------------ | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [eagerness?](./qwik.onvisibletaskoptions.eagerness.md) |           | [EagernessOptions](#eagernessoptions)       | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| [strategy?](#onvisibletaskoptions-strategy)            |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
+| Property                                      | Modifiers | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------- | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [eagerness?](#onvisibletaskoptions-eagerness) |           | [EagernessOptions](#eagernessoptions)       | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| [strategy?](#onvisibletaskoptions-strategy)   |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -2373,6 +2437,16 @@ If `false` then the object will not be tracked for changes. Default is `true`.
 
 ```typescript
 reactive?: boolean;
+```
+
+<h2 id="usestoreoptions-recursive" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions-recursive"><span class="icon icon-link"></span></a>recursive </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `deep` instead
+
+```typescript
+recursive?: boolean;
 ```
 
 <h2 id="ref" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ref"><span class="icon icon-link"></span></a>Ref </h2>
@@ -3119,6 +3193,130 @@ untrack: <T>(fn: () => T) => T;
 url?: string;
 ```
 
+<h2 id="usebrowservisibletask_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletask_"><span class="icon icon-link"></span></a>useBrowserVisibleTask$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useVisibleTask$()` instead
+
+```typescript
+useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usebrowservisibletaskqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletaskqrl"><span class="icon icon-link"></span></a>useBrowserVisibleTaskQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useVisibleTask$()` instead
+
+```typescript
+useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usecleanup_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecleanup_"><span class="icon icon-link"></span></a>useCleanup$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> Use the cleanup() function of `useTask$()`, `useResource$()` or `useVisibleTask$()` instead.
+
+It can be used to release resources, abort network requests, stop timers...
+
+```typescript
+useCleanup$: (first: () => void) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usecleanupqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecleanupqrl"><span class="icon icon-link"></span></a>useCleanupQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> Use the cleanup() function of `useTask$()`, `useResource$()` or `useVisibleTask$()` instead.
+
+It can be used to release resources, abort network requests, stop timers...
+
+```typescript
+useCleanupQrl: (unmountFn: QRL<() => void>) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useclienteffect_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclienteffect_"><span class="icon icon-link"></span></a>useClientEffect$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useVisibleTask$()` instead
+
+```typescript
+useClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useclienteffectqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclienteffectqrl"><span class="icon icon-link"></span></a>useClientEffectQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useVisibleTask$()` instead
+
+```typescript
+useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useclientmount_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclientmount_"><span class="icon icon-link"></span></a>useClientMount$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\#usemountserver
+
+Deprecated API, equivalent of doing:
+
+```tsx
+import { useTask$ } from "@builder.io/qwik";
+import { isBrowser } from "@builder.io/qwik/build";
+useTask$(() => {
+  if (isBrowser) {
+    // only runs on server
+  }
+});
+```
+
+```typescript
+useClientMount$: <T>(first: MountFn<T>) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useclientmountqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclientmountqrl"><span class="icon icon-link"></span></a>useClientMountQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\#usemountserver
+
+Deprecated API, equivalent of doing:
+
+```tsx
+import { useTask$ } from "@builder.io/qwik";
+import { isBrowser } from "@builder.io/qwik/build";
+useTask$(() => {
+  if (isBrowser) {
+    // only runs on server
+  }
+});
+```
+
+```typescript
+useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
+
 <h2 id="usecomputed_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecomputed_"><span class="icon icon-link"></span></a>useComputed$ </h2>
 
 ```typescript
@@ -3233,6 +3431,18 @@ useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: 
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
 
+<h2 id="useenvdata" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useenvdata"><span class="icon icon-link"></span></a>useEnvData </h2>
+
+> Warning: This API is now obsolete.
+>
+> Please use `useServerData` instead.
+
+```typescript
+useEnvData: typeof useServerData;
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
+
 <h2 id="useerrorboundary" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useerrorboundary"><span class="icon icon-link"></span></a>useErrorBoundary </h2>
 
 ```typescript
@@ -3248,6 +3458,30 @@ useId: () => string;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usemount_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usemount_"><span class="icon icon-link"></span></a>useMount$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` instead
+
+```typescript
+useMount$: (first: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usemountqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usemountqrl"><span class="icon icon-link"></span></a>useMountQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` instead
+
+```typescript
+useMountQrl: (qrl: QRL<import("./use-task").TaskFn>, opts?: import("./use-task").UseTaskOptions | undefined) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="useon" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useon"><span class="icon icon-link"></span></a>useOn </h2>
 
@@ -3284,6 +3518,45 @@ useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => v
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useref" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useref"><span class="icon icon-link"></span></a>useRef </h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `useSignal` instead.
+
+It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
+
+```tsx
+export function useRef<T = Element>(current?: T): Ref<T> {
+  return useStore({ current });
+}
+```
+
+\#\#\# Example
+
+```tsx
+const Cmp = component$(() => {
+  const input = useRef<HTMLInputElement>();
+
+  useVisibleTask$(({ track }) => {
+    const el = track(() => input.current)!;
+    el.focus();
+  });
+
+  return (
+    <div>
+      <input type="text" ref={input} />
+    </div>
+  );
+});
+```
+
+```typescript
+useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="useresource_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useresource_"><span class="icon icon-link"></span></a>useResource$ </h2>
 
@@ -3411,6 +3684,54 @@ T \| undefined
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
 
+<h2 id="useservermount_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useservermount_"><span class="icon icon-link"></span></a>useServerMount$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` with `isServer` instead. See
+
+Deprecated API, equivalent of doing:
+
+```tsx
+import { useTask$ } from "@builder.io/qwik";
+import { isServer } from "@builder.io/qwik/build";
+useTask$(() => {
+  if (isServer) {
+    // only runs on server
+  }
+});
+```
+
+```typescript
+useServerMount$: <T>(first: MountFn<T>) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useservermountqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useservermountqrl"><span class="icon icon-link"></span></a>useServerMountQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` with `isServer` instead. See
+
+Deprecated API, equivalent of doing:
+
+```tsx
+import { useTask$ } from "@builder.io/qwik";
+import { isServer } from "@builder.io/qwik/build";
+useTask$(() => {
+  if (isServer) {
+    // only runs on server
+  }
+});
+```
+
+```typescript
+useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
+
 <h2 id="usesignal" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usesignal"><span class="icon icon-link"></span></a>useSignal </h2>
 
 ```typescript
@@ -3499,11 +3820,11 @@ useStore: <STATE extends object>(
 export interface UseStoreOptions
 ```
 
-| Property                                          | Modifiers | Type    | Description                                                                                                                  |
-| ------------------------------------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [deep?](#usestoreoptions-deep)                    |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
-| [reactive?](#usestoreoptions-reactive)            |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
-| [recursive?](./qwik.usestoreoptions.recursive.md) |           | boolean | _(Optional)_                                                                                                                 |
+| Property                                 | Modifiers | Type    | Description                                                                                                                  |
+| ---------------------------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [deep?](#usestoreoptions-deep)           |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
+| [reactive?](#usestoreoptions-reactive)   |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
+| [recursive?](#usestoreoptions-recursive) |           | boolean | _(Optional)_                                                                                                                 |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts" target="_blanks">Edit this section</a></p>
 
@@ -3627,9 +3948,9 @@ useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
 export interface UseTaskOptions
 ```
 
-| Property                                | Modifiers | Type                                  | Description                                                                                                                                                |
-| --------------------------------------- | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [eagerness?](#usetaskoptions-eagerness) |           | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |
+| Property                                         | Modifiers | Type                                  | Description                                                                                                                                                |
+| ------------------------------------------------ | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [eagerness?](./qwik.usetaskoptions.eagerness.md) |           | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -3646,6 +3967,18 @@ useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="useusercontext" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useusercontext"><span class="icon icon-link"></span></a>useUserContext </h2>
+
+> Warning: This API is now obsolete.
+>
+> Please use `useServerData` instead.
+
+```typescript
+useUserContext: typeof useServerData;
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="usevisibletask_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usevisibletask_"><span class="icon icon-link"></span></a>useVisibleTask$ </h2>
 
@@ -3699,6 +4032,30 @@ const Timer = component$(() => {
 
 ```typescript
 useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usewatch_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usewatch_"><span class="icon icon-link"></span></a>useWatch$ </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` instead
+
+```typescript
+useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
+```
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="usewatchqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usewatchqrl"><span class="icon icon-link"></span></a>useWatchQrl </h2>
+
+> Warning: This API is now obsolete.
+>
+> - use `useTask$()` instead
+
+```typescript
+useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>

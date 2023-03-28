@@ -258,6 +258,23 @@
       "mdFile": "qwik.ariaattributes._aria-disabled_.md"
     },
     {
+      "name": "\"aria-dropeffect\"",
+      "id": "ariaattributes-_aria-dropeffect_",
+      "hierarchy": [
+        {
+          "name": "AriaAttributes",
+          "id": "ariaattributes-_aria-dropeffect_"
+        },
+        {
+          "name": "\"aria-dropeffect\"",
+          "id": "ariaattributes-_aria-dropeffect_"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "> Warning: This API is now obsolete.\n> \n> in ARIA 1.1\n> \n\nIndicates what functions can be performed when a dragged object is released on the drop target.\n\n\n```typescript\n'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;\n```",
+      "mdFile": "qwik.ariaattributes._aria-dropeffect_.md"
+    },
+    {
       "name": "\"aria-errormessage\"",
       "id": "ariaattributes-_aria-errormessage_",
       "hierarchy": [
@@ -307,6 +324,23 @@
       "kind": "PropertySignature",
       "content": "Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order.\n\n\n```typescript\n'aria-flowto'?: string | undefined;\n```",
       "mdFile": "qwik.ariaattributes._aria-flowto_.md"
+    },
+    {
+      "name": "\"aria-grabbed\"",
+      "id": "ariaattributes-_aria-grabbed_",
+      "hierarchy": [
+        {
+          "name": "AriaAttributes",
+          "id": "ariaattributes-_aria-grabbed_"
+        },
+        {
+          "name": "\"aria-grabbed\"",
+          "id": "ariaattributes-_aria-grabbed_"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "> Warning: This API is now obsolete.\n> \n> in ARIA 1.1\n> \n\nIndicates an element's \"grabbed\" state in a drag-and-drop operation.\n\n\n```typescript\n'aria-grabbed'?: Booleanish | undefined;\n```",
+      "mdFile": "qwik.ariaattributes._aria-grabbed_.md"
     },
     {
       "name": "\"aria-haspopup\"",
@@ -927,7 +961,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AriaAttributes \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"aria-activedescendant\"?](#ariaattributes-_aria-activedescendant_) |  | string \\| undefined | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. |\n|  [\"aria-atomic\"?](#ariaattributes-_aria-atomic_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. |\n|  [\"aria-autocomplete\"?](#ariaattributes-_aria-autocomplete_) |  | 'none' \\| 'inline' \\| 'list' \\| 'both' \\| undefined | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made. |\n|  [\"aria-busy\"?](#ariaattributes-_aria-busy_) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. |\n|  [\"aria-checked\"?](#ariaattributes-_aria-checked_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"checked\" state of checkboxes, radio buttons, and other widgets. |\n|  [\"aria-colcount\"?](#ariaattributes-_aria-colcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid. |\n|  [\"aria-colindex\"?](#ariaattributes-_aria-colindex_) |  | number \\| undefined | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid. |\n|  [\"aria-colspan\"?](#ariaattributes-_aria-colspan_) |  | number \\| undefined | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-controls\"?](#ariaattributes-_aria-controls_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element. |\n|  [\"aria-current\"?](#ariaattributes-_aria-current_) |  | boolean \\| 'false' \\| 'true' \\| 'page' \\| 'step' \\| 'location' \\| 'date' \\| 'time' \\| undefined | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements. |\n|  [\"aria-describedby\"?](#ariaattributes-_aria-describedby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that describes the object. |\n|  [\"aria-details\"?](#ariaattributes-_aria-details_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides a detailed, extended description for the object. |\n|  [\"aria-disabled\"?](#ariaattributes-_aria-disabled_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable. |\n|  [\"aria-dropeffect\"?](./qwik.ariaattributes._aria-dropeffect_.md) |  | 'none' \\| 'copy' \\| 'execute' \\| 'link' \\| 'move' \\| 'popup' \\| undefined | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target. |\n|  [\"aria-errormessage\"?](#ariaattributes-_aria-errormessage_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides an error message for the object. |\n|  [\"aria-expanded\"?](#ariaattributes-_aria-expanded_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. |\n|  [\"aria-flowto\"?](#ariaattributes-_aria-flowto_) |  | string \\| undefined | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |\n|  [\"aria-grabbed\"?](./qwik.ariaattributes._aria-grabbed_.md) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element's \"grabbed\" state in a drag-and-drop operation. |\n|  [\"aria-haspopup\"?](#ariaattributes-_aria-haspopup_) |  | boolean \\| 'false' \\| 'true' \\| 'menu' \\| 'listbox' \\| 'tree' \\| 'grid' \\| 'dialog' \\| undefined | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. |\n|  [\"aria-hidden\"?](#ariaattributes-_aria-hidden_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element is exposed to an accessibility API. |\n|  [\"aria-invalid\"?](#ariaattributes-_aria-invalid_) |  | boolean \\| 'false' \\| 'true' \\| 'grammar' \\| 'spelling' \\| undefined | _(Optional)_ Indicates the entered value does not conform to the format expected by the application. |\n|  [\"aria-keyshortcuts\"?](#ariaattributes-_aria-keyshortcuts_) |  | string \\| undefined | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. |\n|  [\"aria-label\"?](#ariaattributes-_aria-label_) |  | string \\| undefined | _(Optional)_ Defines a string value that labels the current element. |\n|  [\"aria-labelledby\"?](#ariaattributes-_aria-labelledby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that labels the current element. |\n|  [\"aria-level\"?](#ariaattributes-_aria-level_) |  | number \\| undefined | _(Optional)_ Defines the hierarchical level of an element within a structure. |\n|  [\"aria-live\"?](#ariaattributes-_aria-live_) |  | 'off' \\| 'assertive' \\| 'polite' \\| undefined | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. |\n|  [\"aria-modal\"?](#ariaattributes-_aria-modal_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether an element is modal when displayed. |\n|  [\"aria-multiline\"?](#ariaattributes-_aria-multiline_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line. |\n|  [\"aria-multiselectable\"?](#ariaattributes-_aria-multiselectable_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants. |\n|  [\"aria-orientation\"?](#ariaattributes-_aria-orientation_) |  | 'horizontal' \\| 'vertical' \\| undefined | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. |\n|  [\"aria-owns\"?](#ariaattributes-_aria-owns_) |  | string \\| undefined | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship. |\n|  [\"aria-placeholder\"?](#ariaattributes-_aria-placeholder_) |  | string \\| undefined | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format. |\n|  [\"aria-posinset\"?](#ariaattributes-_aria-posinset_) |  | number \\| undefined | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-pressed\"?](#ariaattributes-_aria-pressed_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"pressed\" state of toggle buttons. |\n|  [\"aria-readonly\"?](#ariaattributes-_aria-readonly_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is not editable, but is otherwise operable. |\n|  [\"aria-relevant\"?](#ariaattributes-_aria-relevant_) |  | 'additions' \\| 'additions removals' \\| 'additions text' \\| 'all' \\| 'removals' \\| 'removals additions' \\| 'removals text' \\| 'text' \\| 'text additions' \\| 'text removals' \\| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified. |\n|  [\"aria-required\"?](#ariaattributes-_aria-required_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that user input is required on the element before a form may be submitted. |\n|  [\"aria-roledescription\"?](#ariaattributes-_aria-roledescription_) |  | string \\| undefined | _(Optional)_ Defines a human-readable, author-localized description for the role of an element. |\n|  [\"aria-rowcount\"?](#ariaattributes-_aria-rowcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid. |\n|  [\"aria-rowindex\"?](#ariaattributes-_aria-rowindex_) |  | number \\| undefined | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid. |\n|  [\"aria-rowspan\"?](#ariaattributes-_aria-rowspan_) |  | number \\| undefined | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-selected\"?](#ariaattributes-_aria-selected_) |  | Booleanish \\| undefined | _(Optional)_ Indicates the current \"selected\" state of various widgets. |\n|  [\"aria-setsize\"?](#ariaattributes-_aria-setsize_) |  | number \\| undefined | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-sort\"?](#ariaattributes-_aria-sort_) |  | 'none' \\| 'ascending' \\| 'descending' \\| 'other' \\| undefined | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order. |\n|  [\"aria-valuemax\"?](#ariaattributes-_aria-valuemax_) |  | number \\| undefined | _(Optional)_ Defines the maximum allowed value for a range widget. |\n|  [\"aria-valuemin\"?](#ariaattributes-_aria-valuemin_) |  | number \\| undefined | _(Optional)_ Defines the minimum allowed value for a range widget. |\n|  [\"aria-valuenow\"?](#ariaattributes-_aria-valuenow_) |  | number \\| undefined | _(Optional)_ Defines the current value for a range widget. |\n|  [\"aria-valuetext\"?](#ariaattributes-_aria-valuetext_) |  | string \\| undefined | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget. |",
+      "content": "```typescript\nexport interface AriaAttributes \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"aria-activedescendant\"?](#ariaattributes-_aria-activedescendant_) |  | string \\| undefined | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. |\n|  [\"aria-atomic\"?](#ariaattributes-_aria-atomic_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. |\n|  [\"aria-autocomplete\"?](#ariaattributes-_aria-autocomplete_) |  | 'none' \\| 'inline' \\| 'list' \\| 'both' \\| undefined | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made. |\n|  [\"aria-busy\"?](#ariaattributes-_aria-busy_) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. |\n|  [\"aria-checked\"?](#ariaattributes-_aria-checked_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"checked\" state of checkboxes, radio buttons, and other widgets. |\n|  [\"aria-colcount\"?](#ariaattributes-_aria-colcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid. |\n|  [\"aria-colindex\"?](#ariaattributes-_aria-colindex_) |  | number \\| undefined | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid. |\n|  [\"aria-colspan\"?](#ariaattributes-_aria-colspan_) |  | number \\| undefined | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-controls\"?](#ariaattributes-_aria-controls_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element. |\n|  [\"aria-current\"?](#ariaattributes-_aria-current_) |  | boolean \\| 'false' \\| 'true' \\| 'page' \\| 'step' \\| 'location' \\| 'date' \\| 'time' \\| undefined | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements. |\n|  [\"aria-describedby\"?](#ariaattributes-_aria-describedby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that describes the object. |\n|  [\"aria-details\"?](#ariaattributes-_aria-details_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides a detailed, extended description for the object. |\n|  [\"aria-disabled\"?](#ariaattributes-_aria-disabled_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable. |\n|  [\"aria-dropeffect\"?](#ariaattributes-_aria-dropeffect_) |  | 'none' \\| 'copy' \\| 'execute' \\| 'link' \\| 'move' \\| 'popup' \\| undefined | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target. |\n|  [\"aria-errormessage\"?](#ariaattributes-_aria-errormessage_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides an error message for the object. |\n|  [\"aria-expanded\"?](#ariaattributes-_aria-expanded_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. |\n|  [\"aria-flowto\"?](#ariaattributes-_aria-flowto_) |  | string \\| undefined | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |\n|  [\"aria-grabbed\"?](#ariaattributes-_aria-grabbed_) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element's \"grabbed\" state in a drag-and-drop operation. |\n|  [\"aria-haspopup\"?](#ariaattributes-_aria-haspopup_) |  | boolean \\| 'false' \\| 'true' \\| 'menu' \\| 'listbox' \\| 'tree' \\| 'grid' \\| 'dialog' \\| undefined | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. |\n|  [\"aria-hidden\"?](#ariaattributes-_aria-hidden_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element is exposed to an accessibility API. |\n|  [\"aria-invalid\"?](#ariaattributes-_aria-invalid_) |  | boolean \\| 'false' \\| 'true' \\| 'grammar' \\| 'spelling' \\| undefined | _(Optional)_ Indicates the entered value does not conform to the format expected by the application. |\n|  [\"aria-keyshortcuts\"?](#ariaattributes-_aria-keyshortcuts_) |  | string \\| undefined | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. |\n|  [\"aria-label\"?](#ariaattributes-_aria-label_) |  | string \\| undefined | _(Optional)_ Defines a string value that labels the current element. |\n|  [\"aria-labelledby\"?](#ariaattributes-_aria-labelledby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that labels the current element. |\n|  [\"aria-level\"?](#ariaattributes-_aria-level_) |  | number \\| undefined | _(Optional)_ Defines the hierarchical level of an element within a structure. |\n|  [\"aria-live\"?](#ariaattributes-_aria-live_) |  | 'off' \\| 'assertive' \\| 'polite' \\| undefined | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. |\n|  [\"aria-modal\"?](#ariaattributes-_aria-modal_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether an element is modal when displayed. |\n|  [\"aria-multiline\"?](#ariaattributes-_aria-multiline_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line. |\n|  [\"aria-multiselectable\"?](#ariaattributes-_aria-multiselectable_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants. |\n|  [\"aria-orientation\"?](#ariaattributes-_aria-orientation_) |  | 'horizontal' \\| 'vertical' \\| undefined | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. |\n|  [\"aria-owns\"?](#ariaattributes-_aria-owns_) |  | string \\| undefined | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship. |\n|  [\"aria-placeholder\"?](#ariaattributes-_aria-placeholder_) |  | string \\| undefined | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format. |\n|  [\"aria-posinset\"?](#ariaattributes-_aria-posinset_) |  | number \\| undefined | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-pressed\"?](#ariaattributes-_aria-pressed_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"pressed\" state of toggle buttons. |\n|  [\"aria-readonly\"?](#ariaattributes-_aria-readonly_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is not editable, but is otherwise operable. |\n|  [\"aria-relevant\"?](#ariaattributes-_aria-relevant_) |  | 'additions' \\| 'additions removals' \\| 'additions text' \\| 'all' \\| 'removals' \\| 'removals additions' \\| 'removals text' \\| 'text' \\| 'text additions' \\| 'text removals' \\| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified. |\n|  [\"aria-required\"?](#ariaattributes-_aria-required_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that user input is required on the element before a form may be submitted. |\n|  [\"aria-roledescription\"?](#ariaattributes-_aria-roledescription_) |  | string \\| undefined | _(Optional)_ Defines a human-readable, author-localized description for the role of an element. |\n|  [\"aria-rowcount\"?](#ariaattributes-_aria-rowcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid. |\n|  [\"aria-rowindex\"?](#ariaattributes-_aria-rowindex_) |  | number \\| undefined | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid. |\n|  [\"aria-rowspan\"?](#ariaattributes-_aria-rowspan_) |  | number \\| undefined | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-selected\"?](#ariaattributes-_aria-selected_) |  | Booleanish \\| undefined | _(Optional)_ Indicates the current \"selected\" state of various widgets. |\n|  [\"aria-setsize\"?](#ariaattributes-_aria-setsize_) |  | number \\| undefined | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-sort\"?](#ariaattributes-_aria-sort_) |  | 'none' \\| 'ascending' \\| 'descending' \\| 'other' \\| undefined | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order. |\n|  [\"aria-valuemax\"?](#ariaattributes-_aria-valuemax_) |  | number \\| undefined | _(Optional)_ Defines the maximum allowed value for a range widget. |\n|  [\"aria-valuemin\"?](#ariaattributes-_aria-valuemin_) |  | number \\| undefined | _(Optional)_ Defines the minimum allowed value for a range widget. |\n|  [\"aria-valuenow\"?](#ariaattributes-_aria-valuenow_) |  | number \\| undefined | _(Optional)_ Defines the current value for a range widget. |\n|  [\"aria-valuetext\"?](#ariaattributes-_aria-valuetext_) |  | string \\| undefined | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.ariaattributes.md"
     },
@@ -1376,6 +1410,20 @@
       "mdFile": "qwik.htmlattributes.contenteditable.md"
     },
     {
+      "name": "Context",
+      "id": "context",
+      "hierarchy": [
+        {
+          "name": "Context",
+          "id": "context"
+        }
+      ],
+      "kind": "Interface",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `ContextId` instead.\n> \n\n\n```typescript\nexport interface Context<STATE extends object> extends ContextId<STATE> \n```\n**Extends:** [ContextId](#contextid)<!-- -->&lt;STATE&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
+      "mdFile": "qwik.context.md"
+    },
+    {
       "name": "ContextId",
       "id": "contextid",
       "hierarchy": [
@@ -1419,6 +1467,20 @@
       "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#coreplatform-chunkforsymbol) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#coreplatform-importsymbol) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#coreplatform-isserver) |  | boolean | True of running on the server platform. |\n|  [nextTick](#coreplatform-nexttick) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#coreplatform-raf) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts",
       "mdFile": "qwik.coreplatform.md"
+    },
+    {
+      "name": "createContext",
+      "id": "createcontext",
+      "hierarchy": [
+        {
+          "name": "createContext",
+          "id": "createcontext"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `createContextId` instead.\n> \n\n\n```typescript\ncreateContext: <STATE extends object>(name: string) => ContextId<STATE>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
+      "mdFile": "qwik.createcontext.md"
     },
     {
       "name": "createContextId",
@@ -1722,20 +1784,20 @@
     },
     {
       "name": "eagerness",
-      "id": "usetaskoptions-eagerness",
+      "id": "onvisibletaskoptions-eagerness",
       "hierarchy": [
         {
-          "name": "UseTaskOptions",
-          "id": "usetaskoptions-eagerness"
+          "name": "OnVisibleTaskOptions",
+          "id": "onvisibletaskoptions-eagerness"
         },
         {
           "name": "eagerness",
-          "id": "usetaskoptions-eagerness"
+          "id": "onvisibletaskoptions-eagerness"
         }
       ],
       "kind": "PropertySignature",
-      "content": "- `visible`<!-- -->: run the effect when the element is visible. - `load`<!-- -->: eagerly run the effect when the application resumes.\n\n\n```typescript\neagerness?: EagernessOptions;\n```",
-      "mdFile": "qwik.usetaskoptions.eagerness.md"
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `strategy` instead.\n> \n\n\n```typescript\neagerness?: EagernessOptions;\n```",
+      "mdFile": "qwik.onvisibletaskoptions.eagerness.md"
     },
     {
       "name": "EagernessOptions",
@@ -2672,6 +2734,20 @@
       "mdFile": "qwik.qwikmouseevent.movementy.md"
     },
     {
+      "name": "mutable",
+      "id": "mutable",
+      "hierarchy": [
+        {
+          "name": "mutable",
+          "id": "mutable"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Remove it, not needed anymore\n> \n\n\n```typescript\nmutable: <T>(v: T) => T\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts",
+      "mdFile": "qwik.mutable.md"
+    },
+    {
       "name": "NativeAnimationEvent",
       "id": "nativeanimationevent",
       "hierarchy": [
@@ -2976,7 +3052,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](./qwik.onvisibletaskoptions.eagerness.md) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ |\n|  [strategy?](#onvisibletaskoptions-strategy) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
+      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](#onvisibletaskoptions-eagerness) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ |\n|  [strategy?](#onvisibletaskoptions-strategy) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.onvisibletaskoptions.md"
     },
@@ -3604,6 +3680,23 @@
       "kind": "PropertySignature",
       "content": "If `false` then the object will not be tracked for changes. Default is `true`<!-- -->.\n\n\n```typescript\nreactive?: boolean;\n```",
       "mdFile": "qwik.usestoreoptions.reactive.md"
+    },
+    {
+      "name": "recursive",
+      "id": "usestoreoptions-recursive",
+      "hierarchy": [
+        {
+          "name": "UseStoreOptions",
+          "id": "usestoreoptions-recursive"
+        },
+        {
+          "name": "recursive",
+          "id": "usestoreoptions-recursive"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `deep` instead\n> \n\n\n```typescript\nrecursive?: boolean;\n```",
+      "mdFile": "qwik.usestoreoptions.recursive.md"
     },
     {
       "name": "Ref",
@@ -4739,6 +4832,118 @@
       "mdFile": "qwik.renderssroptions.url.md"
     },
     {
+      "name": "useBrowserVisibleTask$",
+      "id": "usebrowservisibletask_",
+      "hierarchy": [
+        {
+          "name": "useBrowserVisibleTask$",
+          "id": "usebrowservisibletask_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.usebrowservisibletask_.md"
+    },
+    {
+      "name": "useBrowserVisibleTaskQrl",
+      "id": "usebrowservisibletaskqrl",
+      "hierarchy": [
+        {
+          "name": "useBrowserVisibleTaskQrl",
+          "id": "usebrowservisibletaskqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.usebrowservisibletaskqrl.md"
+    },
+    {
+      "name": "useCleanup$",
+      "id": "usecleanup_",
+      "hierarchy": [
+        {
+          "name": "useCleanup$",
+          "id": "usecleanup_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use the cleanup() function of `useTask$()`<!-- -->, `useResource$()` or `useVisibleTask$()` instead.\n> \n\nIt can be used to release resources, abort network requests, stop timers...\n\n\n```typescript\nuseCleanup$: (first: () => void) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
+      "mdFile": "qwik.usecleanup_.md"
+    },
+    {
+      "name": "useCleanupQrl",
+      "id": "usecleanupqrl",
+      "hierarchy": [
+        {
+          "name": "useCleanupQrl",
+          "id": "usecleanupqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use the cleanup() function of `useTask$()`<!-- -->, `useResource$()` or `useVisibleTask$()` instead.\n> \n\nIt can be used to release resources, abort network requests, stop timers...\n\n\n```typescript\nuseCleanupQrl: (unmountFn: QRL<() => void>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
+      "mdFile": "qwik.usecleanupqrl.md"
+    },
+    {
+      "name": "useClientEffect$",
+      "id": "useclienteffect_",
+      "hierarchy": [
+        {
+          "name": "useClientEffect$",
+          "id": "useclienteffect_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.useclienteffect_.md"
+    },
+    {
+      "name": "useClientEffectQrl",
+      "id": "useclienteffectqrl",
+      "hierarchy": [
+        {
+          "name": "useClientEffectQrl",
+          "id": "useclienteffectqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.useclienteffectqrl.md"
+    },
+    {
+      "name": "useClientMount$",
+      "id": "useclientmount_",
+      "hierarchy": [
+        {
+          "name": "useClientMount$",
+          "id": "useclientmount_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\\#usemountserver\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isBrowser } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isBrowser) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseClientMount$: <T>(first: MountFn<T>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
+      "mdFile": "qwik.useclientmount_.md"
+    },
+    {
+      "name": "useClientMountQrl",
+      "id": "useclientmountqrl",
+      "hierarchy": [
+        {
+          "name": "useClientMountQrl",
+          "id": "useclientmountqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\\#usemountserver\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isBrowser } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isBrowser) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
+      "mdFile": "qwik.useclientmountqrl.md"
+    },
+    {
       "name": "useComputed$",
       "id": "usecomputed_",
       "hierarchy": [
@@ -4795,6 +5000,20 @@
       "mdFile": "qwik.usecontextprovider.md"
     },
     {
+      "name": "useEnvData",
+      "id": "useenvdata",
+      "hierarchy": [
+        {
+          "name": "useEnvData",
+          "id": "useenvdata"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `useServerData` instead.\n> \n\n\n```typescript\nuseEnvData: typeof useServerData\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
+      "mdFile": "qwik.useenvdata.md"
+    },
+    {
       "name": "useErrorBoundary",
       "id": "useerrorboundary",
       "hierarchy": [
@@ -4821,6 +5040,34 @@
       "content": "```typescript\nuseId: () => string\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts",
       "mdFile": "qwik.useid.md"
+    },
+    {
+      "name": "useMount$",
+      "id": "usemount_",
+      "hierarchy": [
+        {
+          "name": "useMount$",
+          "id": "usemount_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMount$: (first: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
+      "mdFile": "qwik.usemount_.md"
+    },
+    {
+      "name": "useMountQrl",
+      "id": "usemountqrl",
+      "hierarchy": [
+        {
+          "name": "useMountQrl",
+          "id": "usemountqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMountQrl: (qrl: QRL<import(\"./use-task\").TaskFn>, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
+      "mdFile": "qwik.usemountqrl.md"
     },
     {
       "name": "useOn",
@@ -4865,6 +5112,20 @@
       "mdFile": "qwik.useonwindow.md"
     },
     {
+      "name": "useRef",
+      "id": "useref",
+      "hierarchy": [
+        {
+          "name": "useRef",
+          "id": "useref"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useSignal` instead.\n> \n\nIt's a very thin wrapper around `useStore()`<!-- -->, including the proper type signature to be passed to the `ref` property in JSX.\n\n```tsx\nexport function useRef<T = Element>(current?: T): Ref<T> {\n  return useStore({ current });\n}\n```\n\\#\\#\\# Example\n\n```tsx\nconst Cmp = component$(() => {\n  const input = useRef<HTMLInputElement>();\n\n  useVisibleTask$(({ track }) => {\n    const el = track(() => input.current)!;\n    el.focus();\n  });\n\n  return (\n    <div>\n      <input type=\"text\" ref={input} />\n    </div>\n  );\n});\n\n```\n\n\n```typescript\nuseRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts",
+      "mdFile": "qwik.useref.md"
+    },
+    {
       "name": "useResource$",
       "id": "useresource_",
       "hierarchy": [
@@ -4905,6 +5166,34 @@
       "content": "```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  key | string |  |\n\n**Returns:**\n\nT \\| undefined",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
       "mdFile": "qwik.useserverdata.md"
+    },
+    {
+      "name": "useServerMount$",
+      "id": "useservermount_",
+      "hierarchy": [
+        {
+          "name": "useServerMount$",
+          "id": "useservermount_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isServer` instead. See\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isServer } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isServer) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseServerMount$: <T>(first: MountFn<T>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
+      "mdFile": "qwik.useservermount_.md"
+    },
+    {
+      "name": "useServerMountQrl",
+      "id": "useservermountqrl",
+      "hierarchy": [
+        {
+          "name": "useServerMountQrl",
+          "id": "useservermountqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isServer` instead. See\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isServer } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isServer) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
+      "mdFile": "qwik.useservermountqrl.md"
     },
     {
       "name": "useSignal",
@@ -4958,7 +5247,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#usestoreoptions-deep) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#usestoreoptions-reactive) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |\n|  [recursive?](./qwik.usestoreoptions.recursive.md) |  | boolean | _(Optional)_ |",
+      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#usestoreoptions-deep) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#usestoreoptions-reactive) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |\n|  [recursive?](#usestoreoptions-recursive) |  | boolean | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "qwik.usestoreoptions.md"
     },
@@ -5056,7 +5345,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](#usetaskoptions-eagerness) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |",
+      "content": "```typescript\nexport interface UseTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](./qwik.usetaskoptions.eagerness.md) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetaskoptions.md"
     },
@@ -5073,6 +5362,20 @@
       "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetaskqrl.md"
+    },
+    {
+      "name": "useUserContext",
+      "id": "useusercontext",
+      "hierarchy": [
+        {
+          "name": "useUserContext",
+          "id": "useusercontext"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Please use `useServerData` instead.\n> \n\n\n```typescript\nuseUserContext: typeof useServerData\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
+      "mdFile": "qwik.useusercontext.md"
     },
     {
       "name": "useVisibleTask$",
@@ -5101,6 +5404,34 @@
       "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usevisibletaskqrl.md"
+    },
+    {
+      "name": "useWatch$",
+      "id": "usewatch_",
+      "hierarchy": [
+        {
+          "name": "useWatch$",
+          "id": "usewatch_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.usewatch_.md"
+    },
+    {
+      "name": "useWatchQrl",
+      "id": "usewatchqrl",
+      "hierarchy": [
+        {
+          "name": "useWatchQrl",
+          "id": "usewatchqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.usewatchqrl.md"
     },
     {
       "name": "value",

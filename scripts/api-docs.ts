@@ -146,9 +146,6 @@ function createApiData(
         if (apiData.members.some((m) => member.name === m.name && member.kind === m.kind)) {
           continue;
         }
-        if (member.docComment?.includes('@deprecated')) {
-          continue;
-        }
         addMember(member, hierarchyStr);
       }
     }

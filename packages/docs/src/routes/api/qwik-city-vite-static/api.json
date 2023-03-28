@@ -17,6 +17,20 @@
       "mdFile": "qwik-city.staticadapter.md"
     },
     {
+      "name": "staticAdaptor",
+      "id": "staticadaptor",
+      "hierarchy": [
+        {
+          "name": "staticAdaptor",
+          "id": "staticadaptor"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `staticAdapter` exported from `@builder.io/qwik-city/adapters/static/vite` instead.\n> \n\n\n```typescript\nstaticAdaptor: typeof staticAdapter\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
+      "mdFile": "qwik-city.staticadaptor.md"
+    },
+    {
       "name": "StaticGenerateAdapterOptions",
       "id": "staticgenerateadapteroptions",
       "hierarchy": [
@@ -29,6 +43,20 @@
       "content": "```typescript\nexport interface StaticGenerateAdapterOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> \n```\n**Extends:** Omit&lt;StaticGenerateRenderOptions, 'outDir'&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
       "mdFile": "qwik-city.staticgenerateadapteroptions.md"
+    },
+    {
+      "name": "StaticGenerateAdaptorOptions",
+      "id": "staticgenerateadaptoroptions",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateAdaptorOptions",
+          "id": "staticgenerateadaptoroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `StaticGenerateAdapterOptions` instead.\n> \n\n\n```typescript\nexport type StaticGenerateAdaptorOptions = StaticGenerateAdapterOptions;\n```\n**References:** [StaticGenerateAdapterOptions](#staticgenerateadapteroptions)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
+      "mdFile": "qwik-city.staticgenerateadaptoroptions.md"
     }
   ]
 }

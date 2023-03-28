@@ -4,18 +4,6 @@ title: \@builder.io/qwik-city/vite/netlify-edge API Reference
 
 # **API** @builder.io/qwik-city/vite/netlify-edge
 
-<h2 id="netlifyedgeadapteroptions-functionroutes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#netlifyedgeadapteroptions-functionroutes"><span class="icon icon-link"></span></a>functionRoutes </h2>
-
-Determines if the build should generate the edge functions declarations `manifest.json` file.
-
-https://docs.netlify.com/edge-functions/declarations/
-
-Defaults to `true`.
-
-```typescript
-functionRoutes?: boolean;
-```
-
 <h2 id="netifyedgeadapter" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#netifyedgeadapter"><span class="icon icon-link"></span></a>netifyEdgeAdapter </h2>
 
 > Warning: This API is now obsolete.
@@ -66,10 +54,10 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-| Property                                                     | Modifiers | Type       | Description                                                                                                                                                                                                                          |
-| ------------------------------------------------------------ | --------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [functionRoutes?](#netlifyedgeadapteroptions-functionroutes) |           | boolean    | <p>_(Optional)_ Determines if the build should generate the edge functions declarations <code>manifest.json</code> file.</p><p>https://docs.netlify.com/edge-functions/declarations/</p><p>Defaults to <code>true</code>.</p>        |
-| [staticPaths?](#netlifyedgeadapteroptions-staticpaths)       |           | string\[\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |
+| Property             | Modifiers | Type       | Description                                                                                                                                                                                                                          |
+| -------------------- | --------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [functionRoutes?](#) |           | boolean    | <p>_(Optional)_ Determines if the build should generate the edge functions declarations <code>manifest.json</code> file.</p><p>https://docs.netlify.com/edge-functions/declarations/</p><p>Defaults to <code>true</code>.</p>        |
+| [staticPaths?](#)    |           | string\[\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts" target="_blanks">Edit this section</a></p>
 
@@ -86,11 +74,3 @@ export type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;
 **References:** [NetlifyEdgeAdapterOptions](#netlifyedgeadapteroptions)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="netlifyedgeadapteroptions-staticpaths" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#netlifyedgeadapteroptions-staticpaths"><span class="icon icon-link"></span></a>staticPaths </h2>
-
-Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.
-
-```typescript
-staticPaths?: string[];
-```

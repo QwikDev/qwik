@@ -17,40 +17,6 @@
       "mdFile": "qwik-city.createqwikcity.md"
     },
     {
-      "name": "incomingMessage",
-      "id": "platformnode-incomingmessage",
-      "hierarchy": [
-        {
-          "name": "PlatformNode",
-          "id": "platformnode-incomingmessage"
-        },
-        {
-          "name": "incomingMessage",
-          "id": "platformnode-incomingmessage"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nincomingMessage?: IncomingMessage;\n```",
-      "mdFile": "qwik-city.platformnode.incomingmessage.md"
-    },
-    {
-      "name": "node",
-      "id": "platformnode-node",
-      "hierarchy": [
-        {
-          "name": "PlatformNode",
-          "id": "platformnode-node"
-        },
-        {
-          "name": "node",
-          "id": "platformnode-node"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nnode?: string;\n```",
-      "mdFile": "qwik-city.platformnode.node.md"
-    },
-    {
       "name": "NodeRequestNextFunction",
       "id": "noderequestnextfunction",
       "hierarchy": [
@@ -74,7 +40,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [incomingMessage?](#platformnode-incomingmessage) |  | IncomingMessage | _(Optional)_ |\n|  [node?](#platformnode-node) |  | string | _(Optional)_ |\n|  [ssr?](#platformnode-ssr) |  | true | _(Optional)_ |",
+      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [incomingMessage?](#) |  | IncomingMessage | _(Optional)_ |\n|  [node?](#) |  | string | _(Optional)_ |\n|  [ssr?](#) |  | true | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.platformnode.md"
     },
@@ -102,43 +68,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [static?](#qwikcitynoderequestoptions-static) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
+      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.qwikcitynoderequestoptions.md"
-    },
-    {
-      "name": "ssr",
-      "id": "platformnode-ssr",
-      "hierarchy": [
-        {
-          "name": "PlatformNode",
-          "id": "platformnode-ssr"
-        },
-        {
-          "name": "ssr",
-          "id": "platformnode-ssr"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nssr?: true;\n```",
-      "mdFile": "qwik-city.platformnode.ssr.md"
-    },
-    {
-      "name": "static",
-      "id": "qwikcitynoderequestoptions-static",
-      "hierarchy": [
-        {
-          "name": "QwikCityNodeRequestOptions",
-          "id": "qwikcitynoderequestoptions-static"
-        },
-        {
-          "name": "static",
-          "id": "qwikcitynoderequestoptions-static"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Options for serving static files\n\n\n```typescript\nstatic?: {\n        root?: string;\n        cacheControl?: string;\n    };\n```",
-      "mdFile": "qwik-city.qwikcitynoderequestoptions.static.md"
     }
   ]
 }

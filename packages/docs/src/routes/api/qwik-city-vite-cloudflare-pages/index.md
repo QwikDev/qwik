@@ -30,10 +30,10 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-| Property                                                         | Modifiers | Type       | Description                                                                                                                                                                                                                                                             |
-| ---------------------------------------------------------------- | --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [functionRoutes?](#cloudflarepagesadapteroptions-functionroutes) |           | boolean    | <p>_(Optional)_ Determines if the build should generate the function invocation routes <code>\_routes.json</code> file.</p><p>https://developers.cloudflare.com/pages/platform/functions/routing/\#functions-invocation-routes</p><p>Defaults to <code>true</code>.</p> |
-| [staticPaths?](#cloudflarepagesadapteroptions-staticpaths)       |           | string\[\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.                                    |
+| Property             | Modifiers | Type       | Description                                                                                                                                                                                                                                                             |
+| -------------------- | --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [functionRoutes?](#) |           | boolean    | <p>_(Optional)_ Determines if the build should generate the function invocation routes <code>\_routes.json</code> file.</p><p>https://developers.cloudflare.com/pages/platform/functions/routing/\#functions-invocation-routes</p><p>Defaults to <code>true</code>.</p> |
+| [staticPaths?](#)    |           | string\[\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.                                    |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloudflare-pages/vite/index.ts" target="_blanks">Edit this section</a></p>
 
@@ -62,23 +62,3 @@ export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
 **References:** [CloudflarePagesAdapterOptions](#cloudflarepagesadapteroptions)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloudflare-pages/vite/index.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="cloudflarepagesadapteroptions-functionroutes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#cloudflarepagesadapteroptions-functionroutes"><span class="icon icon-link"></span></a>functionRoutes </h2>
-
-Determines if the build should generate the function invocation routes `_routes.json` file.
-
-https://developers.cloudflare.com/pages/platform/functions/routing/\#functions-invocation-routes
-
-Defaults to `true`.
-
-```typescript
-functionRoutes?: boolean;
-```
-
-<h2 id="cloudflarepagesadapteroptions-staticpaths" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#cloudflarepagesadapteroptions-staticpaths"><span class="icon icon-link"></span></a>staticPaths </h2>
-
-Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.
-
-```typescript
-staticPaths?: string[];
-```

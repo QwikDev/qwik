@@ -3,856 +3,6 @@
   "package": "@builder.io/qwik",
   "members": [
     {
-      "name": "__brand__QRL__",
-      "id": "qrl-__brand__qrl__",
-      "hierarchy": [
-        {
-          "name": "QRL",
-          "id": "qrl-__brand__qrl__"
-        },
-        {
-          "name": "__brand__QRL__",
-          "id": "qrl-__brand__qrl__"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\n__brand__QRL__: TYPE;\n```",
-      "mdFile": "qwik.qrl.__brand__qrl__.md"
-    },
-    {
-      "name": "__brand_context_type__",
-      "id": "contextid-__brand_context_type__",
-      "hierarchy": [
-        {
-          "name": "ContextId",
-          "id": "contextid-__brand_context_type__"
-        },
-        {
-          "name": "__brand_context_type__",
-          "id": "contextid-__brand_context_type__"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Design-time property to store type information for the context.\n\n\n```typescript\nreadonly __brand_context_type__: STATE;\n```",
-      "mdFile": "qwik.contextid.__brand_context_type__.md"
-    },
-    {
-      "name": "\"aria-activedescendant\"",
-      "id": "ariaattributes-_aria-activedescendant_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-activedescendant_"
-        },
-        {
-          "name": "\"aria-activedescendant\"",
-          "id": "ariaattributes-_aria-activedescendant_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.\n\n\n```typescript\n'aria-activedescendant'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-activedescendant_.md"
-    },
-    {
-      "name": "\"aria-atomic\"",
-      "id": "ariaattributes-_aria-atomic_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-atomic_"
-        },
-        {
-          "name": "\"aria-atomic\"",
-          "id": "ariaattributes-_aria-atomic_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute.\n\n\n```typescript\n'aria-atomic'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-atomic_.md"
-    },
-    {
-      "name": "\"aria-autocomplete\"",
-      "id": "ariaattributes-_aria-autocomplete_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-autocomplete_"
-        },
-        {
-          "name": "\"aria-autocomplete\"",
-          "id": "ariaattributes-_aria-autocomplete_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.\n\n\n```typescript\n'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-autocomplete_.md"
-    },
-    {
-      "name": "\"aria-busy\"",
-      "id": "ariaattributes-_aria-busy_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-busy_"
-        },
-        {
-          "name": "\"aria-busy\"",
-          "id": "ariaattributes-_aria-busy_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user.\n\n\n```typescript\n'aria-busy'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-busy_.md"
-    },
-    {
-      "name": "\"aria-checked\"",
-      "id": "ariaattributes-_aria-checked_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-checked_"
-        },
-        {
-          "name": "\"aria-checked\"",
-          "id": "ariaattributes-_aria-checked_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates the current \"checked\" state of checkboxes, radio buttons, and other widgets.\n\n\n```typescript\n'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-checked_.md"
-    },
-    {
-      "name": "\"aria-colcount\"",
-      "id": "ariaattributes-_aria-colcount_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-colcount_"
-        },
-        {
-          "name": "\"aria-colcount\"",
-          "id": "ariaattributes-_aria-colcount_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the total number of columns in a table, grid, or treegrid.\n\n\n```typescript\n'aria-colcount'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-colcount_.md"
-    },
-    {
-      "name": "\"aria-colindex\"",
-      "id": "ariaattributes-_aria-colindex_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-colindex_"
-        },
-        {
-          "name": "\"aria-colindex\"",
-          "id": "ariaattributes-_aria-colindex_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.\n\n\n```typescript\n'aria-colindex'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-colindex_.md"
-    },
-    {
-      "name": "\"aria-colspan\"",
-      "id": "ariaattributes-_aria-colspan_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-colspan_"
-        },
-        {
-          "name": "\"aria-colspan\"",
-          "id": "ariaattributes-_aria-colspan_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid.\n\n\n```typescript\n'aria-colspan'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-colspan_.md"
-    },
-    {
-      "name": "\"aria-controls\"",
-      "id": "ariaattributes-_aria-controls_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-controls_"
-        },
-        {
-          "name": "\"aria-controls\"",
-          "id": "ariaattributes-_aria-controls_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the element (or elements) whose contents or presence are controlled by the current element.\n\n\n```typescript\n'aria-controls'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-controls_.md"
-    },
-    {
-      "name": "\"aria-current\"",
-      "id": "ariaattributes-_aria-current_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-current_"
-        },
-        {
-          "name": "\"aria-current\"",
-          "id": "ariaattributes-_aria-current_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates the element that represents the current item within a container or set of related elements.\n\n\n```typescript\n'aria-current'?: boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-current_.md"
-    },
-    {
-      "name": "\"aria-describedby\"",
-      "id": "ariaattributes-_aria-describedby_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-describedby_"
-        },
-        {
-          "name": "\"aria-describedby\"",
-          "id": "ariaattributes-_aria-describedby_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the element (or elements) that describes the object.\n\n\n```typescript\n'aria-describedby'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-describedby_.md"
-    },
-    {
-      "name": "\"aria-details\"",
-      "id": "ariaattributes-_aria-details_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-details_"
-        },
-        {
-          "name": "\"aria-details\"",
-          "id": "ariaattributes-_aria-details_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the element that provides a detailed, extended description for the object.\n\n\n```typescript\n'aria-details'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-details_.md"
-    },
-    {
-      "name": "\"aria-disabled\"",
-      "id": "ariaattributes-_aria-disabled_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-disabled_"
-        },
-        {
-          "name": "\"aria-disabled\"",
-          "id": "ariaattributes-_aria-disabled_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.\n\n\n```typescript\n'aria-disabled'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-disabled_.md"
-    },
-    {
-      "name": "\"aria-dropeffect\"",
-      "id": "ariaattributes-_aria-dropeffect_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-dropeffect_"
-        },
-        {
-          "name": "\"aria-dropeffect\"",
-          "id": "ariaattributes-_aria-dropeffect_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> in ARIA 1.1\n> \n\nIndicates what functions can be performed when a dragged object is released on the drop target.\n\n\n```typescript\n'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-dropeffect_.md"
-    },
-    {
-      "name": "\"aria-errormessage\"",
-      "id": "ariaattributes-_aria-errormessage_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-errormessage_"
-        },
-        {
-          "name": "\"aria-errormessage\"",
-          "id": "ariaattributes-_aria-errormessage_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the element that provides an error message for the object.\n\n\n```typescript\n'aria-errormessage'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-errormessage_.md"
-    },
-    {
-      "name": "\"aria-expanded\"",
-      "id": "ariaattributes-_aria-expanded_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-expanded_"
-        },
-        {
-          "name": "\"aria-expanded\"",
-          "id": "ariaattributes-_aria-expanded_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.\n\n\n```typescript\n'aria-expanded'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-expanded_.md"
-    },
-    {
-      "name": "\"aria-flowto\"",
-      "id": "ariaattributes-_aria-flowto_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-flowto_"
-        },
-        {
-          "name": "\"aria-flowto\"",
-          "id": "ariaattributes-_aria-flowto_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order.\n\n\n```typescript\n'aria-flowto'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-flowto_.md"
-    },
-    {
-      "name": "\"aria-grabbed\"",
-      "id": "ariaattributes-_aria-grabbed_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-grabbed_"
-        },
-        {
-          "name": "\"aria-grabbed\"",
-          "id": "ariaattributes-_aria-grabbed_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> in ARIA 1.1\n> \n\nIndicates an element's \"grabbed\" state in a drag-and-drop operation.\n\n\n```typescript\n'aria-grabbed'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-grabbed_.md"
-    },
-    {
-      "name": "\"aria-haspopup\"",
-      "id": "ariaattributes-_aria-haspopup_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-haspopup_"
-        },
-        {
-          "name": "\"aria-haspopup\"",
-          "id": "ariaattributes-_aria-haspopup_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.\n\n\n```typescript\n'aria-haspopup'?: boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-haspopup_.md"
-    },
-    {
-      "name": "\"aria-hidden\"",
-      "id": "ariaattributes-_aria-hidden_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-hidden_"
-        },
-        {
-          "name": "\"aria-hidden\"",
-          "id": "ariaattributes-_aria-hidden_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether the element is exposed to an accessibility API.\n\n\n```typescript\n'aria-hidden'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-hidden_.md"
-    },
-    {
-      "name": "\"aria-invalid\"",
-      "id": "ariaattributes-_aria-invalid_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-invalid_"
-        },
-        {
-          "name": "\"aria-invalid\"",
-          "id": "ariaattributes-_aria-invalid_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates the entered value does not conform to the format expected by the application.\n\n\n```typescript\n'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-invalid_.md"
-    },
-    {
-      "name": "\"aria-keyshortcuts\"",
-      "id": "ariaattributes-_aria-keyshortcuts_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-keyshortcuts_"
-        },
-        {
-          "name": "\"aria-keyshortcuts\"",
-          "id": "ariaattributes-_aria-keyshortcuts_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element.\n\n\n```typescript\n'aria-keyshortcuts'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-keyshortcuts_.md"
-    },
-    {
-      "name": "\"aria-label\"",
-      "id": "ariaattributes-_aria-label_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-label_"
-        },
-        {
-          "name": "\"aria-label\"",
-          "id": "ariaattributes-_aria-label_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines a string value that labels the current element.\n\n\n```typescript\n'aria-label'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-label_.md"
-    },
-    {
-      "name": "\"aria-labelledby\"",
-      "id": "ariaattributes-_aria-labelledby_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-labelledby_"
-        },
-        {
-          "name": "\"aria-labelledby\"",
-          "id": "ariaattributes-_aria-labelledby_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies the element (or elements) that labels the current element.\n\n\n```typescript\n'aria-labelledby'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-labelledby_.md"
-    },
-    {
-      "name": "\"aria-level\"",
-      "id": "ariaattributes-_aria-level_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-level_"
-        },
-        {
-          "name": "\"aria-level\"",
-          "id": "ariaattributes-_aria-level_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the hierarchical level of an element within a structure.\n\n\n```typescript\n'aria-level'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-level_.md"
-    },
-    {
-      "name": "\"aria-live\"",
-      "id": "ariaattributes-_aria-live_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-live_"
-        },
-        {
-          "name": "\"aria-live\"",
-          "id": "ariaattributes-_aria-live_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region.\n\n\n```typescript\n'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-live_.md"
-    },
-    {
-      "name": "\"aria-modal\"",
-      "id": "ariaattributes-_aria-modal_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-modal_"
-        },
-        {
-          "name": "\"aria-modal\"",
-          "id": "ariaattributes-_aria-modal_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether an element is modal when displayed.\n\n\n```typescript\n'aria-modal'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-modal_.md"
-    },
-    {
-      "name": "\"aria-multiline\"",
-      "id": "ariaattributes-_aria-multiline_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-multiline_"
-        },
-        {
-          "name": "\"aria-multiline\"",
-          "id": "ariaattributes-_aria-multiline_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether a text box accepts multiple lines of input or only a single line.\n\n\n```typescript\n'aria-multiline'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-multiline_.md"
-    },
-    {
-      "name": "\"aria-multiselectable\"",
-      "id": "ariaattributes-_aria-multiselectable_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-multiselectable_"
-        },
-        {
-          "name": "\"aria-multiselectable\"",
-          "id": "ariaattributes-_aria-multiselectable_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates that the user may select more than one item from the current selectable descendants.\n\n\n```typescript\n'aria-multiselectable'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-multiselectable_.md"
-    },
-    {
-      "name": "\"aria-orientation\"",
-      "id": "ariaattributes-_aria-orientation_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-orientation_"
-        },
-        {
-          "name": "\"aria-orientation\"",
-          "id": "ariaattributes-_aria-orientation_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous.\n\n\n```typescript\n'aria-orientation'?: 'horizontal' | 'vertical' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-orientation_.md"
-    },
-    {
-      "name": "\"aria-owns\"",
-      "id": "ariaattributes-_aria-owns_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-owns_"
-        },
-        {
-          "name": "\"aria-owns\"",
-          "id": "ariaattributes-_aria-owns_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship.\n\n\n```typescript\n'aria-owns'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-owns_.md"
-    },
-    {
-      "name": "\"aria-placeholder\"",
-      "id": "ariaattributes-_aria-placeholder_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-placeholder_"
-        },
-        {
-          "name": "\"aria-placeholder\"",
-          "id": "ariaattributes-_aria-placeholder_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format.\n\n\n```typescript\n'aria-placeholder'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-placeholder_.md"
-    },
-    {
-      "name": "\"aria-posinset\"",
-      "id": "ariaattributes-_aria-posinset_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-posinset_"
-        },
-        {
-          "name": "\"aria-posinset\"",
-          "id": "ariaattributes-_aria-posinset_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.\n\n\n```typescript\n'aria-posinset'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-posinset_.md"
-    },
-    {
-      "name": "\"aria-pressed\"",
-      "id": "ariaattributes-_aria-pressed_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-pressed_"
-        },
-        {
-          "name": "\"aria-pressed\"",
-          "id": "ariaattributes-_aria-pressed_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates the current \"pressed\" state of toggle buttons.\n\n\n```typescript\n'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-pressed_.md"
-    },
-    {
-      "name": "\"aria-readonly\"",
-      "id": "ariaattributes-_aria-readonly_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-readonly_"
-        },
-        {
-          "name": "\"aria-readonly\"",
-          "id": "ariaattributes-_aria-readonly_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates that the element is not editable, but is otherwise operable.\n\n\n```typescript\n'aria-readonly'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-readonly_.md"
-    },
-    {
-      "name": "\"aria-relevant\"",
-      "id": "ariaattributes-_aria-relevant_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-relevant_"
-        },
-        {
-          "name": "\"aria-relevant\"",
-          "id": "ariaattributes-_aria-relevant_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.\n\n\n```typescript\n'aria-relevant'?: 'additions' | 'additions removals' | 'additions text' | 'all' | 'removals' | 'removals additions' | 'removals text' | 'text' | 'text additions' | 'text removals' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-relevant_.md"
-    },
-    {
-      "name": "\"aria-required\"",
-      "id": "ariaattributes-_aria-required_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-required_"
-        },
-        {
-          "name": "\"aria-required\"",
-          "id": "ariaattributes-_aria-required_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates that user input is required on the element before a form may be submitted.\n\n\n```typescript\n'aria-required'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-required_.md"
-    },
-    {
-      "name": "\"aria-roledescription\"",
-      "id": "ariaattributes-_aria-roledescription_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-roledescription_"
-        },
-        {
-          "name": "\"aria-roledescription\"",
-          "id": "ariaattributes-_aria-roledescription_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines a human-readable, author-localized description for the role of an element.\n\n\n```typescript\n'aria-roledescription'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-roledescription_.md"
-    },
-    {
-      "name": "\"aria-rowcount\"",
-      "id": "ariaattributes-_aria-rowcount_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-rowcount_"
-        },
-        {
-          "name": "\"aria-rowcount\"",
-          "id": "ariaattributes-_aria-rowcount_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the total number of rows in a table, grid, or treegrid.\n\n\n```typescript\n'aria-rowcount'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-rowcount_.md"
-    },
-    {
-      "name": "\"aria-rowindex\"",
-      "id": "ariaattributes-_aria-rowindex_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-rowindex_"
-        },
-        {
-          "name": "\"aria-rowindex\"",
-          "id": "ariaattributes-_aria-rowindex_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.\n\n\n```typescript\n'aria-rowindex'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-rowindex_.md"
-    },
-    {
-      "name": "\"aria-rowspan\"",
-      "id": "ariaattributes-_aria-rowspan_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-rowspan_"
-        },
-        {
-          "name": "\"aria-rowspan\"",
-          "id": "ariaattributes-_aria-rowspan_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.\n\n\n```typescript\n'aria-rowspan'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-rowspan_.md"
-    },
-    {
-      "name": "\"aria-selected\"",
-      "id": "ariaattributes-_aria-selected_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-selected_"
-        },
-        {
-          "name": "\"aria-selected\"",
-          "id": "ariaattributes-_aria-selected_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates the current \"selected\" state of various widgets.\n\n\n```typescript\n'aria-selected'?: Booleanish | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-selected_.md"
-    },
-    {
-      "name": "\"aria-setsize\"",
-      "id": "ariaattributes-_aria-setsize_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-setsize_"
-        },
-        {
-          "name": "\"aria-setsize\"",
-          "id": "ariaattributes-_aria-setsize_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.\n\n\n```typescript\n'aria-setsize'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-setsize_.md"
-    },
-    {
-      "name": "\"aria-sort\"",
-      "id": "ariaattributes-_aria-sort_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-sort_"
-        },
-        {
-          "name": "\"aria-sort\"",
-          "id": "ariaattributes-_aria-sort_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Indicates if items in a table or grid are sorted in ascending or descending order.\n\n\n```typescript\n'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other' | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-sort_.md"
-    },
-    {
-      "name": "\"aria-valuemax\"",
-      "id": "ariaattributes-_aria-valuemax_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-valuemax_"
-        },
-        {
-          "name": "\"aria-valuemax\"",
-          "id": "ariaattributes-_aria-valuemax_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the maximum allowed value for a range widget.\n\n\n```typescript\n'aria-valuemax'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-valuemax_.md"
-    },
-    {
-      "name": "\"aria-valuemin\"",
-      "id": "ariaattributes-_aria-valuemin_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-valuemin_"
-        },
-        {
-          "name": "\"aria-valuemin\"",
-          "id": "ariaattributes-_aria-valuemin_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the minimum allowed value for a range widget.\n\n\n```typescript\n'aria-valuemin'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-valuemin_.md"
-    },
-    {
-      "name": "\"aria-valuenow\"",
-      "id": "ariaattributes-_aria-valuenow_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-valuenow_"
-        },
-        {
-          "name": "\"aria-valuenow\"",
-          "id": "ariaattributes-_aria-valuenow_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the current value for a range widget.\n\n\n```typescript\n'aria-valuenow'?: number | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-valuenow_.md"
-    },
-    {
-      "name": "\"aria-valuetext\"",
-      "id": "ariaattributes-_aria-valuetext_",
-      "hierarchy": [
-        {
-          "name": "AriaAttributes",
-          "id": "ariaattributes-_aria-valuetext_"
-        },
-        {
-          "name": "\"aria-valuetext\"",
-          "id": "ariaattributes-_aria-valuetext_"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines the human readable text alternative of aria-valuenow for a range widget.\n\n\n```typescript\n'aria-valuetext'?: string | undefined;\n```",
-      "mdFile": "qwik.ariaattributes._aria-valuetext_.md"
-    },
-    {
       "name": "\"q:slot\"",
       "id": "componentbaseprops-_q_slot_",
       "hierarchy": [
@@ -884,74 +34,6 @@
       "mdFile": "qwik._.md"
     },
     {
-      "name": "about",
-      "id": "htmlattributes-about",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-about"
-        },
-        {
-          "name": "about",
-          "id": "htmlattributes-about"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nabout?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.about.md"
-    },
-    {
-      "name": "accessKey",
-      "id": "htmlattributes-accesskey",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-accesskey"
-        },
-        {
-          "name": "accessKey",
-          "id": "htmlattributes-accesskey"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\naccessKey?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.accesskey.md"
-    },
-    {
-      "name": "altKey",
-      "id": "qwikkeyboardevent-altkey",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-altkey"
-        },
-        {
-          "name": "altKey",
-          "id": "qwikkeyboardevent-altkey"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\naltKey: boolean;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.altkey.md"
-    },
-    {
-      "name": "animationName",
-      "id": "qwikanimationevent-animationname",
-      "hierarchy": [
-        {
-          "name": "QwikAnimationEvent",
-          "id": "qwikanimationevent-animationname"
-        },
-        {
-          "name": "animationName",
-          "id": "qwikanimationevent-animationname"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nanimationName: string;\n```",
-      "mdFile": "qwik.qwikanimationevent.animationname.md"
-    },
-    {
       "name": "AriaAttributes",
       "id": "ariaattributes",
       "hierarchy": [
@@ -961,7 +43,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AriaAttributes \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"aria-activedescendant\"?](#ariaattributes-_aria-activedescendant_) |  | string \\| undefined | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. |\n|  [\"aria-atomic\"?](#ariaattributes-_aria-atomic_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. |\n|  [\"aria-autocomplete\"?](#ariaattributes-_aria-autocomplete_) |  | 'none' \\| 'inline' \\| 'list' \\| 'both' \\| undefined | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made. |\n|  [\"aria-busy\"?](#ariaattributes-_aria-busy_) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. |\n|  [\"aria-checked\"?](#ariaattributes-_aria-checked_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"checked\" state of checkboxes, radio buttons, and other widgets. |\n|  [\"aria-colcount\"?](#ariaattributes-_aria-colcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid. |\n|  [\"aria-colindex\"?](#ariaattributes-_aria-colindex_) |  | number \\| undefined | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid. |\n|  [\"aria-colspan\"?](#ariaattributes-_aria-colspan_) |  | number \\| undefined | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-controls\"?](#ariaattributes-_aria-controls_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element. |\n|  [\"aria-current\"?](#ariaattributes-_aria-current_) |  | boolean \\| 'false' \\| 'true' \\| 'page' \\| 'step' \\| 'location' \\| 'date' \\| 'time' \\| undefined | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements. |\n|  [\"aria-describedby\"?](#ariaattributes-_aria-describedby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that describes the object. |\n|  [\"aria-details\"?](#ariaattributes-_aria-details_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides a detailed, extended description for the object. |\n|  [\"aria-disabled\"?](#ariaattributes-_aria-disabled_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable. |\n|  [\"aria-dropeffect\"?](#ariaattributes-_aria-dropeffect_) |  | 'none' \\| 'copy' \\| 'execute' \\| 'link' \\| 'move' \\| 'popup' \\| undefined | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target. |\n|  [\"aria-errormessage\"?](#ariaattributes-_aria-errormessage_) |  | string \\| undefined | _(Optional)_ Identifies the element that provides an error message for the object. |\n|  [\"aria-expanded\"?](#ariaattributes-_aria-expanded_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. |\n|  [\"aria-flowto\"?](#ariaattributes-_aria-flowto_) |  | string \\| undefined | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |\n|  [\"aria-grabbed\"?](#ariaattributes-_aria-grabbed_) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element's \"grabbed\" state in a drag-and-drop operation. |\n|  [\"aria-haspopup\"?](#ariaattributes-_aria-haspopup_) |  | boolean \\| 'false' \\| 'true' \\| 'menu' \\| 'listbox' \\| 'tree' \\| 'grid' \\| 'dialog' \\| undefined | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. |\n|  [\"aria-hidden\"?](#ariaattributes-_aria-hidden_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element is exposed to an accessibility API. |\n|  [\"aria-invalid\"?](#ariaattributes-_aria-invalid_) |  | boolean \\| 'false' \\| 'true' \\| 'grammar' \\| 'spelling' \\| undefined | _(Optional)_ Indicates the entered value does not conform to the format expected by the application. |\n|  [\"aria-keyshortcuts\"?](#ariaattributes-_aria-keyshortcuts_) |  | string \\| undefined | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. |\n|  [\"aria-label\"?](#ariaattributes-_aria-label_) |  | string \\| undefined | _(Optional)_ Defines a string value that labels the current element. |\n|  [\"aria-labelledby\"?](#ariaattributes-_aria-labelledby_) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that labels the current element. |\n|  [\"aria-level\"?](#ariaattributes-_aria-level_) |  | number \\| undefined | _(Optional)_ Defines the hierarchical level of an element within a structure. |\n|  [\"aria-live\"?](#ariaattributes-_aria-live_) |  | 'off' \\| 'assertive' \\| 'polite' \\| undefined | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. |\n|  [\"aria-modal\"?](#ariaattributes-_aria-modal_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether an element is modal when displayed. |\n|  [\"aria-multiline\"?](#ariaattributes-_aria-multiline_) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line. |\n|  [\"aria-multiselectable\"?](#ariaattributes-_aria-multiselectable_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants. |\n|  [\"aria-orientation\"?](#ariaattributes-_aria-orientation_) |  | 'horizontal' \\| 'vertical' \\| undefined | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. |\n|  [\"aria-owns\"?](#ariaattributes-_aria-owns_) |  | string \\| undefined | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship. |\n|  [\"aria-placeholder\"?](#ariaattributes-_aria-placeholder_) |  | string \\| undefined | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format. |\n|  [\"aria-posinset\"?](#ariaattributes-_aria-posinset_) |  | number \\| undefined | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-pressed\"?](#ariaattributes-_aria-pressed_) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"pressed\" state of toggle buttons. |\n|  [\"aria-readonly\"?](#ariaattributes-_aria-readonly_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is not editable, but is otherwise operable. |\n|  [\"aria-relevant\"?](#ariaattributes-_aria-relevant_) |  | 'additions' \\| 'additions removals' \\| 'additions text' \\| 'all' \\| 'removals' \\| 'removals additions' \\| 'removals text' \\| 'text' \\| 'text additions' \\| 'text removals' \\| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified. |\n|  [\"aria-required\"?](#ariaattributes-_aria-required_) |  | Booleanish \\| undefined | _(Optional)_ Indicates that user input is required on the element before a form may be submitted. |\n|  [\"aria-roledescription\"?](#ariaattributes-_aria-roledescription_) |  | string \\| undefined | _(Optional)_ Defines a human-readable, author-localized description for the role of an element. |\n|  [\"aria-rowcount\"?](#ariaattributes-_aria-rowcount_) |  | number \\| undefined | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid. |\n|  [\"aria-rowindex\"?](#ariaattributes-_aria-rowindex_) |  | number \\| undefined | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid. |\n|  [\"aria-rowspan\"?](#ariaattributes-_aria-rowspan_) |  | number \\| undefined | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-selected\"?](#ariaattributes-_aria-selected_) |  | Booleanish \\| undefined | _(Optional)_ Indicates the current \"selected\" state of various widgets. |\n|  [\"aria-setsize\"?](#ariaattributes-_aria-setsize_) |  | number \\| undefined | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-sort\"?](#ariaattributes-_aria-sort_) |  | 'none' \\| 'ascending' \\| 'descending' \\| 'other' \\| undefined | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order. |\n|  [\"aria-valuemax\"?](#ariaattributes-_aria-valuemax_) |  | number \\| undefined | _(Optional)_ Defines the maximum allowed value for a range widget. |\n|  [\"aria-valuemin\"?](#ariaattributes-_aria-valuemin_) |  | number \\| undefined | _(Optional)_ Defines the minimum allowed value for a range widget. |\n|  [\"aria-valuenow\"?](#ariaattributes-_aria-valuenow_) |  | number \\| undefined | _(Optional)_ Defines the current value for a range widget. |\n|  [\"aria-valuetext\"?](#ariaattributes-_aria-valuetext_) |  | string \\| undefined | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget. |",
+      "content": "```typescript\nexport interface AriaAttributes \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"aria-activedescendant\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. |\n|  [\"aria-atomic\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. |\n|  [\"aria-autocomplete\"?](#) |  | 'none' \\| 'inline' \\| 'list' \\| 'both' \\| undefined | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made. |\n|  [\"aria-busy\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. |\n|  [\"aria-checked\"?](#) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"checked\" state of checkboxes, radio buttons, and other widgets. |\n|  [\"aria-colcount\"?](#) |  | number \\| undefined | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid. |\n|  [\"aria-colindex\"?](#) |  | number \\| undefined | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid. |\n|  [\"aria-colspan\"?](#) |  | number \\| undefined | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-controls\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element. |\n|  [\"aria-current\"?](#) |  | boolean \\| 'false' \\| 'true' \\| 'page' \\| 'step' \\| 'location' \\| 'date' \\| 'time' \\| undefined | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements. |\n|  [\"aria-describedby\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that describes the object. |\n|  [\"aria-details\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the element that provides a detailed, extended description for the object. |\n|  [\"aria-disabled\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable. |\n|  [\"aria-dropeffect\"?](#) |  | 'none' \\| 'copy' \\| 'execute' \\| 'link' \\| 'move' \\| 'popup' \\| undefined | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target. |\n|  [\"aria-errormessage\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the element that provides an error message for the object. |\n|  [\"aria-expanded\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. |\n|  [\"aria-flowto\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |\n|  [\"aria-grabbed\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates an element's \"grabbed\" state in a drag-and-drop operation. |\n|  [\"aria-haspopup\"?](#) |  | boolean \\| 'false' \\| 'true' \\| 'menu' \\| 'listbox' \\| 'tree' \\| 'grid' \\| 'dialog' \\| undefined | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. |\n|  [\"aria-hidden\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether the element is exposed to an accessibility API. |\n|  [\"aria-invalid\"?](#) |  | boolean \\| 'false' \\| 'true' \\| 'grammar' \\| 'spelling' \\| undefined | _(Optional)_ Indicates the entered value does not conform to the format expected by the application. |\n|  [\"aria-keyshortcuts\"?](#) |  | string \\| undefined | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. |\n|  [\"aria-label\"?](#) |  | string \\| undefined | _(Optional)_ Defines a string value that labels the current element. |\n|  [\"aria-labelledby\"?](#) |  | string \\| undefined | _(Optional)_ Identifies the element (or elements) that labels the current element. |\n|  [\"aria-level\"?](#) |  | number \\| undefined | _(Optional)_ Defines the hierarchical level of an element within a structure. |\n|  [\"aria-live\"?](#) |  | 'off' \\| 'assertive' \\| 'polite' \\| undefined | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. |\n|  [\"aria-modal\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether an element is modal when displayed. |\n|  [\"aria-multiline\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line. |\n|  [\"aria-multiselectable\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants. |\n|  [\"aria-orientation\"?](#) |  | 'horizontal' \\| 'vertical' \\| undefined | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. |\n|  [\"aria-owns\"?](#) |  | string \\| undefined | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship. |\n|  [\"aria-placeholder\"?](#) |  | string \\| undefined | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format. |\n|  [\"aria-posinset\"?](#) |  | number \\| undefined | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-pressed\"?](#) |  | boolean \\| 'false' \\| 'mixed' \\| 'true' \\| undefined | _(Optional)_ Indicates the current \"pressed\" state of toggle buttons. |\n|  [\"aria-readonly\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates that the element is not editable, but is otherwise operable. |\n|  [\"aria-relevant\"?](#) |  | 'additions' \\| 'additions removals' \\| 'additions text' \\| 'all' \\| 'removals' \\| 'removals additions' \\| 'removals text' \\| 'text' \\| 'text additions' \\| 'text removals' \\| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified. |\n|  [\"aria-required\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates that user input is required on the element before a form may be submitted. |\n|  [\"aria-roledescription\"?](#) |  | string \\| undefined | _(Optional)_ Defines a human-readable, author-localized description for the role of an element. |\n|  [\"aria-rowcount\"?](#) |  | number \\| undefined | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid. |\n|  [\"aria-rowindex\"?](#) |  | number \\| undefined | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid. |\n|  [\"aria-rowspan\"?](#) |  | number \\| undefined | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid. |\n|  [\"aria-selected\"?](#) |  | Booleanish \\| undefined | _(Optional)_ Indicates the current \"selected\" state of various widgets. |\n|  [\"aria-setsize\"?](#) |  | number \\| undefined | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM. |\n|  [\"aria-sort\"?](#) |  | 'none' \\| 'ascending' \\| 'descending' \\| 'other' \\| undefined | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order. |\n|  [\"aria-valuemax\"?](#) |  | number \\| undefined | _(Optional)_ Defines the maximum allowed value for a range widget. |\n|  [\"aria-valuemin\"?](#) |  | number \\| undefined | _(Optional)_ Defines the minimum allowed value for a range widget. |\n|  [\"aria-valuenow\"?](#) |  | number \\| undefined | _(Optional)_ Defines the current value for a range widget. |\n|  [\"aria-valuetext\"?](#) |  | string \\| undefined | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.ariaattributes.md"
     },
@@ -978,159 +60,6 @@
       "content": "```typescript\nexport type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.ariarole.md"
-    },
-    {
-      "name": "autoCapitalize",
-      "id": "htmlattributes-autocapitalize",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-autocapitalize"
-        },
-        {
-          "name": "autoCapitalize",
-          "id": "htmlattributes-autocapitalize"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nautoCapitalize?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.autocapitalize.md"
-    },
-    {
-      "name": "autoCorrect",
-      "id": "htmlattributes-autocorrect",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-autocorrect"
-        },
-        {
-          "name": "autoCorrect",
-          "id": "htmlattributes-autocorrect"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nautoCorrect?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.autocorrect.md"
-    },
-    {
-      "name": "autoSave",
-      "id": "htmlattributes-autosave",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-autosave"
-        },
-        {
-          "name": "autoSave",
-          "id": "htmlattributes-autosave"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nautoSave?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.autosave.md"
-    },
-    {
-      "name": "base",
-      "id": "renderssroptions-base",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-base"
-        },
-        {
-          "name": "base",
-          "id": "renderssroptions-base"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nbase?: string;\n```",
-      "mdFile": "qwik.renderssroptions.base.md"
-    },
-    {
-      "name": "beforeClose",
-      "id": "renderssroptions-beforeclose",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-beforeclose"
-        },
-        {
-          "name": "beforeClose",
-          "id": "renderssroptions-beforeclose"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nbeforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;\n```",
-      "mdFile": "qwik.renderssroptions.beforeclose.md"
-    },
-    {
-      "name": "beforeContent",
-      "id": "renderssroptions-beforecontent",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-beforecontent"
-        },
-        {
-          "name": "beforeContent",
-          "id": "renderssroptions-beforecontent"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nbeforeContent?: JSXNode<string>[];\n```",
-      "mdFile": "qwik.renderssroptions.beforecontent.md"
-    },
-    {
-      "name": "button",
-      "id": "qwikmouseevent-button",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-button"
-        },
-        {
-          "name": "button",
-          "id": "qwikmouseevent-button"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nbutton: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.button.md"
-    },
-    {
-      "name": "buttons",
-      "id": "qwikmouseevent-buttons",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-buttons"
-        },
-        {
-          "name": "buttons",
-          "id": "qwikmouseevent-buttons"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nbuttons: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.buttons.md"
-    },
-    {
-      "name": "c",
-      "id": "snapshotmetavalue-c",
-      "hierarchy": [
-        {
-          "name": "SnapshotMetaValue",
-          "id": "snapshotmetavalue-c"
-        },
-        {
-          "name": "c",
-          "id": "snapshotmetavalue-c"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nc?: string;\n```",
-      "mdFile": "qwik.snapshotmetavalue.c.md"
     },
     {
       "name": "cache",
@@ -1150,74 +79,6 @@
       "mdFile": "qwik.resourcectx.cache.md"
     },
     {
-      "name": "changedTouches",
-      "id": "qwiktouchevent-changedtouches",
-      "hierarchy": [
-        {
-          "name": "QwikTouchEvent",
-          "id": "qwiktouchevent-changedtouches"
-        },
-        {
-          "name": "changedTouches",
-          "id": "qwiktouchevent-changedtouches"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nchangedTouches: TouchList;\n```",
-      "mdFile": "qwik.qwiktouchevent.changedtouches.md"
-    },
-    {
-      "name": "charCode",
-      "id": "qwikkeyboardevent-charcode",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-charcode"
-        },
-        {
-          "name": "charCode",
-          "id": "qwikkeyboardevent-charcode"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncharCode: number;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.charcode.md"
-    },
-    {
-      "name": "children",
-      "id": "domattributes-children",
-      "hierarchy": [
-        {
-          "name": "DOMAttributes",
-          "id": "domattributes-children"
-        },
-        {
-          "name": "children",
-          "id": "domattributes-children"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nchildren?: JSXChildren;\n```",
-      "mdFile": "qwik.domattributes.children.md"
-    },
-    {
-      "name": "chunkForSymbol",
-      "id": "coreplatform-chunkforsymbol",
-      "hierarchy": [
-        {
-          "name": "CorePlatform",
-          "id": "coreplatform-chunkforsymbol"
-        },
-        {
-          "name": "chunkForSymbol",
-          "id": "coreplatform-chunkforsymbol"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Retrieve chunk name for the symbol.\n\nWhen the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)\n\n\n```typescript\nchunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;\n```",
-      "mdFile": "qwik.coreplatform.chunkforsymbol.md"
-    },
-    {
       "name": "cleanup",
       "id": "renderresult-cleanup",
       "hierarchy": [
@@ -1233,74 +94,6 @@
       "kind": "MethodSignature",
       "content": "```typescript\ncleanup(): void;\n```\n**Returns:**\n\nvoid",
       "mdFile": "qwik.renderresult.cleanup.md"
-    },
-    {
-      "name": "clientX",
-      "id": "qwikmouseevent-clientx",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-clientx"
-        },
-        {
-          "name": "clientX",
-          "id": "qwikmouseevent-clientx"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nclientX: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.clientx.md"
-    },
-    {
-      "name": "clientY",
-      "id": "qwikmouseevent-clienty",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-clienty"
-        },
-        {
-          "name": "clientY",
-          "id": "qwikmouseevent-clienty"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nclientY: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.clienty.md"
-    },
-    {
-      "name": "clipboardData",
-      "id": "qwikclipboardevent-clipboarddata",
-      "hierarchy": [
-        {
-          "name": "QwikClipboardEvent",
-          "id": "qwikclipboardevent-clipboarddata"
-        },
-        {
-          "name": "clipboardData",
-          "id": "qwikclipboardevent-clipboarddata"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nclipboardData: DataTransfer;\n```",
-      "mdFile": "qwik.qwikclipboardevent.clipboarddata.md"
-    },
-    {
-      "name": "color",
-      "id": "htmlattributes-color",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-color"
-        },
-        {
-          "name": "color",
-          "id": "htmlattributes-color"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncolor?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.color.md"
     },
     {
       "name": "Component",
@@ -1340,7 +133,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ComponentBaseProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"q:slot\"?](#componentbaseprops-_q_slot_) |  | string | _(Optional)_ |\n|  [key?](#componentbaseprops-key) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface ComponentBaseProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\"q:slot\"?](#componentbaseprops-_q_slot_) |  | string | _(Optional)_ |\n|  [key?](#) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.componentbaseprops.md"
     },
@@ -1357,57 +150,6 @@
       "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.componentqrl.md"
-    },
-    {
-      "name": "containerAttributes",
-      "id": "renderssroptions-containerattributes",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-containerattributes"
-        },
-        {
-          "name": "containerAttributes",
-          "id": "renderssroptions-containerattributes"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncontainerAttributes: Record<string, string>;\n```",
-      "mdFile": "qwik.renderssroptions.containerattributes.md"
-    },
-    {
-      "name": "containerTagName",
-      "id": "renderssroptions-containertagname",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-containertagname"
-        },
-        {
-          "name": "containerTagName",
-          "id": "renderssroptions-containertagname"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncontainerTagName: string;\n```",
-      "mdFile": "qwik.renderssroptions.containertagname.md"
-    },
-    {
-      "name": "contentEditable",
-      "id": "htmlattributes-contenteditable",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-contenteditable"
-        },
-        {
-          "name": "contentEditable",
-          "id": "htmlattributes-contenteditable"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncontentEditable?: 'true' | 'false' | 'inherit' | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.contenteditable.md"
     },
     {
       "name": "Context",
@@ -1433,26 +175,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "ContextId is a typesafe ID for your context.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nexport interface ContextId<STATE> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_\\_brand\\_context\\_type\\_\\_](#contextid-__brand_context_type__) | <code>readonly</code> | STATE | Design-time property to store type information for the context. |\n|  [id](#contextid-id) | <code>readonly</code> | string | A unique ID for the context. |",
+      "content": "ContextId is a typesafe ID for your context.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nexport interface ContextId<STATE> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_\\_brand\\_context\\_type\\_\\_](#) | <code>readonly</code> | STATE | Design-time property to store type information for the context. |\n|  [id](#) | <code>readonly</code> | string | A unique ID for the context. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.contextid.md"
-    },
-    {
-      "name": "contextMenu",
-      "id": "htmlattributes-contextmenu",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-contextmenu"
-        },
-        {
-          "name": "contextMenu",
-          "id": "htmlattributes-contextmenu"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncontextMenu?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.contextmenu.md"
     },
     {
       "name": "CorePlatform",
@@ -1464,7 +189,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#coreplatform-chunkforsymbol) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#coreplatform-importsymbol) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#coreplatform-isserver) |  | boolean | True of running on the server platform. |\n|  [nextTick](#coreplatform-nexttick) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#coreplatform-raf) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
+      "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#) |  | boolean | True of running on the server platform. |\n|  [nextTick](#) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts",
       "mdFile": "qwik.coreplatform.md"
     },
@@ -1497,244 +222,6 @@
       "mdFile": "qwik.createcontextid.md"
     },
     {
-      "name": "ctrlKey",
-      "id": "qwikkeyboardevent-ctrlkey",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-ctrlkey"
-        },
-        {
-          "name": "ctrlKey",
-          "id": "qwikkeyboardevent-ctrlkey"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nctrlKey: boolean;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.ctrlkey.md"
-    },
-    {
-      "name": "ctx",
-      "id": "snapshotstate-ctx",
-      "hierarchy": [
-        {
-          "name": "SnapshotState",
-          "id": "snapshotstate-ctx"
-        },
-        {
-          "name": "ctx",
-          "id": "snapshotstate-ctx"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nctx: SnapshotMeta;\n```",
-      "mdFile": "qwik.snapshotstate.ctx.md"
-    },
-    {
-      "name": "current",
-      "id": "ref-current",
-      "hierarchy": [
-        {
-          "name": "Ref",
-          "id": "ref-current"
-        },
-        {
-          "name": "current",
-          "id": "ref-current"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ncurrent: T | undefined;\n```",
-      "mdFile": "qwik.ref.current.md"
-    },
-    {
-      "name": "data",
-      "id": "qwikcompositionevent-data",
-      "hierarchy": [
-        {
-          "name": "QwikCompositionEvent",
-          "id": "qwikcompositionevent-data"
-        },
-        {
-          "name": "data",
-          "id": "qwikcompositionevent-data"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndata: string;\n```",
-      "mdFile": "qwik.qwikcompositionevent.data.md"
-    },
-    {
-      "name": "dataTransfer",
-      "id": "qwikdragevent-datatransfer",
-      "hierarchy": [
-        {
-          "name": "QwikDragEvent",
-          "id": "qwikdragevent-datatransfer"
-        },
-        {
-          "name": "dataTransfer",
-          "id": "qwikdragevent-datatransfer"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndataTransfer: DataTransfer;\n```",
-      "mdFile": "qwik.qwikdragevent.datatransfer.md"
-    },
-    {
-      "name": "datatype",
-      "id": "htmlattributes-datatype",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-datatype"
-        },
-        {
-          "name": "datatype",
-          "id": "htmlattributes-datatype"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndatatype?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.datatype.md"
-    },
-    {
-      "name": "deep",
-      "id": "usestoreoptions-deep",
-      "hierarchy": [
-        {
-          "name": "UseStoreOptions",
-          "id": "usestoreoptions-deep"
-        },
-        {
-          "name": "deep",
-          "id": "usestoreoptions-deep"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "If `true` then all nested objects and arrays will be tracked as well. Default is `false`<!-- -->.\n\n\n```typescript\ndeep?: boolean;\n```",
-      "mdFile": "qwik.usestoreoptions.deep.md"
-    },
-    {
-      "name": "deltaMode",
-      "id": "qwikwheelevent-deltamode",
-      "hierarchy": [
-        {
-          "name": "QwikWheelEvent",
-          "id": "qwikwheelevent-deltamode"
-        },
-        {
-          "name": "deltaMode",
-          "id": "qwikwheelevent-deltamode"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndeltaMode: number;\n```",
-      "mdFile": "qwik.qwikwheelevent.deltamode.md"
-    },
-    {
-      "name": "deltaX",
-      "id": "qwikwheelevent-deltax",
-      "hierarchy": [
-        {
-          "name": "QwikWheelEvent",
-          "id": "qwikwheelevent-deltax"
-        },
-        {
-          "name": "deltaX",
-          "id": "qwikwheelevent-deltax"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndeltaX: number;\n```",
-      "mdFile": "qwik.qwikwheelevent.deltax.md"
-    },
-    {
-      "name": "deltaY",
-      "id": "qwikwheelevent-deltay",
-      "hierarchy": [
-        {
-          "name": "QwikWheelEvent",
-          "id": "qwikwheelevent-deltay"
-        },
-        {
-          "name": "deltaY",
-          "id": "qwikwheelevent-deltay"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndeltaY: number;\n```",
-      "mdFile": "qwik.qwikwheelevent.deltay.md"
-    },
-    {
-      "name": "deltaZ",
-      "id": "qwikwheelevent-deltaz",
-      "hierarchy": [
-        {
-          "name": "QwikWheelEvent",
-          "id": "qwikwheelevent-deltaz"
-        },
-        {
-          "name": "deltaZ",
-          "id": "qwikwheelevent-deltaz"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndeltaZ: number;\n```",
-      "mdFile": "qwik.qwikwheelevent.deltaz.md"
-    },
-    {
-      "name": "detail",
-      "id": "qwikuievent-detail",
-      "hierarchy": [
-        {
-          "name": "QwikUIEvent",
-          "id": "qwikuievent-detail"
-        },
-        {
-          "name": "detail",
-          "id": "qwikuievent-detail"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndetail: number;\n```",
-      "mdFile": "qwik.qwikuievent.detail.md"
-    },
-    {
-      "name": "dev",
-      "id": "jsxnode-dev",
-      "hierarchy": [
-        {
-          "name": "JSXNode",
-          "id": "jsxnode-dev"
-        },
-        {
-          "name": "dev",
-          "id": "jsxnode-dev"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndev?: DevJSX;\n```",
-      "mdFile": "qwik.jsxnode.dev.md"
-    },
-    {
-      "name": "dir",
-      "id": "htmlattributes-dir",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-dir"
-        },
-        {
-          "name": "dir",
-          "id": "htmlattributes-dir"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndir?: 'ltr' | 'rtl' | 'auto' | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.dir.md"
-    },
-    {
       "name": "DOMAttributes",
       "id": "domattributes",
       "hierarchy": [
@@ -1744,60 +231,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> \n```\n**Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#domattributes-children) |  | [JSXChildren](#jsxchildren) | _(Optional)_ |\n|  [key?](#) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> \n```\n**Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#) |  | [JSXChildren](#jsxchildren) | _(Optional)_ |\n|  [key?](#) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.domattributes.md"
-    },
-    {
-      "name": "draggable",
-      "id": "htmlattributes-draggable",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-draggable"
-        },
-        {
-          "name": "draggable",
-          "id": "htmlattributes-draggable"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndraggable?: boolean | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.draggable.md"
-    },
-    {
-      "name": "dynamic",
-      "id": "ssrhintprops-dynamic",
-      "hierarchy": [
-        {
-          "name": "SSRHintProps",
-          "id": "ssrhintprops-dynamic"
-        },
-        {
-          "name": "dynamic",
-          "id": "ssrhintprops-dynamic"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ndynamic?: boolean;\n```",
-      "mdFile": "qwik.ssrhintprops.dynamic.md"
-    },
-    {
-      "name": "eagerness",
-      "id": "onvisibletaskoptions-eagerness",
-      "hierarchy": [
-        {
-          "name": "OnVisibleTaskOptions",
-          "id": "onvisibletaskoptions-eagerness"
-        },
-        {
-          "name": "eagerness",
-          "id": "onvisibletaskoptions-eagerness"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `strategy` instead.\n> \n\n\n```typescript\neagerness?: EagernessOptions;\n```",
-      "mdFile": "qwik.onvisibletaskoptions.eagerness.md"
     },
     {
       "name": "EagernessOptions",
@@ -1812,40 +248,6 @@
       "content": "```typescript\nexport type EagernessOptions = 'visible' | 'load' | 'idle';\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.eagernessoptions.md"
-    },
-    {
-      "name": "el",
-      "id": "snapshotlistener-el",
-      "hierarchy": [
-        {
-          "name": "SnapshotListener",
-          "id": "snapshotlistener-el"
-        },
-        {
-          "name": "el",
-          "id": "snapshotlistener-el"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nel: Element;\n```",
-      "mdFile": "qwik.snapshotlistener.el.md"
-    },
-    {
-      "name": "elapsedTime",
-      "id": "qwikanimationevent-elapsedtime",
-      "hierarchy": [
-        {
-          "name": "QwikAnimationEvent",
-          "id": "qwikanimationevent-elapsedtime"
-        },
-        {
-          "name": "elapsedTime",
-          "id": "qwikanimationevent-elapsedtime"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nelapsedTime: number;\n```",
-      "mdFile": "qwik.qwikanimationevent.elapsedtime.md"
     },
     {
       "name": "Element",
@@ -1890,23 +292,6 @@
       "mdFile": "qwik.h.jsx.elementchildrenattribute.md"
     },
     {
-      "name": "error",
-      "id": "errorboundarystore-error",
-      "hierarchy": [
-        {
-          "name": "ErrorBoundaryStore",
-          "id": "errorboundarystore-error"
-        },
-        {
-          "name": "error",
-          "id": "errorboundarystore-error"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nerror: any | undefined;\n```",
-      "mdFile": "qwik.errorboundarystore.error.md"
-    },
-    {
       "name": "ErrorBoundaryStore",
       "id": "errorboundarystore",
       "hierarchy": [
@@ -1916,7 +301,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ErrorBoundaryStore \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [error](#errorboundarystore-error) |  | any \\| undefined |  |",
+      "content": "```typescript\nexport interface ErrorBoundaryStore \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [error](#) |  | any \\| undefined |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts",
       "mdFile": "qwik.errorboundarystore.md"
     },
@@ -1949,23 +334,6 @@
       "mdFile": "qwik.eventqrl.md"
     },
     {
-      "name": "flags",
-      "id": "jsxnode-flags",
-      "hierarchy": [
-        {
-          "name": "JSXNode",
-          "id": "jsxnode-flags"
-        },
-        {
-          "name": "flags",
-          "id": "jsxnode-flags"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nflags: number;\n```",
-      "mdFile": "qwik.jsxnode.flags.md"
-    },
-    {
       "name": "Fragment",
       "id": "fragment",
       "hierarchy": [
@@ -1978,23 +346,6 @@
       "content": "```typescript\nFragment: FunctionComponent<{\n    children?: any;\n    key?: string | number | null;\n}>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.fragment.md"
-    },
-    {
-      "name": "funcs",
-      "id": "snapshotresult-funcs",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult-funcs"
-        },
-        {
-          "name": "funcs",
-          "id": "snapshotresult-funcs"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nfuncs: string[];\n```",
-      "mdFile": "qwik.snapshotresult.funcs.md"
     },
     {
       "name": "FunctionComponent",
@@ -2121,57 +472,6 @@
       "mdFile": "qwik.h.md"
     },
     {
-      "name": "h",
-      "id": "snapshotmetavalue-h",
-      "hierarchy": [
-        {
-          "name": "SnapshotMetaValue",
-          "id": "snapshotmetavalue-h"
-        },
-        {
-          "name": "h",
-          "id": "snapshotmetavalue-h"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nh?: string;\n```",
-      "mdFile": "qwik.snapshotmetavalue.h.md"
-    },
-    {
-      "name": "height",
-      "id": "qwikpointerevent-height",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-height"
-        },
-        {
-          "name": "height",
-          "id": "qwikpointerevent-height"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nheight: number;\n```",
-      "mdFile": "qwik.qwikpointerevent.height.md"
-    },
-    {
-      "name": "hidden",
-      "id": "htmlattributes-hidden",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-hidden"
-        },
-        {
-          "name": "hidden",
-          "id": "htmlattributes-hidden"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nhidden?: boolean | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.hidden.md"
-    },
-    {
       "name": "HTMLAttributes",
       "id": "htmlattributes",
       "hierarchy": [
@@ -2181,43 +481,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#htmlattributes-about) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#htmlattributes-accesskey) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#htmlattributes-autocapitalize) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#htmlattributes-autocorrect) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#htmlattributes-autosave) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#htmlattributes-color) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#htmlattributes-contenteditable) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#htmlattributes-contextmenu) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#htmlattributes-datatype) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#htmlattributes-dir) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#htmlattributes-draggable) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#htmlattributes-hidden) |  | boolean \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#htmlattributes-inlist) |  | any | _(Optional)_ |\n|  [inputMode?](#htmlattributes-inputmode) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#htmlattributes-is) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#htmlattributes-itemid) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#htmlattributes-itemprop) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#htmlattributes-itemref) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#htmlattributes-itemscope) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#htmlattributes-itemtype) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#htmlattributes-lang) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#htmlattributes-placeholder) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#htmlattributes-prefix) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#htmlattributes-property) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#htmlattributes-radiogroup) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#htmlattributes-resource) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#htmlattributes-results) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#htmlattributes-role) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#htmlattributes-security) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#htmlattributes-slot) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#htmlattributes-spellcheck) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#htmlattributes-style) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#htmlattributes-tabindex) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#htmlattributes-title) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#htmlattributes-translate) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#htmlattributes-typeof) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#htmlattributes-unselectable) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#htmlattributes-vocab) |  | string \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#) |  | any | _(Optional)_ |\n|  [inputMode?](#) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#) |  | string \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
-    },
-    {
-      "name": "id",
-      "id": "contextid-id",
-      "hierarchy": [
-        {
-          "name": "ContextId",
-          "id": "contextid-id"
-        },
-        {
-          "name": "id",
-          "id": "contextid-id"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "A unique ID for the context.\n\n\n```typescript\nreadonly id: string;\n```",
-      "mdFile": "qwik.contextid.id.md"
-    },
-    {
-      "name": "immutableProps",
-      "id": "jsxnode-immutableprops",
-      "hierarchy": [
-        {
-          "name": "JSXNode",
-          "id": "jsxnode-immutableprops"
-        },
-        {
-          "name": "immutableProps",
-          "id": "jsxnode-immutableprops"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nimmutableProps: Record<string, any> | null;\n```",
-      "mdFile": "qwik.jsxnode.immutableprops.md"
     },
     {
       "name": "implicit$FirstArg",
@@ -2232,57 +498,6 @@
       "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts",
       "mdFile": "qwik.implicit_firstarg.md"
-    },
-    {
-      "name": "importSymbol",
-      "id": "coreplatform-importsymbol",
-      "hierarchy": [
-        {
-          "name": "CorePlatform",
-          "id": "coreplatform-importsymbol"
-        },
-        {
-          "name": "importSymbol",
-          "id": "coreplatform-importsymbol"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Retrieve a symbol value from QRL.\n\nQwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using `importSymbol`<!-- -->.\n\nWhy not use `import()`<!-- -->? Because `import()` is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.\n\n\n```typescript\nimportSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;\n```",
-      "mdFile": "qwik.coreplatform.importsymbol.md"
-    },
-    {
-      "name": "inlist",
-      "id": "htmlattributes-inlist",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-inlist"
-        },
-        {
-          "name": "inlist",
-          "id": "htmlattributes-inlist"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ninlist?: any;\n```",
-      "mdFile": "qwik.htmlattributes.inlist.md"
-    },
-    {
-      "name": "inputMode",
-      "id": "htmlattributes-inputmode",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-inputmode"
-        },
-        {
-          "name": "inputMode",
-          "id": "htmlattributes-inputmode"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Hints at the type of data that might be entered by the user while editing the element or its contents\n\n\n```typescript\ninputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.inputmode.md"
     },
     {
       "name": "IntrinsicAttributes",
@@ -2325,142 +540,6 @@
       "kind": "Interface",
       "content": "```typescript\ninterface IntrinsicElements extends QwikJSX.IntrinsicElements \n```\n**Extends:** [QwikJSX.IntrinsicElements](#)",
       "mdFile": "qwik.h.jsx.intrinsicelements.md"
-    },
-    {
-      "name": "is",
-      "id": "htmlattributes-is",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-is"
-        },
-        {
-          "name": "is",
-          "id": "htmlattributes-is"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Specify that a standard HTML element should behave like a defined custom built-in element\n\n\n```typescript\nis?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.is.md"
-    },
-    {
-      "name": "isPrimary",
-      "id": "qwikpointerevent-isprimary",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-isprimary"
-        },
-        {
-          "name": "isPrimary",
-          "id": "qwikpointerevent-isprimary"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nisPrimary: boolean;\n```",
-      "mdFile": "qwik.qwikpointerevent.isprimary.md"
-    },
-    {
-      "name": "isServer",
-      "id": "coreplatform-isserver",
-      "hierarchy": [
-        {
-          "name": "CorePlatform",
-          "id": "coreplatform-isserver"
-        },
-        {
-          "name": "isServer",
-          "id": "coreplatform-isserver"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "True of running on the server platform.\n\n\n```typescript\nisServer: boolean;\n```",
-      "mdFile": "qwik.coreplatform.isserver.md"
-    },
-    {
-      "name": "itemID",
-      "id": "htmlattributes-itemid",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-itemid"
-        },
-        {
-          "name": "itemID",
-          "id": "htmlattributes-itemid"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nitemID?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.itemid.md"
-    },
-    {
-      "name": "itemProp",
-      "id": "htmlattributes-itemprop",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-itemprop"
-        },
-        {
-          "name": "itemProp",
-          "id": "htmlattributes-itemprop"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nitemProp?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.itemprop.md"
-    },
-    {
-      "name": "itemRef",
-      "id": "htmlattributes-itemref",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-itemref"
-        },
-        {
-          "name": "itemRef",
-          "id": "htmlattributes-itemref"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nitemRef?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.itemref.md"
-    },
-    {
-      "name": "itemScope",
-      "id": "htmlattributes-itemscope",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-itemscope"
-        },
-        {
-          "name": "itemScope",
-          "id": "htmlattributes-itemscope"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nitemScope?: boolean | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.itemscope.md"
-    },
-    {
-      "name": "itemType",
-      "id": "htmlattributes-itemtype",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-itemtype"
-        },
-        {
-          "name": "itemType",
-          "id": "htmlattributes-itemtype"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nitemType?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.itemtype.md"
     },
     {
       "name": "jsx",
@@ -2531,7 +610,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface JSXNode<T = string | FunctionComponent> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | any \\| null |  |\n|  [dev?](#jsxnode-dev) |  | DevJSX | _(Optional)_ |\n|  [flags](#jsxnode-flags) |  | number |  |\n|  [immutableProps](#jsxnode-immutableprops) |  | Record&lt;string, any&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#jsxnode-props) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;string, any&gt; |  |\n|  [type](#jsxnode-type) |  | T |  |",
+      "content": "```typescript\nexport interface JSXNode<T = string | FunctionComponent> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | any \\| null |  |\n|  [dev?](#) |  | DevJSX | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;string, any&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;string, any&gt; |  |\n|  [type](#) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.jsxnode.md"
     },
@@ -2550,142 +629,6 @@
       "mdFile": "qwik.jsxtagname.md"
     },
     {
-      "name": "key",
-      "id": "componentbaseprops-key",
-      "hierarchy": [
-        {
-          "name": "ComponentBaseProps",
-          "id": "componentbaseprops-key"
-        },
-        {
-          "name": "key",
-          "id": "componentbaseprops-key"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nkey?: string | number | null | undefined;\n```",
-      "mdFile": "qwik.componentbaseprops.key.md"
-    },
-    {
-      "name": "keyCode",
-      "id": "qwikkeyboardevent-keycode",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-keycode"
-        },
-        {
-          "name": "keyCode",
-          "id": "qwikkeyboardevent-keycode"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nkeyCode: number;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.keycode.md"
-    },
-    {
-      "name": "lang",
-      "id": "htmlattributes-lang",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-lang"
-        },
-        {
-          "name": "lang",
-          "id": "htmlattributes-lang"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nlang?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.lang.md"
-    },
-    {
-      "name": "loading",
-      "id": "resourcepending-loading",
-      "hierarchy": [
-        {
-          "name": "ResourcePending",
-          "id": "resourcepending-loading"
-        },
-        {
-          "name": "loading",
-          "id": "resourcepending-loading"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nreadonly loading: boolean;\n```",
-      "mdFile": "qwik.resourcepending.loading.md"
-    },
-    {
-      "name": "locale",
-      "id": "qwikkeyboardevent-locale",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-locale"
-        },
-        {
-          "name": "locale",
-          "id": "qwikkeyboardevent-locale"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nlocale: string;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.locale.md"
-    },
-    {
-      "name": "location",
-      "id": "qwikkeyboardevent-location",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-location"
-        },
-        {
-          "name": "location",
-          "id": "qwikkeyboardevent-location"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nlocation: number;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.location.md"
-    },
-    {
-      "name": "metaKey",
-      "id": "qwikkeyboardevent-metakey",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-metakey"
-        },
-        {
-          "name": "metaKey",
-          "id": "qwikkeyboardevent-metakey"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nmetaKey: boolean;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.metakey.md"
-    },
-    {
-      "name": "mode",
-      "id": "snapshotresult-mode",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult-mode"
-        },
-        {
-          "name": "mode",
-          "id": "snapshotresult-mode"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nmode: 'render' | 'listeners' | 'static';\n```",
-      "mdFile": "qwik.snapshotresult.mode.md"
-    },
-    {
       "name": "MountFn",
       "id": "mountfn",
       "hierarchy": [
@@ -2698,40 +641,6 @@
       "content": "```typescript\nexport type MountFn<T> = () => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
       "mdFile": "qwik.mountfn.md"
-    },
-    {
-      "name": "movementX",
-      "id": "qwikmouseevent-movementx",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-movementx"
-        },
-        {
-          "name": "movementX",
-          "id": "qwikmouseevent-movementx"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nmovementX: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.movementx.md"
-    },
-    {
-      "name": "movementY",
-      "id": "qwikmouseevent-movementy",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-movementy"
-        },
-        {
-          "name": "movementY",
-          "id": "qwikmouseevent-movementy"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nmovementY: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.movementy.md"
     },
     {
       "name": "mutable",
@@ -2916,23 +825,6 @@
       "mdFile": "qwik.nativewheelevent.md"
     },
     {
-      "name": "nextTick",
-      "id": "coreplatform-nexttick",
-      "hierarchy": [
-        {
-          "name": "CorePlatform",
-          "id": "coreplatform-nexttick"
-        },
-        {
-          "name": "nextTick",
-          "id": "coreplatform-nexttick"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Perform operation on next tick.\n\n\n```typescript\nnextTick: (fn: () => any) => Promise<any>;\n```",
-      "mdFile": "qwik.coreplatform.nexttick.md"
-    },
-    {
       "name": "noSerialize",
       "id": "noserialize",
       "hierarchy": [
@@ -2961,57 +853,6 @@
       "mdFile": "qwik.noserialize.md"
     },
     {
-      "name": "objs",
-      "id": "snapshotresult-objs",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult-objs"
-        },
-        {
-          "name": "objs",
-          "id": "snapshotresult-objs"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nobjs: any[];\n```",
-      "mdFile": "qwik.snapshotresult.objs.md"
-    },
-    {
-      "name": "onPending",
-      "id": "resourceprops-onpending",
-      "hierarchy": [
-        {
-          "name": "ResourceProps",
-          "id": "resourceprops-onpending"
-        },
-        {
-          "name": "onPending",
-          "id": "resourceprops-onpending"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nonPending?: () => JSXNode;\n```",
-      "mdFile": "qwik.resourceprops.onpending.md"
-    },
-    {
-      "name": "onRejected",
-      "id": "resourceprops-onrejected",
-      "hierarchy": [
-        {
-          "name": "ResourceProps",
-          "id": "resourceprops-onrejected"
-        },
-        {
-          "name": "onRejected",
-          "id": "resourceprops-onrejected"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nonRejected?: (reason: any) => JSXNode;\n```",
-      "mdFile": "qwik.resourceprops.onrejected.md"
-    },
-    {
       "name": "OnRenderFn",
       "id": "onrenderfn",
       "hierarchy": [
@@ -3026,23 +867,6 @@
       "mdFile": "qwik.onrenderfn.md"
     },
     {
-      "name": "onResolved",
-      "id": "resourceprops-onresolved",
-      "hierarchy": [
-        {
-          "name": "ResourceProps",
-          "id": "resourceprops-onresolved"
-        },
-        {
-          "name": "onResolved",
-          "id": "resourceprops-onresolved"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nonResolved: (value: T) => JSXNode;\n```",
-      "mdFile": "qwik.resourceprops.onresolved.md"
-    },
-    {
       "name": "OnVisibleTaskOptions",
       "id": "onvisibletaskoptions",
       "hierarchy": [
@@ -3052,179 +876,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](#onvisibletaskoptions-eagerness) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ |\n|  [strategy?](#onvisibletaskoptions-strategy) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
+      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](#) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ |\n|  [strategy?](#) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.onvisibletaskoptions.md"
-    },
-    {
-      "name": "pageX",
-      "id": "qwikmouseevent-pagex",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-pagex"
-        },
-        {
-          "name": "pageX",
-          "id": "qwikmouseevent-pagex"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npageX: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.pagex.md"
-    },
-    {
-      "name": "pageY",
-      "id": "qwikmouseevent-pagey",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-pagey"
-        },
-        {
-          "name": "pageY",
-          "id": "qwikmouseevent-pagey"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npageY: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.pagey.md"
-    },
-    {
-      "name": "placeholder",
-      "id": "htmlattributes-placeholder",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-placeholder"
-        },
-        {
-          "name": "placeholder",
-          "id": "htmlattributes-placeholder"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nplaceholder?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.placeholder.md"
-    },
-    {
-      "name": "pointerId",
-      "id": "qwikpointerevent-pointerid",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-pointerid"
-        },
-        {
-          "name": "pointerId",
-          "id": "qwikpointerevent-pointerid"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npointerId: number;\n```",
-      "mdFile": "qwik.qwikpointerevent.pointerid.md"
-    },
-    {
-      "name": "pointerType",
-      "id": "qwikpointerevent-pointertype",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-pointertype"
-        },
-        {
-          "name": "pointerType",
-          "id": "qwikpointerevent-pointertype"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npointerType: 'mouse' | 'pen' | 'touch';\n```",
-      "mdFile": "qwik.qwikpointerevent.pointertype.md"
-    },
-    {
-      "name": "prefix",
-      "id": "htmlattributes-prefix",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-prefix"
-        },
-        {
-          "name": "prefix",
-          "id": "htmlattributes-prefix"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nprefix?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.prefix.md"
-    },
-    {
-      "name": "pressure",
-      "id": "qwikpointerevent-pressure",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-pressure"
-        },
-        {
-          "name": "pressure",
-          "id": "qwikpointerevent-pressure"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npressure: number;\n```",
-      "mdFile": "qwik.qwikpointerevent.pressure.md"
-    },
-    {
-      "name": "previous",
-      "id": "resourcectx-previous",
-      "hierarchy": [
-        {
-          "name": "ResourceCtx",
-          "id": "resourcectx-previous"
-        },
-        {
-          "name": "previous",
-          "id": "resourcectx-previous"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nprevious: T | undefined;\n```",
-      "mdFile": "qwik.resourcectx.previous.md"
-    },
-    {
-      "name": "property",
-      "id": "htmlattributes-property",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-property"
-        },
-        {
-          "name": "property",
-          "id": "htmlattributes-property"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nproperty?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.property.md"
-    },
-    {
-      "name": "propertyName",
-      "id": "qwiktransitionevent-propertyname",
-      "hierarchy": [
-        {
-          "name": "QwikTransitionEvent",
-          "id": "qwiktransitionevent-propertyname"
-        },
-        {
-          "name": "propertyName",
-          "id": "qwiktransitionevent-propertyname"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npropertyName: string;\n```",
-      "mdFile": "qwik.qwiktransitionevent.propertyname.md"
     },
     {
       "name": "PropFnInterface",
@@ -3255,23 +909,6 @@
       "mdFile": "qwik.propfunction.md"
     },
     {
-      "name": "props",
-      "id": "jsxnode-props",
-      "hierarchy": [
-        {
-          "name": "JSXNode",
-          "id": "jsxnode-props"
-        },
-        {
-          "name": "props",
-          "id": "jsxnode-props"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nprops: T extends FunctionComponent<infer B> ? B : Record<string, any>;\n```",
-      "mdFile": "qwik.jsxnode.props.md"
-    },
-    {
       "name": "PropsOf",
       "id": "propsof",
       "hierarchy": [
@@ -3284,23 +921,6 @@
       "content": "Infers `Props` from the component.\n\n```typescript\nexport const OtherComponent = component$(() => {\n  return $(() => <Counter value={100} />);\n});\n```\n\n\n```typescript\nexport type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;\n```\n**References:** [Component](#component)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propsof.md"
-    },
-    {
-      "name": "pseudoElement",
-      "id": "qwikanimationevent-pseudoelement",
-      "hierarchy": [
-        {
-          "name": "QwikAnimationEvent",
-          "id": "qwikanimationevent-pseudoelement"
-        },
-        {
-          "name": "pseudoElement",
-          "id": "qwikanimationevent-pseudoelement"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\npseudoElement: string;\n```",
-      "mdFile": "qwik.qwikanimationevent.pseudoelement.md"
     },
     {
       "name": "PublicProps",
@@ -3331,23 +951,6 @@
       "mdFile": "qwik.qrl.md"
     },
     {
-      "name": "qrl",
-      "id": "snapshotlistener-qrl",
-      "hierarchy": [
-        {
-          "name": "SnapshotListener",
-          "id": "snapshotlistener-qrl"
-        },
-        {
-          "name": "qrl",
-          "id": "snapshotlistener-qrl"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nqrl: QRL<any>;\n```",
-      "mdFile": "qwik.snapshotlistener.qrl.md"
-    },
-    {
       "name": "QRL",
       "id": "qrl",
       "hierarchy": [
@@ -3362,23 +965,6 @@
       "mdFile": "qwik.qrl.md"
     },
     {
-      "name": "qrls",
-      "id": "snapshotresult-qrls",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult-qrls"
-        },
-        {
-          "name": "qrls",
-          "id": "snapshotresult-qrls"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nqrls: QRL[];\n```",
-      "mdFile": "qwik.snapshotresult.qrls.md"
-    },
-    {
       "name": "QwikAnimationEvent",
       "id": "qwikanimationevent",
       "hierarchy": [
@@ -3388,7 +974,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [animationName](#qwikanimationevent-animationname) |  | string |  |\n|  [elapsedTime](#qwikanimationevent-elapsedtime) |  | number |  |\n|  [pseudoElement](#qwikanimationevent-pseudoelement) |  | string |  |",
+      "content": "```typescript\nexport interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [animationName](#) |  | string |  |\n|  [elapsedTime](#) |  | number |  |\n|  [pseudoElement](#) |  | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikanimationevent.md"
     },
@@ -3402,7 +988,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](#qwikchangeevent-target) |  | EventTarget &amp; T |  |",
+      "content": "```typescript\nexport interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> \n```\n**Extends:** SyntheticEvent&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [target](#) |  | EventTarget &amp; T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikchangeevent.md"
     },
@@ -3416,7 +1002,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [clipboardData](#qwikclipboardevent-clipboarddata) |  | DataTransfer |  |",
+      "content": "```typescript\nexport interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [clipboardData](#) |  | DataTransfer |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikclipboardevent.md"
     },
@@ -3430,7 +1016,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [data](#qwikcompositionevent-data) |  | string |  |",
+      "content": "```typescript\nexport interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [data](#) |  | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikcompositionevent.md"
     },
@@ -3458,7 +1044,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeDragEvent](#nativedragevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dataTransfer](#qwikdragevent-datatransfer) |  | DataTransfer |  |",
+      "content": "```typescript\nexport interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeDragEvent](#nativedragevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dataTransfer](#) |  | DataTransfer |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikdragevent.md"
     },
@@ -3472,7 +1058,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [relatedTarget](#qwikfocusevent-relatedtarget) |  | EventTarget \\| null |  |\n|  [target](#) |  | EventTarget &amp; T |  |",
+      "content": "```typescript\nexport interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [relatedTarget](#) |  | EventTarget \\| null |  |\n|  [target](#) |  | EventTarget &amp; T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikfocusevent.md"
     },
@@ -3486,7 +1072,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [script](#qwikintrinsicelements-script) |  | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |  |",
+      "content": "```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [script](#) |  | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts",
       "mdFile": "qwik.qwikintrinsicelements.md"
     },
@@ -3528,7 +1114,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#qwikkeyboardevent-altkey) |  | boolean |  |\n|  [charCode](#qwikkeyboardevent-charcode) |  | number |  |\n|  [ctrlKey](#qwikkeyboardevent-ctrlkey) |  | boolean |  |\n|  [key](#) |  | string | See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#qwikkeyboardevent-keycode) |  | number |  |\n|  [locale](#qwikkeyboardevent-locale) |  | string |  |\n|  [location](#qwikkeyboardevent-location) |  | number |  |\n|  [metaKey](#qwikkeyboardevent-metakey) |  | boolean |  |\n|  [repeat](#qwikkeyboardevent-repeat) |  | boolean |  |\n|  [shiftKey](#qwikkeyboardevent-shiftkey) |  | boolean |  |\n|  [which](#qwikkeyboardevent-which) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [charCode](#) |  | number |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [key](#) |  | string | See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#) |  | number |  |\n|  [locale](#) |  | string |  |\n|  [location](#) |  | number |  |\n|  [metaKey](#) |  | boolean |  |\n|  [repeat](#) |  | boolean |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [which](#) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikkeyboardevent.md"
     },
@@ -3542,7 +1128,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> \n```\n**Extends:** SyntheticEvent&lt;T, E&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [button](#qwikmouseevent-button) |  | number |  |\n|  [buttons](#qwikmouseevent-buttons) |  | number |  |\n|  [clientX](#qwikmouseevent-clientx) |  | number |  |\n|  [clientY](#qwikmouseevent-clienty) |  | number |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [metaKey](#) |  | boolean |  |\n|  [movementX](#qwikmouseevent-movementx) |  | number |  |\n|  [movementY](#qwikmouseevent-movementy) |  | number |  |\n|  [pageX](#qwikmouseevent-pagex) |  | number |  |\n|  [pageY](#qwikmouseevent-pagey) |  | number |  |\n|  [relatedTarget](#) |  | EventTarget \\| null |  |\n|  [screenX](#qwikmouseevent-screenx) |  | number |  |\n|  [screenY](#qwikmouseevent-screeny) |  | number |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [x](#qwikmouseevent-x) |  | number |  |\n|  [y](#qwikmouseevent-y) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> \n```\n**Extends:** SyntheticEvent&lt;T, E&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [button](#) |  | number |  |\n|  [buttons](#) |  | number |  |\n|  [clientX](#) |  | number |  |\n|  [clientY](#) |  | number |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [metaKey](#) |  | boolean |  |\n|  [movementX](#) |  | number |  |\n|  [movementY](#) |  | number |  |\n|  [pageX](#) |  | number |  |\n|  [pageY](#) |  | number |  |\n|  [relatedTarget](#) |  | EventTarget \\| null |  |\n|  [screenX](#) |  | number |  |\n|  [screenY](#) |  | number |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [x](#) |  | number |  |\n|  [y](#) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikmouseevent.md"
     },
@@ -3556,7 +1142,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativePointerEvent](#nativepointerevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [height](#qwikpointerevent-height) |  | number |  |\n|  [isPrimary](#qwikpointerevent-isprimary) |  | boolean |  |\n|  [pointerId](#qwikpointerevent-pointerid) |  | number |  |\n|  [pointerType](#qwikpointerevent-pointertype) |  | 'mouse' \\| 'pen' \\| 'touch' |  |\n|  [pressure](#qwikpointerevent-pressure) |  | number |  |\n|  [tiltX](#qwikpointerevent-tiltx) |  | number |  |\n|  [tiltY](#qwikpointerevent-tilty) |  | number |  |\n|  [width](#qwikpointerevent-width) |  | number |  |",
+      "content": "```typescript\nexport interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativePointerEvent](#nativepointerevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [height](#) |  | number |  |\n|  [isPrimary](#) |  | boolean |  |\n|  [pointerId](#) |  | number |  |\n|  [pointerType](#) |  | 'mouse' \\| 'pen' \\| 'touch' |  |\n|  [pressure](#) |  | number |  |\n|  [tiltX](#) |  | number |  |\n|  [tiltY](#) |  | number |  |\n|  [width](#) |  | number |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikpointerevent.md"
     },
@@ -3584,7 +1170,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [changedTouches](#qwiktouchevent-changedtouches) |  | TouchList |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [metaKey](#) |  | boolean |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [targetTouches](#qwiktouchevent-targettouches) |  | TouchList |  |\n|  [touches](#qwiktouchevent-touches) |  | TouchList |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [changedTouches](#) |  | TouchList |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [metaKey](#) |  | boolean |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [targetTouches](#) |  | TouchList |  |\n|  [touches](#) |  | TouchList |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiktouchevent.md"
     },
@@ -3598,7 +1184,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [elapsedTime](#) |  | number |  |\n|  [propertyName](#qwiktransitionevent-propertyname) |  | string |  |\n|  [pseudoElement](#) |  | string |  |",
+      "content": "```typescript\nexport interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [elapsedTime](#) |  | number |  |\n|  [propertyName](#) |  | string |  |\n|  [pseudoElement](#) |  | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiktransitionevent.md"
     },
@@ -3612,7 +1198,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [detail](#qwikuievent-detail) |  | number |  |\n|  [view](#qwikuievent-view) |  | AbstractView |  |",
+      "content": "```typescript\nexport interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [detail](#) |  | number |  |\n|  [view](#) |  | AbstractView |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikuievent.md"
     },
@@ -3626,77 +1212,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeWheelEvent](#nativewheelevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deltaMode](#qwikwheelevent-deltamode) |  | number |  |\n|  [deltaX](#qwikwheelevent-deltax) |  | number |  |\n|  [deltaY](#qwikwheelevent-deltay) |  | number |  |\n|  [deltaZ](#qwikwheelevent-deltaz) |  | number |  |",
+      "content": "```typescript\nexport interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> \n```\n**Extends:** [QwikMouseEvent](#qwikmouseevent)<!-- -->&lt;T, [NativeWheelEvent](#nativewheelevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deltaMode](#) |  | number |  |\n|  [deltaX](#) |  | number |  |\n|  [deltaY](#) |  | number |  |\n|  [deltaZ](#) |  | number |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikwheelevent.md"
-    },
-    {
-      "name": "radioGroup",
-      "id": "htmlattributes-radiogroup",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-radiogroup"
-        },
-        {
-          "name": "radioGroup",
-          "id": "htmlattributes-radiogroup"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nradioGroup?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.radiogroup.md"
-    },
-    {
-      "name": "raf",
-      "id": "coreplatform-raf",
-      "hierarchy": [
-        {
-          "name": "CorePlatform",
-          "id": "coreplatform-raf"
-        },
-        {
-          "name": "raf",
-          "id": "coreplatform-raf"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Perform operation on next request-animation-frame.\n\n\n```typescript\nraf: (fn: () => any) => Promise<any>;\n```",
-      "mdFile": "qwik.coreplatform.raf.md"
-    },
-    {
-      "name": "reactive",
-      "id": "usestoreoptions-reactive",
-      "hierarchy": [
-        {
-          "name": "UseStoreOptions",
-          "id": "usestoreoptions-reactive"
-        },
-        {
-          "name": "reactive",
-          "id": "usestoreoptions-reactive"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "If `false` then the object will not be tracked for changes. Default is `true`<!-- -->.\n\n\n```typescript\nreactive?: boolean;\n```",
-      "mdFile": "qwik.usestoreoptions.reactive.md"
-    },
-    {
-      "name": "recursive",
-      "id": "usestoreoptions-recursive",
-      "hierarchy": [
-        {
-          "name": "UseStoreOptions",
-          "id": "usestoreoptions-recursive"
-        },
-        {
-          "name": "recursive",
-          "id": "usestoreoptions-recursive"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `deep` instead\n> \n\n\n```typescript\nrecursive?: boolean;\n```",
-      "mdFile": "qwik.usestoreoptions.recursive.md"
     },
     {
       "name": "Ref",
@@ -3708,43 +1226,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "Type of the value returned by `useRef()`<!-- -->.\n\n\n```typescript\nexport interface Ref<T = Element> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [current](#ref-current) |  | T \\| undefined |  |",
+      "content": "Type of the value returned by `useRef()`<!-- -->.\n\n\n```typescript\nexport interface Ref<T = Element> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [current](#) |  | T \\| undefined |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts",
       "mdFile": "qwik.ref.md"
-    },
-    {
-      "name": "refs",
-      "id": "snapshotstate-refs",
-      "hierarchy": [
-        {
-          "name": "SnapshotState",
-          "id": "snapshotstate-refs"
-        },
-        {
-          "name": "refs",
-          "id": "snapshotstate-refs"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nrefs: Record<string, string>;\n```",
-      "mdFile": "qwik.snapshotstate.refs.md"
-    },
-    {
-      "name": "relatedTarget",
-      "id": "qwikfocusevent-relatedtarget",
-      "hierarchy": [
-        {
-          "name": "QwikFocusEvent",
-          "id": "qwikfocusevent-relatedtarget"
-        },
-        {
-          "name": "relatedTarget",
-          "id": "qwikfocusevent-relatedtarget"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nrelatedTarget: EventTarget | null;\n```",
-      "mdFile": "qwik.qwikfocusevent.relatedtarget.md"
     },
     {
       "name": "render",
@@ -3784,7 +1268,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [serverData?](#renderoptions-serverdata) |  | Record&lt;string, any&gt; | _(Optional)_ |",
+      "content": "```typescript\nexport interface RenderOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
       "mdFile": "qwik.renderoptions.md"
     },
@@ -3812,26 +1296,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#renderssroptions-base) |  | string | _(Optional)_ |\n|  [beforeClose?](#renderssroptions-beforeclose) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#renderssroptions-beforecontent) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#renderssroptions-containerattributes) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#renderssroptions-containertagname) |  | string |  |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#renderssroptions-stream) |  | [StreamWriter](#streamwriter) |  |\n|  [url?](#renderssroptions-url) |  | string | _(Optional)_ |",
+      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#) |  | string | _(Optional)_ |\n|  [beforeClose?](#) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#) |  | string |  |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#) |  | [StreamWriter](#streamwriter) |  |\n|  [url?](#) |  | string | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts",
       "mdFile": "qwik.renderssroptions.md"
-    },
-    {
-      "name": "repeat",
-      "id": "qwikkeyboardevent-repeat",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-repeat"
-        },
-        {
-          "name": "repeat",
-          "id": "qwikkeyboardevent-repeat"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nrepeat: boolean;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.repeat.md"
     },
     {
       "name": "resolve",
@@ -3849,23 +1316,6 @@
       "kind": "MethodSignature",
       "content": "Resolve the QRL and return the actual value.\n\n\n```typescript\nresolve(): Promise<TYPE>;\n```\n**Returns:**\n\nPromise&lt;TYPE&gt;",
       "mdFile": "qwik.qrl.resolve.md"
-    },
-    {
-      "name": "resource",
-      "id": "htmlattributes-resource",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-resource"
-        },
-        {
-          "name": "resource",
-          "id": "htmlattributes-resource"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nresource?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.resource.md"
     },
     {
       "name": "Resource",
@@ -3891,7 +1341,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceCtx<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [previous](#resourcectx-previous) |  | T \\| undefined |  |\n|  [track](#resourcectx-track) |  | [Tracker](#tracker) |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cache(policyOrMilliseconds)](#resourcectx-cache) |  |\n|  [cleanup(callback)](#) |  |",
+      "content": "```typescript\nexport interface ResourceCtx<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [previous](#) |  | T \\| undefined |  |\n|  [track](#) |  | [Tracker](#tracker) |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [cache(policyOrMilliseconds)](#resourcectx-cache) |  |\n|  [cleanup(callback)](#) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcectx.md"
     },
@@ -3919,7 +1369,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "Options to pass to `useResource$()`\n\n\n```typescript\nexport interface ResourceOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [timeout?](#resourceoptions-timeout) |  | number | _(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource. |",
+      "content": "Options to pass to `useResource$()`\n\n\n```typescript\nexport interface ResourceOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [timeout?](#) |  | number | _(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceoptions.md"
     },
@@ -3933,7 +1383,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourcePending<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [loading](#resourcepending-loading) | <code>readonly</code> | boolean |  |\n|  [value](#resourcepending-value) | <code>readonly</code> | Promise&lt;T&gt; |  |",
+      "content": "```typescript\nexport interface ResourcePending<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [loading](#) | <code>readonly</code> | boolean |  |\n|  [value](#) | <code>readonly</code> | Promise&lt;T&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.resourcepending.md"
     },
@@ -3947,7 +1397,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#resourceprops-onpending) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#resourceprops-onrejected) |  | (reason: any) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#resourceprops-onresolved) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](#) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
+      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#) |  | (reason: any) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](#) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceprops.md"
     },
@@ -3994,176 +1444,6 @@
       "mdFile": "qwik.resourcereturn.md"
     },
     {
-      "name": "resources",
-      "id": "snapshotresult-resources",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult-resources"
-        },
-        {
-          "name": "resources",
-          "id": "snapshotresult-resources"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nresources: ResourceReturnInternal<any>[];\n```",
-      "mdFile": "qwik.snapshotresult.resources.md"
-    },
-    {
-      "name": "results",
-      "id": "htmlattributes-results",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-results"
-        },
-        {
-          "name": "results",
-          "id": "htmlattributes-results"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nresults?: number | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.results.md"
-    },
-    {
-      "name": "role",
-      "id": "htmlattributes-role",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-role"
-        },
-        {
-          "name": "role",
-          "id": "htmlattributes-role"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nrole?: AriaRole | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.role.md"
-    },
-    {
-      "name": "s",
-      "id": "snapshotmetavalue-s",
-      "hierarchy": [
-        {
-          "name": "SnapshotMetaValue",
-          "id": "snapshotmetavalue-s"
-        },
-        {
-          "name": "s",
-          "id": "snapshotmetavalue-s"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ns?: string;\n```",
-      "mdFile": "qwik.snapshotmetavalue.s.md"
-    },
-    {
-      "name": "scopeId",
-      "id": "usestylesscoped-scopeid",
-      "hierarchy": [
-        {
-          "name": "UseStylesScoped",
-          "id": "usestylesscoped-scopeid"
-        },
-        {
-          "name": "scopeId",
-          "id": "usestylesscoped-scopeid"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nscopeId: string;\n```",
-      "mdFile": "qwik.usestylesscoped.scopeid.md"
-    },
-    {
-      "name": "screenX",
-      "id": "qwikmouseevent-screenx",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-screenx"
-        },
-        {
-          "name": "screenX",
-          "id": "qwikmouseevent-screenx"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nscreenX: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.screenx.md"
-    },
-    {
-      "name": "screenY",
-      "id": "qwikmouseevent-screeny",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-screeny"
-        },
-        {
-          "name": "screenY",
-          "id": "qwikmouseevent-screeny"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nscreenY: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.screeny.md"
-    },
-    {
-      "name": "script",
-      "id": "qwikintrinsicelements-script",
-      "hierarchy": [
-        {
-          "name": "QwikIntrinsicElements",
-          "id": "qwikintrinsicelements-script"
-        },
-        {
-          "name": "script",
-          "id": "qwikintrinsicelements-script"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nscript: QwikScriptHTMLAttributes<HTMLScriptElement>;\n```",
-      "mdFile": "qwik.qwikintrinsicelements.script.md"
-    },
-    {
-      "name": "security",
-      "id": "htmlattributes-security",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-security"
-        },
-        {
-          "name": "security",
-          "id": "htmlattributes-security"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nsecurity?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.security.md"
-    },
-    {
-      "name": "serverData",
-      "id": "renderoptions-serverdata",
-      "hierarchy": [
-        {
-          "name": "RenderOptions",
-          "id": "renderoptions-serverdata"
-        },
-        {
-          "name": "serverData",
-          "id": "renderoptions-serverdata"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nserverData?: Record<string, any>;\n```",
-      "mdFile": "qwik.renderoptions.serverdata.md"
-    },
-    {
       "name": "setPlatform",
       "id": "setplatform",
       "hierarchy": [
@@ -4176,23 +1456,6 @@
       "content": "Sets the `CorePlatform`<!-- -->.\n\nThis is useful to override the platform in tests to change the behavior of, `requestAnimationFrame`<!-- -->, and import resolution.\n\n\n```typescript\nsetPlatform: (plt: CorePlatform) => CorePlatform\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts",
       "mdFile": "qwik.setplatform.md"
-    },
-    {
-      "name": "shiftKey",
-      "id": "qwikkeyboardevent-shiftkey",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-shiftkey"
-        },
-        {
-          "name": "shiftKey",
-          "id": "qwikkeyboardevent-shiftkey"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nshiftKey: boolean;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.shiftkey.md"
     },
     {
       "name": "Signal",
@@ -4223,23 +1486,6 @@
       "mdFile": "qwik.skiprender.md"
     },
     {
-      "name": "slot",
-      "id": "htmlattributes-slot",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-slot"
-        },
-        {
-          "name": "slot",
-          "id": "htmlattributes-slot"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nslot?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.slot.md"
-    },
-    {
       "name": "Slot",
       "id": "slot",
       "hierarchy": [
@@ -4263,7 +1509,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotListener \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [el](#snapshotlistener-el) |  | Element |  |\n|  [key](#) |  | string |  |\n|  [qrl](#snapshotlistener-qrl) |  | [QRL](#qrl)<!-- -->&lt;any&gt; |  |",
+      "content": "```typescript\nexport interface SnapshotListener \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [el](#) |  | Element |  |\n|  [key](#) |  | string |  |\n|  [qrl](#) |  | [QRL](#qrl)<!-- -->&lt;any&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotlistener.md"
     },
@@ -4291,7 +1537,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotMetaValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [c?](#snapshotmetavalue-c) |  | string | _(Optional)_ |\n|  [h?](#snapshotmetavalue-h) |  | string | _(Optional)_ |\n|  [s?](#snapshotmetavalue-s) |  | string | _(Optional)_ |\n|  [w?](#snapshotmetavalue-w) |  | string | _(Optional)_ |",
+      "content": "```typescript\nexport interface SnapshotMetaValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [c?](#) |  | string | _(Optional)_ |\n|  [h?](#) |  | string | _(Optional)_ |\n|  [s?](#) |  | string | _(Optional)_ |\n|  [w?](#) |  | string | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotmetavalue.md"
     },
@@ -4305,7 +1551,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [funcs](#snapshotresult-funcs) |  | string\\[\\] |  |\n|  [mode](#snapshotresult-mode) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#snapshotresult-objs) |  | any\\[\\] |  |\n|  [qrls](#snapshotresult-qrls) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#snapshotresult-resources) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#snapshotresult-state) |  | [SnapshotState](#snapshotstate) |  |",
+      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [funcs](#) |  | string\\[\\] |  |\n|  [mode](#) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#) |  | any\\[\\] |  |\n|  [qrls](#) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#) |  | [SnapshotState](#snapshotstate) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotresult.md"
     },
@@ -4319,26 +1565,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotState \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#snapshotstate-ctx) |  | [SnapshotMeta](#snapshotmeta) |  |\n|  [objs](#) |  | any\\[\\] |  |\n|  [refs](#snapshotstate-refs) |  | Record&lt;string, string&gt; |  |\n|  [subs](#snapshotstate-subs) |  | any\\[\\] |  |",
+      "content": "```typescript\nexport interface SnapshotState \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#) |  | [SnapshotMeta](#snapshotmeta) |  |\n|  [objs](#) |  | any\\[\\] |  |\n|  [refs](#) |  | Record&lt;string, string&gt; |  |\n|  [subs](#) |  | any\\[\\] |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotstate.md"
-    },
-    {
-      "name": "spellcheck",
-      "id": "htmlattributes-spellcheck",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-spellcheck"
-        },
-        {
-          "name": "spellcheck",
-          "id": "htmlattributes-spellcheck"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nspellcheck?: boolean | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.spellcheck.md"
     },
     {
       "name": "SSRComment",
@@ -4378,7 +1607,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SSRHintProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dynamic?](#ssrhintprops-dynamic) |  | boolean | _(Optional)_ |",
+      "content": "```typescript\nexport interface SSRHintProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dynamic?](#) |  | boolean | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrhintprops.md"
     },
@@ -4439,57 +1668,6 @@
       "mdFile": "qwik.ssrstreamprops.md"
     },
     {
-      "name": "state",
-      "id": "snapshotresult-state",
-      "hierarchy": [
-        {
-          "name": "SnapshotResult",
-          "id": "snapshotresult-state"
-        },
-        {
-          "name": "state",
-          "id": "snapshotresult-state"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nstate: SnapshotState;\n```",
-      "mdFile": "qwik.snapshotresult.state.md"
-    },
-    {
-      "name": "strategy",
-      "id": "onvisibletaskoptions-strategy",
-      "hierarchy": [
-        {
-          "name": "OnVisibleTaskOptions",
-          "id": "onvisibletaskoptions-strategy"
-        },
-        {
-          "name": "strategy",
-          "id": "onvisibletaskoptions-strategy"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "The strategy to use to determine when the \"VisibleTask\" should first execute.\n\n- `intersection-observer`<!-- -->: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`<!-- -->: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`<!-- -->: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.\n\n\n```typescript\nstrategy?: VisibleTaskStrategy;\n```",
-      "mdFile": "qwik.onvisibletaskoptions.strategy.md"
-    },
-    {
-      "name": "stream",
-      "id": "renderssroptions-stream",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-stream"
-        },
-        {
-          "name": "stream",
-          "id": "renderssroptions-stream"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nstream: StreamWriter;\n```",
-      "mdFile": "qwik.renderssroptions.stream.md"
-    },
-    {
       "name": "StreamWriter",
       "id": "streamwriter",
       "hierarchy": [
@@ -4502,91 +1680,6 @@
       "content": "```typescript\nexport type StreamWriter = {\n    write: (chunk: string) => void;\n};\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts",
       "mdFile": "qwik.streamwriter.md"
-    },
-    {
-      "name": "style",
-      "id": "htmlattributes-style",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-style"
-        },
-        {
-          "name": "style",
-          "id": "htmlattributes-style"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nstyle?: Record<string, string | number | undefined> | string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.style.md"
-    },
-    {
-      "name": "subs",
-      "id": "snapshotstate-subs",
-      "hierarchy": [
-        {
-          "name": "SnapshotState",
-          "id": "snapshotstate-subs"
-        },
-        {
-          "name": "subs",
-          "id": "snapshotstate-subs"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nsubs: any[];\n```",
-      "mdFile": "qwik.snapshotstate.subs.md"
-    },
-    {
-      "name": "tabIndex",
-      "id": "htmlattributes-tabindex",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-tabindex"
-        },
-        {
-          "name": "tabIndex",
-          "id": "htmlattributes-tabindex"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntabIndex?: number | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.tabindex.md"
-    },
-    {
-      "name": "target",
-      "id": "qwikchangeevent-target",
-      "hierarchy": [
-        {
-          "name": "QwikChangeEvent",
-          "id": "qwikchangeevent-target"
-        },
-        {
-          "name": "target",
-          "id": "qwikchangeevent-target"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntarget: EventTarget & T;\n```",
-      "mdFile": "qwik.qwikchangeevent.target.md"
-    },
-    {
-      "name": "targetTouches",
-      "id": "qwiktouchevent-targettouches",
-      "hierarchy": [
-        {
-          "name": "QwikTouchEvent",
-          "id": "qwiktouchevent-targettouches"
-        },
-        {
-          "name": "targetTouches",
-          "id": "qwiktouchevent-targettouches"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntargetTouches: TouchList;\n```",
-      "mdFile": "qwik.qwiktouchevent.targettouches.md"
     },
     {
       "name": "TaskCtx",
@@ -4617,108 +1710,6 @@
       "mdFile": "qwik.taskfn.md"
     },
     {
-      "name": "tiltX",
-      "id": "qwikpointerevent-tiltx",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-tiltx"
-        },
-        {
-          "name": "tiltX",
-          "id": "qwikpointerevent-tiltx"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntiltX: number;\n```",
-      "mdFile": "qwik.qwikpointerevent.tiltx.md"
-    },
-    {
-      "name": "tiltY",
-      "id": "qwikpointerevent-tilty",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-tilty"
-        },
-        {
-          "name": "tiltY",
-          "id": "qwikpointerevent-tilty"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntiltY: number;\n```",
-      "mdFile": "qwik.qwikpointerevent.tilty.md"
-    },
-    {
-      "name": "timeout",
-      "id": "resourceoptions-timeout",
-      "hierarchy": [
-        {
-          "name": "ResourceOptions",
-          "id": "resourceoptions-timeout"
-        },
-        {
-          "name": "timeout",
-          "id": "resourceoptions-timeout"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource.\n\n\n```typescript\ntimeout?: number;\n```",
-      "mdFile": "qwik.resourceoptions.timeout.md"
-    },
-    {
-      "name": "title",
-      "id": "htmlattributes-title",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-title"
-        },
-        {
-          "name": "title",
-          "id": "htmlattributes-title"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntitle?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.title.md"
-    },
-    {
-      "name": "touches",
-      "id": "qwiktouchevent-touches",
-      "hierarchy": [
-        {
-          "name": "QwikTouchEvent",
-          "id": "qwiktouchevent-touches"
-        },
-        {
-          "name": "touches",
-          "id": "qwiktouchevent-touches"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntouches: TouchList;\n```",
-      "mdFile": "qwik.qwiktouchevent.touches.md"
-    },
-    {
-      "name": "track",
-      "id": "resourcectx-track",
-      "hierarchy": [
-        {
-          "name": "ResourceCtx",
-          "id": "resourcectx-track"
-        },
-        {
-          "name": "track",
-          "id": "resourcectx-track"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntrack: Tracker;\n```",
-      "mdFile": "qwik.resourcectx.track.md"
-    },
-    {
       "name": "Tracker",
       "id": "tracker",
       "hierarchy": [
@@ -4733,74 +1724,6 @@
       "mdFile": "qwik.tracker.md"
     },
     {
-      "name": "translate",
-      "id": "htmlattributes-translate",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-translate"
-        },
-        {
-          "name": "translate",
-          "id": "htmlattributes-translate"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntranslate?: 'yes' | 'no' | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.translate.md"
-    },
-    {
-      "name": "type",
-      "id": "jsxnode-type",
-      "hierarchy": [
-        {
-          "name": "JSXNode",
-          "id": "jsxnode-type"
-        },
-        {
-          "name": "type",
-          "id": "jsxnode-type"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntype: T;\n```",
-      "mdFile": "qwik.jsxnode.type.md"
-    },
-    {
-      "name": "typeof",
-      "id": "htmlattributes-typeof",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-typeof"
-        },
-        {
-          "name": "typeof",
-          "id": "htmlattributes-typeof"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ntypeof?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.typeof.md"
-    },
-    {
-      "name": "unselectable",
-      "id": "htmlattributes-unselectable",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-unselectable"
-        },
-        {
-          "name": "unselectable",
-          "id": "htmlattributes-unselectable"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nunselectable?: 'on' | 'off' | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.unselectable.md"
-    },
-    {
       "name": "untrack",
       "id": "untrack",
       "hierarchy": [
@@ -4813,23 +1736,6 @@
       "content": "```typescript\nuntrack: <T>(fn: () => T) => T\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts",
       "mdFile": "qwik.untrack.md"
-    },
-    {
-      "name": "url",
-      "id": "renderssroptions-url",
-      "hierarchy": [
-        {
-          "name": "RenderSSROptions",
-          "id": "renderssroptions-url"
-        },
-        {
-          "name": "url",
-          "id": "renderssroptions-url"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nurl?: string;\n```",
-      "mdFile": "qwik.renderssroptions.url.md"
     },
     {
       "name": "useBrowserVisibleTask$",
@@ -5247,7 +2153,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#usestoreoptions-deep) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#usestoreoptions-reactive) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |\n|  [recursive?](#usestoreoptions-recursive) |  | boolean | _(Optional)_ |",
+      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |\n|  [recursive?](#) |  | boolean | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "qwik.usestoreoptions.md"
     },
@@ -5289,7 +2195,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseStylesScoped \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [scopeId](#usestylesscoped-scopeid) |  | string |  |",
+      "content": "```typescript\nexport interface UseStylesScoped \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [scopeId](#) |  | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesscoped.md"
     },
@@ -5434,23 +2340,6 @@
       "mdFile": "qwik.usewatchqrl.md"
     },
     {
-      "name": "value",
-      "id": "resourcepending-value",
-      "hierarchy": [
-        {
-          "name": "ResourcePending",
-          "id": "resourcepending-value"
-        },
-        {
-          "name": "value",
-          "id": "resourcepending-value"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nreadonly value: Promise<T>;\n```",
-      "mdFile": "qwik.resourcepending.value.md"
-    },
-    {
       "name": "ValueOrPromise",
       "id": "valueorpromise",
       "hierarchy": [
@@ -5479,23 +2368,6 @@
       "mdFile": "qwik.version.md"
     },
     {
-      "name": "view",
-      "id": "qwikuievent-view",
-      "hierarchy": [
-        {
-          "name": "QwikUIEvent",
-          "id": "qwikuievent-view"
-        },
-        {
-          "name": "view",
-          "id": "qwikuievent-view"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nview: AbstractView;\n```",
-      "mdFile": "qwik.qwikuievent.view.md"
-    },
-    {
       "name": "VisibleTaskStrategy",
       "id": "visibletaskstrategy",
       "hierarchy": [
@@ -5508,108 +2380,6 @@
       "content": "```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.visibletaskstrategy.md"
-    },
-    {
-      "name": "vocab",
-      "id": "htmlattributes-vocab",
-      "hierarchy": [
-        {
-          "name": "HTMLAttributes",
-          "id": "htmlattributes-vocab"
-        },
-        {
-          "name": "vocab",
-          "id": "htmlattributes-vocab"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nvocab?: string | undefined;\n```",
-      "mdFile": "qwik.htmlattributes.vocab.md"
-    },
-    {
-      "name": "w",
-      "id": "snapshotmetavalue-w",
-      "hierarchy": [
-        {
-          "name": "SnapshotMetaValue",
-          "id": "snapshotmetavalue-w"
-        },
-        {
-          "name": "w",
-          "id": "snapshotmetavalue-w"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nw?: string;\n```",
-      "mdFile": "qwik.snapshotmetavalue.w.md"
-    },
-    {
-      "name": "which",
-      "id": "qwikkeyboardevent-which",
-      "hierarchy": [
-        {
-          "name": "QwikKeyboardEvent",
-          "id": "qwikkeyboardevent-which"
-        },
-        {
-          "name": "which",
-          "id": "qwikkeyboardevent-which"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nwhich: number;\n```",
-      "mdFile": "qwik.qwikkeyboardevent.which.md"
-    },
-    {
-      "name": "width",
-      "id": "qwikpointerevent-width",
-      "hierarchy": [
-        {
-          "name": "QwikPointerEvent",
-          "id": "qwikpointerevent-width"
-        },
-        {
-          "name": "width",
-          "id": "qwikpointerevent-width"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nwidth: number;\n```",
-      "mdFile": "qwik.qwikpointerevent.width.md"
-    },
-    {
-      "name": "x",
-      "id": "qwikmouseevent-x",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-x"
-        },
-        {
-          "name": "x",
-          "id": "qwikmouseevent-x"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nx: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.x.md"
-    },
-    {
-      "name": "y",
-      "id": "qwikmouseevent-y",
-      "hierarchy": [
-        {
-          "name": "QwikMouseEvent",
-          "id": "qwikmouseevent-y"
-        },
-        {
-          "name": "y",
-          "id": "qwikmouseevent-y"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\ny: number;\n```",
-      "mdFile": "qwik.qwikmouseevent.y.md"
     }
   ]
 }

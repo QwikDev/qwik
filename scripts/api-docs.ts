@@ -82,8 +82,17 @@ function createApiData(
 
   function addMember(apiExtract: any, hierarchyStr: string) {
     const apiName = apiExtract.name || '';
+    const apiKind = apiExtract.kind || '';
     if (apiName.length === 0) {
       return;
+    }
+
+    if (apiKind === 'PropertySignature') {
+      if (!apiName.includes(':')) {
+        // do not include PropertySignatures unless they are namespaced
+        // like q:slot or preventdefault:click
+        return;
+      }
     }
 
     const hierarchySplit = hierarchyStr.split('/').filter((m) => m.length > 0);
@@ -129,7 +138,7 @@ function createApiData(
       name: apiName,
       id,
       hierarchy,
-      kind: apiExtract.kind || '',
+      kind: apiKind,
       content: content.join('\n').trim(),
       editUrl: getEditUrl(config, apiExtract.fileUrlPath),
       mdFile,

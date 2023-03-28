@@ -4,412 +4,6 @@ title: \@builder.io/qwik API Reference
 
 # **API** @builder.io/qwik
 
-<h2 id="qrl-__brand__qrl__" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qrl-__brand__qrl__"><span class="icon icon-link"></span></a>__brand__QRL__ </h2>
-
-```typescript
-__brand__QRL__: TYPE;
-```
-
-<h2 id="contextid-__brand_context_type__" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#contextid-__brand_context_type__"><span class="icon icon-link"></span></a>__brand_context_type__ </h2>
-
-Design-time property to store type information for the context.
-
-```typescript
-readonly __brand_context_type__: STATE;
-```
-
-<h2 id="ariaattributes-_aria-activedescendant_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-activedescendant_"><span class="icon icon-link"></span></a>"aria-activedescendant" </h2>
-
-Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
-
-```typescript
-'aria-activedescendant'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-atomic_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-atomic_"><span class="icon icon-link"></span></a>"aria-atomic" </h2>
-
-Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute.
-
-```typescript
-'aria-atomic'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-autocomplete_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-autocomplete_"><span class="icon icon-link"></span></a>"aria-autocomplete" </h2>
-
-Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
-
-```typescript
-'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-busy_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-busy_"><span class="icon icon-link"></span></a>"aria-busy" </h2>
-
-Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user.
-
-```typescript
-'aria-busy'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-checked_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-checked_"><span class="icon icon-link"></span></a>"aria-checked" </h2>
-
-Indicates the current "checked" state of checkboxes, radio buttons, and other widgets.
-
-```typescript
-'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-colcount_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-colcount_"><span class="icon icon-link"></span></a>"aria-colcount" </h2>
-
-Defines the total number of columns in a table, grid, or treegrid.
-
-```typescript
-'aria-colcount'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-colindex_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-colindex_"><span class="icon icon-link"></span></a>"aria-colindex" </h2>
-
-Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.
-
-```typescript
-'aria-colindex'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-colspan_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-colspan_"><span class="icon icon-link"></span></a>"aria-colspan" </h2>
-
-Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid.
-
-```typescript
-'aria-colspan'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-controls_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-controls_"><span class="icon icon-link"></span></a>"aria-controls" </h2>
-
-Identifies the element (or elements) whose contents or presence are controlled by the current element.
-
-```typescript
-'aria-controls'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-current_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-current_"><span class="icon icon-link"></span></a>"aria-current" </h2>
-
-Indicates the element that represents the current item within a container or set of related elements.
-
-```typescript
-'aria-current'?: boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-describedby_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-describedby_"><span class="icon icon-link"></span></a>"aria-describedby" </h2>
-
-Identifies the element (or elements) that describes the object.
-
-```typescript
-'aria-describedby'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-details_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-details_"><span class="icon icon-link"></span></a>"aria-details" </h2>
-
-Identifies the element that provides a detailed, extended description for the object.
-
-```typescript
-'aria-details'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-disabled_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-disabled_"><span class="icon icon-link"></span></a>"aria-disabled" </h2>
-
-Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.
-
-```typescript
-'aria-disabled'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-dropeffect_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-dropeffect_"><span class="icon icon-link"></span></a>"aria-dropeffect" </h2>
-
-> Warning: This API is now obsolete.
->
-> in ARIA 1.1
-
-Indicates what functions can be performed when a dragged object is released on the drop target.
-
-```typescript
-'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-errormessage_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-errormessage_"><span class="icon icon-link"></span></a>"aria-errormessage" </h2>
-
-Identifies the element that provides an error message for the object.
-
-```typescript
-'aria-errormessage'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-expanded_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-expanded_"><span class="icon icon-link"></span></a>"aria-expanded" </h2>
-
-Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.
-
-```typescript
-'aria-expanded'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-flowto_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-flowto_"><span class="icon icon-link"></span></a>"aria-flowto" </h2>
-
-Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order.
-
-```typescript
-'aria-flowto'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-grabbed_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-grabbed_"><span class="icon icon-link"></span></a>"aria-grabbed" </h2>
-
-> Warning: This API is now obsolete.
->
-> in ARIA 1.1
-
-Indicates an element's "grabbed" state in a drag-and-drop operation.
-
-```typescript
-'aria-grabbed'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-haspopup_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-haspopup_"><span class="icon icon-link"></span></a>"aria-haspopup" </h2>
-
-Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.
-
-```typescript
-'aria-haspopup'?: boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-hidden_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-hidden_"><span class="icon icon-link"></span></a>"aria-hidden" </h2>
-
-Indicates whether the element is exposed to an accessibility API.
-
-```typescript
-'aria-hidden'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-invalid_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-invalid_"><span class="icon icon-link"></span></a>"aria-invalid" </h2>
-
-Indicates the entered value does not conform to the format expected by the application.
-
-```typescript
-'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-keyshortcuts_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-keyshortcuts_"><span class="icon icon-link"></span></a>"aria-keyshortcuts" </h2>
-
-Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element.
-
-```typescript
-'aria-keyshortcuts'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-label_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-label_"><span class="icon icon-link"></span></a>"aria-label" </h2>
-
-Defines a string value that labels the current element.
-
-```typescript
-'aria-label'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-labelledby_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-labelledby_"><span class="icon icon-link"></span></a>"aria-labelledby" </h2>
-
-Identifies the element (or elements) that labels the current element.
-
-```typescript
-'aria-labelledby'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-level_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-level_"><span class="icon icon-link"></span></a>"aria-level" </h2>
-
-Defines the hierarchical level of an element within a structure.
-
-```typescript
-'aria-level'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-live_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-live_"><span class="icon icon-link"></span></a>"aria-live" </h2>
-
-Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region.
-
-```typescript
-'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-modal_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-modal_"><span class="icon icon-link"></span></a>"aria-modal" </h2>
-
-Indicates whether an element is modal when displayed.
-
-```typescript
-'aria-modal'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-multiline_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-multiline_"><span class="icon icon-link"></span></a>"aria-multiline" </h2>
-
-Indicates whether a text box accepts multiple lines of input or only a single line.
-
-```typescript
-'aria-multiline'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-multiselectable_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-multiselectable_"><span class="icon icon-link"></span></a>"aria-multiselectable" </h2>
-
-Indicates that the user may select more than one item from the current selectable descendants.
-
-```typescript
-'aria-multiselectable'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-orientation_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-orientation_"><span class="icon icon-link"></span></a>"aria-orientation" </h2>
-
-Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous.
-
-```typescript
-'aria-orientation'?: 'horizontal' | 'vertical' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-owns_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-owns_"><span class="icon icon-link"></span></a>"aria-owns" </h2>
-
-Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship.
-
-```typescript
-'aria-owns'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-placeholder_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-placeholder_"><span class="icon icon-link"></span></a>"aria-placeholder" </h2>
-
-Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format.
-
-```typescript
-'aria-placeholder'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-posinset_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-posinset_"><span class="icon icon-link"></span></a>"aria-posinset" </h2>
-
-Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.
-
-```typescript
-'aria-posinset'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-pressed_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-pressed_"><span class="icon icon-link"></span></a>"aria-pressed" </h2>
-
-Indicates the current "pressed" state of toggle buttons.
-
-```typescript
-'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-readonly_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-readonly_"><span class="icon icon-link"></span></a>"aria-readonly" </h2>
-
-Indicates that the element is not editable, but is otherwise operable.
-
-```typescript
-'aria-readonly'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-relevant_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-relevant_"><span class="icon icon-link"></span></a>"aria-relevant" </h2>
-
-Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.
-
-```typescript
-'aria-relevant'?: 'additions' | 'additions removals' | 'additions text' | 'all' | 'removals' | 'removals additions' | 'removals text' | 'text' | 'text additions' | 'text removals' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-required_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-required_"><span class="icon icon-link"></span></a>"aria-required" </h2>
-
-Indicates that user input is required on the element before a form may be submitted.
-
-```typescript
-'aria-required'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-roledescription_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-roledescription_"><span class="icon icon-link"></span></a>"aria-roledescription" </h2>
-
-Defines a human-readable, author-localized description for the role of an element.
-
-```typescript
-'aria-roledescription'?: string | undefined;
-```
-
-<h2 id="ariaattributes-_aria-rowcount_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-rowcount_"><span class="icon icon-link"></span></a>"aria-rowcount" </h2>
-
-Defines the total number of rows in a table, grid, or treegrid.
-
-```typescript
-'aria-rowcount'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-rowindex_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-rowindex_"><span class="icon icon-link"></span></a>"aria-rowindex" </h2>
-
-Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.
-
-```typescript
-'aria-rowindex'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-rowspan_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-rowspan_"><span class="icon icon-link"></span></a>"aria-rowspan" </h2>
-
-Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.
-
-```typescript
-'aria-rowspan'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-selected_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-selected_"><span class="icon icon-link"></span></a>"aria-selected" </h2>
-
-Indicates the current "selected" state of various widgets.
-
-```typescript
-'aria-selected'?: Booleanish | undefined;
-```
-
-<h2 id="ariaattributes-_aria-setsize_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-setsize_"><span class="icon icon-link"></span></a>"aria-setsize" </h2>
-
-Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.
-
-```typescript
-'aria-setsize'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-sort_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-sort_"><span class="icon icon-link"></span></a>"aria-sort" </h2>
-
-Indicates if items in a table or grid are sorted in ascending or descending order.
-
-```typescript
-'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other' | undefined;
-```
-
-<h2 id="ariaattributes-_aria-valuemax_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-valuemax_"><span class="icon icon-link"></span></a>"aria-valuemax" </h2>
-
-Defines the maximum allowed value for a range widget.
-
-```typescript
-'aria-valuemax'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-valuemin_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-valuemin_"><span class="icon icon-link"></span></a>"aria-valuemin" </h2>
-
-Defines the minimum allowed value for a range widget.
-
-```typescript
-'aria-valuemin'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-valuenow_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-valuenow_"><span class="icon icon-link"></span></a>"aria-valuenow" </h2>
-
-Defines the current value for a range widget.
-
-```typescript
-'aria-valuenow'?: number | undefined;
-```
-
-<h2 id="ariaattributes-_aria-valuetext_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ariaattributes-_aria-valuetext_"><span class="icon icon-link"></span></a>"aria-valuetext" </h2>
-
-Defines the human readable text alternative of aria-valuenow for a range widget.
-
-```typescript
-'aria-valuetext'?: string | undefined;
-```
-
 <h2 id="componentbaseprops-_q_slot_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#componentbaseprops-_q_slot_"><span class="icon icon-link"></span></a>"q:slot" </h2>
 
 ```typescript
@@ -428,86 +22,62 @@ $: <T>(expression: T) => QRL<T>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="htmlattributes-about" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-about"><span class="icon icon-link"></span></a>about </h2>
-
-```typescript
-about?: string | undefined;
-```
-
-<h2 id="htmlattributes-accesskey" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-accesskey"><span class="icon icon-link"></span></a>accessKey </h2>
-
-```typescript
-accessKey?: string | undefined;
-```
-
-<h2 id="qwikkeyboardevent-altkey" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-altkey"><span class="icon icon-link"></span></a>altKey </h2>
-
-```typescript
-altKey: boolean;
-```
-
-<h2 id="qwikanimationevent-animationname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent-animationname"><span class="icon icon-link"></span></a>animationName </h2>
-
-```typescript
-animationName: string;
-```
-
 <h2 id="ariaattributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ariaattributes"><span class="icon icon-link"></span></a>AriaAttributes </h2>
 
 ```typescript
 export interface AriaAttributes
 ```
 
-| Property                                                            | Modifiers | Type                                                                                                                                                                                    | Description                                                                                                                                                                                                                       |
-| ------------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ["aria-activedescendant"?](#ariaattributes-_aria-activedescendant_) |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.                                                                                                     |
-| ["aria-atomic"?](#ariaattributes-_aria-atomic_)                     |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute.                                            |
-| ["aria-autocomplete"?](#ariaattributes-_aria-autocomplete_)         |           | 'none' \| 'inline' \| 'list' \| 'both' \| undefined                                                                                                                                     | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.                       |
-| ["aria-busy"?](#ariaattributes-_aria-busy_)                         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user.                                                       |
-| ["aria-checked"?](#ariaattributes-_aria-checked_)                   |           | boolean \| 'false' \| 'mixed' \| 'true' \| undefined                                                                                                                                    | _(Optional)_ Indicates the current "checked" state of checkboxes, radio buttons, and other widgets.                                                                                                                               |
-| ["aria-colcount"?](#ariaattributes-_aria-colcount_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid.                                                                                                                                                   |
-| ["aria-colindex"?](#ariaattributes-_aria-colindex_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.                                                                                         |
-| ["aria-colspan"?](#ariaattributes-_aria-colspan_)                   |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid.                                                                                                                       |
-| ["aria-controls"?](#ariaattributes-_aria-controls_)                 |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element.                                                                                                               |
-| ["aria-current"?](#ariaattributes-_aria-current_)                   |           | boolean \| 'false' \| 'true' \| 'page' \| 'step' \| 'location' \| 'date' \| 'time' \| undefined                                                                                         | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements.                                                                                                                |
-| ["aria-describedby"?](#ariaattributes-_aria-describedby_)           |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that describes the object.                                                                                                                                                      |
-| ["aria-details"?](#ariaattributes-_aria-details_)                   |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides a detailed, extended description for the object.                                                                                                                                |
-| ["aria-disabled"?](#ariaattributes-_aria-disabled_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.                                                                                                                 |
-| ["aria-dropeffect"?](#ariaattributes-_aria-dropeffect_)             |           | 'none' \| 'copy' \| 'execute' \| 'link' \| 'move' \| 'popup' \| undefined                                                                                                               | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target.                                                                                                                      |
-| ["aria-errormessage"?](#ariaattributes-_aria-errormessage_)         |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides an error message for the object.                                                                                                                                                |
-| ["aria-expanded"?](#ariaattributes-_aria-expanded_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.                                                                                                          |
-| ["aria-flowto"?](#ariaattributes-_aria-flowto_)                     |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |
-| ["aria-grabbed"?](#ariaattributes-_aria-grabbed_)                   |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element's "grabbed" state in a drag-and-drop operation.                                                                                                                                                 |
-| ["aria-haspopup"?](#ariaattributes-_aria-haspopup_)                 |           | boolean \| 'false' \| 'true' \| 'menu' \| 'listbox' \| 'tree' \| 'grid' \| 'dialog' \| undefined                                                                                        | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.                                                                                       |
-| ["aria-hidden"?](#ariaattributes-_aria-hidden_)                     |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element is exposed to an accessibility API.                                                                                                                                                    |
-| ["aria-invalid"?](#ariaattributes-_aria-invalid_)                   |           | boolean \| 'false' \| 'true' \| 'grammar' \| 'spelling' \| undefined                                                                                                                    | _(Optional)_ Indicates the entered value does not conform to the format expected by the application.                                                                                                                              |
-| ["aria-keyshortcuts"?](#ariaattributes-_aria-keyshortcuts_)         |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element.                                                                                                                 |
-| ["aria-label"?](#ariaattributes-_aria-label_)                       |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a string value that labels the current element.                                                                                                                                                              |
-| ["aria-labelledby"?](#ariaattributes-_aria-labelledby_)             |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that labels the current element.                                                                                                                                                |
-| ["aria-level"?](#ariaattributes-_aria-level_)                       |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the hierarchical level of an element within a structure.                                                                                                                                                     |
-| ["aria-live"?](#ariaattributes-_aria-live_)                         |           | 'off' \| 'assertive' \| 'polite' \| undefined                                                                                                                                           | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region.                                                     |
-| ["aria-modal"?](#ariaattributes-_aria-modal_)                       |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether an element is modal when displayed.                                                                                                                                                                |
-| ["aria-multiline"?](#ariaattributes-_aria-multiline_)               |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line.                                                                                                                                  |
-| ["aria-multiselectable"?](#ariaattributes-_aria-multiselectable_)   |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants.                                                                                                                       |
-| ["aria-orientation"?](#ariaattributes-_aria-orientation_)           |           | 'horizontal' \| 'vertical' \| undefined                                                                                                                                                 | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous.                                                                                                                           |
-| ["aria-owns"?](#ariaattributes-_aria-owns_)                         |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship.      |
-| ["aria-placeholder"?](#ariaattributes-_aria-placeholder_)           |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format.                  |
-| ["aria-posinset"?](#ariaattributes-_aria-posinset_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.                                                                |
-| ["aria-pressed"?](#ariaattributes-_aria-pressed_)                   |           | boolean \| 'false' \| 'mixed' \| 'true' \| undefined                                                                                                                                    | _(Optional)_ Indicates the current "pressed" state of toggle buttons.                                                                                                                                                             |
-| ["aria-readonly"?](#ariaattributes-_aria-readonly_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is not editable, but is otherwise operable.                                                                                                                                               |
-| ["aria-relevant"?](#ariaattributes-_aria-relevant_)                 |           | 'additions' \| 'additions removals' \| 'additions text' \| 'all' \| 'removals' \| 'removals additions' \| 'removals text' \| 'text' \| 'text additions' \| 'text removals' \| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.                                                                                               |
-| ["aria-required"?](#ariaattributes-_aria-required_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that user input is required on the element before a form may be submitted.                                                                                                                                 |
-| ["aria-roledescription"?](#ariaattributes-_aria-roledescription_)   |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a human-readable, author-localized description for the role of an element.                                                                                                                                   |
-| ["aria-rowcount"?](#ariaattributes-_aria-rowcount_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid.                                                                                                                                                      |
-| ["aria-rowindex"?](#ariaattributes-_aria-rowindex_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.                                                                                               |
-| ["aria-rowspan"?](#ariaattributes-_aria-rowspan_)                   |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.                                                                                                                          |
-| ["aria-selected"?](#ariaattributes-_aria-selected_)                 |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates the current "selected" state of various widgets.                                                                                                                                                           |
-| ["aria-setsize"?](#ariaattributes-_aria-setsize_)                   |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.                                                                            |
-| ["aria-sort"?](#ariaattributes-_aria-sort_)                         |           | 'none' \| 'ascending' \| 'descending' \| 'other' \| undefined                                                                                                                           | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order.                                                                                                                                   |
-| ["aria-valuemax"?](#ariaattributes-_aria-valuemax_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the maximum allowed value for a range widget.                                                                                                                                                                |
-| ["aria-valuemin"?](#ariaattributes-_aria-valuemin_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the minimum allowed value for a range widget.                                                                                                                                                                |
-| ["aria-valuenow"?](#ariaattributes-_aria-valuenow_)                 |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the current value for a range widget.                                                                                                                                                                        |
-| ["aria-valuetext"?](#ariaattributes-_aria-valuetext_)               |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget.                                                                                                                                     |
+| Property                      | Modifiers | Type                                                                                                                                                                                    | Description                                                                                                                                                                                                                       |
+| ----------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ["aria-activedescendant"?](#) |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.                                                                                                     |
+| ["aria-atomic"?](#)           |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute.                                            |
+| ["aria-autocomplete"?](#)     |           | 'none' \| 'inline' \| 'list' \| 'both' \| undefined                                                                                                                                     | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.                       |
+| ["aria-busy"?](#)             |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user.                                                       |
+| ["aria-checked"?](#)          |           | boolean \| 'false' \| 'mixed' \| 'true' \| undefined                                                                                                                                    | _(Optional)_ Indicates the current "checked" state of checkboxes, radio buttons, and other widgets.                                                                                                                               |
+| ["aria-colcount"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid.                                                                                                                                                   |
+| ["aria-colindex"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.                                                                                         |
+| ["aria-colspan"?](#)          |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid.                                                                                                                       |
+| ["aria-controls"?](#)         |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) whose contents or presence are controlled by the current element.                                                                                                               |
+| ["aria-current"?](#)          |           | boolean \| 'false' \| 'true' \| 'page' \| 'step' \| 'location' \| 'date' \| 'time' \| undefined                                                                                         | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements.                                                                                                                |
+| ["aria-describedby"?](#)      |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that describes the object.                                                                                                                                                      |
+| ["aria-details"?](#)          |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides a detailed, extended description for the object.                                                                                                                                |
+| ["aria-disabled"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.                                                                                                                 |
+| ["aria-dropeffect"?](#)       |           | 'none' \| 'copy' \| 'execute' \| 'link' \| 'move' \| 'popup' \| undefined                                                                                                               | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target.                                                                                                                      |
+| ["aria-errormessage"?](#)     |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides an error message for the object.                                                                                                                                                |
+| ["aria-expanded"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.                                                                                                          |
+| ["aria-flowto"?](#)           |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |
+| ["aria-grabbed"?](#)          |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element's "grabbed" state in a drag-and-drop operation.                                                                                                                                                 |
+| ["aria-haspopup"?](#)         |           | boolean \| 'false' \| 'true' \| 'menu' \| 'listbox' \| 'tree' \| 'grid' \| 'dialog' \| undefined                                                                                        | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.                                                                                       |
+| ["aria-hidden"?](#)           |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element is exposed to an accessibility API.                                                                                                                                                    |
+| ["aria-invalid"?](#)          |           | boolean \| 'false' \| 'true' \| 'grammar' \| 'spelling' \| undefined                                                                                                                    | _(Optional)_ Indicates the entered value does not conform to the format expected by the application.                                                                                                                              |
+| ["aria-keyshortcuts"?](#)     |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element.                                                                                                                 |
+| ["aria-label"?](#)            |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a string value that labels the current element.                                                                                                                                                              |
+| ["aria-labelledby"?](#)       |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that labels the current element.                                                                                                                                                |
+| ["aria-level"?](#)            |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the hierarchical level of an element within a structure.                                                                                                                                                     |
+| ["aria-live"?](#)             |           | 'off' \| 'assertive' \| 'polite' \| undefined                                                                                                                                           | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region.                                                     |
+| ["aria-modal"?](#)            |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether an element is modal when displayed.                                                                                                                                                                |
+| ["aria-multiline"?](#)        |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line.                                                                                                                                  |
+| ["aria-multiselectable"?](#)  |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants.                                                                                                                       |
+| ["aria-orientation"?](#)      |           | 'horizontal' \| 'vertical' \| undefined                                                                                                                                                 | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous.                                                                                                                           |
+| ["aria-owns"?](#)             |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship.      |
+| ["aria-placeholder"?](#)      |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format.                  |
+| ["aria-posinset"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.                                                                |
+| ["aria-pressed"?](#)          |           | boolean \| 'false' \| 'mixed' \| 'true' \| undefined                                                                                                                                    | _(Optional)_ Indicates the current "pressed" state of toggle buttons.                                                                                                                                                             |
+| ["aria-readonly"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is not editable, but is otherwise operable.                                                                                                                                               |
+| ["aria-relevant"?](#)         |           | 'additions' \| 'additions removals' \| 'additions text' \| 'all' \| 'removals' \| 'removals additions' \| 'removals text' \| 'text' \| 'text additions' \| 'text removals' \| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.                                                                                               |
+| ["aria-required"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that user input is required on the element before a form may be submitted.                                                                                                                                 |
+| ["aria-roledescription"?](#)  |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a human-readable, author-localized description for the role of an element.                                                                                                                                   |
+| ["aria-rowcount"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid.                                                                                                                                                      |
+| ["aria-rowindex"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.                                                                                               |
+| ["aria-rowspan"?](#)          |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.                                                                                                                          |
+| ["aria-selected"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates the current "selected" state of various widgets.                                                                                                                                                           |
+| ["aria-setsize"?](#)          |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.                                                                            |
+| ["aria-sort"?](#)             |           | 'none' \| 'ascending' \| 'descending' \| 'other' \| undefined                                                                                                                           | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order.                                                                                                                                   |
+| ["aria-valuemax"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the maximum allowed value for a range widget.                                                                                                                                                                |
+| ["aria-valuemin"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the minimum allowed value for a range widget.                                                                                                                                                                |
+| ["aria-valuenow"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the current value for a range widget.                                                                                                                                                                        |
+| ["aria-valuetext"?](#)        |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget.                                                                                                                                     |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
 
@@ -589,60 +159,6 @@ export type AriaRole =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="htmlattributes-autocapitalize" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-autocapitalize"><span class="icon icon-link"></span></a>autoCapitalize </h2>
-
-```typescript
-autoCapitalize?: string | undefined;
-```
-
-<h2 id="htmlattributes-autocorrect" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-autocorrect"><span class="icon icon-link"></span></a>autoCorrect </h2>
-
-```typescript
-autoCorrect?: string | undefined;
-```
-
-<h2 id="htmlattributes-autosave" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-autosave"><span class="icon icon-link"></span></a>autoSave </h2>
-
-```typescript
-autoSave?: string | undefined;
-```
-
-<h2 id="renderssroptions-base" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-base"><span class="icon icon-link"></span></a>base </h2>
-
-```typescript
-base?: string;
-```
-
-<h2 id="renderssroptions-beforeclose" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-beforeclose"><span class="icon icon-link"></span></a>beforeClose </h2>
-
-```typescript
-beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
-```
-
-<h2 id="renderssroptions-beforecontent" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-beforecontent"><span class="icon icon-link"></span></a>beforeContent </h2>
-
-```typescript
-beforeContent?: JSXNode<string>[];
-```
-
-<h2 id="qwikmouseevent-button" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-button"><span class="icon icon-link"></span></a>button </h2>
-
-```typescript
-button: number;
-```
-
-<h2 id="qwikmouseevent-buttons" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-buttons"><span class="icon icon-link"></span></a>buttons </h2>
-
-```typescript
-buttons: number;
-```
-
-<h2 id="snapshotmetavalue-c" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-c"><span class="icon icon-link"></span></a>c </h2>
-
-```typescript
-c?: string;
-```
-
 <h2 id="resourcectx-cache" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#resourcectx-cache"><span class="icon icon-link"></span></a>cache </h2>
 
 ```typescript
@@ -657,34 +173,6 @@ cache(policyOrMilliseconds: number | 'immutable'): void;
 
 void
 
-<h2 id="qwiktouchevent-changedtouches" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent-changedtouches"><span class="icon icon-link"></span></a>changedTouches </h2>
-
-```typescript
-changedTouches: TouchList;
-```
-
-<h2 id="qwikkeyboardevent-charcode" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-charcode"><span class="icon icon-link"></span></a>charCode </h2>
-
-```typescript
-charCode: number;
-```
-
-<h2 id="domattributes-children" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#domattributes-children"><span class="icon icon-link"></span></a>children </h2>
-
-```typescript
-children?: JSXChildren;
-```
-
-<h2 id="coreplatform-chunkforsymbol" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#coreplatform-chunkforsymbol"><span class="icon icon-link"></span></a>chunkForSymbol </h2>
-
-Retrieve chunk name for the symbol.
-
-When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)
-
-```typescript
-chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
-```
-
 <h2 id="renderresult-cleanup" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#renderresult-cleanup"><span class="icon icon-link"></span></a>cleanup </h2>
 
 ```typescript
@@ -694,30 +182,6 @@ cleanup(): void;
 **Returns:**
 
 void
-
-<h2 id="qwikmouseevent-clientx" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-clientx"><span class="icon icon-link"></span></a>clientX </h2>
-
-```typescript
-clientX: number;
-```
-
-<h2 id="qwikmouseevent-clienty" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-clienty"><span class="icon icon-link"></span></a>clientY </h2>
-
-```typescript
-clientY: number;
-```
-
-<h2 id="qwikclipboardevent-clipboarddata" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikclipboardevent-clipboarddata"><span class="icon icon-link"></span></a>clipboardData </h2>
-
-```typescript
-clipboardData: DataTransfer;
-```
-
-<h2 id="htmlattributes-color" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-color"><span class="icon icon-link"></span></a>color </h2>
-
-```typescript
-color?: string | undefined;
-```
 
 <h2 id="component" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#component"><span class="icon icon-link"></span></a>Component </h2>
 
@@ -799,7 +263,7 @@ export interface ComponentBaseProps
 | Property                                  | Modifiers | Type                                  | Description  |
 | ----------------------------------------- | --------- | ------------------------------------- | ------------ |
 | ["q:slot"?](#componentbaseprops-_q_slot_) |           | string                                | _(Optional)_ |
-| [key?](#componentbaseprops-key)           |           | string \| number \| null \| undefined | _(Optional)_ |
+| [key?](#)                                 |           | string \| number \| null \| undefined | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
 
@@ -851,24 +315,6 @@ componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) =>
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="renderssroptions-containerattributes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-containerattributes"><span class="icon icon-link"></span></a>containerAttributes </h2>
-
-```typescript
-containerAttributes: Record<string, string>;
-```
-
-<h2 id="renderssroptions-containertagname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-containertagname"><span class="icon icon-link"></span></a>containerTagName </h2>
-
-```typescript
-containerTagName: string;
-```
-
-<h2 id="htmlattributes-contenteditable" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-contenteditable"><span class="icon icon-link"></span></a>contentEditable </h2>
-
-```typescript
-contentEditable?: 'true' | 'false' | 'inherit' | undefined;
-```
 
 <h2 id="context" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#context"><span class="icon icon-link"></span></a>Context </h2>
 
@@ -932,18 +378,12 @@ export const Items = component$(() => {
 export interface ContextId<STATE>
 ```
 
-| Property                                                        | Modifiers             | Type   | Description                                                     |
-| --------------------------------------------------------------- | --------------------- | ------ | --------------------------------------------------------------- |
-| [\_\_brand_context_type\_\_](#contextid-__brand_context_type__) | <code>readonly</code> | STATE  | Design-time property to store type information for the context. |
-| [id](#contextid-id)                                             | <code>readonly</code> | string | A unique ID for the context.                                    |
+| Property                        | Modifiers             | Type   | Description                                                     |
+| ------------------------------- | --------------------- | ------ | --------------------------------------------------------------- |
+| [\_\_brand_context_type\_\_](#) | <code>readonly</code> | STATE  | Design-time property to store type information for the context. |
+| [id](#)                         | <code>readonly</code> | string | A unique ID for the context.                                    |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="htmlattributes-contextmenu" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-contextmenu"><span class="icon icon-link"></span></a>contextMenu </h2>
-
-```typescript
-contextMenu?: string | undefined;
-```
 
 <h2 id="coreplatform" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#coreplatform"><span class="icon icon-link"></span></a>CorePlatform </h2>
 
@@ -959,13 +399,13 @@ This is a low-level API and there should not be a need for you to access this.
 export interface CorePlatform
 ```
 
-| Property                                       | Modifiers | Type                                                                                                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ---------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [chunkForSymbol](#coreplatform-chunkforsymbol) |           | (symbolName: string, chunk: string \| null) =&gt; readonly \[symbol: string, chunk: string\] \| undefined                                       | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p>                                                                                                                                    |
-| [importSymbol](#coreplatform-importsymbol)     |           | (containerEl: Element \| undefined, url: string \| URL \| undefined \| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |
-| [isServer](#coreplatform-isserver)             |           | boolean                                                                                                                                         | True of running on the server platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| [nextTick](#coreplatform-nexttick)             |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next tick.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| [raf](#coreplatform-raf)                       |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next request-animation-frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Property            | Modifiers | Type                                                                                                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [chunkForSymbol](#) |           | (symbolName: string, chunk: string \| null) =&gt; readonly \[symbol: string, chunk: string\] \| undefined                                       | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p>                                                                                                                                    |
+| [importSymbol](#)   |           | (containerEl: Element \| undefined, url: string \| URL \| undefined \| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |
+| [isServer](#)       |           | boolean                                                                                                                                         | True of running on the server platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| [nextTick](#)       |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next tick.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| [raf](#)            |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next request-animation-frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -1031,92 +471,6 @@ createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="qwikkeyboardevent-ctrlkey" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-ctrlkey"><span class="icon icon-link"></span></a>ctrlKey </h2>
-
-```typescript
-ctrlKey: boolean;
-```
-
-<h2 id="snapshotstate-ctx" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotstate-ctx"><span class="icon icon-link"></span></a>ctx </h2>
-
-```typescript
-ctx: SnapshotMeta;
-```
-
-<h2 id="ref-current" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ref-current"><span class="icon icon-link"></span></a>current </h2>
-
-```typescript
-current: T | undefined;
-```
-
-<h2 id="qwikcompositionevent-data" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcompositionevent-data"><span class="icon icon-link"></span></a>data </h2>
-
-```typescript
-data: string;
-```
-
-<h2 id="qwikdragevent-datatransfer" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikdragevent-datatransfer"><span class="icon icon-link"></span></a>dataTransfer </h2>
-
-```typescript
-dataTransfer: DataTransfer;
-```
-
-<h2 id="htmlattributes-datatype" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-datatype"><span class="icon icon-link"></span></a>datatype </h2>
-
-```typescript
-datatype?: string | undefined;
-```
-
-<h2 id="usestoreoptions-deep" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions-deep"><span class="icon icon-link"></span></a>deep </h2>
-
-If `true` then all nested objects and arrays will be tracked as well. Default is `false`.
-
-```typescript
-deep?: boolean;
-```
-
-<h2 id="qwikwheelevent-deltamode" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltamode"><span class="icon icon-link"></span></a>deltaMode </h2>
-
-```typescript
-deltaMode: number;
-```
-
-<h2 id="qwikwheelevent-deltax" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltax"><span class="icon icon-link"></span></a>deltaX </h2>
-
-```typescript
-deltaX: number;
-```
-
-<h2 id="qwikwheelevent-deltay" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltay"><span class="icon icon-link"></span></a>deltaY </h2>
-
-```typescript
-deltaY: number;
-```
-
-<h2 id="qwikwheelevent-deltaz" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent-deltaz"><span class="icon icon-link"></span></a>deltaZ </h2>
-
-```typescript
-deltaZ: number;
-```
-
-<h2 id="qwikuievent-detail" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikuievent-detail"><span class="icon icon-link"></span></a>detail </h2>
-
-```typescript
-detail: number;
-```
-
-<h2 id="jsxnode-dev" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#jsxnode-dev"><span class="icon icon-link"></span></a>dev </h2>
-
-```typescript
-dev?: DevJSX;
-```
-
-<h2 id="htmlattributes-dir" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-dir"><span class="icon icon-link"></span></a>dir </h2>
-
-```typescript
-dir?: 'ltr' | 'rtl' | 'auto' | undefined;
-```
-
 <h2 id="domattributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#domattributes"><span class="icon icon-link"></span></a>DOMAttributes </h2>
 
 ```typescript
@@ -1125,34 +479,12 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T>
 
 **Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;
 
-| Property                             | Modifiers | Type                                  | Description  |
-| ------------------------------------ | --------- | ------------------------------------- | ------------ |
-| [children?](#domattributes-children) |           | [JSXChildren](#jsxchildren)           | _(Optional)_ |
-| [key?](#)                            |           | string \| number \| null \| undefined | _(Optional)_ |
+| Property       | Modifiers | Type                                  | Description  |
+| -------------- | --------- | ------------------------------------- | ------------ |
+| [children?](#) |           | [JSXChildren](#jsxchildren)           | _(Optional)_ |
+| [key?](#)      |           | string \| number \| null \| undefined | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="htmlattributes-draggable" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-draggable"><span class="icon icon-link"></span></a>draggable </h2>
-
-```typescript
-draggable?: boolean | undefined;
-```
-
-<h2 id="ssrhintprops-dynamic" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#ssrhintprops-dynamic"><span class="icon icon-link"></span></a>dynamic </h2>
-
-```typescript
-dynamic?: boolean;
-```
-
-<h2 id="onvisibletaskoptions-eagerness" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions-eagerness"><span class="icon icon-link"></span></a>eagerness </h2>
-
-> Warning: This API is now obsolete.
->
-> Use `strategy` instead.
-
-```typescript
-eagerness?: EagernessOptions;
-```
 
 <h2 id="eagernessoptions" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#eagernessoptions"><span class="icon icon-link"></span></a>EagernessOptions </h2>
 
@@ -1161,18 +493,6 @@ export type EagernessOptions = "visible" | "load" | "idle";
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="snapshotlistener-el" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotlistener-el"><span class="icon icon-link"></span></a>el </h2>
-
-```typescript
-el: Element;
-```
-
-<h2 id="qwikanimationevent-elapsedtime" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent-elapsedtime"><span class="icon icon-link"></span></a>elapsedTime </h2>
-
-```typescript
-elapsedTime: number;
-```
 
 <h2 id="h-jsx-element" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-element"><span class="icon icon-link"></span></a>Element </h2>
 
@@ -1192,21 +512,15 @@ interface ElementChildrenAttribute
 | -------------- | --------- | ---- | ------------ |
 | [children?](#) |           | any  | _(Optional)_ |
 
-<h2 id="errorboundarystore-error" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#errorboundarystore-error"><span class="icon icon-link"></span></a>error </h2>
-
-```typescript
-error: any | undefined;
-```
-
 <h2 id="errorboundarystore" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#errorboundarystore"><span class="icon icon-link"></span></a>ErrorBoundaryStore </h2>
 
 ```typescript
 export interface ErrorBoundaryStore
 ```
 
-| Property                           | Modifiers | Type             | Description |
-| ---------------------------------- | --------- | ---------------- | ----------- |
-| [error](#errorboundarystore-error) |           | any \| undefined |             |
+| Property   | Modifiers | Type             | Description |
+| ---------- | --------- | ---------------- | ----------- |
+| [error](#) |           | any \| undefined |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts" target="_blanks">Edit this section</a></p>
 
@@ -1226,12 +540,6 @@ eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="jsxnode-flags" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#jsxnode-flags"><span class="icon icon-link"></span></a>flags </h2>
-
-```typescript
-flags: number;
-```
-
 <h2 id="fragment" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#fragment"><span class="icon icon-link"></span></a>Fragment </h2>
 
 ```typescript
@@ -1242,12 +550,6 @@ Fragment: FunctionComponent<{
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="snapshotresult-funcs" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-funcs"><span class="icon icon-link"></span></a>funcs </h2>
-
-```typescript
-funcs: string[];
-```
 
 <h2 id="functioncomponent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#functioncomponent"><span class="icon icon-link"></span></a>FunctionComponent </h2>
 
@@ -1359,24 +661,6 @@ export declare namespace h
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="snapshotmetavalue-h" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-h"><span class="icon icon-link"></span></a>h </h2>
-
-```typescript
-h?: string;
-```
-
-<h2 id="qwikpointerevent-height" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-height"><span class="icon icon-link"></span></a>height </h2>
-
-```typescript
-height: number;
-```
-
-<h2 id="htmlattributes-hidden" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-hidden"><span class="icon icon-link"></span></a>hidden </h2>
-
-```typescript
-hidden?: boolean | undefined;
-```
-
 <h2 id="htmlattributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#htmlattributes"><span class="icon icon-link"></span></a>HTMLAttributes </h2>
 
 ```typescript
@@ -1385,63 +669,49 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 
 **Extends:** [AriaAttributes](#ariaattributes), [DOMAttributes](#domattributes)&lt;T&gt;
 
-| Property                                            | Modifiers | Type                                                                                             | Description                                                                                                        |
-| --------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| [about?](#htmlattributes-about)                     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [accessKey?](#htmlattributes-accesskey)             |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [autoCapitalize?](#htmlattributes-autocapitalize)   |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [autoCorrect?](#htmlattributes-autocorrect)         |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [autoSave?](#htmlattributes-autosave)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [color?](#htmlattributes-color)                     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [contentEditable?](#htmlattributes-contenteditable) |           | 'true' \| 'false' \| 'inherit' \| undefined                                                      | _(Optional)_                                                                                                       |
-| [contextMenu?](#htmlattributes-contextmenu)         |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [datatype?](#htmlattributes-datatype)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [dir?](#htmlattributes-dir)                         |           | 'ltr' \| 'rtl' \| 'auto' \| undefined                                                            | _(Optional)_                                                                                                       |
-| [draggable?](#htmlattributes-draggable)             |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [hidden?](#htmlattributes-hidden)                   |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [id?](#)                                            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [inlist?](#htmlattributes-inlist)                   |           | any                                                                                              | _(Optional)_                                                                                                       |
-| [inputMode?](#htmlattributes-inputmode)             |           | 'none' \| 'text' \| 'tel' \| 'url' \| 'email' \| 'numeric' \| 'decimal' \| 'search' \| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |
-| [is?](#htmlattributes-is)                           |           | string \| undefined                                                                              | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element             |
-| [itemID?](#htmlattributes-itemid)                   |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [itemProp?](#htmlattributes-itemprop)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [itemRef?](#htmlattributes-itemref)                 |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [itemScope?](#htmlattributes-itemscope)             |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [itemType?](#htmlattributes-itemtype)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [lang?](#htmlattributes-lang)                       |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [placeholder?](#htmlattributes-placeholder)         |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [prefix?](#htmlattributes-prefix)                   |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [property?](#htmlattributes-property)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [radioGroup?](#htmlattributes-radiogroup)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [resource?](#htmlattributes-resource)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [results?](#htmlattributes-results)                 |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [role?](#htmlattributes-role)                       |           | [AriaRole](#ariarole) \| undefined                                                               | _(Optional)_                                                                                                       |
-| [security?](#htmlattributes-security)               |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [slot?](#htmlattributes-slot)                       |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [spellcheck?](#htmlattributes-spellcheck)           |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [style?](#htmlattributes-style)                     |           | Record&lt;string, string \| number \| undefined&gt; \| string \| undefined                       | _(Optional)_                                                                                                       |
-| [tabIndex?](#htmlattributes-tabindex)               |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [title?](#htmlattributes-title)                     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [translate?](#htmlattributes-translate)             |           | 'yes' \| 'no' \| undefined                                                                       | _(Optional)_                                                                                                       |
-| [typeof?](#htmlattributes-typeof)                   |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [unselectable?](#htmlattributes-unselectable)       |           | 'on' \| 'off' \| undefined                                                                       | _(Optional)_                                                                                                       |
-| [vocab?](#htmlattributes-vocab)                     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| Property              | Modifiers | Type                                                                                             | Description                                                                                                        |
+| --------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| [about?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [accessKey?](#)       |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [autoCapitalize?](#)  |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [autoCorrect?](#)     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [autoSave?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [color?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [contentEditable?](#) |           | 'true' \| 'false' \| 'inherit' \| undefined                                                      | _(Optional)_                                                                                                       |
+| [contextMenu?](#)     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [datatype?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [dir?](#)             |           | 'ltr' \| 'rtl' \| 'auto' \| undefined                                                            | _(Optional)_                                                                                                       |
+| [draggable?](#)       |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
+| [hidden?](#)          |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
+| [id?](#)              |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [inlist?](#)          |           | any                                                                                              | _(Optional)_                                                                                                       |
+| [inputMode?](#)       |           | 'none' \| 'text' \| 'tel' \| 'url' \| 'email' \| 'numeric' \| 'decimal' \| 'search' \| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |
+| [is?](#)              |           | string \| undefined                                                                              | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element             |
+| [itemID?](#)          |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [itemProp?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [itemRef?](#)         |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [itemScope?](#)       |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
+| [itemType?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [lang?](#)            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [placeholder?](#)     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [prefix?](#)          |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [property?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [radioGroup?](#)      |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [resource?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [results?](#)         |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [role?](#)            |           | [AriaRole](#ariarole) \| undefined                                                               | _(Optional)_                                                                                                       |
+| [security?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [slot?](#)            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [spellcheck?](#)      |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
+| [style?](#)           |           | Record&lt;string, string \| number \| undefined&gt; \| string \| undefined                       | _(Optional)_                                                                                                       |
+| [tabIndex?](#)        |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [title?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [translate?](#)       |           | 'yes' \| 'no' \| undefined                                                                       | _(Optional)_                                                                                                       |
+| [typeof?](#)          |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [unselectable?](#)    |           | 'on' \| 'off' \| undefined                                                                       | _(Optional)_                                                                                                       |
+| [vocab?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="contextid-id" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#contextid-id"><span class="icon icon-link"></span></a>id </h2>
-
-A unique ID for the context.
-
-```typescript
-readonly id: string;
-```
-
-<h2 id="jsxnode-immutableprops" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#jsxnode-immutableprops"><span class="icon icon-link"></span></a>immutableProps </h2>
-
-```typescript
-immutableProps: Record<string, any> | null;
-```
 
 <h2 id="implicit_firstarg" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#implicit_firstarg"><span class="icon icon-link"></span></a>implicit$FirstArg </h2>
 
@@ -1484,36 +754,6 @@ implicit$FirstArg: <FIRST, REST extends any[], RET>(
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="coreplatform-importsymbol" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#coreplatform-importsymbol"><span class="icon icon-link"></span></a>importSymbol </h2>
-
-Retrieve a symbol value from QRL.
-
-Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using `importSymbol`.
-
-Why not use `import()`? Because `import()` is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.
-
-```typescript
-importSymbol: (
-  containerEl: Element | undefined,
-  url: string | URL | undefined | null,
-  symbol: string
-) => ValueOrPromise<any>;
-```
-
-<h2 id="htmlattributes-inlist" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-inlist"><span class="icon icon-link"></span></a>inlist </h2>
-
-```typescript
-inlist?: any;
-```
-
-<h2 id="htmlattributes-inputmode" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-inputmode"><span class="icon icon-link"></span></a>inputMode </h2>
-
-Hints at the type of data that might be entered by the user while editing the element or its contents
-
-```typescript
-inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;
-```
-
 <h2 id="h-jsx-intrinsicattributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-intrinsicattributes"><span class="icon icon-link"></span></a>IntrinsicAttributes </h2>
 
 ```typescript
@@ -1529,58 +769,6 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 ```
 
 **Extends:** [QwikJSX.IntrinsicElements](#)
-
-<h2 id="htmlattributes-is" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-is"><span class="icon icon-link"></span></a>is </h2>
-
-Specify that a standard HTML element should behave like a defined custom built-in element
-
-```typescript
-is?: string | undefined;
-```
-
-<h2 id="qwikpointerevent-isprimary" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-isprimary"><span class="icon icon-link"></span></a>isPrimary </h2>
-
-```typescript
-isPrimary: boolean;
-```
-
-<h2 id="coreplatform-isserver" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#coreplatform-isserver"><span class="icon icon-link"></span></a>isServer </h2>
-
-True of running on the server platform.
-
-```typescript
-isServer: boolean;
-```
-
-<h2 id="htmlattributes-itemid" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-itemid"><span class="icon icon-link"></span></a>itemID </h2>
-
-```typescript
-itemID?: string | undefined;
-```
-
-<h2 id="htmlattributes-itemprop" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-itemprop"><span class="icon icon-link"></span></a>itemProp </h2>
-
-```typescript
-itemProp?: string | undefined;
-```
-
-<h2 id="htmlattributes-itemref" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-itemref"><span class="icon icon-link"></span></a>itemRef </h2>
-
-```typescript
-itemRef?: string | undefined;
-```
-
-<h2 id="htmlattributes-itemscope" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-itemscope"><span class="icon icon-link"></span></a>itemScope </h2>
-
-```typescript
-itemScope?: boolean | undefined;
-```
-
-<h2 id="htmlattributes-itemtype" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-itemtype"><span class="icon icon-link"></span></a>itemType </h2>
-
-```typescript
-itemType?: string | undefined;
-```
 
 <h2 id="jsx" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#jsx"><span class="icon icon-link"></span></a>jsx </h2>
 
@@ -1649,15 +837,15 @@ jsxDEV: <T extends string | FunctionComponent<any>>(
 export interface JSXNode<T = string | FunctionComponent>
 ```
 
-| Property                                  | Modifiers | Type                                                                                             | Description  |
-| ----------------------------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------ |
-| [children](#)                             |           | any \| null                                                                                      |              |
-| [dev?](#jsxnode-dev)                      |           | DevJSX                                                                                           | _(Optional)_ |
-| [flags](#jsxnode-flags)                   |           | number                                                                                           |              |
-| [immutableProps](#jsxnode-immutableprops) |           | Record&lt;string, any&gt; \| null                                                                |              |
-| [key](#)                                  |           | string \| null                                                                                   |              |
-| [props](#jsxnode-props)                   |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;string, any&gt; |              |
-| [type](#jsxnode-type)                     |           | T                                                                                                |              |
+| Property            | Modifiers | Type                                                                                             | Description  |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------ |
+| [children](#)       |           | any \| null                                                                                      |              |
+| [dev?](#)           |           | DevJSX                                                                                           | _(Optional)_ |
+| [flags](#)          |           | number                                                                                           |              |
+| [immutableProps](#) |           | Record&lt;string, any&gt; \| null                                                                |              |
+| [key](#)            |           | string \| null                                                                                   |              |
+| [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;string, any&gt; |              |
+| [type](#)           |           | T                                                                                                |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts" target="_blanks">Edit this section</a></p>
 
@@ -1671,54 +859,6 @@ export type JSXTagName =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="componentbaseprops-key" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#componentbaseprops-key"><span class="icon icon-link"></span></a>key </h2>
-
-```typescript
-key?: string | number | null | undefined;
-```
-
-<h2 id="qwikkeyboardevent-keycode" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-keycode"><span class="icon icon-link"></span></a>keyCode </h2>
-
-```typescript
-keyCode: number;
-```
-
-<h2 id="htmlattributes-lang" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-lang"><span class="icon icon-link"></span></a>lang </h2>
-
-```typescript
-lang?: string | undefined;
-```
-
-<h2 id="resourcepending-loading" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourcepending-loading"><span class="icon icon-link"></span></a>loading </h2>
-
-```typescript
-readonly loading: boolean;
-```
-
-<h2 id="qwikkeyboardevent-locale" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-locale"><span class="icon icon-link"></span></a>locale </h2>
-
-```typescript
-locale: string;
-```
-
-<h2 id="qwikkeyboardevent-location" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-location"><span class="icon icon-link"></span></a>location </h2>
-
-```typescript
-location: number;
-```
-
-<h2 id="qwikkeyboardevent-metakey" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-metakey"><span class="icon icon-link"></span></a>metaKey </h2>
-
-```typescript
-metaKey: boolean;
-```
-
-<h2 id="snapshotresult-mode" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-mode"><span class="icon icon-link"></span></a>mode </h2>
-
-```typescript
-mode: "render" | "listeners" | "static";
-```
-
 <h2 id="mountfn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#mountfn"><span class="icon icon-link"></span></a>MountFn </h2>
 
 ```typescript
@@ -1728,18 +868,6 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 **References:** [ValueOrPromise](#valueorpromise)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikmouseevent-movementx" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-movementx"><span class="icon icon-link"></span></a>movementX </h2>
-
-```typescript
-movementX: number;
-```
-
-<h2 id="qwikmouseevent-movementy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-movementy"><span class="icon icon-link"></span></a>movementY </h2>
-
-```typescript
-movementY: number;
-```
 
 <h2 id="mutable" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#mutable"><span class="icon icon-link"></span></a>mutable </h2>
 
@@ -1849,14 +977,6 @@ export type NativeWheelEvent = WheelEvent;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="coreplatform-nexttick" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#coreplatform-nexttick"><span class="icon icon-link"></span></a>nextTick </h2>
-
-Perform operation on next tick.
-
-```typescript
-nextTick: (fn: () => any) => Promise<any>;
-```
-
 <h2 id="noserialize" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#noserialize"><span class="icon icon-link"></span></a>noSerialize </h2>
 
 Marks a property on a store as non-serializable.
@@ -1889,24 +1009,6 @@ noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="snapshotresult-objs" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-objs"><span class="icon icon-link"></span></a>objs </h2>
-
-```typescript
-objs: any[];
-```
-
-<h2 id="resourceprops-onpending" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourceprops-onpending"><span class="icon icon-link"></span></a>onPending </h2>
-
-```typescript
-onPending?: () => JSXNode;
-```
-
-<h2 id="resourceprops-onrejected" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourceprops-onrejected"><span class="icon icon-link"></span></a>onRejected </h2>
-
-```typescript
-onRejected?: (reason: any) => JSXNode;
-```
-
 <h2 id="onrenderfn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#onrenderfn"><span class="icon icon-link"></span></a>OnRenderFn </h2>
 
 ```typescript
@@ -1917,84 +1019,18 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="resourceprops-onresolved" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourceprops-onresolved"><span class="icon icon-link"></span></a>onResolved </h2>
-
-```typescript
-onResolved: (value: T) => JSXNode;
-```
-
 <h2 id="onvisibletaskoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions"><span class="icon icon-link"></span></a>OnVisibleTaskOptions </h2>
 
 ```typescript
 export interface OnVisibleTaskOptions
 ```
 
-| Property                                      | Modifiers | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| --------------------------------------------- | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [eagerness?](#onvisibletaskoptions-eagerness) |           | [EagernessOptions](#eagernessoptions)       | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| [strategy?](#onvisibletaskoptions-strategy)   |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
+| Property        | Modifiers | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------- | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [eagerness?](#) |           | [EagernessOptions](#eagernessoptions)       | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| [strategy?](#)  |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikmouseevent-pagex" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-pagex"><span class="icon icon-link"></span></a>pageX </h2>
-
-```typescript
-pageX: number;
-```
-
-<h2 id="qwikmouseevent-pagey" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-pagey"><span class="icon icon-link"></span></a>pageY </h2>
-
-```typescript
-pageY: number;
-```
-
-<h2 id="htmlattributes-placeholder" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-placeholder"><span class="icon icon-link"></span></a>placeholder </h2>
-
-```typescript
-placeholder?: string | undefined;
-```
-
-<h2 id="qwikpointerevent-pointerid" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-pointerid"><span class="icon icon-link"></span></a>pointerId </h2>
-
-```typescript
-pointerId: number;
-```
-
-<h2 id="qwikpointerevent-pointertype" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-pointertype"><span class="icon icon-link"></span></a>pointerType </h2>
-
-```typescript
-pointerType: "mouse" | "pen" | "touch";
-```
-
-<h2 id="htmlattributes-prefix" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-prefix"><span class="icon icon-link"></span></a>prefix </h2>
-
-```typescript
-prefix?: string | undefined;
-```
-
-<h2 id="qwikpointerevent-pressure" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-pressure"><span class="icon icon-link"></span></a>pressure </h2>
-
-```typescript
-pressure: number;
-```
-
-<h2 id="resourcectx-previous" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourcectx-previous"><span class="icon icon-link"></span></a>previous </h2>
-
-```typescript
-previous: T | undefined;
-```
-
-<h2 id="htmlattributes-property" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-property"><span class="icon icon-link"></span></a>property </h2>
-
-```typescript
-property?: string | undefined;
-```
-
-<h2 id="qwiktransitionevent-propertyname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwiktransitionevent-propertyname"><span class="icon icon-link"></span></a>propertyName </h2>
-
-```typescript
-propertyName: string;
-```
 
 <h2 id="propfninterface" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#propfninterface"><span class="icon icon-link"></span></a>PropFnInterface </h2>
 
@@ -2018,12 +1054,6 @@ export type PropFunction<T extends Function> = T extends (
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="jsxnode-props" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#jsxnode-props"><span class="icon icon-link"></span></a>props </h2>
-
-```typescript
-props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
-```
-
 <h2 id="propsof" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#propsof"><span class="icon icon-link"></span></a>PropsOf </h2>
 
 Infers `Props` from the component.
@@ -2045,12 +1075,6 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<
 **References:** [Component](#component)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikanimationevent-pseudoelement" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent-pseudoelement"><span class="icon icon-link"></span></a>pseudoElement </h2>
-
-```typescript
-pseudoElement: string;
-```
 
 <h2 id="publicprops" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#publicprops"><span class="icon icon-link"></span></a>PublicProps </h2>
 
@@ -2083,12 +1107,6 @@ qrl: <T = any>(
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="snapshotlistener-qrl" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotlistener-qrl"><span class="icon icon-link"></span></a>qrl </h2>
-
-```typescript
-qrl: QRL<any>;
-```
-
 <h2 id="qrl" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qrl"><span class="icon icon-link"></span></a>QRL </h2>
 
 Used by Qwik Optimizer to point to lazy-loaded resources.
@@ -2106,12 +1124,6 @@ qrl: <T = any>(
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="snapshotresult-qrls" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-qrls"><span class="icon icon-link"></span></a>qrls </h2>
-
-```typescript
-qrls: QRL[];
-```
-
 <h2 id="qwikanimationevent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent"><span class="icon icon-link"></span></a>QwikAnimationEvent </h2>
 
 ```typescript
@@ -2120,11 +1132,11 @@ export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, Nativ
 
 **Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)&gt;
 
-| Property                                           | Modifiers | Type   | Description |
-| -------------------------------------------------- | --------- | ------ | ----------- |
-| [animationName](#qwikanimationevent-animationname) |           | string |             |
-| [elapsedTime](#qwikanimationevent-elapsedtime)     |           | number |             |
-| [pseudoElement](#qwikanimationevent-pseudoelement) |           | string |             |
+| Property           | Modifiers | Type   | Description |
+| ------------------ | --------- | ------ | ----------- |
+| [animationName](#) |           | string |             |
+| [elapsedTime](#)   |           | number |             |
+| [pseudoElement](#) |           | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2136,9 +1148,9 @@ export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T>
 
 **Extends:** SyntheticEvent&lt;T&gt;
 
-| Property                          | Modifiers | Type                | Description |
-| --------------------------------- | --------- | ------------------- | ----------- |
-| [target](#qwikchangeevent-target) |           | EventTarget &amp; T |             |
+| Property    | Modifiers | Type                | Description |
+| ----------- | --------- | ------------------- | ----------- |
+| [target](#) |           | EventTarget &amp; T |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2150,9 +1162,9 @@ export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, Nativ
 
 **Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)&gt;
 
-| Property                                           | Modifiers | Type         | Description |
-| -------------------------------------------------- | --------- | ------------ | ----------- |
-| [clipboardData](#qwikclipboardevent-clipboarddata) |           | DataTransfer |             |
+| Property           | Modifiers | Type         | Description |
+| ------------------ | --------- | ------------ | ----------- |
+| [clipboardData](#) |           | DataTransfer |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2164,9 +1176,9 @@ export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, Nat
 
 **Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)&gt;
 
-| Property                           | Modifiers | Type   | Description |
-| ---------------------------------- | --------- | ------ | ----------- |
-| [data](#qwikcompositionevent-data) |           | string |             |
+| Property  | Modifiers | Type   | Description |
+| --------- | --------- | ------ | ----------- |
+| [data](#) |           | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2188,9 +1200,9 @@ export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDrag
 
 **Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativeDragEvent](#nativedragevent)&gt;
 
-| Property                                    | Modifiers | Type         | Description |
-| ------------------------------------------- | --------- | ------------ | ----------- |
-| [dataTransfer](#qwikdragevent-datatransfer) |           | DataTransfer |             |
+| Property          | Modifiers | Type         | Description |
+| ----------------- | --------- | ------------ | ----------- |
+| [dataTransfer](#) |           | DataTransfer |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2202,10 +1214,10 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 
 **Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)&gt;
 
-| Property                                       | Modifiers | Type                | Description |
-| ---------------------------------------------- | --------- | ------------------- | ----------- |
-| [relatedTarget](#qwikfocusevent-relatedtarget) |           | EventTarget \| null |             |
-| [target](#)                                    |           | EventTarget &amp; T |             |
+| Property           | Modifiers | Type                | Description |
+| ------------------ | --------- | ------------------- | ----------- |
+| [relatedTarget](#) |           | EventTarget \| null |             |
+| [target](#)        |           | EventTarget &amp; T |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2217,9 +1229,9 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 
 **Extends:** IntrinsicHTMLElements
 
-| Property                                | Modifiers | Type                                              | Description |
-| --------------------------------------- | --------- | ------------------------------------------------- | ----------- |
-| [script](#qwikintrinsicelements-script) |           | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |             |
+| Property    | Modifiers | Type                                              | Description |
+| ----------- | --------- | ------------------------------------------------- | ----------- |
+| [script](#) |           | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts" target="_blanks">Edit this section</a></p>
 
@@ -2260,19 +1272,19 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 
 **Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)&gt;
 
-| Property                                | Modifiers | Type    | Description                                                                                                               |
-| --------------------------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [altKey](#qwikkeyboardevent-altkey)     |           | boolean |                                                                                                                           |
-| [charCode](#qwikkeyboardevent-charcode) |           | number  |                                                                                                                           |
-| [ctrlKey](#qwikkeyboardevent-ctrlkey)   |           | boolean |                                                                                                                           |
-| [key](#)                                |           | string  | See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
-| [keyCode](#qwikkeyboardevent-keycode)   |           | number  |                                                                                                                           |
-| [locale](#qwikkeyboardevent-locale)     |           | string  |                                                                                                                           |
-| [location](#qwikkeyboardevent-location) |           | number  |                                                                                                                           |
-| [metaKey](#qwikkeyboardevent-metakey)   |           | boolean |                                                                                                                           |
-| [repeat](#qwikkeyboardevent-repeat)     |           | boolean |                                                                                                                           |
-| [shiftKey](#qwikkeyboardevent-shiftkey) |           | boolean |                                                                                                                           |
-| [which](#qwikkeyboardevent-which)       |           | number  |                                                                                                                           |
+| Property      | Modifiers | Type    | Description                                                                                                               |
+| ------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [altKey](#)   |           | boolean |                                                                                                                           |
+| [charCode](#) |           | number  |                                                                                                                           |
+| [ctrlKey](#)  |           | boolean |                                                                                                                           |
+| [key](#)      |           | string  | See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
+| [keyCode](#)  |           | number  |                                                                                                                           |
+| [locale](#)   |           | string  |                                                                                                                           |
+| [location](#) |           | number  |                                                                                                                           |
+| [metaKey](#)  |           | boolean |                                                                                                                           |
+| [repeat](#)   |           | boolean |                                                                                                                           |
+| [shiftKey](#) |           | boolean |                                                                                                                           |
+| [which](#)    |           | number  |                                                                                                                           |
 
 | Method                                                       | Description                                                                                                                                         |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -2288,25 +1300,25 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
 
 **Extends:** SyntheticEvent&lt;T, E&gt;
 
-| Property                               | Modifiers | Type                | Description |
-| -------------------------------------- | --------- | ------------------- | ----------- |
-| [altKey](#)                            |           | boolean             |             |
-| [button](#qwikmouseevent-button)       |           | number              |             |
-| [buttons](#qwikmouseevent-buttons)     |           | number              |             |
-| [clientX](#qwikmouseevent-clientx)     |           | number              |             |
-| [clientY](#qwikmouseevent-clienty)     |           | number              |             |
-| [ctrlKey](#)                           |           | boolean             |             |
-| [metaKey](#)                           |           | boolean             |             |
-| [movementX](#qwikmouseevent-movementx) |           | number              |             |
-| [movementY](#qwikmouseevent-movementy) |           | number              |             |
-| [pageX](#qwikmouseevent-pagex)         |           | number              |             |
-| [pageY](#qwikmouseevent-pagey)         |           | number              |             |
-| [relatedTarget](#)                     |           | EventTarget \| null |             |
-| [screenX](#qwikmouseevent-screenx)     |           | number              |             |
-| [screenY](#qwikmouseevent-screeny)     |           | number              |             |
-| [shiftKey](#)                          |           | boolean             |             |
-| [x](#qwikmouseevent-x)                 |           | number              |             |
-| [y](#qwikmouseevent-y)                 |           | number              |             |
+| Property           | Modifiers | Type                | Description |
+| ------------------ | --------- | ------------------- | ----------- |
+| [altKey](#)        |           | boolean             |             |
+| [button](#)        |           | number              |             |
+| [buttons](#)       |           | number              |             |
+| [clientX](#)       |           | number              |             |
+| [clientY](#)       |           | number              |             |
+| [ctrlKey](#)       |           | boolean             |             |
+| [metaKey](#)       |           | boolean             |             |
+| [movementX](#)     |           | number              |             |
+| [movementY](#)     |           | number              |             |
+| [pageX](#)         |           | number              |             |
+| [pageY](#)         |           | number              |             |
+| [relatedTarget](#) |           | EventTarget \| null |             |
+| [screenX](#)       |           | number              |             |
+| [screenY](#)       |           | number              |             |
+| [shiftKey](#)      |           | boolean             |             |
+| [x](#)             |           | number              |             |
+| [y](#)             |           | number              |             |
 
 | Method                     | Description                                                                                                                                         |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -2322,16 +1334,16 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
 
 **Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativePointerEvent](#nativepointerevent)&gt;
 
-| Property                                     | Modifiers | Type                        | Description |
-| -------------------------------------------- | --------- | --------------------------- | ----------- |
-| [height](#qwikpointerevent-height)           |           | number                      |             |
-| [isPrimary](#qwikpointerevent-isprimary)     |           | boolean                     |             |
-| [pointerId](#qwikpointerevent-pointerid)     |           | number                      |             |
-| [pointerType](#qwikpointerevent-pointertype) |           | 'mouse' \| 'pen' \| 'touch' |             |
-| [pressure](#qwikpointerevent-pressure)       |           | number                      |             |
-| [tiltX](#qwikpointerevent-tiltx)             |           | number                      |             |
-| [tiltY](#qwikpointerevent-tilty)             |           | number                      |             |
-| [width](#qwikpointerevent-width)             |           | number                      |             |
+| Property         | Modifiers | Type                        | Description |
+| ---------------- | --------- | --------------------------- | ----------- |
+| [height](#)      |           | number                      |             |
+| [isPrimary](#)   |           | boolean                     |             |
+| [pointerId](#)   |           | number                      |             |
+| [pointerType](#) |           | 'mouse' \| 'pen' \| 'touch' |             |
+| [pressure](#)    |           | number                      |             |
+| [tiltX](#)       |           | number                      |             |
+| [tiltY](#)       |           | number                      |             |
+| [width](#)       |           | number                      |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2353,15 +1365,15 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
 
 **Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)&gt;
 
-| Property                                         | Modifiers | Type      | Description |
-| ------------------------------------------------ | --------- | --------- | ----------- |
-| [altKey](#)                                      |           | boolean   |             |
-| [changedTouches](#qwiktouchevent-changedtouches) |           | TouchList |             |
-| [ctrlKey](#)                                     |           | boolean   |             |
-| [metaKey](#)                                     |           | boolean   |             |
-| [shiftKey](#)                                    |           | boolean   |             |
-| [targetTouches](#qwiktouchevent-targettouches)   |           | TouchList |             |
-| [touches](#qwiktouchevent-touches)               |           | TouchList |             |
+| Property            | Modifiers | Type      | Description |
+| ------------------- | --------- | --------- | ----------- |
+| [altKey](#)         |           | boolean   |             |
+| [changedTouches](#) |           | TouchList |             |
+| [ctrlKey](#)        |           | boolean   |             |
+| [metaKey](#)        |           | boolean   |             |
+| [shiftKey](#)       |           | boolean   |             |
+| [targetTouches](#)  |           | TouchList |             |
+| [touches](#)        |           | TouchList |             |
 
 | Method                     | Description                                                                                                                                         |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -2377,11 +1389,11 @@ export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, Nati
 
 **Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)&gt;
 
-| Property                                          | Modifiers | Type   | Description |
-| ------------------------------------------------- | --------- | ------ | ----------- |
-| [elapsedTime](#)                                  |           | number |             |
-| [propertyName](#qwiktransitionevent-propertyname) |           | string |             |
-| [pseudoElement](#)                                |           | string |             |
+| Property           | Modifiers | Type   | Description |
+| ------------------ | --------- | ------ | ----------- |
+| [elapsedTime](#)   |           | number |             |
+| [propertyName](#)  |           | string |             |
+| [pseudoElement](#) |           | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2393,10 +1405,10 @@ export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEven
 
 **Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)&gt;
 
-| Property                      | Modifiers | Type         | Description |
-| ----------------------------- | --------- | ------------ | ----------- |
-| [detail](#qwikuievent-detail) |           | number       |             |
-| [view](#qwikuievent-view)     |           | AbstractView |             |
+| Property    | Modifiers | Type         | Description |
+| ----------- | --------- | ------------ | ----------- |
+| [detail](#) |           | number       |             |
+| [view](#)   |           | AbstractView |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2408,46 +1420,14 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
 
 **Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativeWheelEvent](#nativewheelevent)&gt;
 
-| Property                               | Modifiers | Type   | Description |
-| -------------------------------------- | --------- | ------ | ----------- |
-| [deltaMode](#qwikwheelevent-deltamode) |           | number |             |
-| [deltaX](#qwikwheelevent-deltax)       |           | number |             |
-| [deltaY](#qwikwheelevent-deltay)       |           | number |             |
-| [deltaZ](#qwikwheelevent-deltaz)       |           | number |             |
+| Property       | Modifiers | Type   | Description |
+| -------------- | --------- | ------ | ----------- |
+| [deltaMode](#) |           | number |             |
+| [deltaX](#)    |           | number |             |
+| [deltaY](#)    |           | number |             |
+| [deltaZ](#)    |           | number |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="htmlattributes-radiogroup" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-radiogroup"><span class="icon icon-link"></span></a>radioGroup </h2>
-
-```typescript
-radioGroup?: string | undefined;
-```
-
-<h2 id="coreplatform-raf" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#coreplatform-raf"><span class="icon icon-link"></span></a>raf </h2>
-
-Perform operation on next request-animation-frame.
-
-```typescript
-raf: (fn: () => any) => Promise<any>;
-```
-
-<h2 id="usestoreoptions-reactive" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions-reactive"><span class="icon icon-link"></span></a>reactive </h2>
-
-If `false` then the object will not be tracked for changes. Default is `true`.
-
-```typescript
-reactive?: boolean;
-```
-
-<h2 id="usestoreoptions-recursive" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions-recursive"><span class="icon icon-link"></span></a>recursive </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `deep` instead
-
-```typescript
-recursive?: boolean;
-```
 
 <h2 id="ref" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ref"><span class="icon icon-link"></span></a>Ref </h2>
 
@@ -2457,23 +1437,11 @@ Type of the value returned by `useRef()`.
 export interface Ref<T = Element>
 ```
 
-| Property                | Modifiers | Type           | Description |
-| ----------------------- | --------- | -------------- | ----------- |
-| [current](#ref-current) |           | T \| undefined |             |
+| Property     | Modifiers | Type           | Description |
+| ------------ | --------- | -------------- | ----------- |
+| [current](#) |           | T \| undefined |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="snapshotstate-refs" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotstate-refs"><span class="icon icon-link"></span></a>refs </h2>
-
-```typescript
-refs: Record<string, string>;
-```
-
-<h2 id="qwikfocusevent-relatedtarget" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikfocusevent-relatedtarget"><span class="icon icon-link"></span></a>relatedTarget </h2>
-
-```typescript
-relatedTarget: EventTarget | null;
-```
 
 <h2 id="render" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#render"><span class="icon icon-link"></span></a>render </h2>
 
@@ -2508,9 +1476,9 @@ RenderOnce: FunctionComponent<{
 export interface RenderOptions
 ```
 
-| Property                                 | Modifiers | Type                      | Description  |
-| ---------------------------------------- | --------- | ------------------------- | ------------ |
-| [serverData?](#renderoptions-serverdata) |           | Record&lt;string, any&gt; | _(Optional)_ |
+| Property         | Modifiers | Type                      | Description  |
+| ---------------- | --------- | ------------------------- | ------------ |
+| [serverData?](#) |           | Record&lt;string, any&gt; | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts" target="_blanks">Edit this section</a></p>
 
@@ -2532,24 +1500,18 @@ export interface RenderResult
 export interface RenderSSROptions
 ```
 
-| Property                                                     | Modifiers | Type                                                                                                                        | Description  |
-| ------------------------------------------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| [base?](#renderssroptions-base)                              |           | string                                                                                                                      | _(Optional)_ |
-| [beforeClose?](#renderssroptions-beforeclose)                |           | (contexts: QContext\[\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
-| [beforeContent?](#renderssroptions-beforecontent)            |           | [JSXNode](#jsxnode)&lt;string&gt;\[\]                                                                                       | _(Optional)_ |
-| [containerAttributes](#renderssroptions-containerattributes) |           | Record&lt;string, string&gt;                                                                                                |              |
-| [containerTagName](#renderssroptions-containertagname)       |           | string                                                                                                                      |              |
-| [serverData?](#)                                             |           | Record&lt;string, any&gt;                                                                                                   | _(Optional)_ |
-| [stream](#renderssroptions-stream)                           |           | [StreamWriter](#streamwriter)                                                                                               |              |
-| [url?](#renderssroptions-url)                                |           | string                                                                                                                      | _(Optional)_ |
+| Property                 | Modifiers | Type                                                                                                                        | Description  |
+| ------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| [base?](#)               |           | string                                                                                                                      | _(Optional)_ |
+| [beforeClose?](#)        |           | (contexts: QContext\[\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
+| [beforeContent?](#)      |           | [JSXNode](#jsxnode)&lt;string&gt;\[\]                                                                                       | _(Optional)_ |
+| [containerAttributes](#) |           | Record&lt;string, string&gt;                                                                                                |              |
+| [containerTagName](#)    |           | string                                                                                                                      |              |
+| [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                   | _(Optional)_ |
+| [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                               |              |
+| [url?](#)                |           | string                                                                                                                      | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikkeyboardevent-repeat" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-repeat"><span class="icon icon-link"></span></a>repeat </h2>
-
-```typescript
-repeat: boolean;
-```
 
 <h2 id="qrl-resolve" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#qrl-resolve"><span class="icon icon-link"></span></a>resolve </h2>
 
@@ -2562,12 +1524,6 @@ resolve(): Promise<TYPE>;
 **Returns:**
 
 Promise&lt;TYPE&gt;
-
-<h2 id="htmlattributes-resource" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-resource"><span class="icon icon-link"></span></a>resource </h2>
-
-```typescript
-resource?: string | undefined;
-```
 
 <h2 id="resource" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#resource"><span class="icon icon-link"></span></a>Resource </h2>
 
@@ -2629,10 +1585,10 @@ Resource: <T>(props: ResourceProps<T>) => JSXNode;
 export interface ResourceCtx<T>
 ```
 
-| Property                          | Modifiers | Type                | Description |
-| --------------------------------- | --------- | ------------------- | ----------- |
-| [previous](#resourcectx-previous) |           | T \| undefined      |             |
-| [track](#resourcectx-track)       |           | [Tracker](#tracker) |             |
+| Property      | Modifiers | Type                | Description |
+| ------------- | --------- | ------------------- | ----------- |
+| [previous](#) |           | T \| undefined      |             |
+| [track](#)    |           | [Tracker](#tracker) |             |
 
 | Method                                            | Description |
 | ------------------------------------------------- | ----------- |
@@ -2659,9 +1615,9 @@ Options to pass to `useResource$()`
 export interface ResourceOptions
 ```
 
-| Property                             | Modifiers | Type   | Description                                                                                                                                         |
-| ------------------------------------ | --------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [timeout?](#resourceoptions-timeout) |           | number | _(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource. |
+| Property      | Modifiers | Type   | Description                                                                                                                                         |
+| ------------- | --------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [timeout?](#) |           | number | _(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource. |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
 
@@ -2671,10 +1627,10 @@ export interface ResourceOptions
 export interface ResourcePending<T>
 ```
 
-| Property                            | Modifiers             | Type             | Description |
-| ----------------------------------- | --------------------- | ---------------- | ----------- |
-| [loading](#resourcepending-loading) | <code>readonly</code> | boolean          |             |
-| [value](#resourcepending-value)     | <code>readonly</code> | Promise&lt;T&gt; |             |
+| Property     | Modifiers             | Type             | Description |
+| ------------ | --------------------- | ---------------- | ----------- |
+| [loading](#) | <code>readonly</code> | boolean          |             |
+| [value](#)   | <code>readonly</code> | Promise&lt;T&gt; |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -2684,12 +1640,12 @@ export interface ResourcePending<T>
 export interface ResourceProps<T>
 ```
 
-| Property                                 | Modifiers             | Type                                                                                                             | Description  |
-| ---------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
-| [onPending?](#resourceprops-onpending)   |                       | () =&gt; [JSXNode](#jsxnode)                                                                                     | _(Optional)_ |
-| [onRejected?](#resourceprops-onrejected) |                       | (reason: any) =&gt; [JSXNode](#jsxnode)                                                                          | _(Optional)_ |
-| [onResolved](#resourceprops-onresolved)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
-| [value](#)                               | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
+| Property         | Modifiers             | Type                                                                                                             | Description  |
+| ---------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
+| [onPending?](#)  |                       | () =&gt; [JSXNode](#jsxnode)                                                                                     | _(Optional)_ |
+| [onRejected?](#) |                       | (reason: any) =&gt; [JSXNode](#jsxnode)                                                                          | _(Optional)_ |
+| [onResolved](#)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
+| [value](#)       | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
 
@@ -2732,66 +1688,6 @@ export type ResourceReturn<T> =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="snapshotresult-resources" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-resources"><span class="icon icon-link"></span></a>resources </h2>
-
-```typescript
-resources: ResourceReturnInternal < any > [];
-```
-
-<h2 id="htmlattributes-results" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-results"><span class="icon icon-link"></span></a>results </h2>
-
-```typescript
-results?: number | undefined;
-```
-
-<h2 id="htmlattributes-role" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-role"><span class="icon icon-link"></span></a>role </h2>
-
-```typescript
-role?: AriaRole | undefined;
-```
-
-<h2 id="snapshotmetavalue-s" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-s"><span class="icon icon-link"></span></a>s </h2>
-
-```typescript
-s?: string;
-```
-
-<h2 id="usestylesscoped-scopeid" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#usestylesscoped-scopeid"><span class="icon icon-link"></span></a>scopeId </h2>
-
-```typescript
-scopeId: string;
-```
-
-<h2 id="qwikmouseevent-screenx" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-screenx"><span class="icon icon-link"></span></a>screenX </h2>
-
-```typescript
-screenX: number;
-```
-
-<h2 id="qwikmouseevent-screeny" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-screeny"><span class="icon icon-link"></span></a>screenY </h2>
-
-```typescript
-screenY: number;
-```
-
-<h2 id="qwikintrinsicelements-script" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikintrinsicelements-script"><span class="icon icon-link"></span></a>script </h2>
-
-```typescript
-script: QwikScriptHTMLAttributes<HTMLScriptElement>;
-```
-
-<h2 id="htmlattributes-security" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-security"><span class="icon icon-link"></span></a>security </h2>
-
-```typescript
-security?: string | undefined;
-```
-
-<h2 id="renderoptions-serverdata" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-serverdata"><span class="icon icon-link"></span></a>serverData </h2>
-
-```typescript
-serverData?: Record<string, any>;
-```
-
 <h2 id="setplatform" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#setplatform"><span class="icon icon-link"></span></a>setPlatform </h2>
 
 Sets the `CorePlatform`.
@@ -2803,12 +1699,6 @@ setPlatform: (plt: CorePlatform) => CorePlatform;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikkeyboardevent-shiftkey" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-shiftkey"><span class="icon icon-link"></span></a>shiftKey </h2>
-
-```typescript
-shiftKey: boolean;
-```
 
 <h2 id="signal" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#signal"><span class="icon icon-link"></span></a>Signal </h2>
 
@@ -2830,12 +1720,6 @@ SkipRender: JSXNode;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="htmlattributes-slot" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-slot"><span class="icon icon-link"></span></a>slot </h2>
-
-```typescript
-slot?: string | undefined;
-```
-
 <h2 id="slot" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#slot"><span class="icon icon-link"></span></a>Slot </h2>
 
 Allows to project the children of the current component. can only be used within the context of a component defined with `component$`.
@@ -2854,11 +1738,11 @@ Slot: FunctionComponent<{
 export interface SnapshotListener
 ```
 
-| Property                     | Modifiers | Type                   | Description |
-| ---------------------------- | --------- | ---------------------- | ----------- |
-| [el](#snapshotlistener-el)   |           | Element                |             |
-| [key](#)                     |           | string                 |             |
-| [qrl](#snapshotlistener-qrl) |           | [QRL](#qrl)&lt;any&gt; |             |
+| Property | Modifiers | Type                   | Description |
+| -------- | --------- | ---------------------- | ----------- |
+| [el](#)  |           | Element                |             |
+| [key](#) |           | string                 |             |
+| [qrl](#) |           | [QRL](#qrl)&lt;any&gt; |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
 
@@ -2878,12 +1762,12 @@ export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 export interface SnapshotMetaValue
 ```
 
-| Property                   | Modifiers | Type   | Description  |
-| -------------------------- | --------- | ------ | ------------ |
-| [c?](#snapshotmetavalue-c) |           | string | _(Optional)_ |
-| [h?](#snapshotmetavalue-h) |           | string | _(Optional)_ |
-| [s?](#snapshotmetavalue-s) |           | string | _(Optional)_ |
-| [w?](#snapshotmetavalue-w) |           | string | _(Optional)_ |
+| Property | Modifiers | Type   | Description  |
+| -------- | --------- | ------ | ------------ |
+| [c?](#)  |           | string | _(Optional)_ |
+| [h?](#)  |           | string | _(Optional)_ |
+| [s?](#)  |           | string | _(Optional)_ |
+| [w?](#)  |           | string | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
 
@@ -2893,14 +1777,14 @@ export interface SnapshotMetaValue
 export interface SnapshotResult
 ```
 
-| Property                               | Modifiers | Type                                  | Description |
-| -------------------------------------- | --------- | ------------------------------------- | ----------- |
-| [funcs](#snapshotresult-funcs)         |           | string\[\]                            |             |
-| [mode](#snapshotresult-mode)           |           | 'render' \| 'listeners' \| 'static'   |             |
-| [objs](#snapshotresult-objs)           |           | any\[\]                               |             |
-| [qrls](#snapshotresult-qrls)           |           | [QRL](#qrl)\[\]                       |             |
-| [resources](#snapshotresult-resources) |           | ResourceReturnInternal&lt;any&gt;\[\] |             |
-| [state](#snapshotresult-state)         |           | [SnapshotState](#snapshotstate)       |             |
+| Property       | Modifiers | Type                                  | Description |
+| -------------- | --------- | ------------------------------------- | ----------- |
+| [funcs](#)     |           | string\[\]                            |             |
+| [mode](#)      |           | 'render' \| 'listeners' \| 'static'   |             |
+| [objs](#)      |           | any\[\]                               |             |
+| [qrls](#)      |           | [QRL](#qrl)\[\]                       |             |
+| [resources](#) |           | ResourceReturnInternal&lt;any&gt;\[\] |             |
+| [state](#)     |           | [SnapshotState](#snapshotstate)       |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
 
@@ -2910,20 +1794,14 @@ export interface SnapshotResult
 export interface SnapshotState
 ```
 
-| Property                    | Modifiers | Type                          | Description |
-| --------------------------- | --------- | ----------------------------- | ----------- |
-| [ctx](#snapshotstate-ctx)   |           | [SnapshotMeta](#snapshotmeta) |             |
-| [objs](#)                   |           | any\[\]                       |             |
-| [refs](#snapshotstate-refs) |           | Record&lt;string, string&gt;  |             |
-| [subs](#snapshotstate-subs) |           | any\[\]                       |             |
+| Property  | Modifiers | Type                          | Description |
+| --------- | --------- | ----------------------------- | ----------- |
+| [ctx](#)  |           | [SnapshotMeta](#snapshotmeta) |             |
+| [objs](#) |           | any\[\]                       |             |
+| [refs](#) |           | Record&lt;string, string&gt;  |             |
+| [subs](#) |           | any\[\]                       |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="htmlattributes-spellcheck" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-spellcheck"><span class="icon icon-link"></span></a>spellcheck </h2>
-
-```typescript
-spellcheck?: boolean | undefined;
-```
 
 <h2 id="ssrcomment" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrcomment"><span class="icon icon-link"></span></a>SSRComment </h2>
 
@@ -2949,9 +1827,9 @@ SSRHint: FunctionComponent<SSRHintProps>;
 export interface SSRHintProps
 ```
 
-| Property                          | Modifiers | Type    | Description  |
-| --------------------------------- | --------- | ------- | ------------ |
-| [dynamic?](#ssrhintprops-dynamic) |           | boolean | _(Optional)_ |
+| Property      | Modifiers | Type    | Description  |
+| ------------- | --------- | ------- | ------------ |
+| [dynamic?](#) |           | boolean | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
 
@@ -2995,28 +1873,6 @@ export interface SSRStreamProps
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="snapshotresult-state" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotresult-state"><span class="icon icon-link"></span></a>state </h2>
-
-```typescript
-state: SnapshotState;
-```
-
-<h2 id="onvisibletaskoptions-strategy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions-strategy"><span class="icon icon-link"></span></a>strategy </h2>
-
-The strategy to use to determine when the "VisibleTask" should first execute.
-
-- `intersection-observer`: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.
-
-```typescript
-strategy?: VisibleTaskStrategy;
-```
-
-<h2 id="renderssroptions-stream" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-stream"><span class="icon icon-link"></span></a>stream </h2>
-
-```typescript
-stream: StreamWriter;
-```
-
 <h2 id="streamwriter" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#streamwriter"><span class="icon icon-link"></span></a>StreamWriter </h2>
 
 ```typescript
@@ -3026,36 +1882,6 @@ export type StreamWriter = {
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="htmlattributes-style" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-style"><span class="icon icon-link"></span></a>style </h2>
-
-```typescript
-style?: Record<string, string | number | undefined> | string | undefined;
-```
-
-<h2 id="snapshotstate-subs" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotstate-subs"><span class="icon icon-link"></span></a>subs </h2>
-
-```typescript
-subs: any[];
-```
-
-<h2 id="htmlattributes-tabindex" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-tabindex"><span class="icon icon-link"></span></a>tabIndex </h2>
-
-```typescript
-tabIndex?: number | undefined;
-```
-
-<h2 id="qwikchangeevent-target" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikchangeevent-target"><span class="icon icon-link"></span></a>target </h2>
-
-```typescript
-target: EventTarget & T;
-```
-
-<h2 id="qwiktouchevent-targettouches" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent-targettouches"><span class="icon icon-link"></span></a>targetTouches </h2>
-
-```typescript
-targetTouches: TouchList;
-```
 
 <h2 id="taskctx" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#taskctx"><span class="icon icon-link"></span></a>TaskCtx </h2>
 
@@ -3082,44 +1908,6 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 **References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikpointerevent-tiltx" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-tiltx"><span class="icon icon-link"></span></a>tiltX </h2>
-
-```typescript
-tiltX: number;
-```
-
-<h2 id="qwikpointerevent-tilty" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-tilty"><span class="icon icon-link"></span></a>tiltY </h2>
-
-```typescript
-tiltY: number;
-```
-
-<h2 id="resourceoptions-timeout" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourceoptions-timeout"><span class="icon icon-link"></span></a>timeout </h2>
-
-Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource.
-
-```typescript
-timeout?: number;
-```
-
-<h2 id="htmlattributes-title" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-title"><span class="icon icon-link"></span></a>title </h2>
-
-```typescript
-title?: string | undefined;
-```
-
-<h2 id="qwiktouchevent-touches" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent-touches"><span class="icon icon-link"></span></a>touches </h2>
-
-```typescript
-touches: TouchList;
-```
-
-<h2 id="resourcectx-track" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourcectx-track"><span class="icon icon-link"></span></a>track </h2>
-
-```typescript
-track: Tracker;
-```
 
 <h2 id="tracker" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#tracker"><span class="icon icon-link"></span></a>Tracker </h2>
 
@@ -3155,30 +1943,6 @@ export interface Tracker
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="htmlattributes-translate" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-translate"><span class="icon icon-link"></span></a>translate </h2>
-
-```typescript
-translate?: 'yes' | 'no' | undefined;
-```
-
-<h2 id="jsxnode-type" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#jsxnode-type"><span class="icon icon-link"></span></a>type </h2>
-
-```typescript
-type: T;
-```
-
-<h2 id="htmlattributes-typeof" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-typeof"><span class="icon icon-link"></span></a>typeof </h2>
-
-```typescript
-typeof?: string | undefined;
-```
-
-<h2 id="htmlattributes-unselectable" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-unselectable"><span class="icon icon-link"></span></a>unselectable </h2>
-
-```typescript
-unselectable?: 'on' | 'off' | undefined;
-```
-
 <h2 id="untrack" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#untrack"><span class="icon icon-link"></span></a>untrack </h2>
 
 ```typescript
@@ -3186,12 +1950,6 @@ untrack: <T>(fn: () => T) => T;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="renderssroptions-url" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderssroptions-url"><span class="icon icon-link"></span></a>url </h2>
-
-```typescript
-url?: string;
-```
 
 <h2 id="usebrowservisibletask_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletask_"><span class="icon icon-link"></span></a>useBrowserVisibleTask$ </h2>
 
@@ -3820,11 +2578,11 @@ useStore: <STATE extends object>(
 export interface UseStoreOptions
 ```
 
-| Property                                 | Modifiers | Type    | Description                                                                                                                  |
-| ---------------------------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [deep?](#usestoreoptions-deep)           |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
-| [reactive?](#usestoreoptions-reactive)   |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
-| [recursive?](#usestoreoptions-recursive) |           | boolean | _(Optional)_                                                                                                                 |
+| Property        | Modifiers | Type    | Description                                                                                                                  |
+| --------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [deep?](#)      |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
+| [reactive?](#)  |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
+| [recursive?](#) |           | boolean | _(Optional)_                                                                                                                 |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts" target="_blanks">Edit this section</a></p>
 
@@ -3878,9 +2636,9 @@ useStylesQrl: (styles: QRL<string>) => void
 export interface UseStylesScoped
 ```
 
-| Property                            | Modifiers | Type   | Description |
-| ----------------------------------- | --------- | ------ | ----------- |
-| [scopeId](#usestylesscoped-scopeid) |           | string |             |
+| Property     | Modifiers | Type   | Description |
+| ------------ | --------- | ------ | ----------- |
+| [scopeId](#) |           | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts" target="_blanks">Edit this section</a></p>
 
@@ -4060,12 +2818,6 @@ useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="resourcepending-value" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#resourcepending-value"><span class="icon icon-link"></span></a>value </h2>
-
-```typescript
-readonly value: Promise<T>;
-```
-
 <h2 id="valueorpromise" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#valueorpromise"><span class="icon icon-link"></span></a>ValueOrPromise </h2>
 
 Type representing a value which is either resolve or a promise.
@@ -4086,12 +2838,6 @@ version: string;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/version.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="qwikuievent-view" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikuievent-view"><span class="icon icon-link"></span></a>view </h2>
-
-```typescript
-view: AbstractView;
-```
-
 <h2 id="visibletaskstrategy" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#visibletaskstrategy"><span class="icon icon-link"></span></a>VisibleTaskStrategy </h2>
 
 ```typescript
@@ -4102,39 +2848,3 @@ export type VisibleTaskStrategy =
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="htmlattributes-vocab" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-vocab"><span class="icon icon-link"></span></a>vocab </h2>
-
-```typescript
-vocab?: string | undefined;
-```
-
-<h2 id="snapshotmetavalue-w" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue-w"><span class="icon icon-link"></span></a>w </h2>
-
-```typescript
-w?: string;
-```
-
-<h2 id="qwikkeyboardevent-which" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-which"><span class="icon icon-link"></span></a>which </h2>
-
-```typescript
-which: number;
-```
-
-<h2 id="qwikpointerevent-width" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent-width"><span class="icon icon-link"></span></a>width </h2>
-
-```typescript
-width: number;
-```
-
-<h2 id="qwikmouseevent-x" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-x"><span class="icon icon-link"></span></a>x </h2>
-
-```typescript
-x: number;
-```
-
-<h2 id="qwikmouseevent-y" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent-y"><span class="icon icon-link"></span></a>y </h2>
-
-```typescript
-y: number;
-```

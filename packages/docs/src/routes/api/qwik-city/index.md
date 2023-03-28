@@ -4,14 +4,6 @@ title: \@builder.io/qwik-city API Reference
 
 # **API** @builder.io/qwik-city
 
-<h2 id="formprops-action" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#formprops-action"><span class="icon icon-link"></span></a>action </h2>
-
-Reference to the action returned by `action()`.
-
-```typescript
-action?: ActionStore<O, I, true | false>;
-```
-
 <h2 id="action" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#action"><span class="icon icon-link"></span></a>Action </h2>
 
 ```typescript
@@ -50,10 +42,10 @@ export interface ActionConstructor
 export interface ActionOptions
 ```
 
-| Property                                 | Modifiers             | Type              | Description  |
-| ---------------------------------------- | --------------------- | ----------------- | ------------ |
-| [id?](#actionoptions-id)                 | <code>readonly</code> | string            | _(Optional)_ |
-| [validation?](#actionoptions-validation) | <code>readonly</code> | DataValidator\[\] | _(Optional)_ |
+| Property         | Modifiers             | Type              | Description  |
+| ---------------- | --------------------- | ----------------- | ------------ |
+| [id?](#)         | <code>readonly</code> | string            | _(Optional)_ |
+| [validation?](#) | <code>readonly</code> | DataValidator\[\] | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -69,33 +61,6 @@ export interface ActionOptionsWithValidation<B extends TypedDataValidator = Type
 | [validation](#) | <code>readonly</code> | \[val: B, ...a: DataValidator\[\]\] |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="actionstore-actionpath" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-actionpath"><span class="icon icon-link"></span></a>actionPath </h2>
-
-It's the "action" path that a native `<form>` should have in order to call the action.
-
-```tsx
-<form action={action.actionPath} />
-```
-
-Most of the time this property should not be used directly, instead use the `Form` component:
-
-```tsx
-import {action$, Form} from '@builder.io/qwik-city';
-
-export const useAddUser = action$(() => { ... });
-
-export default component$(() => {
-  const action = useAddUser();
-  return (
-    <Form action={action}/>
-  );
-});
-```
-
-```typescript
-readonly actionPath: string;
-```
 
 <h2 id="actionqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#actionqrl"><span class="icon icon-link"></span></a>actionQrl </h2>
 
@@ -115,9 +80,9 @@ actionQrl: ActionConstructorQRL;
 export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true>
 ```
 
-| Property                              | Modifiers             | Type   | Description                                                                                                    |
-| ------------------------------------- | --------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
-| [actionPath](#actionstore-actionpath) | <code>readonly</code> | string | <p>It's the "action" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p> |
+| Property        | Modifiers             | Type   | Description                                                                                                    |
+| --------------- | --------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| [actionPath](#) | <code>readonly</code> | string | <p>It's the "action" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p> |
 
 ```tsx
 <form action={action.actionPath} />
@@ -138,48 +103,26 @@ return (
 
 ````
  |
-|  [formData](#actionstore-formdata) | <code>readonly</code> | FormData \| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |
-|  [isRunning](#actionstore-isrunning) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |
-|  [run](#actionstore-run) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; |  |
-|  [status?](#actionstore-status) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |
-|  [submit](#actionstore-submit) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |
-|  [value](#actionstore-value) | <code>readonly</code> | RETURN \| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |
+|  [formData](#) | <code>readonly</code> | FormData \| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |
+|  [isRunning](#) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |
+|  [run](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; |  |
+|  [status?](#) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |
+|  [submit](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |
+|  [value](#) | <code>readonly</code> | RETURN \| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentlink-as" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-as"><span class="icon icon-link"></span></a>as </h2>
-
-```typescript
-as?: string;
-````
-
-<h2 id="qwikcityplan-basepathname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcityplan-basepathname"><span class="icon icon-link"></span></a>basePathname </h2>
-
-```typescript
-readonly basePathname?: string;
-```
-
-<h2 id="qwikcityplan-cachemodules" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcityplan-cachemodules"><span class="icon icon-link"></span></a>cacheModules </h2>
-
-```typescript
-readonly cacheModules?: boolean;
-```
-
-<h2 id="documentmeta-content" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentmeta-content"><span class="icon icon-link"></span></a>content </h2>
-
-```typescript
-readonly content?: string;
-```
 
 <h2 id="content" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#content"><span class="icon icon-link"></span></a>Content </h2>
 
 > Warning: This API is now obsolete.
 >
 > Please use `RouterOutlet` instead.
+>
+
 
 ```typescript
-Content: import("@builder.io/qwik").Component<{}>;
-```
+Content: import("@builder.io/qwik").Component<{}>
+````
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts" target="_blanks">Edit this section</a></p>
 
@@ -189,11 +132,11 @@ Content: import("@builder.io/qwik").Component<{}>;
 export interface ContentHeading
 ```
 
-| Property                       | Modifiers             | Type   | Description |
-| ------------------------------ | --------------------- | ------ | ----------- |
-| [id](#)                        | <code>readonly</code> | string |             |
-| [level](#contentheading-level) | <code>readonly</code> | number |             |
-| [text](#contentheading-text)   | <code>readonly</code> | string |             |
+| Property   | Modifiers             | Type   | Description |
+| ---------- | --------------------- | ------ | ----------- |
+| [id](#)    | <code>readonly</code> | string |             |
+| [level](#) | <code>readonly</code> | number |             |
+| [text](#)  | <code>readonly</code> | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -203,31 +146,13 @@ export interface ContentHeading
 export interface ContentMenu
 ```
 
-| Property                     | Modifiers             | Type                            | Description  |
-| ---------------------------- | --------------------- | ------------------------------- | ------------ |
-| [href?](#contentmenu-href)   | <code>readonly</code> | string                          | _(Optional)_ |
-| [items?](#contentmenu-items) | <code>readonly</code> | [ContentMenu](#contentmenu)\[\] | _(Optional)_ |
-| [text](#)                    | <code>readonly</code> | string                          |              |
+| Property    | Modifiers             | Type                            | Description  |
+| ----------- | --------------------- | ------------------------------- | ------------ |
+| [href?](#)  | <code>readonly</code> | string                          | _(Optional)_ |
+| [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)\[\] | _(Optional)_ |
+| [text](#)   | <code>readonly</code> | string                          |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentlink-crossorigin" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-crossorigin"><span class="icon icon-link"></span></a>crossorigin </h2>
-
-```typescript
-crossorigin?: string;
-```
-
-<h2 id="pagemodule-default" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#pagemodule-default"><span class="icon icon-link"></span></a>default </h2>
-
-```typescript
-readonly default: any;
-```
-
-<h2 id="documentlink-disabled" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-disabled"><span class="icon icon-link"></span></a>disabled </h2>
-
-```typescript
-disabled?: boolean;
-```
 
 <h2 id="documenthead" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#documenthead"><span class="icon icon-link"></span></a>DocumentHead </h2>
 
@@ -249,11 +174,11 @@ export interface DocumentHeadProps extends RouteLocation
 
 **Extends:** [RouteLocation](#routelocation)
 
-| Property                                        | Modifiers             | Type                                          | Description |
-| ----------------------------------------------- | --------------------- | --------------------------------------------- | ----------- |
-| [head](#documentheadprops-head)                 | <code>readonly</code> | [ResolvedDocumentHead](#resolveddocumenthead) |             |
-| [resolveValue](#documentheadprops-resolvevalue) | <code>readonly</code> | ResolveSyncValue                              |             |
-| [withLocale](#documentheadprops-withlocale)     | <code>readonly</code> | &lt;T&gt;(fn: () =&gt; T) =&gt; T             |             |
+| Property          | Modifiers             | Type                                          | Description |
+| ----------------- | --------------------- | --------------------------------------------- | ----------- |
+| [head](#)         | <code>readonly</code> | [ResolvedDocumentHead](#resolveddocumenthead) |             |
+| [resolveValue](#) | <code>readonly</code> | ResolveSyncValue                              |             |
+| [withLocale](#)   | <code>readonly</code> | &lt;T&gt;(fn: () =&gt; T) =&gt; T             |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -263,13 +188,13 @@ export interface DocumentHeadProps extends RouteLocation
 export interface DocumentHeadValue
 ```
 
-| Property                                       | Modifiers             | Type                                         | Description                                                                                                                                                                                                                                                           |
-| ---------------------------------------------- | --------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [frontmatter?](#documentheadvalue-frontmatter) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt;    | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
-| [links?](#documentheadvalue-links)             | <code>readonly</code> | readonly [DocumentLink](#documentlink)\[\]   | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
-| [meta?](#documentheadvalue-meta)               | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)\[\]   | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
-| [styles?](#documentheadvalue-styles)           | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)\[\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
-| [title?](#documentheadvalue-title)             | <code>readonly</code> | string                                       | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
+| Property          | Modifiers             | Type                                         | Description                                                                                                                                                                                                                                                           |
+| ----------------- | --------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt;    | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
+| [links?](#)       | <code>readonly</code> | readonly [DocumentLink](#documentlink)\[\]   | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
+| [meta?](#)        | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)\[\]   | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
+| [styles?](#)      | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)\[\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
+| [title?](#)       | <code>readonly</code> | string                                       | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -279,25 +204,25 @@ export interface DocumentHeadValue
 export interface DocumentLink
 ```
 
-| Property                                        | Modifiers | Type    | Description  |
-| ----------------------------------------------- | --------- | ------- | ------------ |
-| [as?](#documentlink-as)                         |           | string  | _(Optional)_ |
-| [crossorigin?](#documentlink-crossorigin)       |           | string  | _(Optional)_ |
-| [disabled?](#documentlink-disabled)             |           | boolean | _(Optional)_ |
-| [href?](#)                                      |           | string  | _(Optional)_ |
-| [hreflang?](#documentlink-hreflang)             |           | string  | _(Optional)_ |
-| [id?](#)                                        |           | string  | _(Optional)_ |
-| [imagesizes?](#documentlink-imagesizes)         |           | string  | _(Optional)_ |
-| [imagesrcset?](#documentlink-imagesrcset)       |           | string  | _(Optional)_ |
-| [integrity?](#documentlink-integrity)           |           | string  | _(Optional)_ |
-| [key?](#documentlink-key)                       |           | string  | _(Optional)_ |
-| [media?](#documentlink-media)                   |           | string  | _(Optional)_ |
-| [prefetch?](#documentlink-prefetch)             |           | string  | _(Optional)_ |
-| [referrerpolicy?](#documentlink-referrerpolicy) |           | string  | _(Optional)_ |
-| [rel?](#documentlink-rel)                       |           | string  | _(Optional)_ |
-| [sizes?](#documentlink-sizes)                   |           | string  | _(Optional)_ |
-| [title?](#)                                     |           | string  | _(Optional)_ |
-| [type?](#documentlink-type)                     |           | string  | _(Optional)_ |
+| Property             | Modifiers | Type    | Description  |
+| -------------------- | --------- | ------- | ------------ |
+| [as?](#)             |           | string  | _(Optional)_ |
+| [crossorigin?](#)    |           | string  | _(Optional)_ |
+| [disabled?](#)       |           | boolean | _(Optional)_ |
+| [href?](#)           |           | string  | _(Optional)_ |
+| [hreflang?](#)       |           | string  | _(Optional)_ |
+| [id?](#)             |           | string  | _(Optional)_ |
+| [imagesizes?](#)     |           | string  | _(Optional)_ |
+| [imagesrcset?](#)    |           | string  | _(Optional)_ |
+| [integrity?](#)      |           | string  | _(Optional)_ |
+| [key?](#)            |           | string  | _(Optional)_ |
+| [media?](#)          |           | string  | _(Optional)_ |
+| [prefetch?](#)       |           | string  | _(Optional)_ |
+| [referrerpolicy?](#) |           | string  | _(Optional)_ |
+| [rel?](#)            |           | string  | _(Optional)_ |
+| [sizes?](#)          |           | string  | _(Optional)_ |
+| [title?](#)          |           | string  | _(Optional)_ |
+| [type?](#)           |           | string  | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -307,14 +232,14 @@ export interface DocumentLink
 export interface DocumentMeta
 ```
 
-| Property                              | Modifiers             | Type   | Description  |
-| ------------------------------------- | --------------------- | ------ | ------------ |
-| [content?](#documentmeta-content)     | <code>readonly</code> | string | _(Optional)_ |
-| [httpEquiv?](#documentmeta-httpequiv) | <code>readonly</code> | string | _(Optional)_ |
-| [itemprop?](#documentmeta-itemprop)   | <code>readonly</code> | string | _(Optional)_ |
-| [key?](#)                             | <code>readonly</code> | string | _(Optional)_ |
-| [name?](#documentmeta-name)           | <code>readonly</code> | string | _(Optional)_ |
-| [property?](#documentmeta-property)   | <code>readonly</code> | string | _(Optional)_ |
+| Property        | Modifiers             | Type   | Description  |
+| --------------- | --------------------- | ------ | ------------ |
+| [content?](#)   | <code>readonly</code> | string | _(Optional)_ |
+| [httpEquiv?](#) | <code>readonly</code> | string | _(Optional)_ |
+| [itemprop?](#)  | <code>readonly</code> | string | _(Optional)_ |
+| [key?](#)       | <code>readonly</code> | string | _(Optional)_ |
+| [name?](#)      | <code>readonly</code> | string | _(Optional)_ |
+| [property?](#)  | <code>readonly</code> | string | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -324,11 +249,11 @@ export interface DocumentMeta
 export interface DocumentStyle
 ```
 
-| Property                       | Modifiers             | Type                                              | Description  |
-| ------------------------------ | --------------------- | ------------------------------------------------- | ------------ |
-| [key?](#)                      | <code>readonly</code> | string                                            | _(Optional)_ |
-| [props?](#documentstyle-props) | <code>readonly</code> | Readonly&lt;{ \[propName: string\]: string; }&gt; | _(Optional)_ |
-| [style](#documentstyle-style)  | <code>readonly</code> | string                                            |              |
+| Property    | Modifiers             | Type                                              | Description  |
+| ----------- | --------------------- | ------------------------------------------------- | ------------ |
+| [key?](#)   | <code>readonly</code> | string                                            | _(Optional)_ |
+| [props?](#) | <code>readonly</code> | Readonly&lt;{ \[propName: string\]: string; }&gt; | _(Optional)_ |
+| [style](#)  | <code>readonly</code> | string                                            |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -365,18 +290,6 @@ Form: <O, I>(
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx" target="_blanks">Edit this section</a></p>
 
-<h2 id="actionstore-formdata" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-formdata"><span class="icon icon-link"></span></a>formData </h2>
-
-When calling an action through a `<form>`, this property contains the previously submitted `FormData`.
-
-This is useful to keep the filled form data even after a full page reload.
-
-It's `undefined` before the action is first called.
-
-```typescript
-readonly formData: FormData | undefined;
-```
-
 <h2 id="formprops" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#formprops"><span class="icon icon-link"></span></a>FormProps </h2>
 
 ```typescript
@@ -385,14 +298,14 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 
 **Extends:** Omit&lt;QwikJSX.IntrinsicElements\['form'\], 'action' \| 'method'&gt;
 
-| Property                                             | Modifiers | Type                                                                                                                                               | Description                                                                                                                                                                      |
-| ---------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [action?](#formprops-action)                         |           | [ActionStore](#actionstore)&lt;O, I, true \| false&gt;                                                                                             | _(Optional)_ Reference to the action returned by <code>action()</code>.                                                                                                          |
-| [key?](#)                                            |           | string \| number \| null                                                                                                                           | _(Optional)_                                                                                                                                                                     |
-| [onSubmit$?](#formprops-onsubmit_)                   |           | (event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;                                                                             | _(Optional)_ Event handler executed right when the form is submitted.                                                                                                            |
-| [onSubmitCompleted$?](#formprops-onsubmitcompleted_) |           | (event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right after the action is executed successfully and returns some data.                                                                       |
-| [reloadDocument?](#formprops-reloaddocument)         |           | boolean                                                                                                                                            | _(Optional)_ When <code>true</code> the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.                                          |
-| [spaReset?](#formprops-spareset)                     |           | boolean                                                                                                                                            | <p>_(Optional)_ When <code>true</code> all the form inputs will be reset in SPA mode, just like happens in a full page form submission.</p><p>Defaults to <code>false</code></p> |
+| Property                 | Modifiers | Type                                                                                                                                               | Description                                                                                                                                                                      |
+| ------------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [action?](#)             |           | [ActionStore](#actionstore)&lt;O, I, true \| false&gt;                                                                                             | _(Optional)_ Reference to the action returned by <code>action()</code>.                                                                                                          |
+| [key?](#)                |           | string \| number \| null                                                                                                                           | _(Optional)_                                                                                                                                                                     |
+| [onSubmit$?](#)          |           | (event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;                                                                             | _(Optional)_ Event handler executed right when the form is submitted.                                                                                                            |
+| [onSubmitCompleted$?](#) |           | (event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right after the action is executed successfully and returns some data.                                                                       |
+| [reloadDocument?](#)     |           | boolean                                                                                                                                            | _(Optional)_ When <code>true</code> the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.                                          |
+| [spaReset?](#)           |           | boolean                                                                                                                                            | <p>_(Optional)_ When <code>true</code> all the form inputs will be reset in SPA mode, just like happens in a full page form submission.</p><p>Defaults to <code>false</code></p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx" target="_blanks">Edit this section</a></p>
 
@@ -408,14 +321,6 @@ export interface FormSubmitCompletedDetail<T>
 | [value](#)  |           | T      |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentheadvalue-frontmatter" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadvalue-frontmatter"><span class="icon icon-link"></span></a>frontmatter </h2>
-
-Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.
-
-```typescript
-readonly frontmatter?: Readonly<Record<string, any>>;
-```
 
 <h2 id="globalaction_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#globalaction_"><span class="icon icon-link"></span></a>globalAction$ </h2>
 
@@ -433,30 +338,6 @@ globalActionQrl: ActionConstructorQRL;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="documentheadprops-head" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadprops-head"><span class="icon icon-link"></span></a>head </h2>
-
-```typescript
-readonly head: ResolvedDocumentHead;
-```
-
-<h2 id="pagemodule-headings" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#pagemodule-headings"><span class="icon icon-link"></span></a>headings </h2>
-
-```typescript
-readonly headings?: ContentHeading[];
-```
-
-<h2 id="contentmenu-href" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#contentmenu-href"><span class="icon icon-link"></span></a>href </h2>
-
-```typescript
-readonly href?: string;
-```
-
-<h2 id="documentlink-hreflang" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-hreflang"><span class="icon icon-link"></span></a>hreflang </h2>
-
-```typescript
-hreflang?: string;
-```
-
 <h2 id="html" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#html"><span class="icon icon-link"></span></a>Html </h2>
 
 > Warning: This API is now obsolete.
@@ -468,78 +349,6 @@ Html: import("@builder.io/qwik").Component<QwikCityProps>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentmeta-httpequiv" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentmeta-httpequiv"><span class="icon icon-link"></span></a>httpEquiv </h2>
-
-```typescript
-readonly httpEquiv?: string;
-```
-
-<h2 id="actionoptions-id" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionoptions-id"><span class="icon icon-link"></span></a>id </h2>
-
-```typescript
-readonly id?: string;
-```
-
-<h2 id="documentlink-imagesizes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-imagesizes"><span class="icon icon-link"></span></a>imagesizes </h2>
-
-```typescript
-imagesizes?: string;
-```
-
-<h2 id="documentlink-imagesrcset" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-imagesrcset"><span class="icon icon-link"></span></a>imagesrcset </h2>
-
-```typescript
-imagesrcset?: string;
-```
-
-<h2 id="documentlink-integrity" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-integrity"><span class="icon icon-link"></span></a>integrity </h2>
-
-```typescript
-integrity?: string;
-```
-
-<h2 id="routelocation-isnavigating" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#routelocation-isnavigating"><span class="icon icon-link"></span></a>isNavigating </h2>
-
-```typescript
-readonly isNavigating: boolean;
-```
-
-<h2 id="actionstore-isrunning" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-isrunning"><span class="icon icon-link"></span></a>isRunning </h2>
-
-Reactive property that becomes `true` only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.
-
-This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.
-
-It will be always `false` in the server, and only becomes `true` briefly while the action is running.
-
-```typescript
-readonly isRunning: boolean;
-```
-
-<h2 id="documentmeta-itemprop" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentmeta-itemprop"><span class="icon icon-link"></span></a>itemprop </h2>
-
-```typescript
-readonly itemprop?: string;
-```
-
-<h2 id="contentmenu-items" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#contentmenu-items"><span class="icon icon-link"></span></a>items </h2>
-
-```typescript
-readonly items?: ContentMenu[];
-```
-
-<h2 id="documentlink-key" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-key"><span class="icon icon-link"></span></a>key </h2>
-
-```typescript
-key?: string;
-```
-
-<h2 id="contentheading-level" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#contentheading-level"><span class="icon icon-link"></span></a>level </h2>
-
-```typescript
-readonly level: number;
-```
 
 <h2 id="link" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#link"><span class="icon icon-link"></span></a>Link </h2>
 
@@ -557,20 +366,12 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property                     | Modifiers | Type    | Description  |
-| ---------------------------- | --------- | ------- | ------------ |
-| [prefetch?](#)               |           | boolean | _(Optional)_ |
-| [reload?](#linkprops-reload) |           | boolean | _(Optional)_ |
+| Property       | Modifiers | Type    | Description  |
+| -------------- | --------- | ------- | ------------ |
+| [prefetch?](#) |           | boolean | _(Optional)_ |
+| [reload?](#)   |           | boolean | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentheadvalue-links" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadvalue-links"><span class="icon icon-link"></span></a>links </h2>
-
-Used to manually append `<link>` elements to the `<head>`.
-
-```typescript
-readonly links?: readonly DocumentLink[];
-```
 
 <h2 id="loader" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#loader"><span class="icon icon-link"></span></a>Loader </h2>
 
@@ -618,12 +419,6 @@ export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="documentlink-media" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-media"><span class="icon icon-link"></span></a>media </h2>
-
-```typescript
-media?: string;
-```
-
 <h2 id="menudata" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#menudata"><span class="icon icon-link"></span></a>MenuData </h2>
 
 ```typescript
@@ -631,48 +426,6 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikcityplan-menus" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcityplan-menus"><span class="icon icon-link"></span></a>menus </h2>
-
-```typescript
-readonly menus?: MenuData[];
-```
-
-<h2 id="documentheadvalue-meta" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadvalue-meta"><span class="icon icon-link"></span></a>meta </h2>
-
-Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.
-
-```typescript
-readonly meta?: readonly DocumentMeta[];
-```
-
-<h2 id="documentmeta-name" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentmeta-name"><span class="icon icon-link"></span></a>name </h2>
-
-```typescript
-readonly name?: string;
-```
-
-<h2 id="pagemodule-onstaticgenerate" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#pagemodule-onstaticgenerate"><span class="icon icon-link"></span></a>onStaticGenerate </h2>
-
-```typescript
-readonly onStaticGenerate?: StaticGenerateHandler;
-```
-
-<h2 id="formprops-onsubmit_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#formprops-onsubmit_"><span class="icon icon-link"></span></a>onSubmit$ </h2>
-
-Event handler executed right when the form is submitted.
-
-```typescript
-onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-```
-
-<h2 id="formprops-onsubmitcompleted_" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#formprops-onsubmitcompleted_"><span class="icon icon-link"></span></a>onSubmitCompleted$ </h2>
-
-Event handler executed right after the action is executed successfully and returns some data.
-
-```typescript
-onSubmitCompleted$?: (event: CustomEvent<FormSubmitCompletedDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
-```
 
 <h2 id="pagemodule" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#pagemodule"><span class="icon icon-link"></span></a>PageModule </h2>
 
@@ -682,30 +435,14 @@ export interface PageModule extends RouteModule
 
 **Extends:** RouteModule
 
-| Property                                          | Modifiers             | Type                                            | Description  |
-| ------------------------------------------------- | --------------------- | ----------------------------------------------- | ------------ |
-| [default](#pagemodule-default)                    | <code>readonly</code> | any                                             |              |
-| [head?](#)                                        | <code>readonly</code> | ContentModuleHead                               | _(Optional)_ |
-| [headings?](#pagemodule-headings)                 | <code>readonly</code> | [ContentHeading](#contentheading)\[\]           | _(Optional)_ |
-| [onStaticGenerate?](#pagemodule-onstaticgenerate) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |
+| Property               | Modifiers             | Type                                            | Description  |
+| ---------------------- | --------------------- | ----------------------------------------------- | ------------ |
+| [default](#)           | <code>readonly</code> | any                                             |              |
+| [head?](#)             | <code>readonly</code> | ContentModuleHead                               | _(Optional)_ |
+| [headings?](#)         | <code>readonly</code> | [ContentHeading](#contentheading)\[\]           | _(Optional)_ |
+| [onStaticGenerate?](#) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="routelocation-params" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#routelocation-params"><span class="icon icon-link"></span></a>params </h2>
-
-```typescript
-readonly params: Readonly<Record<string, string>>;
-```
-
-<h2 id="routelocation-pathname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#routelocation-pathname"><span class="icon icon-link"></span></a>pathname </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `url` instead of pathname
-
-```typescript
-readonly pathname: string;
-```
 
 <h2 id="pathparams" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#pathparams"><span class="icon icon-link"></span></a>PathParams </h2>
 
@@ -714,36 +451,6 @@ export declare type PathParams = Record<string, string>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentlink-prefetch" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-prefetch"><span class="icon icon-link"></span></a>prefetch </h2>
-
-```typescript
-prefetch?: string;
-```
-
-<h2 id="documentmeta-property" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentmeta-property"><span class="icon icon-link"></span></a>property </h2>
-
-```typescript
-readonly property?: string;
-```
-
-<h2 id="documentstyle-props" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentstyle-props"><span class="icon icon-link"></span></a>props </h2>
-
-```typescript
-readonly props?: Readonly<{
-        [propName: string]: string;
-    }>;
-```
-
-<h2 id="routelocation-query" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#routelocation-query"><span class="icon icon-link"></span></a>query </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `url` instead of query
-
-```typescript
-readonly query: URLSearchParams;
-```
 
 <h2 id="qwikcity" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#qwikcity"><span class="icon icon-link"></span></a>QwikCity </h2>
 
@@ -771,14 +478,14 @@ QwikCityMockProvider: import("@builder.io/qwik").Component<QwikCityMockProps>;
 export interface QwikCityPlan
 ```
 
-| Property                                      | Modifiers             | Type                        | Description  |
-| --------------------------------------------- | --------------------- | --------------------------- | ------------ |
-| [basePathname?](#qwikcityplan-basepathname)   | <code>readonly</code> | string                      | _(Optional)_ |
-| [cacheModules?](#qwikcityplan-cachemodules)   | <code>readonly</code> | boolean                     | _(Optional)_ |
-| [menus?](#qwikcityplan-menus)                 | <code>readonly</code> | [MenuData](#menudata)\[\]   | _(Optional)_ |
-| [routes](#qwikcityplan-routes)                | <code>readonly</code> | [RouteData](#routedata)\[\] |              |
-| [serverPlugins?](#qwikcityplan-serverplugins) | <code>readonly</code> | RouteModule\[\]             | _(Optional)_ |
-| [trailingSlash?](#qwikcityplan-trailingslash) | <code>readonly</code> | boolean                     | _(Optional)_ |
+| Property            | Modifiers             | Type                        | Description  |
+| ------------------- | --------------------- | --------------------------- | ------------ |
+| [basePathname?](#)  | <code>readonly</code> | string                      | _(Optional)_ |
+| [cacheModules?](#)  | <code>readonly</code> | boolean                     | _(Optional)_ |
+| [menus?](#)         | <code>readonly</code> | [MenuData](#menudata)\[\]   | _(Optional)_ |
+| [routes](#)         | <code>readonly</code> | [RouteData](#routedata)\[\] |              |
+| [serverPlugins?](#) | <code>readonly</code> | RouteModule\[\]             | _(Optional)_ |
+| [trailingSlash?](#) | <code>readonly</code> | boolean                     | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -790,32 +497,6 @@ QwikCityProvider: import("@builder.io/qwik").Component<QwikCityProps>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx" target="_blanks">Edit this section</a></p>
 
-<h2 id="documentlink-referrerpolicy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-referrerpolicy"><span class="icon icon-link"></span></a>referrerpolicy </h2>
-
-```typescript
-referrerpolicy?: string;
-```
-
-<h2 id="documentlink-rel" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-rel"><span class="icon icon-link"></span></a>rel </h2>
-
-```typescript
-rel?: string;
-```
-
-<h2 id="linkprops-reload" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#linkprops-reload"><span class="icon icon-link"></span></a>reload </h2>
-
-```typescript
-reload?: boolean;
-```
-
-<h2 id="formprops-reloaddocument" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#formprops-reloaddocument"><span class="icon icon-link"></span></a>reloadDocument </h2>
-
-When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
-
-```typescript
-reloadDocument?: boolean;
-```
-
 <h2 id="resolveddocumenthead" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#resolveddocumenthead"><span class="icon icon-link"></span></a>ResolvedDocumentHead </h2>
 
 ```typescript
@@ -825,12 +506,6 @@ export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 **References:** [DocumentHeadValue](#documentheadvalue)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentheadprops-resolvevalue" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadprops-resolvevalue"><span class="icon icon-link"></span></a>resolveValue </h2>
-
-```typescript
-readonly resolveValue: ResolveSyncValue;
-```
 
 <h2 id="routeaction_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#routeaction_"><span class="icon icon-link"></span></a>routeAction$ </h2>
 
@@ -887,14 +562,14 @@ routeLoaderQrl: LoaderConstructorQRL;
 export interface RouteLocation
 ```
 
-| Property                                    | Modifiers             | Type                                         | Description |
-| ------------------------------------------- | --------------------- | -------------------------------------------- | ----------- |
-| [href](#)                                   | <code>readonly</code> | string                                       |             |
-| [isNavigating](#routelocation-isnavigating) | <code>readonly</code> | boolean                                      |             |
-| [params](#routelocation-params)             | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |             |
-| [pathname](#routelocation-pathname)         | <code>readonly</code> | string                                       |             |
-| [query](#routelocation-query)               | <code>readonly</code> | URLSearchParams                              |             |
-| [url](#routelocation-url)                   | <code>readonly</code> | URL                                          |             |
+| Property          | Modifiers             | Type                                         | Description |
+| ----------------- | --------------------- | -------------------------------------------- | ----------- |
+| [href](#)         | <code>readonly</code> | string                                       |             |
+| [isNavigating](#) | <code>readonly</code> | boolean                                      |             |
+| [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |             |
+| [pathname](#)     | <code>readonly</code> | string                                       |             |
+| [query](#)        | <code>readonly</code> | URLSearchParams                              |             |
+| [url](#)          | <code>readonly</code> | URL                                          |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -928,22 +603,6 @@ RouterOutlet: import("@builder.io/qwik").Component<{}>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="qwikcityplan-routes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcityplan-routes"><span class="icon icon-link"></span></a>routes </h2>
-
-```typescript
-readonly routes: RouteData[];
-```
-
-<h2 id="actionstore-run" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-run"><span class="icon icon-link"></span></a>run </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `submit` instead
-
-```typescript
-readonly run: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
-```
-
 <h2 id="server_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#server_"><span class="icon icon-link"></span></a>server$ </h2>
 
 ```typescript
@@ -951,12 +610,6 @@ server$: <T extends import("./types").ServerFunction>(first: T) => QRL<T>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikcityplan-serverplugins" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcityplan-serverplugins"><span class="icon icon-link"></span></a>serverPlugins </h2>
-
-```typescript
-readonly serverPlugins?: RouteModule[];
-```
 
 <h2 id="serverqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#serverqrl"><span class="icon icon-link"></span></a>serverQrl </h2>
 
@@ -974,22 +627,6 @@ ServiceWorkerRegister: (props: { nonce?: string }) =>
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx" target="_blanks">Edit this section</a></p>
-
-<h2 id="documentlink-sizes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-sizes"><span class="icon icon-link"></span></a>sizes </h2>
-
-```typescript
-sizes?: string;
-```
-
-<h2 id="formprops-spareset" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#formprops-spareset"><span class="icon icon-link"></span></a>spaReset </h2>
-
-When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.
-
-Defaults to `false`
-
-```typescript
-spaReset?: boolean;
-```
 
 <h2 id="staticgenerate" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#staticgenerate"><span class="icon icon-link"></span></a>StaticGenerate </h2>
 
@@ -1014,70 +651,6 @@ export type StaticGenerateHandler = () =>
 **References:** [StaticGenerate](#staticgenerate)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="actionstore-status" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-status"><span class="icon icon-link"></span></a>status </h2>
-
-Returned HTTP status code of the action after its last execution.
-
-It's `undefined` before the action is first called.
-
-```typescript
-readonly status?: number;
-```
-
-<h2 id="documentstyle-style" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentstyle-style"><span class="icon icon-link"></span></a>style </h2>
-
-```typescript
-readonly style: string;
-```
-
-<h2 id="documentheadvalue-styles" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadvalue-styles"><span class="icon icon-link"></span></a>styles </h2>
-
-Used to manually append `<style>` elements to the `<head>`.
-
-```typescript
-readonly styles?: readonly DocumentStyle[];
-```
-
-<h2 id="actionstore-submit" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-submit"><span class="icon icon-link"></span></a>submit </h2>
-
-Method to execute the action programmatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action in order to execute the action in the server.
-
-```typescript
-readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
-```
-
-<h2 id="contentheading-text" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#contentheading-text"><span class="icon icon-link"></span></a>text </h2>
-
-```typescript
-readonly text: string;
-```
-
-<h2 id="documentheadvalue-title" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadvalue-title"><span class="icon icon-link"></span></a>title </h2>
-
-Sets `document.title`.
-
-```typescript
-readonly title?: string;
-```
-
-<h2 id="qwikcityplan-trailingslash" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcityplan-trailingslash"><span class="icon icon-link"></span></a>trailingSlash </h2>
-
-```typescript
-readonly trailingSlash?: boolean;
-```
-
-<h2 id="documentlink-type" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentlink-type"><span class="icon icon-link"></span></a>type </h2>
-
-```typescript
-type?: string;
-```
-
-<h2 id="routelocation-url" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#routelocation-url"><span class="icon icon-link"></span></a>url </h2>
-
-```typescript
-readonly url: URL;
-```
 
 <h2 id="action-use" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#action-use"><span class="icon icon-link"></span></a>use </h2>
 
@@ -1125,12 +698,6 @@ useNavigate: () => RouteNavigate;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="actionoptions-validation" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionoptions-validation"><span class="icon icon-link"></span></a>validation </h2>
-
-```typescript
-readonly validation?: DataValidator[];
-```
-
 <h2 id="validator_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#validator_"><span class="icon icon-link"></span></a>validator$ </h2>
 
 ```typescript
@@ -1146,22 +713,6 @@ validatorQrl: ValidatorConstructorQRL;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="actionstore-value" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#actionstore-value"><span class="icon icon-link"></span></a>value </h2>
-
-Returned successful data of the action. This reactive property will contain the data returned inside the `action$` function.
-
-It's `undefined` before the action is first called.
-
-```typescript
-readonly value: RETURN | undefined;
-```
-
-<h2 id="documentheadprops-withlocale" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#documentheadprops-withlocale"><span class="icon icon-link"></span></a>withLocale </h2>
-
-```typescript
-readonly withLocale: <T>(fn: () => T) => T;
-```
 
 <h2 id="zod_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#zod_"><span class="icon icon-link"></span></a>zod$ </h2>
 

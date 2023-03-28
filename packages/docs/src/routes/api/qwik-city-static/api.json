@@ -3,125 +3,6 @@
   "package": "@builder.io/qwik-city/static",
   "members": [
     {
-      "name": "basePathname",
-      "id": "staticgenerateoptions-basepathname",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateOptions",
-          "id": "staticgenerateoptions-basepathname"
-        },
-        {
-          "name": "basePathname",
-          "id": "staticgenerateoptions-basepathname"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defaults to `/`\n\n\n```typescript\nbasePathname?: string;\n```",
-      "mdFile": "qwik-city.staticgenerateoptions.basepathname.md"
-    },
-    {
-      "name": "duration",
-      "id": "staticgenerateresult-duration",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateResult",
-          "id": "staticgenerateresult-duration"
-        },
-        {
-          "name": "duration",
-          "id": "staticgenerateresult-duration"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nduration: number;\n```",
-      "mdFile": "qwik-city.staticgenerateresult.duration.md"
-    },
-    {
-      "name": "emit404Pages",
-      "id": "staticgeneraterenderoptions-emit404pages",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-emit404pages"
-        },
-        {
-          "name": "emit404Pages",
-          "id": "staticgeneraterenderoptions-emit404pages"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Set to `false` if the static build should not write custom or default `404.html` pages. Defaults to `true`<!-- -->.\n\n\n```typescript\nemit404Pages?: boolean;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.emit404pages.md"
-    },
-    {
-      "name": "emitData",
-      "id": "staticgeneraterenderoptions-emitdata",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-emitdata"
-        },
-        {
-          "name": "emitData",
-          "id": "staticgeneraterenderoptions-emitdata"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Set to `false` if the generated `q-data.json` data files should not be written to disk. Defaults to `true`<!-- -->.\n\n\n```typescript\nemitData?: boolean;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.emitdata.md"
-    },
-    {
-      "name": "emitHtml",
-      "id": "staticgeneraterenderoptions-emithtml",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-emithtml"
-        },
-        {
-          "name": "emitHtml",
-          "id": "staticgeneraterenderoptions-emithtml"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Set to `false` if the generated static HTML files should not be written to disk. Setting to `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to `true`<!-- -->.\n\n\n```typescript\nemitHtml?: boolean;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.emithtml.md"
-    },
-    {
-      "name": "errors",
-      "id": "staticgenerateresult-errors",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateResult",
-          "id": "staticgenerateresult-errors"
-        },
-        {
-          "name": "errors",
-          "id": "staticgenerateresult-errors"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nerrors: number;\n```",
-      "mdFile": "qwik-city.staticgenerateresult.errors.md"
-    },
-    {
-      "name": "exclude",
-      "id": "staticgeneraterenderoptions-exclude",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-exclude"
-        },
-        {
-          "name": "exclude",
-          "id": "staticgeneraterenderoptions-exclude"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines file system routes relative to the source `routes` directory that should not be static generated. Accepts wildcard behavior. This should not include the \"base\" pathname. `exclude` always takes priority over `include`<!-- -->.\n\n\n```typescript\nexclude?: string[];\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.exclude.md"
-    },
-    {
       "name": "generate",
       "id": "generate",
       "hierarchy": [
@@ -136,193 +17,6 @@
       "mdFile": "qwik-city.generate.md"
     },
     {
-      "name": "include",
-      "id": "staticgeneraterenderoptions-include",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-include"
-        },
-        {
-          "name": "include",
-          "id": "staticgeneraterenderoptions-include"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Defines file system routes relative to the source `routes` directory that should be static generated. Accepts wildcard behavior. This should not include the \"base\" pathname. If not provided, all routes will be static generated. `exclude` always takes priority over `include`<!-- -->.\n\n\n```typescript\ninclude?: string[];\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.include.md"
-    },
-    {
-      "name": "log",
-      "id": "staticgeneraterenderoptions-log",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-log"
-        },
-        {
-          "name": "log",
-          "id": "staticgeneraterenderoptions-log"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Log level.\n\n\n```typescript\nlog?: 'debug';\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.log.md"
-    },
-    {
-      "name": "maxTasksPerWorker",
-      "id": "staticgeneraterenderoptions-maxtasksperworker",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-maxtasksperworker"
-        },
-        {
-          "name": "maxTasksPerWorker",
-          "id": "staticgeneraterenderoptions-maxtasksperworker"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Maximum number of tasks to be running at one time per worker. Defaults to `20`<!-- -->.\n\n\n```typescript\nmaxTasksPerWorker?: number;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.maxtasksperworker.md"
-    },
-    {
-      "name": "maxWorkers",
-      "id": "staticgeneraterenderoptions-maxworkers",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-maxworkers"
-        },
-        {
-          "name": "maxWorkers",
-          "id": "staticgeneraterenderoptions-maxworkers"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Maximum number of workers to use while generating the static pages. Defaults to the number of CPUs available.\n\n\n```typescript\nmaxWorkers?: number;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.maxworkers.md"
-    },
-    {
-      "name": "origin",
-      "id": "staticgeneraterenderoptions-origin",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-origin"
-        },
-        {
-          "name": "origin",
-          "id": "staticgeneraterenderoptions-origin"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "The URL `origin`<!-- -->, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`<!-- -->. However, the `origin` does not include a `pathname`<!-- -->.\n\nThe `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`<!-- -->. For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`<!-- -->, the `origin` must be provided too.\n\nIf the site also starts with a pathname other than `/`<!-- -->, please use the `basePathname` option in the Qwik City config options.\n\n\n```typescript\norigin: string;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.origin.md"
-    },
-    {
-      "name": "outDir",
-      "id": "staticgeneraterenderoptions-outdir",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-outdir"
-        },
-        {
-          "name": "outDir",
-          "id": "staticgeneraterenderoptions-outdir"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "File system directory where the static files should be written.\n\n\n```typescript\noutDir: string;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.outdir.md"
-    },
-    {
-      "name": "qwikCityPlanModulePath",
-      "id": "staticgenerateoptions-qwikcityplanmodulepath",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateOptions",
-          "id": "staticgenerateoptions-qwikcityplanmodulepath"
-        },
-        {
-          "name": "qwikCityPlanModulePath",
-          "id": "staticgenerateoptions-qwikcityplanmodulepath"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Path to the Qwik City Plan module exporting the default `@qwik-city-plan`<!-- -->.\n\n\n```typescript\nqwikCityPlanModulePath: string;\n```",
-      "mdFile": "qwik-city.staticgenerateoptions.qwikcityplanmodulepath.md"
-    },
-    {
-      "name": "rendered",
-      "id": "staticgenerateresult-rendered",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateResult",
-          "id": "staticgenerateresult-rendered"
-        },
-        {
-          "name": "rendered",
-          "id": "staticgenerateresult-rendered"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nrendered: number;\n```",
-      "mdFile": "qwik-city.staticgenerateresult.rendered.md"
-    },
-    {
-      "name": "renderModulePath",
-      "id": "staticgenerateoptions-rendermodulepath",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateOptions",
-          "id": "staticgenerateoptions-rendermodulepath"
-        },
-        {
-          "name": "renderModulePath",
-          "id": "staticgenerateoptions-rendermodulepath"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Path to the SSR module exporting the default render function. In most cases it'll be `./src/entry.ssr.tsx`<!-- -->.\n\n\n```typescript\nrenderModulePath: string;\n```",
-      "mdFile": "qwik-city.staticgenerateoptions.rendermodulepath.md"
-    },
-    {
-      "name": "rootDir",
-      "id": "staticgenerateoptions-rootdir",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateOptions",
-          "id": "staticgenerateoptions-rootdir"
-        },
-        {
-          "name": "rootDir",
-          "id": "staticgenerateoptions-rootdir"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nrootDir?: string;\n```",
-      "mdFile": "qwik-city.staticgenerateoptions.rootdir.md"
-    },
-    {
-      "name": "sitemapOutFile",
-      "id": "staticgeneraterenderoptions-sitemapoutfile",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateRenderOptions",
-          "id": "staticgeneraterenderoptions-sitemapoutfile"
-        },
-        {
-          "name": "sitemapOutFile",
-          "id": "staticgeneraterenderoptions-sitemapoutfile"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "File system path to write the `sitemap.xml` to. Defaults to `sitemap.xml` and written to the root of the `outDir`<!-- -->. Setting to `null` will prevent the sitemap from being created.\n\n\n```typescript\nsitemapOutFile?: string | null;\n```",
-      "mdFile": "qwik-city.staticgeneraterenderoptions.sitemapoutfile.md"
-    },
-    {
       "name": "StaticGenerateOptions",
       "id": "staticgenerateoptions",
       "hierarchy": [
@@ -332,7 +26,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StaticGenerateOptions extends StaticGenerateRenderOptions \n```\n**Extends:** [StaticGenerateRenderOptions](#staticgeneraterenderoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [basePathname?](#staticgenerateoptions-basepathname) |  | string | _(Optional)_ Defaults to <code>/</code> |\n|  [qwikCityPlanModulePath](#staticgenerateoptions-qwikcityplanmodulepath) |  | string | Path to the Qwik City Plan module exporting the default <code>@qwik-city-plan</code>. |\n|  [renderModulePath](#staticgenerateoptions-rendermodulepath) |  | string | Path to the SSR module exporting the default render function. In most cases it'll be <code>./src/entry.ssr.tsx</code>. |\n|  [rootDir?](#staticgenerateoptions-rootdir) |  | string | _(Optional)_ |",
+      "content": "```typescript\nexport interface StaticGenerateOptions extends StaticGenerateRenderOptions \n```\n**Extends:** [StaticGenerateRenderOptions](#staticgeneraterenderoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [basePathname?](#) |  | string | _(Optional)_ Defaults to <code>/</code> |\n|  [qwikCityPlanModulePath](#) |  | string | Path to the Qwik City Plan module exporting the default <code>@qwik-city-plan</code>. |\n|  [renderModulePath](#) |  | string | Path to the SSR module exporting the default render function. In most cases it'll be <code>./src/entry.ssr.tsx</code>. |\n|  [rootDir?](#) |  | string | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts",
       "mdFile": "qwik-city.staticgenerateoptions.md"
     },
@@ -346,7 +40,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StaticGenerateRenderOptions extends RenderOptions \n```\n**Extends:** RenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [emit404Pages?](#staticgeneraterenderoptions-emit404pages) |  | boolean | _(Optional)_ Set to <code>false</code> if the static build should not write custom or default <code>404.html</code> pages. Defaults to <code>true</code>. |\n|  [emitData?](#staticgeneraterenderoptions-emitdata) |  | boolean | _(Optional)_ Set to <code>false</code> if the generated <code>q-data.json</code> data files should not be written to disk. Defaults to <code>true</code>. |\n|  [emitHtml?](#staticgeneraterenderoptions-emithtml) |  | boolean | _(Optional)_ Set to <code>false</code> if the generated static HTML files should not be written to disk. Setting to <code>false</code> is useful if the SSG should only write the <code>q-data.json</code> files to disk. Defaults to <code>true</code>. |\n|  [exclude?](#staticgeneraterenderoptions-exclude) |  | string\\[\\] | _(Optional)_ Defines file system routes relative to the source <code>routes</code> directory that should not be static generated. Accepts wildcard behavior. This should not include the \"base\" pathname. <code>exclude</code> always takes priority over <code>include</code>. |\n|  [include?](#staticgeneraterenderoptions-include) |  | string\\[\\] | _(Optional)_ Defines file system routes relative to the source <code>routes</code> directory that should be static generated. Accepts wildcard behavior. This should not include the \"base\" pathname. If not provided, all routes will be static generated. <code>exclude</code> always takes priority over <code>include</code>. |\n|  [log?](#staticgeneraterenderoptions-log) |  | 'debug' | _(Optional)_ Log level. |\n|  [maxTasksPerWorker?](#staticgeneraterenderoptions-maxtasksperworker) |  | number | _(Optional)_ Maximum number of tasks to be running at one time per worker. Defaults to <code>20</code>. |\n|  [maxWorkers?](#staticgeneraterenderoptions-maxworkers) |  | number | _(Optional)_ Maximum number of workers to use while generating the static pages. Defaults to the number of CPUs available. |\n|  [origin](#staticgeneraterenderoptions-origin) |  | string | <p>The URL <code>origin</code>, which is a combination of the scheme (protocol) and hostname (domain). For example, <code>https://qwik.builder.io</code> has the protocol <code>https://</code> and domain <code>qwik.builder.io</code>. However, the <code>origin</code> does not include a <code>pathname</code>.</p><p>The <code>origin</code> is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the <code>pathname</code>. For example, in order to render a correct canonical tag URL or URLs within the <code>sitemap.xml</code>, the <code>origin</code> must be provided too.</p><p>If the site also starts with a pathname other than <code>/</code>, please use the <code>basePathname</code> option in the Qwik City config options.</p> |\n|  [outDir](#staticgeneraterenderoptions-outdir) |  | string | File system directory where the static files should be written. |\n|  [sitemapOutFile?](#staticgeneraterenderoptions-sitemapoutfile) |  | string \\| null | _(Optional)_ File system path to write the <code>sitemap.xml</code> to. Defaults to <code>sitemap.xml</code> and written to the root of the <code>outDir</code>. Setting to <code>null</code> will prevent the sitemap from being created. |",
+      "content": "```typescript\nexport interface StaticGenerateRenderOptions extends RenderOptions \n```\n**Extends:** RenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [emit404Pages?](#) |  | boolean | _(Optional)_ Set to <code>false</code> if the static build should not write custom or default <code>404.html</code> pages. Defaults to <code>true</code>. |\n|  [emitData?](#) |  | boolean | _(Optional)_ Set to <code>false</code> if the generated <code>q-data.json</code> data files should not be written to disk. Defaults to <code>true</code>. |\n|  [emitHtml?](#) |  | boolean | _(Optional)_ Set to <code>false</code> if the generated static HTML files should not be written to disk. Setting to <code>false</code> is useful if the SSG should only write the <code>q-data.json</code> files to disk. Defaults to <code>true</code>. |\n|  [exclude?](#) |  | string\\[\\] | _(Optional)_ Defines file system routes relative to the source <code>routes</code> directory that should not be static generated. Accepts wildcard behavior. This should not include the \"base\" pathname. <code>exclude</code> always takes priority over <code>include</code>. |\n|  [include?](#) |  | string\\[\\] | _(Optional)_ Defines file system routes relative to the source <code>routes</code> directory that should be static generated. Accepts wildcard behavior. This should not include the \"base\" pathname. If not provided, all routes will be static generated. <code>exclude</code> always takes priority over <code>include</code>. |\n|  [log?](#) |  | 'debug' | _(Optional)_ Log level. |\n|  [maxTasksPerWorker?](#) |  | number | _(Optional)_ Maximum number of tasks to be running at one time per worker. Defaults to <code>20</code>. |\n|  [maxWorkers?](#) |  | number | _(Optional)_ Maximum number of workers to use while generating the static pages. Defaults to the number of CPUs available. |\n|  [origin](#) |  | string | <p>The URL <code>origin</code>, which is a combination of the scheme (protocol) and hostname (domain). For example, <code>https://qwik.builder.io</code> has the protocol <code>https://</code> and domain <code>qwik.builder.io</code>. However, the <code>origin</code> does not include a <code>pathname</code>.</p><p>The <code>origin</code> is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the <code>pathname</code>. For example, in order to render a correct canonical tag URL or URLs within the <code>sitemap.xml</code>, the <code>origin</code> must be provided too.</p><p>If the site also starts with a pathname other than <code>/</code>, please use the <code>basePathname</code> option in the Qwik City config options.</p> |\n|  [outDir](#) |  | string | File system directory where the static files should be written. |\n|  [sitemapOutFile?](#) |  | string \\| null | _(Optional)_ File system path to write the <code>sitemap.xml</code> to. Defaults to <code>sitemap.xml</code> and written to the root of the <code>outDir</code>. Setting to <code>null</code> will prevent the sitemap from being created. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts",
       "mdFile": "qwik-city.staticgeneraterenderoptions.md"
     },
@@ -360,26 +54,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StaticGenerateResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [duration](#staticgenerateresult-duration) |  | number |  |\n|  [errors](#staticgenerateresult-errors) |  | number |  |\n|  [rendered](#staticgenerateresult-rendered) |  | number |  |\n|  [staticPaths](#staticgenerateresult-staticpaths) |  | string\\[\\] |  |",
+      "content": "```typescript\nexport interface StaticGenerateResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [duration](#) |  | number |  |\n|  [errors](#) |  | number |  |\n|  [rendered](#) |  | number |  |\n|  [staticPaths](#) |  | string\\[\\] |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts",
       "mdFile": "qwik-city.staticgenerateresult.md"
-    },
-    {
-      "name": "staticPaths",
-      "id": "staticgenerateresult-staticpaths",
-      "hierarchy": [
-        {
-          "name": "StaticGenerateResult",
-          "id": "staticgenerateresult-staticpaths"
-        },
-        {
-          "name": "staticPaths",
-          "id": "staticgenerateresult-staticpaths"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "```typescript\nstaticPaths: string[];\n```",
-      "mdFile": "qwik-city.staticgenerateresult.staticpaths.md"
     }
   ]
 }

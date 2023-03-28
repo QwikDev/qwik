@@ -36,18 +36,6 @@ export declare function createQwikCity(opts: QwikCityNodeRequestOptions): {
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="platformnode-incomingmessage" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#platformnode-incomingmessage"><span class="icon icon-link"></span></a>incomingMessage </h2>
-
-```typescript
-incomingMessage?: IncomingMessage;
-```
-
-<h2 id="platformnode-node" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#platformnode-node"><span class="icon icon-link"></span></a>node </h2>
-
-```typescript
-node?: string;
-```
-
 <h2 id="noderequestnextfunction" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#noderequestnextfunction"><span class="icon icon-link"></span></a>NodeRequestNextFunction </h2>
 
 ```typescript
@@ -62,11 +50,11 @@ export interface NodeRequestNextFunction
 export interface PlatformNode
 ```
 
-| Property                                          | Modifiers | Type            | Description  |
-| ------------------------------------------------- | --------- | --------------- | ------------ |
-| [incomingMessage?](#platformnode-incomingmessage) |           | IncomingMessage | _(Optional)_ |
-| [node?](#platformnode-node)                       |           | string          | _(Optional)_ |
-| [ssr?](#platformnode-ssr)                         |           | true            | _(Optional)_ |
+| Property              | Modifiers | Type            | Description  |
+| --------------------- | --------- | --------------- | ------------ |
+| [incomingMessage?](#) |           | IncomingMessage | _(Optional)_ |
+| [node?](#)            |           | string          | _(Optional)_ |
+| [ssr?](#)             |           | true            | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts" target="_blanks">Edit this section</a></p>
 
@@ -128,25 +116,8 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-| Property                                      | Modifiers | Type                                      | Description                                   |
-| --------------------------------------------- | --------- | ----------------------------------------- | --------------------------------------------- |
-| [static?](#qwikcitynoderequestoptions-static) |           | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |
+| Property     | Modifiers | Type                                      | Description                                   |
+| ------------ | --------- | ----------------------------------------- | --------------------------------------------- |
+| [static?](#) |           | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="platformnode-ssr" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#platformnode-ssr"><span class="icon icon-link"></span></a>ssr </h2>
-
-```typescript
-ssr?: true;
-```
-
-<h2 id="qwikcitynoderequestoptions-static" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikcitynoderequestoptions-static"><span class="icon icon-link"></span></a>static </h2>
-
-Options for serving static files
-
-```typescript
-static?: {
-        root?: string;
-        cacheControl?: string;
-    };
-```

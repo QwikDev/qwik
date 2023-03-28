@@ -3,23 +3,6 @@
   "package": "@builder.io/qwik-city/vite/netlify-edge",
   "members": [
     {
-      "name": "functionRoutes",
-      "id": "netlifyedgeadapteroptions-functionroutes",
-      "hierarchy": [
-        {
-          "name": "NetlifyEdgeAdapterOptions",
-          "id": "netlifyedgeadapteroptions-functionroutes"
-        },
-        {
-          "name": "functionRoutes",
-          "id": "netlifyedgeadapteroptions-functionroutes"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Determines if the build should generate the edge functions declarations `manifest.json` file.\n\nhttps://docs.netlify.com/edge-functions/declarations/\n\nDefaults to `true`<!-- -->.\n\n\n```typescript\nfunctionRoutes?: boolean;\n```",
-      "mdFile": "qwik-city.netlifyedgeadapteroptions.functionroutes.md"
-    },
-    {
       "name": "netifyEdgeAdapter",
       "id": "netifyedgeadapter",
       "hierarchy": [
@@ -71,7 +54,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [functionRoutes?](#netlifyedgeadapteroptions-functionroutes) |  | boolean | <p>_(Optional)_ Determines if the build should generate the edge functions declarations <code>manifest.json</code> file.</p><p>https://docs.netlify.com/edge-functions/declarations/</p><p>Defaults to <code>true</code>.</p> |\n|  [staticPaths?](#netlifyedgeadapteroptions-staticpaths) |  | string\\[\\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |",
+      "content": "```typescript\nexport interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [functionRoutes?](#) |  | boolean | <p>_(Optional)_ Determines if the build should generate the edge functions declarations <code>manifest.json</code> file.</p><p>https://docs.netlify.com/edge-functions/declarations/</p><p>Defaults to <code>true</code>.</p> |\n|  [staticPaths?](#) |  | string\\[\\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
       "mdFile": "qwik-city.netlifyedgeadapteroptions.md"
     },
@@ -88,23 +71,6 @@
       "content": "> Warning: This API is now obsolete.\n> \n> Use `NetlifyEdgeAdapterOptions` instead.\n> \n\n\n```typescript\nexport type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;\n```\n**References:** [NetlifyEdgeAdapterOptions](#netlifyedgeadapteroptions)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
       "mdFile": "qwik-city.netlifyedgeadaptoroptions.md"
-    },
-    {
-      "name": "staticPaths",
-      "id": "netlifyedgeadapteroptions-staticpaths",
-      "hierarchy": [
-        {
-          "name": "NetlifyEdgeAdapterOptions",
-          "id": "netlifyedgeadapteroptions-staticpaths"
-        },
-        {
-          "name": "staticPaths",
-          "id": "netlifyedgeadapteroptions-staticpaths"
-        }
-      ],
-      "kind": "PropertySignature",
-      "content": "Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.\n\n\n```typescript\nstaticPaths?: string[];\n```",
-      "mdFile": "qwik-city.netlifyedgeadapteroptions.staticpaths.md"
     }
   ]
 }

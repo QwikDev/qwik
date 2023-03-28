@@ -4,56 +4,6 @@ title: \@builder.io/qwik/server API Reference
 
 # **API** @builder.io/qwik/server
 
-<h2 id="renderoptions-base" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-base"><span class="icon icon-link"></span></a>base </h2>
-
-Specifies the root of the JS files of the client build. Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
-
-```typescript
-base?: string | ((options: RenderOptions) => string);
-```
-
-<h2 id="renderoptions-containerattributes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-containerattributes"><span class="icon icon-link"></span></a>containerAttributes </h2>
-
-```typescript
-containerAttributes?: Record<string, string>;
-```
-
-<h2 id="renderoptions-containertagname" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-containertagname"><span class="icon icon-link"></span></a>containerTagName </h2>
-
-When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to `html`
-
-```typescript
-containerTagName?: string;
-```
-
-<h2 id="serializedocumentoptions-debug" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions-debug"><span class="icon icon-link"></span></a>debug </h2>
-
-```typescript
-debug?: boolean;
-```
-
-<h2 id="renderoptions-envdata" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-envdata"><span class="icon icon-link"></span></a>envData </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `serverData`
-
-```typescript
-envData?: Record<string, any>;
-```
-
-<h2 id="qwikloaderoptions-events" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-events"><span class="icon icon-link"></span></a>events </h2>
-
-```typescript
-events?: string[];
-```
-
-<h2 id="rendertostreamresult-flushes" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-flushes"><span class="icon icon-link"></span></a>flushes </h2>
-
-```typescript
-flushes: number;
-```
-
 <h2 id="getqwikloaderscript" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#getqwikloaderscript"><span class="icon icon-link"></span></a>getQwikLoaderScript </h2>
 
 Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader script into HTML.
@@ -75,47 +25,17 @@ string
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/scripts.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="rendertostringresult-html" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostringresult-html"><span class="icon icon-link"></span></a>html </h2>
-
-```typescript
-html: string;
-```
-
-<h2 id="prefetchstrategy-implementation" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy-implementation"><span class="icon icon-link"></span></a>implementation </h2>
-
-```typescript
-implementation?: PrefetchImplementation;
-```
-
-<h2 id="prefetchresource-imports" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchresource-imports"><span class="icon icon-link"></span></a>imports </h2>
-
-```typescript
-imports: PrefetchResource[];
-```
-
-<h2 id="qwikloaderoptions-include" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-include"><span class="icon icon-link"></span></a>include </h2>
-
-```typescript
-include?: 'always' | 'never' | 'auto';
-```
-
-<h2 id="streamingoptions-inorder" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#streamingoptions-inorder"><span class="icon icon-link"></span></a>inOrder </h2>
-
-```typescript
-inOrder?: InOrderStreaming;
-```
-
 <h2 id="inorderauto" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#inorderauto"><span class="icon icon-link"></span></a>InOrderAuto </h2>
 
 ```typescript
 export interface InOrderAuto
 ```
 
-| Property                                                 | Modifiers | Type   | Description  |
-| -------------------------------------------------------- | --------- | ------ | ------------ |
-| [maximunChunk?](#inorderauto-maximunchunk)               |           | number | _(Optional)_ |
-| [maximunInitialChunk?](#inorderauto-maximuninitialchunk) |           | number | _(Optional)_ |
-| [strategy](#inorderauto-strategy)                        |           | 'auto' |              |
+| Property                  | Modifiers | Type   | Description  |
+| ------------------------- | --------- | ------ | ------------ |
+| [maximunChunk?](#)        |           | number | _(Optional)_ |
+| [maximunInitialChunk?](#) |           | number | _(Optional)_ |
+| [strategy](#)             |           | 'auto' |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -141,91 +61,17 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="renderresult-isstatic" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-isstatic"><span class="icon icon-link"></span></a>isStatic </h2>
-
-```typescript
-isStatic: boolean;
-```
-
-<h2 id="prefetchimplementation-linkinsert" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-linkinsert"><span class="icon icon-link"></span></a>linkInsert </h2>
-
-`js-append`: Use JS runtime to create each `<link>` and append to the body.
-
-`html-append`: Render each `<link>` within html, appended at the end of the body.
-
-```typescript
-linkInsert?: 'js-append' | 'html-append' | null;
-```
-
-<h2 id="prefetchimplementation-linkrel" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-linkrel"><span class="icon icon-link"></span></a>linkRel </h2>
-
-Value of the `<link rel="...">` attribute when link is used. Defaults to `prefetch` if links are inserted.
-
-```typescript
-linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-```
-
-<h2 id="renderoptions-locale" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-locale"><span class="icon icon-link"></span></a>locale </h2>
-
-Language to use when rendering the document.
-
-```typescript
-locale?: string | ((options: RenderOptions) => string);
-```
-
-<h2 id="renderresult-manifest" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-manifest"><span class="icon icon-link"></span></a>manifest </h2>
-
-```typescript
-manifest?: QwikManifest;
-```
-
-<h2 id="inorderauto-maximunchunk" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#inorderauto-maximunchunk"><span class="icon icon-link"></span></a>maximunChunk </h2>
-
-```typescript
-maximunChunk?: number;
-```
-
-<h2 id="inorderauto-maximuninitialchunk" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#inorderauto-maximuninitialchunk"><span class="icon icon-link"></span></a>maximunInitialChunk </h2>
-
-```typescript
-maximunInitialChunk?: number;
-```
-
-<h2 id="qwikloaderoptions-position" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions-position"><span class="icon icon-link"></span></a>position </h2>
-
-```typescript
-position?: 'top' | 'bottom';
-```
-
-<h2 id="prefetchimplementation-prefetchevent" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-prefetchevent"><span class="icon icon-link"></span></a>prefetchEvent </h2>
-
-Dispatch a `qprefetch` event with detail data containing the bundles that should be prefetched. The event dispatch script will be inlined into the document's HTML so any listeners of this event should already be ready to handle the event.
-
-This implementation will inject a script similar to:
-
-```
-<script type="module">
-  document.dispatchEvent(new CustomEvent("qprefetch", { detail:{ "bundles": [...] } }))
-</script>
-```
-
-By default, the `prefetchEvent` implementation will be set to `always`.
-
-```typescript
-prefetchEvent?: 'always' | null;
-```
-
 <h2 id="prefetchimplementation" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation"><span class="icon icon-link"></span></a>PrefetchImplementation </h2>
 
 ```typescript
 export interface PrefetchImplementation
 ```
 
-| Property                                                | Modifiers | Type                                               | Description                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------------------------- | --------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [linkInsert?](#prefetchimplementation-linkinsert)       |           | 'js-append' \| 'html-append' \| null               | <p>_(Optional)_ <code>js-append</code>: Use JS runtime to create each <code>&lt;link&gt;</code> and append to the body.</p><p><code>html-append</code>: Render each <code>&lt;link&gt;</code> within html, appended at the end of the body.</p>                                                                                          |
-| [linkRel?](#prefetchimplementation-linkrel)             |           | 'prefetch' \| 'preload' \| 'modulepreload' \| null | _(Optional)_ Value of the <code>&lt;link rel=&quot;...&quot;&gt;</code> attribute when link is used. Defaults to <code>prefetch</code> if links are inserted.                                                                                                                                                                            |
-| [prefetchEvent?](#prefetchimplementation-prefetchevent) |           | 'always' \| null                                   | <p>_(Optional)_ Dispatch a <code>qprefetch</code> event with detail data containing the bundles that should be prefetched. The event dispatch script will be inlined into the document's HTML so any listeners of this event should already be ready to handle the event.</p><p>This implementation will inject a script similar to:</p> |
+| Property            | Modifiers | Type                                               | Description                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | --------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [linkInsert?](#)    |           | 'js-append' \| 'html-append' \| null               | <p>_(Optional)_ <code>js-append</code>: Use JS runtime to create each <code>&lt;link&gt;</code> and append to the body.</p><p><code>html-append</code>: Render each <code>&lt;link&gt;</code> within html, appended at the end of the body.</p>                                                                                          |
+| [linkRel?](#)       |           | 'prefetch' \| 'preload' \| 'modulepreload' \| null | _(Optional)_ Value of the <code>&lt;link rel=&quot;...&quot;&gt;</code> attribute when link is used. Defaults to <code>prefetch</code> if links are inserted.                                                                                                                                                                            |
+| [prefetchEvent?](#) |           | 'always' \| null                                   | <p>_(Optional)_ Dispatch a <code>qprefetch</code> event with detail data containing the bundles that should be prefetched. The event dispatch script will be inlined into the document's HTML so any listeners of this event should already be ready to handle the event.</p><p>This implementation will inject a script similar to:</p> |
 
 ```
 <script type="module">
@@ -234,7 +80,7 @@ export interface PrefetchImplementation
 ```
 
 <p>By default, the <code>prefetchEvent</code> implementation will be set to <code>always</code>.</p> |
-|  [workerFetchInsert?](#prefetchimplementation-workerfetchinsert) |  | 'always' \| 'no-link-support' \| null | <p>_(Optional)_ <code>always</code>: Always include the worker fetch JS runtime.</p><p><code>no-link-support</code>: Only include the worker fetch JS runtime when the browser doesn't support <code>&lt;link&gt;</code> prefetch/preload/modulepreload.</p> |
+|  [workerFetchInsert?](#) |  | 'always' \| 'no-link-support' \| null | <p>_(Optional)_ <code>always</code>: Always include the worker fetch JS runtime.</p><p><code>no-link-support</code>: Only include the worker fetch JS runtime when the browser doesn't support <code>&lt;link&gt;</code> prefetch/preload/modulepreload.</p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -244,24 +90,12 @@ export interface PrefetchImplementation
 export interface PrefetchResource
 ```
 
-| Property                             | Modifiers | Type                                      | Description |
-| ------------------------------------ | --------- | ----------------------------------------- | ----------- |
-| [imports](#prefetchresource-imports) |           | [PrefetchResource](#prefetchresource)\[\] |             |
-| [url](#prefetchresource-url)         |           | string                                    |             |
+| Property     | Modifiers | Type                                      | Description |
+| ------------ | --------- | ----------------------------------------- | ----------- |
+| [imports](#) |           | [PrefetchResource](#prefetchresource)\[\] |             |
+| [url](#)     |           | string                                    |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="renderresult-prefetchresources" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-prefetchresources"><span class="icon icon-link"></span></a>prefetchResources </h2>
-
-```typescript
-prefetchResources: PrefetchResource[];
-```
-
-<h2 id="renderoptions-prefetchstrategy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-prefetchstrategy"><span class="icon icon-link"></span></a>prefetchStrategy </h2>
-
-```typescript
-prefetchStrategy?: PrefetchStrategy | null;
-```
 
 <h2 id="prefetchstrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy"><span class="icon icon-link"></span></a>PrefetchStrategy </h2>
 
@@ -269,20 +103,12 @@ prefetchStrategy?: PrefetchStrategy | null;
 export interface PrefetchStrategy
 ```
 
-| Property                                                  | Modifiers | Type                                              | Description  |
-| --------------------------------------------------------- | --------- | ------------------------------------------------- | ------------ |
-| [implementation?](#prefetchstrategy-implementation)       |           | [PrefetchImplementation](#prefetchimplementation) | _(Optional)_ |
-| [symbolsToPrefetch?](#prefetchstrategy-symbolstoprefetch) |           | [SymbolsToPrefetch](#symbolstoprefetch)           | _(Optional)_ |
+| Property                | Modifiers | Type                                              | Description  |
+| ----------------------- | --------- | ------------------------------------------------- | ------------ |
+| [implementation?](#)    |           | [PrefetchImplementation](#prefetchimplementation) | _(Optional)_ |
+| [symbolsToPrefetch?](#) |           | [SymbolsToPrefetch](#symbolstoprefetch)           | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="renderoptions-qwikloader" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-qwikloader"><span class="icon icon-link"></span></a>qwikLoader </h2>
-
-Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
-
-```typescript
-qwikLoader?: QwikLoaderOptions;
-```
 
 <h2 id="qwikloaderoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikloaderoptions"><span class="icon icon-link"></span></a>QwikLoaderOptions </h2>
 
@@ -290,11 +116,11 @@ qwikLoader?: QwikLoaderOptions;
 export interface QwikLoaderOptions
 ```
 
-| Property                                 | Modifiers | Type                          | Description  |
-| ---------------------------------------- | --------- | ----------------------------- | ------------ |
-| [events?](#qwikloaderoptions-events)     |           | string\[\]                    | _(Optional)_ |
-| [include?](#qwikloaderoptions-include)   |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
-| [position?](#qwikloaderoptions-position) |           | 'top' \| 'bottom'             | _(Optional)_ |
+| Property       | Modifiers | Type                          | Description  |
+| -------------- | --------- | ----------------------------- | ------------ |
+| [events?](#)   |           | string\[\]                    | _(Optional)_ |
+| [include?](#)  |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
+| [position?](#) |           | 'top' \| 'bottom'             | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -316,17 +142,17 @@ export interface RenderOptions extends SerializeDocumentOptions
 
 **Extends:** [SerializeDocumentOptions](#serializedocumentoptions)
 
-| Property                                                   | Modifiers | Type                                                                | Description                                                                                                                                                                              |
-| ---------------------------------------------------------- | --------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [base?](#renderoptions-base)                               |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the <code>q:base</code> attribute in the <code>q:container</code> element. |
-| [containerAttributes?](#renderoptions-containerattributes) |           | Record&lt;string, string&gt;                                        | _(Optional)_                                                                                                                                                                             |
-| [containerTagName?](#renderoptions-containertagname)       |           | string                                                              | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code>                                            |
-| [envData?](#renderoptions-envdata)                         |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
-| [locale?](#renderoptions-locale)                           |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Language to use when rendering the document.                                                                                                                                |
-| [prefetchStrategy?](#renderoptions-prefetchstrategy)       |           | [PrefetchStrategy](#prefetchstrategy) \| null                       | _(Optional)_                                                                                                                                                                             |
-| [qwikLoader?](#renderoptions-qwikloader)                   |           | [QwikLoaderOptions](#qwikloaderoptions)                             | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>{ include: true }</code>.                                                            |
-| [serverData?](#renderoptions-serverdata)                   |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
-| [snapshot?](#renderoptions-snapshot)                       |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                               |
+| Property                  | Modifiers | Type                                                                | Description                                                                                                                                                                              |
+| ------------------------- | --------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [base?](#)                |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the <code>q:base</code> attribute in the <code>q:container</code> element. |
+| [containerAttributes?](#) |           | Record&lt;string, string&gt;                                        | _(Optional)_                                                                                                                                                                             |
+| [containerTagName?](#)    |           | string                                                              | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code>                                            |
+| [envData?](#)             |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
+| [locale?](#)              |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Language to use when rendering the document.                                                                                                                                |
+| [prefetchStrategy?](#)    |           | [PrefetchStrategy](#prefetchstrategy) \| null                       | _(Optional)_                                                                                                                                                                             |
+| [qwikLoader?](#)          |           | [QwikLoaderOptions](#qwikloaderoptions)                             | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>{ include: true }</code>.                                                            |
+| [serverData?](#)          |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
+| [snapshot?](#)            |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                               |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -336,12 +162,12 @@ export interface RenderOptions extends SerializeDocumentOptions
 export interface RenderResult
 ```
 
-| Property                                             | Modifiers | Type                                      | Description  |
-| ---------------------------------------------------- | --------- | ----------------------------------------- | ------------ |
-| [isStatic](#renderresult-isstatic)                   |           | boolean                                   |              |
-| [manifest?](#renderresult-manifest)                  |           | QwikManifest                              | _(Optional)_ |
-| [prefetchResources](#renderresult-prefetchresources) |           | [PrefetchResource](#prefetchresource)\[\] |              |
-| [snapshotResult](#renderresult-snapshotresult)       |           | SnapshotResult \| undefined               |              |
+| Property               | Modifiers | Type                                      | Description  |
+| ---------------------- | --------- | ----------------------------------------- | ------------ |
+| [isStatic](#)          |           | boolean                                   |              |
+| [manifest?](#)         |           | QwikManifest                              | _(Optional)_ |
+| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)\[\] |              |
+| [snapshotResult](#)    |           | SnapshotResult \| undefined               |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -377,10 +203,10 @@ export interface RenderToStreamOptions extends RenderOptions
 
 **Extends:** [RenderOptions](#renderoptions)
 
-| Property                                       | Modifiers | Type                                  | Description  |
-| ---------------------------------------------- | --------- | ------------------------------------- | ------------ |
-| [stream](#rendertostreamoptions-stream)        |           | StreamWriter                          |              |
-| [streaming?](#rendertostreamoptions-streaming) |           | [StreamingOptions](#streamingoptions) | _(Optional)_ |
+| Property        | Modifiers | Type                                  | Description  |
+| --------------- | --------- | ------------------------------------- | ------------ |
+| [stream](#)     |           | StreamWriter                          |              |
+| [streaming?](#) |           | [StreamingOptions](#streamingoptions) | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -392,11 +218,11 @@ export interface RenderToStreamResult extends RenderResult
 
 **Extends:** [RenderResult](#renderresult)
 
-| Property                                 | Modifiers | Type                                                      | Description |
-| ---------------------------------------- | --------- | --------------------------------------------------------- | ----------- |
-| [flushes](#rendertostreamresult-flushes) |           | number                                                    |             |
-| [size](#rendertostreamresult-size)       |           | number                                                    |             |
-| [timing](#rendertostreamresult-timing)   |           | { firstFlush: number; render: number; snapshot: number; } |             |
+| Property     | Modifiers | Type                                                      | Description |
+| ------------ | --------- | --------------------------------------------------------- | ----------- |
+| [flushes](#) |           | number                                                    |             |
+| [size](#)    |           | number                                                    |             |
+| [timing](#)  |           | { firstFlush: number; render: number; snapshot: number; } |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -442,10 +268,10 @@ export interface RenderToStringResult extends RenderResult
 
 **Extends:** [RenderResult](#renderresult)
 
-| Property                           | Modifiers | Type                                  | Description |
-| ---------------------------------- | --------- | ------------------------------------- | ----------- |
-| [html](#rendertostringresult-html) |           | string                                |             |
-| [timing](#)                        |           | { render: number; snapshot: number; } |             |
+| Property    | Modifiers | Type                                  | Description |
+| ----------- | --------- | ------------------------------------- | ----------- |
+| [html](#)   |           | string                                |             |
+| [timing](#) |           | { render: number; snapshot: number; } |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -473,19 +299,13 @@ ResolvedManifest \| undefined
 export interface SerializeDocumentOptions
 ```
 
-| Property                                                | Modifiers | Type                             | Description  |
-| ------------------------------------------------------- | --------- | -------------------------------- | ------------ |
-| [debug?](#serializedocumentoptions-debug)               |           | boolean                          | _(Optional)_ |
-| [manifest?](#)                                          |           | QwikManifest \| ResolvedManifest | _(Optional)_ |
-| [symbolMapper?](#serializedocumentoptions-symbolmapper) |           | SymbolMapperFn                   | _(Optional)_ |
+| Property           | Modifiers | Type                             | Description  |
+| ------------------ | --------- | -------------------------------- | ------------ |
+| [debug?](#)        |           | boolean                          | _(Optional)_ |
+| [manifest?](#)     |           | QwikManifest \| ResolvedManifest | _(Optional)_ |
+| [symbolMapper?](#) |           | SymbolMapperFn                   | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="renderoptions-serverdata" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-serverdata"><span class="icon icon-link"></span></a>serverData </h2>
-
-```typescript
-serverData?: Record<string, any>;
-```
 
 <h2 id="setserverplatform" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#setserverplatform"><span class="icon icon-link"></span></a>setServerPlatform </h2>
 
@@ -505,67 +325,17 @@ Promise&lt;void&gt;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/index.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="rendertostreamresult-size" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-size"><span class="icon icon-link"></span></a>size </h2>
-
-```typescript
-size: number;
-```
-
-<h2 id="renderoptions-snapshot" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderoptions-snapshot"><span class="icon icon-link"></span></a>snapshot </h2>
-
-Defaults to `true`
-
-```typescript
-snapshot?: boolean;
-```
-
-<h2 id="renderresult-snapshotresult" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#renderresult-snapshotresult"><span class="icon icon-link"></span></a>snapshotResult </h2>
-
-```typescript
-snapshotResult: SnapshotResult | undefined;
-```
-
-<h2 id="inorderauto-strategy" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#inorderauto-strategy"><span class="icon icon-link"></span></a>strategy </h2>
-
-```typescript
-strategy: "auto";
-```
-
-<h2 id="rendertostreamoptions-stream" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions-stream"><span class="icon icon-link"></span></a>stream </h2>
-
-```typescript
-stream: StreamWriter;
-```
-
-<h2 id="rendertostreamoptions-streaming" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamoptions-streaming"><span class="icon icon-link"></span></a>streaming </h2>
-
-```typescript
-streaming?: StreamingOptions;
-```
-
 <h2 id="streamingoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#streamingoptions"><span class="icon icon-link"></span></a>StreamingOptions </h2>
 
 ```typescript
 export interface StreamingOptions
 ```
 
-| Property                              | Modifiers | Type                                  | Description  |
-| ------------------------------------- | --------- | ------------------------------------- | ------------ |
-| [inOrder?](#streamingoptions-inorder) |           | [InOrderStreaming](#inorderstreaming) | _(Optional)_ |
+| Property      | Modifiers | Type                                  | Description  |
+| ------------- | --------- | ------------------------------------- | ------------ |
+| [inOrder?](#) |           | [InOrderStreaming](#inorderstreaming) | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="serializedocumentoptions-symbolmapper" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#serializedocumentoptions-symbolmapper"><span class="icon icon-link"></span></a>symbolMapper </h2>
-
-```typescript
-symbolMapper?: SymbolMapperFn;
-```
-
-<h2 id="prefetchstrategy-symbolstoprefetch" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchstrategy-symbolstoprefetch"><span class="icon icon-link"></span></a>symbolsToPrefetch </h2>
-
-```typescript
-symbolsToPrefetch?: SymbolsToPrefetch;
-```
 
 <h2 id="symbolstoprefetch" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#symbolstoprefetch"><span class="icon icon-link"></span></a>SymbolsToPrefetch </h2>
 
@@ -581,22 +351,6 @@ export type SymbolsToPrefetch =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="rendertostreamresult-timing" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#rendertostreamresult-timing"><span class="icon icon-link"></span></a>timing </h2>
-
-```typescript
-timing: {
-  firstFlush: number;
-  render: number;
-  snapshot: number;
-}
-```
-
-<h2 id="prefetchresource-url" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchresource-url"><span class="icon icon-link"></span></a>url </h2>
-
-```typescript
-url: string;
-```
-
 <h2 id="versions" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#versions"><span class="icon icon-link"></span></a>versions </h2>
 
 ```typescript
@@ -607,13 +361,3 @@ versions: {
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/utils.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="prefetchimplementation-workerfetchinsert" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#prefetchimplementation-workerfetchinsert"><span class="icon icon-link"></span></a>workerFetchInsert </h2>
-
-`always`: Always include the worker fetch JS runtime.
-
-`no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support `<link>` prefetch/preload/modulepreload.
-
-```typescript
-workerFetchInsert?: 'always' | 'no-link-support' | null;
-```

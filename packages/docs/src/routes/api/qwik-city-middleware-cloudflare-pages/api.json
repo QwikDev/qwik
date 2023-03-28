@@ -12,9 +12,9 @@
         }
       ],
       "kind": "Function",
-      "content": "",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, env, waitUntil, next }: EventPluginContext) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions) |  |\n\n**Returns:**\n\n({ request, env, waitUntil, next }: [EventPluginContext](#eventplugincontext)<!-- -->) =&gt; Promise&lt;Response&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
-      "mdFile": "qwik.createqwikcity.md"
+      "mdFile": "qwik-city.createqwikcity.md"
     },
     {
       "name": "env",
@@ -30,8 +30,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.eventplugincontext.env.md"
+      "content": "```typescript\nenv: Record<string, any>;\n```",
+      "mdFile": "qwik-city.eventplugincontext.env.md"
     },
     {
       "name": "EventPluginContext",
@@ -43,9 +43,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface EventPluginContext \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env](#eventplugincontext-env) |  | Record&lt;string, any&gt; |  |\n|  [next](#eventplugincontext-next) |  | (input?: Request \\| string, init?: RequestInit) =&gt; Promise&lt;Response&gt; |  |\n|  [request](#eventplugincontext-request) |  | Request |  |\n|  [waitUntil](#eventplugincontext-waituntil) |  | (promise: Promise&lt;any&gt;) =&gt; void |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
-      "mdFile": "qwik.eventplugincontext.md"
+      "mdFile": "qwik-city.eventplugincontext.md"
     },
     {
       "name": "next",
@@ -61,8 +61,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.eventplugincontext.next.md"
+      "content": "```typescript\nnext: (input?: Request | string, init?: RequestInit) => Promise<Response>;\n```",
+      "mdFile": "qwik-city.eventplugincontext.next.md"
     },
     {
       "name": "PlatformCloudflarePages",
@@ -74,9 +74,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface PlatformCloudflarePages \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env?](./qwik-city.platformcloudflarepages.env.md) |  | [EventPluginContext](#eventplugincontext)<!-- -->\\['env'\\] | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
-      "mdFile": "qwik.platformcloudflarepages.md"
+      "mdFile": "qwik-city.platformcloudflarepages.md"
     },
     {
       "name": "QwikCityCloudflarePagesOptions",
@@ -88,9 +88,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface QwikCityCloudflarePagesOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
-      "mdFile": "qwik.qwikcitycloudflarepagesoptions.md"
+      "mdFile": "qwik-city.qwikcitycloudflarepagesoptions.md"
     },
     {
       "name": "request",
@@ -106,8 +106,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.eventplugincontext.request.md"
+      "content": "```typescript\nrequest: Request;\n```",
+      "mdFile": "qwik-city.eventplugincontext.request.md"
     },
     {
       "name": "waitUntil",
@@ -123,8 +123,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.eventplugincontext.waituntil.md"
+      "content": "```typescript\nwaitUntil: (promise: Promise<any>) => void;\n```",
+      "mdFile": "qwik-city.eventplugincontext.waituntil.md"
     }
   ]
 }

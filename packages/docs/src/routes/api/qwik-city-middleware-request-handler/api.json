@@ -16,8 +16,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.basepathname.md"
+      "content": "The base pathname of the request, which can be configured at build time. Defaults to `/`<!-- -->.\n\n\n```typescript\nreadonly basePathname: string;\n```",
+      "mdFile": "qwik-city.requesteventbase.basepathname.md"
     },
     {
       "name": "cacheControl",
@@ -33,8 +33,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.cachecontrol.md"
+      "content": "Convenience method to set the Cache-Control header.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control\n\n\n```typescript\nreadonly cacheControl: (cacheControl: CacheControl) => void;\n```",
+      "mdFile": "qwik-city.requesteventbase.cachecontrol.md"
     },
     {
       "name": "CacheControl",
@@ -46,9 +46,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.cachecontrol.md"
+      "mdFile": "qwik-city.cachecontrol.md"
     },
     {
       "name": "cookie",
@@ -64,8 +64,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.cookie.md"
+      "content": "HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value. Use the `set()` method to set a response cookie value.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies\n\n\n```typescript\nreadonly cookie: Cookie;\n```",
+      "mdFile": "qwik-city.requesteventbase.cookie.md"
     },
     {
       "name": "Cookie",
@@ -77,9 +77,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface Cookie \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [delete(name, options)](#cookie-delete) | Deletes cookie value by name using the <code>Response</code> cookie header. |\n|  [get(name)](#cookie-get) | Gets a <code>Request</code> cookie header value by name. |\n|  [getAll()](#cookie-getall) | Gets all <code>Request</code> cookie headers. |\n|  [has(name)](#cookie-has) | Checks if the <code>Request</code> cookie header name exists. |\n|  [headers()](#cookie-headers) | Returns an array of all the set <code>Response</code> <code>Set-Cookie</code> header values. |\n|  [set(name, value, options)](#cookie-set) | Sets a <code>Response</code> cookie header using the <code>Set-Cookie</code> header. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.cookie.md"
+      "mdFile": "qwik-city.cookie.md"
     },
     {
       "name": "CookieOptions",
@@ -91,9 +91,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie\n\n\n```typescript\nexport interface CookieOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [domain?](#cookieoptions-domain) |  | string | _(Optional)_ Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains. |\n|  [expires?](#cookieoptions-expires) |  | Date \\| string | _(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence. |\n|  [httpOnly?](#cookieoptions-httponly) |  | boolean | _(Optional)_ Forbids JavaScript from accessing the cookie, for example, through the <code>document.cookie</code> property. |\n|  [maxAge?](#cookieoptions-maxage) |  | number \\| \\[number, 'seconds' \\| 'minutes' \\| 'hours' \\| 'days' \\| 'weeks'\\] | _(Optional)_ Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, <code>{ maxAge: [3, &quot;days&quot;] }</code> would set the cookie to expire in 3 days. |\n|  [path?](#cookieoptions-path) |  | string | _(Optional)_ Indicates the path that must exist in the requested URL for the browser to send the Cookie header. |\n|  [sameSite?](#cookieoptions-samesite) |  | 'strict' \\| 'lax' \\| 'none' | _(Optional)_ Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF). |\n|  [secure?](#cookieoptions-secure) |  | boolean | _(Optional)_ Indicates that the cookie is sent to the server only when a request is made with the <code>https:</code> scheme (except on localhost) |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.cookieoptions.md"
+      "mdFile": "qwik-city.cookieoptions.md"
     },
     {
       "name": "CookieValue",
@@ -105,9 +105,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface CookieValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [json](#cookievalue-json) |  | &lt;T = unknown&gt;() =&gt; T |  |\n|  [number](#cookievalue-number) |  | () =&gt; number |  |\n|  [value](#cookievalue-value) |  | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.cookievalue.md"
+      "mdFile": "qwik-city.cookievalue.md"
     },
     {
       "name": "defer",
@@ -123,8 +123,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventloader.defer.md"
+      "content": "```typescript\ndefer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;\n```",
+      "mdFile": "qwik-city.requesteventloader.defer.md"
     },
     {
       "name": "DeferReturn",
@@ -136,9 +136,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type DeferReturn<T> = () => Promise<T>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.deferreturn.md"
+      "mdFile": "qwik-city.deferreturn.md"
     },
     {
       "name": "delete",
@@ -154,8 +154,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.cookie.delete.md"
+      "content": "Deletes cookie value by name using the `Response` cookie header.\n\n\n```typescript\ndelete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  name | string |  |\n|  options | Pick&lt;[CookieOptions](#cookieoptions)<!-- -->, 'path' \\| 'domain'&gt; | _(Optional)_ |\n\n**Returns:**\n\nvoid",
+      "mdFile": "qwik-city.cookie.delete.md"
     },
     {
       "name": "domain",
@@ -171,8 +171,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.domain.md"
+      "content": "Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains.\n\n\n```typescript\ndomain?: string;\n```",
+      "mdFile": "qwik-city.cookieoptions.domain.md"
     },
     {
       "name": "env",
@@ -188,8 +188,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.env.md"
+      "content": "Platform provided environment variables.\n\n\n```typescript\nreadonly env: EnvGetter;\n```",
+      "mdFile": "qwik-city.requesteventbase.env.md"
     },
     {
       "name": "error",
@@ -205,8 +205,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.error.md"
+      "content": "When called, the response will immediately end with the given status code. This could be useful to end a response with `404`<!-- -->, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.\n\n\n```typescript\nreadonly error: (statusCode: number, message: string) => ErrorResponse;\n```",
+      "mdFile": "qwik-city.requesteventcommon.error.md"
     },
     {
       "name": "exit",
@@ -222,8 +222,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.exit.md"
+      "content": "```typescript\nreadonly exit: () => AbortMessage;\n```",
+      "mdFile": "qwik-city.requesteventcommon.exit.md"
     },
     {
       "name": "exited",
@@ -239,8 +239,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requestevent.exited.md"
+      "content": "```typescript\nreadonly exited: boolean;\n```",
+      "mdFile": "qwik-city.requestevent.exited.md"
     },
     {
       "name": "expires",
@@ -256,8 +256,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.expires.md"
+      "content": "Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both `expires` and `maxAge` are set, `maxAge` has precedence.\n\n\n```typescript\nexpires?: Date | string;\n```",
+      "mdFile": "qwik-city.cookieoptions.expires.md"
     },
     {
       "name": "fail",
@@ -273,8 +273,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventaction.fail.md"
+      "content": "```typescript\nfail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;\n```",
+      "mdFile": "qwik-city.requesteventaction.fail.md"
     },
     {
       "name": "get",
@@ -290,8 +290,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.cookie.get.md"
+      "content": "Gets a `Request` cookie header value by name.\n\n\n```typescript\nget(name: string): CookieValue | null;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  name | string |  |\n\n**Returns:**\n\n[CookieValue](#cookievalue) \\| null",
+      "mdFile": "qwik-city.cookie.get.md"
     },
     {
       "name": "getAll",
@@ -307,8 +307,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.cookie.getall.md"
+      "content": "Gets all `Request` cookie headers.\n\n\n```typescript\ngetAll(): Record<string, CookieValue>;\n```\n**Returns:**\n\nRecord&lt;string, [CookieValue](#cookievalue)<!-- -->&gt;",
+      "mdFile": "qwik-city.cookie.getall.md"
     },
     {
       "name": "getErrorHtml",
@@ -320,9 +320,9 @@
         }
       ],
       "kind": "Function",
-      "content": "",
+      "content": "```typescript\nexport declare function getErrorHtml(status: number, e: any): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  status | number |  |\n|  e | any |  |\n\n**Returns:**\n\nstring",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts",
-      "mdFile": "qwik.geterrorhtml.md"
+      "mdFile": "qwik-city.geterrorhtml.md"
     },
     {
       "name": "getWritableStream",
@@ -338,8 +338,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requestevent.getwritablestream.md"
+      "content": "Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called, the status and headers can no longer be modified and will be sent over the network.\n\n\n```typescript\nreadonly getWritableStream: () => WritableStream<Uint8Array>;\n```",
+      "mdFile": "qwik-city.requestevent.getwritablestream.md"
     },
     {
       "name": "has",
@@ -355,8 +355,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.cookie.has.md"
+      "content": "Checks if the `Request` cookie header name exists.\n\n\n```typescript\nhas(name: string): boolean;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  name | string |  |\n\n**Returns:**\n\nboolean",
+      "mdFile": "qwik-city.cookie.has.md"
     },
     {
       "name": "headers",
@@ -372,8 +372,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.cookie.headers.md"
+      "content": "Returns an array of all the set `Response` `Set-Cookie` header values.\n\n\n```typescript\nheaders(): string[];\n```\n**Returns:**\n\nstring\\[\\]",
+      "mdFile": "qwik-city.cookie.headers.md"
     },
     {
       "name": "headers",
@@ -389,8 +389,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.headers.md"
+      "content": "HTTP response headers.\n\nhttps://developer.mozilla.org/en-US/docs/Glossary/Response\\_header\n\n\n```typescript\nreadonly headers: Headers;\n```",
+      "mdFile": "qwik-city.requesteventbase.headers.md"
     },
     {
       "name": "headersSent",
@@ -406,8 +406,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requestevent.headerssent.md"
+      "content": "```typescript\nreadonly headersSent: boolean;\n```",
+      "mdFile": "qwik-city.requestevent.headerssent.md"
     },
     {
       "name": "html",
@@ -423,8 +423,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.html.md"
+      "content": "Convenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`<!-- -->. An `html()` response can only be called once.\n\n\n```typescript\nreadonly html: (statusCode: number, html: string) => AbortMessage;\n```",
+      "mdFile": "qwik-city.requesteventcommon.html.md"
     },
     {
       "name": "httpOnly",
@@ -440,8 +440,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.httponly.md"
+      "content": "Forbids JavaScript from accessing the cookie, for example, through the `document.cookie` property.\n\n\n```typescript\nhttpOnly?: boolean;\n```",
+      "mdFile": "qwik-city.cookieoptions.httponly.md"
     },
     {
       "name": "json",
@@ -457,8 +457,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookievalue.json.md"
+      "content": "```typescript\njson: <T = unknown>() => T;\n```",
+      "mdFile": "qwik-city.cookievalue.json.md"
     },
     {
       "name": "locale",
@@ -474,8 +474,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.locale.md"
+      "content": "Which locale the content is in.\n\nThe locale value can be retrieved from selected methods using `getLocale()`<!-- -->:\n\n\n```typescript\nreadonly locale: (local?: string) => string;\n```",
+      "mdFile": "qwik-city.requesteventcommon.locale.md"
     },
     {
       "name": "maxAge",
@@ -491,8 +491,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.maxage.md"
+      "content": "Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both `expires` and `maxAge` are set, `maxAge` has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, `{ maxAge: [3, \"days\"] }` would set the cookie to expire in 3 days.\n\n\n```typescript\nmaxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];\n```",
+      "mdFile": "qwik-city.cookieoptions.maxage.md"
     },
     {
       "name": "mergeHeadersCookies",
@@ -504,9 +504,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nmergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/cookie.ts",
-      "mdFile": "qwik.mergeheaderscookies.md"
+      "mdFile": "qwik-city.mergeheaderscookies.md"
     },
     {
       "name": "method",
@@ -522,8 +522,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.method.md"
+      "content": "HTTP request method.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Methods\n\n\n```typescript\nreadonly method: string;\n```",
+      "mdFile": "qwik-city.requesteventbase.method.md"
     },
     {
       "name": "mode",
@@ -539,8 +539,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.serverrequestevent.mode.md"
+      "content": "```typescript\nmode: ServerRequestMode;\n```",
+      "mdFile": "qwik-city.serverrequestevent.mode.md"
     },
     {
       "name": "next",
@@ -556,8 +556,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requestevent.next.md"
+      "content": "```typescript\nreadonly next: () => Promise<void>;\n```",
+      "mdFile": "qwik-city.requestevent.next.md"
     },
     {
       "name": "number",
@@ -573,8 +573,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookievalue.number.md"
+      "content": "```typescript\nnumber: () => number;\n```",
+      "mdFile": "qwik-city.cookievalue.number.md"
     },
     {
       "name": "params",
@@ -590,8 +590,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.params.md"
+      "content": "URL path params which have been parsed from the current url pathname segments. Use `query` to instead retrieve the query string search params.\n\n\n```typescript\nreadonly params: Readonly<Record<string, string>>;\n```",
+      "mdFile": "qwik-city.requesteventbase.params.md"
     },
     {
       "name": "parseBody",
@@ -607,8 +607,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.parsebody.md"
+      "content": "This method will check the request headers for a `Content-Type` header and parse the body accordingly. It supports `application/json`<!-- -->, `application/x-www-form-urlencoded`<!-- -->, and `multipart/form-data` content types.\n\nIf the `Content-Type` header is not set, it will return `null`<!-- -->.\n\n\n```typescript\nreadonly parseBody: () => Promise<unknown>;\n```",
+      "mdFile": "qwik-city.requesteventbase.parsebody.md"
     },
     {
       "name": "path",
@@ -624,8 +624,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.path.md"
+      "content": "Indicates the path that must exist in the requested URL for the browser to send the Cookie header.\n\n\n```typescript\npath?: string;\n```",
+      "mdFile": "qwik-city.cookieoptions.path.md"
     },
     {
       "name": "pathname",
@@ -641,8 +641,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.pathname.md"
+      "content": "URL pathname. Does not include the protocol, domain, query string (search params) or hash.\n\nhttps://developer.mozilla.org/en-US/docs/Web/API/URL/pathname\n\n\n```typescript\nreadonly pathname: string;\n```",
+      "mdFile": "qwik-city.requesteventbase.pathname.md"
     },
     {
       "name": "platform",
@@ -658,8 +658,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.platform.md"
+      "content": "Platform specific data and functions\n\n\n```typescript\nreadonly platform: PLATFORM;\n```",
+      "mdFile": "qwik-city.requesteventbase.platform.md"
     },
     {
       "name": "query",
@@ -675,8 +675,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.query.md"
+      "content": "URL Query Strings (URL Search Params). Use `params` to instead retrieve the route params found in the url pathname.\n\nhttps://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams\n\n\n```typescript\nreadonly query: URLSearchParams;\n```",
+      "mdFile": "qwik-city.requesteventbase.query.md"
     },
     {
       "name": "qwikCityPlan",
@@ -692,8 +692,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.serverrenderoptions.qwikcityplan.md"
+      "content": "```typescript\nqwikCityPlan: QwikCityPlan;\n```",
+      "mdFile": "qwik-city.serverrenderoptions.qwikcityplan.md"
     },
     {
       "name": "redirect",
@@ -709,8 +709,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.redirect.md"
+      "content": "URL to redirect to. When called, the response will immediately end with the correct redirect status and headers.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections\n\n\n```typescript\nreadonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;\n```",
+      "mdFile": "qwik-city.requesteventcommon.redirect.md"
     },
     {
       "name": "render",
@@ -726,8 +726,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.serverrenderoptions.render.md"
+      "content": "```typescript\nrender: Render;\n```",
+      "mdFile": "qwik-city.serverrenderoptions.render.md"
     },
     {
       "name": "request",
@@ -743,8 +743,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.request.md"
+      "content": "HTTP request information.\n\n\n```typescript\nreadonly request: Request;\n```",
+      "mdFile": "qwik-city.requesteventbase.request.md"
     },
     {
       "name": "RequestEvent",
@@ -756,9 +756,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> \n```\n**Extends:** [RequestEventCommon](#requesteventcommon)<!-- -->&lt;PLATFORM&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [exited](#requestevent-exited) | <code>readonly</code> | boolean |  |\n|  [getWritableStream](#requestevent-getwritablestream) | <code>readonly</code> | () =&gt; WritableStream&lt;Uint8Array&gt; | Low-level access to write to the HTTP response stream. Once <code>getWritableStream()</code> is called, the status and headers can no longer be modified and will be sent over the network. |\n|  [headersSent](#requestevent-headerssent) | <code>readonly</code> | boolean |  |\n|  [next](#requestevent-next) | <code>readonly</code> | () =&gt; Promise&lt;void&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.requestevent.md"
+      "mdFile": "qwik-city.requestevent.md"
     },
     {
       "name": "RequestEventAction",
@@ -770,9 +770,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> \n```\n**Extends:** [RequestEventCommon](#requesteventcommon)<!-- -->&lt;PLATFORM&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [fail](#requesteventaction-fail) |  | &lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.requesteventaction.md"
+      "mdFile": "qwik-city.requesteventaction.md"
     },
     {
       "name": "RequestEventBase",
@@ -784,9 +784,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface RequestEventBase<PLATFORM = QwikCityPlatform> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [basePathname](#requesteventbase-basepathname) | <code>readonly</code> | string | The base pathname of the request, which can be configured at build time. Defaults to <code>/</code>. |\n|  [cacheControl](#requesteventbase-cachecontrol) | <code>readonly</code> | (cacheControl: [CacheControl](#cachecontrol)<!-- -->) =&gt; void | <p>Convenience method to set the Cache-Control header.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control</p> |\n|  [cookie](#requesteventbase-cookie) | <code>readonly</code> | [Cookie](#cookie) | <p>HTTP request and response cookie. Use the <code>get()</code> method to retrieve a request cookie value. Use the <code>set()</code> method to set a response cookie value.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies</p> |\n|  [env](#requesteventbase-env) | <code>readonly</code> | EnvGetter | Platform provided environment variables. |\n|  [headers](#requesteventbase-headers) | <code>readonly</code> | Headers | <p>HTTP response headers.</p><p>https://developer.mozilla.org/en-US/docs/Glossary/Response\\_header</p> |\n|  [method](#requesteventbase-method) | <code>readonly</code> | string | <p>HTTP request method.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods</p> |\n|  [params](#requesteventbase-params) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; | URL path params which have been parsed from the current url pathname segments. Use <code>query</code> to instead retrieve the query string search params. |\n|  [parseBody](#requesteventbase-parsebody) | <code>readonly</code> | () =&gt; Promise&lt;unknown&gt; | <p>This method will check the request headers for a <code>Content-Type</code> header and parse the body accordingly. It supports <code>application/json</code>, <code>application/x-www-form-urlencoded</code>, and <code>multipart/form-data</code> content types.</p><p>If the <code>Content-Type</code> header is not set, it will return <code>null</code>.</p> |\n|  [pathname](#requesteventbase-pathname) | <code>readonly</code> | string | <p>URL pathname. Does not include the protocol, domain, query string (search params) or hash.</p><p>https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname</p> |\n|  [platform](#requesteventbase-platform) | <code>readonly</code> | PLATFORM | Platform specific data and functions |\n|  [query](#requesteventbase-query) | <code>readonly</code> | URLSearchParams | <p>URL Query Strings (URL Search Params). Use <code>params</code> to instead retrieve the route params found in the url pathname.</p><p>https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams</p> |\n|  [request](#requesteventbase-request) | <code>readonly</code> | Request | HTTP request information. |\n|  [sharedMap](#requesteventbase-sharedmap) | <code>readonly</code> | Map&lt;string, any&gt; | Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers. |\n|  [url](#requesteventbase-url) | <code>readonly</code> | URL | HTTP request URL. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.requesteventbase.md"
+      "mdFile": "qwik-city.requesteventbase.md"
     },
     {
       "name": "RequestEventCommon",
@@ -798,9 +798,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends RequestEventBase<PLATFORM> \n```\n**Extends:** [RequestEventBase](#requesteventbase)<!-- -->&lt;PLATFORM&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [error](#requesteventcommon-error) | <code>readonly</code> | (statusCode: number, message: string) =&gt; ErrorResponse | When called, the response will immediately end with the given status code. This could be useful to end a response with <code>404</code>, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used. |\n|  [exit](#requesteventcommon-exit) | <code>readonly</code> | () =&gt; AbortMessage |  |\n|  [html](#requesteventcommon-html) | <code>readonly</code> | (statusCode: number, html: string) =&gt; AbortMessage | Convenience method to send an HTML body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/html; charset=utf-8</code>. An <code>html()</code> response can only be called once. |\n|  [json](./qwik-city.requesteventcommon.json.md) | <code>readonly</code> | (statusCode: number, data: any) =&gt; AbortMessage | Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the <code>Content-Type</code> header to <code>application/json; charset=utf-8</code>. A <code>json()</code> response can only be called once. |\n|  [locale](#requesteventcommon-locale) | <code>readonly</code> | (local?: string) =&gt; string | <p>Which locale the content is in.</p><p>The locale value can be retrieved from selected methods using <code>getLocale()</code>:</p> |\n|  [redirect](#requesteventcommon-redirect) | <code>readonly</code> | (statusCode: RedirectCode, url: string) =&gt; RedirectMessage | <p>URL to redirect to. When called, the response will immediately end with the correct redirect status and headers.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections</p> |\n|  [send](#requesteventcommon-send) | <code>readonly</code> | SendMethod | Send a body response. The <code>Content-Type</code> response header is not automatically set when using <code>send()</code> and must be set manually. A <code>send()</code> response can only be called once. |\n|  [status](#requesteventcommon-status) | <code>readonly</code> | (statusCode?: number) =&gt; number | <p>HTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling <code>status()</code> without an argument will can be used to return the current status code.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Status</p> |\n|  [text](#requesteventcommon-text) | <code>readonly</code> | (statusCode: number, text: string) =&gt; AbortMessage | Convenience method to send an text body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/plain; charset=utf-8</code>. An <code>text()</code> response can only be called once. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.requesteventcommon.md"
+      "mdFile": "qwik-city.requesteventcommon.md"
     },
     {
       "name": "RequestEventLoader",
@@ -812,9 +812,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> \n```\n**Extends:** [RequestEventAction](#requesteventaction)<!-- -->&lt;PLATFORM&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [defer](#requesteventloader-defer) |  | &lt;T&gt;(returnData: Promise&lt;T&gt; \\| (() =&gt; Promise&lt;T&gt;)) =&gt; [DeferReturn](#deferreturn)<!-- -->&lt;T&gt; |  |\n|  [resolveValue](#requesteventloader-resolvevalue) |  | [ResolveValue](#resolvevalue) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.requesteventloader.md"
+      "mdFile": "qwik-city.requesteventloader.md"
     },
     {
       "name": "requestHandler",
@@ -826,9 +826,9 @@
         }
       ],
       "kind": "Function",
-      "content": "",
+      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;\n```\n**References:** [RequestEvent](#requestevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/request-handler.ts",
-      "mdFile": "qwik.requesthandler.md"
+      "mdFile": "qwik-city.requesthandler.md"
     },
     {
       "name": "RequestHandler",
@@ -840,9 +840,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;\n```\n**References:** [RequestEvent](#requestevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.requesthandler.md"
+      "mdFile": "qwik-city.requesthandler.md"
     },
     {
       "name": "ResolveSyncValue",
@@ -854,9 +854,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ResolveSyncValue \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.resolvesyncvalue.md"
+      "mdFile": "qwik-city.resolvesyncvalue.md"
     },
     {
       "name": "resolveValue",
@@ -872,8 +872,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventloader.resolvevalue.md"
+      "content": "```typescript\nresolveValue: ResolveValue;\n```",
+      "mdFile": "qwik-city.requesteventloader.resolvevalue.md"
     },
     {
       "name": "ResolveValue",
@@ -885,9 +885,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ResolveValue \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.resolvevalue.md"
+      "mdFile": "qwik-city.resolvevalue.md"
     },
     {
       "name": "sameSite",
@@ -903,8 +903,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.samesite.md"
+      "content": "Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF).\n\n\n```typescript\nsameSite?: 'strict' | 'lax' | 'none';\n```",
+      "mdFile": "qwik-city.cookieoptions.samesite.md"
     },
     {
       "name": "secure",
@@ -920,8 +920,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookieoptions.secure.md"
+      "content": "Indicates that the cookie is sent to the server only when a request is made with the `https:` scheme (except on localhost)\n\n\n```typescript\nsecure?: boolean;\n```",
+      "mdFile": "qwik-city.cookieoptions.secure.md"
     },
     {
       "name": "send",
@@ -937,8 +937,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.send.md"
+      "content": "Send a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.\n\n\n```typescript\nreadonly send: SendMethod;\n```",
+      "mdFile": "qwik-city.requesteventcommon.send.md"
     },
     {
       "name": "ServerRenderOptions",
@@ -950,9 +950,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ServerRenderOptions extends RenderOptions \n```\n**Extends:** RenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [qwikCityPlan](#serverrenderoptions-qwikcityplan) |  | QwikCityPlan |  |\n|  [render](#serverrenderoptions-render) |  | Render |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.serverrenderoptions.md"
+      "mdFile": "qwik-city.serverrenderoptions.md"
     },
     {
       "name": "ServerRequestEvent",
@@ -964,9 +964,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "Request event created by the server.\n\n\n```typescript\nexport interface ServerRequestEvent<T = any> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env](./qwik-city.serverrequestevent.env.md) |  | EnvGetter |  |\n|  [getWritableStream](./qwik-city.serverrequestevent.getwritablestream.md) |  | [ServerResponseHandler](#serverresponsehandler)<!-- -->&lt;T&gt; |  |\n|  [locale](./qwik-city.serverrequestevent.locale.md) |  | string \\| undefined |  |\n|  [mode](#serverrequestevent-mode) |  | [ServerRequestMode](#serverrequestmode) |  |\n|  [platform](./qwik-city.serverrequestevent.platform.md) |  | any |  |\n|  [request](./qwik-city.serverrequestevent.request.md) |  | Request |  |\n|  [url](./qwik-city.serverrequestevent.url.md) |  | URL |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.serverrequestevent.md"
+      "mdFile": "qwik-city.serverrequestevent.md"
     },
     {
       "name": "ServerRequestMode",
@@ -978,9 +978,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type ServerRequestMode = 'dev' | 'static' | 'server';\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.serverrequestmode.md"
+      "mdFile": "qwik-city.serverrequestmode.md"
     },
     {
       "name": "ServerResponseHandler",
@@ -992,9 +992,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;\n```\n**References:** [Cookie](#cookie)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik.serverresponsehandler.md"
+      "mdFile": "qwik-city.serverresponsehandler.md"
     },
     {
       "name": "set",
@@ -1010,8 +1010,8 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "",
-      "mdFile": "qwik.cookie.set.md"
+      "content": "Sets a `Response` cookie header using the `Set-Cookie` header.\n\n\n```typescript\nset(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  name | string |  |\n|  value | string \\| number \\| Record&lt;string, any&gt; |  |\n|  options | [CookieOptions](#cookieoptions) | _(Optional)_ |\n\n**Returns:**\n\nvoid",
+      "mdFile": "qwik-city.cookie.set.md"
     },
     {
       "name": "sharedMap",
@@ -1027,8 +1027,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.sharedmap.md"
+      "content": "Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.\n\n\n```typescript\nreadonly sharedMap: Map<string, any>;\n```",
+      "mdFile": "qwik-city.requesteventbase.sharedmap.md"
     },
     {
       "name": "status",
@@ -1044,8 +1044,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.status.md"
+      "content": "HTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Status\n\n\n```typescript\nreadonly status: (statusCode?: number) => number;\n```",
+      "mdFile": "qwik-city.requesteventcommon.status.md"
     },
     {
       "name": "text",
@@ -1061,8 +1061,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventcommon.text.md"
+      "content": "Convenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`<!-- -->. An `text()` response can only be called once.\n\n\n```typescript\nreadonly text: (statusCode: number, text: string) => AbortMessage;\n```",
+      "mdFile": "qwik-city.requesteventcommon.text.md"
     },
     {
       "name": "url",
@@ -1078,8 +1078,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.requesteventbase.url.md"
+      "content": "HTTP request URL.\n\n\n```typescript\nreadonly url: URL;\n```",
+      "mdFile": "qwik-city.requesteventbase.url.md"
     },
     {
       "name": "value",
@@ -1095,8 +1095,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.cookievalue.value.md"
+      "content": "```typescript\nvalue: string;\n```",
+      "mdFile": "qwik-city.cookievalue.value.md"
     }
   ]
 }

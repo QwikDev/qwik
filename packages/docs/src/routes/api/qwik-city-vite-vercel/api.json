@@ -16,8 +16,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.verceledgeadapteroptions.outputconfig.md"
+      "content": "Determines if the build should auto-generate the `.vercel/output/config.json` config.\n\nDefaults to `true`<!-- -->.\n\n\n```typescript\noutputConfig?: boolean;\n```",
+      "mdFile": "qwik-city.verceledgeadapteroptions.outputconfig.md"
     },
     {
       "name": "staticPaths",
@@ -33,8 +33,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.verceledgeadapteroptions.staticpaths.md"
+      "content": "Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.\n\n\n```typescript\nstaticPaths?: string[];\n```",
+      "mdFile": "qwik-city.verceledgeadapteroptions.staticpaths.md"
     },
     {
       "name": "vcConfigEntryPoint",
@@ -50,8 +50,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.verceledgeadapteroptions.vcconfigentrypoint.md"
+      "content": "The `entrypoint` property in the `.vc-config.json` file. Indicates the initial file where code will be executed for the Edge Function.\n\nDefaults to `entry.vercel-edge.js`<!-- -->.\n\n\n```typescript\nvcConfigEntryPoint?: string;\n```",
+      "mdFile": "qwik-city.verceledgeadapteroptions.vcconfigentrypoint.md"
     },
     {
       "name": "vcConfigEnvVarsInUse",
@@ -67,8 +67,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.verceledgeadapteroptions.vcconfigenvvarsinuse.md"
+      "content": "The `envVarsInUse` property in the `.vc-config.json` file. List of environment variable names that will be available for the Edge Function to utilize.\n\nDefaults to `undefined`<!-- -->.\n\n\n```typescript\nvcConfigEnvVarsInUse?: string[];\n```",
+      "mdFile": "qwik-city.verceledgeadapteroptions.vcconfigenvvarsinuse.md"
     },
     {
       "name": "vercelEdgeAdapter",
@@ -80,9 +80,9 @@
         }
       ],
       "kind": "Function",
-      "content": "",
+      "content": "```typescript\nexport declare function vercelEdgeAdapter(opts?: VercelEdgeAdapterOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [VercelEdgeAdapterOptions](#verceledgeadapteroptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts",
-      "mdFile": "qwik.verceledgeadapter.md"
+      "mdFile": "qwik-city.verceledgeadapter.md"
     },
     {
       "name": "VercelEdgeAdapterOptions",
@@ -94,9 +94,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface VercelEdgeAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [outputConfig?](#verceledgeadapteroptions-outputconfig) |  | boolean | <p>_(Optional)_ Determines if the build should auto-generate the <code>.vercel/output/config.json</code> config.</p><p>Defaults to <code>true</code>.</p> |\n|  [staticPaths?](#verceledgeadapteroptions-staticpaths) |  | string\\[\\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |\n|  [vcConfigEntryPoint?](#verceledgeadapteroptions-vcconfigentrypoint) |  | string | <p>_(Optional)_ The <code>entrypoint</code> property in the <code>.vc-config.json</code> file. Indicates the initial file where code will be executed for the Edge Function.</p><p>Defaults to <code>entry.vercel-edge.js</code>.</p> |\n|  [vcConfigEnvVarsInUse?](#verceledgeadapteroptions-vcconfigenvvarsinuse) |  | string\\[\\] | <p>_(Optional)_ The <code>envVarsInUse</code> property in the <code>.vc-config.json</code> file. List of environment variable names that will be available for the Edge Function to utilize.</p><p>Defaults to <code>undefined</code>.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts",
-      "mdFile": "qwik.verceledgeadapteroptions.md"
+      "mdFile": "qwik-city.verceledgeadapteroptions.md"
     }
   ]
 }

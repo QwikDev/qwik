@@ -16,8 +16,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.formprops.action.md"
+      "content": "Reference to the action returned by `action()`<!-- -->.\n\n\n```typescript\naction?: ActionStore<O, I, true | false>;\n```",
+      "mdFile": "qwik-city.formprops.action.md"
     },
     {
       "name": "Action",
@@ -29,9 +29,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [use()](./qwik-city.action.use.md) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.action.md"
+      "mdFile": "qwik-city.action.md"
     },
     {
       "name": "ActionConstructor",
@@ -43,9 +43,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ActionConstructor \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.actionconstructor.md"
+      "mdFile": "qwik-city.actionconstructor.md"
     },
     {
       "name": "ActionOptions",
@@ -57,9 +57,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ActionOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [id?](#actionoptions-id) | <code>readonly</code> | string | _(Optional)_ |\n|  [validation?](#actionoptions-validation) | <code>readonly</code> | DataValidator\\[\\] | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.actionoptions.md"
+      "mdFile": "qwik-city.actionoptions.md"
     },
     {
       "name": "ActionOptionsWithValidation",
@@ -71,9 +71,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [id?](./qwik-city.actionoptionswithvalidation.id.md) | <code>readonly</code> | string | _(Optional)_ |\n|  [validation](./qwik-city.actionoptionswithvalidation.validation.md) | <code>readonly</code> | \\[val: B, ...a: DataValidator\\[\\]\\] |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.actionoptionswithvalidation.md"
+      "mdFile": "qwik-city.actionoptionswithvalidation.md"
     },
     {
       "name": "actionPath",
@@ -89,8 +89,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.actionpath.md"
+      "content": "It's the \"action\" path that a native `<form>` should have in order to call the action.\n\n```tsx\n <form action={action.actionPath} />\n```\nMost of the time this property should not be used directly, instead use the `Form` component:\n\n```tsx\nimport {action$, Form} from '@builder.io/qwik-city';\n\nexport const useAddUser = action$(() => { ... });\n\nexport default component$(() => {\n  const action = useAddUser();\n  return (\n    <Form action={action}/>\n  );\n});\n```\n\n\n```typescript\nreadonly actionPath: string;\n```",
+      "mdFile": "qwik-city.actionstore.actionpath.md"
     },
     {
       "name": "ActionStore",
@@ -102,9 +102,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [actionPath](#actionstore-actionpath) | <code>readonly</code> | string | <p>It's the \"action\" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p>\n```tsx\n <form action={action.actionPath} />\n```\n<p>Most of the time this property should not be used directly, instead use the <code>Form</code> component:</p>\n```tsx\nimport {action$, Form} from '@builder.io/qwik-city';\n\nexport const useAddUser = action$(() => { ... });\n\nexport default component$(() => {\n  const action = useAddUser();\n  return (\n    <Form action={action}/>\n  );\n});\n```\n |\n|  [formData](#actionstore-formdata) | <code>readonly</code> | FormData \\| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [isRunning](#actionstore-isrunning) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |\n|  [run](./qwik-city.actionstore.run.md) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; |  |\n|  [status?](#actionstore-status) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [submit](#actionstore-submit) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |\n|  [value](#actionstore-value) | <code>readonly</code> | RETURN \\| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.actionstore.md"
+      "mdFile": "qwik-city.actionstore.md"
     },
     {
       "name": "as",
@@ -120,8 +120,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.as.md"
+      "content": "```typescript\nas?: string;\n```",
+      "mdFile": "qwik-city.documentlink.as.md"
     },
     {
       "name": "basePathname",
@@ -137,8 +137,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcityplan.basepathname.md"
+      "content": "```typescript\nreadonly basePathname?: string;\n```",
+      "mdFile": "qwik-city.qwikcityplan.basepathname.md"
     },
     {
       "name": "cacheModules",
@@ -154,8 +154,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcityplan.cachemodules.md"
+      "content": "```typescript\nreadonly cacheModules?: boolean;\n```",
+      "mdFile": "qwik-city.qwikcityplan.cachemodules.md"
     },
     {
       "name": "content",
@@ -171,8 +171,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentmeta.content.md"
+      "content": "```typescript\nreadonly content?: string;\n```",
+      "mdFile": "qwik-city.documentmeta.content.md"
     },
     {
       "name": "ContentHeading",
@@ -184,9 +184,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ContentHeading \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [id](./qwik-city.contentheading.id.md) | <code>readonly</code> | string |  |\n|  [level](#contentheading-level) | <code>readonly</code> | number |  |\n|  [text](#contentheading-text) | <code>readonly</code> | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.contentheading.md"
+      "mdFile": "qwik-city.contentheading.md"
     },
     {
       "name": "ContentMenu",
@@ -198,9 +198,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ContentMenu \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [href?](#contentmenu-href) | <code>readonly</code> | string | _(Optional)_ |\n|  [items?](#contentmenu-items) | <code>readonly</code> | [ContentMenu](#contentmenu)<!-- -->\\[\\] | _(Optional)_ |\n|  [text](./qwik-city.contentmenu.text.md) | <code>readonly</code> | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.contentmenu.md"
+      "mdFile": "qwik-city.contentmenu.md"
     },
     {
       "name": "crossorigin",
@@ -216,8 +216,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.crossorigin.md"
+      "content": "```typescript\ncrossorigin?: string;\n```",
+      "mdFile": "qwik-city.documentlink.crossorigin.md"
     },
     {
       "name": "default",
@@ -233,8 +233,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.pagemodule.default.md"
+      "content": "```typescript\nreadonly default: any;\n```",
+      "mdFile": "qwik-city.pagemodule.default.md"
     },
     {
       "name": "disabled",
@@ -250,8 +250,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.disabled.md"
+      "content": "```typescript\ndisabled?: boolean;\n```",
+      "mdFile": "qwik-city.documentlink.disabled.md"
     },
     {
       "name": "DocumentHead",
@@ -263,9 +263,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);\n```\n**References:** [DocumentHeadValue](#documentheadvalue)<!-- -->, [DocumentHeadProps](#documentheadprops)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.documenthead.md"
+      "mdFile": "qwik-city.documenthead.md"
     },
     {
       "name": "DocumentHeadProps",
@@ -277,9 +277,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [head](#documentheadprops-head) | <code>readonly</code> | [ResolvedDocumentHead](#resolveddocumenthead) |  |\n|  [resolveValue](#documentheadprops-resolvevalue) | <code>readonly</code> | ResolveSyncValue |  |\n|  [withLocale](#documentheadprops-withlocale) | <code>readonly</code> | &lt;T&gt;(fn: () =&gt; T) =&gt; T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.documentheadprops.md"
+      "mdFile": "qwik-city.documentheadprops.md"
     },
     {
       "name": "DocumentHeadValue",
@@ -291,9 +291,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface DocumentHeadValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [frontmatter?](#documentheadvalue-frontmatter) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt; | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |\n|  [links?](#documentheadvalue-links) | <code>readonly</code> | readonly [DocumentLink](#documentlink)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [meta?](#documentheadvalue-meta) | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)<!-- -->\\[\\] | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags. |\n|  [styles?](#documentheadvalue-styles) | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [title?](#documentheadvalue-title) | <code>readonly</code> | string | _(Optional)_ Sets <code>document.title</code>. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.documentheadvalue.md"
+      "mdFile": "qwik-city.documentheadvalue.md"
     },
     {
       "name": "DocumentLink",
@@ -305,9 +305,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface DocumentLink \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [as?](#documentlink-as) |  | string | _(Optional)_ |\n|  [crossorigin?](#documentlink-crossorigin) |  | string | _(Optional)_ |\n|  [disabled?](#documentlink-disabled) |  | boolean | _(Optional)_ |\n|  [href?](./qwik-city.documentlink.href.md) |  | string | _(Optional)_ |\n|  [hreflang?](#documentlink-hreflang) |  | string | _(Optional)_ |\n|  [id?](./qwik-city.documentlink.id.md) |  | string | _(Optional)_ |\n|  [imagesizes?](#documentlink-imagesizes) |  | string | _(Optional)_ |\n|  [imagesrcset?](#documentlink-imagesrcset) |  | string | _(Optional)_ |\n|  [integrity?](#documentlink-integrity) |  | string | _(Optional)_ |\n|  [key?](#documentlink-key) |  | string | _(Optional)_ |\n|  [media?](#documentlink-media) |  | string | _(Optional)_ |\n|  [prefetch?](#documentlink-prefetch) |  | string | _(Optional)_ |\n|  [referrerpolicy?](#documentlink-referrerpolicy) |  | string | _(Optional)_ |\n|  [rel?](#documentlink-rel) |  | string | _(Optional)_ |\n|  [sizes?](#documentlink-sizes) |  | string | _(Optional)_ |\n|  [title?](./qwik-city.documentlink.title.md) |  | string | _(Optional)_ |\n|  [type?](#documentlink-type) |  | string | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.documentlink.md"
+      "mdFile": "qwik-city.documentlink.md"
     },
     {
       "name": "DocumentMeta",
@@ -319,9 +319,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface DocumentMeta \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [content?](#documentmeta-content) | <code>readonly</code> | string | _(Optional)_ |\n|  [httpEquiv?](#documentmeta-httpequiv) | <code>readonly</code> | string | _(Optional)_ |\n|  [itemprop?](#documentmeta-itemprop) | <code>readonly</code> | string | _(Optional)_ |\n|  [key?](./qwik-city.documentmeta.key.md) | <code>readonly</code> | string | _(Optional)_ |\n|  [name?](#documentmeta-name) | <code>readonly</code> | string | _(Optional)_ |\n|  [property?](#documentmeta-property) | <code>readonly</code> | string | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.documentmeta.md"
+      "mdFile": "qwik-city.documentmeta.md"
     },
     {
       "name": "DocumentStyle",
@@ -333,9 +333,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface DocumentStyle \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [key?](./qwik-city.documentstyle.key.md) | <code>readonly</code> | string | _(Optional)_ |\n|  [props?](#documentstyle-props) | <code>readonly</code> | Readonly&lt;{ \\[propName: string\\]: string; }&gt; | _(Optional)_ |\n|  [style](#documentstyle-style) | <code>readonly</code> | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.documentstyle.md"
+      "mdFile": "qwik-city.documentstyle.md"
     },
     {
       "name": "FailReturn",
@@ -347,9 +347,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type FailReturn<T> = T & {\n    failed: true;\n};\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.failreturn.md"
+      "mdFile": "qwik-city.failreturn.md"
     },
     {
       "name": "Form",
@@ -361,9 +361,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => QwikJSX.Element\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
-      "mdFile": "qwik.form.md"
+      "mdFile": "qwik-city.form.md"
     },
     {
       "name": "formData",
@@ -379,8 +379,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.formdata.md"
+      "content": "When calling an action through a `<form>`<!-- -->, this property contains the previously submitted `FormData`<!-- -->.\n\nThis is useful to keep the filled form data even after a full page reload.\n\nIt's `undefined` before the action is first called.\n\n\n```typescript\nreadonly formData: FormData | undefined;\n```",
+      "mdFile": "qwik-city.actionstore.formdata.md"
     },
     {
       "name": "FormProps",
@@ -392,9 +392,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [action?](#formprops-action) |  | [ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt; | _(Optional)_ Reference to the action returned by <code>action()</code>. |\n|  [key?](./qwik-city.formprops.key.md) |  | string \\| number \\| null | _(Optional)_ |\n|  [onSubmit$?](#formprops-onsubmit_) |  | (event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right when the form is submitted. |\n|  [onSubmitCompleted$?](#formprops-onsubmitcompleted_) |  | (event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right after the action is executed successfully and returns some data. |\n|  [reloadDocument?](#formprops-reloaddocument) |  | boolean | _(Optional)_ When <code>true</code> the form submission will cause a full page reload, even if SPA mode is enabled and JS is available. |\n|  [spaReset?](#formprops-spareset) |  | boolean | <p>_(Optional)_ When <code>true</code> all the form inputs will be reset in SPA mode, just like happens in a full page form submission.</p><p>Defaults to <code>false</code></p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
-      "mdFile": "qwik.formprops.md"
+      "mdFile": "qwik-city.formprops.md"
     },
     {
       "name": "FormSubmitSuccessDetail",
@@ -406,9 +406,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [status](./qwik-city.formsubmitsuccessdetail.status.md) |  | number |  |\n|  [value](./qwik-city.formsubmitsuccessdetail.value.md) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
-      "mdFile": "qwik.formsubmitsuccessdetail.md"
+      "mdFile": "qwik-city.formsubmitsuccessdetail.md"
     },
     {
       "name": "frontmatter",
@@ -424,8 +424,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadvalue.frontmatter.md"
+      "content": "Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n```typescript\nreadonly frontmatter?: Readonly<Record<string, any>>;\n```",
+      "mdFile": "qwik-city.documentheadvalue.frontmatter.md"
     },
     {
       "name": "globalAction$",
@@ -437,9 +437,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nglobalAction$: ActionConstructor\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.globalaction_.md"
+      "mdFile": "qwik-city.globalaction_.md"
     },
     {
       "name": "globalActionQrl",
@@ -451,9 +451,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nglobalActionQrl: ActionConstructorQRL\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.globalactionqrl.md"
+      "mdFile": "qwik-city.globalactionqrl.md"
     },
     {
       "name": "head",
@@ -469,8 +469,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadprops.head.md"
+      "content": "```typescript\nreadonly head: ResolvedDocumentHead;\n```",
+      "mdFile": "qwik-city.documentheadprops.head.md"
     },
     {
       "name": "headings",
@@ -486,8 +486,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.pagemodule.headings.md"
+      "content": "```typescript\nreadonly headings?: ContentHeading[];\n```",
+      "mdFile": "qwik-city.pagemodule.headings.md"
     },
     {
       "name": "href",
@@ -503,8 +503,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.contentmenu.href.md"
+      "content": "```typescript\nreadonly href?: string;\n```",
+      "mdFile": "qwik-city.contentmenu.href.md"
     },
     {
       "name": "hreflang",
@@ -520,8 +520,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.hreflang.md"
+      "content": "```typescript\nhreflang?: string;\n```",
+      "mdFile": "qwik-city.documentlink.hreflang.md"
     },
     {
       "name": "httpEquiv",
@@ -537,8 +537,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentmeta.httpequiv.md"
+      "content": "```typescript\nreadonly httpEquiv?: string;\n```",
+      "mdFile": "qwik-city.documentmeta.httpequiv.md"
     },
     {
       "name": "id",
@@ -554,8 +554,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionoptions.id.md"
+      "content": "```typescript\nreadonly id?: string;\n```",
+      "mdFile": "qwik-city.actionoptions.id.md"
     },
     {
       "name": "imagesizes",
@@ -571,8 +571,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.imagesizes.md"
+      "content": "```typescript\nimagesizes?: string;\n```",
+      "mdFile": "qwik-city.documentlink.imagesizes.md"
     },
     {
       "name": "imagesrcset",
@@ -588,8 +588,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.imagesrcset.md"
+      "content": "```typescript\nimagesrcset?: string;\n```",
+      "mdFile": "qwik-city.documentlink.imagesrcset.md"
     },
     {
       "name": "integrity",
@@ -605,8 +605,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.integrity.md"
+      "content": "```typescript\nintegrity?: string;\n```",
+      "mdFile": "qwik-city.documentlink.integrity.md"
     },
     {
       "name": "isNavigating",
@@ -622,8 +622,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.routelocation.isnavigating.md"
+      "content": "```typescript\nreadonly isNavigating: boolean;\n```",
+      "mdFile": "qwik-city.routelocation.isnavigating.md"
     },
     {
       "name": "isRunning",
@@ -639,8 +639,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.isrunning.md"
+      "content": "Reactive property that becomes `true` only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.\n\nThis property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.\n\nIt will be always `false` in the server, and only becomes `true` briefly while the action is running.\n\n\n```typescript\nreadonly isRunning: boolean;\n```",
+      "mdFile": "qwik-city.actionstore.isrunning.md"
     },
     {
       "name": "itemprop",
@@ -656,8 +656,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentmeta.itemprop.md"
+      "content": "```typescript\nreadonly itemprop?: string;\n```",
+      "mdFile": "qwik-city.documentmeta.itemprop.md"
     },
     {
       "name": "items",
@@ -673,8 +673,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.contentmenu.items.md"
+      "content": "```typescript\nreadonly items?: ContentMenu[];\n```",
+      "mdFile": "qwik-city.contentmenu.items.md"
     },
     {
       "name": "key",
@@ -690,8 +690,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.key.md"
+      "content": "```typescript\nkey?: string;\n```",
+      "mdFile": "qwik-city.documentlink.key.md"
     },
     {
       "name": "level",
@@ -707,8 +707,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.contentheading.level.md"
+      "content": "```typescript\nreadonly level: number;\n```",
+      "mdFile": "qwik-city.contentheading.level.md"
     },
     {
       "name": "Link",
@@ -720,9 +720,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<LinkProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
-      "mdFile": "qwik.link.md"
+      "mdFile": "qwik-city.link.md"
     },
     {
       "name": "LinkProps",
@@ -734,9 +734,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [prefetch?](./qwik-city.linkprops.prefetch.md) |  | boolean | _(Optional)_ |\n|  [reload?](#linkprops-reload) |  | boolean | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
-      "mdFile": "qwik.linkprops.md"
+      "mdFile": "qwik-city.linkprops.md"
     },
     {
       "name": "links",
@@ -752,8 +752,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadvalue.links.md"
+      "content": "Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n```typescript\nreadonly links?: readonly DocumentLink[];\n```",
+      "mdFile": "qwik-city.documentheadvalue.links.md"
     },
     {
       "name": "Loader",
@@ -765,9 +765,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface Loader<RETURN> \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [use()](./qwik-city.loader.use.md) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.loader.md"
+      "mdFile": "qwik-city.loader.md"
     },
     {
       "name": "LoaderSignal",
@@ -779,9 +779,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<T>>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.loadersignal.md"
+      "mdFile": "qwik-city.loadersignal.md"
     },
     {
       "name": "media",
@@ -797,8 +797,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.media.md"
+      "content": "```typescript\nmedia?: string;\n```",
+      "mdFile": "qwik-city.documentlink.media.md"
     },
     {
       "name": "MenuData",
@@ -810,9 +810,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type MenuData = [pathname: string, menuLoader: MenuModuleLoader];\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.menudata.md"
+      "mdFile": "qwik-city.menudata.md"
     },
     {
       "name": "menus",
@@ -828,8 +828,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcityplan.menus.md"
+      "content": "```typescript\nreadonly menus?: MenuData[];\n```",
+      "mdFile": "qwik-city.qwikcityplan.menus.md"
     },
     {
       "name": "meta",
@@ -845,8 +845,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadvalue.meta.md"
+      "content": "Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.\n\n\n```typescript\nreadonly meta?: readonly DocumentMeta[];\n```",
+      "mdFile": "qwik-city.documentheadvalue.meta.md"
     },
     {
       "name": "name",
@@ -862,8 +862,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentmeta.name.md"
+      "content": "```typescript\nreadonly name?: string;\n```",
+      "mdFile": "qwik-city.documentmeta.name.md"
     },
     {
       "name": "onStaticGenerate",
@@ -879,8 +879,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.pagemodule.onstaticgenerate.md"
+      "content": "```typescript\nreadonly onStaticGenerate?: StaticGenerateHandler;\n```",
+      "mdFile": "qwik-city.pagemodule.onstaticgenerate.md"
     },
     {
       "name": "onSubmit$",
@@ -896,8 +896,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.formprops.onsubmit_.md"
+      "content": "Event handler executed right when the form is submitted.\n\n\n```typescript\nonSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;\n```",
+      "mdFile": "qwik-city.formprops.onsubmit_.md"
     },
     {
       "name": "onSubmitCompleted$",
@@ -913,8 +913,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.formprops.onsubmitcompleted_.md"
+      "content": "Event handler executed right after the action is executed successfully and returns some data.\n\n\n```typescript\nonSubmitCompleted$?: (event: CustomEvent<FormSubmitCompletedDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;\n```",
+      "mdFile": "qwik-city.formprops.onsubmitcompleted_.md"
     },
     {
       "name": "PageModule",
@@ -926,9 +926,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [default](#pagemodule-default) | <code>readonly</code> | any |  |\n|  [head?](./qwik-city.pagemodule.head.md) | <code>readonly</code> | ContentModuleHead | _(Optional)_ |\n|  [headings?](#pagemodule-headings) | <code>readonly</code> | [ContentHeading](#contentheading)<!-- -->\\[\\] | _(Optional)_ |\n|  [onStaticGenerate?](#pagemodule-onstaticgenerate) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.pagemodule.md"
+      "mdFile": "qwik-city.pagemodule.md"
     },
     {
       "name": "params",
@@ -944,8 +944,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.routelocation.params.md"
+      "content": "```typescript\nreadonly params: Readonly<Record<string, string>>;\n```",
+      "mdFile": "qwik-city.routelocation.params.md"
     },
     {
       "name": "PathParams",
@@ -957,9 +957,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport declare type PathParams = Record<string, string>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.pathparams.md"
+      "mdFile": "qwik-city.pathparams.md"
     },
     {
       "name": "prefetch",
@@ -975,8 +975,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.prefetch.md"
+      "content": "```typescript\nprefetch?: string;\n```",
+      "mdFile": "qwik-city.documentlink.prefetch.md"
     },
     {
       "name": "property",
@@ -992,8 +992,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentmeta.property.md"
+      "content": "```typescript\nreadonly property?: string;\n```",
+      "mdFile": "qwik-city.documentmeta.property.md"
     },
     {
       "name": "props",
@@ -1009,8 +1009,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentstyle.props.md"
+      "content": "```typescript\nreadonly props?: Readonly<{\n        [propName: string]: string;\n    }>;\n```",
+      "mdFile": "qwik-city.documentstyle.props.md"
     },
     {
       "name": "QwikCityMockProvider",
@@ -1022,9 +1022,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<QwikCityMockProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik.qwikcitymockprovider.md"
+      "mdFile": "qwik-city.qwikcitymockprovider.md"
     },
     {
       "name": "QwikCityPlan",
@@ -1036,9 +1036,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface QwikCityPlan \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [basePathname?](#qwikcityplan-basepathname) | <code>readonly</code> | string | _(Optional)_ |\n|  [cacheModules?](#qwikcityplan-cachemodules) | <code>readonly</code> | boolean | _(Optional)_ |\n|  [menus?](#qwikcityplan-menus) | <code>readonly</code> | [MenuData](#menudata)<!-- -->\\[\\] | _(Optional)_ |\n|  [routes](#qwikcityplan-routes) | <code>readonly</code> | [RouteData](#routedata)<!-- -->\\[\\] |  |\n|  [serverPlugins?](#qwikcityplan-serverplugins) | <code>readonly</code> | RouteModule\\[\\] | _(Optional)_ |\n|  [trailingSlash?](#qwikcityplan-trailingslash) | <code>readonly</code> | boolean | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.qwikcityplan.md"
+      "mdFile": "qwik-city.qwikcityplan.md"
     },
     {
       "name": "QwikCityProvider",
@@ -1050,9 +1050,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik.qwikcityprovider.md"
+      "mdFile": "qwik-city.qwikcityprovider.md"
     },
     {
       "name": "referrerpolicy",
@@ -1068,8 +1068,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.referrerpolicy.md"
+      "content": "```typescript\nreferrerpolicy?: string;\n```",
+      "mdFile": "qwik-city.documentlink.referrerpolicy.md"
     },
     {
       "name": "rel",
@@ -1085,8 +1085,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.rel.md"
+      "content": "```typescript\nrel?: string;\n```",
+      "mdFile": "qwik-city.documentlink.rel.md"
     },
     {
       "name": "reload",
@@ -1102,8 +1102,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.linkprops.reload.md"
+      "content": "```typescript\nreload?: boolean;\n```",
+      "mdFile": "qwik-city.linkprops.reload.md"
     },
     {
       "name": "reloadDocument",
@@ -1119,8 +1119,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.formprops.reloaddocument.md"
+      "content": "When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n```typescript\nreloadDocument?: boolean;\n```",
+      "mdFile": "qwik-city.formprops.reloaddocument.md"
     },
     {
       "name": "ResolvedDocumentHead",
@@ -1132,9 +1132,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type ResolvedDocumentHead = Required<DocumentHeadValue>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.resolveddocumenthead.md"
+      "mdFile": "qwik-city.resolveddocumenthead.md"
     },
     {
       "name": "resolveValue",
@@ -1150,8 +1150,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadprops.resolvevalue.md"
+      "content": "```typescript\nreadonly resolveValue: ResolveSyncValue;\n```",
+      "mdFile": "qwik-city.documentheadprops.resolvevalue.md"
     },
     {
       "name": "routeAction$",
@@ -1163,9 +1163,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nrouteAction$: ActionConstructor\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.routeaction_.md"
+      "mdFile": "qwik-city.routeaction_.md"
     },
     {
       "name": "routeActionQrl",
@@ -1177,9 +1177,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nrouteActionQrl: ActionConstructorQRL\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.routeactionqrl.md"
+      "mdFile": "qwik-city.routeactionqrl.md"
     },
     {
       "name": "RouteData",
@@ -1191,9 +1191,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [\n    pattern: RegExp,\n    loaders: ModuleLoader[],\n    paramNames: string[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.routedata.md"
+      "mdFile": "qwik-city.routedata.md"
     },
     {
       "name": "routeLoader$",
@@ -1205,9 +1205,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nrouteLoader$: LoaderConstructor\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.routeloader_.md"
+      "mdFile": "qwik-city.routeloader_.md"
     },
     {
       "name": "routeLoaderQrl",
@@ -1219,9 +1219,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nrouteLoaderQrl: LoaderConstructorQRL\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.routeloaderqrl.md"
+      "mdFile": "qwik-city.routeloaderqrl.md"
     },
     {
       "name": "RouteLocation",
@@ -1233,9 +1233,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [href](./qwik-city.routelocation.href.md) | <code>readonly</code> | string |  |\n|  [isNavigating](#routelocation-isnavigating) | <code>readonly</code> | boolean |  |\n|  [params](#routelocation-params) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |  |\n|  [pathname](./qwik-city.routelocation.pathname.md) | <code>readonly</code> | string |  |\n|  [query](./qwik-city.routelocation.query.md) | <code>readonly</code> | URLSearchParams |  |\n|  [url](#routelocation-url) | <code>readonly</code> | URL |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.routelocation.md"
+      "mdFile": "qwik-city.routelocation.md"
     },
     {
       "name": "RouteNavigate",
@@ -1247,9 +1247,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.routenavigate.md"
+      "mdFile": "qwik-city.routenavigate.md"
     },
     {
       "name": "RouterOutlet",
@@ -1261,9 +1261,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<{}>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts",
-      "mdFile": "qwik.routeroutlet.md"
+      "mdFile": "qwik-city.routeroutlet.md"
     },
     {
       "name": "routes",
@@ -1279,8 +1279,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcityplan.routes.md"
+      "content": "```typescript\nreadonly routes: RouteData[];\n```",
+      "mdFile": "qwik-city.qwikcityplan.routes.md"
     },
     {
       "name": "server$",
@@ -1292,9 +1292,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nserver$: <T extends import(\"./types\").ServerFunction>(first: T) => QRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.server_.md"
+      "mdFile": "qwik-city.server_.md"
     },
     {
       "name": "serverPlugins",
@@ -1310,8 +1310,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcityplan.serverplugins.md"
+      "content": "```typescript\nreadonly serverPlugins?: RouteModule[];\n```",
+      "mdFile": "qwik-city.qwikcityplan.serverplugins.md"
     },
     {
       "name": "serverQrl",
@@ -1323,9 +1323,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nserverQrl: ServerConstructorQRL\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.serverqrl.md"
+      "mdFile": "qwik-city.serverqrl.md"
     },
     {
       "name": "ServiceWorkerRegister",
@@ -1337,9 +1337,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx",
-      "mdFile": "qwik.serviceworkerregister.md"
+      "mdFile": "qwik-city.serviceworkerregister.md"
     },
     {
       "name": "sizes",
@@ -1355,8 +1355,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.sizes.md"
+      "content": "```typescript\nsizes?: string;\n```",
+      "mdFile": "qwik-city.documentlink.sizes.md"
     },
     {
       "name": "spaReset",
@@ -1372,8 +1372,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.formprops.spareset.md"
+      "content": "When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n```typescript\nspaReset?: boolean;\n```",
+      "mdFile": "qwik-city.formprops.spareset.md"
     },
     {
       "name": "StaticGenerate",
@@ -1385,9 +1385,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface StaticGenerate \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [params?](./qwik-city.staticgenerate.params.md) |  | [PathParams](#pathparams)<!-- -->\\[\\] | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.staticgenerate.md"
+      "mdFile": "qwik-city.staticgenerate.md"
     },
     {
       "name": "StaticGenerateHandler",
@@ -1399,9 +1399,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "",
+      "content": "```typescript\nexport type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;\n```\n**References:** [StaticGenerate](#staticgenerate)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.staticgeneratehandler.md"
+      "mdFile": "qwik-city.staticgeneratehandler.md"
     },
     {
       "name": "status",
@@ -1417,8 +1417,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.status.md"
+      "content": "Returned HTTP status code of the action after its last execution.\n\nIt's `undefined` before the action is first called.\n\n\n```typescript\nreadonly status?: number;\n```",
+      "mdFile": "qwik-city.actionstore.status.md"
     },
     {
       "name": "style",
@@ -1434,8 +1434,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentstyle.style.md"
+      "content": "```typescript\nreadonly style: string;\n```",
+      "mdFile": "qwik-city.documentstyle.style.md"
     },
     {
       "name": "styles",
@@ -1451,8 +1451,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadvalue.styles.md"
+      "content": "Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n```typescript\nreadonly styles?: readonly DocumentStyle[];\n```",
+      "mdFile": "qwik-city.documentheadvalue.styles.md"
     },
     {
       "name": "submit",
@@ -1468,8 +1468,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.submit.md"
+      "content": "Method to execute the action programmatically from the browser. Ie, instead of using a `<form>`<!-- -->, a 'click' handle can call the `run()` method of the action in order to execute the action in the server.\n\n\n```typescript\nreadonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n```",
+      "mdFile": "qwik-city.actionstore.submit.md"
     },
     {
       "name": "text",
@@ -1485,8 +1485,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.contentheading.text.md"
+      "content": "```typescript\nreadonly text: string;\n```",
+      "mdFile": "qwik-city.contentheading.text.md"
     },
     {
       "name": "title",
@@ -1502,8 +1502,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadvalue.title.md"
+      "content": "Sets `document.title`<!-- -->.\n\n\n```typescript\nreadonly title?: string;\n```",
+      "mdFile": "qwik-city.documentheadvalue.title.md"
     },
     {
       "name": "trailingSlash",
@@ -1519,8 +1519,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcityplan.trailingslash.md"
+      "content": "```typescript\nreadonly trailingSlash?: boolean;\n```",
+      "mdFile": "qwik-city.qwikcityplan.trailingslash.md"
     },
     {
       "name": "type",
@@ -1536,8 +1536,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentlink.type.md"
+      "content": "```typescript\ntype?: string;\n```",
+      "mdFile": "qwik-city.documentlink.type.md"
     },
     {
       "name": "url",
@@ -1553,8 +1553,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.routelocation.url.md"
+      "content": "```typescript\nreadonly url: URL;\n```",
+      "mdFile": "qwik-city.routelocation.url.md"
     },
     {
       "name": "useContent",
@@ -1566,9 +1566,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nuseContent: () => import(\"./types\").ContentState\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
-      "mdFile": "qwik.usecontent.md"
+      "mdFile": "qwik-city.usecontent.md"
     },
     {
       "name": "useDocumentHead",
@@ -1580,9 +1580,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nuseDocumentHead: () => Required<ResolvedDocumentHead>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
-      "mdFile": "qwik.usedocumenthead.md"
+      "mdFile": "qwik-city.usedocumenthead.md"
     },
     {
       "name": "useLocation",
@@ -1594,9 +1594,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nuseLocation: () => RouteLocation\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
-      "mdFile": "qwik.uselocation.md"
+      "mdFile": "qwik-city.uselocation.md"
     },
     {
       "name": "useNavigate",
@@ -1608,9 +1608,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nuseNavigate: () => RouteNavigate\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
-      "mdFile": "qwik.usenavigate.md"
+      "mdFile": "qwik-city.usenavigate.md"
     },
     {
       "name": "validation",
@@ -1626,8 +1626,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionoptions.validation.md"
+      "content": "```typescript\nreadonly validation?: DataValidator[];\n```",
+      "mdFile": "qwik-city.actionoptions.validation.md"
     },
     {
       "name": "validator$",
@@ -1639,9 +1639,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nvalidator$: ValidatorConstructor\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.validator_.md"
+      "mdFile": "qwik-city.validator_.md"
     },
     {
       "name": "validatorQrl",
@@ -1653,9 +1653,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nvalidatorQrl: ValidatorConstructorQRL\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.validatorqrl.md"
+      "mdFile": "qwik-city.validatorqrl.md"
     },
     {
       "name": "value",
@@ -1671,8 +1671,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.actionstore.value.md"
+      "content": "Returned successful data of the action. This reactive property will contain the data returned inside the `action$` function.\n\nIt's `undefined` before the action is first called.\n\n\n```typescript\nreadonly value: RETURN | undefined;\n```",
+      "mdFile": "qwik-city.actionstore.value.md"
     },
     {
       "name": "withLocale",
@@ -1688,8 +1688,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.documentheadprops.withlocale.md"
+      "content": "```typescript\nreadonly withLocale: <T>(fn: () => T) => T;\n```",
+      "mdFile": "qwik-city.documentheadprops.withlocale.md"
     },
     {
       "name": "zod$",
@@ -1701,9 +1701,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nzod$: ZodConstructor\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.zod_.md"
+      "mdFile": "qwik-city.zod_.md"
     },
     {
       "name": "ZodConstructor",
@@ -1715,9 +1715,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface ZodConstructor \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik.zodconstructor.md"
+      "mdFile": "qwik-city.zodconstructor.md"
     },
     {
       "name": "zodQrl",
@@ -1729,9 +1729,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "",
+      "content": "```typescript\nzodQrl: ZodConstructorQRL\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik.zodqrl.md"
+      "mdFile": "qwik-city.zodqrl.md"
     }
   ]
 }

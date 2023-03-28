@@ -98,7 +98,7 @@ function createApiData(
 
     const id = getCanonical(hierarchySplit);
 
-    const mdFile = getMdFile(hierarchySplit);
+    const mdFile = getMdFile(subPkgName, hierarchySplit);
     const mdPath = join(apiOuputDir, mdFile);
 
     const content: string[] = [];
@@ -237,12 +237,12 @@ function getCanonical(hierarchy: string[]) {
   return hierarchy.map((h) => getSafeFilenameForName(h)).join('-');
 }
 
-function getMdFile(hierarchy: string[]) {
+function getMdFile(subPkgName: string, hierarchy: string[]) {
   let mdFile = '';
   for (const h of hierarchy) {
     mdFile += '.' + getSafeFilenameForName(h);
   }
-  return `qwik${mdFile}.md`;
+  return `qwik${subPkgName.includes('city') ? '-city' : ''}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {

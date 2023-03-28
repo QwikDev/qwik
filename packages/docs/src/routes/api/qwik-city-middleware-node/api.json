@@ -12,9 +12,9 @@
         }
       ],
       "kind": "Function",
-      "content": "",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNodeRequestOptions): {\n    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;\n    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;\n    staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;\n};\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions) |  |\n\n**Returns:**\n\n{ router: (req: IncomingMessage, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
-      "mdFile": "qwik.createqwikcity.md"
+      "mdFile": "qwik-city.createqwikcity.md"
     },
     {
       "name": "incomingMessage",
@@ -30,8 +30,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.platformnode.incomingmessage.md"
+      "content": "```typescript\nincomingMessage?: IncomingMessage;\n```",
+      "mdFile": "qwik-city.platformnode.incomingmessage.md"
     },
     {
       "name": "node",
@@ -47,8 +47,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.platformnode.node.md"
+      "content": "```typescript\nnode?: string;\n```",
+      "mdFile": "qwik-city.platformnode.node.md"
     },
     {
       "name": "NodeRequestNextFunction",
@@ -60,9 +60,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface NodeRequestNextFunction \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
-      "mdFile": "qwik.noderequestnextfunction.md"
+      "mdFile": "qwik-city.noderequestnextfunction.md"
     },
     {
       "name": "PlatformNode",
@@ -74,9 +74,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [incomingMessage?](#platformnode-incomingmessage) |  | IncomingMessage | _(Optional)_ |\n|  [node?](#platformnode-node) |  | string | _(Optional)_ |\n|  [ssr?](#platformnode-ssr) |  | true | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
-      "mdFile": "qwik.platformnode.md"
+      "mdFile": "qwik-city.platformnode.md"
     },
     {
       "name": "QwikCityNodeRequestOptions",
@@ -88,9 +88,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [static?](#qwikcitynoderequestoptions-static) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
-      "mdFile": "qwik.qwikcitynoderequestoptions.md"
+      "mdFile": "qwik-city.qwikcitynoderequestoptions.md"
     },
     {
       "name": "ssr",
@@ -106,8 +106,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.platformnode.ssr.md"
+      "content": "```typescript\nssr?: true;\n```",
+      "mdFile": "qwik-city.platformnode.ssr.md"
     },
     {
       "name": "static",
@@ -123,8 +123,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.qwikcitynoderequestoptions.static.md"
+      "content": "Options for serving static files\n\n\n```typescript\nstatic?: {\n        root?: string;\n        cacheControl?: string;\n    };\n```",
+      "mdFile": "qwik-city.qwikcitynoderequestoptions.static.md"
     }
   ]
 }

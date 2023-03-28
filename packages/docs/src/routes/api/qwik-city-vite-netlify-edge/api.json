@@ -16,8 +16,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.netlifyedgeadapteroptions.functionroutes.md"
+      "content": "Determines if the build should generate the edge functions declarations `manifest.json` file.\n\nhttps://docs.netlify.com/edge-functions/declarations/\n\nDefaults to `true`<!-- -->.\n\n\n```typescript\nfunctionRoutes?: boolean;\n```",
+      "mdFile": "qwik-city.netlifyedgeadapteroptions.functionroutes.md"
     },
     {
       "name": "netlifyEdgeAdapter",
@@ -29,9 +29,9 @@
         }
       ],
       "kind": "Function",
-      "content": "",
+      "content": "```typescript\nexport declare function netlifyEdgeAdapter(opts?: NetlifyEdgeAdapterOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [NetlifyEdgeAdapterOptions](#netlifyedgeadapteroptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
-      "mdFile": "qwik.netlifyedgeadapter.md"
+      "mdFile": "qwik-city.netlifyedgeadapter.md"
     },
     {
       "name": "NetlifyEdgeAdapterOptions",
@@ -43,9 +43,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "",
+      "content": "```typescript\nexport interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [functionRoutes?](#netlifyedgeadapteroptions-functionroutes) |  | boolean | <p>_(Optional)_ Determines if the build should generate the edge functions declarations <code>manifest.json</code> file.</p><p>https://docs.netlify.com/edge-functions/declarations/</p><p>Defaults to <code>true</code>.</p> |\n|  [staticPaths?](#netlifyedgeadapteroptions-staticpaths) |  | string\\[\\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
-      "mdFile": "qwik.netlifyedgeadapteroptions.md"
+      "mdFile": "qwik-city.netlifyedgeadapteroptions.md"
     },
     {
       "name": "staticPaths",
@@ -61,8 +61,8 @@
         }
       ],
       "kind": "PropertySignature",
-      "content": "",
-      "mdFile": "qwik.netlifyedgeadapteroptions.staticpaths.md"
+      "content": "Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.\n\n\n```typescript\nstaticPaths?: string[];\n```",
+      "mdFile": "qwik-city.netlifyedgeadapteroptions.staticpaths.md"
     }
   ]
 }

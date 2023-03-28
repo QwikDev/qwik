@@ -17,7 +17,8 @@ createDOM: () =>
     screen: HTMLElement;
     userEvent: (
       queryOrElement: string | Element | null,
-      eventNameCamel: string
+      eventNameCamel: string,
+      eventPayload?: any
     ) => Promise<void>;
   }>;
 ```

@@ -23,7 +23,7 @@
   position: fixed;
   width: 1400px;
   height: 800px;
-  top: 200px;
+  top: 100px;
   right: -400px;
   background: radial-gradient(
     57.58% 57.58% at 48.79% 42.42%,
@@ -37,7 +37,7 @@
   position: fixed;
   width: 1400px;
   height: 1200px;
-  top: 700px;
+  top: 600px;
   left: -200px;
   background: radial-gradient(
     50% 50% at 50% 50%,
@@ -58,7 +58,7 @@
   height: 700px;
   background: linear-gradient(
     180deg,
-    rgba(21, 25, 52, 0.282813) 0%,
+    rgba(21, 25, 52, 0.1) 0%,
     rgba(0, 25, 192, 0.282813) 25%,
     rgba(121, 118, 232, 0.3) 50%,
     rgba(244, 73, 244, 0.3) 72.4%,
@@ -110,6 +110,7 @@
 
 .ecosystem-menu svg {
   display: inline-block;
+  opacity: 0.7;
 }
 
 .ecosystem-menu span {

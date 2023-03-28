@@ -65,6 +65,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
         if (attrValue != null) {
           if (attrName === 'title') {
             head.title = attrValue.toString();
+            head.title = head.title.replace(/\\@/g, '@');
           } else if (attrName === 'og' || attrName === 'opengraph') {
             // set custom open graph property
             if (typeof attrValue === 'object') {

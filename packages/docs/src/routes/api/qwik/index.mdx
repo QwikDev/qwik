@@ -1128,7 +1128,7 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T>
 | Property                             | Modifiers | Type                                  | Description  |
 | ------------------------------------ | --------- | ------------------------------------- | ------------ |
 | [children?](#domattributes-children) |           | [JSXChildren](#jsxchildren)           | _(Optional)_ |
-| [key?](./qwik.domattributes.key.md)  |           | string \| number \| null \| undefined | _(Optional)_ |
+| [key?](#)                            |           | string \| number \| null \| undefined | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
 
@@ -1180,7 +1180,7 @@ elapsedTime: number;
 interface Element extends QwikJSX.Element
 ```
 
-**Extends:** [QwikJSX.Element](./qwik.qwikjsx.element.md)
+**Extends:** [QwikJSX.Element](#)
 
 <h2 id="h-jsx-elementchildrenattribute" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-elementchildrenattribute"><span class="icon icon-link"></span></a>ElementChildrenAttribute </h2>
 
@@ -1188,9 +1188,9 @@ interface Element extends QwikJSX.Element
 interface ElementChildrenAttribute
 ```
 
-| Property                                                       | Modifiers | Type | Description  |
-| -------------------------------------------------------------- | --------- | ---- | ------------ |
-| [children?](./qwik.h.jsx.elementchildrenattribute.children.md) |           | any  | _(Optional)_ |
+| Property       | Modifiers | Type | Description  |
+| -------------- | --------- | ---- | ------------ |
+| [children?](#) |           | any  | _(Optional)_ |
 
 <h2 id="errorboundarystore-error" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#errorboundarystore-error"><span class="icon icon-link"></span></a>error </h2>
 
@@ -1321,15 +1321,15 @@ string
 export declare namespace h
 ```
 
-| Function                                   | Description |
-| ------------------------------------------ | ----------- |
-| [h(type)](./qwik.h.h.md)                   |             |
-| [h(type, data)](./qwik.h.h_1.md)           |             |
-| [h(type, text)](./qwik.h.h_2.md)           |             |
-| [h(type, children)](./qwik.h.h_3.md)       |             |
-| [h(type, data, text)](./qwik.h.h_4.md)     |             |
-| [h(type, data, children)](./qwik.h.h_5.md) |             |
-| [h(sel, data, children)](./qwik.h.h_6.md)  |             |
+| Function                     | Description |
+| ---------------------------- | ----------- |
+| [h(type)](#)                 |             |
+| [h(type, data)](#)           |             |
+| [h(type, text)](#)           |             |
+| [h(type, children)](#)       |             |
+| [h(type, data, text)](#)     |             |
+| [h(type, data, children)](#) |             |
+| [h(sel, data, children)](#)  |             |
 
 | Namespace     | Description |
 | ------------- | ----------- |
@@ -1343,15 +1343,15 @@ export declare namespace h
 export declare namespace h
 ```
 
-| Function                                   | Description |
-| ------------------------------------------ | ----------- |
-| [h(type)](./qwik.h.h.md)                   |             |
-| [h(type, data)](./qwik.h.h_1.md)           |             |
-| [h(type, text)](./qwik.h.h_2.md)           |             |
-| [h(type, children)](./qwik.h.h_3.md)       |             |
-| [h(type, data, text)](./qwik.h.h_4.md)     |             |
-| [h(type, data, children)](./qwik.h.h_5.md) |             |
-| [h(sel, data, children)](./qwik.h.h_6.md)  |             |
+| Function                     | Description |
+| ---------------------------- | ----------- |
+| [h(type)](#)                 |             |
+| [h(type, data)](#)           |             |
+| [h(type, text)](#)           |             |
+| [h(type, children)](#)       |             |
+| [h(type, data, text)](#)     |             |
+| [h(type, data, children)](#) |             |
+| [h(sel, data, children)](#)  |             |
 
 | Namespace     | Description |
 | ------------- | ----------- |
@@ -1399,7 +1399,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 | [dir?](#htmlattributes-dir)                         |           | 'ltr' \| 'rtl' \| 'auto' \| undefined                                                            | _(Optional)_                                                                                                       |
 | [draggable?](#htmlattributes-draggable)             |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
 | [hidden?](#htmlattributes-hidden)                   |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [id?](./qwik.htmlattributes.id.md)                  |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+| [id?](#)                                            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [inlist?](#htmlattributes-inlist)                   |           | any                                                                                              | _(Optional)_                                                                                                       |
 | [inputMode?](#htmlattributes-inputmode)             |           | 'none' \| 'text' \| 'tel' \| 'url' \| 'email' \| 'numeric' \| 'decimal' \| 'search' \| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |
 | [is?](#htmlattributes-is)                           |           | string \| undefined                                                                              | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element             |
@@ -1520,7 +1520,7 @@ inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 
 interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes
 ```
 
-**Extends:** [QwikJSX.IntrinsicAttributes](./qwik.qwikjsx.intrinsicattributes.md)
+**Extends:** [QwikJSX.IntrinsicAttributes](#)
 
 <h2 id="h-jsx-intrinsicelements" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-intrinsicelements"><span class="icon icon-link"></span></a>IntrinsicElements </h2>
 
@@ -1528,7 +1528,7 @@ interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes
 interface IntrinsicElements extends QwikJSX.IntrinsicElements
 ```
 
-**Extends:** [QwikJSX.IntrinsicElements](./qwik.qwikjsx.intrinsicelements.md)
+**Extends:** [QwikJSX.IntrinsicElements](#)
 
 <h2 id="htmlattributes-is" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#htmlattributes-is"><span class="icon icon-link"></span></a>is </h2>
 
@@ -1651,11 +1651,11 @@ export interface JSXNode<T = string | FunctionComponent>
 
 | Property                                  | Modifiers | Type                                                                                             | Description  |
 | ----------------------------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------ |
-| [children](./qwik.jsxnode.children.md)    |           | any \| null                                                                                      |              |
+| [children](#)                             |           | any \| null                                                                                      |              |
 | [dev?](#jsxnode-dev)                      |           | DevJSX                                                                                           | _(Optional)_ |
 | [flags](#jsxnode-flags)                   |           | number                                                                                           |              |
 | [immutableProps](#jsxnode-immutableprops) |           | Record&lt;string, any&gt; \| null                                                                |              |
-| [key](./qwik.jsxnode.key.md)              |           | string \| null                                                                                   |              |
+| [key](#)                                  |           | string \| null                                                                                   |              |
 | [props](#jsxnode-props)                   |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;string, any&gt; |              |
 | [type](#jsxnode-type)                     |           | T                                                                                                |              |
 
@@ -2205,7 +2205,7 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 | Property                                       | Modifiers | Type                | Description |
 | ---------------------------------------------- | --------- | ------------------- | ----------- |
 | [relatedTarget](#qwikfocusevent-relatedtarget) |           | EventTarget \| null |             |
-| [target](./qwik.qwikfocusevent.target.md)      |           | EventTarget &amp; T |             |
+| [target](#)                                    |           | EventTarget &amp; T |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2231,9 +2231,9 @@ export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T>
 
 **Extends:** SyntheticEvent&lt;T&gt;
 
-| Property                                    | Modifiers | Type                | Description |
-| ------------------------------------------- | --------- | ------------------- | ----------- |
-| [target](./qwik.qwikinvalidevent.target.md) |           | EventTarget &amp; T |             |
+| Property    | Modifiers | Type                | Description |
+| ----------- | --------- | ------------------- | ----------- |
+| [target](#) |           | EventTarget &amp; T |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2243,12 +2243,12 @@ export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T>
 export declare namespace QwikJSX
 ```
 
-| Interface                                                              | Description |
-| ---------------------------------------------------------------------- | ----------- |
-| [Element](./qwik.qwikjsx.element.md)                                   |             |
-| [ElementChildrenAttribute](./qwik.qwikjsx.elementchildrenattribute.md) |             |
-| [IntrinsicAttributes](./qwik.qwikjsx.intrinsicattributes.md)           |             |
-| [IntrinsicElements](./qwik.qwikjsx.intrinsicelements.md)               |             |
+| Interface                     | Description |
+| ----------------------------- | ----------- |
+| [Element](#)                  |             |
+| [ElementChildrenAttribute](#) |             |
+| [IntrinsicAttributes](#)      |             |
+| [IntrinsicElements](#)        |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts" target="_blanks">Edit this section</a></p>
 
@@ -2265,7 +2265,7 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 | [altKey](#qwikkeyboardevent-altkey)     |           | boolean |                                                                                                                           |
 | [charCode](#qwikkeyboardevent-charcode) |           | number  |                                                                                                                           |
 | [ctrlKey](#qwikkeyboardevent-ctrlkey)   |           | boolean |                                                                                                                           |
-| [key](./qwik.qwikkeyboardevent.key.md)  |           | string  | See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
+| [key](#)                                |           | string  | See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
 | [keyCode](#qwikkeyboardevent-keycode)   |           | number  |                                                                                                                           |
 | [locale](#qwikkeyboardevent-locale)     |           | string  |                                                                                                                           |
 | [location](#qwikkeyboardevent-location) |           | number  |                                                                                                                           |
@@ -2288,29 +2288,29 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
 
 **Extends:** SyntheticEvent&lt;T, E&gt;
 
-| Property                                                | Modifiers | Type                | Description |
-| ------------------------------------------------------- | --------- | ------------------- | ----------- |
-| [altKey](./qwik.qwikmouseevent.altkey.md)               |           | boolean             |             |
-| [button](#qwikmouseevent-button)                        |           | number              |             |
-| [buttons](#qwikmouseevent-buttons)                      |           | number              |             |
-| [clientX](#qwikmouseevent-clientx)                      |           | number              |             |
-| [clientY](#qwikmouseevent-clienty)                      |           | number              |             |
-| [ctrlKey](./qwik.qwikmouseevent.ctrlkey.md)             |           | boolean             |             |
-| [metaKey](./qwik.qwikmouseevent.metakey.md)             |           | boolean             |             |
-| [movementX](#qwikmouseevent-movementx)                  |           | number              |             |
-| [movementY](#qwikmouseevent-movementy)                  |           | number              |             |
-| [pageX](#qwikmouseevent-pagex)                          |           | number              |             |
-| [pageY](#qwikmouseevent-pagey)                          |           | number              |             |
-| [relatedTarget](./qwik.qwikmouseevent.relatedtarget.md) |           | EventTarget \| null |             |
-| [screenX](#qwikmouseevent-screenx)                      |           | number              |             |
-| [screenY](#qwikmouseevent-screeny)                      |           | number              |             |
-| [shiftKey](./qwik.qwikmouseevent.shiftkey.md)           |           | boolean             |             |
-| [x](#qwikmouseevent-x)                                  |           | number              |             |
-| [y](#qwikmouseevent-y)                                  |           | number              |             |
+| Property                               | Modifiers | Type                | Description |
+| -------------------------------------- | --------- | ------------------- | ----------- |
+| [altKey](#)                            |           | boolean             |             |
+| [button](#qwikmouseevent-button)       |           | number              |             |
+| [buttons](#qwikmouseevent-buttons)     |           | number              |             |
+| [clientX](#qwikmouseevent-clientx)     |           | number              |             |
+| [clientY](#qwikmouseevent-clienty)     |           | number              |             |
+| [ctrlKey](#)                           |           | boolean             |             |
+| [metaKey](#)                           |           | boolean             |             |
+| [movementX](#qwikmouseevent-movementx) |           | number              |             |
+| [movementY](#qwikmouseevent-movementy) |           | number              |             |
+| [pageX](#qwikmouseevent-pagex)         |           | number              |             |
+| [pageY](#qwikmouseevent-pagey)         |           | number              |             |
+| [relatedTarget](#)                     |           | EventTarget \| null |             |
+| [screenX](#qwikmouseevent-screenx)     |           | number              |             |
+| [screenY](#qwikmouseevent-screeny)     |           | number              |             |
+| [shiftKey](#)                          |           | boolean             |             |
+| [x](#qwikmouseevent-x)                 |           | number              |             |
+| [y](#qwikmouseevent-y)                 |           | number              |             |
 
-| Method                                                             | Description                                                                                                                                         |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [getModifierState(key)](./qwik.qwikmouseevent.getmodifierstate.md) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+| Method                     | Description                                                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [getModifierState(key)](#) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2355,17 +2355,17 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
 
 | Property                                         | Modifiers | Type      | Description |
 | ------------------------------------------------ | --------- | --------- | ----------- |
-| [altKey](./qwik.qwiktouchevent.altkey.md)        |           | boolean   |             |
+| [altKey](#)                                      |           | boolean   |             |
 | [changedTouches](#qwiktouchevent-changedtouches) |           | TouchList |             |
-| [ctrlKey](./qwik.qwiktouchevent.ctrlkey.md)      |           | boolean   |             |
-| [metaKey](./qwik.qwiktouchevent.metakey.md)      |           | boolean   |             |
-| [shiftKey](./qwik.qwiktouchevent.shiftkey.md)    |           | boolean   |             |
+| [ctrlKey](#)                                     |           | boolean   |             |
+| [metaKey](#)                                     |           | boolean   |             |
+| [shiftKey](#)                                    |           | boolean   |             |
 | [targetTouches](#qwiktouchevent-targettouches)   |           | TouchList |             |
 | [touches](#qwiktouchevent-touches)               |           | TouchList |             |
 
-| Method                                                             | Description                                                                                                                                         |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [getModifierState(key)](./qwik.qwiktouchevent.getmodifierstate.md) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+| Method                     | Description                                                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [getModifierState(key)](#) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2377,11 +2377,11 @@ export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, Nati
 
 **Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)&gt;
 
-| Property                                                     | Modifiers | Type   | Description |
-| ------------------------------------------------------------ | --------- | ------ | ----------- |
-| [elapsedTime](./qwik.qwiktransitionevent.elapsedtime.md)     |           | number |             |
-| [propertyName](#qwiktransitionevent-propertyname)            |           | string |             |
-| [pseudoElement](./qwik.qwiktransitionevent.pseudoelement.md) |           | string |             |
+| Property                                          | Modifiers | Type   | Description |
+| ------------------------------------------------- | --------- | ------ | ----------- |
+| [elapsedTime](#)                                  |           | number |             |
+| [propertyName](#qwiktransitionevent-propertyname) |           | string |             |
+| [pseudoElement](#)                                |           | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
@@ -2539,7 +2539,7 @@ export interface RenderSSROptions
 | [beforeContent?](#renderssroptions-beforecontent)            |           | [JSXNode](#jsxnode)&lt;string&gt;\[\]                                                                                       | _(Optional)_ |
 | [containerAttributes](#renderssroptions-containerattributes) |           | Record&lt;string, string&gt;                                                                                                |              |
 | [containerTagName](#renderssroptions-containertagname)       |           | string                                                                                                                      |              |
-| [serverData?](./qwik.renderssroptions.serverdata.md)         |           | Record&lt;string, any&gt;                                                                                                   | _(Optional)_ |
+| [serverData?](#)                                             |           | Record&lt;string, any&gt;                                                                                                   | _(Optional)_ |
 | [stream](#renderssroptions-stream)                           |           | [StreamWriter](#streamwriter)                                                                                               |              |
 | [url?](#renderssroptions-url)                                |           | string                                                                                                                      | _(Optional)_ |
 
@@ -2634,10 +2634,10 @@ export interface ResourceCtx<T>
 | [previous](#resourcectx-previous) |           | T \| undefined      |             |
 | [track](#resourcectx-track)       |           | [Tracker](#tracker) |             |
 
-| Method                                             | Description |
-| -------------------------------------------------- | ----------- |
-| [cache(policyOrMilliseconds)](#resourcectx-cache)  |             |
-| [cleanup(callback)](./qwik.resourcectx.cleanup.md) |             |
+| Method                                            | Description |
+| ------------------------------------------------- | ----------- |
+| [cache(policyOrMilliseconds)](#resourcectx-cache) |             |
+| [cleanup(callback)](#)                            |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -2689,7 +2689,7 @@ export interface ResourceProps<T>
 | [onPending?](#resourceprops-onpending)   |                       | () =&gt; [JSXNode](#jsxnode)                                                                                     | _(Optional)_ |
 | [onRejected?](#resourceprops-onrejected) |                       | (reason: any) =&gt; [JSXNode](#jsxnode)                                                                          | _(Optional)_ |
 | [onResolved](#resourceprops-onresolved)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
-| [value](./qwik.resourceprops.value.md)   | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
+| [value](#)                               | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
 
@@ -2699,10 +2699,10 @@ export interface ResourceProps<T>
 export interface ResourceRejected<T>
 ```
 
-| Property                                      | Modifiers             | Type             | Description |
-| --------------------------------------------- | --------------------- | ---------------- | ----------- |
-| [loading](./qwik.resourcerejected.loading.md) | <code>readonly</code> | boolean          |             |
-| [value](./qwik.resourcerejected.value.md)     | <code>readonly</code> | Promise&lt;T&gt; |             |
+| Property     | Modifiers             | Type             | Description |
+| ------------ | --------------------- | ---------------- | ----------- |
+| [loading](#) | <code>readonly</code> | boolean          |             |
+| [value](#)   | <code>readonly</code> | Promise&lt;T&gt; |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -2712,10 +2712,10 @@ export interface ResourceRejected<T>
 export interface ResourceResolved<T>
 ```
 
-| Property                                      | Modifiers             | Type             | Description |
-| --------------------------------------------- | --------------------- | ---------------- | ----------- |
-| [loading](./qwik.resourceresolved.loading.md) | <code>readonly</code> | boolean          |             |
-| [value](./qwik.resourceresolved.value.md)     | <code>readonly</code> | Promise&lt;T&gt; |             |
+| Property     | Modifiers             | Type             | Description |
+| ------------ | --------------------- | ---------------- | ----------- |
+| [loading](#) | <code>readonly</code> | boolean          |             |
+| [value](#)   | <code>readonly</code> | Promise&lt;T&gt; |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -2816,9 +2816,9 @@ shiftKey: boolean;
 export interface Signal<T = any>
 ```
 
-| Property                        | Modifiers | Type | Description |
-| ------------------------------- | --------- | ---- | ----------- |
-| [value](./qwik.signal.value.md) |           | T    |             |
+| Property   | Modifiers | Type | Description |
+| ---------- | --------- | ---- | ----------- |
+| [value](#) |           | T    |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts" target="_blanks">Edit this section</a></p>
 
@@ -2854,11 +2854,11 @@ Slot: FunctionComponent<{
 export interface SnapshotListener
 ```
 
-| Property                              | Modifiers | Type                   | Description |
-| ------------------------------------- | --------- | ---------------------- | ----------- |
-| [el](#snapshotlistener-el)            |           | Element                |             |
-| [key](./qwik.snapshotlistener.key.md) |           | string                 |             |
-| [qrl](#snapshotlistener-qrl)          |           | [QRL](#qrl)&lt;any&gt; |             |
+| Property                     | Modifiers | Type                   | Description |
+| ---------------------------- | --------- | ---------------------- | ----------- |
+| [el](#snapshotlistener-el)   |           | Element                |             |
+| [key](#)                     |           | string                 |             |
+| [qrl](#snapshotlistener-qrl) |           | [QRL](#qrl)&lt;any&gt; |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
 
@@ -2910,12 +2910,12 @@ export interface SnapshotResult
 export interface SnapshotState
 ```
 
-| Property                             | Modifiers | Type                          | Description |
-| ------------------------------------ | --------- | ----------------------------- | ----------- |
-| [ctx](#snapshotstate-ctx)            |           | [SnapshotMeta](#snapshotmeta) |             |
-| [objs](./qwik.snapshotstate.objs.md) |           | any\[\]                       |             |
-| [refs](#snapshotstate-refs)          |           | Record&lt;string, string&gt;  |             |
-| [subs](#snapshotstate-subs)          |           | any\[\]                       |             |
+| Property                    | Modifiers | Type                          | Description |
+| --------------------------- | --------- | ----------------------------- | ----------- |
+| [ctx](#snapshotstate-ctx)   |           | [SnapshotMeta](#snapshotmeta) |             |
+| [objs](#)                   |           | any\[\]                       |             |
+| [refs](#snapshotstate-refs) |           | Record&lt;string, string&gt;  |             |
+| [subs](#snapshotstate-subs) |           | any\[\]                       |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
 
@@ -2989,9 +2989,9 @@ SSRStreamBlock: FunctionComponent<{
 export interface SSRStreamProps
 ```
 
-| Property                                      | Modifiers | Type                                                                                                                                                                                                           | Description |
-| --------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [children](./qwik.ssrstreamprops.children.md) |           | AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt; \| ((stream: [StreamWriter](#streamwriter)) =&gt; Promise&lt;void&gt;) \| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt;) |             |
+| Property      | Modifiers | Type                                                                                                                                                                                                           | Description |
+| ------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| [children](#) |           | AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt; \| ((stream: [StreamWriter](#streamwriter)) =&gt; Promise&lt;void&gt;) \| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt;) |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
 
@@ -3063,13 +3063,13 @@ targetTouches: TouchList;
 export interface TaskCtx
 ```
 
-| Property                         | Modifiers | Type                | Description |
-| -------------------------------- | --------- | ------------------- | ----------- |
-| [track](./qwik.taskctx.track.md) |           | [Tracker](#tracker) |             |
+| Property   | Modifiers | Type                | Description |
+| ---------- | --------- | ------------------- | ----------- |
+| [track](#) |           | [Tracker](#tracker) |             |
 
-| Method                                         | Description |
-| ---------------------------------------------- | ----------- |
-| [cleanup(callback)](./qwik.taskctx.cleanup.md) |             |
+| Method                 | Description |
+| ---------------------- | ----------- |
+| [cleanup(callback)](#) |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -3948,9 +3948,9 @@ useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
 export interface UseTaskOptions
 ```
 
-| Property                                         | Modifiers | Type                                  | Description                                                                                                                                                |
-| ------------------------------------------------ | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [eagerness?](./qwik.usetaskoptions.eagerness.md) |           | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |
+| Property        | Modifiers | Type                                  | Description                                                                                                                                                |
+| --------------- | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [eagerness?](#) |           | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 

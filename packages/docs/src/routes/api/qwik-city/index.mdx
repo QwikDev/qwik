@@ -63,10 +63,10 @@ export interface ActionOptions
 export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
 ```
 
-| Property                                                            | Modifiers             | Type                                | Description  |
-| ------------------------------------------------------------------- | --------------------- | ----------------------------------- | ------------ |
-| [id?](./qwik-city.actionoptionswithvalidation.id.md)                | <code>readonly</code> | string                              | _(Optional)_ |
-| [validation](./qwik-city.actionoptionswithvalidation.validation.md) | <code>readonly</code> | \[val: B, ...a: DataValidator\[\]\] |              |
+| Property        | Modifiers             | Type                                | Description  |
+| --------------- | --------------------- | ----------------------------------- | ------------ |
+| [id?](#)        | <code>readonly</code> | string                              | _(Optional)_ |
+| [validation](#) | <code>readonly</code> | \[val: B, ...a: DataValidator\[\]\] |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -189,11 +189,11 @@ Content: import("@builder.io/qwik").Component<{}>;
 export interface ContentHeading
 ```
 
-| Property                               | Modifiers             | Type   | Description |
-| -------------------------------------- | --------------------- | ------ | ----------- |
-| [id](./qwik-city.contentheading.id.md) | <code>readonly</code> | string |             |
-| [level](#contentheading-level)         | <code>readonly</code> | number |             |
-| [text](#contentheading-text)           | <code>readonly</code> | string |             |
+| Property                       | Modifiers             | Type   | Description |
+| ------------------------------ | --------------------- | ------ | ----------- |
+| [id](#)                        | <code>readonly</code> | string |             |
+| [level](#contentheading-level) | <code>readonly</code> | number |             |
+| [text](#contentheading-text)   | <code>readonly</code> | string |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -203,11 +203,11 @@ export interface ContentHeading
 export interface ContentMenu
 ```
 
-| Property                                | Modifiers             | Type                            | Description  |
-| --------------------------------------- | --------------------- | ------------------------------- | ------------ |
-| [href?](#contentmenu-href)              | <code>readonly</code> | string                          | _(Optional)_ |
-| [items?](#contentmenu-items)            | <code>readonly</code> | [ContentMenu](#contentmenu)\[\] | _(Optional)_ |
-| [text](./qwik-city.contentmenu.text.md) | <code>readonly</code> | string                          |              |
+| Property                     | Modifiers             | Type                            | Description  |
+| ---------------------------- | --------------------- | ------------------------------- | ------------ |
+| [href?](#contentmenu-href)   | <code>readonly</code> | string                          | _(Optional)_ |
+| [items?](#contentmenu-items) | <code>readonly</code> | [ContentMenu](#contentmenu)\[\] | _(Optional)_ |
+| [text](#)                    | <code>readonly</code> | string                          |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -284,9 +284,9 @@ export interface DocumentLink
 | [as?](#documentlink-as)                         |           | string  | _(Optional)_ |
 | [crossorigin?](#documentlink-crossorigin)       |           | string  | _(Optional)_ |
 | [disabled?](#documentlink-disabled)             |           | boolean | _(Optional)_ |
-| [href?](./qwik-city.documentlink.href.md)       |           | string  | _(Optional)_ |
+| [href?](#)                                      |           | string  | _(Optional)_ |
 | [hreflang?](#documentlink-hreflang)             |           | string  | _(Optional)_ |
-| [id?](./qwik-city.documentlink.id.md)           |           | string  | _(Optional)_ |
+| [id?](#)                                        |           | string  | _(Optional)_ |
 | [imagesizes?](#documentlink-imagesizes)         |           | string  | _(Optional)_ |
 | [imagesrcset?](#documentlink-imagesrcset)       |           | string  | _(Optional)_ |
 | [integrity?](#documentlink-integrity)           |           | string  | _(Optional)_ |
@@ -296,7 +296,7 @@ export interface DocumentLink
 | [referrerpolicy?](#documentlink-referrerpolicy) |           | string  | _(Optional)_ |
 | [rel?](#documentlink-rel)                       |           | string  | _(Optional)_ |
 | [sizes?](#documentlink-sizes)                   |           | string  | _(Optional)_ |
-| [title?](./qwik-city.documentlink.title.md)     |           | string  | _(Optional)_ |
+| [title?](#)                                     |           | string  | _(Optional)_ |
 | [type?](#documentlink-type)                     |           | string  | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
@@ -307,14 +307,14 @@ export interface DocumentLink
 export interface DocumentMeta
 ```
 
-| Property                                | Modifiers             | Type   | Description  |
-| --------------------------------------- | --------------------- | ------ | ------------ |
-| [content?](#documentmeta-content)       | <code>readonly</code> | string | _(Optional)_ |
-| [httpEquiv?](#documentmeta-httpequiv)   | <code>readonly</code> | string | _(Optional)_ |
-| [itemprop?](#documentmeta-itemprop)     | <code>readonly</code> | string | _(Optional)_ |
-| [key?](./qwik-city.documentmeta.key.md) | <code>readonly</code> | string | _(Optional)_ |
-| [name?](#documentmeta-name)             | <code>readonly</code> | string | _(Optional)_ |
-| [property?](#documentmeta-property)     | <code>readonly</code> | string | _(Optional)_ |
+| Property                              | Modifiers             | Type   | Description  |
+| ------------------------------------- | --------------------- | ------ | ------------ |
+| [content?](#documentmeta-content)     | <code>readonly</code> | string | _(Optional)_ |
+| [httpEquiv?](#documentmeta-httpequiv) | <code>readonly</code> | string | _(Optional)_ |
+| [itemprop?](#documentmeta-itemprop)   | <code>readonly</code> | string | _(Optional)_ |
+| [key?](#)                             | <code>readonly</code> | string | _(Optional)_ |
+| [name?](#documentmeta-name)           | <code>readonly</code> | string | _(Optional)_ |
+| [property?](#documentmeta-property)   | <code>readonly</code> | string | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -324,11 +324,11 @@ export interface DocumentMeta
 export interface DocumentStyle
 ```
 
-| Property                                 | Modifiers             | Type                                              | Description  |
-| ---------------------------------------- | --------------------- | ------------------------------------------------- | ------------ |
-| [key?](./qwik-city.documentstyle.key.md) | <code>readonly</code> | string                                            | _(Optional)_ |
-| [props?](#documentstyle-props)           | <code>readonly</code> | Readonly&lt;{ \[propName: string\]: string; }&gt; | _(Optional)_ |
-| [style](#documentstyle-style)            | <code>readonly</code> | string                                            |              |
+| Property                       | Modifiers             | Type                                              | Description  |
+| ------------------------------ | --------------------- | ------------------------------------------------- | ------------ |
+| [key?](#)                      | <code>readonly</code> | string                                            | _(Optional)_ |
+| [props?](#documentstyle-props) | <code>readonly</code> | Readonly&lt;{ \[propName: string\]: string; }&gt; | _(Optional)_ |
+| [style](#documentstyle-style)  | <code>readonly</code> | string                                            |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -388,7 +388,7 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 | Property                                             | Modifiers | Type                                                                                                                                               | Description                                                                                                                                                                      |
 | ---------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [action?](#formprops-action)                         |           | [ActionStore](#actionstore)&lt;O, I, true \| false&gt;                                                                                             | _(Optional)_ Reference to the action returned by <code>action()</code>.                                                                                                          |
-| [key?](./qwik-city.formprops.key.md)                 |           | string \| number \| null                                                                                                                           | _(Optional)_                                                                                                                                                                     |
+| [key?](#)                                            |           | string \| number \| null                                                                                                                           | _(Optional)_                                                                                                                                                                     |
 | [onSubmit$?](#formprops-onsubmit_)                   |           | (event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;                                                                             | _(Optional)_ Event handler executed right when the form is submitted.                                                                                                            |
 | [onSubmitCompleted$?](#formprops-onsubmitcompleted_) |           | (event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right after the action is executed successfully and returns some data.                                                                       |
 | [reloadDocument?](#formprops-reloaddocument)         |           | boolean                                                                                                                                            | _(Optional)_ When <code>true</code> the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.                                          |
@@ -402,10 +402,10 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 export interface FormSubmitCompletedDetail<T>
 ```
 
-| Property                                                | Modifiers | Type   | Description |
-| ------------------------------------------------------- | --------- | ------ | ----------- |
-| [status](./qwik-city.formsubmitsuccessdetail.status.md) |           | number |             |
-| [value](./qwik-city.formsubmitsuccessdetail.value.md)   |           | T      |             |
+| Property    | Modifiers | Type   | Description |
+| ----------- | --------- | ------ | ----------- |
+| [status](#) |           | number |             |
+| [value](#)  |           | T      |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx" target="_blanks">Edit this section</a></p>
 
@@ -557,10 +557,10 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property                                       | Modifiers | Type    | Description  |
-| ---------------------------------------------- | --------- | ------- | ------------ |
-| [prefetch?](./qwik-city.linkprops.prefetch.md) |           | boolean | _(Optional)_ |
-| [reload?](#linkprops-reload)                   |           | boolean | _(Optional)_ |
+| Property                     | Modifiers | Type    | Description  |
+| ---------------------------- | --------- | ------- | ------------ |
+| [prefetch?](#)               |           | boolean | _(Optional)_ |
+| [reload?](#linkprops-reload) |           | boolean | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx" target="_blanks">Edit this section</a></p>
 
@@ -578,9 +578,9 @@ readonly links?: readonly DocumentLink[];
 export interface Loader<RETURN>
 ```
 
-| Method                             | Description |
-| ---------------------------------- | ----------- |
-| [use()](./qwik-city.loader.use.md) |             |
+| Method     | Description |
+| ---------- | ----------- |
+| [use()](#) |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -685,7 +685,7 @@ export interface PageModule extends RouteModule
 | Property                                          | Modifiers             | Type                                            | Description  |
 | ------------------------------------------------- | --------------------- | ----------------------------------------------- | ------------ |
 | [default](#pagemodule-default)                    | <code>readonly</code> | any                                             |              |
-| [head?](./qwik-city.pagemodule.head.md)           | <code>readonly</code> | ContentModuleHead                               | _(Optional)_ |
+| [head?](#)                                        | <code>readonly</code> | ContentModuleHead                               | _(Optional)_ |
 | [headings?](#pagemodule-headings)                 | <code>readonly</code> | [ContentHeading](#contentheading)\[\]           | _(Optional)_ |
 | [onStaticGenerate?](#pagemodule-onstaticgenerate) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |
 
@@ -889,7 +889,7 @@ export interface RouteLocation
 
 | Property                                    | Modifiers             | Type                                         | Description |
 | ------------------------------------------- | --------------------- | -------------------------------------------- | ----------- |
-| [href](./qwik-city.routelocation.href.md)   | <code>readonly</code> | string                                       |             |
+| [href](#)                                   | <code>readonly</code> | string                                       |             |
 | [isNavigating](#routelocation-isnavigating) | <code>readonly</code> | boolean                                      |             |
 | [params](#routelocation-params)             | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |             |
 | [pathname](#routelocation-pathname)         | <code>readonly</code> | string                                       |             |
@@ -997,9 +997,9 @@ spaReset?: boolean;
 export interface StaticGenerate
 ```
 
-| Property                                        | Modifiers | Type                          | Description  |
-| ----------------------------------------------- | --------- | ----------------------------- | ------------ |
-| [params?](./qwik-city.staticgenerate.params.md) |           | [PathParams](#pathparams)\[\] | _(Optional)_ |
+| Property     | Modifiers | Type                          | Description  |
+| ------------ | --------- | ----------------------------- | ------------ |
+| [params?](#) |           | [PathParams](#pathparams)\[\] | _(Optional)_ |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 

@@ -161,6 +161,10 @@ function createApiData(
     });
   });
 
+  apiData.members.forEach((m) => {
+    m.content = m.content.replace(/\.\/qwik(.*)\.md/g, '#');
+  });
+
   apiData.members.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });

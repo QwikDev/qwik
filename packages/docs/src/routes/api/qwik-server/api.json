@@ -244,7 +244,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderDisabled \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [strategy](./qwik.inorderdisabled.strategy.md) |  | 'disabled' |  |",
+      "content": "```typescript\nexport interface InOrderDisabled \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [strategy](#) |  | 'disabled' |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.inorderdisabled.md"
     },
@@ -672,7 +672,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderToStringResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [html](#rendertostringresult-html) |  | string |  |\n|  [timing](./qwik.rendertostringresult.timing.md) |  | { render: number; snapshot: number; } |  |",
+      "content": "```typescript\nexport interface RenderToStringResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [html](#rendertostringresult-html) |  | string |  |\n|  [timing](#) |  | { render: number; snapshot: number; } |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostringresult.md"
     },
@@ -700,7 +700,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SerializeDocumentOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [debug?](#serializedocumentoptions-debug) |  | boolean | _(Optional)_ |\n|  [manifest?](./qwik.serializedocumentoptions.manifest.md) |  | QwikManifest \\| ResolvedManifest | _(Optional)_ |\n|  [symbolMapper?](#serializedocumentoptions-symbolmapper) |  | SymbolMapperFn | _(Optional)_ |",
+      "content": "```typescript\nexport interface SerializeDocumentOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [debug?](#serializedocumentoptions-debug) |  | boolean | _(Optional)_ |\n|  [manifest?](#) |  | QwikManifest \\| ResolvedManifest | _(Optional)_ |\n|  [symbolMapper?](#serializedocumentoptions-symbolmapper) |  | SymbolMapperFn | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.serializedocumentoptions.md"
     },

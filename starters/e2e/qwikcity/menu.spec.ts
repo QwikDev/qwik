@@ -57,7 +57,7 @@ function tests() {
     await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/getting-started/"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/docs/getting-started/',
-      title: 'Docs: Getting Started - Qwik',
+      title: 'Docs: @builder.io/qwik Getting Started - Qwik',
       layoutHierarchy: ['docs'],
       h1: 'Getting Started',
       activeHeaderLink: 'Docs',

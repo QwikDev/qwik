@@ -1,28 +1,50 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useOnWindow, useSignal, useStore,$ } from '@builder.io/qwik';
 import { toSnakeCase } from '../../utils/utils';
+
+// TODO: load the content of these files using fs instead of importing them
 import qwikApiData from './qwik/api.json';
 import qwikCityApiData from './qwik-city/api.json';
-// import fs from 'node:fs';
+import qwikCityMiddlewareAzureSwaApiData from './qwik-city-middleware-azure-swa/api.json';
+import qwikCityMiddlewareCloudflarePagesApiData from './qwik-city-middleware-cloudflare-pages/api.json';
+import qwikCityMiddlewareNetlifyEdgeApiData from './qwik-city-middleware-netlify-edge/api.json';
+import qwikCityMiddlewareNodeApiData from './qwik-city-middleware-node/api.json';
+import qwikCityMiddlewareRequestHandlerApiData from './qwik-city-middleware-request-handler/api.json';
+import qwikCityMiddlewareVercelEdgeApiData from './qwik-city-middleware-vercel-edge/api.json';
+import qwikCityStaticApiData from './qwik-city-static/api.json';
+import qwikCityViteAzureSwaApiData from './qwik-city-vite-azure-swa/api.json';
+import qwikCityViteCloudRunApiData from './qwik-city-vite-cloud-run/api.json';
+import qwikCityViteCloudflarePagesApiData from './qwik-city-vite-cloudflare-pages/api.json';
+import qwikCityViteExpressApiData from './qwik-city-vite-express/api.json';
+import qwikCityViteNetlifyEdgeApiData from './qwik-city-vite-netlify-edge/api.json';
+import qwikCityViteStaticApiData from './qwik-city-vite-static/api.json';
+import qwikCityViteVercelApiData from './qwik-city-vite-vercel/api.json';
+import qwikOptimizerApiData from './qwik-optimizer/api.json';
+import qwikServerApiData from './qwik-server/api.json';
+import qwikTestingApiData from './qwik-testing/api.json';
 
-// const _API_DOC_FILE_NAME = 'api.json';
 const _KINDS = new Set();
-
-// const apiData = fs
-//   .readdirSync('./src/routes/api/', {withFileTypes: true})
-//   .filter(dirent => dirent.isDirectory())
-//   .map(dirent => {
-//     return fs.existsSync(`./src/routes/api/${dirent.name}/${_API_DOC_FILE_NAME}`) ? dirent.name : null;
-//   })
-//   .reduce((acc, file) => {
-//     const data = JSON.parse(fs.readFileSync(`./src/routes/api/${file}/${_API_DOC_FILE_NAME}`, 'utf-8'));
-//     acc[data.id] = data;
-//     return acc;
-//   }, {});
 
 const apiData = {
   qwik: qwikApiData,
-  'qwik-city': qwikCityApiData
-}
+  'qwik-city': qwikCityApiData,
+  'qwik-city-middleware-azure-swa': qwikCityMiddlewareAzureSwaApiData,
+  'qwik-city-middleware-cloudflare-pages': qwikCityMiddlewareCloudflarePagesApiData,
+  'qwik-city-middleware-netlify-edge': qwikCityMiddlewareNetlifyEdgeApiData,
+  'qwik-city-middleware-node': qwikCityMiddlewareNodeApiData,
+  'qwik-city-middleware-request-handler': qwikCityMiddlewareRequestHandlerApiData,
+  'qwik-city-middleware-vercel-edge': qwikCityMiddlewareVercelEdgeApiData,
+  'qwik-city-static': qwikCityStaticApiData,
+  'qwik-city-vite-azure-swa': qwikCityViteAzureSwaApiData,
+  'qwik-city-vite-cloud-run': qwikCityViteCloudRunApiData,
+  'qwik-city-vite-cloudflare-pages': qwikCityViteCloudflarePagesApiData,
+  'qwik-city-vite-express': qwikCityViteExpressApiData,
+  'qwik-city-vite-netlify-edge': qwikCityViteNetlifyEdgeApiData,
+  'qwik-city-vite-static': qwikCityViteStaticApiData,
+  'qwik-city-vite-vercel': qwikCityViteVercelApiData,
+  'qwik-optimizer': qwikOptimizerApiData,
+  'qwik-server': qwikServerApiData,
+  'qwik-testing': qwikTestingApiData,
+};
 
 const getUniqueKinds = () => {
   if (_KINDS.size) {
@@ -34,13 +56,15 @@ const getUniqueKinds = () => {
 };
 
 const getInitialFilterState = () => {
-  return Array.from(getUniqueKinds()).reduce((acc: any, kind) => {
-    if (typeof kind !== 'string') {
+  return (
+    Array.from(getUniqueKinds()).reduce((acc: any, kind) => {
+      if (typeof kind !== 'string') {
+        return acc;
+      }
+      acc[kind] = true;
       return acc;
-    }
-    acc[kind] = true;
-    return acc;
-  },{}) || {};
+    }, {}) || {}
+  );
 };
 
 export default component$(() => {
@@ -50,7 +74,7 @@ export default component$(() => {
     <>
       <h1>API Reference</h1>
 
-      <h2>Filter</h2>
+      <h2>Filters</h2>
       <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {Array.from(getUniqueKinds()).map((kind) => (
           <button
@@ -58,7 +82,9 @@ export default component$(() => {
             onClick$={() => {
               filters[kind] = !filters[kind];
             }}
-            class={`filter-item block text-sm rounded-md text-left ${filters[kind] ? 'active' : ''}`}
+            class={`filter-item block text-sm rounded-md text-left ${
+              filters[kind] ? 'active' : ''
+            }`}
             data-kind-label={kind.substring(0, 1).toUpperCase()}
           >
             {kind.split('-').join(' ')}
@@ -66,20 +92,44 @@ export default component$(() => {
         ))}
       </div>
 
+      <h2>References</h2>
       {Object.keys(apiData).map((key) => (
-        <div key={`block-${key}`}>
-          <a href={apiData[key].id}>
-            <h2>{apiData[key].package}</h2>
-          </a>
-          <ApiMemberList id={apiData[key].id} data={apiData[key]} filters={filters} />
-        </div>
+        <ApiMemberWrapper id={apiData[key].id} data={apiData[key]} filters={filters} />
       ))}
     </>
   );
 });
 
-// TODO: move into standalone cmp and adjust typings!
-export const ApiMemberList = component$(({ id, data, filters}: any) => (
+export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
+  const isCollapsed = useSignal(true);
+
+  // TODO: find a solution to make this work
+  useOnWindow('load', $(() => {
+    document.querySelectorAll(".section").forEach((section) => {
+      section.onbeforematch = () => {
+        isCollapsed.value = false;
+      };
+    });    
+  }));
+
+  return (
+    <div class={`section ${isCollapsed.value}`} key={`api-member-wrapper-${id}`}>
+      <h2
+        data-icon={isCollapsed.value ? '→' : '↓'}
+        class="section-title cursor-pointer"
+        onClick$={(e) => isCollapsed.value = !isCollapsed.value }
+      >
+        <span>{data.package}</span>
+      </h2>
+      <div hidden={isCollapsed.value ? 'until-found' : ''}>
+        <ApiMemberList id={id} data={data} filters={filters} />
+      </div>
+    </div>
+  );
+});
+
+
+export const ApiMemberList = component$(({ id, data, filters }: any) => (
   <ul class="grid md:grid-cols-2 lg:grid-cols-3">
     {data.members.map((member) => {
       const kind = toSnakeCase(member.kind);
@@ -93,7 +143,9 @@ export const ApiMemberList = component$(({ id, data, filters}: any) => (
           key={`${id}-member-${member.id}`}
           data-kind={kind}
           data-kind-label={kind.substring(0, 1).toUpperCase()}
-          class={`api-item list-none text-xs ${kind in filters && !filters[kind] && 'hidden' || ''}`}
+          class={`api-item list-none text-xs ${
+            (kind in filters && !filters[kind] && 'hidden') || ''
+          }`}
         >
           <a href={`qwik#${member.id}`}>{member.name}</a>
         </li>

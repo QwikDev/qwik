@@ -5,7 +5,6 @@ export interface SiteStore {
   headerMenuOpen: boolean;
   sideMenuOpen: boolean;
   theme: ThemePreference | 'auto';
-  bodyClass: string;
 }
 
 export const GlobalStore = createContextId<SiteStore>('site-store');

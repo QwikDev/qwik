@@ -36,7 +36,6 @@ export default component$(() => {
     headerMenuOpen: false,
     sideMenuOpen: false,
     theme: 'auto',
-    bodyClass: url.pathname === '/ecosystem/' ? 'purple-bg' : 'qwik-bg',
   });
 
   useContextProvider(GlobalStore, store);

@@ -15,6 +15,10 @@
   margin: 0 auto;
 }
 
+[data-theme='light'] .qwik-plus-logo-text {
+  filter: invert(1);
+}
+
 .ecosystem .purple-gradient {
   position: fixed;
   width: 1400px;
@@ -63,6 +67,10 @@
   padding: 125px 20px 20px 20px;
 }
 
+[data-theme='light'] .ecosystem-menu {
+  background: transparent;
+}
+
 .ecosystem h2,
 .ecosystem-menu h3 {
   font-size: 18px;
@@ -70,6 +78,11 @@
   padding-bottom: 15px;
   margin-bottom: 25px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme='light'] .ecosystem h2,
+[data-theme='light'] .ecosystem-menu h3 {
+  border-color: rgba(0, 0, 0, 0.3);
 }
 
 .ecosystem h2 {

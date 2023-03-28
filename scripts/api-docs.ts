@@ -175,7 +175,7 @@ function createApiData(
   const apiJsonPath = join(docsDir, `api.json`);
   writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
 
-  const apiMdPath = join(docsDir, `index.mdx`);
+  const apiMdPath = join(docsDir, `index.md`);
   writeFileSync(apiMdPath, createApiMarkdown(apiData));
 }
 

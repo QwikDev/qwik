@@ -28,6 +28,7 @@ export default component$<{
           options: getBuilderSearchParams(query),
           userAttributes: {
             urlPath: location.url.pathname,
+            site: 'qwik.builder.io',
           },
         },
         getContent

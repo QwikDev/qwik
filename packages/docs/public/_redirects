@@ -19,6 +19,11 @@
 /qwikcity/middleware/netlify-edge/ /deployments/netlify-edge/ 308
 /qwikcity/middleware/node/ /deployments/node/ 308
 /qwikcity/middleware/express/ /deployments/node/ 308
+/integrations/deployments/azure-swa/ /deployments/azure-swa/ 308
+/integrations/deployments/cloudflare-pages/ /deployments/cloudflare-pages/ 308
+/integrations/deployments/netlify-edge/ /deployments/netlify-edge/ 308
+/integrations/deployments/express/ /deployments/express/ 308
+/integrations/deployments/vercel-edge/ /deployments/vercel-edge/ 308
 
 /qwikcity/directory-layout/ /docs/project-structure/ 308
 /qwikcity/static-assets/ /docs/advanced/static-assets/ 308

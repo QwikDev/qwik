@@ -22,9 +22,9 @@
   top: 200px;
   right: -400px;
   background: radial-gradient(
-    50% 50% at 50% 50%,
-    rgba(172, 127, 244, 0.5) 0%,
-    rgba(21, 25, 52, 0) 100%
+    57.58% 57.58% at 48.79% 42.42%,
+    rgba(24, 180, 244, 0.5) 0%,
+    rgba(46, 55, 114, 0) 63.22%
   );
   transform: rotate(5deg);
 }
@@ -36,9 +36,9 @@
   top: 700px;
   left: -200px;
   background: radial-gradient(
-    57.58% 57.58% at 48.79% 42.42%,
-    rgba(24, 180, 244, 0.5) 0%,
-    rgba(46, 55, 114, 0) 63.22%
+    50% 50% at 50% 50%,
+    rgba(172, 127, 244, 0.5) 0%,
+    rgba(21, 25, 52, 0) 100%
   );
   transform: rotate(-5deg);
 }
@@ -116,6 +116,7 @@
     linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
   border-radius: 5px;
   border: 1px solid transparent;
+  overflow: hidden;
 }
 
 .grid-item .thumbnail::before {
@@ -155,6 +156,15 @@
   margin: auto;
   max-width: 160px;
   max-height: 90px;
+}
+
+.grid-item .cover img {
+  width: 100%;
+  max-width: initial;
+  max-height: initial;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 16/9;
 }
 
 .grid-item .text {

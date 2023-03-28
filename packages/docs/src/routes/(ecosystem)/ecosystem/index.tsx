@@ -91,6 +91,7 @@ export default component$(() => {
                   title={item.title}
                   href={item.href}
                   imgSrc={item.imgSrc}
+                  imgCover={true}
                   key={i}
                   thumbnailBg={true}
                 />
@@ -115,6 +116,7 @@ export default component$(() => {
                   title={item.title}
                   href={item.href}
                   imgSrc={item.imgSrc}
+                  imgCover={true}
                   key={i}
                   thumbnailBg={true}
                 />
@@ -139,6 +141,7 @@ export default component$(() => {
                   title={item.title}
                   href={item.href}
                   imgSrc={item.imgSrc}
+                  imgCover={true}
                   key={i}
                   thumbnailBg={true}
                 />
@@ -163,6 +166,7 @@ export default component$(() => {
                   title={item.title}
                   href={item.href}
                   imgSrc={item.imgSrc}
+                  imgCover={true}
                   key={i}
                   thumbnailBg={true}
                 />
@@ -217,8 +221,8 @@ export const GridItem = (props: GridItemProps) => {
   return (
     <li class="grid-item">
       <Link href={props.href}>
-        <div class={{ thumbnail: props.thumbnailBg }}>
-          <img src={props.imgSrc} alt={props.title} />
+        <div class={{ thumbnail: props.thumbnailBg, cover: props.imgCover }}>
+          <img src={props.imgSrc} alt={props.title} loading="lazy" />
         </div>
         <div class="text">{props.title}</div>
       </Link>
@@ -229,6 +233,7 @@ export const GridItem = (props: GridItemProps) => {
 interface GridItemProps {
   title: string;
   href: string;
-  imgSrc: string;
+  imgSrc?: string;
+  imgCover?: boolean;
   thumbnailBg: boolean;
 }

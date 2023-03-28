@@ -94,7 +94,7 @@ export default component$(() => {
 
       <h2>References</h2>
       {Object.keys(apiData).map((key) => (
-        <ApiMemberWrapper id={apiData[key].id} data={apiData[key]} filters={filters} />
+        <ApiMemberWrapper key={`api-member-wrapper-${apiData[key].id}`} id={apiData[key].id} data={apiData[key]} filters={filters} />
       ))}
     </>
   );
@@ -113,7 +113,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
   }));
 
   return (
-    <div class={`section ${isCollapsed.value}`} key={`api-member-wrapper-${id}`}>
+    <div class={`section ${isCollapsed.value}`}>
       <h2
         data-icon={isCollapsed.value ? '→' : '↓'}
         class="section-title cursor-pointer"
@@ -130,7 +130,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
 
 
 export const ApiMemberList = component$(({ id, data, filters }: any) => (
-  <ul class="grid md:grid-cols-2 lg:grid-cols-3">
+  <ul class="grid md:grid-cols-2 lg:grid-cols-3 pb-5">
     {data.members.map((member) => {
       const kind = toSnakeCase(member.kind);
 
@@ -140,7 +140,7 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
 
       return (
         <li
-          key={`${id}-member-${member.id}`}
+          key={`${id}-member-${member.id}-${kind}`}
           data-kind={kind}
           data-kind-label={kind.substring(0, 1).toUpperCase()}
           class={`api-item list-none text-xs ${

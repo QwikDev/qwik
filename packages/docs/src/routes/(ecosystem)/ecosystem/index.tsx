@@ -1,7 +1,6 @@
-import { component$, useContext, useStyles$, useTask$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
-import { GlobalStore } from '../../../context';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
 import { MEDIA } from '../media/index';
@@ -12,15 +11,10 @@ import { QwikPlusLogo } from './qwik-plus-logo';
 export default component$(() => {
   useStyles$(styles);
 
-  const state = useContext(GlobalStore);
   const videos = MEDIA.videos.slice(0, 6);
   const podcasts = MEDIA.podcasts.slice(0, 6);
   const presentations = MEDIA.presentations.slice(0, 6);
   const showcaseSites = SHOWCASE.slice(0, 6);
-
-  useTask$(() => {
-    state.bodyClass = 'purple-bg';
-  });
 
   return (
     <>

@@ -1,5 +1,10 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+import { component$, useContextProvider, useServerData, useStore } from '@builder.io/qwik';
+import {
+  QwikCityProvider,
+  RouterOutlet,
+  ServiceWorkerRegister,
+  useLocation,
+} from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';
@@ -24,11 +29,14 @@ declare global {
 }
 
 export default component$(() => {
+  const urlEnv = useServerData<string>('url');
+  const url = new URL(urlEnv!);
+
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
     theme: 'auto',
-    bodyClass: 'qwik-bg',
+    bodyClass: url.pathname === '/ecosystem/' ? 'purple-bg' : 'qwik-bg',
   });
 
   useContextProvider(GlobalStore, store);

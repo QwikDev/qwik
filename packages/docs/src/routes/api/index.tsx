@@ -1,4 +1,5 @@
-import { component$, useOnWindow, useSignal, useStore,$ } from '@builder.io/qwik';
+import { component$, $, useSignal, useStore, useOn, useTask$ } from '@builder.io/qwik';
+import {isBrowser} from '@builder.io/qwik/build'
 import { toSnakeCase } from '../../utils/utils';
 
 // TODO: load the content of these files using fs instead of importing them
@@ -103,13 +104,16 @@ export default component$(() => {
 export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
   const isCollapsed = useSignal(true);
 
+  useTask$(({track}) => {
+    track(filters);
+    if (isBrowser) {
+      isCollapsed.value = false;
+    }
+  });
+
   // TODO: find a solution to make this work
-  useOnWindow('load', $(() => {
-    document.querySelectorAll(".section").forEach((section) => {
-      section.onbeforematch = () => {
-        isCollapsed.value = false;
-      };
-    });    
+  useOn('beforematch', $(() => {
+    isCollapsed.value = false;
   }));
 
   return (

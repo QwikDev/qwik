@@ -87,6 +87,12 @@
 
 .docs.api .filter-item {
   background: #eee;
+  line-height: 2;
+}
+@media screen and (min-width: 768px) {
+  .docs.api .filter-item {
+    line-height: 1.5;
+  }
 }
 .docs.api .filter-item[data-kind-label]:before {
   border-radius: 4px 0 0 4px;

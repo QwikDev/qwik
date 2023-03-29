@@ -59,7 +59,9 @@ export const SrcAnimation = component$(() => {
   );
   useTask$(({ track }) => {
     track(hoverToken);
-    if (!isBrowser) return;
+    if (!isBrowser) {
+      return;
+    }
     if (hoverToken.callout) {
       const rect = hoverToken.element!.getBoundingClientRect();
       const top = rect.bottom + window.scrollY;

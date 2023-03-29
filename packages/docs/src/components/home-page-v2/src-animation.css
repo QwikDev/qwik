@@ -1,23 +1,27 @@
 .sticky {
   position: sticky;
-  top: 0;
+  bottom: 100px;
   z-index: 1;
   width: 100%;
+  background-color: black;
 }
 ul.layers {
   display: block;
   margin: 0;
   padding: 0;
-  height: 90em;
 }
 li.layer {
   display: block;
   position: absolute;
+  top: 0;
   margin: 0;
   transform-style: preserve-3d;
   width: 630px;
   perspective: 5000px;
   font-weight: 500;
+}
+li.layer.layer-0 {
+  position: static;
 }
 li.layer > div {
   padding: 1em;

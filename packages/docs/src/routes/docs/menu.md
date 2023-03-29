@@ -29,6 +29,7 @@
 - [Layouts](</docs/(qwikcity)/layout/index.mdx>)
 - [Pages](</docs/(qwikcity)/pages/index.mdx>)
 - [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
+- [server$](</docs/(qwikcity)/server$/index.mdx>)
 - [API reference](</docs/(qwikcity)/api/index.mdx>)
 
 ## Guides

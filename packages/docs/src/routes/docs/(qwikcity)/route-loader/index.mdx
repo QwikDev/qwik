@@ -18,7 +18,13 @@ Route Loaders can only be declared inside the `src/routes` folder, in a `layout.
 // src/routes/layout.tsx
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const getProductData = routeLoader$(() => {
+export const getProductData = routeLoader$(async () => {
+  // Add your data fetching code here (fetch, DB, Firebase, etc.)
+  // const res = await fetch('https://.../product')
+  // const products = await res.json()
+  // return products;
+
+  // We are returning sample data for this example
   return {
     product: {
       name: 'Qwik City',
@@ -28,18 +34,18 @@ export const getProductData = routeLoader$(() => {
 });
 ```
 
-> routeLoaders are not endpoints, it's an internal communication channel between the server and the Qwik Components. Also, routeLoaders must return a JSON serializable value.
+> `routeLoader$`s are not endpoints, it's an internal communication channel between the server and the Qwik Components. Also, `routeLoader$`s must return a JSON serializable value.
 
-## Using a routeLoader
+## Using a `routeLoader$`
 
-routeLoaders can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
+`routeLoader$`s can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
 ```tsx
 // src/routes/index.tsx
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useGetServerTime = routeLoader$(() => {
+export const useGetServerTime = routeLoader$(async () => {
   return {
     time: Date.now(),
   }
@@ -56,11 +62,11 @@ export default component$(() => {
 });
 ```
 
-> The `useGetServerTime()` retrieves the loader data, but it does not execute the loader multiple times. routeLoaders execute eagerly at the beginning of the request in order to provide low latency. For this reason they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+> It may appear that `useGetServerTime()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useGetServerTime` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useGetServerTime()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
 
-## Multiple routeLoaders
+## Multiple `routeLoader$`s
 
-Multiple routeLoaders are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple routeLoaders in the same file**.
+Multiple `routeLoader$`s are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple `routeLoader$`s in the same file**.
 
 **File: `src/routes/layout.tsx`**
 
@@ -69,7 +75,7 @@ import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { Footer } from '../components/footer.tsx';
 
-export const useGetServerTime = routeLoader$(() => {
+export const useGetServerTime = routeLoader$(async () => {
   return {
     time: Date.now(),
   }
@@ -100,6 +106,7 @@ export const Footer = component$(() => {
   return <footer>Server time: {signal.value.time}</footer>;
 });
 ```
+The above example shows using `useGetServerTime()` in two different components across different files. This is intentional behavior.
 
 **File: `src/routes/admin/index.tsx`**
 
@@ -107,26 +114,26 @@ export const Footer = component$(() => {
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useIsLogged = routeLoader$(({cookie}) => {
+export const useLoginStatus = routeLoader$(async ({cookie}) => {
   return {
-    logged: checkcookie(cookie),
+    isUserLoggedIn: checkCookie(cookie);
   }
 });
 
-export const useGetCurrentUser = routeLoader$(({cookie}) => {
+export const useCurrentUser = routeLoader$(async ({cookie}) => {
   return {
-    user: currentUserFromcookie(cookie),
+    user: currentUserFromCookie(cookie);
   }
 });
 
 export default component$(() => {
-  const logged = useIsLogged();
-  const user = useGetCurrentUser();
+  const loginStatus = useLoginStatus();
+  const currentUser = useCurrentUser();
   return (
     <section>
       <h1>Admin</h1>
-      {logged.value.logged ? (
-        <p>Welcome {user.value.user.name}</p>
+      {loginStatus.value.isUserLoggedIn ? (
+        <p>Welcome {currentUser.value.user.name}</p>
       ) : (
         <p>You are not logged in</p>
       )}
@@ -134,27 +141,30 @@ export default component$(() => {
   );
 });
 ```
+The above example shows two `routeLoader$`s being used in the same file. A generic `useLoginStatus` loader is used to check if the user is logged in, and a more specific `useCurrentUser` loader is used to retrieve the user data.
 
 ## routeLoader context
 
-Just like request handlers such as `onRequest` and `onGet`, routeLoaders have access to the `RequestEvent` object which includes information about the current request.
+Just like request handlers such as `onRequest` and `onGet`, `routeLoader$`s have access to the `RequestEvent` object which includes information about the current request.
 
-This information comes in handly when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
+This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
 
 ```tsx
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const getServerTime = routeLoader$((ev) => {
-  console.log('Request headers:', ev.headers);
-  console.log('Request cookies:', ev.cookie);
-  console.log('Request url:', ev.url);
-  console.log('Request method:', ev.method);
-  console.log('Request params:', ev.params);
+export const useServerTime = routeLoader$(
+  async ({headers, cookie, url, method, params}) => {
+    console.log('Request headers:', headers);
+    console.log('Request cookies:', cookie);
+    console.log('Request url:', url);
+    console.log('Request method:', method);
+    console.log('Request params:', params);
 
-  return {
-    time: Date.now(),
+    return {
+      time: Date.now();
+    }
   }
-});
+);
 ```
 
 ## When to use a routeLoader?

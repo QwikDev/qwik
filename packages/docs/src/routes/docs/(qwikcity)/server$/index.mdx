@@ -1,0 +1,46 @@
+---
+title: Qwik City - server$()
+contributors:
+  - mhevery
+---
+
+# `server$()`
+
+`server$()` allows you to mark a function as always executing on a server. This is a form of RPC mechanism between the client and server.
+
+The `server$()` wraps a function and returns a proxy an async proxy to the function. On the server, the proxy function directly calls the wrapped function. On the client, the proxy function invokes the wrapped function via an HTTP request. The HTTP endpoint is automatically created by the `server$()` function. The HTTP endpoint is not intended to be called directly. It is only intended to be called by the proxy function.
+
+> Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew
+the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
+
+## Example
+
+```typescript
+import { component$, useSignal } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+
+// By wrapping a function with `server$()` we mark it to always 
+// execute on the server. This is a form of RPC mechanism.
+const serverGreeter = server$((name) => {
+  const greeting = 'Hello ' + name;
+  console.log('SERVER', greeting);
+  return greeting;
+});
+
+export default component$(() => {
+  const name = useSignal('World');
+  return (
+    <div>
+      Name: <input bind:value={name} />
+      <button
+        onClick$={async () => {
+          const greeting = await serverGreeter(name.value);
+          alert(greeting);
+        }}
+      >
+        greet
+      </button>
+    </div>
+  );
+});
+```

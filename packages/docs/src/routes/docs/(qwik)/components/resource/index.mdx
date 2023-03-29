@@ -29,20 +29,16 @@ import { component$, useResource$, Resource } from '@builder.io/qwik';
 
 export default component$(() => {
   const jokes = useResource$(async () => {
-    const resp = await fetch('https://api.chucknorris.io/jokes/random')
-    return (await resp.json()) as { value: string };
+    const resp = await fetch('https://api.chucknorris.io/jokes/random');
+    return resp.json();
   });
 
   return (
     <Resource
       value={jokes}
       onPending={() => <div>loading...</div>}
-      onResolved={(jokes) => (
-        <ul>
-          {jokes.map((joke) => (
-            <li>{joke.value}</li>
-          ))}
-        </ul>
+      onResolved={(joke) => (
+        <div>{joke.value}</div>
       )}
     />
   );

@@ -37,13 +37,17 @@ function tokenize(text: string) {
   while (i < text.length) {
     const ch = text[i++];
     const peekCh = text[i];
-    if (ch == '"') consume('string', (ch) => ch !== '"', true);
-    else if (ch == "'") consume('string', (ch) => ch !== "'", true);
-    else if (isWhitespace(ch)) consume('whitespace', isWhitespace);
-    else if (isIdent(ch)) consume('ident', isIdent);
-    else if (ch === '<' && (isIdent(peekCh) || peekCh == '/' || peekCh == '>'))
+    if (ch == '"') {
+      consume('string', (ch) => ch !== '"', true);
+    } else if (ch == "'") {
+      consume('string', (ch) => ch !== "'", true);
+    } else if (isWhitespace(ch)) {
+      consume('whitespace', isWhitespace);
+    } else if (isIdent(ch)) {
+      consume('ident', isIdent);
+    } else if (ch === '<' && (isIdent(peekCh) || peekCh == '/' || peekCh == '>')) {
       consume('JSX-brace', () => false);
-    else if (ch == '=' && peekCh == '>') {
+    } else if (ch == '=' && peekCh == '>') {
       consume('decl', (ch) => ch === '>', true);
     } else if (isOpenBrace(ch)) {
       consume('brace', () => false);
@@ -59,7 +63,9 @@ function tokenize(text: string) {
     while (i < text.length) {
       const ch = text[i];
       if (!predicate(ch)) {
-        if (inclusive) i++;
+        if (inclusive) {
+          i++;
+        }
         break;
       }
       i++;
@@ -111,7 +117,9 @@ function tokenize(text: string) {
   function after(text: string) {
     for (let i = tokens.length - 1; i >= 0; i--) {
       const token = tokens[i];
-      if (token.type === 'whitespace') continue;
+      if (token.type === 'whitespace') {
+        continue;
+      }
       return token.text == text;
     }
     return false;

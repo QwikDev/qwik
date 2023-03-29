@@ -53,7 +53,16 @@ export default component$(() => {
         </section>
       </section>
       <section class="row">
-        <div style="height: 4000px; width: 600px">
+        <div style="width: 650px">
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
+          <h1 style="height: 100px">Some Text</h1>
           <SrcAnimation />
         </div>
       </section>

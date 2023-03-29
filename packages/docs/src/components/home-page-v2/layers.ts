@@ -63,13 +63,17 @@ export function setPosition(pos: number) {
 function findPos(pos: number, offset: number) {
   let lastPos = 0;
   for (let i = 0; i < PATH.length; i++) {
-    if (PATH[i].pos <= pos) lastPos = i;
+    if (PATH[i].pos <= pos) {
+      lastPos = i;
+    }
   }
   return PATH[lastPos + offset] || PATH[PATH.length - 1];
 }
 
 function interpolate(pos: number, prev: StyleFrame, next: StyleFrame) {
-  if (prev.pos === next.pos) return next;
+  if (prev.pos === next.pos) {
+    return next;
+  }
   const percent = (pos - prev.pos) / (next.pos - prev.pos);
   const values: StyleFrame = {} as any;
   (Object.keys(prev) as Array<keyof StyleFrame>).forEach((k) => {

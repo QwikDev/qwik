@@ -1,10 +1,5 @@
 import { component$, useContextProvider, useServerData, useStore } from '@builder.io/qwik';
-import {
-  QwikCityProvider,
-  RouterOutlet,
-  ServiceWorkerRegister,
-  useLocation,
-} from '@builder.io/qwik-city';
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';
@@ -50,7 +45,6 @@ export default component$(() => {
         class={{
           'header-open': store.headerMenuOpen,
           'menu-open': store.sideMenuOpen,
-          [store.bodyClass]: true,
         }}
       >
         <RouterOutlet />

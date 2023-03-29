@@ -4,8 +4,6 @@
 
 - [Overview](</docs/(qwik)/index.mdx>)
 - [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
-- [Qwik City](</docs/(qwikcity)/qwikcity/index.mdx>)
-- [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
 
 ## Component
@@ -23,6 +21,8 @@
 
 ## Routing
 
+- [Qwik City](</docs/(qwikcity)/qwikcity/index.mdx>)
+- [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)
 - [Routing](</docs/(qwikcity)/routing/index.mdx>)
 - [Route Loaders](</docs/(qwikcity)/route-loader/index.mdx>)
 - [Form actions](</docs/(qwikcity)/action/index.mdx>)

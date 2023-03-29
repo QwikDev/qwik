@@ -22,6 +22,36 @@ This method allows you to generate computed values asynchronously. The asynchron
 
 Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
 
+Here is a very simple example of using `useResource$()` to fetch a random joke:
+
+```tsx
+import { component$, useResource$, Resource } from '@builder.io/qwik';
+
+export default component$(() => {
+  const jokes = useResource$(async () => {
+    const resp = await fetch('https://api.chucknorris.io/jokes/random')
+    return (await resp.json()) as { value: string };
+  });
+
+  return (
+    <Resource
+      value={jokes}
+      onPending={() => <div>loading...</div>}
+      onResolved={(jokes) => (
+        <ul>
+          {jokes.map((joke) => (
+            <li>{joke.value}</li>
+          ))}
+        </ul>
+      )}
+    />
+  );
+});
+```
+
+And a more complex one showcasing more features. This example will fetch a list of jokes based on the query typed by the user,
+automatically reacting to changes in the query, including aborting requests that are currently pending.
+
 ```tsx
 import {
   component$,
@@ -32,23 +62,27 @@ import {
 
 export default component$(() => {
   const query = useSignal('busy');
-  const jokes = useResource$<{ value: string }[]>(
-    async ({ track, cleanup }) => {
-      track(query);
-      // A good practice is to use `AbortController` to abort the fetching of data if
-      // new request comes in. We create a new `AbortController` and register a `cleanup`
-      // function which is called when this function re-runs.
-      const controller = new AbortController();
-      cleanup(() => controller.abort());
+  const jokes = useResource$(async ({ track, cleanup }) => {
+    track(query);
+    // A good practice is to use `AbortController` to abort the fetching of data if
+    // new request comes in. We create a new `AbortController` and register a `cleanup`
+    // function which is called when this function re-runs.
+    const controller = new AbortController();
+    cleanup(() => controller.abort());
 
-      if (query.value.length < 3) return [];
-      const url = new URL('https://api.chucknorris.io/jokes/search');
-      url.searchParams.set('query', query.value);
-      const resp = await fetch(url, { signal: controller.signal });
-      const json = (await resp.json()) as { result: { value: string }[] };
-      return json.result;
+    if (query.value.length < 3) {
+      return [];
     }
-  );
+
+    const url = new URL('https://api.chucknorris.io/jokes/search');
+    url.searchParams.set('query', query.value);
+
+    const resp = await fetch(url, { signal: controller.signal });
+    const json = (await resp.json()) as { result: { value: string }[] };
+
+    return json.result;
+  });
+  
   return (
     <>
       Query: <input bind:value={query} />
@@ -67,8 +101,9 @@ export default component$(() => {
     </>
   );
 });
-
 ```
+
+
 
 As we see in the example above, `useResource$()` returns a `ResourceReturn<T>` object that works like a glorified, fully reactive promise, containing the data and the resource state.
 

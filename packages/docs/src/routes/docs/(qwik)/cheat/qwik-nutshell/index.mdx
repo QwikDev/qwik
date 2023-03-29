@@ -112,6 +112,53 @@ export const MyComponent = component$(() => {
 });
 ```
 
+### Content projection
+
+Content projection is done by the `<Slot/>` component, which is exported from `@builder.io/qwik`. Slots can be named, and can be projected into using the `q:slot` attribute.
+
+```tsx
+// File: src/components/Button/Button.tsx
+import { component$, Slot } from '@builder.io/qwik';
+import styles from './Button.module.css';
+
+export const Button = component$(() => {
+  // Project the content of the button into the slot.
+  return (
+    <button class={styles.button}>
+      <div class={styles.start}>
+        <Slot name="start"/>
+      </div>
+      <Slot/>
+      <div class={styles.end}>
+        <Slot name="end"/>
+      </div>
+    </button>
+  );
+});
+```
+
+```tsx
+// File: src/components/Button/Button.stories.tsx
+
+import { Button } from './Button';
+
+export default {
+  title: 'Button',
+  component: Button,
+};
+
+export const Default = () => {
+  return (
+    <Button>
+      <span q:slot="start">📩</span>
+      Hello world
+      <span q:slot="end">🟩</span>
+    </Button>
+  );
+};
+```
+
+
 ### Rules of use hooks
 
 Methods that start with `use` are special in Qwik, such as `useSignal()`, `useStore()`, `useOn()`, `useTask$()`, `useLocation()` and so on.
@@ -581,6 +628,55 @@ export default component$(() => {
 ```
 
 The `routeLoader$()` function takes a function that returns a promise. The promise is resolved on the server, and the resolved value is passed to the `useCustomLoader$()` hook. The `useCustomLoader$()` hook is a custom hook that is created by the `routeLoader$()` function. The `useCustomLoader$()` hook returns a `Signal` that contains the resolved value of the promise returned from the `routeLoader$()` function. The `useCustomLoader$()` hook will re-render the component whenever the route changes, and the `routeLoader$()` function is re-run.
+
+## Handle form submissions
+
+Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests in the server. `routeAction$()` is very similar to `routeLoader$()`, both are used to create a custom hook that can be used to access data returned from the server. The main difference is that `routeAction$()` is only executed when the form is submitted, while `routeLoader$()` is executed on the server before the route is rendered.
+
+```tsx
+// File: src/routes/user/[userID]/index.tsx
+
+import { component$ } from '@builder.io/qwik';
+import { routeAction$, Form } from '@builder.io/qwik-city';
+
+// The `routeAction$()` function is used to create a data loader that will be executed on the server when the form is submitted.
+// The return of `routeAction$()` is a custom use hook, which can be used to access the data returned from `routeAction$()`.
+export const useUserUpdate = routeAction$(async (data, requestContext) => {
+  const user = await db.table('users').get(requestContext.params.userID);
+  user.name = data.name;
+  user.email = data.email;
+  await db.table('users').put(user);
+  return {
+    user,
+  };
+});
+
+export default component$(() => {
+  // The `useUserUpdate` hook will return a `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.
+  const userData = useUserUpdate();
+  // userData.value is the value returned from `routeAction$()`, which is `undefined` before the form is submitted.
+  // userData.formData is the form data that was submitted, it is `undefined` before the form is submitted.
+  // userData.isRunning is a boolean that is true when the form is being submitted.
+  // userData.submit() is a function that can be used to submit the form programmatically.
+  // userData.actionPath is the path to the action, which is used to submit the form.
+  return (
+    <main>
+      <h1>User data</h1>
+      <Form action={userData}>
+        <div>
+          User name: <input name="name" defaultValue={userData.formData?.get('name')} />
+        </div>
+        <div>
+          User email: <input name="email" defaultValue={userData.formData?.get('email')} />
+        </div>
+        <button type="submit">Update</button>
+      </form>
+    </main>
+  );
+});
+```
+
+The `routeAction$()` is used on pair with the `Form` component exported from `@builder.io/qwik-city`. The `Form` component is a wrapper around the native HTML `<form>` element. The `Form` component takes an `ActionStore<T>` as the `action` property. The `ActionStore<T>` is the return value of the `routeAction$()` function.
 
 
 ## Run code only on the browser

@@ -13,12 +13,8 @@ export default component$(() => {
   return (
     <div class="docs api fixed-header">
       <Header />
-      <SideBar />
-      <main
-        class={{
-          'no-right-menu': true,
-        }}
-      >
+      {/* <SideBar /> */}
+      <main>
         <div class="docs-container">
           <article>
             <Slot />

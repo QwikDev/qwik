@@ -1,4 +1,4 @@
-.docs.api h1 {
+.docs.api h1:not(.overview) {
   font-size: 2rem;
 }
 
@@ -10,14 +10,25 @@
   content: attr(data-kind-label);
 }
 
+.docs.api .docs-container {
+  margin: 10px auto;
+  padding: 80px 30px 0;
+  max-width: 1060px;
+}
+
 .docs.api .section-title {
-  display: block;
+  display: flex;
   background: #eee;
   font-weight: 100;
-  font-size: 1rem;
+  font-size: 0.8rem;
   border-radius: 4px;
   position: relative;
   margin-top: 0;
+}
+@media screen and (min-width: 768px) {
+  .docs.api .section-title {
+    font-size: 1rem;
+  }
 }
 .docs.api .section-title:before {
   content: attr(data-icon);
@@ -28,12 +39,17 @@
   border-radius: 4px 0 0 4px;
   padding: 8px 0;
   color: white;
-  width: 40px;
+  min-width: 40px;
   font-weight: 400;
 }
 .docs.api .section-title span {
-  padding: 8px 16px;
+  padding: 8px;
   display: inline-block;
+}
+@media screen and (min-width: 768px) {
+  .docs.api .section-title span {
+    padding: 8px 16px;
+  }
 }
 
 .docs.api h3 {

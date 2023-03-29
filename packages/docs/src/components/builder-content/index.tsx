@@ -10,7 +10,9 @@ export default component$<{
 }>((props) => {
   if (isDev) {
     return (
-      <div>BUILDER CONTENT DISABLED IN DEV MODE TO MAKE LOCAL DEV POSSIBLE WITHOUT NETWORK</div>
+      <div class="bg-violet-400 text-white p-2 text-center text-xs">
+        ⚠️ Builder.io Content disabled in Dev-Mode
+      </div>
     );
   }
   const location = useLocation();

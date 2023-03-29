@@ -72,7 +72,7 @@ export default component$(() => {
 
   return (
     <>
-      <h1>API Reference</h1>
+      <h1 class="overview">API Reference</h1>
 
       <h2>Filters</h2>
       <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -119,7 +119,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
         class="section-title cursor-pointer"
         onClick$={(e) => isCollapsed.value = !isCollapsed.value }
       >
-        <span>{data.package}</span>
+        <span>{data.id}</span>
       </h2>
       <div hidden={isCollapsed.value ? 'until-found' : ''}>
         <ApiMemberList id={id} data={data} filters={filters} />
@@ -130,7 +130,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
 
 
 export const ApiMemberList = component$(({ id, data, filters }: any) => (
-  <ul class="grid md:grid-cols-2 lg:grid-cols-3 pb-5">
+  <ul class="grid sm:grid-cols-2 lg:grid-cols-3 pb-5">
     {data.members.map((member) => {
       const kind = toSnakeCase(member.kind);
 

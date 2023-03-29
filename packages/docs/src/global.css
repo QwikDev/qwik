@@ -144,7 +144,7 @@ pre[class*='language-'] {
   --repl-diagnostics-hover-border-color: rgba(255, 0, 144, 0.46);
   --repl-diagnostics-active-border-color: rgb(255, 0, 144);
   --repl-commands-color: var(--qwik-light-blue);
-  --repl-tab-bg-color: var(--qwik-dark-blue);
+  --repl-tab-bg-color: var(--bg-color);
   --repl-border-color: rgba(255, 255, 255, 0.2);
 
   --tutorial-nav-button-text-color: #ffffff;

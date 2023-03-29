@@ -104,6 +104,10 @@
   border-top-color: var(--repl-diagnostics-active-border-color);
 }
 
+.repl-tab-diagnostics.has-errors {
+  color: red;
+}
+
 .repl-tab-diagnostics:not(.active-tab):hover {
   border-top-color: var(--repl-diagnostics-hover-border-color);
 }

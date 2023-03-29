@@ -28,17 +28,15 @@ Here is a very simple example of using `useResource$()` to fetch a random joke:
 import { component$, useResource$, Resource } from '@builder.io/qwik';
 
 export default component$(() => {
-  const jokes = useResource$<{ value: string }[]>(
-    async ({ track, cleanup }) => {
-      const resp = await fetch('https://api.chucknorris.io/jokes/random')
-      return (await resp.json()) as { value: string };
-    }
-  );
+  const jokes = useResource$(async () => {
+    const resp = await fetch('https://api.chucknorris.io/jokes/random')
+    return (await resp.json()) as { value: string };
+  });
 
   return (
     <Resource
       value={jokes}
-      onPending={() => <>loading...</>}
+      onPending={() => <div>loading...</div>}
       onResolved={(jokes) => (
         <ul>
           {jokes.map((joke) => (
@@ -64,7 +62,7 @@ import {
 
 export default component$(() => {
   const query = useSignal('busy');
-  const jokes = useResource$<{ value: string }[]>(
+  const jokes = useResource$(
     async ({ track, cleanup }) => {
       track(query);
       // A good practice is to use `AbortController` to abort the fetching of data if

@@ -23,39 +23,65 @@ This method allows you to generate computed values asynchronously. The asynchron
 Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
 
 ```tsx
-import { useResource$, useSignal } from '@builder.io/qwik';
+import {
+  component$,
+  useResource$,
+  Resource,
+  useSignal,
+} from '@builder.io/qwik';
 
-const bar = useSignal('foo');
-const resource = useResource$(async (ctx) => {
-  ctx.track(() => bar.value); // the resource will rerun when bar.value changes.
-  ctx.track(() => props.url); // track() can be called multiple times, to track multiple values
-  ctx.cleanup(() => {
-    // In case the resource need to be cleaned up, this function will be called.
-    // Allowing to clean resources like timers, subscriptions, fetch requests, etc.
-  });
+export default component$(() => {
+  const query = useSignal('busy');
+  const jokes = useResource$<{ value: string }[]>(
+    async ({ track, cleanup }) => {
+      track(query);
+      // A good practice is to use `AbortController` to abort the fetching of data if
+      // new request comes in. We create a new `AbortController` and register a `cleanup`
+      // function which is called when this function re-runs.
+      const controller = new AbortController();
+      cleanup(() => controller.abort());
 
-  // cleanup() can also be called multiple times.
-  ctx.cleanup(() => console.log('cleanup'));
-
-  // Resources can contain async computations
-  const value = await expensiveCompute(bar.value, props.url);
-  return value;
+      if (query.value.length < 3) return [];
+      const url = new URL('https://api.chucknorris.io/jokes/search');
+      url.searchParams.set('query', query.value);
+      const resp = await fetch(url, { signal: controller.signal });
+      const json = (await resp.json()) as { result: { value: string }[] };
+      return json.result;
+    }
+  );
+  return (
+    <>
+      Query: <input bind:value={query} />
+      <button>search</button>
+      <Resource
+        value={jokes}
+        onPending={() => <>loading...</>}
+        onResolved={(jokes) => (
+          <ul>
+            {jokes.map((joke) => (
+              <li>{joke.value}</li>
+            ))}
+          </ul>
+        )}
+      />
+    </>
+  );
 });
+
 ```
 
 As we see in the example above, `useResource$()` returns a `ResourceReturn<T>` object that works like a glorified, fully reactive promise, containing the data and the resource state.
 
-The state `resource.state` can be one of the following strings:
+The state `resource.loading` can be one of the following strings:
 
-- `'pending'` - the data is not yet available.
-- `'resolved'` - the data is available.
-- `'rejected'` - the data is not available due to an error or timeout.
+- `'false'` - the data is not yet available.
+- `'true'` - the data is available. (Either resolved or rejected.)
 
 The callback passed to [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
 
 ## `<Resource />`
 
-`<Resource />` is a component that renders its children when the resource is resolved, and renders a fallback when the resource is pending or rejected.
+`<Resource />` is a component meant to be used with the `useResource$()` that renders different content depending on if the resource is pending, resolved, or rejected.
 
 ```tsx
 <Resource
@@ -74,11 +100,15 @@ It is worth noting that `<Resource />` is not required when using `useResource$(
 
 - #### [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) with `<Resource />`
 
-Example showing how `useResource$` is used to perform a fetch call to the agify.io API. This will guess a person's age
-based on the name typed by the user, and will update whenever the user types in the name input.
+Example showing how `useResource$` is used to perform a fetch call to the agify.io API. This will guess a person's age based on the name typed by the user, and will update whenever the user types in the name input.
 
 ```tsx
-import { component$, useSignal, useResource$ } from '@builder.io/qwik';
+import {
+  component$,
+  useSignal,
+  useResource$,
+  Resource,
+} from '@builder.io/qwik';
 
 export default component$(() => {
   const name = useSignal<string>();
@@ -100,7 +130,11 @@ export default component$(() => {
   return (
     <div>
       <h1>Enter your name, and I'll guess your age!</h1>
-      <input onInput$={(e: Event) => (name.value = (e.target as HTMLInputElement).value)} />
+      <input
+        onInput$={(e: Event) =>
+          (name.value = (e.target as HTMLInputElement).value)
+        }
+      />
       <Resource
         value={ageResource}
         onPending={() => <div>Loading...</div>}
@@ -120,4 +154,5 @@ export default component$(() => {
     </div>
   );
 });
+
 ```

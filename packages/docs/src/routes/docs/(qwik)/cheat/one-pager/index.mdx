@@ -2,7 +2,7 @@
 
 ## Component API
 
-Components in Qwik are very similar to React components. They are functions that return JSX. However the are some differences.
+Components in Qwik are very similar to React components. They are functions that return JSX. However, `component$((props) => {...})` needs to be used, event handlers need to have the `$` suffix, state is created using `useSignal()` , `class` is used instead of `className` and some other differences.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -16,12 +16,15 @@ interface MyComponentProps {
 
 // Components are always declared with the `component$` function.
 export const MyComponent = component$((props) => {
-  // Components can use the `useSignal` hook to create reactive state.
+  // Components use the `useSignal` hook to create reactive state.
   const count = useSignal(0);
   return (
     <>
       <button
-        onClick$={() => count.value = count.value + props.step}
+        onClick$={() => {
+          // Event handlers have the `$` suffix.
+          count.value = count.value + props.step
+        }}
       >
         Increment by {props.step}
       </button>

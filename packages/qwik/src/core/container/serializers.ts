@@ -222,9 +222,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
     });
   },
   prepare: (data, containerState) => {
-    const optionsIndex = data.indexOf('{');
-    const qrlString = optionsIndex == -1 ? data : data.slice(0, optionsIndex);
-    const qrl: QRL<any> = parseQRL(qrlString, containerState.$containerEl$);
+    const qrl: QRL<any> = parseQRL(data, containerState.$containerEl$);
     return componentQrl(qrl);
   },
   fill: (component, getObject) => {

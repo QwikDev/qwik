@@ -718,7 +718,10 @@ impl<'a> QwikTransform<'a> {
                 self.jsx_mutable = true;
                 (true, true, false)
             }
-            _ => (false, false, false),
+            _ => {
+                self.jsx_mutable = true;
+                (false, true, false)
+            }
         };
         let should_emit_key = is_fn || self.root_jsx_mode;
         self.root_jsx_mode = false;

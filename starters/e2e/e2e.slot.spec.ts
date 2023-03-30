@@ -256,6 +256,11 @@ test.describe('slot', () => {
       await button.click();
       await expect(result).toHaveText('Bogus 6 6 6');
     });
+
+    test('issue 3565', async ({ page }) => {
+      const result = page.locator('#issue-3565-result');
+      await expect(result).toHaveText('Own contentcontent projected');
+    });
   }
 
   test.beforeEach(async ({ page }) => {

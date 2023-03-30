@@ -52,23 +52,13 @@
 }
 
 .ecosystem-menu {
-  position: fixed;
+  position: sticky;
   z-index: 1;
+  top: 0;
   width: 240px;
   height: 700px;
-  background: linear-gradient(
-    180deg,
-    rgba(21, 25, 52, 0.1) 0%,
-    rgba(0, 25, 192, 0.282813) 25%,
-    rgba(121, 118, 232, 0.3) 50%,
-    rgba(244, 73, 244, 0.3) 72.4%,
-    rgba(21, 25, 52, 0) 86.98%
-  );
-  padding: 125px 20px 20px 20px;
-}
-
-[data-theme='light'] .ecosystem-menu {
   background: transparent;
+  padding: 125px 20px 20px 20px;
 }
 
 .ecosystem h2,

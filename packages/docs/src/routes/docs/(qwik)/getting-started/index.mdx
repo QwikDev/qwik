@@ -265,7 +265,7 @@ To declare state:
    ```
 2. Add a button to the component that will modify the state.
    ```tsx
-   <button onClick={() => isFavoriteSignal.value = !isFavoriteSignal.value}>
+   <button onClick$={() => isFavoriteSignal.value = !isFavoriteSignal.value}>
      {isFavoriteSignal.value ? "❤️" : "🤍"}
    </button>
    ```
@@ -362,7 +362,7 @@ In Qwik, a [task](/docs/components/lifecycle/#use-usetask-when-you-need-to) is w
 NOTE:
 - Notice that the body of `useTask$` is executed on both the server and the client (isomorphic).
 - On SSR server prints `FAVORITE (isomorphic) false` and `FAVORITE (server) false`.
-- When the user interacts with favorite, the client prints `FAVORITE (isomorphic) true` and the server prints `FAVORITE (server) false`.
+- When the user interacts with favorite, the client prints `FAVORITE (isomorphic) true` and the server prints `FAVORITE (server) true`.
 
 <details>
   <summary>CHECKPOINT: `src/routes/joke/index.tsx`:</summary>

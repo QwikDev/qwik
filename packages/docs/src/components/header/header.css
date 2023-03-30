@@ -1,6 +1,5 @@
 .header-container {
   height: var(--header-height);
-  margin-bottom: 6px;
   background: var(--bg-color);
   position: sticky;
   top: 0;

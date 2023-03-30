@@ -1,6 +1,4 @@
 .playground {
-  position: fixed;
-  top: calc(var(--header-height));
   width: 100%;
   height: cal(100vh - var(--header-height));
 

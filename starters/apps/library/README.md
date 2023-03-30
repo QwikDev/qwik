@@ -12,6 +12,7 @@
 ---
 
 ## Project Structure
+
 Inside your project, you'll see the following directories and files:
 
 ```

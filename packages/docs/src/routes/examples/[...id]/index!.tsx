@@ -91,15 +91,7 @@ export default component$(() => {
 
         <main class="examples-repl">
           <div class="repl">
-            <Repl
-              input={store}
-              enableSsrOutput={false}
-              enableClientOutput={false}
-              enableHtmlOutput={false}
-              enableCopyToPlayground={true}
-              enableDownload={true}
-              enableInputDelete={false}
-            />
+            <Repl input={store} enableDownload={true} />
           </div>
         </main>
       </div>

@@ -18,7 +18,7 @@
 - [Slots](</docs/(qwik)/components/projection/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
-- [Lite components](</docs/(qwik)/components/lite-components/index.mdx>)
+- [Inline components](</docs/(qwik)/components/inline-components/index.mdx>)
 
 ## Routing (Qwik City)
 

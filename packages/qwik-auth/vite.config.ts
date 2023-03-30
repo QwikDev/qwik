@@ -23,4 +23,4 @@ export default defineConfig(() => {
     },
     plugins: [qwikVite()],
   };
-});
+}) as any;

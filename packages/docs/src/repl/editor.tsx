@@ -1,7 +1,7 @@
 import {
   component$,
-  NoSerialize,
-  PropFunction,
+  type NoSerialize,
+  type PropFunction,
   useVisibleTask$,
   useContext,
   useRef,
@@ -12,7 +12,7 @@ import type { IStandaloneCodeEditor } from './monaco';
 import {
   addQwikLibs,
   getEditorTheme,
-  ICodeEditorViewState,
+  type ICodeEditorViewState,
   initMonacoEditor,
   updateMonacoEditor,
 } from './monaco';

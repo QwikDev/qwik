@@ -18,10 +18,17 @@ contributors:
   - estherbrunner
   - kumarasinghe
 ---
+import CodeExample from '../../../../../components/code-example/index.tsx';
+import SimpleComponent from 'source:./example/simple-component/index!.tsx';
+import TwoComponents from 'source:./example/two-components/index!.tsx';
+import Counter from 'source:./example/counter/index!.tsx';
+import Props from 'source:./example/props/index!.tsx';
+import Ref from 'source:./example/ref/index!.tsx';
+import Lazy from 'source:./example/lazy/index!.tsx';
 
 # Components
 
-Components are basic building blocks of Qwik Applications. Qwik components are unique in that:
+Components are the basic building blocks of Qwik Applications. Qwik components are unique in that:
 
 - Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../../advanced/optimizer/index.mdx).
 - They are [resumable](../../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
@@ -34,38 +41,22 @@ A component is a small, reusable piece of code that can be used to build a UI.
 
 In Qwik, they are declared using the `component$` method:
 
-```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+<CodeExample src={SimpleComponent} sandboxStyle={{height: '3em'}}/>
 
-export const MyCmp = component$((props: MyCmpProps) => {
-  // Declare local state
-  const count = useSignal(0);
+> The reason for the `component$` is that the trailing `$` allows the [Optimizer](/docs/advanced/dollar/) to break the components into an application tree into a separate chunk so that each chunk can be loaded (or not loaded if it is not needed) independently. Without the `$` the component would be always loaded if the parent component needs to be loaded.
 
-  // Returns JSX
-  return (
-    <>
-      <span>
-        Hello, {props.name} {count.value}
-      </span>
-      <div>Times: {count.value}</div>
-      <button
-        onClick$={() => {
-          // This will update the local state and cause a re-render.
-          // Reactivity is at Qwik's core!
-          count.value++;
-        }}
-      >
-        Increment
-      </button>
-    </>
-  );
-});
-```
+### Composing Components
 
-> **NOTE**
->
-> - For an explanation of `$` see [Lazy-loading](../../advanced/qrl/index.mdx) and [Optimizer](../../advanced/optimizer/index.mdx) discussion.
-> - For a detailed discussion of props, see Component/props discussion.
+Components can be composed together to create more complex components.
+
+<CodeExample src={TwoComponents} sandboxStyle={{height: '6em'}}/>
+
+### Counter Example
+
+A slightly more complex example of a counter.
+
+<CodeExample src={Counter} sandboxStyle={{height: '6em'}}/>
+
 
 ## Props
 
@@ -73,90 +64,29 @@ Props are used to pass data into the component. Props are declared as named argu
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-```tsx
-import { component$ } from '@builder.io/qwik';
+<CodeExample src={Props} sandboxStyle={{height: '10em'}}/>
 
-interface ItemProps {
-   name?: string;
-   quantity?: number;
-   description?: string;
-   price?: number;
-}
+## Rendering on Reactivity
 
-export const Item = component$((props: ItemProps) => {
-  return ...;
-});
-```
+Qwik components are reactive. This means that they automatically update on a state change. There are two kinds of updates:
+1. A state is bound to a DOM text or attribute. Such changes usually directly update the DOM and do not require component function re-execute.
+2. A state causes a structural change to the DOM (elements are created and or removed). Such changes require component function to re-execute.
 
-## Using components
+The thing to keep in mind is that when state changes your component function may execute zero or more times depending on what the state is bound to. For this reason, the function should be idempotent and you should not rely on the number of times it executes.
 
-Qwik components can use other components.
+A state change causes the component to get invalidated. When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
 
-```tsx
-import { component$ } from '@builder.io/qwik';
+## Getting hold of DOM element
 
-export const Counter = component$((props: {step?:number, initial?: number}) => {
-  ...
-});
+Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
 
-export const MyApp = component$(() => {
-  return (
-    <>
-      <div>Single: <Counter /></div>
-      <div>Dozens: <Counter step={12}/></div>
-    </>
-  );
-});
-```
-
-The above example shows how the `MyApp` component can use the `Counter` component. The second example shows how one can use binding to pass values to the `Counter` component's props.
-
-## Re-rendering on Reactivity
-
-Qwik components are reactive on the component level. Component props, as well as stores, are proxies. These proxies track reads as well as writes.
-
-- A proxy-read during OnRender method execution lets Qwik know that the OnRender method depends on a given property. A read creates a subscription on that property. In our [example](../../concepts/reactivity/#counter-example), OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
-- A proxy-write notifies Qwik that all associated subscriptions should be invalidated.
-
-When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
-
-For a detailed discussion of reactivity, see related discussion.
-
-## Storing a reference
-
-Qwik provides the ability to store a reference to any component. To do so, you have to create a signal and pass the signal as `ref` attribute to the component. After the component was mounted, the reference has been stored on the signal. Have a look at the example below:
-
-```tsx
-import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
-
-export default component$(() => {
-  const width = useSignal(0);
-  const height = useSignal(0);
-  const outputRef = useSignal<Element>();
-  useVisibleTask$(() => {
-    if (outputRef.value) {
-      const rect = outputRef.value.getBoundingClientRect();
-      width.value = Math.round(rect.width);
-      height.value = Math.round(rect.height);
-    }
-  });
-
-  return (
-    <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
-        Change text value here to stretch the box.
-      </div>
-      <div>
-        The above red box is {height.value} pixels high and {width.value} pixels wide.
-      </div>
-    </div>
-  );
-});
-```
+<CodeExample src={Ref} sandboxStyle={{height: '10em'}}/>
 
 ## Lazy Loading
 
 The component also serves an important role when breaking parent-child relationships for bundling purposes.
+
+
 
 ```tsx
 export const Child = () => <span>child</span>;
@@ -170,21 +100,11 @@ const Parent = () => (
 
 In the above example, referring to the `Parent` component implies a transitive reference to the `Child` component. When the bundler is creating a chunk, a reference to `Parent` necessitates bundling `Child` as well. (`Parent` internally refers to `Child`.) These transitive dependencies are a problem because it means that having a reference to the root component will transitively refer to the remainder of the application—something which Qwik tries to avoid explicitly.
 
-```tsx
-import { component$ } from '@builder.io/qwik';
+To avoid the above problem we don't refer to components directly, instead, we refer to the lazy wrapper. This is created automatically by the `component$()` function.
 
-export const Child = component$(() => {
-  return <span>child</span>;
-});
 
-export const Parent = component$(() => {
-  return (
-    <section>
-      <Child />
-    </section>
-  );
-});
-```
+<CodeExample src={Lazy} sandboxStyle={{height: '10em'}} sandbox={false}/>
+
 
 In the above example the Optimizer transforms the above to:
 
@@ -204,21 +124,17 @@ const Parent_onRender = () => (
 
 Notice that after the Optimizer transforms the code, the `Parent` no longer directly references `Child`. This is important because it allows the bundler (and tree shakers) to freely move the symbols into different chunks without pulling the rest of the application with it.
 
-So what happens when the `Parent` component renders and `Child` component has not yet been downloaded? First, the `Parent` component renders its JSX like so.
+So what happens when the `Parent` component needs to render a `Child` component, but the `Child` component has not yet been downloaded? First, the `Parent` component renders its DOM like so.
 
 ```html
 <div>
   <section>
-    <div></div>
+    <!--qv--><!--/qv-->
   </section>
 </div>
 ```
 
-As you can see in the above example, the `<div/>` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
-
-## Mental Model
-
-The Optimizer splits Qwik components into the host element and the behavior of the component. The host element gets bundled with the parent component's OnRender method, whereas the component's behavior is something that gets lazy-loaded on an as-needed basis.
+As you can see in the above example, the `<!--qv-->` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
 
 ## API Overview
 

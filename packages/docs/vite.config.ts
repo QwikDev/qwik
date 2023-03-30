@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
+import { sourceResolver } from './vite.source-resolver';
 
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
@@ -43,6 +44,7 @@ export default defineConfig(() => {
       examplesData(routesDir),
       playgroundData(routesDir),
       tutorialData(routesDir),
+      sourceResolver(resolve('.')),
     ],
     clearScreen: false,
     optimizeDeps: {

@@ -18,9 +18,49 @@ contributors:
 
 # useResource$()
 
-This method allows you to generate computed values asynchronously. The asynchronous function passed as its first argument will be called when the component is mounted and when the tracked values change.
+This hook allows you to generate computed values asynchronously, typically used for fetching external data (resources.) The hook is called when the component is mounted (and when the tracked values change.) The `useResource$` hook is meant to be used with the `<Resource />`. The `<Resource />` component is a convenient way to render the resource state, such as loaded, resolved, or rejected.
 
-Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
+The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of SSR before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](docs/route-loader/) API instead. `useResource$` is a more low-level API that is useful when you want to fetch data on the client.
+
+> Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
+> 
+> In many ways `useResource$` is similar to `useTask$` The big differences are:
+> - `useResource$` allows you to return a "value".
+> - `useResource$` does not block rendering while the resource is being resolved.
+>
+> See [`routeLoader$`](docs/route-loader/) for fetching data as part of SSR.
+
+## Example
+
+Let's start with a simple example that will fetch jokes on the component's initial render.
+
+```tsx
+import { component$, useResource$, Resource } from '@builder.io/qwik';
+
+interface Joke {
+  value: string;
+}
+
+export default component$(() => {
+  const joke = useResource$(async () => {
+    const resp = await fetch('https://api.chucknorris.io/jokes/random');
+    return (await resp.json()) as Joke;
+  });
+  return (
+    <>
+      <Resource
+        value={joke}
+        onPending={() => <>loading...</>}
+        onResolved={(joke) => <div>{joke.value}</div>}
+      />
+    </>
+  );
+});
+```
+
+## `track()`
+
+A common need is to re-fetch the resource if some inputs change. 
 
 Here is a very simple example of using `useResource$()` to fetch a random joke:
 

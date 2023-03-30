@@ -1,6 +1,5 @@
 import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
-import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikAnimationEvent,
@@ -177,7 +176,7 @@ export type ClassList = BaseClassList | BaseClassList[];
 export interface QwikProps<T> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Signal<Element | undefined> | ((el: Element) => void) | undefined;
 
   /**
    *

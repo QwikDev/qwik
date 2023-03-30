@@ -1,7 +1,5 @@
 import {
   component$,
-  useRef,
-  type Ref,
   type Signal,
   useSignal,
   useStore,
@@ -35,7 +33,7 @@ export const Signals = component$(() => {
   );
 });
 export const SignalsChildren = component$(() => {
-  const ref = useRef();
+  const ref = useSignal<Element>();
   const ref2 = useSignal<Element>();
   const id = useSignal(0);
   const signal = useSignal('');
@@ -54,7 +52,7 @@ export const SignalsChildren = component$(() => {
   const styles = useSignal('body { background: white}');
 
   useVisibleTask$(() => {
-    ref.current!.setAttribute('data-set', 'ref');
+    ref.value!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });
 
@@ -131,7 +129,7 @@ export const SignalsChildren = component$(() => {
 interface ChildProps {
   count: number;
   text: string;
-  ref: Ref<Element>;
+  ref: Signal<Element | undefined>;
   ref2: Signal<Element | undefined>;
   signal: Signal<string>;
   signal2: Signal<string>;

@@ -114,8 +114,8 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
           return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-import render from '${resolve(appSrcDir, 'entry.ssr')}';
 import qwikCityPlan from '@qwik-city-plan';
+import render from '${resolve(appSrcDir, 'entry.ssr')}';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,

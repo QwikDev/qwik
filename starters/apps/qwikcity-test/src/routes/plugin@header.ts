@@ -1,6 +1,6 @@
-import { loader$, type RequestHandler } from '@builder.io/qwik-city';
+import { routeLoader$, type RequestHandler } from '@builder.io/qwik-city';
 
-export const useRootLoader = loader$(() => {
+export const useRootLoader = routeLoader$(() => {
   return {
     serverTime: new Date(),
     reg: new RegExp(''),

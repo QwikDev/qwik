@@ -1,6 +1,5 @@
 import { qError, QError_invalidRefValue } from '../error/error';
 import { isServerPlatform } from '../platform/platform';
-import type { Ref } from '../use/use-ref';
 import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
@@ -163,9 +162,7 @@ export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
   } else if (isObject(value)) {
-    if ('current' in value) {
-      return ((value as Ref<Element>).current = elm);
-    } else if ('value' in value) {
+    if ('value' in value) {
       return ((value as Signal<Element>).value = elm);
     }
   }

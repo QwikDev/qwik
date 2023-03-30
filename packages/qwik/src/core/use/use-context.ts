@@ -78,12 +78,6 @@ export interface ContextId<STATE> {
   readonly id: string;
 }
 
-/**
- * @public
- * @deprecated Please use `ContextId` instead.
- */
-export interface Context<STATE extends object> extends ContextId<STATE> {}
-
 // <docs markdown="../readme.md#createContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#createContextId instead)
@@ -143,15 +137,6 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
-};
-
-/**
- * @public
- * @deprecated Please use `createContextId` instead.
- */
-
-export const createContext = <STATE extends object>(name: string): ContextId<STATE> => {
-  return createContextId(name);
 };
 
 // <docs markdown="../readme.md#useContextProvider">

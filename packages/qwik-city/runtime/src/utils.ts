@@ -5,12 +5,12 @@ import type { RouteActionValue, SimpleURL } from './types';
 /**
  * Gets an absolute url path string (url.pathname + url.search + url.hash)
  */
-export const toPath = (url: SimpleURL) => url.pathname + url.search + url.hash;
+export const toPath = (url: URL) => url.pathname + url.search + url.hash;
 
 /**
  * Create a URL from a string and baseUrl
  */
-export const toUrl = (url: string, baseUrl: { href: string }) => new URL(url, baseUrl.href);
+export const toUrl = (url: string, baseUrl: SimpleURL) => new URL(url, baseUrl.href);
 
 /**
  * Checks only if the origins are the same.
@@ -46,12 +46,12 @@ export const getClientDataPath = (
   return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
 };
 
-export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: string }) => {
+export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL }) => {
   const href = props.href;
   if (typeof href === 'string' && href.trim() !== '' && typeof props.target !== 'string') {
     try {
-      const linkUrl = toUrl(href, baseUrl);
-      const currentUrl = toUrl('', baseUrl)!;
+      const linkUrl = toUrl(href, baseUrl.url);
+      const currentUrl = toUrl('', baseUrl.url)!;
       if (isSameOrigin(linkUrl, currentUrl)) {
         return toPath(linkUrl);
       }
@@ -59,7 +59,7 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: st
       console.error(e);
     }
   } else if (props.reload) {
-    return toPath(toUrl('', baseUrl));
+    return toPath(toUrl('', baseUrl.url));
   }
   return null;
 };
@@ -67,11 +67,11 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: st
 export const getPrefetchDataset = (
   props: LinkProps,
   clientNavPath: string | null,
-  currentLoc: { href: string }
+  currentLoc: { url: URL }
 ) => {
   if (props.prefetch === true && clientNavPath) {
-    const prefetchUrl = toUrl(clientNavPath, currentLoc);
-    if (!isSamePathname(prefetchUrl, toUrl('', currentLoc))) {
+    const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
+    if (!isSamePathname(prefetchUrl, toUrl('', currentLoc.url))) {
       return '';
     }
   }

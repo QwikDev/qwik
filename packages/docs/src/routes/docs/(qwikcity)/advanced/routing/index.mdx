@@ -57,9 +57,9 @@ In this example, `id` is used as a key to load the product data from the databas
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { loader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useProductLoader = loader$(async ({ params, status }) => {
+export const useProductLoader = routeLoader$(async ({ params, status }) => {
   // Example database call using the id param
   // The database could return null if the product is not found
   const data = await productDatabase.get(params.id);

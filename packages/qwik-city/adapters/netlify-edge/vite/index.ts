@@ -12,7 +12,6 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   return viteAdapter({
     name: 'netlify-edge',
     origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.netlify.app',
-    staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -80,18 +79,6 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
 
 /**
  * @public
- * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
- */
-export const netifyEdgeAdapter = netlifyEdgeAdapter;
-
-/**
- * @public
- * @deprecated Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
- */
-export const netifyEdgeAdaptor = netlifyEdgeAdapter;
-
-/**
- * @public
  */
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -109,12 +96,6 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
    */
   staticPaths?: string[];
 }
-
-/**
- * @public
- * @deprecated Use `NetlifyEdgeAdapterOptions` instead.
- */
-export type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;
 
 /**
  * @public

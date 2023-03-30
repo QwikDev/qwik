@@ -1,8 +1,8 @@
 import { component$, useVisibleTask$, useSignal, useTask$ } from '@builder.io/qwik';
-import { loader$, routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@builder.io/qwik-city';
 import { isBrowser } from '@builder.io/qwik/build';
 
-export const useCmp1 = loader$(
+export const useCmp1 = routeLoader$(
   () => {
     return {
       message: 'loader-cmp1',
@@ -13,19 +13,19 @@ export const useCmp1 = loader$(
   }
 );
 
-export const useCmp2 = loader$(() => {
+export const useCmp2 = routeLoader$(() => {
   return {
     message: 'loader-cmp2',
   };
 });
 
-export const useCmp3 = loader$(() => {
+export const useCmp3 = routeLoader$(() => {
   return {
     message: 'loader-cmp3',
   };
 });
 
-export const useCmp4 = loader$(() => {
+export const useCmp4 = routeLoader$(() => {
   return {
     message: 'loader-cmp4',
   };
@@ -37,7 +37,7 @@ export const useCmp5 = routeLoader$(() => {
   };
 });
 
-export const useCmp6 = loader$(() => {
+export const useCmp6 = routeLoader$(() => {
   return {
     message: 'loader-cmp5',
   };

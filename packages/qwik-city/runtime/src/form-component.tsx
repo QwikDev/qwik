@@ -69,7 +69,7 @@ export const Form = <O, I>(
         ...rest,
         action: action.actionPath,
         'preventdefault:submit': !reloadDocument,
-        onSubmit$: [!reloadDocument ? action.run : undefined, onSubmit$],
+        onSubmit$: [!reloadDocument ? action.submit : undefined, onSubmit$],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,
       },

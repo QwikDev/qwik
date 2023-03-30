@@ -2,47 +2,7 @@ import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { type Listener, normalizeOnProp } from '../state/listeners';
-import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
-import { useSequentialScope } from './use-sequential-scope';
-import { Task, WatchFlagsIsCleanup } from './use-task';
-
-// <docs markdown="../readme.md#useCleanup">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useCleanup instead)
-/**
- * It can be used to release resources, abort network requests, stop timers...
- *
- * @public
- * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
- * `useVisibleTask$()` instead.
- */
-// </docs>
-export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
-  const { get, set, i, elCtx } = useSequentialScope<boolean>();
-  if (!get) {
-    assertQrl(unmountFn);
-    const watch = new Task(WatchFlagsIsCleanup, i, elCtx.$element$, unmountFn, undefined);
-    set(true);
-    if (!elCtx.$watches$) {
-      elCtx.$watches$ = [];
-    }
-    elCtx.$watches$.push(watch);
-  }
-};
-
-// <docs markdown="../readme.md#useCleanup">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useCleanup instead)
-/**
- * It can be used to release resources, abort network requests, stop timers...
- *
- * @public
- * @deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or
- * `useVisibleTask$()` instead.
- */
-// </docs>
-export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

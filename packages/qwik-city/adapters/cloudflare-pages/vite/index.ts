@@ -11,7 +11,6 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
   return viteAdapter({
     name: 'cloudflare-pages',
     origin: env?.CF_PAGES_URL ?? env?.ORIGIN ?? 'https://your.cloudflare.pages.dev',
-    staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -55,12 +54,6 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
 
 /**
  * @public
- * @deprecated Use `cloudflarePagesAdapter` exported from `@builder.io/qwik-city/adapters/cloudflare-pages/vite` instead.
- */
-export const cloudflarePagesAdaptor = cloudflarePagesAdapter;
-
-/**
- * @public
  */
 export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
   /**
@@ -78,12 +71,6 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
    */
   staticPaths?: string[];
 }
-
-/**
- * @public
- * @deprecated Use `CloudflarePagesAdapterOptions` instead.
- */
-export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
 
 /**
  * @public

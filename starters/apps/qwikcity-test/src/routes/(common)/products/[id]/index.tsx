@@ -1,5 +1,5 @@
 import { component$, useStore } from '@builder.io/qwik';
-import { Link, useLocation, type DocumentHead, loader$ } from '@builder.io/qwik-city';
+import { Link, useLocation, type DocumentHead, routeLoader$ } from '@builder.io/qwik-city';
 import os from 'node:os';
 
 export default component$(() => {
@@ -91,7 +91,7 @@ export const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-export const useProductLoader = loader$(
+export const useProductLoader = routeLoader$(
   async ({ headers, json, error, params, query, redirect, status }) => {
     // Serverside Endpoint
     // During SSR, this method is called directly on the server and returns the data object

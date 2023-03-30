@@ -1,7 +1,7 @@
 import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
-import { loader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useGetQuery = loader$(({ query }) => {
+export const useGetQuery = routeLoader$(({ query }) => {
   return {
     query: query.get('query') ?? 'NONE',
     hash: query.get('hash') ?? 'NONE',

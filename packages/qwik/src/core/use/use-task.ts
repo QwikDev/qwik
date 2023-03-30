@@ -93,11 +93,6 @@ export interface Tracker {
    * the watch will be scheduled to run.
    */
   <T extends {}>(obj: T): T;
-
-  /**
-   * @deprecated Use the `track(() => store.value)` instead
-   */
-  <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
 /**
@@ -206,11 +201,6 @@ export interface OnVisibleTaskOptions {
    * - `document-idle`: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.
    */
   strategy?: VisibleTaskStrategy;
-
-  /**
-   * @deprecated Use `strategy` instead.
-   */
-  eagerness?: EagernessOptions;
 }
 
 /**
@@ -417,18 +407,6 @@ export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 // </docs>
 export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
 
-/**
- * @public
- * @deprecated - use `useTask$()` instead
- */
-export const useWatch$ = /*#__PURE__*/ useTask$;
-
-/**
- * @public
- * @deprecated - use `useTask$()` instead
- */
-export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
-
 // <docs markdown="../readme.md#useBrowserVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useBrowserVisibleTask instead)
@@ -458,7 +436,7 @@ export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
 // </docs>
 export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
   const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
-  const eagerness = opts?.strategy ?? opts?.eagerness ?? 'intersection-observer';
+  const eagerness = opts?.strategy ?? 'intersection-observer';
   if (get) {
     if (isServerPlatform()) {
       useRunWatch(get, eagerness);
@@ -508,30 +486,6 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
  */
 // </docs>
 export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);
-
-/**
- * @public
- * @deprecated - use `useVisibleTask$()` instead
- */
-export const useClientEffectQrl = useVisibleTaskQrl;
-
-/**
- * @public
- * @deprecated - use `useVisibleTask$()` instead
- */
-export const useClientEffect$ = useVisibleTask$;
-
-/**
- * @public
- * @deprecated - use `useVisibleTask$()` instead
- */
-export const useBrowserVisibleTaskQrl = useVisibleTaskQrl;
-
-/**
- * @public
- * @deprecated - use `useVisibleTask$()` instead
- */
-export const useBrowserVisibleTask$ = useVisibleTask$;
 
 export type WatchDescriptor = DescriptorBase<TaskFn>;
 

@@ -15,9 +15,6 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'ou
     origin?: string;
 }
 
-// @public @deprecated (undocumented)
-export type AdaptorSSGOptions = AdapterSSGOptions;
-
 // @public (undocumented)
 export function getParentDir(startDir: string, dirName: string): string;
 
@@ -33,12 +30,7 @@ export const RESOLVED_STATIC_PATHS_ID: string;
 // @public (undocumented)
 export interface ServerAdapterOptions {
     ssg?: AdapterSSGOptions | null;
-    // @deprecated (undocumented)
-    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
 }
-
-// @public @deprecated (undocumented)
-export type ServerAdaptorOptions = ServerAdapterOptions;
 
 // @public (undocumented)
 export const STATIC_PATHS_ID = "@qwik-city-static-paths";
@@ -47,9 +39,6 @@ export const STATIC_PATHS_ID = "@qwik-city-static-paths";
 //
 // @public (undocumented)
 export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2;
-
-// @public @deprecated (undocumented)
-export const viteAdaptor: typeof viteAdapter;
 
 // (No @packageDocumentation comment for this package)
 

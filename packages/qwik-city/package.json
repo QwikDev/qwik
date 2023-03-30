@@ -24,10 +24,6 @@
       "import": "./lib/adapters/cloud-run/vite/index.mjs",
       "require": "./lib/adapters/cloud-run/vite/index.cjs"
     },
-    "./adapters/express/vite": {
-      "import": "./lib/adapters/express/vite/index.mjs",
-      "require": "./lib/adapters/express/vite/index.cjs"
-    },
     "./adapters/node-server/vite": {
       "import": "./lib/adapters/node-server/vite/index.mjs",
       "require": "./lib/adapters/node-server/vite/index.cjs"
@@ -45,38 +41,6 @@
       "require": "./lib/adapters/static/vite/index.cjs"
     },
     "./adapters/vercel-edge/vite": {
-      "import": "./lib/adapters/vercel-edge/vite/index.mjs",
-      "require": "./lib/adapters/vercel-edge/vite/index.cjs"
-    },
-    "./adaptors/azure-swa/vite": {
-      "import": "./lib/adapters/azure-swa/vite/index.mjs",
-      "require": "./lib/adapters/azure-swa/vite/index.cjs"
-    },
-    "./adaptors/cloudflare-pages/vite": {
-      "import": "./lib/adapters/cloudflare-pages/vite/index.mjs",
-      "require": "./lib/adapters/cloudflare-pages/vite/index.cjs"
-    },
-    "./adaptors/cloud-run/vite": {
-      "import": "./lib/adapters/cloud-run/vite/index.mjs",
-      "require": "./lib/adapters/cloud-run/vite/index.cjs"
-    },
-    "./adaptors/express/vite": {
-      "import": "./lib/adapters/express/vite/index.mjs",
-      "require": "./lib/adapters/express/vite/index.cjs"
-    },
-    "./adaptors/netlify-edge/vite": {
-      "import": "./lib/adapters/netlify-edge/vite/index.mjs",
-      "require": "./lib/adapters/netlify-edge/vite/index.cjs"
-    },
-    "./adaptors/shared/vite": {
-      "import": "./lib/adapters/shared/vite/index.mjs",
-      "require": "./lib/adapters/shared/vite/index.cjs"
-    },
-    "./adaptors/static/vite": {
-      "import": "./lib/adapters/static/vite/index.mjs",
-      "require": "./lib/adapters/static/vite/index.cjs"
-    },
-    "./adaptors/vercel-edge/vite": {
       "import": "./lib/adapters/vercel-edge/vite/index.mjs",
       "require": "./lib/adapters/vercel-edge/vite/index.cjs"
     },

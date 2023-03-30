@@ -9,7 +9,6 @@ import { inlinedQrl } from '../../qrl/qrl';
 import { $ } from '../../qrl/qrl.public';
 import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
-import { type Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
 import { useVisibleTask$, useTask$ } from '../../use/use-task';
@@ -456,13 +455,6 @@ renderSSRSuite('events', async () => {
   );
 });
 
-renderSSRSuite('ref', async () => {
-  const ref = { current: undefined } as Ref<any>;
-  await testSSR(
-    <body ref={ref}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:id="0"></body></html>'
-  );
-});
 renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <body dangerouslySetInnerHTML="<p>hola</p>"></body>,
@@ -1494,7 +1486,7 @@ export const MyCmp = component$((props: Record<string, any>) => {
 });
 
 export const MyCmpComplex = component$(() => {
-  const ref = useRef();
+  const ref = useSignal<HTMLElement>();
   return (
     <div ref={ref} onClick$={() => console.warn('from component')}>
       <button onClick$={() => console.warn('click')}>Click</button>
@@ -1766,7 +1758,7 @@ export const DelayResource = component$((props: { text: string; delay: number })
   useStylesQrl(inlinedQrl(`.cmp {background: blue}`, 'styles_DelayResource'));
 
   const resource = useResource$<string>(async ({ track }) => {
-    track(props, 'text');
+    track(() => props.text);
     await delay(props.delay);
     return props.text;
   });

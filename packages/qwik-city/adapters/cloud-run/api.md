@@ -14,12 +14,6 @@ export function cloudRunAdapter(opts?: CloudRunAdapterOptions): any;
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {
 }
 
-// @public @deprecated (undocumented)
-export const cloudRunAdaptor: typeof cloudRunAdapter;
-
-// @public @deprecated (undocumented)
-export type CloudRunAdaptorOptions = CloudRunAdapterOptions;
-
 export { StaticGenerateRenderOptions }
 
 // (No @packageDocumentation comment for this package)

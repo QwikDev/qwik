@@ -162,7 +162,7 @@ interface TestClientHistoryWindow extends ClientHistoryWindow {
 type TestListeners = Map<string, (() => void)[]>;
 
 function createRouteNavigate(win: { location: SimpleURL }) {
-  const routeNav: Signal<string> = { value: toPath(win.location) };
+  const routeNav: Signal<string> = { value: toPath(new URL(win.location.href)) };
   return routeNav;
 }
 

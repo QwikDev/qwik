@@ -14,7 +14,7 @@
     "prefix": "qloader$",
     "description": "loader$()",
     "body": [
-			"export const $1 = loader$(() => {",
+			"export const $1 = routeLoader$(() => {",
 			"  $0",
 			"});"
     ]
@@ -24,7 +24,7 @@
     "prefix": "qaction$",
     "description": "action$()",
     "body": [
-			"export const $1 = action$((data) => {",
+			"export const $1 = routeAction$((data) => {",
 			"  $0",
 			"});"
     ]

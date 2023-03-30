@@ -152,10 +152,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
   serverData?: Record<string, any>;
-  /**
-   * @deprecated - use `serverData`
-   */
-  envData?: Record<string, any>;
 }
 
 /**

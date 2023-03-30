@@ -80,8 +80,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // (undocumented)
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
-    // @deprecated (undocumented)
-    envData?: Record<string, any>;
     locale?: string | ((options: RenderOptions) => string);
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;

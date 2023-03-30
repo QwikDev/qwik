@@ -20,12 +20,6 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
     vcConfigEnvVarsInUse?: string[];
 }
 
-// @public @deprecated (undocumented)
-export const vercelEdgeAdaptor: typeof vercelEdgeAdapter;
-
-// @public @deprecated (undocumented)
-export type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;
-
 // (No @packageDocumentation comment for this package)
 
 ```

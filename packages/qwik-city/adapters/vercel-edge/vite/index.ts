@@ -10,7 +10,6 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
   return viteAdapter({
     name: 'vercel-edge',
     origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
-    staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -104,12 +103,6 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
 
 /**
  * @public
- * @deprecated Use `vercelEdgeAdapter` exported from `@builder.io/qwik-city/adapters/vercel-edge/vite` instead.
- */
-export const vercelEdgeAdaptor = vercelEdgeAdapter;
-
-/**
- * @public
  */
 export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -139,12 +132,6 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
    */
   staticPaths?: string[];
 }
-
-/**
- * @public
- * @deprecated Please use `VercelEdgeAdapterOptions` instead.
- */
-export type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;
 
 /**
  * @public

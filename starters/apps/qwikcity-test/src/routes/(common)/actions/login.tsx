@@ -83,7 +83,7 @@ export const SecretForm = component$(() => {
       <button
         type="button"
         onClick$={async () => {
-          const { value } = await action.run({
+          const { value } = await action.submit({
             username: 'admin',
             code: 123,
             button: 'hello',

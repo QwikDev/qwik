@@ -1,7 +1,5 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import type { RenderOptions } from '@builder.io/qwik';
-import { type Render, setServerPlatform } from '@builder.io/qwik/server';
-import qwikCityPlan from '@qwik-city-plan';
+import { setServerPlatform } from '@builder.io/qwik/server';
 import {
   mergeHeadersCookies,
   requestHandler,
@@ -121,21 +119,3 @@ export interface QwikCityAzureOptions extends ServerRenderOptions {}
  * @public
  */
 export interface PlatformAzure extends Partial<Context> {}
-
-/**
- * @public
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/azure-swa';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export default createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
-}

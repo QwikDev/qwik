@@ -8,11 +8,6 @@ export default component$<{
   model: string;
   tag: 'main' | 'div';
 }>((props) => {
-  if (isBuilderDev) {
-    return (
-      <div>BUILDER CONTENT DISABLED IN DEV MODE TO MAKE LOCAL DEV POSSIBLE WITHOUT NETWORK</div>
-    );
-  }
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
     const query = location.url.searchParams;
@@ -77,8 +72,6 @@ export function getCachedValue<T>(
   });
   const cacheValue = CACHE.get(keyString);
   if (cacheValue && cacheValue.timestamp + cacheTime > now) {
-    // eslint-disable-next-line no-console
-    isDev && console.log('cache hit', keyString);
     return cacheValue.content;
   } else {
     // eslint-disable-next-line no-console

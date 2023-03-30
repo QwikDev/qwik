@@ -31,7 +31,7 @@ export const clientNavigate = (
         handleScroll(win, previousUrl, currentUrl);
         // current browser url and route path are different
         // update the route path
-        routeNavigate.value = toPath(currentUrl);
+        routeNavigate.value = toPath(new URL(currentUrl.href));
       }
     });
 

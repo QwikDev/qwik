@@ -17,15 +17,3 @@ export function useServerData(key: string, defaultValue?: any) {
   const ctx = useInvokeContext();
   return ctx.$renderCtx$.$static$.$containerState$.$serverData$[key] ?? defaultValue;
 }
-
-/**
- * @public
- * @deprecated Please use `useServerData` instead.
- */
-export const useUserContext = useServerData;
-
-/**
- * @public
- * @deprecated Please use `useServerData` instead.
- */
-export const useEnvData = useServerData;

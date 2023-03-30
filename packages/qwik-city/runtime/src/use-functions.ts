@@ -1,4 +1,4 @@
-import { noSerialize, useContext, useEnvData } from '@builder.io/qwik';
+import { noSerialize, useContext, useServerData } from '@builder.io/qwik';
 import {
   ContentContext,
   DocumentHeadContext,
@@ -37,4 +37,4 @@ export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext)
 
 export const useAction = (): RouteAction => useContext(RouteActionContext);
 
-export const useQwikCityEnv = () => noSerialize(useEnvData<QwikCityEnvData>('qwikcity'));
+export const useQwikCityEnv = () => noSerialize(useServerData<QwikCityEnvData>('qwikcity'));

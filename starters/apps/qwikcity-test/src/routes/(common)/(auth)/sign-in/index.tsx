@@ -3,7 +3,13 @@
  */
 
 import { component$ } from '@builder.io/qwik';
-import { type DocumentHead, Form, type RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
+import {
+  type DocumentHead,
+  Form,
+  type RequestHandler,
+  globalAction$,
+  zod$,
+} from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 import { z } from 'zod';
 
@@ -13,7 +19,7 @@ export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   }
 };
 
-export const useSigninAction = action$(
+export const useSigninAction = globalAction$(
   async (data, { cookie, redirect, status, fail }) => {
     const result = await signIn(data, cookie);
 
@@ -43,7 +49,7 @@ export const useSigninAction = action$(
   )
 );
 
-export const useResetPasswordAction = action$(
+export const useResetPasswordAction = globalAction$(
   ({ email }) => {
     console.warn('resetPasswordAction', email);
   },

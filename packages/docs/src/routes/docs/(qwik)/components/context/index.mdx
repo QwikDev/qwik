@@ -22,7 +22,7 @@ Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 - [`useContextProvider(ctx: ContextId, value: VALUE): void`](#usecontextprovider)
 - [`useContext(ctx: ContextId): VALUE`](#usecontext)
 
-### Example
+## Usage
 
 Let's make a global context which holds the state of the theme used by user and this can be accessed by any component down the component tree. Here, `root.tsx` file will act as the `Parent` component and other files/pages will be the `Child` component.
 
@@ -96,9 +96,7 @@ export default component$(() => {
 
 Let's dig into every API involved:
 
-## API
-
-### `createContextId()`
+## `createContextId()`
 
 This method is used to create a new `ContextId`.
 
@@ -110,17 +108,17 @@ export interface GenericType {
 export const QwikCityContext = createContextId<GenericType>(name: string): ContextId<GenericType>;
 ```
 
-#### Parameters
+### Parameters
 
 - `name`: it is a unique string given to `createContextId` as an identifier of context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `io.builder.qwik.city`.
 
-#### Returns
+### Returns
 
 Notice that the value returned by `createContextId()` does not hold any state, it is an immutable object i.e. `{ id: 'io.builder.qwik.city' }`. It's only used to describe the name and type of the context, like an address or an identifier.
 
 Since it does not hold any state, it's ok to call it and make it a singleton, exported in some shared module.
 
-### `useContextProvider()`
+## `useContextProvider()`
 
 - This method is used to create a Context for a specific component and its descendants, using the `ContextId` as the key identifier of the context.
 
@@ -149,17 +147,17 @@ export const Parent = component$(() => {
 });
 ```
 
-#### Parameters
+### Parameters
 
 - `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter).
 
 - `data`: you can provide any data type like Qwik's useSignal, useStore, Array, Objects.
 
-#### Caveats
+### Caveats
 
 - The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
 
-### `useContext()`
+## `useContext()`
 
 This method is used to get the value of `Context` which is **provided** by Parent Component.
 

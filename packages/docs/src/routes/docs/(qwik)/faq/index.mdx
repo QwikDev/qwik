@@ -34,6 +34,13 @@ Yes, and I am very funny too! [follow me](https://twitter.com/QwikDev)
 
 Originally it was called _qoot_, but we thought it would be too hard to search for. One friend of ours, [@patrickjs\_\_](https://twitter.com/PatrickJS__) came up with Qwik and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
 
+## How is Qwik different from other frameworks?
+
+Qwik is the first framework that has similar DX (Developer Experience) as *React*, *Vue* or *Svelte* in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this propertly, but removing completely the need for hydration, instead, Qwik applications immediate execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
+
+The outcome is that developers write extremelly performant application by default, without even having worry about it. Applications built with Qwik are fast regarless of the amount of components or complexity, they are O(1) (constant time) in terms of JS payload.
+
+
 ## Why another framework?
 
 The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter the application complexity. i.e. Qwik apps deliver the same amount of initial JS regardless of the amount of components. [Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
@@ -101,6 +108,9 @@ export const App_component_AkbU84a8zes = () => {
 ```js
 export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 ```
+
+> Note: The `$` is not related to `jQuery`, Svelte or any other framework.
+
 
 ## Does Qwik download JS when the user interacts?
 

@@ -19,7 +19,7 @@
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
 - [Lite components](</docs/(qwik)/components/lite-components/index.mdx>)
 
-## Routing
+## Routing (Qwik City)
 
 - [Qwik City](</docs/(qwikcity)/qwikcity/index.mdx>)
 - [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)

@@ -34,7 +34,7 @@
 
 ## Guides
 
-- [Qwik One Pager](</docs/(qwikcity)/guides/qwik-react/index.mdx>)
+- [Qwik in a nutshell](</docs/(qwikcity)/guides/qwik-nutshell/index.mdx>)
 - [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
 - [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikcity)/guides/qwik-react/index.mdx>)

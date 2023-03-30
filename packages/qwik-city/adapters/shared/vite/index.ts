@@ -122,19 +122,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
           const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
           if (renderModulePath && qwikCityPlanModulePath && clientOutDir) {
-            if (opts.staticGenerate) {
-              this.warn(`Option "staticGenerate" is deprecated. Please use "ssg" option instead.`);
-              opts.ssg = opts.ssg || {
-                include: [],
-              };
-              if (typeof opts.staticGenerate === 'object') {
-                opts.ssg = {
-                  ...opts.staticGenerate,
-                  ...opts.ssg,
-                };
-              }
-            }
-
             if (Array.isArray(opts.ssg?.include) && opts.ssg!.include.length > 0) {
               let ssgOrigin = opts.ssg?.origin || opts.origin;
               if (!ssgOrigin) {
@@ -221,12 +208,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
 /**
  * @public
- * @deprecated Please use `viteAdapter` instead.
- */
-export const viteAdaptor = viteAdapter;
-
-/**
- * @public
  */
 export function getParentDir(startDir: string, dirName: string) {
   const root = resolve('/');
@@ -250,10 +231,6 @@ interface ViteAdapterPluginOptions {
   name: string;
   origin: string;
   staticPaths?: string[];
-  /**
-   * @deprecated Please use `ssg` instead.
-   */
-  staticGenerate?: true | Omit<StaticGenerateRenderOptions, 'outDir'> | undefined;
   ssg?: AdapterSSGOptions | null;
   cleanStaticGenerated?: boolean;
   maxWorkers?: number;
@@ -281,17 +258,7 @@ export interface ServerAdapterOptions {
    * pages from being statically generated.
    */
   ssg?: AdapterSSGOptions | null;
-  /**
-   * @deprecated Please use `ssg` instead.
-   */
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
 }
-
-/**
- * @public
- * @deprecated Please use `ServerAdapterOptions` instead.
- */
-export type ServerAdaptorOptions = ServerAdapterOptions;
 
 /**
  * @public
@@ -322,12 +289,6 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'ou
    */
   origin?: string;
 }
-
-/**
- * @public
- * @deprecated Please use `AdapterSSGOptions` instead.
- */
-export type AdaptorSSGOptions = AdapterSSGOptions;
 
 /**
  * @public

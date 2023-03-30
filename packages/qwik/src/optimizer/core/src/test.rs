@@ -1866,6 +1866,7 @@ import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
 
 export const App = component$((props) => {
+    const {Model} = props;
     const state = useStore({count: 0});
     const remove = $((id: number) => {
         const d = state.data;
@@ -1892,7 +1893,7 @@ export const App = component$((props) => {
                 <p>Hello Qwik</p>
             </Div>
             [].map(() => (
-                <Div
+                <Model
                     class={state}
                     remove$={remove}
                     mutable1={{

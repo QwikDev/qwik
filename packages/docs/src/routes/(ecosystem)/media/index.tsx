@@ -40,7 +40,20 @@ export const MEDIA = mediaObj({
     youtube('🇪🇸 Qwik en solo 2 Horas, Curso Rápido y Efectivo', 'FF3D4tppyag'),
     youtube('🇪🇸 Introducción a QwikJS', 'fX7bM4iuuUQ'),
     youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
+    youtube('Introduction to Qwik for JS Developers ft. Miško Hevery | JS Drops', 'DxJgXw91cCQ'),
+    youtube('Building Performant Applications at Scale with Qwik-City', '_R0-0IWdshE'),
     youtube('Qwik: The Lightest, Fastest Way to Build Web Apps', 'l2mBk9meSvc'),
+    youtube('Resumable React - Leveraging the React ecosystem with Qwik', 'IGIPBAWRw_M'),
+    youtube('How to build a Qwik app with Yoav Ganbar', 'qqbi9WBe-ts'),
+    youtube('Qwik Crash Course', 'W0xjcx4mrkE'),
+    youtube(
+      `LEARN QWIK - The World's Fastest JavaScript Framework | E-comm Store Project | Qwik + TailwindCSS`,
+      '6w1987dVHVY'
+    ),
+    youtube(
+      `Interview and Q&A with JSNation Speaker: Miško Hevery | Intro and Overview of Qwik`,
+      'mLbReseU_I0'
+    ),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
@@ -64,6 +77,17 @@ export const MEDIA = mediaObj({
       'JSMP 4: Misko Hevery on Qwik - No hydration, auto lazy-loading, edge cacheable, and fun',
       'wMnqgjHkLiY'
     ),
+    {
+      href: 'https://podrocket.logrocket.com/qwik',
+      imgSrc:
+        'https://assets.fireside.fm/file/fireside-images/podcasts/images/3/3911462c-bca2-48c2-9103-610ba304c673/episodes/e/e4fc6b6c-9e69-426d-ad23-2e7c79931d11/header.jpg?v=1',
+      title: 'Qwik with Yoav Ganbar',
+    },
+    {
+      href: 'https://open.spotify.com/episode/5AnveNaA0SG9b85VChMAjD',
+      imgSrc: 'https://i.scdn.co/image/ab6765630000ba8a18aa5c33cbb1658d26724fcf',
+      title: 'FedBites: Qwik Special with Miško Hevery & Adam Bradley',
+    },
   ],
   presentations: [
     youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
@@ -81,12 +105,55 @@ export const MEDIA = mediaObj({
       'JxYbg7eZNLY'
     ),
     youtube('Qwik: A no hydration instant', 'Zddw6qy5pf0'),
-    youtube('Qwik City: Reimangined meta-framework for the edge', 'Znd11rVHQOE', 34314),
+    youtube(
+      'Qwik City: Reimangined meta-framework for the edge, Adam Bradley, ViteConf 2022',
+      'dSLWJBGWigs'
+    ),
     youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8'),
     youtube('Qwik: Beta and Beyond', 'Tfd62DiRTKc'),
     youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ'),
   ],
   blogs: [
+    {
+      href: 'https://www.builder.io/blog/resumability-from-ground-up',
+      title: 'Understanding Resumability from the Ground Up',
+    },
+    {
+      href: 'https://www.builder.io/blog/speculative-module-fetching',
+      title: 'Speculative Module Fetching: a Modern Approach to Faster App Interactivity',
+    },
+    {
+      href: 'https://www.builder.io/blog/wtf-is-code-extraction',
+      title: 'WTF Is Code Extraction',
+    },
+    {
+      href: 'https://www.builder.io/blog/module-extraction-the-silent-web-revolution',
+      title: 'Code Extraction: The Silent Web Revolution',
+    },
+    {
+      href: 'https://www.builder.io/blog/usesignal-is-the-future-of-web-frameworks',
+      title: 'useSignal() is the Future of Web Frameworks',
+    },
+    {
+      href: 'https://www.builder.io/blog/qwik-city-server-functions',
+      title: 'Introducing Qwik City Server Functions',
+    },
+    {
+      href: 'https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik',
+      title: 'Resumable React: How to Use React Inside Qwik',
+    },
+    {
+      href: 'https://www.builder.io/blog/resumability-vs-hydration',
+      title: 'Resumability vs Hydration',
+    },
+    {
+      href: 'https://www.builder.io/blog/the-qase-for-qwik-love-at-first-tti',
+      title: 'The Qase for Qwik: Love At First TTI',
+    },
+    {
+      href: 'https://www.builder.io/blog/movies-app-in-7-frameworks-which-is-fastest-and-why',
+      title: 'Movies app in 7 frameworks - which is fastest and why?',
+    },
     {
       href: 'https://www.builder.io/blog/hydration-is-pure-overhead',
       title: 'Hydration is Pure Overhead',

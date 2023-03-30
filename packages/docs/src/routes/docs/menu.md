@@ -34,10 +34,11 @@
 
 ## Guides
 
+- [Qwik One Pager](</docs/(qwikcity)/guides/qwik-react/index.mdx>)
 - [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
 - [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
-- [Best Practices](</docs/(qwik)/cheat/best-practices/index.mdx>)
-- [React Cheat Sheet](</docs/(qwik)/cheat/qwik-react/index.mdx>)
+- [React Cheat Sheet](</docs/(qwikcity)/guides/qwik-react/index.mdx>)
+- [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 
 ## Concepts
 
@@ -45,7 +46,6 @@
 - [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
 - [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
 - [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
-- [Serialization](</docs/(qwik)/cheat/serialization/index.mdx>)
 
 ## Advanced
 

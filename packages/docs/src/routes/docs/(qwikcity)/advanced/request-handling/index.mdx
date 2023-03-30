@@ -11,7 +11,6 @@ Each `layout.ts` and `index.ts` file inside the `src/routes` directory has the a
 
 Qwik City implements a middleware system based on the hirarchy of the `src/routes` directory. The middleware system is used to handle HTTP requests and responses, and is available to pages, layouts, and [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
 
-````tsx
 Each route has the ability to add HTTP request and response handlers, allowing for developers to [retrieve](../retrieve/index.mdx) and [modify](../modify/index.mdx) data. The handlers can also be used by [endpoints](../endpoints/index.mdx), which only respond with data rather than a page's HTML.
 
 This feature enables you to handle any request event, have side effects on the request pipeline, just before you render the component and respond with custom content. It is available to pages, layouts and endpoint routes, but not on regular components.
@@ -34,7 +33,7 @@ export const onGet: RequestHandler<ProductData> = async ({ params }) => {
     description: `Description for ${params.skuId}`,
   };
 };
-````
+```
 
 ## Request Event
 

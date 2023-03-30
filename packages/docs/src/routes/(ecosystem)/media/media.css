@@ -29,6 +29,8 @@
 
 .media li img {
   display: inline-block;
+  aspect-ratio: 16/9;
+  object-fit: cover;
   margin: 0 0 10px 0;
   border-radius: 5px;
   overflow: hidden;

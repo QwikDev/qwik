@@ -109,6 +109,9 @@ export const App_component_AkbU84a8zes = () => {
 export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 ```
 
+> Note: The `$` is not related to `jQuery`, Svelte or any other framework.
+
+
 ## Does Qwik download JS when the user interacts?
 
 Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) with only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already in the cache.

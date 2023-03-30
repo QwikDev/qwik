@@ -27,7 +27,7 @@ export const useChangePassword = routeAction$((data) => {
 - `globalAction$()` however, can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user.  Think about it like a "public" action.
 
 ```tsx
-export const useChangePassword = globalAction$((data) => {
+export const useLogin = globalAction$((data) => {
   // ...
 });
 ```

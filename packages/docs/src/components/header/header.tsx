@@ -38,105 +38,109 @@ export const Header = component$(() => {
   );
 
   return (
-    <header class={['header-container', ...(hasBuilderBar ? ['builder-bar'] : [])]}>
+    <>
       {hasBuilderBar && (
-        <BuilderContentComp
-          apiKey={BUILDER_PUBLIC_API_KEY}
-          model={BUILDER_TOP_BAR_MODEL}
-          tag="div"
-        />
-      )}
-      <div class="header-inner">
-        <div class="header-logo">
-          <a href="/">
-            <span class="sr-only">Qwik Homepage</span>
-            <QwikLogo width={180} height={44} />
-          </a>
+        <div class="builder-bar">
+          <BuilderContentComp
+            apiKey={BUILDER_PUBLIC_API_KEY}
+            model={BUILDER_TOP_BAR_MODEL}
+            tag="div"
+          />
         </div>
-        <button
-          onClick$={() => {
-            globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
-          }}
-          class="mobile-menu"
-          type="button"
-          title="Toggle right menu"
-          aria-label="Toggle right menu"
-        >
-          <span class="more-icon">
-            <MoreIcon width={30} height={30} />
-          </span>
-          <span class="close-icon">
-            <CloseIcon width={30} height={30} />
-          </span>
-        </button>
-        <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
-          <li>
-            <a href="/docs/" class={{ active: pathname.startsWith('/docs') }}>
-              <span>Docs</span>
+      )}
+      <header class="header-container">
+        <div class="header-inner">
+          <div class="header-logo">
+            <a href="/">
+              <span class="sr-only">Qwik Homepage</span>
+              <QwikLogo width={130} height={44} />
             </a>
-          </li>
-          <li>
-            <a href="/ecosystem/" class={{ active: pathname.startsWith('/ecosystem') }}>
-              <span>Ecosystem</span>
-            </a>
-          </li>
-          <li>
-            <a
-              href="/examples/introduction/hello-world/"
-              class={{ active: pathname.startsWith('/examples') }}
-            >
-              <span>Examples</span>
-            </a>
-          </li>
-          <li>
-            <a
-              href="/tutorial/welcome/overview/"
-              class={{ active: pathname.startsWith('/tutorial') }}
-            >
-              <span>Tutorial</span>
-            </a>
-          </li>
-          <li>
-            <a href="/playground/" class={{ active: pathname.startsWith('/playground') }}>
-              <span>Playground</span>
-            </a>
-          </li>
-          <li>
-            <DocSearch
-              appId={import.meta.env.VITE_ALGOLIA_APP_ID}
-              apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
-              indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-            />
-          </li>
-          <li>
-            <ThemeToggle />
-          </li>
-          <li>
-            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
-              <span class="lg:hidden">GitHub</span>
-              <span class="hidden lg:block">
-                <GithubLogo width={22} height={22} />
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://twitter.com/QwikDev" target="_blank" title="Twitter">
-              <span class="lg:hidden">@QwikDev</span>
-              <span class="hidden lg:block">
-                <TwitterLogo width={22} height={22} />
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
-              <span class="lg:hidden">Discord</span>
-              <span class="hidden lg:block">
-                <DiscordLogo width={22} height={22} />
-              </span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </header>
+          </div>
+          <button
+            onClick$={() => {
+              globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
+            }}
+            class="mobile-menu"
+            type="button"
+            title="Toggle right menu"
+            aria-label="Toggle right menu"
+          >
+            <span class="more-icon">
+              <MoreIcon width={30} height={30} />
+            </span>
+            <span class="close-icon">
+              <CloseIcon width={30} height={30} />
+            </span>
+          </button>
+          <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
+            <li>
+              <a href="/docs/" class={{ active: pathname.startsWith('/docs') }}>
+                <span>Docs</span>
+              </a>
+            </li>
+            <li>
+              <a href="/ecosystem/" class={{ active: pathname.startsWith('/ecosystem') }}>
+                <span>Ecosystem</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="/examples/introduction/hello-world/"
+                class={{ active: pathname.startsWith('/examples') }}
+              >
+                <span>Examples</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="/tutorial/welcome/overview/"
+                class={{ active: pathname.startsWith('/tutorial') }}
+              >
+                <span>Tutorial</span>
+              </a>
+            </li>
+            <li>
+              <a href="/playground/" class={{ active: pathname.startsWith('/playground') }}>
+                <span>Playground</span>
+              </a>
+            </li>
+            <li>
+              <DocSearch
+                appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+                apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+                indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+              />
+            </li>
+            <li>
+              <ThemeToggle />
+            </li>
+            <li>
+              <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
+                <span class="lg:hidden">GitHub</span>
+                <span class="hidden lg:block">
+                  <GithubLogo width={22} height={22} />
+                </span>
+              </a>
+            </li>
+            <li>
+              <a href="https://twitter.com/QwikDev" target="_blank" title="Twitter">
+                <span class="lg:hidden">@QwikDev</span>
+                <span class="hidden lg:block">
+                  <TwitterLogo width={22} height={22} />
+                </span>
+              </a>
+            </li>
+            <li>
+              <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
+                <span class="lg:hidden">Discord</span>
+                <span class="hidden lg:block">
+                  <DiscordLogo width={22} height={22} />
+                </span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </header>
+    </>
   );
 });

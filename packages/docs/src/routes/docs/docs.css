@@ -1,10 +1,9 @@
 .docs main {
   @apply mx-auto min-h-[100vh] xl:max-w-[1300px];
-  margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
 }
 
 .docs .docs-container {
-  @apply pt-[80px];
+  @apply pt-8;
   @apply px-8;
 
   /* medium */

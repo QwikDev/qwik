@@ -17,7 +17,15 @@ contributors:
   - almilo
   - estherbrunner
   - kumarasinghe
+  - mhevery
 ---
+import CodeExample from '../../../../../components/code-example/index.tsx';
+import SimpleComponent from 'source:./example/simple-component/index!.tsx';
+import TwoComponents from 'source:./example/two-components/index!.tsx';
+import Counter from 'source:./example/counter/index!.tsx';
+import Props from 'source:./example/props/index!.tsx';
+import Ref from 'source:./example/ref/index!.tsx';
+import Lazy from 'source:./example/lazy/index!.tsx';
 
 # Components
 
@@ -34,13 +42,7 @@ A component is a small, reusable piece of code that can be used to build a UI.
 
 In Qwik, they are declared using the `component$` method:
 
-```tsx
-import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return <span>Hello World!</span>;
-});
-```
+<CodeExample src={SimpleComponent} sandboxStyle={{height: '3em'}}/>
 
 > The reason for the `component$` is that the trailing `$` allows the [Optimizer](/docs/advanced/dollar/) to break the components into an application tree into a separate chunk so that each chunk can be loaded (or not loaded if it is not needed) independently. Without the `$` the component would be always loaded if the parent component needs to be loaded.
 
@@ -48,41 +50,14 @@ export default component$(() => {
 
 Components can be composed together to create more complex components.
 
-```tsx
-import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return (
-    <>
-      <div>Parent Text</div>
-      <Child />
-    </>
-  );
-});
-
-const Child = component$(() => {
-  return <div>Child Text</div>;
-});
-```
+<CodeExample src={TwoComponents} sandboxStyle={{height: '6em'}}/>
 
 ### Counter Example
 
 A slightly more complex example of a counter.
 
-```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+<CodeExample src={Counter} sandboxStyle={{height: '6em'}}/>
 
-export default component$(() => {
-  const count = useSignal(0);
-
-  return (
-    <>
-      <div>Count: {count.value}</div>
-      <button onClick$={() => count.value++}>Increment</button>
-    </>
-  );
-});
-```
 
 ## Props
 
@@ -90,36 +65,7 @@ Props are used to pass data into the component. Props are declared as named argu
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-```tsx
-import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return (
-    <>
-      <h1>Props</h1>
-      <Item name="hammer" price={9.99} />
-    </>
-  );
-});
-
-interface ItemProps {
-  name?: string;
-  quantity?: number;
-  description?: string;
-  price?: number;
-}
-
-export const Item = component$<ItemProps>(({ name, quantity, description, price }) => {
-  return (
-    <ul>
-      <li>name: {name}</li>
-      <li>quantity: {quantity}</li>
-      <li>description: {description}</li>
-      <li>price: {price}</li>
-    </ul>
-  );
-});
-```
+<CodeExample src={Props} sandboxStyle={{height: '10em'}}/>
 
 ## Rendering on Reactivity
 
@@ -135,34 +81,7 @@ A state change causes the component to get invalidated. When components get inva
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
 
-```tsx
-import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
-
-export default component$(() => {
-  const width = useSignal(0);
-  const height = useSignal(0);
-  const outputRef = useSignal<Element>();
-  useVisibleTask$(() => {
-    if (outputRef.value) {
-      const rect = outputRef.value.getBoundingClientRect();
-      width.value = Math.round(rect.width);
-      height.value = Math.round(rect.height);
-    }
-  });
-
-  return (
-    <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
-        Change text value here to stretch the box.
-      </div>
-      <div>
-        The above red box is {height.value} pixels high and {width.value} pixels wide.
-      </div>
-    </div>
-  );
-});
-
-```
+<CodeExample src={Ref} sandboxStyle={{height: '10em'}}/>
 
 ## Lazy Loading
 
@@ -185,21 +104,7 @@ In the above example, referring to the `Parent` component implies a transitive r
 To avoid the above problem we don't refer to components directly, instead, we refer to the lazy wrapper. This is created automatically by the `component$()` function.
 
 
-```tsx
-import { component$ } from '@builder.io/qwik';
-
-export const Child = component$(() => {
-  return <span>child</span>;
-});
-
-export const Parent = component$(() => {
-  return (
-    <section>
-      <Child />
-    </section>
-  );
-});
-```
+<CodeExample src={Lazy} sandboxStyle={{height: '10em'}} sandbox={false}/>
 
 
 In the above example the Optimizer transforms the above to:

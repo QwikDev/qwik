@@ -21,50 +21,44 @@ contributors:
   - XiaoChengyin
   - gkatsanos
   - adamdbradley
+  - mhevery
 ---
+import CodeExample from '../../../../../components/code-example/index.tsx';
+import CounterSignal from 'source:./example/counter-signal/index!.tsx';
+import CounterStore from 'source:./example/counter-store/index!.tsx';
+import CounterStoreNoTrack from 'source:./example/counter-store-no-track/index!.tsx';
+import CounterStoreDeep from 'source:./example/counter-store-deep/index!.tsx';
+import StorePassingProps from 'source:./example/state-passing-props/index!.tsx';
+import StorePassingContext from 'source:./example/state-passing-context/index!.tsx';
+
 
 # State
 
-State management is an important part of any app. In Qwik, we can differentiate between two types of state, reactive and static.
+State management is an important part of any app. In Qwik, we can differentiate between two types of state, reactive and static:
+1. Static state is anything that can be serialized: a string, number, object, array... anything.
+2. A reactive state on the other hand is created with `useSignal()` or `useStore()`.
 
-Static state is anything that can be serialized: a string, number, object, array... anything. Reactive state on the other hand is created with `useSignal()` or `useStore()`.
-
-It is important to notice that state in Qwik is not necessarily local component state, but rather app state that can be instantiated by any component.
+It is important to notice that state in Qwik is not necessarily a local component state, but rather an app state that can be instantiated by any component.
 
 ## `useSignal()`
 
-`const signal = useSignal(initialState)` is a hook that creates a reactive signal. It takes an initial value and returns a reactive signal.
+Use `useSignal()` to create a reactive signal (a form of state). The `useSignal()` takes an initial value and returns a reactive signal.
 
-The reactive signal returned by `useSignal()` consist of an object with a single property (i.e.: `signal.value`). If you change the `value` property of the object, any component that depends on it will be updated.
+The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
 
 ### Example
 
 This example shows how `useSignal()` can be used in a counter component to keep track of the count.
 
-```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+<CodeExample src={CounterSignal} sandboxStyle={{height: '6em'}}/>
 
-export default component$(() => {
-  const count = useSignal(0);
-
-  return (
-    <>
-      <button onClick$={() => count.value++}>Increment</button>
-      Count: {count.value}
-    </>
-  );
-});
-```
-
-Just accessing the `count.value` property will cause the component to be updated if the value of the signal changes. For instance, when the property is changed in the button click handler.
+Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
 
 ## `useStore()`
 
-Works very similary to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal, or an object made of several signals.
+Works very similarly to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal or an object made of several signals.
 
-`const store = useStore(initialStateObject)` is a hook that creates a reactive object. It takes an initial object, and returns a reactive object.
-
-The reactive object returned by [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) is just like any other object, but it is reactive. If you change any property of the object, any component that depends on that property will be updated.
+Use `useStore(initialStateObject)` hook to create a reactive object. It takes an initial object (or a factory function) and returns a reactive object.
 
 > **NOTE**
 > For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
@@ -73,138 +67,39 @@ The reactive object returned by [`useStore()`](/docs/(qwik)/components/state/ind
 
 This example shows how `useStore()` can be used in a counter component to keep track of the count.
 
-```tsx
-import { component$, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const state = useStore({ count: 0 });
-
-  return (
-    <>
-      <button onClick$={() => state.count++}>Increment</button>
-      Count: {state.count}
-    </>
-  );
-});
-```
-
-Just accessing the `state.count` property will cause the component to be updated if the count changes. For instance, when the property is changed in the button click handler.
+<CodeExample src={CounterStore} sandboxStyle={{height: '6em'}}/>
 
 ### Recursive values
 
-By default, [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) only tracks the top level fields in your store, which means that for any updates to be registered, you have to update values at the top level field.
+By default, [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) only tracks the top-level properties in your store, which means that for an update to be registered, you have to update values at the top level property.
 
-THIS EXAMPLE WILL NOT WORK:
+<CodeExample src={CounterStoreNoTrack} sandboxStyle={{height: '6em'}}/>
 
-```tsx
-import { component$, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const store = useStore({
-    nested: { fields: { are: 'not tracked' } },
-  });
-
-  return (
-    <>
-      <p>{store.nested.fields.are}</p>
-      <button onClick$={() => (store.nested.fields.are = 'tracked')}>Click me</button>
-    </>
-  );
-});
-```
-
-In order for the updates to be registered with the default tracking strategy, we would have to update the top level `nested` field like so:
+For the updates to be registered with the default tracking strategy, we would have to update the top-level `nested` field like so:
 
 ```ts
-store.nested = { fields: { are: { "tracked" } } }
+store.nested = { fields: { are: "tracked" } }
 ```
 
-In order to make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
+To make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
 
-```tsx
-import { component$, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const store = useStore(
-    {
-      nested: { fields: { are: 'not tracked' } },
-    },
-    { deep: true }
-  );
-
-  return (
-    <>
-      <p>{store.nested.fields.are}</p>
-      <button onClick$={() => (store.nested.fields.are = 'tracked')}>Click me</button>
-    </>
-  );
-});
-```
+<CodeExample src={CounterStoreDeep} sandboxStyle={{height: '6em'}}/>
 
 Now, the component will update as expected. This will also track individual values inside of arrays!
 
-```tsx
-import { component$, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const store = useStore(
-    {
-      letters: ['A', 'B', 'C'],
-    },
-    { deep: true }
-  );
-
-  return (
-    <>
-      {store.letters.map((letter) => (
-        <p>{letter}</p>
-      ))}
-      <button
-        onClick$={() => {
-          store.letters[2] = 'Z';
-        }}
-      >
-        Click me
-      </button>
-    </>
-  );
-});
-```
-
 ## Passing a store to other components
 
-One of the nice features of Qwik is that the state can be passed to other components, and both can read and write to it, allowing data to flow across the tree in all directions.
+One of the nice features of Qwik is that the state can be passed to other components. Writing to the store will then only re-render the components which read from the store only.
 
-There are two ways to pass state to other components: with props, or with context.
+There are two ways to pass state to other components: 
+1. pass state to child component explicitly using props, 
+2. or pass state implicitly through context.
 
 ### Using props
 
-The most simple way to pass state to other components is to pass it as props. This is the way you would do it in React, and it works in Qwik as well.
+The simplest way to pass the state to other components is to pass it through props.
 
-```tsx
-import { component$, useStore } from '@builder.io/qwik';
-
-export const Parent = component$(() => {
-  const userData = useStore({
-    count: 0,
-  });
-
-  return (
-    <>
-      <Child userData={userData} />
-    </>
-  );
-});
-
-export const Child = component$(({ userData }) => {
-  return (
-    <>
-      <button onClick$={() => userData.count++}>Increment</button>
-      Count: {userData.count}
-    </>
-  );
-});
-```
+<CodeExample src={StorePassingProps} sandboxStyle={{height: '6em'}}/>
 
 ### Using context
 
@@ -212,33 +107,8 @@ The context API is a way to pass state to components without having to pass it t
 
 Check the [context API](../context/index.mdx) for more information.
 
-```tsx
-export const CTX = createContextId('stuff');
+<CodeExample src={StorePassingContext} sandboxStyle={{height: '6em'}}/>
 
-export const Stores = component$(() => {
-  const userData = useStore({
-    count: 0,
-  });
-
-  useContextProvider(CTX, userData);
-
-  return (
-    <>
-      <Child />
-    </>
-  );
-});
-
-export const Child = component$(() => {
-  const userData = useContext(CTX);
-  return (
-    <>
-      <button onClick$={() => userData.count++}>Increment</button>
-      Count: {userData.count}
-    </>
-  );
-});
-```
 
 ## Computed values
 

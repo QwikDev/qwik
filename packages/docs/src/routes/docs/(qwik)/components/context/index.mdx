@@ -22,7 +22,24 @@ Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 - [`useContextProvider(ctx: ContextId, value: VALUE): void`](#usecontextprovider)
 - [`useContext(ctx: ContextId): VALUE`](#usecontext)
 
-## Usage
+```tsx
+export const ThemeContext = createContextId('docs.theme-context');
+
+const Parent = component$(() => {
+  const themeStore = useSignal('dark');
+  useContextProvider(ThemeContext, themeStore)
+
+  return <Child />
+});
+
+const Child = component$(() => {
+  const theme = useContext(ThemeContext);
+  return <div>Theme is {theme.value}</div>;
+});
+```
+
+
+## Example
 
 Let's make a global context which holds the state of the theme used by user and this can be accessed by any component down the component tree. Here, `root.tsx` file will act as the `Parent` component and other files/pages will be the `Child` component.
 
@@ -44,35 +61,20 @@ export type Theme = 'dark' | 'light';
 // Create a new context descriptor
 export const ThemeContext = createContextId<Theme>('io.builder.qwik.docs.theme-context');
 
-export default component$(() => {
+const Parent = component$(() => {
   // Creating reactive storage
   const themeStore = useSignal<Theme>('dark');
 
   // Assigning value (state) to the context (ThemeContext)
   useContextProvider(ThemeContext, themeStore)
 
-  return (
-    // default config
-    ...
-  );
+  return <Child />
 });
 
-// file: src/components/header/header.tsx
-export default component$(() => {
-
+const Child = component$(() => {
   // Get reference to state using ThemeContext
   const theme = useContext(ThemeContext);
-
-  useStylesScoped$(`
-    .dark {
-      color: white;
-      background: black;
-    };
-    .white {
-      color: black;
-      background: white;
-    }
-  `);
+  useStylesScoped$(`.dark { color-scheme: dark; }`);
 
   return (
     <>
@@ -81,9 +83,11 @@ export default component$(() => {
       </h1>
       <button
         onClick$={() => {
-          theme.value == 'light'
-            ? (theme.value = 'dark')
-            : (theme.value = 'light');
+          if (theme.value == 'light') {
+            themeStore.value = 'dark';
+          } else {
+            themeStore.value = 'light';
+          }
         }}
       >
         Change Theme

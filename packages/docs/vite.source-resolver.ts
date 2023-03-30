@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { Plugin } from 'vite';
+import type { Plugin } from 'vite';
 
 const SOURCE_PREFIX = 'source:';
 const RESOLVED_SOURCE_PREFIX = '\0source:';

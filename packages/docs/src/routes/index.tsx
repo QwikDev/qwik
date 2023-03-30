@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import BuilderContentComp from '../components/builder-content';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';

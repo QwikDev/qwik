@@ -1,10 +1,11 @@
 import { dirname, join } from 'node:path';
 import { readFileSync } from 'node:fs';
+import type { Plugin } from 'vite';
 
 const SOURCE_PREFIX = 'source:';
 const RESOLVED_SOURCE_PREFIX = '\0source:';
 
-export function sourceResolver(root: string) {
+export function sourceResolver(root: string): Plugin {
   return {
     name: 'source-code-loader',
     resolveId(id, importer) {

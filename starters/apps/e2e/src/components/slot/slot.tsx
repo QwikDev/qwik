@@ -49,6 +49,8 @@ export const SlotParent = component$(() => {
             </Projector>
           </Thing>
           <Issue2751 />
+
+          <Issue3565 model={Issue3565Model} />
         </>
       )}
       <div>
@@ -239,5 +241,24 @@ export const Bogus = component$(() => {
     <div>
       Bogus {count} {signal.value} <span>{signal.value}</span>
     </div>
+  );
+});
+
+const Issue3565Model = component$(() => {
+  return (
+    <div id="issue-3565-result">
+      Own content
+      <Slot></Slot>
+    </div>
+  );
+});
+
+export const Issue3565 = component$(({ model: Model }: any) => {
+  return (
+    <>
+      <Model>
+        <div>content projected</div>
+      </Model>
+    </>
   );
 });

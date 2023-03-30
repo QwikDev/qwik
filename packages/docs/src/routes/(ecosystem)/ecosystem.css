@@ -1,71 +1,183 @@
 .ecosystem {
-  margin: 10px auto;
-  padding: 0 30px;
-  max-width: 1060px;
+  position: relative;
 }
 
 .ecosystem section {
-  margin: 10px auto 60px auto;
+  position: relative;
+  z-index: 1;
+  margin: 0 auto 80px auto;
+  scroll-margin-top: 100px;
 }
 
-/* .grid {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-auto-flow: row dense;
-  display: grid;
-  gap: 30px;
-}
-
-.grid-card {
-  display: block;
-  text-align: center;
-}
-
-.grid-img {
-  display: block;
-  padding: 10px;
-  margin: 0 0 10px 0;
-  background-color: rgba(68, 68, 68, 1);
-  border-radius: 5px;
-  transition: all 250ms ease-out;
-  transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
-}
-
-.grid.full-item .grid-img {
-  padding: 0;
-  background-color: transparent;
-}
-
-.grid.transparent-item .grid-img {
-  padding: 0;
-  background-color: transparent;
-}
-
-.grid a:hover .grid-img {
-  background-color: rgba(68, 68, 68, 0.6);
-  transform: scale3d(1.05, 1.05, 1.05) translate3d(0, 0, 0);
-  box-shadow: 0px 0px 8px rgb(151, 151, 151);
-}
-
-.grid.transparent-item a:hover .grid-img {
-  background-color: transparent;
-}
-
-.grid img {
-  display: block;
-  width: 100%;
+.qwik-plus-logo {
+  width: 240px;
   height: auto;
-  object-fit: contain;
+  margin: 0 auto;
+}
+
+[data-theme='light'] .qwik-plus-logo-text {
+  filter: invert(1);
+}
+
+.ecosystem .purple-gradient {
+  position: fixed;
+  width: 1400px;
+  height: 800px;
+  top: 100px;
+  right: -400px;
+  background: radial-gradient(
+    57.58% 57.58% at 48.79% 42.42%,
+    rgba(24, 180, 244, 0.5) 0%,
+    rgba(46, 55, 114, 0) 63.22%
+  );
+  transform: rotate(5deg);
+}
+
+.ecosystem .blue-gradient {
+  position: fixed;
+  width: 1400px;
+  height: 1200px;
+  top: 600px;
+  left: -200px;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(172, 127, 244, 0.5) 0%,
+    rgba(21, 25, 52, 0) 100%
+  );
+  transform: rotate(-5deg);
+}
+
+.ecosystem aside {
+  position: relative;
+}
+
+.ecosystem-menu {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  width: 240px;
+  height: 700px;
+  background: transparent;
+  padding: 125px 20px 20px 20px;
+}
+
+.ecosystem h2,
+.ecosystem-menu h3 {
+  font-size: 18px;
+  font-weight: 500;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme='light'] .ecosystem h2,
+[data-theme='light'] .ecosystem-menu h3 {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+.ecosystem h2 {
+  margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.ecosystem h2 span:last-child {
+  text-align: right;
+}
+
+.ecosystem-menu a {
+  padding: 10px 10px;
+  margin: 5px 0;
+  display: block;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+
+.ecosystem-menu a:hover {
+  background: linear-gradient(180deg, rgba(46, 51, 90, 0.3) 0%, rgba(28, 27, 51, 0.3) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ecosystem-menu svg {
+  display: inline-block;
+  opacity: 0.7;
+}
+
+.ecosystem-menu span {
+  padding-left: 20px;
+}
+
+.grid-item a {
+  display: block;
+}
+
+.grid-item .thumbnail {
+  display: grid;
+  aspect-ratio: 16/9;
+  position: relative;
+
+  background: linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
+    linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+
+.grid-item .thumbnail::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  aspect-ratio: 16/9;
+  content: '';
+
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+    conic-gradient(
+      from 180deg at 53.75% 37.25%,
+      #7976e8 -110.28deg,
+      #f449f4 6.37deg,
+      #0019c0 153.67deg,
+      #7976e8 249.72deg,
+      #f449f4 366.37deg
+    );
+  border-radius: 5px;
+  opacity: 0.3;
+}
+
+.grid-item a:hover .thumbnail::before {
+  opacity: 0.1;
+}
+
+.grid-item img {
+  position: relative;
+  margin: auto;
+  max-width: 90px;
+  max-height: 90px;
+}
+
+.grid-item .thumbnail img {
+  margin: auto;
+  max-width: 160px;
+  max-height: 90px;
+}
+
+.grid-item .cover img {
+  width: 100%;
+  max-width: initial;
+  max-height: initial;
+  height: auto;
+  object-fit: cover;
   aspect-ratio: 16/9;
 }
 
-.grid.full-item img {
-  object-fit: cover;
+.grid-item .text {
+  position: relative;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
 }
 
-.grid span {
-  display: block;
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-} */
+.grid-item a:hover .text {
+  text-decoration: underline;
+}

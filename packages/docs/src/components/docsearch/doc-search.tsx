@@ -1,8 +1,8 @@
 import type { SearchClient } from 'algoliasearch/lite';
 import { component$, useStore, useStyles$, useSignal } from '@builder.io/qwik';
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from './types';
-import { ButtonTranslations, DocSearchButton } from './doc-search-button';
-import { DocSearchModal, ModalTranslations } from './doc-search-modal';
+import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
+import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 import type { StoredSearchPlugin } from './stored-searches';
 import type { QwikKeyboardEvent } from '../../../../../packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
@@ -95,7 +95,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
           }
         }
 
-        if (searchButtonRef && searchButtonRef.current === document.activeElement) {
+        if (searchButtonRef && searchButtonRef.value === document.activeElement) {
           if (/[a-zA-Z0-9]/.test(String.fromCharCode(event.keyCode))) {
             state.isOpen = true;
             state.initialQuery = event.key;

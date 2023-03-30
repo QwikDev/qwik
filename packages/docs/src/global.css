@@ -64,6 +64,7 @@ pre[class*='language-'] {
   --qwik-light-blue: #daf0ff;
   --qwik-purple: #ac7ef4;
   --qwik-dark-purple: #6000ff;
+  --qwik-dark-purple-bg: #151934;
 
   --bg-color: #ffffff;
   --bg-secondary-color: #f7f8fb;
@@ -182,7 +183,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen;
+  @apply antialiased min-h-screen;
 }
 
 @media (max-width: 1023px) {
@@ -293,4 +294,13 @@ body {
 :root[data-theme='dark'] .builder .csoetdv,
 :root[data-theme='dark'] .builder .cvha93q {
   filter: invert(90%) hue-rotate(180deg);
+}
+
+.purple-bg {
+  background-color: var(--qwik-dark-purple-bg);
+  height: auto;
+}
+
+.purple-bg header.header-container {
+  background-color: var(--qwik-dark-purple-bg);
 }

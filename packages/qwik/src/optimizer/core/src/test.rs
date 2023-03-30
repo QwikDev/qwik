@@ -590,6 +590,68 @@ export const Works = component$((props) => {
 }
 
 #[test]
+fn example_optimization_issue_3561() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3561 = component$(() => {
+    const props = useStore({
+      product: {
+        currentVariant: {
+          variantImage: 'image',
+          variantNumber: 'number',
+          setContents: 'contents',
+        },
+      },
+    });
+    const {
+      currentVariant: { variantImage, variantNumber, setContents } = {},
+    } = props.product;
+
+    console.log(variantImage, variantNumber, setContents)
+
+    return <p></p>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_3542() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const AtomStatus = component$(({ctx,atom})=>{
+    let status = atom.status;
+    if(!atom.real) {
+        status="WILL-VANISH"
+    } else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+        status="WTFED"
+    }
+    return (
+        <span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+        </span>
+    );
+})
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_reg_ctx_name_hooks() {
     test_input!(TestInput {
         code: r#"

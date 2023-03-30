@@ -77,6 +77,7 @@ export const RenderChildren = component$(() => {
       <Issue3468 />
       <Pr3475 />
       <Issue3561 />
+      <Issue3542 atom={{ code: 1 }} />
     </>
   );
 });
@@ -580,7 +581,7 @@ export const Issue3561 = component$(() => {
   const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
 
   return (
-    <p>
+    <div>
       <div>
         <div>{variantImage}</div>
       </div>
@@ -590,6 +591,14 @@ export const Issue3561 = component$(() => {
       <div>
         <div>{setContents}</div>
       </div>
-    </p>
+    </div>
   );
+});
+
+export const Issue3542 = component$(({ atom }: any) => {
+  let status = atom.status;
+  if (atom.code === 1) {
+    status = 'CODE IS 1';
+  }
+  return <span id="issue-3542-result">{status}</span>;
 });

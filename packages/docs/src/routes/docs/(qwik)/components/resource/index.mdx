@@ -20,7 +20,7 @@ contributors:
 
 This hook allows you to generate computed values asynchronously, typically used for fetching external data (resources.) The hook is called when the component is mounted (and when the tracked values change.) The `useResource$` hook is meant to be used with the `<Resource />`. The `<Resource />` component is a convenient way to render the resource state, such as loaded, resolved, or rejected.
 
-The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of SSR before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](docs/route-loader/) API instead. `useResource$` is a more low-level API that is useful when you want to fetch data on the client.
+The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of SSR before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is a more low-level API that is useful when you want to fetch data on the client.
 
 > Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
 > 
@@ -28,7 +28,7 @@ The important thing to understand about `useResource$` is that it executes on th
 > - `useResource$` allows you to return a "value".
 > - `useResource$` does not block rendering while the resource is being resolved.
 >
-> See [`routeLoader$`](docs/route-loader/) for fetching data as part of SSR.
+> See [`routeLoader$`](docs/(qwikcity)/route-loader/index.mdx) for fetching data as part of SSR.
 
 ## Example
 

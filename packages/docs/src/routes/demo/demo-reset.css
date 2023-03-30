@@ -1,0 +1,40 @@
+demo {
+  display: block;
+}
+
+demo h1 {
+  font-size: xx-large;
+  font-weight: bolder;
+}
+
+demo button {
+  display: inline-block;
+  border: 1px solid #ccc;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  background-color: #f7f7f7;
+  color: #333;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+demo input {
+  box-sizing: border-box;
+  display: inline-block;
+  padding: 1px 2px;
+  margin: 0 4px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}

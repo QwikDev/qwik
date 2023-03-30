@@ -43,6 +43,6 @@ function examplePath(path: string) {
   return path
     .replace('/(qwik)/', '/')
     .replace('/(qwikcity)/', '/')
-    .replace('/src/routes/docs', '/docs')
-    .replace('/index!.tsx', '/');
+    .replace('/src/routes/demo', '/demo')
+    .replace('/index.tsx', '/');
 }

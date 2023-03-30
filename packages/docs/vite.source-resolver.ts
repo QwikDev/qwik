@@ -11,7 +11,8 @@ export function sourceResolver(root: string): Plugin {
     resolveId(id, importer) {
       if (importer && id.startsWith(SOURCE_PREFIX)) {
         const [_, path] = id.split(SOURCE_PREFIX);
-        return RESOLVED_SOURCE_PREFIX + join(dirname(importer), path);
+        const base = id.startsWith('.') ? dirname(importer) : root;
+        return RESOLVED_SOURCE_PREFIX + join(base, path);
       }
     },
     load(id) {

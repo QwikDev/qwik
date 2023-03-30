@@ -13,7 +13,7 @@ export default component$<{
   const browserURL = new URL(examplePath(src.path), location.url).toString();
   return (
     <div>
-      <CodeBlock code={src.code} path={src.path} language="javascript" />
+      <CodeBlock code={src.code} path={src.path} language="jsx" />
       {sandbox !== false && (
         <div class="browser">
           <div class="bar">

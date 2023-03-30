@@ -297,6 +297,11 @@ test.describe('render', () => {
       const cards = page.locator('.issue-3468-card');
       await expect(cards).toHaveText(['a:', 'b:', 'c:', 'd:']);
     });
+
+    test('issue3542', async ({ page }) => {
+      const result = page.locator('#issue-3542-result');
+      await expect(result).toHaveText('CODE IS 1');
+    });
   }
 
   tests();

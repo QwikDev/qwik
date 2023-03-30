@@ -1,0 +1,52 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export const AtomStatus = component$(({ctx,atom})=>{
+    let status = atom.status;
+    if(!atom.real) {
+        status="WILL-VANISH"
+    } else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+        status="WTFED"
+    }
+    return (
+        <span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+        </span>
+    );
+})
+
+============================= test.jsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    let status = props.atom.status;
+    if (!props.atom.real) status = "WILL-VANISH";
+    else if (JSON.stringify(props.atom.atom) == JSON.stringify(props.atom.real)) status = "WTFED";
+    return <span title={props.atom.ID} onClick$={/*#__PURE__*/ inlinedQrl((ev)=>{
+        const [props] = useLexicalScope();
+        return atomStatusClick(props.ctx, ev, [
+            props.atom
+        ]);
+    }, "AtomStatus_component_span_onClick_Owf5fKaOlF0", [
+        props
+    ])} class={[
+        "atom",
+        status,
+        props.ctx.store[props.atom.ID] ? "selected" : null
+    ]}>
+
+        </span>;
+}, "AtomStatus_component_hdwpoUtydSA"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW,SAAc;IAC/C,IAAI,SAAS,MAD0B,KACrB,MAAM;IACxB,IAAG,CAAC,MAFmC,KAE9B,IAAI,EACT,SAAO;SACJ,IAAI,KAAK,SAAS,CAAC,MAJa,KAIR,IAAI,KAAG,KAAK,SAAS,CAAC,MAJd,KAImB,IAAI,GAC1D,SAAO;IAEX,QACK,KAAK,OAAO,MARsB,KAQjB,EAAE,EAAE,mCAAU,CAAC;;eAAK,sBARP,KAQ2B,IAAG;kBAR1B;SAQgC;;;QAAG,OAAO;QAAC;QAAO;QAAO,MAR7D,IAQiE,KAAK,CAAC,MARnE,KAQwE,EAAE,CAAC,GAAC,aAAW,IAAI;KAAC,EAAE;;QACjI,EAAE;AAEV,wCAAE\"}")
+== DIAGNOSTICS ==
+
+[]

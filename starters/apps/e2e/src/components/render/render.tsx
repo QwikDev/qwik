@@ -76,6 +76,8 @@ export const RenderChildren = component$(() => {
       <Issue3481 />
       <Issue3468 />
       <Pr3475 />
+      <Issue3561 />
+      <Issue3542 atom={{ code: 1 }} />
     </>
   );
 });
@@ -565,3 +567,38 @@ export const Pr3475 = component$(() =>
     </button>
   ))(useStore<{ key?: string }>({ key: 'data' }))
 );
+
+export const Issue3561 = component$(() => {
+  const props = useStore({
+    product: {
+      currentVariant: {
+        variantImage: 'image',
+        variantNumber: 'number',
+        setContents: 'contents',
+      },
+    },
+  });
+  const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
+
+  return (
+    <div>
+      <div>
+        <div>{variantImage}</div>
+      </div>
+      <div>
+        <div>{variantNumber}</div>
+      </div>
+      <div>
+        <div>{setContents}</div>
+      </div>
+    </div>
+  );
+});
+
+export const Issue3542 = component$(({ atom }: any) => {
+  let status = atom.status;
+  if (atom.code === 1) {
+    status = 'CODE IS 1';
+  }
+  return <span id="issue-3542-result">{status}</span>;
+});

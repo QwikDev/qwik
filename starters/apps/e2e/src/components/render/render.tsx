@@ -76,6 +76,7 @@ export const RenderChildren = component$(() => {
       <Issue3481 />
       <Issue3468 />
       <Pr3475 />
+      <Issue3561 />
     </>
   );
 });
@@ -565,3 +566,30 @@ export const Pr3475 = component$(() =>
     </button>
   ))(useStore<{ key?: string }>({ key: 'data' }))
 );
+
+export const Issue3561 = component$(() => {
+  const props = useStore({
+    product: {
+      currentVariant: {
+        variantImage: 'image',
+        variantNumber: 'number',
+        setContents: 'contents',
+      },
+    },
+  });
+  const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
+
+  return (
+    <p>
+      <div>
+        <div>{variantImage}</div>
+      </div>
+      <div>
+        <div>{variantNumber}</div>
+      </div>
+      <div>
+        <div>{setContents}</div>
+      </div>
+    </p>
+  );
+});

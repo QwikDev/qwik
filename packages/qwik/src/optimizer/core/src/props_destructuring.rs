@@ -197,15 +197,7 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                 };
                 if let Some((replace_pat, new_ref, init)) = convert {
                     let keep_ident = matches!(init, TransformInit::Keep);
-                    match init {
-                        TransformInit::Remove => {
-                            decl.init = None;
-                        }
-                        TransformInit::Replace(expr) => {
-                            decl.init = Some(Box::new(expr));
-                        }
-                        TransformInit::Keep => {}
-                    }
+                    let mut transform_init = init;
                     match &decl.name {
                         ast::Pat::Ident(ident) => {
                             if !keep_ident {
@@ -213,6 +205,8 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                                     .identifiers
                                     .insert(id!(ident.id.clone()), new_ref);
                                 decl.name = ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
+                            } else {
+                                transform_init = TransformInit::Keep;
                             }
                         }
                         ast::Pat::Object(obj_pat) => {
@@ -233,9 +227,22 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                                     props_transform.identifiers.insert(id, expr);
                                 }
                                 decl.name = ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
+                            } else {
+                                transform_init = TransformInit::Keep;
                             }
                         }
-                        _ => {}
+                        _ => {
+                            transform_init = TransformInit::Keep;
+                        }
+                    }
+                    match transform_init {
+                        TransformInit::Remove => {
+                            decl.init = None;
+                        }
+                        TransformInit::Replace(expr) => {
+                            decl.init = Some(Box::new(expr));
+                        }
+                        TransformInit::Keep => {}
                     }
                 }
             }

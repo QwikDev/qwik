@@ -1,0 +1,61 @@
+.browser {
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 4px;
+  background-color: #eee;
+}
+
+.iframe {
+  border: 1px solid currentColor;
+  margin-top: 4px;
+  border-radius: 4px;
+}
+
+iframe {
+  margin: 0;
+  padding: 8px;
+  border: none;
+}
+:global(:root[data-theme='dark']) iframe,
+:global(:root[data-theme='dark']) .url {
+  background-color: black;
+}
+
+:global(:root[data-theme='light']) iframe,
+:global(:root[data-theme='light']) .url {
+  background-color: white;
+}
+
+.bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.bar > ol {
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: math;
+}
+.bar > ol > li {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  margin: 2px;
+  color: black;
+}
+.bar > a {
+  margin-left: 1em;
+  padding: 4px 8px;
+}
+
+.url {
+  border: 1px solid gray;
+  display: inline-block;
+  font-size: small;
+  width: 100%;
+  white-space: nowrap;
+}

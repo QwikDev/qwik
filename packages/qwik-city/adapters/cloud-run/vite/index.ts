@@ -9,7 +9,6 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
   return viteAdapter({
     name: 'cloud-run',
     origin: env?.ORIGIN ?? env?.URL ?? 'https://your-app-name.run.app',
-    staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     cleanStaticGenerated: true,
 
@@ -26,20 +25,8 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
 
 /**
  * @public
- * @deprecated Use `cloudRunAdapter` exported from `@builder.io/qwik-city/adapters/cloud-run/vite` instead.
- */
-export const cloudRunAdaptor = cloudRunAdapter;
-
-/**
- * @public
  */
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {}
-
-/**
- * @public
- * @deprecated Use `CloudRunAdapterOptions` instead.
- */
-export type CloudRunAdaptorOptions = CloudRunAdapterOptions;
 
 /**
  * @public

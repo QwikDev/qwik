@@ -24,8 +24,8 @@
 }
 
 .breadcrumbs {
-  @apply fixed z-10 w-[100%];
-  top: calc(var(--header-height) + var(--builder-bar-height));
+  @apply sticky z-10 w-[100%];
+  top: var(--header-height);
   @apply border-b;
   @apply px-1;
   @apply flex;
@@ -82,7 +82,6 @@
   padding-top: 30px;
   top: 8rem;
   border-right: 2px solid #18b6f6;
-  margin-top: var(--builder-bar-height);
 }
 
 .menu h5 {

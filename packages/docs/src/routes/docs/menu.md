@@ -18,7 +18,7 @@
 - [Slots](</docs/(qwik)/components/projection/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
-- [Lite components](</docs/(qwik)/components/lite-components/index.mdx>)
+- [Inline components](</docs/(qwik)/components/inline-components/index.mdx>)
 
 ## Routing (Qwik City)
 
@@ -34,10 +34,11 @@
 
 ## Guides
 
+- [Qwik in a nutshell](</docs/(qwikcity)/guides/qwik-nutshell/index.mdx>)
 - [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
 - [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
-- [Best Practices](</docs/(qwik)/cheat/best-practices/index.mdx>)
-- [React Cheat Sheet](</docs/(qwik)/cheat/qwik-react/index.mdx>)
+- [React Cheat Sheet](</docs/(qwikcity)/guides/qwik-react/index.mdx>)
+- [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 
 ## Concepts
 
@@ -45,7 +46,6 @@
 - [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
 - [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
 - [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
-- [Serialization](</docs/(qwik)/cheat/serialization/index.mdx>)
 
 ## Advanced
 

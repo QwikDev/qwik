@@ -5,14 +5,14 @@ import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
 import { useVisibleTask$, useTask$ } from '../../use/use-task';
-import { useCleanup$, useOn } from '../../use/use-on';
+import { useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
-import { useRef } from '../../use/use-ref';
 import { pauseContainer } from '../../container/pause';
+import { useSignal } from '../../use/use-signal';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {
@@ -539,7 +539,6 @@ renderSuite('should render a component with hooks', async () => {
       <div id="watch">true</div>
       <div id="watch-destroy"></div>
       <div id="server-mount">false</div>
-      <div id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
   );
@@ -554,7 +553,6 @@ renderSuite('should render a component with hooks', async () => {
       <div id="watch">true</div>
       <div id="watch-destroy">true</div>
       <div id="server-mount">false</div>
-      <div id="cleanup">true</div>
       <div id="reference">true</div>
     </div>`
   );
@@ -1009,31 +1007,26 @@ export const UseEvents = component$(() => {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const Hooks = component$(() => {
-  const watchDestroyDiv = useRef();
-  const effectDiv = useRef();
-  const effectDestroyDiv = useRef();
-  const cleanupDiv = useRef();
+  const watchDestroyDiv = useSignal<HTMLElement>();
+  const effectDiv = useSignal<HTMLElement>();
+  const effectDestroyDiv = useSignal<HTMLElement>();
 
   const state = useStore({
     watch: 'false',
     server: 'false',
   });
 
-  useCleanup$(() => {
-    cleanupDiv.current!.textContent = 'true';
-  });
-
   useTask$(() => {
     state.watch = 'true';
     return () => {
-      watchDestroyDiv.current!.textContent = 'true';
+      watchDestroyDiv.value!.textContent = 'true';
     };
   });
 
   useVisibleTask$(() => {
-    effectDiv.current!.textContent = 'true';
+    effectDiv.value!.textContent = 'true';
     return () => {
-      effectDestroyDiv.current!.textContent = 'true';
+      effectDestroyDiv.value!.textContent = 'true';
     };
   });
 
@@ -1046,7 +1039,6 @@ export const Hooks = component$(() => {
       <div id="watch-destroy" ref={watchDestroyDiv}></div>
 
       <div id="server-mount">{state.server}</div>
-      <div id="cleanup" ref={cleanupDiv}></div>
 
       <div id="reference">true</div>
     </div>

@@ -100,6 +100,10 @@ export async function runCreateInteractiveCli() {
     process.exit(0);
   }
 
+  if (runInstallAnswer === false) {
+    backgroundInstall.abort();
+  }
+
   const gitInitAnswer = await confirm({
     message: `Initialize a new git repository?`,
     initialValue: true,

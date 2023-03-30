@@ -165,23 +165,6 @@ export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial
   return input as any;
 };
 
-/**
- * @public
- * @deprecated Remove it, not needed anymore
- */
-export const mutable = <T>(v: T): T => {
-  console.warn(
-    'mutable() is deprecated, you can safely remove all usages of mutable() in your code'
-  );
-  return v;
-};
-
-/**
- * @internal
- * @deprecated Remove it, not needed anymore
- */
-export const _useMutableProps = () => {};
-
 export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
   if (isSubscriberDescriptor(sub)) {
     return isConnected(sub.$el$);

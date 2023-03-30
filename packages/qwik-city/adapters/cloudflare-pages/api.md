@@ -16,12 +16,6 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
     staticPaths?: string[];
 }
 
-// @public @deprecated (undocumented)
-export const cloudflarePagesAdaptor: typeof cloudflarePagesAdapter;
-
-// @public @deprecated (undocumented)
-export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
-
 export { StaticGenerateRenderOptions }
 
 // (No @packageDocumentation comment for this package)

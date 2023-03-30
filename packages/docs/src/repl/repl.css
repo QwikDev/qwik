@@ -77,7 +77,6 @@
 
 .repl-commands .copy-to-playground {
   align-items: center;
-  display: flex;
   gap: 10px;
   border: 1px solid;
   padding: 2px 8px;

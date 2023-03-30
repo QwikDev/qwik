@@ -1,6 +1,5 @@
 import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
-import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikAnimationEvent,
@@ -48,7 +47,7 @@ export type QwikEventMap<T> = {
   InputCapture: Event;
   Reset: Event;
   ResetCapture: Event;
-  Submit: QwikSubmitEvent<T> | FormData;
+  Submit: QwikSubmitEvent<T>;
   SubmitCapture: Event;
   Invalid: QwikInvalidEvent<T>;
   InvalidCapture: QwikInvalidEvent<T>;
@@ -177,7 +176,7 @@ export type ClassList = BaseClassList | BaseClassList[];
 export interface QwikProps<T> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Signal<Element | undefined> | ((el: Element) => void) | undefined;
 
   /**
    *
@@ -193,7 +192,7 @@ export interface QwikProps<T> extends PreventDefault<T> {
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-export type BivariantEventHandler<T extends SyntheticEvent<any> | Event | FormData, EL> = {
+export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
   bivarianceHack(event: T, element: EL): any;
 }['bivarianceHack'];
 

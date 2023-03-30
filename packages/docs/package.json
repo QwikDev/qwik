@@ -24,7 +24,7 @@
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.7.6",
     "@builder.io/qwik": "0.24.0",
-    "@builder.io/qwik-city": "0.7.0",
+    "@builder.io/qwik-city": "0.100.0",
     "@builder.io/sdk-qwik": "0.1.15",
     "@docsearch/css": "3.3.3",
     "@types/prismjs": "^1.26.0",

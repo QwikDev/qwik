@@ -2,9 +2,12 @@ import { component$, useStylesScoped$ } from '@builder.io/qwik';
 import { CodeBlock } from '../code-block/code-block';
 import { useLocation } from '@builder.io/qwik-city';
 import CSS from './index.css?inline';
+<<<<<<< HEAD
 // import loadLanguages from 'prismjs/components/';
 
 // loadLanguages(['markup', 'css', 'javascript', 'json', 'jsx', 'tsx']);
+=======
+>>>>>>> upstream/main
 
 export default component$<{
   src: { code: string; path: string };
@@ -16,7 +19,11 @@ export default component$<{
   const browserURL = new URL(examplePath(src.path), location.url).toString();
   return (
     <div>
+<<<<<<< HEAD
       <CodeBlock code={src.code} path={src.path} language="javascript" />
+=======
+      <CodeBlock code={src.code} path={src.path} language="tsx" />
+>>>>>>> upstream/main
       {sandbox !== false && (
         <div class="browser">
           <div class="bar">

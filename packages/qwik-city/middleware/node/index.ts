@@ -1,9 +1,7 @@
-import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import { type Render, setServerPlatform } from '@builder.io/qwik/server';
+import { setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
-import qwikCityPlan from '@qwik-city-plan';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -140,22 +138,4 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
  * @public
  */ export interface NodeRequestNextFunction {
   (err?: any): void;
-}
-
-/**
- * @public
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * const { router, notFound } = createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
 }

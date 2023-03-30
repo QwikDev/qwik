@@ -22,6 +22,7 @@ contributors:
   - ptu14
   - reemardelarosa
   - ETN-Tech
+  - spicyzboss
 ---
 
 # FAQ
@@ -33,6 +34,13 @@ Yes, and I am very funny too! [follow me](https://twitter.com/QwikDev)
 ## Why is called Qwik?
 
 Originally it was called _qoot_, but we thought it would be too hard to search for. One friend of ours, [@patrickjs\_\_](https://twitter.com/PatrickJS__) came up with Qwik and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
+
+## How is Qwik different from other frameworks?
+
+Qwik is the first framework that has similar DX (Developer Experience) as *React*, *Vue* or *Svelte* in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this property, but removing completely the need for hydration, instead, Qwik applications immediate execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
+
+The outcome is that developers write extremely performant application by default, without even having worry about it. Applications built with Qwik are fast regardless of the amount of components or complexity, they are O(1) (constant time) in terms of JS payload.
+
 
 ## Why another framework?
 
@@ -102,6 +110,9 @@ export const App_component_AkbU84a8zes = () => {
 export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 ```
 
+> Note: The `$` is not related to `jQuery`, Svelte or any other framework.
+
+
 ## Does Qwik download JS when the user interacts?
 
 Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) with only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already in the cache.
@@ -141,9 +152,9 @@ Yes! [Qwik City](../../(qwikcity)/qwikcity/index.mdx) includes a directory-based
 
 ## Do I need a server to deploy Qwik apps?
 
-You can easily deploy a Qwik App in any [serverless environment thanks to our adapters](/deployments/index.mdx), we also support a [vanilla-node adaptor](/deployments/node/index.mdx) for Node.js-based servers, such as Express.
+You can easily deploy a Qwik App in any [serverless environment thanks to our adapters](/deployments/index.mdx), we also support a [vanilla-node adapter](/deployments/node/index.mdx) for Node.js-based servers, such as Express.
 
-You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG (Static Site Generation) adaptor](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
+You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG (Static Site Generation) adapter](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
 
 ## SPA (Single Page Application) or MPA (Multiple Page Application) is faster
 

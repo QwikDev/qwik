@@ -1,7 +1,6 @@
 /* eslint-disable */
 import {
   component$,
-  useServerMount$,
   useTask$,
   useStore,
   useSignal,
@@ -11,6 +10,7 @@ import {
   useContextProvider,
   $,
 } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 
 interface State {
   count: number;
@@ -30,8 +30,10 @@ export const Watch = component$(() => {
     server: '',
   });
 
-  useServerMount$(() => {
-    store.server = 'comes from server';
+  useTask$(() => {
+    if (isServer) {
+      store.server = 'comes from server';
+    }
   });
 
   // This watch should be treeshaken
@@ -48,7 +50,7 @@ export const Watch = component$(() => {
 
   // Debouncer watch
   useTask$(({ track }) => {
-    const doubleCount = track(store, 'doubleCount');
+    const doubleCount = track(() => store.doubleCount);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
     }, 2000);

@@ -1,10 +1,10 @@
 import { component$ } from '@builder.io/qwik';
-import { action$, type DocumentHead, loader$ } from '@builder.io/qwik-city';
+import { globalAction$, type DocumentHead, routeLoader$ } from '@builder.io/qwik-city';
 import { SecretForm } from './login';
 
-export const useDateLoader = loader$(() => new Date());
+export const useDateLoader = routeLoader$(() => new Date());
 
-export const useOtherAction = action$(() => {
+export const useOtherAction = globalAction$(() => {
   return {
     success: true,
   };
@@ -26,7 +26,7 @@ export default component$(() => {
           {String(other.isRunning)}:{other.formData?.get('username')}:{other.formData?.get('code')}:
           {JSON.stringify(other.value)}
         </div>
-        <button id="other-button" onClick$={() => other.run()}>
+        <button id="other-button" onClick$={() => other.submit()}>
           Run other
         </button>
         {other.value?.success && <div id="other-success">Success</div>}

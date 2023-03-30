@@ -1,4 +1,4 @@
-import { component$, useStore, useRef, useVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useStore, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export const RefRoot = component$(() => {
   const state = useStore({
@@ -22,9 +22,9 @@ export const RefRoot = component$(() => {
 });
 
 export const Ref = component$((props: { id: string }) => {
-  const ref = useRef();
+  const ref = useSignal<Element>();
   useVisibleTask$(({ track }) => {
-    const el = track(() => ref.current);
+    const el = track(() => ref.value);
     el!.textContent = `Rendered ${props.id}`;
   });
   return (

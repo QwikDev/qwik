@@ -67,23 +67,6 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 @public
 
-# `useRef`
-
-It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
-
-```tsx
-export function useRef<T = Element>(current?: T): Ref<T> {
-  return useStore({ current });
-}
-```
-
-### Example
-
-<docs code="./examples.tsx#use-ref"/>
-
-@deprecated Use `useSignal` instead.
-@alpha
-
 # `useTask`
 
 Reruns the `taskFn` when the observed inputs change.
@@ -121,62 +104,6 @@ The `obs` passed into the `taskFn` is used to mark `state.count` as a property o
 
 @public
 
-# `useBrowserVisibleTask`
-
-<docs code="./examples.tsx#use-client-effect"/>
-
-@public
-
-# `useMount`
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from '@builder.io/qwik';
-useTask$(() => {
-  // do something
-});
-```
-
-@see `useTask`
-@public
-@deprecated - use `useTask$()` instead. See https://qwik.builder.io/docs/components/lifecycle/#usetask
-
-# `useServerMount`
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
-useTask$(() => {
-  if (isServer) {
-    // only runs on server
-  }
-});
-```
-
-@see `useTask`
-@public
-
-# `useClientMount`
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
-useTask$(() => {
-  if (isBrowser) {
-    // only runs on server
-  }
-});
-```
-
-@see `useTask`
-@public
-@deprecated - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/#usemountserver
-
 # `useStyles`
 
 A lazy-loadable reference to a component's styles.
@@ -200,13 +127,6 @@ Component styles allow Qwik to lazy load the style information for the component
 @see `useStyles`
 
 @alpha
-
-# `useCleanup`
-
-It can be used to release resources, abort network requests, stop timers...
-
-@alpha
-@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useBrowserVisibleTask$()` instead.
 
 # `useOn`
 

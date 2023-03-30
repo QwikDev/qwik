@@ -3,32 +3,34 @@ import {
   type DocumentHead,
   Form,
   Link,
-  loader$,
+  routeLoader$,
   routeAction$,
   z,
   zod$,
 } from '@builder.io/qwik-city';
 import { delay } from '../../actions/login';
 
-export const useDateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
+export const useDateLoader = routeLoader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
-export const useDependencyLoader = loader$(async ({ params, redirect, json, resolveValue }) => {
-  const formData = await resolveValue(useForm);
-  await delay(100);
-  if (params.id === 'redirect') {
-    throw redirect(302, '/qwikcity-test/');
-  } else if (params.id === 'redirect-welcome') {
-    throw redirect(302, '/qwikcity-test/loaders/welcome/');
-  } else if (params.id === 'json') {
-    throw json(200, { nu: 42 });
+export const useDependencyLoader = routeLoader$(
+  async ({ params, redirect, json, resolveValue }) => {
+    const formData = await resolveValue(useForm);
+    await delay(100);
+    if (params.id === 'redirect') {
+      throw redirect(302, '/qwikcity-test/');
+    } else if (params.id === 'redirect-welcome') {
+      throw redirect(302, '/qwikcity-test/loaders/welcome/');
+    } else if (params.id === 'json') {
+      throw json(200, { nu: 42 });
+    }
+    return {
+      nu: 42,
+      name: formData?.name ?? params.id,
+    };
   }
-  return {
-    nu: 42,
-    name: formData?.name ?? params.id,
-  };
-});
+);
 
-export const useAsyncLoader = loader$(async ({ resolveValue }) => {
+export const useAsyncLoader = routeLoader$(async ({ resolveValue }) => {
   const p1 = resolveValue(useDateLoader);
   const p2 = resolveValue(useDependencyLoader);
   if (!(p1 instanceof Promise)) {
@@ -52,14 +54,14 @@ export const useAsyncLoader = loader$(async ({ resolveValue }) => {
   };
 });
 
-export const useSlowLoader = loader$(async () => {
+export const useSlowLoader = routeLoader$(async () => {
   await delay(500);
   return {
     foo: 123,
   };
 });
 
-export const useRealDateLoader = loader$(() => {
+export const useRealDateLoader = routeLoader$(() => {
   return [new Date().toISOString()];
 });
 

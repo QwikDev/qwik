@@ -25,14 +25,9 @@ import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as zod from 'zod';
 
-// @public @deprecated (undocumented)
-export const action$: ActionConstructor;
-
 // @public (undocumented)
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
     (): ActionStore<RETURN, INPUT, OPTIONAL>;
-    // @deprecated (undocumented)
-    use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
 // @public (undocumented)
@@ -72,26 +67,16 @@ export interface ActionOptionsWithValidation<B extends TypedDataValidator = Type
     readonly validation: [val: B, ...a: DataValidator[]];
 }
 
-// Warning: (ae-forgotten-export) The symbol "ActionConstructorQRL" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export const actionQrl: ActionConstructorQRL;
-
 // @public (undocumented)
 export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
     readonly actionPath: string;
     readonly formData: FormData | undefined;
     readonly isRunning: boolean;
-    // @deprecated (undocumented)
-    readonly run: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
     readonly status?: number;
     // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
     readonly value: RETURN | undefined;
 }
-
-// @public @deprecated (undocumented)
-export const Content: Component<    {}>;
 
 // @public (undocumented)
 export interface ContentHeading {
@@ -209,9 +194,6 @@ export interface DocumentStyle {
     readonly style: string;
 }
 
-// @public @deprecated (undocumented)
-export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
-
 // @public (undocumented)
 export type FailReturn<T> = T & {
     failed: true;
@@ -242,13 +224,10 @@ export interface FormSubmitSuccessDetail<T> {
 // @public (undocumented)
 export const globalAction$: ActionConstructor;
 
+// Warning: (ae-forgotten-export) The symbol "ActionConstructorQRL" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const globalActionQrl: ActionConstructorQRL;
-
-// Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export const Html: Component<QwikCityProps>;
 
 // @public (undocumented)
 export const Link: Component<LinkProps>;
@@ -263,22 +242,10 @@ export interface LinkProps extends AnchorAttributes {
     reload?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export const loader$: LoaderConstructor;
-
 // @public (undocumented)
 export interface Loader<RETURN> {
     (): LoaderSignal<RETURN>;
-    // @deprecated (undocumented)
-    use(): LoaderSignal<RETURN>;
 }
-
-// Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export const loaderQrl: LoaderConstructorQRL;
 
 // @public (undocumented)
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<T>>;
@@ -307,9 +274,6 @@ export interface PageModule extends RouteModule {
 // @public (undocumented)
 export type PathParams = Record<string, string>;
 
-// @public @deprecated (undocumented)
-export const QwikCity: Component<QwikCityProps>;
-
 // Warning: (ae-forgotten-export) The symbol "QwikCityMockProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -331,6 +295,8 @@ export interface QwikCityPlan {
     readonly trailingSlash?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const QwikCityProvider: Component<QwikCityProps>;
 
@@ -366,33 +332,28 @@ originalPathname: string,
 routeBundleNames: string[]
 ];
 
+// Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const routeLoader$: LoaderConstructor;
 
+// Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const routeLoaderQrl: LoaderConstructorQRL;
 
 // @public (undocumented)
 export interface RouteLocation {
-    // @deprecated (undocumented)
-    readonly href: string;
     // (undocumented)
     readonly isNavigating: boolean;
     // (undocumented)
     readonly params: Readonly<Record<string, string>>;
-    // @deprecated (undocumented)
-    readonly pathname: string;
-    // @deprecated (undocumented)
-    readonly query: URLSearchParams;
     // (undocumented)
     readonly url: URL;
 }
 
 // @public (undocumented)
 export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
-
-// @public @deprecated (undocumented)
-export type RouteParams = Record<string, string>;
 
 // @public (undocumented)
 export const RouterOutlet: Component<    {}>;

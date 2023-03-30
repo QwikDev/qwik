@@ -82,10 +82,6 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
-// @public @deprecated (undocumented)
-export interface Context<STATE extends object> extends ContextId<STATE> {
-}
-
 // @public
 export interface ContextId<STATE> {
     readonly __brand_context_type__: STATE;
@@ -100,9 +96,6 @@ export interface CorePlatform {
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
-
-// @public @deprecated (undocumented)
-export const createContext: <STATE extends object>(name: string) => ContextId<STATE>;
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
@@ -350,12 +343,6 @@ export const _jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutable
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
 // @public (undocumented)
-export type MountFn<T> = () => ValueOrPromise<T>;
-
-// @public @deprecated (undocumented)
-export const mutable: <T>(v: T) => T;
-
-// @public (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
 
 // @public (undocumented)
@@ -407,8 +394,6 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
-    // @deprecated (undocumented)
-    eagerness?: EagernessOptions;
     strategy?: VisibleTaskStrategy;
 }
 
@@ -690,12 +675,6 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
     deltaZ: number;
 }
 
-// @public
-export interface Ref<T = Element> {
-    // (undocumented)
-    current: T | undefined;
-}
-
 // @internal (undocumented)
 export const _regSymbol: (symbol: any, hash: string) => any;
 
@@ -936,36 +915,10 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 export interface Tracker {
     <T>(ctx: () => T): T;
     <T extends {}>(obj: T): T;
-    // @deprecated (undocumented)
-    <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
 // @public (undocumented)
 export const untrack: <T>(fn: () => T) => T;
-
-// @public @deprecated (undocumented)
-export const useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
-
-// @public @deprecated (undocumented)
-export const useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
-
-// @public @deprecated
-export const useCleanup$: (first: () => void) => void;
-
-// @public @deprecated
-export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
-
-// @public @deprecated (undocumented)
-export const useClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
-
-// @public @deprecated (undocumented)
-export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
-
-// @public @deprecated
-export const useClientMount$: <T>(first: MountFn<T>) => void;
-
-// @public @deprecated
-export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
 //
@@ -985,9 +938,6 @@ export const useContext: UseContext;
 // @public
 export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
 
-// @public @deprecated (undocumented)
-export const useEnvData: typeof useServerData;
-
 // @public (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 
@@ -999,12 +949,6 @@ export const useId: () => string;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
-// @public @deprecated (undocumented)
-export const useMount$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
-
-// @public @deprecated (undocumented)
-export const useMountQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions | undefined) => void;
-
 // @public
 export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
@@ -1013,9 +957,6 @@ export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event)
 
 // @public
 export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
-
-// @public @deprecated
-export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
@@ -1028,12 +969,6 @@ export function useServerData<T>(key: string): T | undefined;
 
 // @public (undocumented)
 export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
-
-// @public @deprecated
-export const useServerMount$: <T>(first: MountFn<T>) => void;
-
-// @public @deprecated
-export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @public (undocumented)
 export interface UseSignal {
@@ -1053,8 +988,6 @@ export const useStore: <STATE extends object>(initialState: STATE | (() => STATE
 export interface UseStoreOptions {
     deep?: boolean;
     reactive?: boolean;
-    // @deprecated (undocumented)
-    recursive?: boolean;
 }
 
 // @public
@@ -1086,20 +1019,11 @@ export interface UseTaskOptions {
 // @public
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
-// @public @deprecated (undocumented)
-export const useUserContext: typeof useServerData;
-
 // @public
 export const useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
 // @public
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
-
-// @public @deprecated (undocumented)
-export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
-
-// @public @deprecated (undocumented)
-export const useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

@@ -7,8 +7,6 @@
 /// <reference types="node" />
 
 import type { IncomingMessage } from 'node:http';
-import { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
 
@@ -34,13 +32,6 @@ export interface PlatformNode {
     // (undocumented)
     ssr?: true;
 }
-
-// @public @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions): {
-    router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
-    notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
-    staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
-};
 
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {

@@ -14,12 +14,6 @@ export function azureSwaAdapter(opts?: AzureSwaAdapterOptions): any;
 export interface AzureSwaAdapterOptions extends ServerAdapterOptions {
 }
 
-// @public @deprecated (undocumented)
-export const azureSwaAdaptor: typeof azureSwaAdapter;
-
-// @public @deprecated (undocumented)
-export type AzureSwaAdaptorOptions = AzureSwaAdapterOptions;
-
 export { StaticGenerateRenderOptions }
 
 // (No @packageDocumentation comment for this package)

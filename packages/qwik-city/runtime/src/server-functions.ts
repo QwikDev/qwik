@@ -135,7 +135,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
       });
     });
     initialState.submit = submit;
-    initialState.run = submit;
 
     return state;
   }
@@ -369,27 +368,3 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
     id,
   };
 };
-
-/**
- * @public
- * @deprecated - use `globalAction$()` instead
- */
-export const actionQrl = globalActionQrl;
-
-/**
- * @public
- * @deprecated - use `globalAction$()` instead
- */
-export const action$ = globalAction$;
-
-/**
- * @public
- * @deprecated - use `routeLoader$()` instead
- */
-export const loaderQrl = routeLoaderQrl;
-
-/**
- * @public
- * @deprecated - use `routeLoader$()` instead
- */
-export const loader$ = routeLoader$;

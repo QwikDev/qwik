@@ -1,17 +1,16 @@
-import { component$, useStylesScoped$, useTask$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
 import { CodeBlock } from '../code-block/code-block';
 import { useLocation } from '@builder.io/qwik-city';
 import CSS from './index.css?inline';
 import loadLanguages from 'prismjs/components/';
+
+loadLanguages(['markup', 'css', 'javascript', 'json', 'jsx', 'tsx']);
 
 export default component$<{
   src: { code: string; path: string };
   sandbox: boolean;
   sandboxStyle: Record<string, string>;
 }>(({ src, sandbox, sandboxStyle }) => {
-  useTask$(async () => {
-    loadLanguages(['markup', 'css', 'javascript', 'json', 'jsx', 'tsx']);
-  });
   useStylesScoped$(CSS);
   const location = useLocation();
   const browserURL = new URL(examplePath(src.path), location.url).toString();

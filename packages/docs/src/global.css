@@ -54,7 +54,7 @@ pre[class*='language-'] {
 
 :root {
   color-scheme: light;
-  --header-height: 118px;
+  --header-height: 60px;
   --builder-bar-height: 56px;
   --panel-toggle-height: 0px;
   --scroll-margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
@@ -161,7 +161,6 @@ pre[class*='language-'] {
 @media (max-width: 768px) {
   :root {
     --panel-toggle-height: 56px;
-    --header-height: 60px;
     --builder-bar-height: 40px;
   }
 }

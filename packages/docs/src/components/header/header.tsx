@@ -50,7 +50,7 @@ export const Header = component$(() => {
         <div class="header-logo">
           <a href="/">
             <span class="sr-only">Qwik Homepage</span>
-            <QwikLogo width={180} height={50} />
+            <QwikLogo width={180} height={44} />
           </a>
         </div>
         <button

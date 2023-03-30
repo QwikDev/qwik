@@ -1,5 +1,4 @@
-import { component$, Ref } from '@builder.io/qwik';
-
+import { component$, type Ref } from '@builder.io/qwik';
 import type { DocSearchState } from './doc-search';
 import type { ErrorScreenTranslations } from './error-screen';
 import { ErrorScreen } from './error-screen';

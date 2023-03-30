@@ -134,7 +134,7 @@
     "testing/package.json"
   ],
   "devDependencies": {
-    "@builder.io/qwik-dom": "2.1.19",
+    "@builder.io/qwik-dom": "workspace:*",
     "kleur": "4.1.5"
   },
   "contributors": [

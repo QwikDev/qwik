@@ -18,19 +18,10 @@ Route Loaders can only be declared inside the `src/routes` folder, in a `layout.
 // src/routes/layout.tsx
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const getProductData = routeLoader$(async () => {
-  // Add your data fetching code here (fetch, DB, Firebase, etc.)
-  // const res = await fetch('https://.../product')
-  // const products = await res.json()
-  // return products;
-
-  // We are returning sample data for this example
-  return {
-    product: {
-      name: 'Qwik City',
-      price: 100,
-    },
-  };
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../products')
+  const product = await res.json()
+  return product;
 });
 ```
 
@@ -45,18 +36,18 @@ export const getProductData = routeLoader$(async () => {
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useGetServerTime = routeLoader$(async () => {
-  return {
-    time: Date.now(),
-  }
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product')
+  const product = await res.json() as Product
+  return product;
 });
 
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
-  const signal = useGetServerTime(); // Signal<{time: number}>
+  const signal = useProductData(); // Signal<Product>
   return (
     <div>
-      Server time: {signal.value.time}
+      Product name: {signal.value.product.name}
     </div>
   );
 });
@@ -75,14 +66,14 @@ import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { Footer } from '../components/footer.tsx';
 
-export const useGetServerTime = routeLoader$(async () => {
-  return {
-    time: Date.now(),
-  }
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product')
+  const product = await res.json() as Product
+  return product;
 });
 
 export default component$(() => {
-  const signal = useGetServerTime();
+  const signal = useProductData();
   return (
     <main>
       <Slot />
@@ -98,15 +89,15 @@ export default component$(() => {
 import { component$ } from '@builder.io/qwik';
 
 // Import the loader from the layout
-import { useGetServerTime } from '../routes/layout.tsx';
+import { useProductData } from '../routes/layout.tsx';
 
 export const Footer = component$(() => {
   // Consume the loader data
-  const signal = useGetServerTime();
-  return <footer>Server time: {signal.value.time}</footer>;
+  const signal = useProductData();
+  return <footer>Product name: {signal.value.product.name}</footer>;
 });
 ```
-The above example shows using `useGetServerTime()` in two different components across different files. This is intentional behavior.
+The above example shows using `useProductData()` in two different components across different files. This is intentional behavior.
 
 **File: `src/routes/admin/index.tsx`**
 
@@ -152,7 +143,7 @@ This information comes in handy when the loader needs to conditionally return da
 ```tsx
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useServerTime = routeLoader$(
+export const useProductRecommendations = routeLoader$(
   async ({headers, cookie, url, method, params}) => {
     console.log('Request headers:', headers);
     console.log('Request cookies:', cookie);
@@ -160,9 +151,11 @@ export const useServerTime = routeLoader$(
     console.log('Request method:', method);
     console.log('Request params:', params);
 
-    return {
-      time: Date.now();
-    }
+    // Use request details to fetch personalized data
+    const res = fetch(`https://.../recommendations?user=${params.user}`)
+    const products = await res.json() as Product[]
+
+    return products
   }
 );
 ```

@@ -1,4 +1,4 @@
-import { component$, useContextProvider, useServerData, useStore } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore } from '@builder.io/qwik';
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
@@ -24,9 +24,6 @@ declare global {
 }
 
 export default component$(() => {
-  const urlEnv = useServerData<string>('url');
-  const url = new URL(urlEnv!);
-
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,

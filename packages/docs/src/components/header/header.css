@@ -1,13 +1,9 @@
 .header-container {
   height: var(--header-height);
-  margin-bottom: 6px;
   background: var(--bg-color);
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 100;
-}
-
-.header-container.builder-bar {
-  height: calc(var(--header-height) + var(--builder-bar-height));
 }
 
 @media (min-width: 1024px) {
@@ -18,10 +14,13 @@
 }
 
 .fixed-header .header-container {
-  position: fixed;
-  top: 0;
   width: 100%;
   z-index: 40;
+}
+
+.builder-bar {
+  position: relative;
+  z-index: 50;
 }
 
 header li {
@@ -97,6 +96,7 @@ header .header-logo {
   header .qwik-logo {
     width: auto;
     height: 33px;
+    @apply ml-2;
   }
 
   header .header-logo {

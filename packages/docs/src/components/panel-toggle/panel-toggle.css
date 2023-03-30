@@ -25,7 +25,7 @@
 .panel-toggle button.active,
 .panel-toggle button:hover {
   background-color: var(--tutorial-nav-button-hover-bg-color);
-  color: white;
+  color: var(--qwik-blue);
 }
 
 @media (min-width: 380px) {

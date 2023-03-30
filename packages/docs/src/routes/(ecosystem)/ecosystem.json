@@ -72,22 +72,22 @@
     {
       "title": "France",
       "href": "https://www.linkedin.com/groups/14153723/",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/qwik-france.svg"
     },
     {
       "title": "Israel",
       "href": "https://www.facebook.com/groups/qwikisrael",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/qwik-israel.svg"
     },
     {
       "title": "Taiwan",
       "href": "https://www.facebook.com/groups/836365297555873",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/qwik-taiwan.svg"
     },
     {
-      "title": "United Kingdom",
+      "title": "London",
       "href": "https://www.meetup.com/qwik-london/",
-      "imgSrc": "/logos/qwik-logo.svg"
+      "imgSrc": "/ecosystem/qwik-london.svg"
     }
   ],
   "social": [

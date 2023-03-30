@@ -1,6 +1,6 @@
 import { getNextActiveItemId } from '@algolia/autocomplete-core/dist/esm/utils';
 import { getItemsCount } from '@algolia/autocomplete-shared';
-import { component$, Ref, useVisibleTask$, useContext } from '@builder.io/qwik';
+import { component$, type Ref, useVisibleTask$, useContext } from '@builder.io/qwik';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';

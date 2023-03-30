@@ -54,7 +54,7 @@ pre[class*='language-'] {
 
 :root {
   color-scheme: light;
-  --header-height: 118px;
+  --header-height: 60px;
   --builder-bar-height: 56px;
   --panel-toggle-height: 0px;
   --scroll-margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
@@ -64,6 +64,7 @@ pre[class*='language-'] {
   --qwik-light-blue: #daf0ff;
   --qwik-purple: #ac7ef4;
   --qwik-dark-purple: #6000ff;
+  --qwik-dark-purple-bg: #151934;
 
   --bg-color: #ffffff;
   --bg-secondary-color: #f7f8fb;
@@ -95,9 +96,9 @@ pre[class*='language-'] {
   --repl-log-text: #0e201a;
   --repl-border-color: #e3e3e3;
 
-  --tutorial-nav-button-bg-color: var(--bg-color);
-  --tutorial-nav-button-hover-bg-color: var(--qwik-blue);
-  --tutorial-nav-button-text-color: var(--qwik-dark-blue);
+  --tutorial-nav-button-bg-color: var(--qwik-dark-blue);
+  --tutorial-nav-button-hover-bg-color: var(--bg-color);
+  --tutorial-nav-button-text-color: #ffffff;
 
   --examples-header-text-color: #494949;
   --examples-active-bg-color: #e2ebff;
@@ -134,9 +135,6 @@ pre[class*='language-'] {
   --code-border-color: #525252;
   --blockquote-bg-color: #353639;
 
-  --tutorial-nav-button-bg-color: var(--qwik-dark-blue);
-  --tutorial-nav-button-hover-bg-color: var(--bg-color);
-
   --repl-tab-button-hover-bg-color: #ffffff25;
   --repl-tab-button-input-hover-border-color: #c3c1de75;
   --repl-tab-button-input-active-border-color: #d8c2fa;
@@ -146,8 +144,6 @@ pre[class*='language-'] {
   --repl-commands-color: var(--qwik-light-blue);
   --repl-tab-bg-color: var(--bg-color);
   --repl-border-color: rgba(255, 255, 255, 0.2);
-
-  --tutorial-nav-button-text-color: #ffffff;
 
   --examples-header-text-color: var(--text-color);
   --examples-active-bg-color: #1d1d1d;
@@ -166,7 +162,6 @@ pre[class*='language-'] {
 @media (max-width: 768px) {
   :root {
     --panel-toggle-height: 56px;
-    --header-height: 60px;
     --builder-bar-height: 40px;
   }
 }
@@ -188,7 +183,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen;
+  @apply antialiased min-h-screen;
 }
 
 @media (max-width: 1023px) {
@@ -299,4 +294,13 @@ body {
 :root[data-theme='dark'] .builder .csoetdv,
 :root[data-theme='dark'] .builder .cvha93q {
   filter: invert(90%) hue-rotate(180deg);
+}
+
+.purple-bg {
+  background-color: var(--qwik-dark-purple-bg);
+  height: auto;
+}
+
+.purple-bg header.header-container {
+  background-color: var(--qwik-dark-purple-bg);
 }

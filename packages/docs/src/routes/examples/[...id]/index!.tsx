@@ -3,9 +3,9 @@ import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../../components/header/header';
-import exampleSections, { ExampleApp } from '@examples-data';
+import exampleSections, { type ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../../repl/types';
-import { DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 
 export default component$(() => {

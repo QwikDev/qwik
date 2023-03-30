@@ -1,5 +1,8 @@
 import { component$ } from '@builder.io/qwik';
 import prismjs from 'prismjs';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-tsx';
+
 interface CodeBlockProps {
   path?: string;
   language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';

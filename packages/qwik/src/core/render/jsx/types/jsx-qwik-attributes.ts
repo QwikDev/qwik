@@ -47,7 +47,7 @@ export type QwikEventMap<T> = {
   InputCapture: Event;
   Reset: Event;
   ResetCapture: Event;
-  Submit: QwikSubmitEvent<T> | FormData;
+  Submit: QwikSubmitEvent<T>;
   SubmitCapture: Event;
   Invalid: QwikInvalidEvent<T>;
   InvalidCapture: QwikInvalidEvent<T>;
@@ -192,7 +192,7 @@ export interface QwikProps<T> extends PreventDefault<T> {
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-export type BivariantEventHandler<T extends SyntheticEvent<any> | Event | FormData, EL> = {
+export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
   bivarianceHack(event: T, element: EL): any;
 }['bivarianceHack'];
 

@@ -1,7 +1,9 @@
 import { component$ } from '@builder.io/qwik';
 import prismjs from 'prismjs';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-tsx';
+// Set to global so that prism language plugins can find it.
+(global as any).PRISM = prismjs;
+import 'prismjs/components/prism-jsx'; // needs PRISM global
+import 'prismjs/components/prism-tsx'; // needs PRISM global
 
 interface CodeBlockProps {
   path?: string;

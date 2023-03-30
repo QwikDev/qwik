@@ -74,8 +74,6 @@ export function getCachedValue<T>(
   if (cacheValue && cacheValue.timestamp + cacheTime > now) {
     return cacheValue.content;
   } else {
-    // eslint-disable-next-line no-console
-    isDev && console.log('cache miss', keyString);
     const content = factory(key);
     CACHE.set(keyString, { timestamp: now, content });
     return content;

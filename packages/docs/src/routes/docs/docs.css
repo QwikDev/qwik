@@ -190,7 +190,7 @@ h6 a:hover .icon {
 }
 
 :root {
-  --code-line-height: 18px;
+  --code-line-height: 24px;
 }
 
 .docs article pre code {

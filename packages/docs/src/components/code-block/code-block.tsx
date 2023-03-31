@@ -39,8 +39,8 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
       <div class="relative code-block">
         {props.highlightLines?.map((line) => (
           <div
-            class="absolute left-0 right-0 bg-yellow-100 opacity-10 highlight"
-            style={{ top: `calc(var(--code-line-height) * ${line})`, height: 'var(--code-line-height)', marginTop: '2px' }}
+            class="absolute left-0 right-0 bg-yellow-100 pointer-events-none opacity-10 highlight"
+            style={{ top: `calc(var(--code-line-height) * ${line})`, height: 'var(--code-line-height)', marginTop: '-4px' }}
           />
         ))}
         <pre class={className}>

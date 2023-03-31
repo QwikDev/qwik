@@ -62,7 +62,7 @@ export const OnThisPage = component$(() => {
 
   const { url } = useLocation();
 
-  let githubEditRoute = makeEditPageUrl(url.pathname);
+  const githubEditRoute = makeEditPageUrl(url.pathname);
 
   const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 

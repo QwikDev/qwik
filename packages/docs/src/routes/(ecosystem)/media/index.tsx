@@ -1,5 +1,6 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import { DocumentHead, server$ } from '@builder.io/qwik-city';
+import type { DocumentHead } from '@builder.io/qwik-city';
+import { server$ } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 import { parse } from 'node-html-parser';
 
@@ -307,7 +308,7 @@ export const Section = component$(
               return <BulletLink entry={entry} />;
             }
 
-            if (props.id === 'blogs' || props.id === 'resources') {
+            if (props.id === 'blogs') {
               const blogData = await getBlogData(entry.title, entry.href);
               return <ThumbnailLink entry={blogData} imgLoading={props.imgLoading} />;
             }

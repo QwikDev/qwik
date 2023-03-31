@@ -1,6 +1,7 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
+import { DocumentHead, server$ } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
+import { parse } from 'node-html-parser';
 
 // A helper for defining YouTube Media Entries
 export const youtube = (title: string, id: string, start_time?: number): MediaEntry => {
@@ -12,10 +13,34 @@ export const youtube = (title: string, id: string, start_time?: number): MediaEn
   }
   return {
     href: url.href,
-    imgSrc: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
+    imgSrc: `https://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
     title,
   };
 };
+
+export const getBlogData = server$(async (title: string, url: string) => {
+  const response = await fetch(url);
+  const html = await response.text();
+  const htmlRoot = parse(html);
+  // get first og:image property
+  const ogImageTag = htmlRoot.querySelector('meta[property="og:image"]');
+
+  if (ogImageTag) {
+    const ogImageUrl = ogImageTag.getAttribute('content');
+
+    return {
+      title: title,
+      href: url,
+      imgSrc: ogImageUrl,
+    };
+  }
+
+  return {
+    title: title,
+    href: url,
+    imgSrc: '',
+  };
+});
 
 export const MEDIA = mediaObj({
   videos: [
@@ -269,6 +294,7 @@ export const Section = component$(
     imgLoading?: 'eager';
   }) => {
     const capitalized = [props.id[0].toUpperCase(), ...props.id.slice(1)].join('');
+
     return (
       <section id={props.id}>
         <h2>
@@ -276,13 +302,18 @@ export const Section = component$(
         </h2>
 
         <ul class={props.listStyle}>
-          {MEDIA[props.id].map((entry) =>
-            props.listStyle === 'thumbnails' ? (
-              <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />
-            ) : (
-              <BulletLink entry={entry} />
-            )
-          )}
+          {MEDIA[props.id].map(async (entry) => {
+            if (!(props.listStyle === 'thumbnails')) {
+              return <BulletLink entry={entry} />;
+            }
+
+            if (props.id === 'blogs' || props.id === 'resources') {
+              const blogData = await getBlogData(entry.title, entry.href);
+              return <ThumbnailLink entry={blogData} imgLoading={props.imgLoading} />;
+            }
+
+            return <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />;
+          })}
         </ul>
       </section>
     );
@@ -301,7 +332,7 @@ export default component$(() => {
 
       <Section id="presentations" listStyle="thumbnails" />
 
-      <Section id="blogs" listStyle="bullets" />
+      <Section id="blogs" listStyle="thumbnails" />
 
       <Section id="resources" listStyle="bullets" />
 
@@ -310,7 +341,7 @@ export default component$(() => {
         <p>This page missing any great resources or in need of an update?</p>
         <p>
           <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/media/index.tsx"
+            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
             target="_blank"
             class="edit-page"
           >

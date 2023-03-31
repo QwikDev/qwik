@@ -38,3 +38,38 @@ demo input {
   border-radius: 4px;
   outline: none;
 }
+
+demo a {
+  color: #0070c9;
+  background-color: transparent;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+demo a:hover {
+  color: #003a6d;
+  background-color: transparent;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+demo a:active {
+  color: #e60000;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+demo ul {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 40px;
+  list-style-type: square;
+}
+
+demo li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 0;
+}

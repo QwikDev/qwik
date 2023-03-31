@@ -1,11 +1,8 @@
 import { component$, useContext, useStylesScoped$ } from '@builder.io/qwik';
 import { CodeBlock } from '../code-block/code-block';
 import { useLocation } from '@builder.io/qwik-city';
-import CSS from './index.css?inline';
 import { GlobalStore } from '../../context';
-// import loadLanguages from 'prismjs/components/';
-
-// loadLanguages(['markup', 'css', 'javascript', 'json', 'jsx', 'tsx']);
+import CSS from './index.css?inline';
 
 export default component$<{
   src: { code: string; path: string };
@@ -18,7 +15,7 @@ export default component$<{
   const browserURL = new URL(examplePath({ path: src.path }), location.url).toString();
   return (
     <div>
-      <CodeBlock code={src.code} path={src.path} language="javascript" />
+      <CodeBlock code={src.code} path={src.path} language="tsx" />
       {sandbox !== false && (
         <div class="browser shadow-xl">
           <div class="bar bg-slate-200 rounded-tl-md rounded-tr-md flex flex-row justify-left px-5 py-2 gap-6">
@@ -64,8 +61,8 @@ function examplePath({
   const newPath = path
     .replace('/(qwik)/', '/')
     .replace('/(qwikcity)/', '/')
-    .replace('/src/routes/docs', '/docs')
-    .replace('/index!.tsx', '/');
+    .replace('/src/routes/demo', '/demo')
+    .replace('/index.tsx', '/');
 
   if (!includeTheme) {
     return newPath;

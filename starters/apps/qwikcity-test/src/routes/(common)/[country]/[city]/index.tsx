@@ -32,7 +32,7 @@ export default component$(() => {
         <code>&deg; </code>
       </p>
       <p>
-        <span>loc.query.get('unit'): </span>
+        <span>url.url.searchParams.get('unit'): </span>
         <code data-test-params="unit">{loc.url.searchParams.get('unit') || 'C'}</code>
       </p>
       <p>

@@ -12,6 +12,7 @@
 - [Overview](</docs/(qwik)/components/overview/index.mdx>)
 - [State](</docs/(qwik)/components/state/index.mdx>)
 - [Events](</docs/(qwik)/components/events/index.mdx>)
+- [Tasks](</docs/(qwik)/components/tasks/index.mdx>)
 - [Lifecycle](</docs/(qwik)/components/lifecycle/index.mdx>)
 - [Context](</docs/(qwik)/components/context/index.mdx>)
 - [Resource](</docs/(qwik)/components/resource/index.mdx>)

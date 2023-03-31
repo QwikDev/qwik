@@ -37,10 +37,9 @@ Originally it was called _qoot_, but we thought it would be too hard to search f
 
 ## How is Qwik different from other frameworks?
 
-Qwik is the first framework that has similar DX (Developer Experience) as *React*, *Vue* or *Svelte* in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this property, but removing completely the need for hydration, instead, Qwik applications immediate execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
+Qwik is the first framework that has similar DX (Developer Experience) as _React_, _Vue_ or _Svelte_ in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this property, but removing completely the need for hydration, instead, Qwik applications immediate execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
 
 The outcome is that developers write extremely performant application by default, without even having worry about it. Applications built with Qwik are fast regardless of the amount of components or complexity, they are O(1) (constant time) in terms of JS payload.
-
 
 ## Why another framework?
 
@@ -48,11 +47,11 @@ The short answer is that Qwik solves a problem that other frameworks can't solve
 
 ## What is Qwik City?
 
-[Qwik City](../../(qwikcity)/qwikcity/index.mdx) is just an extra set of APIs on top of Qwik, think of it like _Qwik_ as the core, and _City_ as the extra APIs (routing, data loading, endpoints...).
+[Qwik City](<../../(qwikcity)/qwikcity/index.mdx>) is just an extra set of APIs on top of Qwik, think of it like _Qwik_ as the core, and _City_ as the extra APIs (routing, data loading, endpoints...).
 
 ## Is Qwik complicated to learn?
 
-We designed Qwik to be [extremely easy to learn](/docs/(qwik)/cheat/qwik-react/) and become productive in for React developers. Component authoring is pretty much the same as React, and routing is inspired by Nextjs and others.
+We designed Qwik to be [extremely easy to learn](</docs/(qwik)/cheat/qwik-react/>) and become productive in for React developers. Component authoring is pretty much the same as React, and routing is inspired by Nextjs and others.
 
 However, there are fundamentally [new concepts](../think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx) and fine-grained reactivity, but we think the learning curve is not steep.
 
@@ -60,7 +59,7 @@ We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get 
 
 ## What are all those `$`?
 
-You might have noticed there are more [`$`](../advanced/dollar/index.mdx) than usual in Qwik apps such as: [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask), and `<div onClick$={() => console.log('click')} />`. It's not for nothing. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. the `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
+You might have noticed there are more [`$`](../advanced/dollar/index.mdx) than usual in Qwik apps such as: [`component$()`](</docs/(qwik)/components/overview/index.mdx#component>), [`useTask$()`](</docs/(qwik)/components/lifecycle/index.mdx#usetask>), and `<div onClick$={() => console.log('click')} />`. It's not for nothing. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. the `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
 
 **Example:**
 
@@ -112,16 +111,15 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 > Note: The `$` is not related to `jQuery`, Svelte or any other framework.
 
-
 ## Does Qwik download JS when the user interacts?
 
-Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) with only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already in the cache.
+Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](<../../(qwikcity)/advanced/speculative-module-fetching/index.mdx>) with only the bits of interactivity available on the current page as soon as possible (ASAP). This way, when the user clicks or interacts, the JS is already in the cache.
 
 ## If Qwik still requests the JS, then what's the difference?
 
 Pre-populating the cache is not the same as parsing and executing JS, and Qwik does not execute JS until the user interacts.
 
-In addition, [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
+In addition, [Speculative Module Fetching](<../../(qwikcity)/advanced/speculative-module-fetching/index.mdx>) enables Qwik to prioritize the important parts of interactivity before the less important parts.
 
 For example, the "buy now" button is more important than the "Add to Cart" button, so Qwik will prefetch the "Buy Now" button first, and then the "add to cart" button.
 
@@ -129,7 +127,7 @@ Qwik does not need to prefetch everything to start running, while other framewor
 
 ## Are Qwik apps slow on slow networks?
 
-Not at all! Thanks to [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
+Not at all! Thanks to [Speculative Module Fetching](<../../(qwikcity)/advanced/speculative-module-fetching/index.mdx>) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
 
 ## Does Qwik generate too many small files?
 
@@ -148,13 +146,13 @@ Notice that JSX is not React, in fact JSX is only syntax without semantic. We ch
 
 ## Is there a Router for Qwik available?
 
-Yes! [Qwik City](../../(qwikcity)/qwikcity/index.mdx) includes a directory-based router, and it is inspired by Nextjs and others.
+Yes! [Qwik City](<../../(qwikcity)/qwikcity/index.mdx>) includes a directory-based router, and it is inspired by Nextjs and others.
 
 ## Do I need a server to deploy Qwik apps?
 
 You can easily deploy a Qwik App in any [serverless environment thanks to our adapters](/deployments/index.mdx), we also support a [vanilla-node adapter](/deployments/node/index.mdx) for Node.js-based servers, such as Express.
 
-You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG (Static Site Generation) adapter](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
+You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG (Static Site Generation) adapter](</docs/(qwikcity)/guides/static-site-generation/index.mdx>).
 
 ## SPA (Single Page Application) or MPA (Multiple Page Application) is faster
 
@@ -173,7 +171,7 @@ MPA vs SPA is no longer an architectural decision taken at beginning of the proj
 
 ## Can Qwik do Static Site Generation (SSG)?
 
-Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
+Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](</docs/(qwikcity)/guides/static-site-generation/index.mdx>).
 
 ## But... with other frameworks I can also do MPA and SPA
 

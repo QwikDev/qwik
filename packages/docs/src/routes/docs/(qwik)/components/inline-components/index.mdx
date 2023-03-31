@@ -43,14 +43,16 @@ lazy-loaded; instead they are bundled with their parent component. In this case:
 
 - `MyButton` will get bundled with the `MyApp` component.
 - Whenever `MyApp` is rendered, it will also guarantee that `MyButton` is
-rendered.
+  rendered.
 - `MyButton` does not have a [host element](../../../integrations/integration/react/#host-element).
 
 You can think of lightweight components as being inlined into the component where they are instantiated.
 
 ## Limitations
+
 Inline components come with some limitations that the standard `component$()`
 does not have. Inline components:
+
 - Cannot use `use` methods such as `useSignal` or `useStore`.
 
 As the name implies, inline components are best used sparingly for

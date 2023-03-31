@@ -18,7 +18,7 @@ import diagram from './diagram2.svg';
 
 # Lifecycles
 
-Thanks to [Resumability](/docs/(qwik)/concepts/resumable/index.mdx), components life and its lifecycle extend across server and browser. Sometimes the component will be first rendered in the server, sometimes it could be in the browser, however, in both cases the lifecycle will be the same, only its execution happens in different environments.
+Thanks to [Resumability](</docs/(qwik)/concepts/resumable/index.mdx>), components life and its lifecycle extend across server and browser. Sometimes the component will be first rendered in the server, sometimes it could be in the browser, however, in both cases the lifecycle will be the same, only its execution happens in different environments.
 
 **In Qwik, there is only 3 lifecycles stages:**
 
@@ -56,7 +56,7 @@ Thanks to [Resumability](/docs/(qwik)/concepts/resumable/index.mdx), components 
 
 `useTask$()` registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending where the component is initially rendered.
 
-Additionally, this task can be reactive and re-execute when some **tracked** [signal or store](/docs/(qwik)/components/state/index.mdx) changes, like this:
+Additionally, this task can be reactive and re-execute when some **tracked** [signal or store](</docs/(qwik)/components/state/index.mdx>) changes, like this:
 
 ```tsx
 import { useTask$ } from '@builder.io/qwik';
@@ -122,7 +122,7 @@ The example above uses the `track` function to watch changes in `() => count.val
 - Compute derived state from tracked state (without causing potential re-rendering like in `useVisibleTask$`)
 - Programmatically run code when state changes
 
-> Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
+> Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](</docs/(qwik)/components/resource/index.mdx>) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
 ### Server/Browser only task
 
@@ -155,7 +155,7 @@ export const Cmp = component$(() => {
 });
 ```
 
-> But as mentioned above - for data fetching, consider using [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) instead.
+> But as mentioned above - for data fetching, consider using [`useResource$()`](</docs/(qwik)/components/resource/index.mdx>) instead.
 
 ## `useVisibleTask$()`
 
@@ -163,7 +163,7 @@ export const Cmp = component$(() => {
 - **Times:** at least once
 - **Platform:** browser only
 
-`useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [signal or store](/docs/(qwik)/components/state/index.mdx) changes, like this:
+`useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [signal or store](</docs/(qwik)/components/state/index.mdx>) changes, like this:
 
 ```tsx
 import { useVisibleTask$ } from '@builder.io/qwik';

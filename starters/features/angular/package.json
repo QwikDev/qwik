@@ -3,6 +3,7 @@
   "dependencies": {
     "@angular/common": "^15.0.0",
     "@angular/core": "^15.0.0",
+    "@angular/material": "^15.0.0",
     "@angular/platform-browser": "^15.0.0",
     "@angular/platform-browser-dynamic": "^15.0.0"
   },
@@ -21,6 +22,7 @@
   "__qwik__": {
     "displayName": "Framework: Angular",
     "priority": -1,
+    "postinstall": "node node_modules/@builder.io/qwik-angular/lib/postinstall.mjs",
     "docs": [
       "https://qwik.builder.io/integrations/integration/angular/TODO"
     ],

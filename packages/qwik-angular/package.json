@@ -62,7 +62,8 @@
       "import": "./lib/vite.mjs",
       "require": "./lib/vite.cjs",
       "types": "./lib/types/vite.d.ts"
-    }
+    },
+    "./postinstall": "./lib/postinstall.mjs"
   },
   "files": [
     "lib",

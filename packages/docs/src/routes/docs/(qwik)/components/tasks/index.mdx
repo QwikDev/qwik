@@ -11,7 +11,7 @@ import TrackFn from 'source:/src/routes/demo/tasks/track-fn/index.tsx';
 import Cleanup from 'source:/src/routes/demo/tasks/cleanup/index.tsx';
 import UseVisibleTask from 'source:/src/routes/demo/tasks/use-visible-task/index.tsx';
 import UseVisibleTaskEager from 'source:/src/routes/demo/tasks/use-visible-task-eager/index.tsx';
-
+import Resource from 'source:/src/routes/demo/tasks/resource/index.tsx';
 
 
 # Tasks
@@ -122,10 +122,16 @@ At times it is desirable to run `useVisibleTask$()` eagerly as soon as the appli
 
 ## `useResource$()`
 
-TBD
+`useResource$()` is half way between [`useTask$()`](#usetask) and [`useComputed$()`](/docs/components/state/#usecomputed).
 
-### `cache()`
-TBD
+`useResource$()` similarities and differences between `useTask$()` / `useComputed$()`:
+- `useResource$()` does not block rendering unlike `useTask$()`
+- It returns a value (Signal) just like `useComputed$()`, but it is asynchronous unlike `useComputed$()`.
+- It is not a pure function like `useComputed$()`. It can have side effects. Specifically, it is intended that `useResource$()` will have side effects such as network requests.
+- It uses [`track()`](#track)/[`cleanup()`](#cleanup) functions similar to `useTask$()`.
+
+<CodeExample src={Resource} sandboxStyle={{height: '6em'}}/>
 
 ### `previous`
-TBD
+
+When `useResource$()` is re-executed, `previous` contains the previous value of the resource.

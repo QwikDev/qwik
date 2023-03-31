@@ -10,8 +10,8 @@ export default defineConfig(() => {
       lib: {
         entry: [
           './src/index.qwik.ts',
-          './src/angular/client.ts',
           './src/angular/server.tsx',
+          './src/angular/slot.ts',
           './src/vite.ts',
         ],
         formats: ['es', 'cjs'],
@@ -20,6 +20,7 @@ export default defineConfig(() => {
       rollupOptions: {
         external: [
           '@angular/platform-browser',
+          '@angular/platform-browser/animations',
           '@angular/common',
           '@angular/core',
           '@angular/platform-server',
@@ -28,6 +29,7 @@ export default defineConfig(() => {
           'rxjs/operators',
           'zone.js/bundles/zone-node.umd.js',
           'domino',
+          'sass'
         ],
       },
     },

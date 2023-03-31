@@ -14,16 +14,14 @@ import {
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import type { Type } from '@angular/core';
 import { ClientRenderer } from './client';
-import { getHostProps, useWakeupSignal } from './slot';
+import { getHostProps } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 import { renderFromServer } from './server';
-import zoneJs from 'zone.js/dist/zone.min.js?url';
-
-declare const Zone: unknown;
+import { useWakeupSignal } from './wake-up-signal';
 
 export function qwikifyQrl<PROPS extends {}>(
   angularCmp$: QRL<Type<unknown>>,
-  opts?: QwikifyOptions
+  qwikifyOptions?: QwikifyOptions
 ) {
   // TODO: check if provided angularCmp$ is a standalone angular component
   return component$<QwikifyProps<PROPS>>((props) => {
@@ -31,8 +29,8 @@ export function qwikifyQrl<PROPS extends {}>(
     const hostRef = useSignal<Element>();
     const slotRef = useSignal<Element>();
     const internalState = useSignal<NoSerialize<Internal>>();
-    const [signal, isClientOnly] = useWakeupSignal(props, opts);
-    const TagName: any = opts?.tagName ?? 'qwik-angular';
+    const [signal, isClientOnly] = useWakeupSignal(props, qwikifyOptions);
+    const TagName: any = qwikifyOptions?.tagName ?? 'qwik-angular';
 
     useVisibleTask$(({ cleanup }) => {
       cleanup(() => internalState.value?.renderer.appRef?.destroy());
@@ -40,7 +38,7 @@ export function qwikifyQrl<PROPS extends {}>(
 
     // Watch takes care of updates and partial hydration
     useTask$(async ({ track }) => {
-      const trackedProps = track(() => ({ ...props }));
+      const trackedProps = track<Record<string, any>>(() => ({ ...props }));
       track(signal);
       if (!isBrowser) {
         return;
@@ -52,7 +50,6 @@ export function qwikifyQrl<PROPS extends {}>(
           internalState.value.renderer.setInputProps(trackedProps);
         }
       } else {
-        await loadZoneJs();
         const component = await angularCmp$.resolve();
         const hostElement = hostRef.value;
         const renderer = new ClientRenderer(component, trackedProps);
@@ -63,24 +60,10 @@ export function qwikifyQrl<PROPS extends {}>(
           renderer,
         });
       }
-
-      function loadZoneJs(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-          if (typeof Zone === 'function') {
-            return resolve();
-          }
-          const script = document.createElement('script');
-          script.src = zoneJs;
-          script.onload = () => resolve();
-          script.onerror = reject;
-          document.head.appendChild(script);
-          script.remove();
-        });
-      }
     });
 
     if (isServer && !isClientOnly) {
-      const jsx = renderFromServer(TagName, angularCmp$, hostRef, slotRef, props);
+      const jsx = renderFromServer(TagName, angularCmp$, hostRef, slotRef, props as Record<string, any>);
       return <RenderOnce>{jsx}</RenderOnce>;
     }
 

@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { BEFORE_APP_SERIALIZED, renderApplication } from '@angular/platform-server';
 import { DOCUMENT } from '@angular/common';
+import { getHostProps } from './slot';
 
 const SLOT_MARK = 'SLOT';
 const SLOT_COMMENT = `<!--${SLOT_MARK}-->`;
@@ -84,7 +85,7 @@ export async function renderFromServer(
   angularCmp$: QRL<Type<unknown>>,
   hostRef: Signal<Element | undefined>,
   slotRef: Signal<Element | undefined>,
-  props: Record<string, unknown>
+  props: Record<string, unknown>,
 ) {
   if (isServer) {
     const component = await angularCmp$.resolve();
@@ -114,7 +115,7 @@ export async function renderFromServer(
       const part1 = html.slice(0, index);
       const part2 = html.slice(index + SLOT_COMMENT.length);
       return (
-        <Host ref={hostRef}>
+        <Host ref={hostRef} {...getHostProps(props)}>
           <SSRRaw data={part1}></SSRRaw>
           <q-slot projected ref={slotRef}>
             <Slot />
@@ -125,7 +126,7 @@ export async function renderFromServer(
     }
     return (
       <>
-        <Host ref={hostRef}>
+        <Host ref={hostRef} {...getHostProps(props)}>
           <SSRRaw data={html}></SSRRaw>
         </Host>
         <q-slot ref={slotRef}>

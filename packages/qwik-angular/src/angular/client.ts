@@ -12,6 +12,11 @@ import { createApplication } from '@angular/platform-browser';
 import { merge, Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { extractProjectableNodes } from './extract-projectable-nodes';
+import zoneJs from 'zone.js/dist/zone.min.js?url';
+import { getAngularProps } from './slot';
+import { provideAnimations } from '@angular/platform-browser/animations';
+
+declare const Zone: unknown;
 
 export class ClientRenderer {
   appRef: ApplicationRef | undefined;
@@ -31,8 +36,11 @@ export class ClientRenderer {
   constructor(private component: Type<unknown>, private initialProps: Record<string, unknown>) {}
 
   async render(hostElement: Element, slot: Element | undefined, props = this.initialProps) {
+    await this.loadZoneJs();
     try {
-      this.appRef = await createApplication();
+      this.appRef = await createApplication({
+        providers: [provideAnimations()]
+      });
     } catch (error) {
       console.error('Failed to qwikify Angular component', error);
       return;
@@ -63,7 +71,7 @@ export class ClientRenderer {
 
       this.setInputProps(props, true);
 
-      this._subscribeToEvents(hostElement);
+      this._subscribeToEvents();
 
       this.appRef!.attachView(this.componentRef.hostView);
       this.initialized = true;
@@ -75,7 +83,8 @@ export class ClientRenderer {
       return;
     }
 
-    const propsEntries = Object.entries(props);
+    // propsEntries will include output props w\o "$" suffix
+    const propsEntries = Object.entries(getAngularProps(props));
 
     for (const [key, value] of propsEntries) {
       if (this.knownInputs.has(key)) {
@@ -95,8 +104,7 @@ export class ClientRenderer {
     this.appRef!.tick();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private _subscribeToEvents(hostElement: Element): void {
+  private _subscribeToEvents(): void {
     if (!this.mirror) {
       return;
     }
@@ -108,12 +116,22 @@ export class ClientRenderer {
     const outputEvents = merge(...eventEmitters);
     // listen for events from the merged stream and dispatch them as custom events
     outputEvents.pipe(takeUntil(this.onDestroy$)).subscribe((e) => {
-      // TODO: should support the custom event approach?
-      // const customEvent = new CustomEvent(e.name, { detail: e.value });
-      // hostElement.dispatchEvent(customEvent);
-
       // emit the event to the registered handler
       this.outputHandlers.get(e.name)?.(e.value);
+    });
+  }
+
+  private async loadZoneJs(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (typeof Zone === 'function') {
+        return resolve();
+      }
+      const script = document.createElement('script');
+      script.src = zoneJs;
+      script.onload = () => resolve();
+      script.onerror = reject;
+      document.head.appendChild(script);
+      script.remove();
     });
   }
 }

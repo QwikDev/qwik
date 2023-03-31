@@ -41,7 +41,7 @@
         }
       ],
       "vitePlugins": [
-        "angular({ tsconfig: './tsconfig.json', componentsDir: 'integrations/angular/components' })"
+        "angular({ tsconfig: './tsconfig.json', componentsDir: 'integrations/angular/components', bundleSassFilesInDevMode: { paths: ['src/theme.scss'], compileOptions: { loadPaths: ['node_modules'] } } })"
       ]
     }
   }

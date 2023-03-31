@@ -1,3 +1,4 @@
+import type { EventEmitter } from '@angular/core';
 import type { PropFunction, Signal } from '@builder.io/qwik';
 import type { ClientRenderer } from './client';
 
@@ -76,21 +77,7 @@ export interface QwikifyBase {
   'host:onMouseOver$'?: PropFunction<(ev: Event) => void>;
 }
 
-export type TransformProps<PROPS extends {}> = {
-  [K in keyof PROPS as TransformKey<K>]: TransformProp<K, PROPS[K]>;
-};
-
-export type TransformKey<K extends string | number | symbol> = K extends `on${string}`
-  ? `${K}$`
-  : K;
-
-export type TransformProp<K extends string | number | symbol, V> = K extends `on${string}`
-  ? V extends Function
-    ? PropFunction<V>
-    : never
-  : V;
-
-export type QwikifyProps<PROPS extends {}> = TransformProps<PROPS> & QwikifyBase;
+export type QwikifyProps<PROPS extends Record<string, any>> = PROPS & QwikifyBase;
 
 export interface QwikifyOptions {
   tagName?: string;
@@ -98,3 +85,17 @@ export interface QwikifyOptions {
   event?: string | string[];
   clientOnly?: boolean;
 }
+
+type TransformKey<K> = K extends string ? `${K}$` : K;
+
+type QwikifiedOutputs<ComponentType, Props extends keyof ComponentType> = {
+  [K in keyof Pick<ComponentType, Props> as TransformKey<K>]: ComponentType[K] extends EventEmitter<infer V> ? (value: V) => void : never;
+}
+
+export type QwikifiedComponentProps<
+  ComponentType, 
+  Inputs extends keyof ComponentType = never,
+  Outputs extends keyof ComponentType = never, 
+> = Partial<Pick<ComponentType, Inputs> & QwikifiedOutputs<ComponentType, Outputs>>;
+
+export type WithRequiredProps<T, K extends keyof T> = Omit<T,K> & Required<Pick<T, K>>;

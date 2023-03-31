@@ -23,12 +23,27 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  align-items: center;
   gap: 8px;
 }
 
 .browser .bar > ul > li {
   margin: 0;
   padding: 0;
+}
+
+.browser .bar > ul > li.edit {
+  position: relative;
+  top: -2px;
+}
+.browser .bar > ul > li.edit > a {
+  color: #666;
+}
+.browser .bar > ul > li.edit > a:hover {
+  color: #222;
+}
+:global(:root[data-theme='dark']) .browser .bar > ul > li.edit > a:hover {
+  color: #aaa;
 }
 
 .browser .url .url-link {

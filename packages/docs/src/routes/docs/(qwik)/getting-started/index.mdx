@@ -72,7 +72,7 @@ To get you familiar with Qwik we have created a very simple "Hello World" applic
 We will use https://icanhazdadjoke.com as our API to get a random joke. We will create a simple application that will display a random joke and a button to get a new joke.
 
 
-## 01 Create A Route
+## 1. Create A Route
 
 Everything starts by serving a page at a particular route. So let's build a simple app that serves a random dad joke application on `/joke/` route. Qwikcity (Qwik's meta-framework) uses [directory-based](/docs/routing/) routing. To get started:
 
@@ -94,7 +94,7 @@ Everything starts by serving a page at a particular route. So let's build a simp
 <CodeExample src={Step_01} sandboxStyle={{height: '6em'}}/>
 
 
-## 02 Loading Data
+## 2. Loading Data
 
 A common thing a page does is load data to display to the user. This is performed using [route loaders](/docs/route-loader/).
 
@@ -136,7 +136,7 @@ What does the above code do?
 
 <CodeExample src={Step_02} sandboxStyle={{height: '6em'}}/>
 
-## 03 Posting Data to Server
+## 3. Posting Data to Server
 
 Previously we used `routeLoader$` to send data from the server to the client. We use [`routeAction$`](/docs/action/) to post (send) data from the client back to the server.
 
@@ -192,7 +192,7 @@ Things to note:
 <CodeExample src={Step_03} sandboxStyle={{height: '8em'}}/>
 
 
-## 04 Modifying State
+## 4. Modifying State
 
 Keeping track of the state and updating UI is core to what applications do. Qwik provides a `useSignal` hook to keep track of the application's state. To learn more see [state management](/docs/components/state/).
 
@@ -214,7 +214,7 @@ NOTE:
 <CodeExample src={Step_04} sandboxStyle={{height: '10em'}}/>
 
 
-## 05 Tasks and Invoking Server Code
+## 5. Tasks and Invoking Server Code
 
 In Qwik, a [task](/docs/components/lifecycle/#use-usetask-when-you-need-to) is work that needs to happen when a state changes. (Similar to an "effect" in other frameworks.) In this example, we will use the task to invoke code on the server.
 
@@ -254,7 +254,7 @@ NOTE:
 
 <CodeExample src={Step_05} sandboxStyle={{height: '10em'}}/>
 
-## 06 Styling
+## 6. Styling
 
 Styling is an important part of any application. Qwik provides a way to associate and scope styles with your component.
 
@@ -287,7 +287,7 @@ NOTE:
 <CodeExample src={Step_06} sandboxStyle={{height: '10em'}}/>
 
 
-## 07 Preview
+## 7. Preview
 
 We build a very simple application that gave you an overview of key Qwik concepts and API. The application is running in dev mode, which uses hot-module-reloading (HMR) to continuously update the application while changing the code.
 

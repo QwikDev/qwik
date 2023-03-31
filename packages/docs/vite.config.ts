@@ -6,7 +6,8 @@ import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
-export default defineConfig(() => {
+export default defineConfig(async () => {
+  const { default: remarkMdxCodeMeta } = await import('remark-mdx-code-meta');
   const routesDir = resolve('src', 'routes');
   return {
     ssr: {
@@ -22,11 +23,9 @@ export default defineConfig(() => {
     },
     plugins: [
       qwikCity({
-        // mdx: {
-        //   remarkPlugins: [
-        //     remarkCodeSnippets()
-        //   ],
-        // }
+        mdx: {
+          remarkPlugins: [remarkMdxCodeMeta],
+        },
       }),
       qwikVite({
         entryStrategy: {

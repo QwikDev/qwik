@@ -189,11 +189,15 @@ h6 a:hover .icon {
   margin: 20px 0;
 }
 
+:root {
+  --code-line-height: 18px;
+}
+
 .docs article pre code {
   display: block;
   max-width: 50px;
   background-color: transparent;
-  line-height: 1.26;
+  line-height: var(--code-line-height);
   border: none;
   user-select: auto;
 }

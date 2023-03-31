@@ -15,6 +15,7 @@ interface CodeBlockProps {
   path?: string;
   language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
   code: string;
+  highlightLines?: number[];
 }
 
 export const CodeBlock = component$((props: CodeBlockProps) => {
@@ -35,9 +36,17 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
     const highlighted = prismjs.highlight(props.code, prismjs.languages[language], language);
     const className = `language-${language}`;
     return (
-      <pre class={className}>
-        <code class={className} dangerouslySetInnerHTML={highlighted} />
-      </pre>
+      <div class="relative code-block">
+        {props.highlightLines?.map((line) => (
+          <div
+            class="absolute left-0 right-0 bg-yellow-100 opacity-10 highlight"
+            style={{ top: `calc(var(--code-line-height) * ${line})`, height: 'var(--code-line-height)', marginTop: '2px' }}
+          />
+        ))}
+        <pre class={className}>
+          <code class={className} dangerouslySetInnerHTML={highlighted} />
+        </pre>
+      </div>
     );
   }
   return null;

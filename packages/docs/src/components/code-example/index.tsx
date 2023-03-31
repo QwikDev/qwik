@@ -7,13 +7,14 @@ export default component$<{
   src: { code: string; path: string };
   sandbox: boolean;
   sandboxStyle: Record<string, string>;
-}>(({ src, sandbox, sandboxStyle }) => {
+  highlightLines?: number[];
+}>(({ src, sandbox, sandboxStyle, highlightLines }) => {
   useStylesScoped$(CSS);
   const location = useLocation();
   const browserURL = new URL(examplePath(src.path), location.url).toString();
   return (
     <div>
-      <CodeBlock code={src.code} path={src.path} language="tsx" />
+      <CodeBlock highlightLines={highlightLines} code={src.code} path={src.path} language="tsx" />
       {sandbox !== false && (
         <div class="browser">
           <div class="bar">

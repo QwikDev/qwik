@@ -29,10 +29,8 @@ const makeEditPageUrl = (url: string): string => {
   const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
 
   if (!(urlPathnames.length >= 2)) {
-
     urlPathnames.splice(1, 0, '(qwik)');
     return urlPathnames.join('/');
-  
   }
 
   const qwikDocsPathname = urlPathnames.at(1) as string;
@@ -42,9 +40,9 @@ const makeEditPageUrl = (url: string): string => {
     const advancedDocsPathname = urlPathnames.at(2) as string;
     const isQwikCityPath = advancedQwikCityPathnames.includes(advancedDocsPathname);
 
-    !(isQwikCityPath) ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
-    
-    return urlPathnames.join("/")
+    !isQwikCityPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
+
+    return urlPathnames.join('/');
   }
 
   const isQwikPath = qwikDocsPathnames.includes(qwikDocsPathname);

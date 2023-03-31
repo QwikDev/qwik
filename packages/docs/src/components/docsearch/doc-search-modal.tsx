@@ -206,7 +206,7 @@ export const DocSearchModal = component$(
         if (modalRef.value) {
           const vh = window.innerHeight * 0.01;
           // @ts-ignore
-          modalRef.current.style.setProperty('--docsearch-vh', `${vh}px`);
+          modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
         }
       }
 

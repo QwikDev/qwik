@@ -26,6 +26,7 @@ import Counter from 'source:/src/routes/demo/state/counter/index.tsx';
 import Props from 'source:/src/routes/demo/component/props/index.tsx';
 import Ref from 'source:/src/routes/demo/component/ref/index.tsx';
 import Lazy from 'source:/src/routes/demo/component/lazy/index.tsx';
+import InlineChild from 'source:/src/routes/demo/component/inline-child/index.tsx';
 
 # Components
 
@@ -137,6 +138,34 @@ So what happens when the `Parent` component needs to render a `Child` component,
 
 As you can see in the above example, the `<!--qv-->` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
 
+## Inline Components
+
+In addition to the standard `component$()` with all of it's lazy-loaded
+properties, Qwik also supports lightweight (inline) components that act more
+like components in traditional frameworks.
+
+<CodeExample src={InlineChild} sandboxStyle={{height: '4em'}}/>
+
+In the above example, `MyButton` is an inline component.
+Unlike the standard `component$()`, inline components cannot be individually
+lazy-loaded; instead, they are bundled with their parent component. In this case:
+
+- `MyButton` will get bundled with the `default` component.
+- Whenever `default` is rendered, it will also guarantee that `MyButton` is
+rendered.
+
+You can think of inline components as being inlined into the component where they are instantiated.
+
+### Limitations
+Inline components come with some limitations that the standard `component$()`
+does not have. Inline components:
+- Cannot use `use` methods such as `useSignal` or `useStore`.
+
+As the name implies, inline components are best used sparingly for
+lightweight pieces of markup since they offer the convenience of being
+bundled with the parent component.
+
+
 ## API Overview
 
 ### State
@@ -158,11 +187,12 @@ As you can see in the above example, the `<!--qv-->` acts as a marker where the 
 - [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programatically
 - [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programatically
 
-### Lifecycles
+### Tasks/Lifecycle
 
-- [`useTask$()`](../lifecycle/index.mdx#usetask) - defines a callback that will be called before render and/or when a watched store changes
-- [`useResource$()`](../resource/index.mdx) - creates a resource to asyncronously load data
-- [`useVisibleTask$()`](../lifecycle/index.mdx#usevisibletask) - defines a callback that will be called after render in the client only (browser)
+- [`useTask$()`](../tasks/index.mdx#usetask) - defines a callback that will be called before render and/or when a watched store changes
+- [`useVisibleTask$()`](../tasks/index.mdx#usevisibletask) - defines a callback that will be called after render in the browser
+- [`useResource$()`](../task/index.mdx#useresource) - creates a resource to asynchronously load data
+- [`useVisibleTask$()`](../task/index.mdx#usevisibletask) - defines a callback that will be called after rendering in the client only (browser)
 
 ### Other
 
@@ -179,4 +209,4 @@ As you can see in the above example, the `<!--qv-->` acts as a marker where the 
 
 ## See Also
 
-- [Inline components](../inline-components/index.mdx)
+- [Inline components](../overview/index.mdx#inline-components)

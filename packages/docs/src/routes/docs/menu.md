@@ -12,14 +12,12 @@
 - [Overview](</docs/(qwik)/components/overview/index.mdx>)
 - [State](</docs/(qwik)/components/state/index.mdx>)
 - [Events](</docs/(qwik)/components/events/index.mdx>)
-- [Tasks](</docs/(qwik)/components/tasks/index.mdx>)
-- [Lifecycle](</docs/(qwik)/components/lifecycle/index.mdx>)
+- [Tasks/Lifecycle](</docs/(qwik)/components/tasks/index.mdx>)
 - [Context](</docs/(qwik)/components/context/index.mdx>)
 - [Resource](</docs/(qwik)/components/resource/index.mdx>)
 - [Slots](</docs/(qwik)/components/projection/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
-- [Inline components](</docs/(qwik)/components/inline-components/index.mdx>)
 
 ## Routing (Qwik City)
 

@@ -122,7 +122,7 @@ In Qwik there are two ways to create computed values, each with a different use 
 
 The way to think about the above is that they observe the existing state, and when the state changes the computed value is recomputed. The result is a newly computed value which is a signal returned from `useComputed$()` or `useResource$()`.
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/lifecycle/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.: 
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/tasks/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.: 
 
 
 ### `useComputed$()`

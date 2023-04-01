@@ -102,7 +102,7 @@ A common thing a page does is load data to display to the user. This is performe
   ```tsx
   import { routeLoader$ } from "@builder.io/qwik-city";
 
-  const useDadJoke = routeLoader$(async () => {
+  export const useDadJoke = routeLoader$(async () => {
     const response = await fetch("https://icanhazdadjoke.com/", {
       headers: { Accept: "application/json" },
     });
@@ -208,7 +208,7 @@ To declare state:
    </button>
    ```
 
-NOTE: 
+NOTE:
 - Clicking on the button will update the state and the UI will be updated.
 
 <CodeExample src={Step_04} sandboxStyle={{height: '10em'}}/>
@@ -264,7 +264,7 @@ To add styles:
    div {
      font-weight: bold;
    }
- 
+
    form {
      float: right;
    }
@@ -302,7 +302,7 @@ To create a preview build:
 
 NOTE:
 - Your application should have a production build now and be running on a different port.
-- If you interact with the application now, the network tab of the dev tools should show that the bundles are instantly delivered from the [ServiceWorker cache](/docs/advanced/speculative-module-fetching/). 
+- If you interact with the application now, the network tab of the dev tools should show that the bundles are instantly delivered from the [ServiceWorker cache](/docs/advanced/speculative-module-fetching/).
 
 ## Review
 

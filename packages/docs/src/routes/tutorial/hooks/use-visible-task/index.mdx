@@ -18,9 +18,9 @@ Use `useVisibleTask$()` to execute code after the component is resumed. This is 
 
 Qwik is resumable. Resumability means that the application starts on the server and then is transferred to the client. On the client, the application continues execution from where it left off. A common use case is creating a component on the server, pausing, and then resuming on the client. To make the component fully functional, it may be necessary to execute code eagerly on the client to set up timers or streams.
 
-`useVisibleTask$()` is a client only method. (There is no equivalent on the server.)
+`useVisibleTask$()` is a client-only method. (There is no equivalent on the server.)
 
-> **NOTE** See [`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) for behavior that needs to be executed on both client and server.
+> **NOTE** See [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) for behavior that needs to be executed on both client and server.
 
 ## When is `useVisibleTask$()` executed?
 

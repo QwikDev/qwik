@@ -1,4 +1,5 @@
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 
 export default component$(() => {
   const isUppercase = useSignal(false);
@@ -9,7 +10,10 @@ export default component$(() => {
     const value = track(() =>
       isUppercase.value ? text.value.toUpperCase() : text.value.toLowerCase()
     );
-    delay(500).then(() => (delayText.value = value));
+    const update = () => (delayText.value = value);
+    isServer
+      ? update() // don't delay on server render value as part of SSR
+      : delay(500).then(update); // Delay in browser
   });
 
   return (

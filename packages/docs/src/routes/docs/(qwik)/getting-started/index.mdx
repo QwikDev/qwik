@@ -148,7 +148,7 @@ To declare an action:
   ```tsx
   import {routeAction$, Form} from "@builder.io/qwik-city";
 
-  const useJokeVoteAction = routeAction$((props) => {
+  export const useJokeVoteAction = routeAction$((props) => {
     // Leave it as an exercise for the reader to implement this.
     console.log("VOTE", props);
   });

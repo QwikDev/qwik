@@ -5,11 +5,12 @@ contributors:
   - manucorporat
   - manuelsanchezweb
   - manuelsanchez2
+  - the-r3aper7
 ---
 
 # PostCSS
 
-PostCSS allows developers to write modern CSS while still maintaining backwards compatibility and improving performance. It parses CSS code and passes it through a series of plugins that can modify, optimize, and extend the CSS before outputting the final result. [PostCSS Website](https://postcss.org/)
+[PostCSS](https://postcss.org/) allows developers to write modern CSS while still maintaining backwards compatibility and improving performance. It parses CSS code and passes it through a series of plugins that can modify, optimize, and extend the CSS before outputting the final result.
 
 ## Usage
 
@@ -19,12 +20,40 @@ You can add PostCSS to your project by using the following Qwik starter script:
 npm run qwik add postcss
 ```
 
-The previous command updates your app and sets the correct configuration in `vite.config.ts`.
+This will create a new `postcss.config.js` file at the root of the project with following dependencies and configuration.
 
-It also adds a new file in your `src` folder.
+- [Autoprefixer](https://github.com/postcss/autoprefixer)
+- [PostCSS Preset Env](https://preset-env.cssdb.org/)
 
-- `postcss.config.js`
-
+```javascript
+module.exports = {
+  plugins: {
+    autoprefixer: {},
+    "postcss-preset-env": {
+      stage: 3,
+      features: {
+        "nesting-rules": true,
+      },
+    },
+  },
+}
 ```
 
+If you wish to add a new plugin like [CssNano](https://cssnano.co/) run the following command and update the `postcss.config.js`.
+
+```shell
+npm install cssnano --save-dev
 ```
+
+```javascript
+module.exports = {
+  plugins: {
+    /* previous plugin configuration  */
+    "cssnano": {
+      preset: "default"
+    }
+  },
+}
+```
+
+For further documentation, checkout [PostCSS Docs](https://postcss.org/docs/)

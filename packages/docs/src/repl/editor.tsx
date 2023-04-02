@@ -4,7 +4,7 @@ import {
   type PropFunction,
   useVisibleTask$,
   useContext,
-  useRef,
+  useSignal,
   useStore,
   useTask$,
 } from '@builder.io/qwik';
@@ -20,7 +20,7 @@ import type { ReplAppInput, ReplStore } from './types';
 import { GlobalStore } from '../context';
 
 export const Editor = component$((props: EditorProps) => {
-  const hostRef = useRef();
+  const hostRef = useSignal<Element>();
 
   const store = useStore<EditorStore>({
     editor: undefined,
@@ -33,7 +33,7 @@ export const Editor = component$((props: EditorProps) => {
 
   useVisibleTask$(async () => {
     if (!store.editor) {
-      await initMonacoEditor(hostRef.current, props, store, props.store);
+      await initMonacoEditor(hostRef.value, props, store, props.store);
     }
     return () => {
       if (store.editor) {
@@ -43,7 +43,7 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useVisibleTask$(({ track }) => {
-    track(globalStore, 'theme');
+    track(() => globalStore.theme);
     if (globalStore.theme !== 'auto') {
       store.editor?.updateOptions({
         theme: getEditorTheme(globalStore.theme === 'dark'),

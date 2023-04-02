@@ -1,62 +1,52 @@
-.browser {
-  border: 1px solid currentColor;
-  border-radius: 8px;
-  padding: 4px;
-  background-color: #eee;
-}
-
-.iframe {
-  border: 1px solid currentColor;
-  margin-top: 4px;
-  border-radius: 4px;
-}
-
-iframe {
+.browser iframe {
   margin: 0;
   padding: 8px;
   border: none;
 }
-:global(:root[data-theme='dark']) iframe,
-:global(:root[data-theme='dark']) .url {
-  background-color: black;
+
+:global(:root[data-theme='dark']) .browser iframe {
+  border: 1px solid #333;
+  border-top: none;
 }
 
-:global(:root[data-theme='light']) iframe,
-:global(:root[data-theme='light']) .url {
-  background-color: white;
+:global(:root[data-theme='dark']) .browser .bar {
+  background-color: #1f1f1f;
 }
 
-.bar {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+:global(:root[data-theme='dark']) .browser .url {
+  background-color: #161616;
 }
 
-.bar > ol {
+.browser .bar > ul {
   display: flex;
   flex-direction: row;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-family: math;
-}
-.bar > ol > li {
-  display: inline-block;
-  text-align: center;
-  vertical-align: middle;
-  margin: 2px;
-  color: black;
-}
-.bar > a {
-  margin-left: 1em;
-  padding: 4px 8px;
+  align-items: center;
+  gap: 8px;
 }
 
-.url {
-  border: 1px solid gray;
-  display: inline-block;
-  font-size: small;
-  width: 100%;
-  white-space: nowrap;
-  overflow: scroll;
+.browser .bar > ul > li {
+  margin: 0;
+  padding: 0;
+}
+
+.browser .bar > ul > li.edit {
+  position: relative;
+  top: -2px;
+}
+.browser .bar > ul > li.edit > a {
+  color: #666;
+}
+.browser .bar > ul > li.edit > a:hover {
+  color: #222;
+}
+:global(:root[data-theme='dark']) .browser .bar > ul > li.edit > a:hover {
+  color: #aaa;
+}
+
+.browser .url .url-link {
+  text-decoration: none;
+  color: #666;
 }

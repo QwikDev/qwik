@@ -66,8 +66,7 @@ export default defineConfig(() => {
                         childNode.properties.className = '';
                       });
                     }
-                    node.properties.style =
-                    `background-color: ${backgroundColor}; color: ${color};`;
+                    node.properties.style = `background-color: ${backgroundColor}; color: ${color};`;
                   }
                 },
               },

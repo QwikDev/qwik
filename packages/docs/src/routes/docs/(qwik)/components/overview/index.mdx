@@ -98,11 +98,11 @@ export default component$(() => {
 
 ## Props
 
-Props are used to pass data into the component. Props are declared as named arguments of the component.
+Props are used to pass data from the parent into the component. Props are accesible via the `props` argument to the component$ function.
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-```tsx {3-8, 25} /ItemProps/
+```tsx {3-8, 25} /ItemProps/ /props/#a
 import { component$ } from '@builder.io/qwik';
 
 interface ItemProps {
@@ -112,13 +112,13 @@ interface ItemProps {
   price?: number;
 }
 
-export const Item = component$<ItemProps>(({ name, quantity, description, price }) => {
+export const Item = component$<ItemProps>((props) => {
   return (
     <ul>
-      <li>name: {name}</li>
-      <li>quantity: {quantity}</li>
-      <li>description: {description}</li>
-      <li>price: {price}</li>
+      <li>name: {props.name}</li>
+      <li>quantity: {props.quantity}</li>
+      <li>description: {props.description}</li>
+      <li>price: {props.price}</li>
     </ul>
   );
 });
@@ -131,9 +131,11 @@ export default component$(() => {
     </>
   );
 });
-
 ```
+
 <CodeSandbox src={Props} sandboxStyle={{ height: '10em' }} />
+
+> In the example above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
 
 ## Rendering on Reactivity
 

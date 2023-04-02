@@ -15,82 +15,82 @@ contributors:
 
 # Rendering
 
-Rendering is the process of updating the DOM based on
+Rendering is the process of updating the DOM based on changes in the state of the application and the component templates.
 
-1. Changes in the state of the application
-2. Component templates
+Qwik is unique because it knows how to render templates out-of-order asynchronously and in a fine-grained manner.
 
-Qwik is unique because it knows how to render templates out-of-order and asynchronously.
-
-- **Out-of-order**: this means that Qwik does not require that the parent component or child component must also be rendered when rendering a component.
-- **Asynchronously**: this means that Qwik's `render` function understands that it may need to download child components, and therefore the rendering operation is asynchronous.
-
-Simple counter-example:
-
-```tsx
-import { component$, useSignal } from '@builder.io/qwik';
-
-export const Counter = component$(() => {
-  const count = useSignal(0);
-
-  return <button onClick$={() => count.value++}>{count.value}</button>;
-});
-```
-
-Once rendered, the HTML fragment may look something like this:
-
-```html
-<div>
-  <button q:obj="123" on:click="./chunk-a.js#Counter_button_click[0]">0</button>
-</div>
-```
-
-For more explanation see :
-
-- `$`, see [The Dollar $ Sign)](../../advanced/dollar/index.mdx).
-- Checkout [Optimizer Rules](../../advanced/optimizer/index.mdx).
-- `q:obj`, see [Serialization](../../concepts/resumable/index.mdx).
-- `on:click`, see [Qwikloader](../../advanced/qwikloader/index.mdx).
 
 ## JSX
 
-Qwik uses JSX to express the component's template. JSX discussion is outside of the scope of this document, but Qwik JSX should feel very familiar if you have used JSX with other frameworks. For this reason, let's focus on how Qwik JSX is different.
+Just like React, Qwik uses [JSX](https://facebook.github.io/jsx/) to express the component's template. Notice that JSX is only syntax, under the hood, React and Qwik are completely different. **JSX != VDOM**.
+
+Qwik presents a few differences from other JSX frameworks:
+
+- Components are always declared with the `component$` function.
+- Components can use the `useSignal` hook to create reactive state.
+- Event handlers are declared with the `$` suffix.
+- For `<input>`, the `onChange` event is called `onInput$` in Qwik.
+- HTML attributes are prefered. `class` instead of `className`. `for` instead of `htmlFor`.
+
+```tsx /component$/#a /onClick$/#b /class/#c
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const MyComponent = component$((props) => {
+  const count = useSignal(0);
+  return (
+    <>
+      <button
+        onClick$={() => {
+          count.value = count.value + props.step;
+        }}
+      >
+        Increment by {props.step}
+      </button>
+      <main
+        class={{
+          even: count.value % 2 === 0, // conditional class
+          omode: count.value % 2 === 1,
+        }}
+      >
+        <h1>Count: {count.value}</h1>
+      </main>
+    </>
+  );
+});
+```
+
 
 ## Rendering child components
 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
-```tsx
+```tsx {9} /Child/#a
 import { component$, useSignal } from '@builder.io/qwik';
 
 export const Parent = component$(() => {
   const count = useSignal(0);
-  const step = useSignal(1);
 
   return (
     <>
-      <button onClick$={() => (step.value *= -1)}>direction</button>
-      <button onClick$={() => (count.value += step.value)}>{step.value}</button>
-      <Greeter name={'World_' + count.value} />
+      <button onClick$={() => (count.value += 1)}>Increment</button>
+      <Child name={'World_' + count.value} />
     </>
   );
 });
 
-export const Greeter = component$((props: { name: string }) => {
+export const Child = component$((props: { name: string }) => {
   return <span>Hello {props.name}</span>;
 });
 ```
 
-In the above example, there are two buttons:
+> In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only be re-render when the count signals changes.
 
-1. Clicking the first button changes the direction of the counter (`store.step` flips between `+1` and `-1`). Changing the `store` requires that the component's `OnRender` function executes. The resulting JSX updates the DOM to show `+1` and `-1`. However, changing the direction will not change the props on `<Greeter name={'World_' + store.count}/>`. For this reason, Qwik will not descend into the `<Greeter>` component, and therefore the `Greeter`'s template does not need to be downloaded or executed. Such aggressive pruning allows Qwik to minimize the amount of code that needs to be present to render a component.
-2. Clicking the second button increments (or decrements) `store.count`. This in turn causes the props on `<Greeter name={'World_' + store.count}/>` to change. A change in props means that Qwik will also descend and render `<Greeter>`. However, it is possible that Qwik does not have a reference to the child component. In that case, Qwik will lazy-load the component and continue the rendering once the component's render function is available.
 
-### Rendering with `.map()`
+### Rendering a list of items
 
-In many cases you'll want to render components by mapping an array in the render function with `data.map()`. In these cases, it is required to provide a key to the first child of the mapping function.
+In many cases you'll want to render components by mapping an array in the render function with `items.map()`. It is required for every item of the list to have a unique `key` property passed to the first child of the mapping function. The `key` must be a string, or number and must be unique within the list.
 
-```tsx
+```tsx {6} /data.map/ /key/#a
 import { component$ } from '@builder.io/qwik';
 
 export const Parent = component$(() => {
@@ -106,22 +106,52 @@ export const Parent = component$(() => {
 });
 ```
 
-> note: it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
+> **Note:** it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
+
+### Rendering conditionally
+
+Conditional rendering is done with the Javascipt [ternary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator) `?`, the `&&` operator, or just by using `if` statements.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  const show = useSignal(false);
+  return (
+    <>
+      <button onClick$={() => show.value = !show.value}>Toggle</button>
+      {show.value ? <h1>Visible</h1> : <h1>Hidden</h1>}
+      {show.value && <div>Only show when it's visible</div>}
+    </>
+  );
+});
+```
 
 ### `dangerouslySetInnerHTML`
 
 Qwik offers an attribute on HTML Elements called `dangerouslySetInnerHTML` as a replacement for calling `innerHTML` on the DOM. Due to cross-site-scripting (XSS) possibilities when rendering not trustworthy content, you must use this attribute to remind yourself that this operation might be dangerous.
 
 ```tsx
-<div dangerouslySetInnerHTML={content}></div>
+<div dangerouslySetInnerHTML={htmlString}></div>
 ```
 
-## `render()` is async
+## Async rendering
 
-The above examples demonstrate why the rendering process must be asynchronous. It is important that the rendering pipeline can lazy load child components. Lazy loading is an asynchronous operation; therefore, rendering needs to be asynchronous. In practice, this means that the `render()` function returns a promise.
+It is important that the rendering pipeline can lazy load child components. Lazy loading is an asynchronous operation; therefore, rendering needs to be asynchronous. In practice, this means that the `render()` function returns a promise.
 
 Most current-generation frameworks have a synchronous `render()` process. Synchronous rendering can't easily deal with asynchronous code loading, so synchronous rendering necessitates that all dependant components are eagerly present before rendering can commence.
 
-## DOM update buffering
+## Render batching
 
-The asynchronous nature of `render()` means that users may see an intermediate rendering of the UI as components download. Seeing an intermediate state is undesirable; therefore, Qwik will buffer all DOM updates and only flush the DOM operations once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps.
+Whenever the state of the application changes, Qwik will schedule a render operation. The render operation will be scheduled to run after a macro-task (e.g. `setTimeout(0)`). This allows the application to batch multiple state changes into a single render operation.
+
+In addition, because of the asynchronous nature of Qwik, all DOM writes are buffered and only flushed once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps, even if the application is slow to render.
+
+The end goal is to enable performance and consistent rendering, even in the context of fast changing state and slow network.
+
+## Fine-grained reactivity
+
+Thanks to the fine-grained reactivity of Qwik, only the components that depend on the state will be updated. This is a big performance gain for two reasons:
+
+1. Less code to execute means application updates will render faster.
+2. Less code to execute means oftentimes the code does not have to be downloaded on application startup (or ever).

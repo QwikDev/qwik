@@ -50,10 +50,6 @@ Use `useSignal()` to create a reactive signal (a form of state). The `useSignal(
 
 The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
 
-### Example
-
-This example shows how `useSignal()` can be used in a counter component to keep track of the count.
-
 ```tsx {4} /count/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -70,7 +66,7 @@ export default component$(() => {
 ```
 <CodeSandbox src={CounterSignal} sandboxStyle={{ height: '6em' }} />
 
-Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
+This example above shows how `useSignal()` can be used in a counter component to keep track of the count. Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
 
 ## `useStore()`
 
@@ -80,11 +76,7 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 
 > **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
 
-### Example
-
-This example shows how `useStore()` can be used in a counter component to keep track of the count.
-
-```tsx {4} /state/
+```tsx {4} /state/ /count/#a
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -99,6 +91,8 @@ export default component$(() => {
 });
 ```
 <CodeSandbox src={CounterStore} sandboxStyle={{ height: '6em' }} />
+
+This example above shows how `useStore()` can be used in a counter component to keep track of the count.
 
 ### Recursive values
 
@@ -244,7 +238,7 @@ In Qwik there are two ways to create computed values, each with a different use 
 
 The way to think about the above is that they observe the existing state, and when the state changes the computed value is recomputed. The result is a newly computed value which is a signal returned from `useComputed$()` or `useResource$()`.
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/lifecycle/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.:
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/tasks/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.:
 
 ### `useComputed$()`
 

@@ -30,7 +30,7 @@ Slots in Qwik are symbolic, allowing Qwik to render parents and children in perf
 
 The main API to achieve this is the `<Slot>` component, exported in `@builder.io/qwik`:
 
-```tsx
+```tsx {6} /Slot/
 import { Slot, component$ } from '@builder.io/qwik';
 
 export const Button = component$(() => {

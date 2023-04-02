@@ -28,7 +28,7 @@ import UseOn from 'source:/src/routes/demo/events/use-on/index.tsx';
 
 For a web application to be interactive, there needs to be a way to respond to user events. This is done by registering callback functions in the JSX template. Event handlers are registered using the `on{EventName}$` attribute. For example, the `onClick$` attribute is used to listen for `click` events.
 
-```tsx
+```tsx /onClick$/
 <button onClick$={() => alert('CLICKED!')}>click me!</button>
 ```
 
@@ -36,7 +36,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
-```tsx {8}
+```tsx {9} /onClick$/
 import { component$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -44,8 +44,11 @@ export default component$(() => {
 
   return (
     <>
-      <button onClick$={() => count.value++}>Increment</button>
-      <div>Count: {count.value}</div>
+      <button
+        onClick$={() => count.value++}
+      >
+        Increment {count.value}
+      </button>
     </>
   );
 });
@@ -62,7 +65,7 @@ If we want to reuse the same event handler for multiple elements or event, we mu
 
 For instance, the above example could also be written in the following way:
 
-```tsx {8}
+```tsx {5} /increment/#a
 import { component$, useSignal, $ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -142,20 +145,20 @@ Because event handling is asynchronous, you can't use `event.currentTarget`. To 
 import { component$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
-  const currentTargetElm = useSignal<HTMLElement|null>(null);
+  const currentElm = useSignal<HTMLElement|null>(null);
   const targetElm = useSignal<HTMLElement|null>(null);
 
   return (
     <div onClick$={(event, currentTarget) => {
-      currentTargetElm.value = currentTarget;
+      currentElm.value = currentTarget;
       targetElm.value = event.target as HTMLElement;
     }}>
-      Click on any text <code>target</code> and <code>currentTarget</code> of the event.
+      Click on any text <code>target</code> and <code>currentElm</code> of the event.
       <hr/>
       <span>Hello <b>World</b>!</span>
       <hr/>
       <ul>
-        <li>currentTarget: {currentTargetElm.value?.tagName}</li>
+        <li>currentElm: {currentElm.value?.tagName}</li>
         <li>target: {targetElm.value?.tagName}</li>
       </ul>
     </div>
@@ -172,12 +175,13 @@ In some cases, it is necessary to handle an event traditionally, because some AP
 
 To do this, we can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
 
-```tsx
+```tsx {7-20}
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
 export default component$(() => {
   const draggableRef = useSignal<HTMLElement>();
   const dragStatus = useSignal('');
+
   useVisibleTask$(({ cleanup }) => {
     if (draggableRef.value) {
       // Use the DOM API to add an event listener.

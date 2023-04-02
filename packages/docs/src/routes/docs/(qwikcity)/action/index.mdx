@@ -9,12 +9,11 @@ contributors:
 
 # `routeAction$()`
 
-Actions are similar to [loaders](/qwikcity/loader/) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
+Actions are similar to [loaders](/docs/(qwikcity)/route-loader/index.mdx) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
 
 ## Declaring an action
 
 Actions can be declared using the `routeAction$()` or `globalAction$()`. Essencially, the do the same thing and share exactly the same API, the only difference between the two is that `routeAction$()` is scoped to a route, while `globalAction$()` is globally available across the whole app.
-
 
 - `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$(). Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
@@ -24,7 +23,7 @@ export const useChangePassword = routeAction$((data) => {
 });
 ```
 
-- `globalAction$()` however, can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user.  Think about it like a "public" action.
+- `globalAction$()` however, can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user. Think about it like a "public" action.
 
 ```tsx
 export const useLogin = globalAction$((data) => {

@@ -37,10 +37,9 @@ Originally it was called _qoot_, but we thought it would be too hard to search f
 
 ## How is Qwik different from other frameworks?
 
-Qwik is the first framework that has similar DX (Developer Experience) as *React*, *Vue* or *Svelte* in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this property, but removing completely the need for hydration, instead, Qwik applications immediate execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
+Qwik is the first framework that has similar DX (Developer Experience) as _React_, _Vue_ or _Svelte_ in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this property, but removing completely the need for hydration, instead, Qwik applications immediate execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
 
 The outcome is that developers write extremely performant application by default, without even having worry about it. Applications built with Qwik are fast regardless of the amount of components or complexity, they are O(1) (constant time) in terms of JS payload.
-
 
 ## Why another framework?
 
@@ -52,7 +51,7 @@ The short answer is that Qwik solves a problem that other frameworks can't solve
 
 ## Is Qwik complicated to learn?
 
-We designed Qwik to be [extremely easy to learn](/docs/(qwik)/cheat/qwik-react/) and become productive in for React developers. Component authoring is pretty much the same as React, and routing is inspired by Nextjs and others.
+We designed Qwik to be [extremely easy to learn](/docs/(qwikcity)/guides/qwik-react/index.mdx) and become productive in for React developers. Component authoring is pretty much the same as React, and routing is inspired by Nextjs and others.
 
 However, there are fundamentally [new concepts](../think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx) and fine-grained reactivity, but we think the learning curve is not steep.
 
@@ -111,7 +110,6 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 ```
 
 > Note: The `$` is not related to `jQuery`, Svelte or any other framework.
-
 
 ## Does Qwik download JS when the user interacts?
 

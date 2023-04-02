@@ -20,7 +20,7 @@ The tutorials are broken up into these sections:
 - [Reactivity](../../reactivity/template/index.mdx): A deep dive into how reactivity works and how it can be used to build a more complex application.
 - [Context](../../context/basic/index.mdx): Making data globally available to your application through context.
 - [Lifecycle Hooks](../../hooks/use-task/index.mdx): Component life-cycle hooks.
-- [Projection](../../projection/basic/index.mdx): A deep dive into how projection works and how to use it in more complex scenarios.
+- [Slots](../../slots/basic/index.mdx): A deep dive into how content projection works and how to use it in more complex scenarios.
 - [Styling](../../style/styles/index.mdx): Styling your application with CSS.
 - [Optimizer](../../qrl/optimizer/index.mdx): Understanding the Optimizer constraints.
 - [Composing new APIs](../../composing/dollar/index.mdx): Composing new `use___()` and `$` APIs for your application.

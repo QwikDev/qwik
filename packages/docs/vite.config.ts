@@ -5,6 +5,7 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import rehypePrettyCode from 'rehype-pretty-code';
 
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
@@ -22,11 +23,56 @@ export default defineConfig(() => {
     },
     plugins: [
       qwikCity({
-        // mdx: {
-        //   remarkPlugins: [
-        //     remarkCodeSnippets()
-        //   ],
-        // }
+        mdxPlugins: {
+          rehypeSyntaxHighlight: false,
+          remarkGfm: true,
+          rehypeAutolinkHeadings: true,
+        },
+        mdx: {
+          rehypePlugins: [
+            [
+              rehypePrettyCode,
+              {
+                theme: 'dark-plus',
+                onVisitLine(node) {
+                  // Prevent lines from collapsing in `display: grid` mode, and
+                  // allow empty lines to be copy/pasted
+                  if (node.children.length === 0) {
+                    node.children = [{ type: 'text', value: ' ' }];
+                  }
+                },
+                onVisitHighlightedLine(node) {
+                  // Each line node by default has `class="line"`.
+                  node.properties.className.push('line--highlighted');
+                },
+                onVisitHighlightedWord(node, id) {
+                  // Each word node has no className by default.
+                  node.properties.className = ['word'];
+                  if (id) {
+                    const backgroundColor = {
+                      a: 'rgb(196 42 94 / 59%)',
+                      b: 'rgb(0 103 163 / 56%)',
+                      c: 'rgb(100 50 255 / 35%)',
+                    }[id];
+
+                    const color = {
+                      a: 'rgb(255 225 225 / 100%)',
+                      b: 'rgb(175 255 255 / 100%)',
+                      c: 'rgb(225 200 255 / 100%)',
+                    }[id];
+                    if (node.properties['data-rehype-pretty-code-wrapper']) {
+                      node.children.forEach((childNode) => {
+                        childNode.properties.style = ``;
+                        childNode.properties.className = '';
+                      });
+                    }
+                    node.properties.style = `background-color: ${backgroundColor}; color: ${color};`;
+                  }
+                },
+              },
+            ],
+          ],
+        },
       }),
       qwikVite({
         entryStrategy: {

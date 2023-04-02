@@ -70,8 +70,7 @@ src/
 
 > The folder `[username]` can be any of the thousands of users that you have in your database. It would be impractical to create a route for each user. Instead, you need to define a Route Parameter (a part of the URL) that will be used to extract the `[username]`.
 
-```tsx
-// src/routes/user/[username]/index.tsx
+```tsx title="src/routes/user/[username]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -91,8 +90,7 @@ Pages/endpoints are the leaf nodes of the routing tree, ie, **the modules that w
 
 When `index.tsx` or `index.ts` exports a Qwik component as the default export, Qwik City will render the component and return an HTML response as a webpage.
 
-```tsx
-// src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -104,8 +102,7 @@ export default component$(() => {
 
 A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending on if you only want to handle a specific request given its HTTP method.
 
-```tsx
-// src/routes/index.ts
+```tsx title="src/routes/index.ts"
 import { component$ } from '@builder.io/qwik';
 
 export const onGet = ({ json }) => {
@@ -119,8 +116,7 @@ export const onGet = ({ json }) => {
 
 As you can see in Qwik City there is no clear separation between pages and endpoints, in both cases, it's a `index.tsx` file that exports a Qwik component or an `onRequest` method. However, it's possible to combine both approaches. For example, you can export a `onRequest` method that will handle the request, and then render a Qwik component.
 
-```tsx
-// src/routes/index.ts
+```tsx title="src/routes/index.ts"
 import { component$ } from '@builder.io/qwik';
 
 export const onRequest = ({ headers, query, json }) => {

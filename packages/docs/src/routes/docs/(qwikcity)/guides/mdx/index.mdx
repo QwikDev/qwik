@@ -23,9 +23,8 @@ src/
             └── index.mdx    # https://example.com/some/path
 ```
 
-```Markdown
+```Markdown title="src/routes/some/path/index.mdx"
 ---
-# File: src/routes/some/path/index.mdx
 title: Hello World Title
 ---
 
@@ -49,9 +48,8 @@ src/
             └── index.mdx    # https://example.com/some/path
 ```
 
-```Markdown
+```Markdown title="src/routes/some/path/index.mdx"
 ---
-# File: src/routes/some/path/index.mdx
 title: Hello World Title
 ---
 import { Counter } from "../../../components/counter/counter";
@@ -62,8 +60,7 @@ This is a simple hello world component.
 
 ```
 
-```tsx
-// File: src/components/counter/counter.tsx
+```tsx title="src/components/counter/counter.tsx"
 import { component$, useSignal } from '@builder.io/qwik';
 
 export const Counter = component$(() => {

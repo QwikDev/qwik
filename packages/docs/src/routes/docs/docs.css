@@ -180,22 +180,36 @@ h6 a:hover .icon {
   font-weight: 800;
 }
 
-.docs article pre {
+[data-rehype-pretty-code-fragment] {
   overflow: auto;
   color: white;
   background-color: rgb(1 31 51);
-  padding: 18px 15px;
   border-radius: 8px;
   margin: 20px 0;
 }
 
+[data-rehype-pretty-code-title] {
+  padding: 5px 15px;
+  background: #4199d3;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.docs article pre {
+  padding: 18px 15px;
+}
+
+:root {
+  --code-line-height: 24px;
+}
+
 .docs article pre code {
-  display: block;
-  max-width: 50px;
+  display: grid;
+  counter-reset: line;
   background-color: transparent;
-  line-height: 1.26;
   border: none;
   user-select: auto;
+  line-height: 1.28;
 }
 
 .docs article code {

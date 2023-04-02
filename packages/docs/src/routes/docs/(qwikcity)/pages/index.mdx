@@ -29,8 +29,7 @@ src/
             └── index.tsx              # https://example.com/some/path
 ```
 
-```tsx
-// File: src/routes/some/path/index.tsx
+```tsx title="src/routes/some/path/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 // Notice the default export
@@ -57,8 +56,7 @@ src/
 Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/(qwik)/components/overview/index.mdx).
 The following component will be rendered at `https://example.com/some/path` according to the directory-structure, we have set up above.
 
-```tsx
-// File: src/routes/some/path/index.tsx
+```tsx title="src/routes/some/path/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import Heading from '../../../components/heading';
 import SubComponent from './sub_component';
@@ -74,8 +72,7 @@ export default component$(() => {
 });
 ```
 
-```tsx
-// File: src/components/heading.tsx
+```tsx title="src/components/heading.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -83,8 +80,7 @@ export default component$(() => {
 });
 ```
 
-```tsx
-// File: src/routes/some/path/sub_component.tsx
+```tsx title="src/routes/some/path/sub_component.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -96,9 +92,7 @@ export default component$(() => {
 
 HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly, yet you still need to control its content. This can be achieved by exporting a `head` property (or function) from your page component.
 
-```tsx
-// src/routes/index.tsx
-
+```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -122,8 +116,7 @@ export const head = {
 
 In the example above, the `head` is static. However, you can also export a function that returns a `DocumentHead` object. This allows you to dynamically set the title of the page based on the data that is retrieved from `loaders` or request handlers that executed before the page component is rendered.
 
-```tsx
-// src/routes/product/[productId]/index.tsx
+```tsx title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { DocumentHead } from '@builder.io/qwik-city';
@@ -173,15 +166,13 @@ An advanced case is that a [layout](/docs/(qwikcity)/layout/index.mdx) may want 
     └─layout.tsx
 ```
 
-```tsx
-// File: src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 export const head: DocumentHead = {
   title: `Foo`,
 };
 ```
 
-```tsx
-// File: src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 export const head: DocumentHead<EndpointData> = ({ head }) => {
   return {
     title: `MyCompany - ${head.title}`,

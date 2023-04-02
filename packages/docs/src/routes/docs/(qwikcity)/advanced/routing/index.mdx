@@ -189,8 +189,7 @@ In this case, the layouts will nest each other with the page within each of them
 └────────────────────────────────────────────────┘
 ```
 
-```tsx
-// File: src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -202,8 +201,7 @@ export default component$(() => {
 });
 ```
 
-```tsx
-// File: src/routes/about/layout.tsx
+```tsx title="src/routes/about/layout.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -215,8 +213,7 @@ export default component$(() => {
 });
 ```
 
-```tsx
-// File: src/routes/about/index.tsx
+```tsx title="src/routes/about/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {

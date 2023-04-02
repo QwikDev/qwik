@@ -35,6 +35,8 @@
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
     "puppeteer": "^19.8.0",
+    "rehype-pretty-code": "^0.9.4",
+    "shiki": "^0.14.1",
     "tailwindcss": "3.3.1",
     "tsm": "2.3.0",
     "typescript": "5.0.3",

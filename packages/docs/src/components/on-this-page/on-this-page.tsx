@@ -6,6 +6,52 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
 import { EditIcon } from '../svgs/edit-icon';
 
+const makeEditPageUrl = (url: string): string => {
+  const qwikDocsPathnames = [
+    'advanced',
+    'components',
+    'concepts',
+    'faq',
+    'getting-started',
+    'think-qwik',
+    'docs', // for docs/(qwik)/index.mdx
+  ];
+
+  const advancedQwikCityPathnames = [
+    'environment-variables',
+    'menu',
+    'request-handling',
+    'routing',
+    'speculative-module-fetching',
+    'static-assets',
+  ];
+
+  const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
+
+  if (!(urlPathnames.length >= 2)) {
+    urlPathnames.splice(1, 0, '(qwik)');
+    return urlPathnames.join('/');
+  }
+
+  const qwikDocsPathname = urlPathnames.at(1) as string;
+
+  if (qwikDocsPathname.includes('advanced')) {
+    // since we advanced named folder in (qwik) and (qwikcity) this will ensure both are not conflicting.
+    const advancedDocsPathname = urlPathnames.at(2) as string;
+    const isQwikCityPath = advancedQwikCityPathnames.includes(advancedDocsPathname);
+
+    !isQwikCityPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
+
+    return urlPathnames.join('/');
+  }
+
+  const isQwikPath = qwikDocsPathnames.includes(qwikDocsPathname);
+
+  isQwikPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
+
+  return urlPathnames.join('/');
+};
+
 export const OnThisPage = component$(() => {
   useStyles$(styles);
 
@@ -13,7 +59,10 @@ export const OnThisPage = component$(() => {
   const contentHeadings = headings?.filter((h) => h.level <= 3) || [];
 
   const { url } = useLocation();
-  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes${url.pathname}index.mdx`;
+
+  const githubEditRoute = makeEditPageUrl(url.pathname);
+
+  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   return (
     <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem] xl:top-[14rem]">

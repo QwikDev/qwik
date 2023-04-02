@@ -57,8 +57,7 @@ src/
 
 It will be used for all routes under the `src/routes` directory. It will render the `Header`, `Menu`, and `Footer` components, and also render the nested routes under the `Slot` component.
 
-```tsx
-// File: src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -77,8 +76,7 @@ export default component$(() => {
 
 This is the main route for the site. It will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
 
-```tsx
-// File: src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -90,8 +88,7 @@ export default component$(() => {
 
 Same as the `src/routes/index.tsx` file, but for the `about` route, similary it will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
 
-```tsx
-// File: src/routes/about/index.tsx
+```tsx title="src/routes/about/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {

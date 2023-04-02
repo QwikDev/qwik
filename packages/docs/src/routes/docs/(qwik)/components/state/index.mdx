@@ -50,11 +50,7 @@ Use `useSignal()` to create a reactive signal (a form of state). The `useSignal(
 
 The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
 
-### Example
-
-This example shows how `useSignal()` can be used in a counter component to keep track of the count.
-
-```tsx
+```tsx {4} /count/
 import { component$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -70,7 +66,7 @@ export default component$(() => {
 ```
 <CodeSandbox src={CounterSignal} sandboxStyle={{ height: '6em' }} />
 
-Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
+This example above shows how `useSignal()` can be used in a counter component to keep track of the count. Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
 
 ## `useStore()`
 
@@ -80,11 +76,7 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 
 > **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
 
-### Example
-
-This example shows how `useStore()` can be used in a counter component to keep track of the count.
-
-```tsx
+```tsx {4} /state/ /count/#a
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -99,6 +91,8 @@ export default component$(() => {
 });
 ```
 <CodeSandbox src={CounterStore} sandboxStyle={{ height: '6em' }} />
+
+This example above shows how `useStore()` can be used in a counter component to keep track of the count.
 
 ### Recursive values
 
@@ -178,16 +172,18 @@ There are two ways to pass state to other components:
 
 The simplest way to pass the state to other components is to pass it through props.
 
-```tsx
+```tsx {9} /userData=/
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const userData = useStore({ count: 0 });
-
   return <Child userData={userData} />;
 });
 
-export const Child = component$<{ userData: { count: number } }>(({ userData }) => {
+interface ChildProps {
+  userData: { count: number };
+}
+export const Child = component$<ChildProps>(({ userData }) => {
   return (
     <>
       <button onClick$={() => userData.count++}>Increment</button>
@@ -204,14 +200,8 @@ The context API is a way to pass state to components without having to pass it t
 
 Check the [context API](../context/index.mdx) for more information.
 
-```tsx
-import {
-  component$,
-  createContextId,
-  useContext,
-  useContextProvider,
-  useStore,
-} from '@builder.io/qwik';
+```tsx {4,10,16} /userData/
+import { component$, createContextId, useContext, useContextProvider, useStore } from '@builder.io/qwik';
 
 // Declare a context ID
 export const CTX = createContextId<{ count: number }>('stuff');
@@ -248,13 +238,13 @@ In Qwik there are two ways to create computed values, each with a different use 
 
 The way to think about the above is that they observe the existing state, and when the state changes the computed value is recomputed. The result is a newly computed value which is a signal returned from `useComputed$()` or `useResource$()`.
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/lifecycle/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/lifecycle/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.:
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/tasks/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.:
 
 ### `useComputed$()`
 
 Use `useComputed$` to create a computed value that can be derived synchronously from the existing application state.
 
-```tsx
+```tsx {5} /useComputed$/
 import { component$, useComputed$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -278,7 +268,7 @@ export default component$(() => {
 
 Use `useResource$()` to create a computed value that is derived asynchronously or requires an external state (such as talking to a REST endpoint.)
 
-```tsx
+```tsx {6} /useResource$/
 import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -327,7 +317,7 @@ Qwik ensures that all application state is always serializable. This is importan
 
 If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from server SSR. In such a situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
-```tsx
+```tsx /noSerialize/
 import { component$, useStore, noSerialize, useVisibleTask$ } from '@builder.io/qwik';
 import Monaco from './monaco';
 
@@ -340,7 +330,9 @@ export default component$(() => {
   useVisibleTask$(() => {
     // Monaco is not serializable, so we can't serialize it as part of SSR
     // We can however instantiate it on the client after the component is visible
-    setTimeout(() => (state.monacoInstance = noSerialize(new Monaco())), 1000);
+    setTimeout(() => {
+      state.monacoInstance = noSerialize(new Monaco())
+    }, 1000);
   });
   return <div>{state.monacoInstance ? <>'Monaco is loaded'</> : <>'loading...'</>}</div>;
 });

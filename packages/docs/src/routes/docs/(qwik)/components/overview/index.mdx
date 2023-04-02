@@ -43,7 +43,7 @@ A component is a small, reusable piece of code that can be used to build a UI.
 
 In Qwik, they are declared using the `component$` method:
 
-```tsx
+```tsx /component$/
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -58,7 +58,7 @@ export default component$(() => {
 
 Components can be composed together to create more complex components.
 
-```tsx
+```tsx {7}
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -102,17 +102,8 @@ Props are used to pass data into the component. Props are declared as named argu
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-```tsx
+```tsx {3-8, 25} /ItemProps/
 import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return (
-    <>
-      <h1>Props</h1>
-      <Item name="hammer" price={9.99} />
-    </>
-  );
-});
 
 interface ItemProps {
   name?: string;
@@ -131,6 +122,16 @@ export const Item = component$<ItemProps>(({ name, quantity, description, price 
     </ul>
   );
 });
+
+export default component$(() => {
+  return (
+    <>
+      <h1>Props</h1>
+      <Item name="hammer" price={9.99} />
+    </>
+  );
+});
+
 ```
 <CodeSandbox src={Props} sandboxStyle={{ height: '10em' }} />
 
@@ -149,13 +150,14 @@ A state change causes the component to get invalidated. When components get inva
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
 
-```tsx
+```tsx {6,19}
 import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const width = useSignal(0);
   const height = useSignal(0);
   const outputRef = useSignal<Element>();
+
   useVisibleTask$(() => {
     if (outputRef.value) {
       const rect = outputRef.value.getBoundingClientRect();
@@ -166,7 +168,10 @@ export default component$(() => {
 
   return (
     <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+      <div
+        ref={outputRef}
+        style={{ border: '1px solid red', width: '100px' }}
+      >
         Change text value here to stretch the box.
       </div>
       <div>
@@ -307,7 +312,7 @@ bundled with the parent component.
 
 ### Components
 
-- [`<Slot>`](../projection/index.mdx) - declares a content projection slot
+- [`<Slot>`](../slots/index.mdx) - declares a content projection slot
 - `<SSRStreamBlock>` - declares a stream block
 - `<SSRStream>` - declares a stream
 - `<Fragment>` - declares a JSX fragment

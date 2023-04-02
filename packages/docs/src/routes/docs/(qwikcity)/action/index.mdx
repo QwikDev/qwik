@@ -17,7 +17,7 @@ Actions can be declared using the `routeAction$()` or `globalAction$()`. Essenci
 
 - `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$(). Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
-```tsx
+```tsx title="src/routes/form/index.tsx"
 export const useChangePassword = routeAction$((data) => {
   // ...
 });
@@ -25,7 +25,7 @@ export const useChangePassword = routeAction$((data) => {
 
 - `globalAction$()` however, can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user. Think about it like a "public" action.
 
-```tsx
+```tsx title="src/components/login/login.tsx"
 export const useLogin = globalAction$((data) => {
   // ...
 });
@@ -37,8 +37,7 @@ export const useLogin = globalAction$((data) => {
 
 Actions are referenced using the `.use()` method from within a Qwik Component. The `use()` method returns `ActionStore` object with methods to trigger the action and get its state.
 
-```tsx
-// src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeAction$ } from '@builder.io/qwik-city';
 
@@ -69,9 +68,7 @@ export default component$(() => {
 
 The best way to trigger an action is by using the `<Form/>` component exported in `@builder.io/qwik-city`.
 
-```tsx
-// src/routes/index.tsx
-
+```tsx title="src/routes/index.tsx"
 import { routeAction$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
@@ -101,9 +98,7 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 Actions can also be triggered programatically using the `action.run()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
-```tsx
-// src/routes/index.tsx
-
+```tsx title="src/routes/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
@@ -139,9 +134,7 @@ In the example above, the `addUser` action is triggered when the user clicks the
 
 When submitting data to an action by default, the data is not validated.
 
-```tsx
-// src/routes/index.tsx
-
+```tsx title="src/routes/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$((user) => {
@@ -156,9 +149,7 @@ export const useAddUser = routeAction$((user) => {
 
 Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `action$()` function.
 
-```tsx
-// src/routes/index.tsx
-
+```tsx title="src/routes/index.tsx"
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(

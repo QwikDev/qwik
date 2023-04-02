@@ -14,8 +14,7 @@ They behave like RPC server-side functions that can be invoked by Qwik Component
 
 Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
-```tsx
-// src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useProductData = routeLoader$(async () => {
@@ -31,8 +30,7 @@ export const useProductData = routeLoader$(async () => {
 
 `routeLoader$`s can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
-```tsx
-// src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
@@ -55,9 +53,8 @@ export default component$(() => {
 
 Multiple `routeLoader$`s are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple `routeLoader$`s in the same file**.
 
-**File: `src/routes/layout.tsx`**
 
-```tsx
+```tsx title="src/routes/layout.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { Footer } from '../components/footer.tsx';
@@ -79,9 +76,7 @@ export default component$(() => {
 });
 ```
 
-**File: `src/components/footer.tsx`**
-
-```tsx
+```tsx title="src/components/footer.tsx"
 import { component$ } from '@builder.io/qwik';
 
 // Import the loader from the layout
@@ -96,9 +91,7 @@ export const Footer = component$(() => {
 
 The above example shows using `useProductData()` in two different components across different files. This is intentional behavior.
 
-**File: `src/routes/admin/index.tsx`**
-
-```tsx
+```tsx title="src/routes/admin/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 

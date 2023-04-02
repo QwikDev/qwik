@@ -4,7 +4,6 @@ import RealMetricsOptimization from './components/real-metrics-optimization/real
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';
 import './global.css';
-import './components/code-block/code-block.css';
 
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 

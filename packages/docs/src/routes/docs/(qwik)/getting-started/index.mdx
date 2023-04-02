@@ -110,23 +110,13 @@ A common thing a page does is load data to display to the user. This is performe
 1. Open `src/routes/joke/index.tsx` and add this code:
 
 ```tsx
-  import { routeLoader$ } from "@builder.io/qwik-city";
+import { routeLoader$ } from '@builder.io/qwik-city';
 
-  export const useDadJoke = routeLoader$(async () => {
-    const response = await fetch("https://icanhazdadjoke.com/", {
-      headers: { Accept: "application/json" },
-    });
-    return (await response.json()) as {
-      id: string;
-      status: number;
-      joke: string;
-    };
+export const useDadJoke = routeLoader$(async () => {
+  const response = await fetch('https://icanhazdadjoke.com/', {
+    headers: { Accept: 'application/json' },
   });
-  return (await response.json()) as {
-    id: string;
-    status: number;
-    joke: string;
-  };
+  return response.json();
 });
 ```
 
@@ -159,7 +149,7 @@ What does the above code do?
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-const useDadJoke = routeLoader$(async () => {
+export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
     headers: { Accept: 'application/json' },
   });
@@ -244,7 +234,7 @@ Things to note:
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
 
-const useDadJoke = routeLoader$(async () => {
+export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
     headers: { Accept: 'application/json' },
   });
@@ -306,7 +296,7 @@ NOTE:
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
 
-const useDadJoke = routeLoader$(async () => {
+export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
     headers: { Accept: 'application/json' },
   });
@@ -396,7 +386,7 @@ NOTE:
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
 
-const useDadJoke = routeLoader$(async () => {
+export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
     headers: { Accept: 'application/json' },
   });
@@ -484,7 +474,7 @@ import { component$, useSignal, useStylesScoped$, useTask$ } from '@builder.io/q
 import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
 import STYLES from './index.css?inline';
 
-const useDadJoke = routeLoader$(async () => {
+export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
     headers: { Accept: 'application/json' },
   });
@@ -560,8 +550,8 @@ Congratulations! You have made it through getting started. This overview is inte
 - [Project structure](/docs/(qwikcity)/project-structure/index.mdx)
 - [Directory-based](/docs/(qwikcity)/routing/index.mdx) routing
 - [Component](/docs/(qwik)/components/overview/index.mdx)
-- [route loaders](/docs/(qwikcity)/route-loader/index.mdx)
-- [form actions](/docs/(qwikcity)/action/index.mdx) (and [zod validation](/docs/(qwikcity)/action/index.mdx#zod-validation))
-- [state management](/docs/(qwik)/components/state/index.mdx)
-- [tasks](/docs/(qwik)/components/lifecycle/index.mdx#use-usetask-when-you-need-to)
+- [Route loaders](/docs/(qwikcity)/route-loader/index.mdx)
+- [Form actions](/docs/(qwikcity)/action/index.mdx) (and [zod validation](/docs/(qwikcity)/action/index.mdx#zod-validation))
+- [State management](/docs/(qwik)/components/state/index.mdx)
+- [Tasks](/docs/(qwik)/components/tasks/index.mdx#use-usetask-when-you-need-to)
 - [ServiceWorker cache](/docs/(qwik)/advanced/index.mdxspeculative-module-fetching/)

@@ -132,7 +132,7 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.6
-      '@builder.io/qwik': 0.25.0
+      '@builder.io/qwik': 0.100.0
       '@builder.io/qwik-city': 0.100.0
       '@builder.io/sdk-qwik': 0.1.15
       '@docsearch/css': 3.3.3
@@ -158,9 +158,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.6
-      '@builder.io/qwik': 0.25.0_undici@5.21.0
-      '@builder.io/qwik-city': 0.100.0_@builder.io+qwik@0.25.0
-      '@builder.io/sdk-qwik': 0.1.15_@builder.io+qwik@0.25.0
+      '@builder.io/qwik': 0.100.0_undici@5.21.0
+      '@builder.io/qwik-city': 0.100.0_@builder.io+qwik@0.100.0
+      '@builder.io/sdk-qwik': 0.1.15_@builder.io+qwik@0.100.0
       '@docsearch/css': 3.3.3
       '@types/prismjs': 1.26.0
       algoliasearch: 4.16.0
@@ -497,13 +497,13 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-city/0.100.0_@builder.io+qwik@0.25.0:
+  /@builder.io/qwik-city/0.100.0_@builder.io+qwik@0.100.0:
     resolution: {integrity: sha512-EEZ8q10vmEjOOe5qQIel+jLcuuFYOjakIIgHt5KOWnY/L0HBw9xzFDkFDcdmPJlrCmHTm3y4T1ZtqKPEFNgO9w==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     peerDependencies:
       '@builder.io/qwik': '>=0.22.0'
     dependencies:
-      '@builder.io/qwik': 0.25.0_undici@5.21.0
+      '@builder.io/qwik': 0.100.0_undici@5.21.0
       '@mdx-js/mdx': 2.3.0
       '@types/mdx': 2.0.3
       source-map: 0.7.4
@@ -513,8 +513,8 @@ packages:
       - supports-color
     dev: true
 
-  /@builder.io/qwik/0.25.0_undici@5.21.0:
-    resolution: {integrity: sha512-4Yc2bv84UynCiWJf5BQ7cBweD9bvv1kNHoG1yCDx1SagbuKzBEvgyTHMwfrKmUTJ0llDZmA1UPmKQ5agxRnfAg==}
+  /@builder.io/qwik/0.100.0_undici@5.21.0:
+    resolution: {integrity: sha512-p2DAHZTkPFVN3fz3I6Ael6pLLdlzf89owPJVAIoQ9vt5jULnDJRf096qGc84Y+gaoqfoFWBYHYVnHOP0fnRjQg==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     hasBin: true
     peerDependencies:
@@ -523,12 +523,12 @@ packages:
       undici: 5.21.0
     dev: true
 
-  /@builder.io/sdk-qwik/0.1.15_@builder.io+qwik@0.25.0:
+  /@builder.io/sdk-qwik/0.1.15_@builder.io+qwik@0.100.0:
     resolution: {integrity: sha512-6Tv4SO22H0AZ2cYSaeiAC6rmIWMrIu3YYAGXgvq2ZyUWBaPDZYGQzy6v0sXG2XPj6Y6om2Kfb7PHMbTiL2Hkug==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.25.0_undici@5.21.0
+      '@builder.io/qwik': 0.100.0_undici@5.21.0
     dev: true
 
   /@clack/core/0.3.2:

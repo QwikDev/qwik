@@ -48,13 +48,20 @@ export default component$<{
   );
 });
 
-
-function examplePath(opts: {
-  path: string;
-  theme?: string;
-  includeTheme?: boolean;
-} | string) {
-  const { path, theme = 'light', includeTheme = false } = typeof opts === 'string' ? { path: opts } as any : opts;
+function examplePath(
+  opts:
+    | {
+        path: string;
+        theme?: string;
+        includeTheme?: boolean;
+      }
+    | string
+) {
+  const {
+    path,
+    theme = 'light',
+    includeTheme = false,
+  } = typeof opts === 'string' ? ({ path: opts } as any) : opts;
   const newPath = path
     .replace('/(qwik)/', '/')
     .replace('/(qwikcity)/', '/')

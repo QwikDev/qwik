@@ -159,77 +159,9 @@ export default component$(() => {
 
 Now, the component will update as expected. This will also track individual values inside of arrays!
 
-## Passing state
+## Computed state
 
-One of the nice features of Qwik is that the state can be passed to other components. Writing to the store will then only re-render the components which read from the store only.
-
-There are two ways to pass state to other components:
-
-1. pass state to child component explicitly using props,
-2. or pass state implicitly through context.
-
-### Using props
-
-The simplest way to pass the state to other components is to pass it through props.
-
-```tsx {9} /userData=/
-import { component$, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const userData = useStore({ count: 0 });
-  return <Child userData={userData} />;
-});
-
-interface ChildProps {
-  userData: { count: number };
-}
-export const Child = component$<ChildProps>(({ userData }) => {
-  return (
-    <>
-      <button onClick$={() => userData.count++}>Increment</button>
-      <div>Count: {userData.count}</div>
-    </>
-  );
-});
-```
-<CodeSandbox src={PassingProps} sandboxStyle={{ height: '6em' }} />
-
-### Using context
-
-The context API is a way to pass state to components without having to pass it through props (i.e.: avoids prop drilling issues). Automatically, all the descendant components in the tree can access a reference to the state with read/write access to it.
-
-Check the [context API](../context/index.mdx) for more information.
-
-```tsx {4,10,16} /userData/
-import { component$, createContextId, useContext, useContextProvider, useStore } from '@builder.io/qwik';
-
-// Declare a context ID
-export const CTX = createContextId<{ count: number }>('stuff');
-
-export default component$(() => {
-  const userData = useStore({ count: 0 });
-
-  // Provide the store to the context under the context ID
-  useContextProvider(CTX, userData);
-
-  return <Child />;
-});
-
-export const Child = component$(() => {
-  const userData = useContext(CTX);
-  return (
-    <>
-      <button onClick$={() => userData.count++}>Increment</button>
-      <div>Count: {userData.count}</div>
-    </>
-  );
-});
-```
-<CodeSandbox src={PassingContext} sandboxStyle={{ height: '6em' }} />
-
-## Computed values
-
-Computed values are values that are derived from an existing state.
+Computed state is derived from other existing state.
 
 In Qwik there are two ways to create computed values, each with a different use case (in order of preference):
 
@@ -304,12 +236,73 @@ While it is possible to use `useResource$()` without `<Resource>` component, it 
 
 > **NOTE**: During SSR the `<Resource>` component will pause rendering until the resource is resolved. This way the SSR will not render with the loading indicator.
 
-## Reactivity
+## Passing state
 
-Thanks to the fine-grained reactivity of Qwik, only the components that depend on the state will be updated. This is a big performance gain for two reasons:
+One of the nice features of Qwik is that the state can be passed to other components. Writing to the store will then only re-render the components which read from the store only.
 
-1. Less code to execute means application updates will render faster.
-2. Less code to execute means oftentimes the code does not have to be downloaded on application startup (or ever).
+There are two ways to pass state to other components:
+
+1. pass state to child component explicitly using props,
+2. or pass state implicitly through context.
+
+### Using props
+
+The simplest way to pass the state to other components is to pass it through props.
+
+```tsx {9} /userData=/
+import { component$, useStore } from '@builder.io/qwik';
+
+export default component$(() => {
+  const userData = useStore({ count: 0 });
+  return <Child userData={userData} />;
+});
+
+interface ChildProps {
+  userData: { count: number };
+}
+export const Child = component$<ChildProps>(({ userData }) => {
+  return (
+    <>
+      <button onClick$={() => userData.count++}>Increment</button>
+      <div>Count: {userData.count}</div>
+    </>
+  );
+});
+```
+<CodeSandbox src={PassingProps} sandboxStyle={{ height: '6em' }} />
+
+### Using context
+
+The context API is a way to pass state to components without having to pass it through props (i.e.: avoids prop drilling issues). Automatically, all the descendant components in the tree can access a reference to the state with read/write access to it.
+
+Check the [context API](../context/index.mdx) for more information.
+
+```tsx {4,10,16} /userData/
+import { component$, createContextId, useContext, useContextProvider, useStore } from '@builder.io/qwik';
+
+// Declare a context ID
+export const CTX = createContextId<{ count: number }>('stuff');
+
+export default component$(() => {
+  const userData = useStore({ count: 0 });
+
+  // Provide the store to the context under the context ID
+  useContextProvider(CTX, userData);
+
+  return <Child />;
+});
+
+export const Child = component$(() => {
+  const userData = useContext(CTX);
+  return (
+    <>
+      <button onClick$={() => userData.count++}>Increment</button>
+      <div>Count: {userData.count}</div>
+    </>
+  );
+});
+```
+<CodeSandbox src={PassingContext} sandboxStyle={{ height: '6em' }} />
 
 ## `noSerialize()`
 

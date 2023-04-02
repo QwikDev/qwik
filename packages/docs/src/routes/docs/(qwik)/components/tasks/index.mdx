@@ -4,7 +4,7 @@ contributors:
   - mhevery
 ---
 
-import CodeExample from '../../../../../components/code-example/index.tsx';
+import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 import UseTask from 'source:/src/routes/demo/tasks/use-task/index.tsx';
 import Track from 'source:/src/routes/demo/tasks/track/index.tsx';
 import TrackServerGuard from 'source:/src/routes/demo/tasks/track-server-guard/index.tsx';
@@ -41,7 +41,7 @@ Sometimes a task should fetch data asynchronously and produce a signal (and not 
 
 Let's look at the simplest use case of the task to run some asynchronous work on component initialization.
 
-<CodeExample src={UseTask} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={UseTask} sandboxStyle={{ height: '6em' }} />
 
 > In this example
 >
@@ -57,7 +57,7 @@ There are times when it is desirable to re-run a task when a component state cha
 
 > **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
 
-<CodeExample src={Track} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={Track} sandboxStyle={{ height: '6em' }} />
 
 > On the server:
 >
@@ -77,7 +77,7 @@ There are times when it is desirable to re-run a task when a component state cha
 
 In the above example `track()` was used to track a specific signal. However, `track()` can also be used as a function to track multiple signals at once.
 
-<CodeExample src={TrackFn} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={TrackFn} sandboxStyle={{ height: '6em' }} />
 
 > In this example the `track()` takes a function that not only reads the signal but also transforms its value to uppercase/lowercase. The `track()` is doing subscription on multiple signals and computes their value.
 
@@ -91,7 +91,7 @@ Sometimes when running a task cleanup work needs to be performed. When a new tas
 
 This example shows how to implement a debounce feature using the `cleanup()` function.
 
-<CodeExample src={Cleanup} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={Cleanup} sandboxStyle={{ height: '6em' }} />
 
 ## `useVisibleTask$()`
 
@@ -107,14 +107,14 @@ Sometimes a task needs to run only on the client and after rendering, in that ca
 > **Caution**: The `useVisibleTask$()` should be used as a last resort, because it eagerly executes code on the client. Qwik through [resumability]() goes out of its way to delay the execution of code on the client, and `useVisibleTask$()` is an escape hatch that should be used with caution. See [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx#dont-register-events-eagerly-with-usevisibletask) for more details.
 > If you need to run a task on a client consider `useTask$()` with a server guard.
 >
-> <CodeExample src={TrackServerGuard} sandboxStyle={{ height: '6em' }} />
+> <CodeSandbox src={TrackServerGuard} sandboxStyle={{ height: '6em' }} />
 > In the above example the `useTask$()` is guarded by `isServer`. The `track()` is before the guard which
 > allows the server to set up the subscription but does not execute any code on the server. The client
 > then executes the `useTask$()` once the `text` signal changes.
 
 This example shows how to use `useVisibleTask$()` to initialize a clock on the client only when the clock component becomes visible.
 
-<CodeExample src={UseVisibleTask} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={UseVisibleTask} sandboxStyle={{ height: '6em' }} />
 
 > Notice how the clock's `useVisibleTask$()` does not run until the `<Clock>` component became visible. The default behavior of `useVisibleTask$()` is to run the task when the component becomes visible. This behavior is implemented through [intersection observers](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
 
@@ -122,7 +122,7 @@ This example shows how to use `useVisibleTask$()` to initialize a clock on the c
 
 At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eagre mode. This is done by using the `{ strategy: 'document-ready' }`.
 
-<CodeExample src={UseVisibleTaskEager} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={UseVisibleTaskEager} sandboxStyle={{ height: '6em' }} />
 
 > In this example the clock starts running immediately on the client regardless of whether it is visible or not.
 

@@ -18,7 +18,7 @@ contributors:
   - mhevery
 ---
 
-import CodeExample from '../../../../components/code-example/index.tsx';
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 import Step_01 from 'source:/src/routes/demo/getting-started/01-route/index.tsx';
 import Step_02 from 'source:/src/routes/demo/getting-started/02-loading-data/index.tsx';
 import Step_03 from 'source:/src/routes/demo/getting-started/03-posting-data/index.tsx';
@@ -93,7 +93,7 @@ export default component$(() => {
 > - Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
 > - For more details about how to author components see the [Component API](/docs/(qwik)/components/overview/index.mdx) section.
 
-<CodeExample src={Step_01} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={Step_01} sandboxStyle={{ height: '6em' }} />
 
 ## 02 Loading Data
 
@@ -141,7 +141,7 @@ What does the above code do?
 > - The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if its use-hook is not invoked in any component.
 > - The `routeLoader$` return type is inferred in the component without the need for any additional type information.
 
-<CodeExample src={Step_02} sandboxStyle={{ height: '6em' }} />
+<CodeSandbox src={Step_02} sandboxStyle={{ height: '6em' }} />
 
 ## 03 Posting Data to Server
 
@@ -200,7 +200,7 @@ Things to note:
 - The `routeAction$` works even if JavaScript is disabled.
 - If JavaScript is enabled the `Form` component will prevent the browser from posting the form and instead post the data using JavaScript and emulate the browser's native form behavior without full refresh.
 
-<CodeExample src={Step_03} sandboxStyle={{ height: '8em' }} />
+<CodeSandbox src={Step_03} sandboxStyle={{ height: '8em' }} />
 
 ## 04 Modifying State
 
@@ -223,7 +223,7 @@ NOTE:
 
 - Clicking on the button will update the state and the UI will be updated.
 
-<CodeExample src={Step_04} sandboxStyle={{ height: '10em' }} />
+<CodeSandbox src={Step_04} sandboxStyle={{ height: '10em' }} />
 
 ## 05 Tasks and Invoking Server Code
 
@@ -263,7 +263,7 @@ NOTE:
 - On SSR server prints `FAVORITE (isomorphic) false` and `FAVORITE (server) false`.
 - When the user interacts with favorite, the client prints `FAVORITE (isomorphic) true` and the server prints `FAVORITE (server) true`.
 
-<CodeExample src={Step_05} sandboxStyle={{ height: '10em' }} />
+<CodeSandbox src={Step_05} sandboxStyle={{ height: '10em' }} />
 
 ## 06 Styling
 
@@ -300,7 +300,7 @@ NOTE:
 - The `useStylesScoped$` call tells Qwik to associate the styles with the component only (scoping).
 - Styles are only loaded if they are not already inlined as part of SSR and only for the first component.
 
-<CodeExample src={Step_06} sandboxStyle={{ height: '10em' }} />
+<CodeSandbox src={Step_06} sandboxStyle={{ height: '10em' }} />
 
 ## 07 Preview
 

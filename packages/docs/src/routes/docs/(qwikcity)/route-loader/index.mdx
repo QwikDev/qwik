@@ -14,8 +14,7 @@ They behave like RPC server-side functions that can be invoked by Qwik Component
 
 Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
-```tsx
-// src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useProductData = routeLoader$(async () => {
@@ -31,8 +30,7 @@ export const useProductData = routeLoader$(async () => {
 
 `routeLoader$`s can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
-```tsx
-// src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 

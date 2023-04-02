@@ -209,6 +209,7 @@ h6 a:hover .icon {
   background-color: transparent;
   border: none;
   user-select: auto;
+  line-height: 1.28;
 }
 
 .docs article code {

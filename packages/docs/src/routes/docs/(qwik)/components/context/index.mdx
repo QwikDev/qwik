@@ -44,8 +44,7 @@ Let's make a global context which holds the state of the theme used by user and 
 
 At the same time, the Child component is rendering a button and `h2` tag, creating a reactive subscription that will re-render when the Child changes the value in the click handler: `<button onClick$={() => { themeStore.theme = 'dark' }}>`.
 
-```tsx
-// file: src/root.tsx
+```tsx title="src/root.tsx"
 import {
   component$,
   useSignal,

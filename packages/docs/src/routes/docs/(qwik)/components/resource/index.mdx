@@ -20,15 +20,16 @@ contributors:
 
 This hook allows you to generate computed values asynchronously, typically used for fetching external data (resources.) The hook is called when the component is mounted (and when the tracked values change.) The `useResource$` hook is meant to be used with the `<Resource />`. The `<Resource />` component is a convenient way to render the resource state, such as loaded, resolved, or rejected.
 
-The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of SSR before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is a more low-level API that is useful when you want to fetch data on the client.
+The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of SSR before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is a more low-level API that is useful when you want to fetch data on the client.
 
 > Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
-> 
+>
 > In many ways `useResource$` is similar to `useTask$` The big differences are:
+>
 > - `useResource$` allows you to return a "value".
 > - `useResource$` does not block rendering while the resource is being resolved.
 >
-> See [`routeLoader$`](docs/(qwikcity)/route-loader/index.mdx) for fetching data as part of SSR.
+> See [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) for fetching data as part of SSR.
 
 ## Example
 
@@ -60,7 +61,7 @@ export default component$(() => {
 
 ## `track()`
 
-A common need is to re-fetch the resource if some inputs change. 
+A common need is to re-fetch the resource if some inputs change.
 
 Here is a very simple example of using `useResource$()` to fetch a random joke:
 
@@ -77,9 +78,7 @@ export default component$(() => {
     <Resource
       value={jokes}
       onPending={() => <div>loading...</div>}
-      onResolved={(joke) => (
-        <div>{joke.value}</div>
-      )}
+      onResolved={(joke) => <div>{joke.value}</div>}
     />
   );
 });
@@ -89,12 +88,7 @@ And a more complex one showcasing more features. This example will fetch a list 
 automatically reacting to changes in the query, including aborting requests that are currently pending.
 
 ```tsx
-import {
-  component$,
-  useResource$,
-  Resource,
-  useSignal,
-} from '@builder.io/qwik';
+import { component$, useResource$, Resource, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const query = useSignal('busy');
@@ -118,7 +112,7 @@ export default component$(() => {
 
     return json.result;
   });
-  
+
   return (
     <>
       Query: <input bind:value={query} />
@@ -138,8 +132,6 @@ export default component$(() => {
   );
 });
 ```
-
-
 
 As we see in the example above, `useResource$()` returns a `ResourceReturn<T>` object that works like a glorified, fully reactive promise, containing the data and the resource state.
 
@@ -174,12 +166,7 @@ It is worth noting that `<Resource />` is not required when using `useResource$(
 Example showing how `useResource$` is used to perform a fetch call to the agify.io API. This will guess a person's age based on the name typed by the user, and will update whenever the user types in the name input.
 
 ```tsx
-import {
-  component$,
-  useSignal,
-  useResource$,
-  Resource,
-} from '@builder.io/qwik';
+import { component$, useSignal, useResource$, Resource } from '@builder.io/qwik';
 
 export default component$(() => {
   const name = useSignal<string>();
@@ -201,11 +188,7 @@ export default component$(() => {
   return (
     <div>
       <h1>Enter your name, and I'll guess your age!</h1>
-      <input
-        onInput$={(e: Event) =>
-          (name.value = (e.target as HTMLInputElement).value)
-        }
-      />
+      <input onInput$={(e: Event) => (name.value = (e.target as HTMLInputElement).value)} />
       <Resource
         value={ageResource}
         onPending={() => <div>Loading...</div>}
@@ -225,5 +208,4 @@ export default component$(() => {
     </div>
   );
 });
-
 ```

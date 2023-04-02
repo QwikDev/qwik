@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "2.3.0",
-    "@types/mdx": "2.0.3",
+    "@types/mdx": "2.0.4",
     "source-map": "0.7.4",
     "vfile": "5.3.7",
     "zod": "^3.21.4"
@@ -105,7 +105,7 @@
     "remark-frontmatter": "4.0.1",
     "remark-gfm": "3.0.1",
     "tsm": "2.3.0",
-    "typescript": "5.0.2",
+    "typescript": "5.0.3",
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",

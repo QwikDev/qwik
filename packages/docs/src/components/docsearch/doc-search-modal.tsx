@@ -1,6 +1,6 @@
 import {
   component$,
-  useRef,
+  useSignal,
   noSerialize,
   useContextProvider,
   useVisibleTask$,
@@ -49,11 +49,11 @@ export const DocSearchModal = component$(
       searchBox: searchBoxTranslations,
       ...screenStateTranslations
     } = translations;
-    const containerRef = useRef();
-    const modalRef = useRef();
-    const formElementRef = useRef();
-    const dropdownRef = useRef();
-    const inputRef = useRef();
+    const containerRef = useSignal<Element>();
+    const modalRef = useSignal<Element>();
+    const formElementRef = useSignal<Element>();
+    const dropdownRef = useSignal<Element>();
+    const inputRef = useSignal<Element>();
     function saveRecentSearch(item: InternalDocSearchHit) {
       if (disableUserPersonalization) {
         return;
@@ -172,9 +172,9 @@ export const DocSearchModal = component$(
     });
 
     useVisibleTask$(({ track }) => {
-      track(state, 'query');
-      if (dropdownRef.current) {
-        dropdownRef.current.scrollTop = 0;
+      track(() => state.query);
+      if (dropdownRef.value) {
+        dropdownRef.value.scrollTop = 0;
       }
     });
 
@@ -184,14 +184,14 @@ export const DocSearchModal = component$(
     // We therefore need to refresh the autocomplete instance to load all the
     // results, which is usually triggered on focus.
     useVisibleTask$(({ track }) => {
-      const initialQuery = track(state, 'initialQuery');
+      const initialQuery = track(() => state.initialQuery);
       if (initialQuery && initialQuery.length > 0) {
         onInput?.({
           target: {
             value: initialQuery,
           },
         } as any);
-        if (inputRef.current) {
+        if (inputRef.value) {
           // @ts-ignore
           inputRef.current.focus();
         }
@@ -203,10 +203,10 @@ export const DocSearchModal = component$(
     // See https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
     useVisibleTask$(() => {
       function setFullViewportHeight() {
-        if (modalRef.current) {
+        if (modalRef.value) {
           const vh = window.innerHeight * 0.01;
           // @ts-ignore
-          modalRef.current.style.setProperty('--docsearch-vh', `${vh}px`);
+          modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
         }
       }
 
@@ -237,7 +237,7 @@ export const DocSearchModal = component$(
         role="button"
         tabIndex={0}
         onMouseDown$={(event) => {
-          if (event.target === containerRef.current) {
+          if (event.target === containerRef.value) {
             onClose$.apply(undefined, []);
           }
         }}

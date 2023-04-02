@@ -18,11 +18,9 @@ export function sourceResolver(root: string): Plugin {
     load(id) {
       if (id.startsWith(RESOLVED_SOURCE_PREFIX)) {
         const [_, path] = id.split(RESOLVED_SOURCE_PREFIX);
-        const content = readFileSync(path, 'utf-8');
-        return `export default {
-          code: ${JSON.stringify(content)},
-          path: ${JSON.stringify(path.replace(root, ''))},
-        };`;
+        return `
+        const PATH = ${JSON.stringify(path.replace(root, ''))};
+        export default PATH;`;
       }
     },
   };

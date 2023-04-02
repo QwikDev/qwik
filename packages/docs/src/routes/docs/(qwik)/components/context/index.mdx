@@ -27,9 +27,9 @@ export const ThemeContext = createContextId('docs.theme-context');
 
 const Parent = component$(() => {
   const themeStore = useSignal('dark');
-  useContextProvider(ThemeContext, themeStore)
+  useContextProvider(ThemeContext, themeStore);
 
-  return <Child />
+  return <Child />;
 });
 
 const Child = component$(() => {
@@ -37,7 +37,6 @@ const Child = component$(() => {
   return <div>Theme is {theme.value}</div>;
 });
 ```
-
 
 ## Example
 
@@ -53,7 +52,7 @@ import {
   useContext,
   useContextProvider,
   createContextId,
-  useStylesScoped$
+  useStylesScoped$,
 } from '@builder.io/qwik';
 
 export type Theme = 'dark' | 'light';
@@ -66,9 +65,9 @@ const Parent = component$(() => {
   const themeStore = useSignal<Theme>('dark');
 
   // Assigning value (state) to the context (ThemeContext)
-  useContextProvider(ThemeContext, themeStore)
+  useContextProvider(ThemeContext, themeStore);
 
-  return <Child />
+  return <Child />;
 });
 
 const Child = component$(() => {
@@ -95,7 +94,6 @@ const Child = component$(() => {
     </>
   );
 });
-
 ```
 
 Let's dig into every API involved:

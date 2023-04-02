@@ -110,11 +110,17 @@ A common thing a page does is load data to display to the user. This is performe
 1. Open `src/routes/joke/index.tsx` and add this code:
 
 ```tsx
-import { routeLoader$ } from '@builder.io/qwik-city';
+  import { routeLoader$ } from "@builder.io/qwik-city";
 
-const useDadJoke = routeLoader$(async () => {
-  const response = await fetch('https://icanhazdadjoke.com/', {
-    headers: { Accept: 'application/json' },
+  export const useDadJoke = routeLoader$(async () => {
+    const response = await fetch("https://icanhazdadjoke.com/", {
+      headers: { Accept: "application/json" },
+    });
+    return (await response.json()) as {
+      id: string;
+      status: number;
+      joke: string;
+    };
   });
   return (await response.json()) as {
     id: string;
@@ -185,10 +191,11 @@ To declare an action:
 
 1. Open `src/routes/joke/index.tsx` and add this code:
 
+
 ```tsx
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   // Leave it as an exercise for the reader to implement this.
   console.log('VOTE', props);
 });
@@ -548,6 +555,7 @@ NOTE:
 ## Review
 
 Congratulations! You have made it through getting started. This overview is intentionally short to get you familiarized with different parts of Qwik. We recommended that you deep dive into the above concepts to learn more. Here are some key takeaways:
+
 
 - [Project structure](/docs/(qwikcity)/project-structure/index.mdx)
 - [Directory-based](/docs/(qwikcity)/routing/index.mdx) routing

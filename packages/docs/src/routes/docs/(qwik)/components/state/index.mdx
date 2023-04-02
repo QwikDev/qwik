@@ -323,7 +323,7 @@ Thanks to the fine-grained reactivity of Qwik, only the components that depend o
 
 ## `noSerialize()`
 
-Qwik ensures that all application state is always serializable. This is import to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property. At times it is necessary to store data which can't be serialized. For example a reference to a third party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/). In such a situation use `noSerialize()` to mark the value as non-serializable.
+Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property. At times it is necessary to store data which can't be serialized. For example a reference to a third party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/). In such a situation use `noSerialize()` to mark the value as non-serializable.
 
 If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from server SSR. In such a situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 

@@ -1,4 +1,9 @@
-import { component$, useStore, noSerialize, useVisibleTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  noSerialize,
+  useVisibleTask$,
+} from '@builder.io/qwik';
 import Monaco from './monaco';
 
 export default component$(() => {
@@ -12,5 +17,5 @@ export default component$(() => {
     // We can however instantiate it on the client after the component is visible
     setTimeout(() => (state.monacoInstance = noSerialize(new Monaco())), 1000);
   });
-  return <div>{state.monacoInstance ? <>'Monaco is loaded'</> : <>'loading...'</>}</div>;
+  return <div>{state.monacoInstance ? 'Monaco is loaded' : 'loading...'}</div>;
 });

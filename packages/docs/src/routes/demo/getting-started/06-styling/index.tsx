@@ -1,6 +1,16 @@
 /* eslint-disable no-console */
-import { component$, useSignal, useStylesScoped$, useTask$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
+import {
+  component$,
+  useSignal,
+  useStylesScoped$,
+  useTask$,
+} from '@builder.io/qwik';
+import {
+  routeLoader$,
+  Form,
+  routeAction$,
+  server$,
+} from '@builder.io/qwik-city';
 import STYLES from './index.css?inline';
 
 export const useDadJoke = routeLoader$(async () => {
@@ -14,7 +24,7 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-export const useJokeVoteAction = routeAction$((props) => {
+const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 
@@ -42,7 +52,9 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+      <button
+        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
+      >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </div>

@@ -2,7 +2,7 @@
 import { component$, useSignal } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
-const useDadJoke = routeLoader$(async () => {
+export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
     headers: { Accept: 'application/json' },
   });
@@ -13,7 +13,7 @@ const useDadJoke = routeLoader$(async () => {
   };
 });
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 
@@ -33,7 +33,9 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+      <button
+        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
+      >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </div>

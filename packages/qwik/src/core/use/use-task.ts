@@ -407,9 +407,9 @@ export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
 // </docs>
 export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
 
-// <docs markdown="../readme.md#useBrowserVisibleTask">
+// <docs markdown="../readme.md#useVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useBrowserVisibleTask instead)
+// (edit ../readme.md#useVisibleTask instead)
 /**
  * ```tsx
  * const Timer = component$(() => {
@@ -458,9 +458,9 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   }
 };
 
-// <docs markdown="../readme.md#useBrowserVisibleTask">
+// <docs markdown="../readme.md#useVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useBrowserVisibleTask instead)
+// (edit ../readme.md#useVisibleTask instead)
 /**
  * ```tsx
  * const Timer = component$(() => {

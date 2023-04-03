@@ -96,7 +96,7 @@ import { createQRL } from './qrl-class';
  *
  * Let's assume that you intend to write code such as this:
  *
- * ```typescript
+ * ```tsx
  * return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
  * ```
  *
@@ -215,7 +215,6 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  * ```tsx
  *
  * import { createContextId, useContext, useContextProvider } from './use/use-context';
- * import { useRef } from './use/use-ref';
  * import { Resource, useResource$ } from './use/use-resource';
  *
  * export const greet = () => console.log('greet');

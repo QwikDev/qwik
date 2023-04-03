@@ -21,13 +21,6 @@ contributors:
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
-import SimpleComponent from 'source:/src/routes/demo/component/simple/index.tsx';
-import TwoComponents from 'source:/src/routes/demo/component/child/index.tsx';
-import Counter from 'source:/src/routes/demo/state/counter/index.tsx';
-import Props from 'source:/src/routes/demo/component/props/index.tsx';
-import Ref from 'source:/src/routes/demo/component/ref/index.tsx';
-import Lazy from 'source:/src/routes/demo/component/lazy/index.tsx';
-import InlineChild from 'source:/src/routes/demo/component/inline-child/index.tsx';
 
 # Components
 
@@ -43,6 +36,7 @@ A component is a small, reusable piece of code that can be used to build a UI.
 
 In Qwik, they are declared using the `component$` method:
 
+<CodeSandbox src="/src/routes/demo/component/simple/index.tsx" sandboxStyle={{ height: '3em' }}>
 ```tsx /component$/
 import { component$ } from '@builder.io/qwik';
 
@@ -50,7 +44,7 @@ export default component$(() => {
   return <span>Hello World!</span>;
 });
 ```
-<CodeSandbox src={SimpleComponent} sandboxStyle={{ height: '3em' }} />
+</CodeSandbox>
 
 > The reason for the `component$` is that the trailing `$` allows the [Optimizer](/docs/advanced/dollar/) to break the components into an application tree into a separate chunk so that each chunk can be loaded (or not loaded if it is not needed) independently. Without the `$` the component would be always loaded if the parent component needs to be loaded.
 
@@ -58,6 +52,7 @@ export default component$(() => {
 
 Components can be composed together to create more complex components.
 
+<CodeSandbox src="/src/routes/demo/component/child/index.tsx" sandboxStyle={{ height: '6em' }}>
 ```tsx {7}
 import { component$ } from '@builder.io/qwik';
 
@@ -74,12 +69,13 @@ const Child = component$(() => {
   return <div>Child Text</div>;
 });
 ```
-<CodeSandbox src={TwoComponents} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 ### Counter Example
 
 A slightly more complex example of a counter.
 
+<CodeSandbox src="/src/routes/demo/state/counter/index.tsx" sandboxStyle={{ height: '6em' }}>
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -94,7 +90,7 @@ export default component$(() => {
   );
 });
 ```
-<CodeSandbox src={Counter} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 ## Props
 
@@ -102,7 +98,8 @@ Props are used to pass data from the parent into the component. Props are accesi
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-```tsx {3-8, 25} /ItemProps/ /props/#a
+<CodeSandbox src="/src/routes/demo/component/props/index.tsx" sandboxStyle={{ height: '10em' }}>
+```tsx {3-8, 27} /ItemProps/
 import { component$ } from '@builder.io/qwik';
 
 interface ItemProps {
@@ -132,8 +129,7 @@ export default component$(() => {
   );
 });
 ```
-
-<CodeSandbox src={Props} sandboxStyle={{ height: '10em' }} />
+</CodeSandbox>
 
 > In the example above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
 
@@ -152,7 +148,8 @@ A state change causes the component to get invalidated. When components get inva
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
 
-```tsx {6,19}
+<CodeSandbox src="/src/routes/demo/component/ref/index.tsx" sandboxStyle={{ height: '10em' }}>
+```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
 import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -170,20 +167,18 @@ export default component$(() => {
 
   return (
     <div>
-      <div
-        ref={outputRef}
-        style={{ border: '1px solid red', width: '100px' }}
-      >
+      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
         Change text value here to stretch the box.
       </div>
       <div>
-        The above red box is {height.value} pixels high and {width.value} pixels wide.
+        The above red box is {height.value} pixels high and {width.value}{' '}
+        pixels wide.
       </div>
     </div>
   );
 });
 ```
-<CodeSandbox src={Ref} sandboxStyle={{ height: '10em' }} />
+</CodeSandbox>
 
 ## Lazy Loading
 
@@ -203,6 +198,7 @@ In the above example, referring to the `Parent` component implies a transitive r
 
 To avoid the above problem we don't refer to components directly, instead, we refer to the lazy wrapper. This is created automatically by the `component$()` function.
 
+<CodeSandbox src="/src/routes/demo/component/lazy/index.tsx" sandboxStyle={{ height: '10em' }} sandbox={false}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
@@ -218,7 +214,7 @@ export const Parent = component$(() => {
   );
 });
 ```
-<CodeSandbox src={Lazy} sandboxStyle={{ height: '10em' }} sandbox={false} />
+</CodeSandbox>
 
 In the above example the Optimizer transforms the above to:
 
@@ -256,7 +252,26 @@ In addition to the standard `component$()` with all of it's lazy-loaded
 properties, Qwik also supports lightweight (inline) components that act more
 like components in traditional frameworks.
 
-<CodeSandbox src={InlineChild} sandboxStyle={{height: '4em'}}/>
+<CodeSandbox src="/src/routes/demo/component/inline-child/index.tsx" sandboxStyle={{height: '4em'}}>
+```tsx
+import { component$ } from '@builder.io/qwik';
+
+// Inline component: declared using a standard function.
+export const MyButton = (props: { text: string }) => {
+  return <button>{props.text}</button>;
+};
+
+// Component: declared using `component$()`.
+export default component$(() => {
+  return (
+    <div>
+      Some text:
+      <MyButton text="Click me" />
+    </div>
+  );
+});
+```
+</CodeSandbox>
 
 In the above example, `MyButton` is an inline component.
 Unlike the standard `component$()`, inline components cannot be individually

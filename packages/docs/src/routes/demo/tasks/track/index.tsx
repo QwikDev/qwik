@@ -22,4 +22,4 @@ export default component$(() => {
   );
 });
 
-const delay = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
+const delay = (time: number) => new Promise((res) => setTimeout(res, time));

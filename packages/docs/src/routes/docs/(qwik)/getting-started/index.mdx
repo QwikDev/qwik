@@ -19,12 +19,6 @@ contributors:
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
-import Step_01 from 'source:/src/routes/demo/getting-started/01-route/index.tsx';
-import Step_02 from 'source:/src/routes/demo/getting-started/02-loading-data/index.tsx';
-import Step_03 from 'source:/src/routes/demo/getting-started/03-posting-data/index.tsx';
-import Step_04 from 'source:/src/routes/demo/getting-started/04-state/index.tsx';
-import Step_05 from 'source:/src/routes/demo/getting-started/05-tasks/index.tsx';
-import Step_06 from 'source:/src/routes/demo/getting-started/06-styling/index.tsx';
 
 # Getting Started Qwikly
 
@@ -94,6 +88,7 @@ export default component$(() => {
 > - Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
 > - For more details about how to author components see the [Component API](/docs/(qwik)/components/overview/index.mdx) section.
 
+<CodeSandbox src="/src/routes/demo/getting-started/01-route/index.tsx" sandboxStyle={{ height: '6em' }}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
@@ -101,7 +96,7 @@ export default component$(() => {
   return <div class="section bright">A Joke!</div>;
 });
 ```
-<CodeSandbox src={Step_01} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 ## 2. Loading Data
 
@@ -145,6 +140,7 @@ What does the above code do?
 > - The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if its use-hook is not invoked in any component.
 > - The `routeLoader$` return type is inferred in the component without the need for any additional type information.
 
+<CodeSandbox src="/src/routes/demo/getting-started/02-loading-data/index.tsx" sandboxStyle={{ height: '6em' }}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
@@ -169,7 +165,7 @@ export default component$(() => {
   );
 });
 ```
-<CodeSandbox src={Step_02} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 ## 3. Posting Data to Server
 
@@ -229,10 +225,11 @@ Things to note:
 - The `routeAction$` works even if JavaScript is disabled.
 - If JavaScript is enabled the `Form` component will prevent the browser from posting the form and instead post the data using JavaScript and emulate the browser's native form behavior without full refresh.
 
+<CodeSandbox src="/src/routes/demo/getting-started/03-posting-data/index.tsx" sandboxStyle={{ height: '8em' }}>
 ```tsx
 /* eslint-disable no-console */
 import { component$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
+import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -245,7 +242,7 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 
@@ -268,7 +265,7 @@ export default component$(() => {
   );
 });
 ```
-<CodeSandbox src={Step_03} sandboxStyle={{ height: '8em' }} />
+</CodeSandbox>
 
 ## 4. Modifying State
 
@@ -291,10 +288,16 @@ NOTE:
 
 - Clicking on the button will update the state and the UI will be updated.
 
+<CodeSandbox src="/src/routes/demo/getting-started/04-state/index.tsx" sandboxStyle={{ height: '10em' }}>
 ```tsx
 /* eslint-disable no-console */
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
+import {
+  routeLoader$,
+  Form,
+  routeAction$,
+  server$,
+} from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -307,7 +310,7 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 
@@ -334,14 +337,16 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+      <button
+        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
+      >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </div>
   );
 });
 ```
-<CodeSandbox src={Step_04} sandboxStyle={{ height: '10em' }} />
+</CodeSandbox>
 
 ## 5. Tasks and Invoking Server Code
 
@@ -381,10 +386,16 @@ NOTE:
 - On SSR server prints `FAVORITE (isomorphic) false` and `FAVORITE (server) false`.
 - When the user interacts with favorite, the client prints `FAVORITE (isomorphic) true` and the server prints `FAVORITE (server) true`.
 
+<CodeSandbox src="/src/routes/demo/getting-started/05-tasks/index.tsx" sandboxStyle={{ height: '10em' }}>
 ```tsx
 /* eslint-disable no-console */
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
+import {
+  routeLoader$,
+  Form,
+  routeAction$,
+  server$,
+} from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -397,7 +408,7 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 
@@ -424,14 +435,16 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+      <button
+        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
+      >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </div>
   );
 });
 ```
-<CodeSandbox src={Step_05} sandboxStyle={{ height: '10em' }} />
+</CodeSandbox>
 
 ## 6. Styling
 
@@ -468,10 +481,21 @@ NOTE:
 - The `useStylesScoped$` call tells Qwik to associate the styles with the component only (scoping).
 - Styles are only loaded if they are not already inlined as part of SSR and only for the first component.
 
+<CodeSandbox src="/src/routes/demo/getting-started/06-styling/index.tsx" sandboxStyle={{ height: '10em' }}>
 ```tsx
 /* eslint-disable no-console */
-import { component$, useSignal, useStylesScoped$, useTask$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
+import {
+  component$,
+  useSignal,
+  useStylesScoped$,
+  useTask$,
+} from '@builder.io/qwik';
+import {
+  routeLoader$,
+  Form,
+  routeAction$,
+  server$,
+} from '@builder.io/qwik-city';
 import STYLES from './index.css?inline';
 
 export const useDadJoke = routeLoader$(async () => {
@@ -513,14 +537,16 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+      <button
+        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
+      >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </div>
   );
 });
 ```
-<CodeSandbox src={Step_06} sandboxStyle={{ height: '10em' }} />
+</CodeSandbox>
 
 ## 7. Preview
 

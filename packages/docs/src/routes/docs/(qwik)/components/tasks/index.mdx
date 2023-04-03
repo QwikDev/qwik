@@ -5,14 +5,6 @@ contributors:
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
-import UseTask from 'source:/src/routes/demo/tasks/use-task/index.tsx';
-import Track from 'source:/src/routes/demo/tasks/track/index.tsx';
-import TrackServerGuard from 'source:/src/routes/demo/tasks/track-server-guard/index.tsx';
-import TrackFn from 'source:/src/routes/demo/tasks/track-fn/index.tsx';
-import Cleanup from 'source:/src/routes/demo/tasks/cleanup/index.tsx';
-import UseVisibleTask from 'source:/src/routes/demo/tasks/use-visible-task/index.tsx';
-import UseVisibleTaskEager from 'source:/src/routes/demo/tasks/use-visible-task-eager/index.tsx';
-import Resource from 'source:/src/routes/demo/tasks/resource/index.tsx';
 
 
 # Tasks
@@ -101,6 +93,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 Let's look at the simplest use case of the task to run some asynchronous work on component initialization.
 
+<CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" sandboxStyle={{ height: '6em' }}>
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
@@ -121,9 +114,9 @@ export default component$(() => {
   return <div>{fibonacci.value?.join(', ')}</div>;
 });
 
-const delay = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
+const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 ```
-<CodeSandbox src={UseTask} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 > In this example
 >
@@ -148,6 +141,7 @@ There are times when it is desirable to re-run a task when a component state cha
 
 > **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
 
+<CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" sandboxStyle={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
@@ -173,9 +167,9 @@ export default component$(() => {
   );
 });
 
-const delay = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
+const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 ```
-<CodeSandbox src={Track} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 > On the server:
 >
@@ -197,6 +191,7 @@ const delay = (time: number) => new Promise((resolve) => setTimeout(resolve, tim
 
 In the above example `track()` was used to track a specific signal. However, `track()` can also be used as a function to track multiple signals at once.
 
+<CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" sandboxStyle={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
@@ -229,8 +224,7 @@ function delay(time: number) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 ```
-
-<CodeSandbox src={TrackFn} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 > In this example the `track()` takes a function that not only reads the signal but also transforms its value to uppercase/lowercase. The `track()` is doing subscription on multiple signals and computes their value.
 
@@ -244,6 +238,7 @@ Sometimes when running a task cleanup work needs to be performed. When a new tas
 
 This example shows how to implement a debounce feature using the `cleanup()` function.
 
+<CodeSandbox src="/src/routes/demo/tasks/cleanup/index.tsx" sandboxStyle={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
@@ -265,7 +260,7 @@ export default component$(() => {
   );
 });
 ```
-<CodeSandbox src={Cleanup} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 ## `useVisibleTask$()`
 
@@ -280,43 +275,52 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 
 > **Caution**: The `useVisibleTask$()` should be used as a last resort, because it eagerly executes code on the client. Qwik through [resumability]() goes out of its way to delay the execution of code on the client, and `useVisibleTask$()` is an escape hatch that should be used with caution. See [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx#dont-register-events-eagerly-with-usevisibletask) for more details.
 > If you need to run a task on a client consider `useTask$()` with a server guard.
->
-```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
-
-export default component$(() => {
-  const text = useSignal('Initial text');
-  const isBold = useSignal(false);
-
-  useTask$(({ track }) => {
-    track(text);
-    if (isServer) {
-      return; // Server guard
-    }
-    isBold.value = true;
-    delay(1000).then(() => (isBold.value = false));
-  });
-
-  return (
-    <div>
-      Enter text: <input bind:value={text} />
-      <div style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>Text: {text}</div>
-    </div>
-  );
-});
-
-const delay = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
-```
-> <CodeSandbox src={TrackServerGuard} sandboxStyle={{ height: '6em' }} />
+> 
+> <CodeSandbox src="/src/routes/demo/tasks/track-server-guard/index.tsx" sandboxStyle={{ height: '6em' }}>
+> ```tsx
+> import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+> import { isServer } from '@builder.io/qwik/build';
+> 
+> export default component$(() => {
+>   const text = useSignal('Initial text');
+>   const isBold = useSignal(false);
+> 
+>   useTask$(({ track }) => {
+>     track(text);
+>     if (isServer) {
+>       return; // Server guard
+>     }
+>     isBold.value = true;
+>     delay(1000).then(() => (isBold.value = false));
+>   });
+> 
+>   return (
+>     <div>
+>       Enter text: <input bind:value={text} />
+>       <div style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
+>         Text: {text}
+>       </div>
+>     </div>
+>   );
+> });
+> 
+> const delay = (time: number) => new Promise((res) => setTimeout(res, time));
+> ```
+> </CodeSandbox>
 > In the above example the `useTask$()` is guarded by `isServer`. The `track()` is before the guard which
 > allows the server to set up the subscription but does not execute any code on the server. The client
 > then executes the `useTask$()` once the `text` signal changes.
 
 This example shows how to use `useVisibleTask$()` to initialize a clock on the browser only when the clock component becomes visible.
 
+<CodeSandbox src="/src/routes/demo/tasks/use-visible-task/index.tsx" sandboxStyle={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useVisibleTask$, type Signal } from '@builder.io/qwik';
+import {
+  component$,
+  useSignal,
+  useVisibleTask$,
+  type Signal,
+} from '@builder.io/qwik';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);
@@ -324,7 +328,8 @@ export default component$(() => {
   return (
     <>
       <div style="position: sticky; top:0">
-        Scroll to see clock. (Currently clock is {isClockRunning.value ? '' : 'not'} running.)
+        Scroll to see clock. (Currently clock is
+        {isClockRunning.value ? ' running' : ' not running'}.)
       </div>
       <div style="height: 200vh" />
       <Clock isRunning={isClockRunning} />
@@ -343,7 +348,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
   return <div>{time}</div>;
 });
 ```
-<CodeSandbox src={UseVisibleTask} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 > Notice how the clock's `useVisibleTask$()` does not run until the `<Clock>` component became visible. The default behavior of `useVisibleTask$()` is to run the task when the component becomes visible. This behavior is implemented through [intersection observers](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
 
@@ -351,8 +356,14 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 
 At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eagre mode. This is done by using the `{ strategy: 'document-ready' }`.
 
+<CodeSandbox src="/src/routes/demo/tasks/use-visible-task-eager/index.tsx" sandboxStyle={{ height: '6em' }}>
 ```tsx
-import { component$, useSignal, useVisibleTask$, type Signal } from '@builder.io/qwik';
+import {
+  component$,
+  useSignal,
+  useVisibleTask$,
+  type Signal,
+} from '@builder.io/qwik';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);
@@ -360,7 +371,8 @@ export default component$(() => {
   return (
     <>
       <div style="position: sticky; top:0">
-        Scroll to see clock. (Currently clock is {isClockRunning.value ? '' : 'not'} running.)
+        Scroll to see clock. (Currently clock is
+        {isClockRunning.value ? ' running' : ' not running'}.)
       </div>
       <div style="height: 200vh" />
       <Clock isRunning={isClockRunning} />
@@ -382,7 +394,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
   return <div>{time}</div>;
 });
 ```
-<CodeSandbox src={UseVisibleTaskEager} sandboxStyle={{ height: '6em' }} />
+</CodeSandbox>
 
 > In this example the clock starts running immediately on the browser regardless of whether it is visible or not.
 
@@ -396,8 +408,14 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 - It is not a pure function like `useComputed$()`. It can have side effects. Specifically, it is intended that `useResource$()` will have side effects such as network requests.
 - It uses [`track()`](#track)/[`cleanup()`](#cleanup) functions similar to `useTask$()`.
 
+<CodeSandbox src="/src/routes/demo/tasks/resource/index.tsx" sandboxStyle={{height: '6em'}}>
 ```tsx
-import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik';
+import {
+  component$,
+  Resource,
+  useResource$,
+  useSignal,
+} from '@builder.io/qwik';
 
 export default component$(() => {
   const prNumber = useSignal(3576);
@@ -426,7 +444,7 @@ export default component$(() => {
   );
 });
 ```
-<CodeSandbox src={Resource} sandboxStyle={{height: '6em'}}/>
+</CodeSandbox>
 
 ### `previous`
 

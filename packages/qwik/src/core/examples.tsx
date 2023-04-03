@@ -14,6 +14,7 @@ import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
 import { useVisibleTask$, useTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
+import { isServer, isBrowser } from '../build';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -465,7 +466,6 @@ function doExtraStuff() {
 
 import { createContextId, useContext, useContextProvider } from './use/use-context';
 import { Resource, useResource$ } from './use/use-resource';
-import { isServer, isBrowser } from '../build';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

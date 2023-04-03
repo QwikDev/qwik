@@ -15,18 +15,18 @@ import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
 import { invoke } from './use-core';
 
-// <docs markdown="../readme.md#Context">
+// <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#Context instead)
+// (edit ../readme.md#ContextId instead)
 /**
  * ContextId is a typesafe ID for your context.
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for
- * the context. It is not the context value itself. See `useContextProvider()` and `useContext()`
- * for the values. Qwik needs a serializable ID for the context so that the it can track context
- * providers and consumers in a way that survives resumability.
+ * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable
+ * identifier for the context. It is not the context value itself. See `useContextProvider()` and
+ * `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can
+ * track context providers and consumers in a way that survives resumability.
  *
  * ### Example
  *
@@ -87,10 +87,10 @@ export interface ContextId<STATE> {
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for
- * the context. It is not the context value itself. See `useContextProvider()` and `useContext()`
- * for the values. Qwik needs a serializable ID for the context so that the it can track context
- * providers and consumers in a way that survives resumability.
+ * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable
+ * identifier for the context. It is not the context value itself. See `useContextProvider()` and
+ * `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can
+ * track context providers and consumers in a way that survives resumability.
  *
  * ### Example
  *

@@ -4,6 +4,7 @@ export default component$(() => {
   const width = useSignal(0);
   const height = useSignal(0);
   const outputRef = useSignal<Element>();
+
   useVisibleTask$(() => {
     if (outputRef.value) {
       const rect = outputRef.value.getBoundingClientRect();
@@ -18,7 +19,8 @@ export default component$(() => {
         Change text value here to stretch the box.
       </div>
       <div>
-        The above red box is {height.value} pixels high and {width.value} pixels wide.
+        The above red box is {height.value} pixels high and {width.value}{' '}
+        pixels wide.
       </div>
     </div>
   );

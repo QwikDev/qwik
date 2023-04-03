@@ -48,7 +48,7 @@ Example showing how `useStore` is used in Counter example to keep track of the c
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
-`useResouce` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
+`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
 
 The status can be one of the following:
 
@@ -86,6 +86,30 @@ The `useTask` function is used to observe the `state.count` property. Any change
 <docs code="./examples.tsx#use-task"/>
 
 @param watch - Function which should be re-executed when changes to the inputs are detected
+@public
+
+# `useVisibleTask`
+
+```tsx
+const Timer = component$(() => {
+  const store = useStore({
+    count: 0,
+  });
+
+  useVisibleTask$(() => {
+    // Only runs in the client
+    const timer = setInterval(() => {
+      store.count++;
+    }, 500);
+    return () => {
+      clearInterval(timer);
+    };
+  });
+
+  return <div>{store.count}</div>;
+});
+```
+
 @public
 
 # `Tracker`
@@ -126,7 +150,7 @@ Component styles allow Qwik to lazy load the style information for the component
 
 @see `useStyles`
 
-@alpha
+@public
 
 # `useOn`
 
@@ -136,7 +160,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
-@alpha
+@public
 
 # `useOnWindow`
 
@@ -148,7 +172,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 <docs code="./examples.tsx#use-on-window"/>
 
-@alpha
+@public
 
 # `useOnDocument`
 
@@ -160,7 +184,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 <docs code="./examples.tsx#use-on-document"/>
 
-@alpha
+@public
 
 # `noSerialize`
 
@@ -304,7 +328,7 @@ For example, these function calls are equivalent:
 <docs code="./examples.tsx#implicit$FirstArg"/>
 
 @param fn - a function that should have its first argument automatically `$`.
-@alpha
+@public
 
 # `qrl`
 
@@ -317,7 +341,7 @@ This function should be used by the Qwik Optimizer only. The function should not
 @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
 @param symbol - Symbol to lazy load
 @param lexicalScopeCapture - a set of lexically scoped variables to capture.
-@alpha
+@public
 
 # `useDocument`
 
@@ -325,7 +349,7 @@ Retrieves the document of the current element. It's important to use this method
 
 NOTE: `useDocument` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-@alpha
+@public
 
 # `ContextId`
 
@@ -333,7 +357,7 @@ ContextId is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -343,10 +367,11 @@ Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializa
 # `createContextId`
 
 Create a context ID to be used in your application.
+The name should be written with no spaces.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. a `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -371,7 +396,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 # `useContext`
 
-Retrive Context value.
+Retrieve Context value.
 
 Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
 

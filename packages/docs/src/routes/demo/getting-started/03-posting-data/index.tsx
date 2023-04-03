@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { component$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$, server$ } from '@builder.io/qwik-city';
+import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {

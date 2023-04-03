@@ -1,34 +1,31 @@
-import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+import {
+  component$,
+  Resource,
+  useResource$,
+  useSignal,
+} from '@builder.io/qwik';
 
 export default component$(() => {
-  const a = useSignal(123);
-  const b = useSignal(456);
-  const location = useLocation();
+  const prNumber = useSignal(3576);
 
-  const sum = useResource$(async ({ track }) => {
-    track(a);
-    track(b);
-    const url = new URL(`/demo/api/add/`, location.url);
-    url.searchParams.set('a', a.value.toString());
-    url.searchParams.set('b', b.value.toString());
-    url.searchParams.set('delay', (500).toString());
-    const response = await fetch(url, { headers: { accept: 'application/json' } });
-    return await response.json();
+  const prTitle = useResource$(async ({ track }) => {
+    track(prNumber); // Requires explicit tracking of inputs
+    const response = await fetch(
+      `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
+    );
+    const data = await response.json();
+    return (data.title || data.message || 'Error') as string;
   });
 
   return (
     <>
-      a=
-      <input type="number" bind:value={a} />
-      b=
-      <input type="number" bind:value={b} />
+      <input type="number" bind:value={prNumber} />
       <h1>
-        {a} + {b} ={' '}
+        PR#{prNumber}:
         <Resource
-          value={sum}
-          onPending={() => <>computing...</>}
-          onResolved={(value) => <>{value}</>}
+          value={prTitle}
+          onPending={() => <>Loading...</>}
+          onResolved={(title) => <>{title}</>}
         />
       </h1>
     </>

@@ -3,6 +3,7 @@ import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 export default component$(() => {
   const draggableRef = useSignal<HTMLElement>();
   const dragStatus = useSignal('');
+
   useVisibleTask$(({ cleanup }) => {
     if (draggableRef.value) {
       // Use the DOM API to add an event listener.

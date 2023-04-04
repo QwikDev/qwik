@@ -78,6 +78,7 @@ export const RenderChildren = component$(() => {
       <Pr3475 />
       <Issue3561 />
       <Issue3542 atom={{ code: 1 }} />
+      <IssueChildrenSpread />
     </>
   );
 });
@@ -601,4 +602,30 @@ export const Issue3542 = component$(({ atom }: any) => {
     status = 'CODE IS 1';
   }
   return <span id="issue-3542-result">{status}</span>;
+});
+
+export const IssueChildrenSpread = component$(() => {
+  const signal = useSignal({
+    type: 'div',
+    children: ['Hello'],
+  });
+  const Type = signal.value.type;
+  return (
+    <div>
+      <button
+        id="issue-children-spread-button"
+        onClick$={() => {
+          signal.value = {
+            type: 'div',
+            children: ['Changed'],
+          };
+        }}
+      >
+        Change
+      </button>
+      <div id="issue-children-spread-result">
+        <Type {...signal.value}></Type>
+      </div>
+    </div>
+  );
 });

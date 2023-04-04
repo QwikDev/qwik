@@ -47,7 +47,7 @@ export default component$(() => {
 });
 ```
 
-> It may appear that `useGetServerTime()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useGetServerTime` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useGetServerTime()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
+> It may appear that `useProductData()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useProductData` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useProductData()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
 
 ## Multiple `routeLoader$`s
 

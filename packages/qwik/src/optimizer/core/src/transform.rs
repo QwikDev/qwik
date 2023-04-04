@@ -1426,6 +1426,7 @@ impl<'a> QwikTransform<'a> {
                         }
                         prop => {
                             static_listeners = false;
+                            static_subtree = false;
                             mutable_props.push(prop.fold_with(self));
                         }
                     };

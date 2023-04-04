@@ -3534,7 +3534,7 @@ export const s_nRyVBtbGKc8 = (props)=>{
             block: _wrapSignal(props, 'block'),
             context: _wrapSignal(props, 'repeatContext')
         }
-    }, 2, 'K5_0');
+    }, 0, 'K5_0');
 };
 
 
@@ -3696,7 +3696,7 @@ export const s_MYUZ0j1uLsw = (props)=>{
                 [_IMMUTABLE]: {
                     context: _IMMUTABLE
                 }
-            }, 2, 'render-block-' + block.id);
+            }, 0, 'render-block-' + block.id);
         }) : null,
         props.blocks ? (props.blocks || []).map(function(block) {
             return /* @__PURE__ */ _jsxC(BlockStyles, {
@@ -3705,7 +3705,7 @@ export const s_MYUZ0j1uLsw = (props)=>{
                 [_IMMUTABLE]: {
                     context: _IMMUTABLE
                 }
-            }, 2, 'block-style-' + block.id);
+            }, 0, 'block-style-' + block.id);
         }) : null
     ], 0, "mR_4");
 };
@@ -3814,7 +3814,7 @@ export const s_7yLj4bxdI6c = (props)=>{
                     blocks: _wrapSignal(column, 'blocks'),
                     parent: _wrapSignal(props.builderBlock, 'id')
                 }
-            }, 2, 'c0_1'), 1, index);
+            }, 0, 'c0_1'), 1, index);
         })
     ], 1, "mR_5");
 };
@@ -3950,7 +3950,7 @@ export const s_LRxDkFa1EfU = (props)=>{
                     }
                 }, {
                     loading: 'lazy'
-                }, null, 2, null)
+                }, null, 0, null)
             ], 1, null),
             props.aspectRatio && !(props.builderBlock?.children?.length && props.fitContent) ? /* @__PURE__ */ _jsxQ('div', {
                 style: {
@@ -4130,7 +4130,7 @@ export const s_WVvggdkUPdk = (props)=>{
                 builderContext$1
             ], "Object.values(p0.registeredComponents)")
         }
-    }, 2, 'Wt_0'), 0, "mR_11");
+    }, 0, 'Wt_0'), 0, "mR_11");
 };
 
 
@@ -4172,7 +4172,7 @@ export const s_15p0cKUxgIE = (props)=>{
         }
     }, {
         class: 'builder-text'
-    }, null, 2, "mR_12");
+    }, null, 0, "mR_12");
 };
 
 
@@ -4220,7 +4220,7 @@ export const s_qdcTZflYyoQ = (props)=>{
         [_IMMUTABLE]: {
             poster: _wrapSignal(props, 'posterImage')
         }
-    }, null, null, 2, "mR_13");
+    }, null, null, 0, "mR_13");
 };
 
 
@@ -4310,7 +4310,7 @@ export const s_Uji08ORjXbE = (props)=>{
         }
     }, {
         class: 'builder-embed'
-    }, null, 2, "mR_14");
+    }, null, 0, "mR_14");
 };
 
 
@@ -4354,7 +4354,7 @@ export const s_FXvIDBSffO8 = (props)=>{
         [_IMMUTABLE]: {
             alt: _wrapSignal(props, 'altText')
         }
-    }, null, null, 2, isEditing() && props.imgSrc || 'default-key');
+    }, null, null, 0, isEditing() && props.imgSrc || 'default-key');
 };
 
 
@@ -4437,7 +4437,7 @@ export const s_uYOSy7w7Zqw = (props)=>{
         [_IMMUTABLE]: {
             dangerouslySetInnerHTML: _wrapSignal(props, 'code')
         }
-    }, null, null, 2, "mR_15");
+    }, null, null, 0, "mR_15");
 };
 
 
@@ -4502,7 +4502,7 @@ ${getFontCss({
         [_IMMUTABLE]: {
             styles: _wrapSignal(state, 'injectedStyles')
         }
-    }, 2, 'V0_0');
+    }, 0, 'V0_0');
 };
 
 
@@ -5094,7 +5094,7 @@ const RenderInlinedStyles = (props)=>{
             [_IMMUTABLE]: {
                 dangerouslySetInnerHTML: _wrapSignal(props, 'styles')
             }
-        }, null, null, 2, null),
+        }, null, null, 0, null),
         [_IMMUTABLE]: {
             children: false
         }
@@ -5289,7 +5289,7 @@ const RenderComponent = (props)=>{
                         [_IMMUTABLE]: {
                             context: _wrapSignal(props, 'context')
                         }
-                    }, 2, 'render-block-' + child.id);
+                    }, 0, 'render-block-' + child.id);
                 }),
                 (props.blockChildren || []).map(function(child) {
                     return /* @__PURE__ */ _jsxC(BlockStyles, {
@@ -5300,7 +5300,7 @@ const RenderComponent = (props)=>{
                         [_IMMUTABLE]: {
                             context: _wrapSignal(props, 'context')
                         }
-                    }, 2, 'block-style-' + child.id);
+                    }, 0, 'block-style-' + child.id);
                 })
             ]
         }, 0, "mR_1") : null,
@@ -5409,7 +5409,7 @@ const RenderBlock = (props)=>{
                 isEmptyHtmlElement(tag(props)) ? /* @__PURE__ */ _jsxC(state.tag, {
                     ...attributes(props),
                     ...actions(props)
-                }, 2, "mR_2") : null,
+                }, 0, "mR_2") : null,
                 !isEmptyHtmlElement(tag(props)) && repeatItemData(props) ? (repeatItemData(props) || []).map(function(data, index) {
                     return /* @__PURE__ */ _jsxC(RenderRepeatedBlock, {
                         get repeatContext () {
@@ -5422,7 +5422,7 @@ const RenderBlock = (props)=>{
                             repeatContext: _wrapSignal(data, 'context'),
                             block: _wrapSignal(data, 'block')
                         }
-                    }, 2, index);
+                    }, 0, index);
                 }) : null,
                 !isEmptyHtmlElement(tag(props)) && !repeatItemData(props) ? /* @__PURE__ */ _jsxC(state.tag, {
                     ...attributes(props),
@@ -5430,7 +5430,7 @@ const RenderBlock = (props)=>{
                     children: [
                         /* @__PURE__ */ _jsxC(RenderComponent, {
                             ...renderComponentProps(props)
-                        }, 2, '9d_0'),
+                        }, 0, '9d_0'),
                         (childrenWithoutParentComponent(props) || []).map(function(child) {
                             return /* @__PURE__ */ _jsxC(RenderBlock, {
                                 block: child,
@@ -5451,7 +5451,7 @@ const RenderBlock = (props)=>{
             }
         }, 1, '9d_1') : /* @__PURE__ */ _jsxC(RenderComponent, {
             ...renderComponentProps(props)
-        }, 2, '9d_2') : null,
+        }, 0, '9d_2') : null,
         [_IMMUTABLE]: {
             children: false
         }

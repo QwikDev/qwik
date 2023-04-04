@@ -51,7 +51,7 @@ export const Streaming = component$(() => {
 
       <ol>
         <SSRStream>
-          {async function (stream) {
+          {async function (stream: any) {
             for (let i = 0; i < 10; i++) {
               stream.write(`<li>raw: ${i}</li>`);
               await delay(100);

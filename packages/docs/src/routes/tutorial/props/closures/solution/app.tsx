@@ -1,4 +1,4 @@
-import { component$, $, PropFunction } from '@builder.io/qwik';
+import { component$, $, type PropFunction } from '@builder.io/qwik';
 
 export default component$(() => {
   const goodbye$ = $(() => alert('Good Bye!'));

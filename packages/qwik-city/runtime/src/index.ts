@@ -38,6 +38,8 @@ export type {
   RouteNavigate,
   DeferReturn,
   RequestEventBase,
+  JSONObject,
+  JSONValue,
 } from './types';
 
 export { RouterOutlet } from './router-outlet-component';

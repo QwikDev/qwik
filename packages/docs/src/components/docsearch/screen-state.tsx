@@ -1,4 +1,4 @@
-import { component$, type Ref } from '@builder.io/qwik';
+import { component$, type Signal } from '@builder.io/qwik';
 import type { DocSearchState } from './doc-search';
 import type { ErrorScreenTranslations } from './error-screen';
 import { ErrorScreen } from './error-screen';
@@ -16,7 +16,7 @@ export type ScreenStateTranslations = Partial<{
 
 export interface ScreenStateProps {
   state: DocSearchState;
-  inputRef: Ref<HTMLInputElement | null>;
+  inputRef: Signal<HTMLInputElement | undefined>;
   disableUserPersonalization: boolean;
   translations: ScreenStateTranslations;
 }

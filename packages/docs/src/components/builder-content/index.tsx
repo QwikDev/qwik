@@ -1,5 +1,4 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
-import { isDev as isBuilderDev } from '@builder.io/qwik/build';
 import { useLocation } from '@builder.io/qwik-city';
 import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
 

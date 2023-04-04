@@ -1,6 +1,6 @@
 import { getNextActiveItemId } from '@algolia/autocomplete-core/dist/esm/utils';
 import { getItemsCount } from '@algolia/autocomplete-shared';
-import { component$, type Ref, useVisibleTask$, useContext } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useContext, type Signal } from '@builder.io/qwik';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
@@ -20,7 +20,7 @@ export type SearchBoxTranslations = Partial<{
 interface SearchBoxProps {
   state: DocSearchState;
   autoFocus: boolean;
-  inputRef: Ref<HTMLInputElement | null>;
+  inputRef: Signal<HTMLInputElement | null>;
   onClose$: () => void;
   translations?: SearchBoxTranslations;
 }
@@ -35,10 +35,10 @@ export const SearchBox = component$((props: SearchBoxProps) => {
 
   useVisibleTask$(() => {
     if (props.autoFocus) {
-      props.inputRef.current?.focus();
+      props.inputRef.value?.focus();
     }
   });
-  const context: any = useContext(SearchContext);
+  const context = useContext(SearchContext);
   return (
     <>
       <form

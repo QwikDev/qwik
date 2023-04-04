@@ -1,4 +1,4 @@
-import { component$, QRL, implicit$FirstArg, useStore } from '@builder.io/qwik';
+import { component$, type QRL, implicit$FirstArg, useStore } from '@builder.io/qwik';
 
 export function delayQrl<T>(fn: QRL<() => T>, delayInMs: number): Promise<T> {
   return new Promise((res) => {

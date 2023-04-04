@@ -13,7 +13,10 @@ interface QwikCustomHTMLElement extends HTMLElement {}
 /**
  * @public
  */
-export interface QwikIntrinsicAttributes {}
+export interface QwikIntrinsicAttributes {
+  key?: string | number | undefined | null;
+  children?: any;
+}
 
 /**
  * @public

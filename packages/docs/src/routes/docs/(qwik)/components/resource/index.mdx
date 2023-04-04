@@ -93,7 +93,7 @@ import { component$, useResource$, Resource, useSignal } from '@builder.io/qwik'
 export default component$(() => {
   const query = useSignal('busy');
   const jokes = useResource$(async ({ track, cleanup }) => {
-    track(query);
+    track(()=> query.value);
     // A good practice is to use `AbortController` to abort the fetching of data if
     // new request comes in. We create a new `AbortController` and register a `cleanup`
     // function which is called when this function re-runs.

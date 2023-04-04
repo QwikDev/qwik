@@ -1,11 +1,6 @@
 /* eslint-disable no-console */
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import {
-  routeLoader$,
-  Form,
-  routeAction$,
-  server$,
-} from '@builder.io/qwik-city';
+import { component$, useSignal } from '@builder.io/qwik';
+import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -26,13 +21,6 @@ export default component$(() => {
   const isFavoriteSignal = useSignal(false);
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
-  useTask$(({ track }) => {
-    track(isFavoriteSignal);
-    console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
-    server$(() => {
-      console.log('FAVORITE (server)', isFavoriteSignal.value);
-    })();
-  });
   return (
     <div class="section bright">
       <div>{dadJokeSignal.value.joke}</div>

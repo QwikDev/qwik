@@ -5,6 +5,7 @@ contributors:
   - cunzaizhuyi
   - forresst
   - keuller
+  - hamatoyogi
 ---
 
 # `routeAction$()`
@@ -147,7 +148,7 @@ export const useAddUser = routeAction$((user) => {
 });
 ```
 
-Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `action$()` function.
+Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `routeAction$()` function.
 
 ```tsx title="src/routes/index.tsx"
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
@@ -167,7 +168,7 @@ export const useAddUser = routeAction$(
 );
 ```
 
-When submitting data to an action, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.fail` property.
+When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.fail` property.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';

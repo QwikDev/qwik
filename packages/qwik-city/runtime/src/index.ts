@@ -39,7 +39,7 @@ export type {
   DeferReturn,
   RequestEventBase,
   JSONObject,
-  JSONValue
+  JSONValue,
 } from './types';
 
 export { RouterOutlet } from './router-outlet-component';

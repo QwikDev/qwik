@@ -321,9 +321,9 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
           throw new Error(`Server function failed: ${res.statusText}`);
         }
         if (res.headers.get('Content-Type') === 'text/event-stream') {
-          const {writable, readable} = getSSETransformer()
+          const { writable, readable } = getSSETransformer();
           res.body?.pipeTo(writable);
-          return streamAsyncIterator(readable, ctxElm ?? document.documentElement)
+          return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
         } else {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
@@ -420,16 +420,19 @@ const parseEvent = (message: string): SSEvent => {
   }
   event.data = data;
   return event;
-}
+};
 
-async function* streamAsyncIterator(stream: ReadableStream<SSEvent>, ctxElm: unknown): AsyncGenerator<unknown> {
+async function* streamAsyncIterator(
+  stream: ReadableStream<SSEvent>,
+  ctxElm: unknown
+): AsyncGenerator<unknown> {
   // Get a lock on the stream
   const reader = stream.getReader();
 
   try {
     while (true) {
       // Read from the stream
-      const {done, value} = await reader.read();
+      const { done, value } = await reader.read();
       // Exit if we're done
       if (done) {
         return;
@@ -438,8 +441,7 @@ async function* streamAsyncIterator(stream: ReadableStream<SSEvent>, ctxElm: unk
       const obj = await _deserializeData(value.data, ctxElm);
       yield obj;
     }
-  }
-  finally {
+  } finally {
     reader.releaseLock();
   }
 }

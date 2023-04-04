@@ -1,10 +1,4 @@
-import {
-  component$,
-  useStyles$,
-  useTask$,
-  useStore,
-  useVisibleTask$,
-} from '@builder.io/qwik';
+import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
 import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';

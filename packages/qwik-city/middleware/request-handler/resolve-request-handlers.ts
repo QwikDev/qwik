@@ -278,7 +278,7 @@ async function pureServerFunction(ev: RequestEvent) {
           } finally {
             stream.close();
           }
-        }else {
+        } else {
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(200, await qwikSerializer._serializeData(result, true));
         }

@@ -5,7 +5,7 @@ import { Repl } from '../../repl/repl';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
-import tutorialSections, { TutorialApp } from '@tutorial-data';
+import tutorialSections, { type TutorialApp } from '@tutorial-data';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { Header } from '../../components/header/header';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';

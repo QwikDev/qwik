@@ -3,10 +3,7 @@ import {
   useStyles$,
   useTask$,
   useStore,
-  useSignal,
   useVisibleTask$,
-  useOn,
-  $,
 } from '@builder.io/qwik';
 import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
@@ -37,6 +34,7 @@ export default component$(() => {
       entryStrategy: 'hook',
       files: app?.inputs || [],
       version: '',
+      shareUrlTmr: undefined,
     };
     return initStore;
   });

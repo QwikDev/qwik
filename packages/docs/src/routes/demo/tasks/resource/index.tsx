@@ -2,8 +2,8 @@ import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik'
 import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const a = useSignal(123);
-  const b = useSignal(456);
+  const a = useSignal('123');
+  const b = useSignal('456');
   const location = useLocation();
 
   const sum = useResource$(async ({ track }) => {

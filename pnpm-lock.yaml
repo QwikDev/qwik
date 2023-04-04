@@ -134,6 +134,7 @@ importers:
       '@builder.io/partytown': 0.7.6
       '@builder.io/qwik': workspace:*
       '@builder.io/qwik-city': workspace:*
+      '@builder.io/sdk-qwik': ^0.1.16
       '@docsearch/css': 3.3.3
       '@supabase/supabase-js': ^2.14.0
       '@types/prismjs': ^1.26.0
@@ -166,6 +167,7 @@ importers:
       '@builder.io/partytown': 0.7.6
       '@builder.io/qwik': link:../qwik
       '@builder.io/qwik-city': link:../qwik-city
+      '@builder.io/sdk-qwik': 0.1.16_57atdkqjbkulndxrlkskqpl6yi
       '@docsearch/css': 3.3.3
       '@types/prismjs': 1.26.0
       algoliasearch: 4.16.0
@@ -502,6 +504,14 @@ packages:
   /@builder.io/partytown/0.7.6:
     resolution: {integrity: sha512-snXIGNiZpqjno3XYQN2lbBB+05hsQR/LSttbtIW1c0gmZ7Kh/DIo0YrxlDxCDulAMFPFM8J+4voLwvYepSj3sw==}
     hasBin: true
+    dev: true
+
+  /@builder.io/sdk-qwik/0.1.16_57atdkqjbkulndxrlkskqpl6yi:
+    resolution: {integrity: sha512-jlO+srJYtOwrnAFUTkzRI800PvwboZv/V/fVEILn/rIeYo7/cp6hXeQMUtRulDp4cxJ36hgX96tbsSdPapUyBg==}
+    peerDependencies:
+      '@builder.io/qwik': '>=0.13.3'
+    dependencies:
+      '@builder.io/qwik': link:packages/qwik
     dev: true
 
   /@clack/core/0.3.2:

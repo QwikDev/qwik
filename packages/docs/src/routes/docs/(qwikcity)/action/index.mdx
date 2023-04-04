@@ -42,8 +42,8 @@ Actions are referenced using the `.use()` method from within a Qwik Component. T
 import { component$ } from '@builder.io/qwik';
 import { routeAction$ } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$((user) => {
-  const userID = db.users.add(user);
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -73,8 +73,8 @@ The best way to trigger an action is by using the `<Form/>` component exported i
 import { routeAction$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useAddUser = routeAction$((user) => {
-  const userID = db.users.add(user);
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -103,8 +103,8 @@ Actions can also be triggered programatically using the `action.run()` method, i
 import { routeAction$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useAddUser = routeAction$((user) => {
-  const userID = db.users.add(user);
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -138,9 +138,9 @@ When submitting data to an action by default, the data is not validated.
 ```tsx title="src/routes/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$((user) => {
+export const useAddUser = routeAction$(async (user) => {
   // `user` is typed Record<string, any>
-  const userID = db.users.add(user);
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -154,9 +154,9 @@ Fortunately, actions have first class support for [Zod](https://zod.dev/), a Typ
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user) => {
+  async (user) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     return {
       success: true,
       userID,
@@ -175,9 +175,9 @@ import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user) => {
+  async (user) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     return {
       success: true,
       userID,
@@ -211,9 +211,9 @@ In order to return non-success values, the action must use the `fail()` method.
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user, { fail }) => {
+  async (user, { fail }) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     if (!userID) {
       return fail(500, {
         message: 'User could not be added',
@@ -259,9 +259,9 @@ import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user) => {
+  async (user) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     return {
       userID,
     };

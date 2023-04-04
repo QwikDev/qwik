@@ -20,7 +20,7 @@ Tasks are meant for running asynchronous operations as part of component initial
 `useTask$()` should be your default go-to API for running asynchronous (or synchronous) work as part of component initialization or state change. It is only when you can't achieve what you need with `useTask$()` that you should consider using `useVisibleTask$()` or `useResource$()`.
 
 The basic use case for `useTask$()` is to perform work on component initialization. `useTask$()` has these properties:
-- It runs on the server and the browser.
+- It can run on either the server or in the browser.
 - It runs before rendering and blocks rendering.
 - If multiple tasks are running then they are run sequentially in the order they were registered. An asynchronous task will block the next task from running until it completes.
 

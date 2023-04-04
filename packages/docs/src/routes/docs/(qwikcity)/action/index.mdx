@@ -167,7 +167,7 @@ export const useAddUser = routeAction$(
 );
 ```
 
-When submitting data to an action, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.fail` property.
+When submitting data to an action, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.value.fieldErrors` property. The `fieldErrors` object will have properties defined according to the Zod schema, in this case it will have the `name` property.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -192,7 +192,7 @@ export default component$(() => {
   return (
     <Form action={action}>
       <input name="name" />
-      {action.fail?.fieldErrors.name && <div>{action.fail.message}</div>}
+      {action.value?.failed && <div>{action.value.fieldErrors?.name}</div>}
       {action.value?.success && <div>User added successfully</div>}
       <button type="submit">Add user</button>
     </Form>
@@ -228,7 +228,7 @@ export const useAddUser = routeAction$(
 );
 ```
 
-Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails.
+Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object according to properties defined in your Zod schema.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -240,7 +240,7 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <div>{action.value.message}</div>}
+      {action.value?.failed && <div>{action.value.fieldErrors.name}</div>}
       {action.value?.userID && <div>User added successfully</div>}
     </Form>
   );

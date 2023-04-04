@@ -302,6 +302,14 @@ test.describe('render', () => {
       const result = page.locator('#issue-3542-result');
       await expect(result).toHaveText('CODE IS 1');
     });
+
+    test('issue-children-spread-result', async ({ page }) => {
+      const result = page.locator('#issue-children-spread-result');
+      const button = page.locator('#issue-children-spread-button');
+      await expect(result).toHaveText('Hello');
+      await button.click();
+      await expect(result).toHaveText('Changed');
+    });
   }
 
   tests();

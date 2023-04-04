@@ -5,19 +5,19 @@ import {
   useComputed$,
   useStore,
   useTask$,
-  useStylesScoped$,
   useStyles$,
   useOnDocument,
+  type QwikMouseEvent,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
-import { Callout, getCallout } from './callout';
+import { type Callout, getCallout } from './callout';
 import { setPosition } from './layers';
 import { srcLayer0, srcLayer1, srcLayer2 } from './syntax';
 import STYLES from './src-animation.css?inline';
 
 export const SrcAnimation = component$(() => {
   useStyles$(STYLES);
-  const stickyDiv = useSignal<HTMLDivElement | null>(null);
+  const stickyDiv = useSignal<HTMLDivElement>();
   const calloutStyles = useSignal<Record<string, any>>({ display: 'none' });
   const hoverToken = useStore<{
     element: HTMLSpanElement | null;
@@ -88,7 +88,7 @@ export const SrcAnimation = component$(() => {
       const scrollY = window.scrollY;
       const height = rectParent.height - rectSticky.height;
       const start = scrollY + rectParent.top;
-      const end = start + height;
+      // const end = start + height;
       const pos = Math.max(0, Math.min(1, (scrollY - start) / height));
       position.value = pos;
       hoverToken.element = null;
@@ -172,29 +172,7 @@ export const SrcAnimation = component$(() => {
   );
 });
 
-function getLayer(element: HTMLElement | null): number {
-  let layer = -1;
-  if (element) {
-    element.classList.forEach((name) => {
-      if (name.startsWith('layer-')) {
-        layer = Number.parseInt(name.split('-')[1]);
-      }
-    });
-  }
-  return layer;
-}
-
-function getParentElement(tagName: string, node: HTMLElement | null): HTMLElement | null {
-  while (node) {
-    if (node.tagName === tagName) {
-      return node;
-    }
-    node = node.parentElement;
-  }
-  return null;
-}
-
-function inside(pos: MouseEvent, rect: DOMRect) {
+function inside(pos: QwikMouseEvent, rect: DOMRect) {
   const { x, y } = pos;
   const { left, right, top, bottom } = rect;
   return left < x && x < right && top < y && y < bottom;

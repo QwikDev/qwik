@@ -4,7 +4,7 @@ import { Form, globalAction$ } from '@builder.io/qwik-city';
 export const useDotNotationAction = globalAction$(async (payload) => {
   return {
     success: true,
-    payload,
+    payload: payload,
   };
 });
 

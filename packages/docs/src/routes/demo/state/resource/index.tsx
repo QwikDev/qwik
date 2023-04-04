@@ -6,7 +6,7 @@ import {
 } from '@builder.io/qwik';
 
 export default component$(() => {
-  const prNumber = useSignal(3576);
+  const prNumber = useSignal('3576');
 
   const prTitle = useResource$(async ({ track }) => {
     track(prNumber); // Requires explicit tracking of inputs

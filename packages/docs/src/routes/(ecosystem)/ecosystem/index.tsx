@@ -1,4 +1,4 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$, type FunctionComponent } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
@@ -211,7 +211,7 @@ export const head: DocumentHead = {
   title: 'Qwik Ecosystem',
 };
 
-export const GridItem = (props: GridItemProps) => {
+export const GridItem: FunctionComponent<GridItemProps> = (props) => {
   return (
     <li class="grid-item">
       <Link href={props.href}>

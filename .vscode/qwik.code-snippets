@@ -49,9 +49,9 @@
 			""
 		]
 	},
-	"useBrowserVisibleTask": {
+	"useVisibleTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useBrowserVisibleTask",
+		"prefix": "q:useVisibleTask",
 		"description": "useVisibleTask$() function hook",
 		"body": [
 			"useVisibleTask$(({ track }) => {",
@@ -78,17 +78,6 @@
 		"description": "useResource$() declaration",
 		"body": [
 			"const $1 = useResource$(({ track, previous, cleanup }) => {",
-			"  $0",
-			"});",
-			""
-		]
-	},
-	"useServerMount": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useServerMount",
-		"description": "useServerMount$() function hook",
-		"body": [
-			"useServerMount$(() => {",
 			"  $0",
 			"});",
 			""

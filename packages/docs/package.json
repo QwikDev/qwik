@@ -14,7 +14,8 @@
     "preview": "qwik build preview && vite preview --open",
     "preview.wrangler": "wrangler pages dev ./dist",
     "build.showcase": "pnpm node scripts/showcase.js",
-    "start": "pnpm dev"
+    "start": "pnpm dev",
+    "codesandbox.sync": "tsm codesandbox.sync.ts"
   },
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",

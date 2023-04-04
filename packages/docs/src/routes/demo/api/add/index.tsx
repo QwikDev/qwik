@@ -8,4 +8,4 @@ export const onGet: RequestHandler = async ({ query, json }) => {
   json(200, a + b);
 };
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));

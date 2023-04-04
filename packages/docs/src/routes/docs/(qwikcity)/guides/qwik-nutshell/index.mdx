@@ -2,7 +2,14 @@
 
 ## Components
 
-Qwik components are very similar to React components. They are functions that return JSX. However, `component$((props) => {...})` needs to be used, event handlers need to have the `$` suffix, state is created using `useSignal()` , `class` is used instead of `className` and some other differences.
+Qwik components are very similar to React components. They are functions that return JSX. However, `component$(...)` needs to be used, event handlers must have the `$` suffix, state is created using `useSignal()` , `class` is used instead of `className` and some other differences.
+
+- Components are always declared with the `component$` function.
+- Components can use the `useSignal` hook to create reactive state.
+- Event handlers are declared with the `$` suffix.
+- For `<input>`, the `onChange` event is called `onInput$` in Qwik.
+- JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
+- Conditional rendering is done with the ternary operator `?` and the `&&` operator, just like React.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -15,27 +22,27 @@ interface MyComponentProps {
 }
 
 // Components are always declared with the `component$` function.
-export const MyComponent = component$((props) => {
+export const MyComponent = component$((props: MyComponentProps) => {
   // Components use the `useSignal` hook to create reactive state.
-  const count = useSignal(0);
+  const count = useSignal(0); // { value: 0 }
   return (
     <>
       <button
         onClick$={() => {
           // Event handlers have the `$` suffix.
-          count.value = count.value + props.step
+          count.value = count.value + props.step;
         }}
       >
         Increment by {props.step}
       </button>
-      <main class={{
-        'even': count.value % 2 === 0,
-        'omode': count.value % 2 === 1,
-      }}>
-        <h1>
-          Count: {count.value}
-        </h1>
-        <MyOtherComponent >
+      <main
+        class={{
+          even: count.value % 2 === 0,
+          omode: count.value % 2 === 1,
+        }}
+      >
+        <h1>Count: {count.value}</h1>
+        <MyOtherComponent>
           {count.value > 10 && <p>Count is greater than 10</p>}
           {count.value > 10 ? <p>Count is greater than 10</p> : <p>Count is less than 10</p>}
         </MyOtherComponent>
@@ -45,38 +52,21 @@ export const MyComponent = component$((props) => {
 });
 ```
 
-- Components are always declared with the `component$` function.
-- Components can use the `useSignal` hook to create reactive state.
-- Event handlers are declared with the `$` suffix.
-- For `<input>`, the `onChange` event is called `onInput$` in Qwik.
-- JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
-- Conditional rendering is done with the ternary operator `?` and the `&&` operator, just like React.
-
-
 ### Rendering a list of items
 
 Like in React, you can render a list of items using the `map` function, however every item in the list must have a unique `key` property. The `key` must be a string, or number and must be unique within the list.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
-
-const US_PRESIDENTS = [
-  {
-    name: 'George Washington',
-    year: 1789,
-  },
-  {
-    name: 'John Adams',
-    year: 1797,
-  }
-]
+import { US_PRESIDENTS } from './presidents';
 
 export const PresidentsList = component$(() => {
   return (
     <ul>
-      {US_PRESIDENTS.map(president => (
-        <li key={president.name}>
-          {president.name}: {president.year}
+      {US_PRESIDENTS.map((president) => (
+        <li key={president.number}>
+          <h2>{president.name}</h2>
+          <p>{president.description}</p>
         </li>
       ))}
     </ul>
@@ -86,7 +76,7 @@ export const PresidentsList = component$(() => {
 
 ### Reusing event handlers
 
-Event handlers can be reused across JSX nodes. This is done by creating a handler using the $(...handler...).
+Event handlers can be reused across JSX nodes. This is done by creating a handler using the `$(...handler...)`.
 
 ```tsx
 import { $, component$, useSignal } from '@builder.io/qwik';
@@ -106,10 +96,11 @@ export const MyComponent = component$(() => {
 
   return (
     <>
-      <input name='name' onInput$={inputHandler} />
-      <input name='password' onInput$={[inputHandler, $(() => {
-        console.log('password changed');
-      })]} />
+      <input name="name" onInput$={inputHandler} />
+      <input
+        name="password"
+        onInput$={inputHandler}
+      />
     </>
   );
 });
@@ -125,32 +116,20 @@ import { component$, Slot } from '@builder.io/qwik';
 import styles from './Button.module.css';
 
 export const Button = component$(() => {
-  // Project the content of the button into the slot.
   return (
     <button class={styles.button}>
       <div class={styles.start}>
-        <Slot name="start"/>
+        <Slot name="start" />
       </div>
-      <Slot/>
+      <Slot />
       <div class={styles.end}>
-        <Slot name="end"/>
+        <Slot name="end" />
       </div>
     </button>
   );
 });
-```
 
-```tsx
-// File: src/components/Button/Button.stories.tsx
-
-import { Button } from './Button';
-
-export default {
-  title: 'Button',
-  component: Button,
-};
-
-export const Default = () => {
+export default component$(() => {
   return (
     <Button>
       <span q:slot="start">📩</span>
@@ -158,18 +137,15 @@ export const Default = () => {
       <span q:slot="end">🟩</span>
     </Button>
   );
-};
+});
 ```
-
 
 ### Rules of use hooks
 
-Methods that start with `use` are special in Qwik, such as `useSignal()`, `useStore()`, `useOn()`, `useTask$()`, `useLocation()` and so on.
+Methods that start with `use` are special in Qwik, such as `useSignal()`, `useStore()`, `useOn()`, `useTask$()`, `useLocation()` and so on. Very similar to React hooks.
 
 - They can only be called within a component$.
 - They can only be called from the top level of a component$, not inside a conditional, or a loop.
-
-
 
 ## Styling
 
@@ -195,11 +171,7 @@ import { component$ } from '@builder.io/qwik';
 import styles from './MyComponent.module.css';
 
 export default component$(() => {
-  return (
-    <div class={styles.container}>
-      Hello world
-    </div>
-  );
+  return <div class={styles.container}>Hello world</div>;
 });
 ```
 
@@ -216,11 +188,7 @@ import { component$ } from '@builder.io/qwik';
 import './MyComponent.css';
 
 export default component$(() => {
-  return (
-    <div class="container">
-      Hello world
-    </div>
-  );
+  return <div class="container">Hello world</div>;
 });
 ```
 
@@ -239,11 +207,7 @@ export default component$(() => {
       background-color: red;
     }
   `);
-  return (
-    <div class="container">
-      Hello world
-    </div>
-  );
+  return <div class="container">Hello world</div>;
 });
 ```
 
@@ -263,14 +227,9 @@ import styles from './MyComponent.css?inline';
 
 export default component$(() => {
   useStyleScoped$(styles);
-  return (
-    <div class="container">
-      Hello world
-    </div>
-  );
+  return <div class="container">Hello world</div>;
 });
 ```
-
 
 ## $(...) rules
 
@@ -279,15 +238,15 @@ The `$(...)` function and any function that end with `$` are special in Qwik, su
 - The first argument must be a imported variable.
 - The first argument must be a declared variable at the top level of the same module.
 - The first argument must be an expression any variables.
-- If the first argument is a function, it can only capture variables that are declared at the top level of the same module or which value is serializable. Serializable values include: `string`, `number`, `boolean`, `null`, `undefined`, `Array`, `Object`, `Date`, `RegExp`, `Map`, `Set`,  `BigInt`, `Promise`,  `Error`, `JSX nodes`, `Signal`, `Store` and even HTMLElements.
+- If the first argument is a function, it can only capture variables that are declared at the top level of the same module or which value is serializable. Serializable values include: `string`, `number`, `boolean`, `null`, `undefined`, `Array`, `Object`, `Date`, `RegExp`, `Map`, `Set`, `BigInt`, `Promise`, `Error`, `JSX nodes`, `Signal`, `Store` and even HTMLElements.
 
 ```tsx
 // Valid examples of `$` functions.
 import { $, component$, useSignal } from '@builder.io/qwik';
-import { importedFunction } from './my-other-module'
+import { importedFunction } from './my-other-module';
 
 export function exportedFunction() {
-  console.log('exported function')
+  console.log('exported function');
 }
 
 export default component$(() => {
@@ -303,7 +262,7 @@ export default component$(() => {
   const valid3 = $(exportedFunction);
 
   // The first argument is an expression without local variables.
-  const valid4 = $([1, 2, { a: "hello" }]);
+  const valid4 = $([1, 2, { a: 'hello' }]);
 
   // The first argument is a function that captures a local variable.
   const localVariable = 1;
@@ -318,7 +277,7 @@ Here are some examples of invalid `$` functions.
 ```tsx
 // Invalid examples of `$` functions.
 import { $, component$, useSignal } from '@builder.io/qwik';
-import { importedVariable } from './my-other-module'
+import { importedVariable } from './my-other-module';
 
 export default component$(() => {
   const unserializable = new CustomClass();
@@ -339,7 +298,6 @@ export default component$(() => {
   const invalid4 = $(importedVariable + 'hello');
 });
 ```
-
 
 ## Reactive state
 
@@ -386,11 +344,13 @@ In practive, useSignal and useStore are very similar, but useSignal is prefered 
 import { component$, useSignal } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-
   // The `useStore` hook is used to create a reactive store.
-  const todoList = useStore({
-    array: []
-  }, { deep: true });
+  const todoList = useStore(
+    {
+      array: [],
+    },
+    { deep: true }
+  );
 
   // todoList.array is a reactive array, so we can push to it and the component will re-render.
 
@@ -398,7 +358,7 @@ export const Counter = component$(() => {
     <>
       <h1>Todo List</h1>
       <ul>
-        {todoList.array.map(todo => (
+        {todoList.array.map((todo) => (
           <li key={todo.id}>
             <input
               type="checkbox"
@@ -407,14 +367,13 @@ export const Counter = component$(() => {
                 // todoList is a reactive store
                 // because we used `deep: true`, the `todo` object is also reactive.
                 // so we can change the `completed` property and the component will re-render.
-                todo.completed = !todo.completed
+                todo.completed = !todo.completed;
               }}
             />
             {todo.text}
           </li>
         ))}
       </ul>
-
     </>
   );
 });
@@ -423,7 +382,6 @@ export const Counter = component$(() => {
 ### `useTask$(() => { ... })`
 
 `useTask$` is used to create a async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` execute before the first render, and then whenever a tracked signal or store changes, the task is re-executed.
-
 
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
@@ -457,24 +415,19 @@ export const Counter = component$(() => {
     <>
       <h1>Page {page.value}</h1>
       <ul>
-        {listOfUsers.value.map(user => (
+        {listOfUsers.value.map((user) => (
           <li key={user.login.uuid}>
             {user.name.first} {user.name.last}
           </li>
         ))}
       </ul>
-      <button
-        onClick$={() => page.value++}
-      >
-        Next Page
-      </button>
+      <button onClick$={() => page.value++}>Next Page</button>
     </>
   );
 });
 ```
 
 `useTask$()` will run in the server during SSR, and in the browser if the component is first mounted on the client. Because of that, it's not a good idea to access DOM APIs in a task, since they will not be available on the server. Instead, you should use event handlers or `useVisibleTask$()` to run a task only on the client/browser.
-
 
 ### `useVisibleTask$(() => { ... })`
 
@@ -516,7 +469,6 @@ Since Qwik does NOT execute any Javascript on the browser before user interactio
 
 Notice that `useVisibleTask$()` should not be used to fetch data, because it will not run on the server. Instead, you should use `useTask$()` to fetch data, and then use `useVisibleTask$()` to do things like start an animation. Abusing `useVisibleTask$()` can lead to a bad performance.
 
-
 ## Routing
 
 Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
@@ -527,9 +479,7 @@ Qwik comes with a file-based router, which is similar to Next.js, but with a few
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return (
-    <h1>Home</h1>
-  );
+  return <h1>Home</h1>;
 });
 ```
 
@@ -551,9 +501,7 @@ export default component$(() => {
     <main>
       {loc.isNavigating && <div>Loading...</div>}
       <h1>User: {loc.params.userID}</h1>
-      <div>
-        Current URL: {loc.url.href}
-      </div>
+      <div>Current URL: {loc.url.href}</div>
     </main>
   );
 });
@@ -571,7 +519,6 @@ export interface RouteLocation {
   readonly isNavigating: boolean;
 }
 ```
-
 
 ### Linking to other routes
 
@@ -619,12 +566,8 @@ export default component$(() => {
   return (
     <main>
       <h1>User data</h1>
-      <div>
-        User name: {userData.value.user.name}
-      </div>
-      <div>
-        User email: {userData.value.user.email}
-      </div>
+      <div>User name: {userData.value.user.name}</div>
+      <div>User email: {userData.value.user.email}</div>
     </main>
   );
 });
@@ -684,47 +627,58 @@ The `routeAction$()` is used on pair with the `Form` component exported from `@b
 
 ## Run code only on the browser
 
-Qwik executes the same code in the server and in the browser. This can be a problem if you need to run code that is only available in the browser, such as accessing the DOM, or using browser APIs. To solve this problem, Qwik provides a few APIs to run code only on the browser.
+Qwik executes the same code in the server and in the browser.
+
+Sometimes it's desired to execute code only in browser, because you need the DOM, or other browser API such as: `window`, `document`, `localStorage`, `sessionStorage`, `indexedDB`, `navigator`, `fetch`, `requestAnimationFrame`, `setInterval`, `setTimeout`, `WebSockets`, `WebGL`.
 
 ```tsx
-// File: src/routes/index.tsx
-
-import { component$, useTask$, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useTask$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
 
 export default component$(() => {
+  const ref = useSignal<Element>();
+
+  // useVisibleTask$ will only run on the browser, so you don't need to check for `isBrowser` before accessing the DOM
   useVisibleTask$(() => {
-    // This code will only run on the browser right after the page is loaded
+    ref.value?.focus();
+    document.title = 'Hello world';
   });
 
-
+  // useTask might run on the server, so you need to check for `isBrowser` before accessing the DOM
   useTask$(() => {
     if (isBrowser) {
       // This code will only run on the browser only when the component is first rendered in the browser
+      ref.value?.focus();
+      document.title = 'Hello world';
     }
   });
 
   return (
-    <button onClick$={() => {
-      // This code will only run on the browser when the button is clicked
-    }}>Click me</button>
+    <button
+      ref={ref}
+      onClick$={() => {
+        // All event handlers are only executed on the browser, so it's safe to access the DOM
+        ref.value?.focus();
+        document.title = 'Hello world';
+      }}
+    >
+      Click me
+    </button>
   );
 });
 ```
 
 ### `useVisibleTask$(() => { ... })`
 
-This API will declare a VisibleTask that is ensured to run only at least once on the client. It also executes eagarly on the client as soon as the page is loaded.
+This API will declare a VisibleTask that is ensured to run only on the client/browser. It will never run on the server.
 
 ### JSX event handlers
 
 JSX handlers such as `onClick$` and `onInput$` are only executed on the client. This is because they are DOM events, since there is no DOM on the server, they will not be executed on the server.
 
-
 ### `isBrowser` conditional
 
 Qwik provides a `isBrowser` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs on the browser.
-
 
 ## Run code only on the server
 
@@ -749,14 +703,22 @@ export default component$(() => {
 
   return (
     <>
-      <button onClick$={server$(() => {
-        // This code will only run on the server when the button is clicked
-      })}>Click me</button>
+      <button
+        onClick$={server$(() => {
+          // This code will only run on the server when the button is clicked
+        })}
+      >
+        Click me
+      </button>
 
-      <button onClick$={() => {
-        // This code will call the server function, and wait for the result
-        const sum = await sumInTheServer(1, 2);
-      }}>Click me</button>
+      <button
+        onClick$={() => {
+          // This code will call the server function, and wait for the result
+          const sum = await sumInTheServer(1, 2);
+        }}
+      >
+        Click me
+      </button>
     </>
   );
 });

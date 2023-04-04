@@ -320,9 +320,15 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
         if (!res.ok) {
           throw new Error(`Server function failed: ${res.statusText}`);
         }
-        const str = await res.text();
-        const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
-        return obj;
+        if (res.headers.get('Content-Type') === 'text/event-stream') {
+          const { writable, readable } = getSSETransformer();
+          res.body?.pipeTo(writable);
+          return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
+        } else {
+          const str = await res.text();
+          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          return obj;
+        }
       }
     }) as any;
   }
@@ -368,3 +374,74 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
     id,
   };
 };
+
+const getSSETransformer = () => {
+  // Convert the stream into a stream of lines
+  let currentLine = '';
+  const encoder = new TextDecoder();
+  const transformer = new TransformStream<Uint8Array, SSEvent>({
+    transform(chunk, controller) {
+      const lines = encoder.decode(chunk).split('\n\n');
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = currentLine + lines[i];
+        if (line.length === 0) {
+          controller.terminate();
+          break;
+        } else {
+          controller.enqueue(parseEvent(line));
+          currentLine = '';
+        }
+      }
+      currentLine += lines[lines.length - 1];
+    },
+  });
+  return transformer;
+};
+
+interface SSEvent {
+  data: string;
+  [key: string]: string;
+}
+const parseEvent = (message: string): SSEvent => {
+  const lines = message.split('\n');
+  const event: SSEvent = {
+    data: '',
+  };
+  let data = '';
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      data += line.slice(6) + '\n';
+    } else {
+      const [key, value] = line.split(':');
+      if (typeof key === 'string' && typeof value === 'string') {
+        event[key] = value.trim();
+      }
+    }
+  }
+  event.data = data;
+  return event;
+};
+
+async function* streamAsyncIterator(
+  stream: ReadableStream<SSEvent>,
+  ctxElm: unknown
+): AsyncGenerator<unknown> {
+  // Get a lock on the stream
+  const reader = stream.getReader();
+
+  try {
+    while (true) {
+      // Read from the stream
+      const { done, value } = await reader.read();
+      // Exit if we're done
+      if (done) {
+        return;
+      }
+      // Else yield the chunk
+      const obj = await _deserializeData(value.data, ctxElm);
+      yield obj;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}

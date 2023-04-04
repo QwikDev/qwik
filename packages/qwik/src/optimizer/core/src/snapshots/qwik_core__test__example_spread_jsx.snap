@@ -79,7 +79,7 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
             }, null, 3, null),
             head.meta.map((m)=>/*#__PURE__*/ _jsxQ("meta", {
                     ...m
-                }, null, null, 2, "u6_0")),
+                }, null, null, 0, "u6_0")),
             head.links.map((l)=>/*#__PURE__*/ _createElement("link", {
                     ...l,
                     key: l.key

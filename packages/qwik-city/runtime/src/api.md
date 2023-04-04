@@ -43,8 +43,6 @@ export interface ActionConstructor {
     //
     // (undocumented)
     <O extends Record<string, any> | void | null, B extends TypedDataValidator, REST extends DataValidator[]>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: REST): Action<StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>, GetValidatorType<B>, false>;
-    // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     <O>(actionQrl: (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>, options?: ActionOptions): Action<O>;
     // (undocumented)
@@ -228,6 +226,16 @@ export const globalAction$: ActionConstructor;
 //
 // @public (undocumented)
 export const globalActionQrl: ActionConstructorQRL;
+
+// @public (undocumented)
+export type JSONObject = {
+    [x: string]: JSONValue;
+};
+
+// @public (undocumented)
+export type JSONValue = string | number | boolean | {
+    [x: string]: JSONValue;
+} | Array<JSONValue>;
 
 // @public (undocumented)
 export const Link: Component<LinkProps>;

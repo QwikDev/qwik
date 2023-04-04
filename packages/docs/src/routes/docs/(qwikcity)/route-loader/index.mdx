@@ -14,13 +14,12 @@ They behave like RPC server-side functions that can be invoked by Qwik Component
 
 Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
-```tsx
-// src/routes/layout.tsx
+```tsx title="src/routes/layout.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useProductData = routeLoader$(async () => {
-  const res = await fetch('https://.../products')
-  const product = await res.json()
+  const res = await fetch('https://.../products');
+  const product = await res.json();
   return product;
 });
 ```
@@ -31,44 +30,38 @@ export const useProductData = routeLoader$(async () => {
 
 `routeLoader$`s can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
 
-```tsx
-// src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
 export const useProductData = routeLoader$(async () => {
-  const res = await fetch('https://.../product')
-  const product = await res.json() as Product
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
   return product;
 });
 
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
   const signal = useProductData(); // Signal<Product>
-  return (
-    <div>
-      Product name: {signal.value.product.name}
-    </div>
-  );
+  return <div>Product name: {signal.value.product.name}</div>;
 });
 ```
 
-> It may appear that `useGetServerTime()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useGetServerTime` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useGetServerTime()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
+> It may appear that `useProductData()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useProductData` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useProductData()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
 
 ## Multiple `routeLoader$`s
 
 Multiple `routeLoader$`s are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple `routeLoader$`s in the same file**.
 
-**File: `src/routes/layout.tsx`**
 
-```tsx
+```tsx title="src/routes/layout.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { Footer } from '../components/footer.tsx';
 
 export const useProductData = routeLoader$(async () => {
-  const res = await fetch('https://.../product')
-  const product = await res.json() as Product
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
   return product;
 });
 
@@ -83,9 +76,7 @@ export default component$(() => {
 });
 ```
 
-**File: `src/components/footer.tsx`**
-
-```tsx
+```tsx title="src/components/footer.tsx"
 import { component$ } from '@builder.io/qwik';
 
 // Import the loader from the layout
@@ -97,11 +88,10 @@ export const Footer = component$(() => {
   return <footer>Product name: {signal.value.product.name}</footer>;
 });
 ```
+
 The above example shows using `useProductData()` in two different components across different files. This is intentional behavior.
 
-**File: `src/routes/admin/index.tsx`**
-
-```tsx
+```tsx title="src/routes/admin/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
@@ -132,6 +122,7 @@ export default component$(() => {
   );
 });
 ```
+
 The above example shows two `routeLoader$`s being used in the same file. A generic `useLoginStatus` loader is used to check if the user is logged in, and a more specific `useCurrentUser` loader is used to retrieve the user data.
 
 ## routeLoader context
@@ -144,7 +135,7 @@ This information comes in handy when the loader needs to conditionally return da
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useProductRecommendations = routeLoader$(
-  async ({headers, cookie, url, method, params}) => {
+  async ({ headers, cookie, url, method, params }) => {
     console.log('Request headers:', headers);
     console.log('Request cookies:', cookie);
     console.log('Request url:', url);
@@ -152,10 +143,10 @@ export const useProductRecommendations = routeLoader$(
     console.log('Request params:', params);
 
     // Use request details to fetch personalized data
-    const res = fetch(`https://.../recommendations?user=${params.user}`)
-    const products = await res.json() as Product[]
+    const res = fetch(`https://.../recommendations?user=${params.user}`);
+    const products = (await res.json()) as Product[];
 
-    return products
+    return products;
   }
 );
 ```

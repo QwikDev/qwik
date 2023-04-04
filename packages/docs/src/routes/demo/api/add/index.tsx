@@ -1,4 +1,4 @@
-import { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@builder.io/qwik-city';
 
 export const onGet: RequestHandler = async ({ query, json }) => {
   const a = Number.parseFloat(query.get('a') || '0');
@@ -8,4 +8,4 @@ export const onGet: RequestHandler = async ({ query, json }) => {
   json(200, a + b);
 };
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));

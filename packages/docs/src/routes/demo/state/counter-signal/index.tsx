@@ -4,9 +4,8 @@ export default component$(() => {
   const count = useSignal(0);
 
   return (
-    <>
-      <button onClick$={() => count.value++}>Increment</button>
-      <div>Count: {count.value}</div>
-    </>
+    <button onClick$={() => count.value++}>
+      Increment {count.value}
+    </button>
   );
 });

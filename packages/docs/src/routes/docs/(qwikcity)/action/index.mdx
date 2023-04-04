@@ -57,7 +57,7 @@ export default component$(() => {
   // action.status?: number;
   // action.formData: FormData | undefined;
   // action.value: {success: boolean, userID: string} | undefined;
-  // action.run: (data: any) => Promise<{success: boolean, userID: string}>;
+  // action.submit: (data: any) => Promise<{success: boolean, userID: string}>;
 
   return <>{...}</>
 });
@@ -97,7 +97,7 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 ## Using actions programatically
 
-Actions can also be triggered programatically using the `action.run()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+Actions can also be triggered programatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx title="src/routes/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';
@@ -117,7 +117,7 @@ export default component$(() => {
     <div>
       <button
         onClick={async () => {
-          const { value } = await action.run({ name: 'John' });
+          const { value } = await action.submit({ name: 'John' });
           console.log(value);
         }}
       >
@@ -129,7 +129,7 @@ export default component$(() => {
 });
 ```
 
-In the example above, the `addUser` action is triggered when the user clicks the button. The `action.run()` method returns a `Promise` that resolves when the action is done.
+In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
 ### Zod validation
 

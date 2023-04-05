@@ -6,7 +6,7 @@ export default component$(() => {
   const isBold = useSignal(false);
 
   useTask$(({ track }) => {
-    track(text);
+    track(() => text.value);
     if (isServer) {
       return; // Server guard
     }

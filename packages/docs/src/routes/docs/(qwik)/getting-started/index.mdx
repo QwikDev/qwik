@@ -319,7 +319,7 @@ export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {
-    track(isFavoriteSignal);
+    track(()=> isFavoriteSignal.value);
     console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
     server$(() => {
       console.log('FAVORITE (server)', isFavoriteSignal.value);
@@ -359,20 +359,20 @@ In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen 
 2. Add a `track` call to the re-executed the task on `isFavoriteSignal` state change:
    ```tsx
    useTask$(({ track }) => {
-     track(isFavoriteSignal);
+     track(()=> isFavoriteSignal.value);
    });
    ```
 3. Add the work that you want to execute on state change:
    ```tsx
    useTask$(({ track }) => {
-     track(isFavoriteSignal);
+     track(()=> isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
    });
    ```
 4. If you want to have work happen on the server only, wrap it in `server$()`
    ```tsx
    useTask$(({ track }) => {
-     track(isFavoriteSignal);
+     track(()=> isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
      server$(() => {
        console.log('FAVORITE (server)', isFavoriteSignal.value);
@@ -417,7 +417,7 @@ export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {
-    track(isFavoriteSignal);
+    track(()=> isFavoriteSignal.value);
     console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
     server$(() => {
       console.log('FAVORITE (server)', isFavoriteSignal.value);
@@ -519,7 +519,7 @@ export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {
-    track(isFavoriteSignal);
+    track(()=> isFavoriteSignal.value);
     console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
     server$(() => {
       console.log('FAVORITE (server)', isFavoriteSignal.value);

@@ -41,12 +41,7 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   }
 };
 
-export const setProperty = (
-  staticCtx: RenderStaticContext,
-  node: any,
-  key: string,
-  value: any
-) => {
+export const setProperty = (staticCtx: RenderStaticContext, node: any, key: string, value: any) => {
   staticCtx.$operations$.push({
     $operation$: _setProperty,
     $args$: [node, key, value],

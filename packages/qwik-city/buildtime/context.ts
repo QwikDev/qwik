@@ -85,6 +85,7 @@ function normalizeOptions(
   }
 
   opts.mdx = opts.mdx || {};
+  opts.platform = opts.platform || {};
 
   return opts;
 }

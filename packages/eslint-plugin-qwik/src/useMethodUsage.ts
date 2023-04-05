@@ -24,13 +24,19 @@ export const useMethodUsage: Rule.RuleModule = {
     if (modifyJsxSource) {
       return {};
     }
-    const stack: { await: boolean; allowed: boolean }[] = [];
+    const stack: { await: boolean }[] = [];
     return {
       ArrowFunctionExpression() {
-        stack.push({ await: false, allowed: true });
+        stack.push({ await: false });
       },
       'ArrowFunctionExpression:exit'(d) {
         stack.pop();
+      },
+      AwaitExpression() {
+        const last = stack[stack.length - 1];
+        if (last) {
+          last.await = true;
+        }
       },
       'CallExpression[callee.name=/^use[A-Z]/]'(node: CallExpression & Rule.NodeParentExtension) {
         const last = stack[stack.length - 1];

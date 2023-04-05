@@ -326,6 +326,13 @@ test.describe('render', () => {
       await expect(result).toHaveText('World');
       await expect(result2).toHaveText('World');
     });
+    test('issue-children-spread-result', async ({ page }) => {
+      const result = page.locator('#issue-children-spread-result');
+      const button = page.locator('#issue-children-spread-button');
+      await expect(result).toHaveText('Hello');
+      await button.click();
+      await expect(result).toHaveText('Changed');
+    });
   }
 
   tests();

@@ -66,7 +66,7 @@ export const _jsxS = <T extends string>(
     delete mutableProps.children;
   }
   return _jsxQ(type, mutableProps, immutableProps, children, flags, key, dev);
-}
+};
 
 /**
  * @internal
@@ -238,7 +238,7 @@ const validateJSXNode = (node: JSXNode) => {
       const allProps = [
         ...Object.entries(props),
         ...(immutableProps ? Object.entries(immutableProps) : []),
-      ]
+      ];
       if (!qRuntimeQrl) {
         for (const [prop, value] of allProps) {
           if (prop.endsWith('$') && value) {
@@ -260,14 +260,14 @@ const validateJSXNode = (node: JSXNode) => {
         }
       }
       if (isString(type)) {
-        const hasSetInnerHTML = allProps.some(a => a[0] === 'dangerouslySetInnerHTML');
+        const hasSetInnerHTML = allProps.some((a) => a[0] === 'dangerouslySetInnerHTML');
         if (hasSetInnerHTML && children) {
           throw createJSXError(
             `The JSX element <${type}> can not have both 'dangerouslySetInnerHTML' and children.`,
             node
           );
         }
-        if (allProps.some(a => a[0] === 'children')) {
+        if (allProps.some((a) => a[0] === 'children')) {
           throw createJSXError(
             `The JSX element <${type}> can not have both 'children' as a property.`,
             node

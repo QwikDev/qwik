@@ -180,8 +180,8 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     // await getPlatform().raf(() => {
     // });
-    if ((document as any).startViewTransition) {
-      (document as any).startViewTransition(() => executeDOMRender(staticCtx));
+    if ((doc as any).startViewTransition) {
+      (doc as any).startViewTransition(() => executeDOMRender(staticCtx));
     } else {
       executeDOMRender(staticCtx);
     }

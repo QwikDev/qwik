@@ -1,6 +1,6 @@
 import { isPromise, then } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
-import { createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
+import { Virtual, createJSXError, isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
@@ -16,7 +16,7 @@ import {
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { InternalSSRStream, Virtual, SSRRaw, SSRHint } from '../jsx/utils.public';
+import { InternalSSRStream, SSRRaw, SSRHint } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import {
   groupListeners,

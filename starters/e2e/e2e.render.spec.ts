@@ -303,9 +303,35 @@ test.describe('render', () => {
       await expect(result).toHaveText('CODE IS 1');
     });
 
+    test('issue3643', async ({ page }) => {
+      const result = page.locator('#issue-3643-result');
+      const result2 = page.locator('#issue-3643-result-2');
+      const button = page.locator('#issue-3643-button');
+
+      await expect(result).toHaveText('Hello');
+      await expect(result2).toHaveText('Hello');
+      await button.click();
+      await expect(result).toHaveText('World');
+      await expect(result2).toHaveText('World');
+      await button.click();
+      await expect(result).toHaveText('Hello');
+      await expect(result2).toHaveText('Hello');
+      await button.click();
+      await expect(result).toHaveText('World');
+      await expect(result2).toHaveText('World');
+      await button.click();
+      await expect(result).toHaveText('Hello');
+      await expect(result2).toHaveText('Hello');
+      await button.click();
+      await expect(result).toHaveText('World');
+      await expect(result2).toHaveText('World');
+    });
     test('issue-children-spread-result', async ({ page }) => {
       const result = page.locator('#issue-children-spread-result');
+      const staticContent = page.locator('#issue-children-spread-static');
       const button = page.locator('#issue-children-spread-button');
+
+      await expect(staticContent).toHaveText('12');
       await expect(result).toHaveText('Hello');
       await button.click();
       await expect(result).toHaveText('Changed');

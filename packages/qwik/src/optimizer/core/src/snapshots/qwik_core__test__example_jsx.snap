@@ -48,6 +48,7 @@ export const Foo = component$((props) => {
 ============================= test.js ==
 
 import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
@@ -56,9 +57,9 @@ export const Lightweight = (props)=>{
     return /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
             /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
-            /*#__PURE__*/ _jsxQ("button", {
+            /*#__PURE__*/ _jsxS("button", {
                 ...props
-            }, null, null, 0, null)
+            }, null, 0, null)
         ]
     }, 1, "u6_0"), 1, "u6_1");
 };
@@ -67,7 +68,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./fo
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC,qBACI,MAAC,iCACG;;0BACI,MAAC;0BACD,MAAC;gBAAQ,GAAG,KAAK;;;;AAIjC,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC,qBACI,MAAC,iCACG;;0BACI,MAAC;0BACD,MAAC;gBAAQ,GAAG,KAAK;;;;AAIjC,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACC,SAAS;AACb,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";

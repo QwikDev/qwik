@@ -1,5 +1,5 @@
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
+import { IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
@@ -20,7 +20,7 @@ import type { RenderContext } from '../types';
 import { type ContainerState, _getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, type QwikElement } from './virtual-element';
-import { printRenderStats } from './operations';
+import { executeDOMRender, printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
@@ -180,7 +180,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     // await getPlatform().raf(() => {
     // });
-    executeContextWithSlots(rCtx);
+    if ((document as any).startViewTransition) {
+      (document as any).startViewTransition(() => executeDOMRender(staticCtx));
+    } else {
+      executeDOMRender(staticCtx);
+    }
     printRenderStats(staticCtx);
     return postRendering(containerState, rCtx);
   } catch (err) {

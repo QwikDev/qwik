@@ -50,7 +50,6 @@ import {
   appendChild,
   createElement,
   createTemplate,
-  executeDOMRender,
   getKey,
   insertAfter,
   insertBefore,
@@ -1082,10 +1081,6 @@ export const cleanupTree = (
       }
     }
   }
-};
-
-export const executeContextWithSlots = ({ $static$: ctx }: RenderContext) => {
-  executeDOMRender(ctx);
 };
 
 export const directAppendChild = (parent: QwikElement, child: Node | VirtualElement) => {

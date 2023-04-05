@@ -38,6 +38,15 @@
 			"$0"
 		]
 	},
+	"Qwik signal": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useSignal",
+		"description": "useSignal() declaration",
+		"body": [
+			"const ${1:signal} = useSignal($2);",
+			"$0"
+		]
+	},
 	"$ hook": {
 		"scope": "javascriptreact,typescriptreact",
 		"prefix": "q:$",
@@ -81,6 +90,45 @@
 			"  $0",
 			"});",
 			""
+		]
+	},
+	"useOn": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useOn",
+		"description": "useOn declaration",
+		"body": [
+			"useOn(",
+			"'$1',",
+			"$((event) => {",
+			"  const { $3 } = event as $2;",
+			"  })",
+			");"
+		]
+	},
+	"useOnDocument": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useOnDocument",
+		"description": "useOnDocument declaration",
+		"body": [
+			"useOnDocument(",
+			"'$1',",
+			"$((event) => {",
+			"  const { $3 } = event as $2;",
+			"  })",
+			");"
+		]
+	},
+	"useOnWindow": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useOnWindow",
+		"description": "useOnWindow declaration",
+		"body": [
+			"useOnWindow(",
+			"'$1',",
+			"$((event) => {",
+			"  const { $3 } = event as $2;",
+			"  })",
+			");"
 		]
 	}
 }

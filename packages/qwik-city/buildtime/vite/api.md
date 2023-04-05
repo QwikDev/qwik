@@ -37,6 +37,8 @@ export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePath
     //
     // (undocumented)
     mdxPlugins?: MdxPlugins;
+    // (undocumented)
+    platform?: Record<string, unknown>;
 }
 
 // (No @packageDocumentation comment for this package)

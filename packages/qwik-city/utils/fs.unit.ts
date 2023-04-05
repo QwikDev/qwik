@@ -258,6 +258,7 @@ test('createFileId, Layout', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
+      platform: {},
     };
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
     equal(pathname, t.expect, t.dirPath);
@@ -357,6 +358,7 @@ test('parseRouteIndexName', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
+      platform: {},
     };
     const pathname = getMenuPathname(opts, t.filePath);
     equal(pathname, t.expect);

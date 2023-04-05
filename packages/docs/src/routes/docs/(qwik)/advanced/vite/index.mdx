@@ -4,6 +4,7 @@ contributors:
   - zanettin
   - manucorporat
   - cunzaizhuyi
+  - cayter
 ---
 
 # Vite
@@ -232,6 +233,15 @@ mdxPlugins?: MdxPlugins;
 * MDX Options https://mdxjs.com/
 */
 mdx?: any;
+```
+
+#### `platform`
+
+```js
+/**
+* The platform object which can be used to mock the Cloudflare bindings.
+*/
+platform?: Record<string, unknown>;
 ```
 
 ## Troubleshooting

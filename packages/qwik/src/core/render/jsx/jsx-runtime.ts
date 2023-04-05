@@ -175,11 +175,10 @@ const validateJSXNode = (node: JSXNode) => {
       }
       const isQwikC = isQwikComponent(type);
       if (!isString(type) && !isFunction(type)) {
-        throw createJSXError(
+        throw new Error(
           `The <Type> of the JSX element must be either a string or a function. Instead, it's a "${typeof type}": ${String(
             type
-          )}.`,
-          node
+          )}.`
         );
       }
       if (children) {
@@ -201,9 +200,8 @@ const validateJSXNode = (node: JSXNode) => {
                 explanation = `it's a "${typeObj}": ${String(child)}.`;
               }
 
-              throw createJSXError(
-                `One of the children of <${type}> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal. Instead, ${explanation}\n`,
-                node
+              throw new Error(
+                `One of the children of <${type}> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal. Instead, ${explanation}\n`
               );
             }
           });
@@ -243,11 +241,10 @@ const validateJSXNode = (node: JSXNode) => {
         for (const [prop, value] of allProps) {
           if (prop.endsWith('$') && value) {
             if (!isQrl(value) && !Array.isArray(value)) {
-              throw createJSXError(
+              throw new Error(
                 `The value passed in ${prop}={...}> must be a QRL, instead you passed a "${typeof value}". Make sure your ${typeof value} is wrapped with $(...), so it can be serialized. Like this:\n$(${String(
                   value
-                )})`,
-                node
+                )})`
               );
             }
           }
@@ -269,10 +266,7 @@ const validateJSXNode = (node: JSXNode) => {
           logError(err);
         }
         if (allProps.some((a) => a[0] === 'children')) {
-          throw createJSXError(
-            `The JSX element <${type}> can not have both 'children' as a property.`,
-            node
-          );
+          throw new Error(`The JSX element <${type}> can not have both 'children' as a property.`);
         }
         if (type === 'style') {
           if (children) {
@@ -388,37 +382,17 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
 
 export type { QwikJSX as JSX };
 
-const ONCE_JSX = new Set<string>();
-
 export const createJSXError = (message: string, node: JSXNode) => {
   const error = new Error(message);
   if (!node.dev) {
     return error;
   }
-  const id = node.dev.fileName;
-  const key = `${message}${id}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
-  if (ONCE_JSX.has(key)) {
-    return undefined;
-  }
-  Object.assign(error, {
-    id,
-    loc: {
-      file: id,
-      column: node.dev.columnNumber,
-      line: node.dev.lineNumber,
-    },
-  });
   error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
-  ONCE_JSX.add(key);
   return error;
 };
 
 const filterStack = (stack: string, offset: number = 0) => {
-  return stack
-    .split('\n')
-    .slice(offset)
-    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
-    .join('\n');
+  return stack.split('\n').slice(offset).join('\n');
 };
 
 export { jsx as jsxs };

@@ -23,7 +23,7 @@ Only the directory names are used to match the incoming requests to pages/endpoi
 
 For example, if you have a file at `src/routes/some/path/index.tsx`, it will be mapped to the URL path `https://example.com/some/path`.
 
-```
+```bash
 src/
 └── routes/
     ├── contact/
@@ -55,7 +55,7 @@ src/routes/user/[username]/index.tsx → /user/:username (/user/foo)
 src/routes/post/[...all]/index.tsx → /post/* (/post/2020/id/title)
 ```
 
-```
+```bash
 src/
 └── routes/
     ├── blog/
@@ -98,7 +98,7 @@ export default component$(() => {
 });
 ```
 
-### Endpoint `index.tsx`
+### Endpoint `index.ts`
 
 A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending on if you only want to handle a specific request given its HTTP method.
 
@@ -146,7 +146,7 @@ Instead of repeating the same code in each route, we can use layouts to automati
 
 Take this `src/routes` directory as an example:
 
-```
+```bash
 src/
 └── routes/
     ├── admin/

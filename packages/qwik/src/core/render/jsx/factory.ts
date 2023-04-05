@@ -42,7 +42,7 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
     else normalizedProps[i] = (props as Record<string, any>)[i];
   }
 
-  if (!key && 'dangerouslySetInnerHTML' in normalizedProps) {
+  if (typeof type === 'string' && !key && 'dangerouslySetInnerHTML' in normalizedProps) {
     key = 'innerhtml';
   }
   return jsx(type, normalizedProps, key);

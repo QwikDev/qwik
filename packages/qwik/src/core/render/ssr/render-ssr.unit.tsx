@@ -458,16 +458,16 @@ renderSSRSuite('events', async () => {
 renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <body dangerouslySetInnerHTML="<p>hola</p>"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p>hola</p></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:key="innerhtml"><p>hola</p></body></html>'
   );
   await testSSR(
     <body dangerouslySetInnerHTML=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:key="innerhtml"></body></html>'
   );
   const Div = 'body' as any;
   await testSSR(
     <Div dangerouslySetInnerHTML={0}></Div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body>0</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:key="innerhtml">0</body></html>'
   );
   await testSSR(
     <body>
@@ -475,7 +475,7 @@ renderSSRSuite('innerHTML', async () => {
     </body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
-        <script>
+        <script q:key="innerhtml">
           () => null
         </script>
       </body>

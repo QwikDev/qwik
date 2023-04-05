@@ -1,7 +1,7 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logOnceWarn, logWarn } from '../../util/log';
+import { logError, logOnceWarn, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke, untrack } from '../../use/use-core';
@@ -262,10 +262,11 @@ const validateJSXNode = (node: JSXNode) => {
       if (isString(type)) {
         const hasSetInnerHTML = allProps.some((a) => a[0] === 'dangerouslySetInnerHTML');
         if (hasSetInnerHTML && children) {
-          throw createJSXError(
+          const err = createJSXError(
             `The JSX element <${type}> can not have both 'dangerouslySetInnerHTML' and children.`,
             node
           );
+          logError(err);
         }
         if (allProps.some((a) => a[0] === 'children')) {
           throw createJSXError(

@@ -59,6 +59,7 @@ import {
   setAttribute,
   setKey,
   setProperty,
+  setPropertyPost,
 } from './operations';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { isSignal } from '../../state/signal';
@@ -86,7 +87,7 @@ type KeyToIndexMap = { [key: string]: number };
 
 const CHILDREN_PLACEHOLDER: ProcessedJSXNode[] = [];
 type PropHandler = (
-  staticCtx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext,
   el: HTMLElement,
   key: string,
   newValue: any
@@ -867,7 +868,11 @@ const handleClass: PropHandler = (ctx, elm, _, newValue) => {
 const checkBeforeAssign: PropHandler = (ctx, elm, prop, newValue) => {
   if (prop in elm) {
     if ((elm as any)[prop] !== newValue) {
-      setProperty(ctx, elm, prop, newValue);
+      if (elm.tagName === 'SELECT') {
+        setPropertyPost(ctx, elm, prop, newValue);
+      } else {
+        setProperty(ctx, elm, prop, newValue);
+      }
     }
   }
   return true;

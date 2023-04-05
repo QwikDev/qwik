@@ -248,6 +248,11 @@ test.describe('attributes', () => {
 
       await expect(renders).toHaveText('5');
     });
+
+    test('issue 3622', async ({ page }) => {
+      const select = page.locator('#issue-3622-result');
+      await expect(select).toHaveValue('option1');
+    });
   }
 
   tests();

@@ -21,6 +21,7 @@ export default component$(() => {
   const isFavoriteSignal = useSignal(false);
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
+
   return (
     <div class="section bright">
       <div>{dadJokeSignal.value.joke}</div>

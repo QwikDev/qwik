@@ -27,7 +27,7 @@ export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {
-    track(isFavoriteSignal);
+    track(() => isFavoriteSignal.value);
     console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
     server$(() => {
       console.log('FAVORITE (server)', isFavoriteSignal.value);

@@ -66,7 +66,7 @@
 		"description": "useTask$() function hook",
 		"body": [
 			"useTask$(({ track }) => {",
-			"  track($1);",
+			"  track(() => $1);",
 			"  $0",
 			"});",
 			""

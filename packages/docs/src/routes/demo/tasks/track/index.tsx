@@ -6,7 +6,7 @@ export default component$(() => {
   const delayText = useSignal('');
 
   useTask$(({ track }) => {
-    track(text);
+    track(() => text.value);
     const value = text.value;
     const update = () => (delayText.value = value);
     isServer

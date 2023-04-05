@@ -9,7 +9,7 @@ export default component$(() => {
   const prNumber = useSignal('3576');
 
   const prTitle = useResource$(async ({ track }) => {
-    track(prNumber); // Requires explicit tracking of inputs
+    track(() => prNumber.value); // Requires explicit tracking of inputs
     const response = await fetch(
       `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
     );

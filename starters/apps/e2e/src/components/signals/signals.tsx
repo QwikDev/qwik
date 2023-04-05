@@ -122,6 +122,7 @@ export const SignalsChildren = component$(() => {
       <Issue3415 />
       <BindSignal />
       <Issue3482 />
+      <Issue3663 />
     </div>
   );
 });
@@ -833,3 +834,32 @@ export const Issue3482 = component$((props) => {
     </>
   );
 });
+
+export const Issue3663 = component$(() => {
+  const store = useStore({
+    'Custom Counter': 0,
+  });
+  const a = store['Custom Counter'] + 0;
+  return (
+    <div>
+      <button id="issue-3663-button" onClick$={() => store['Custom Counter']++}>
+        Increment
+      </button>
+      <div class="issue-3663-result" data-value={store['Custom Counter']}>
+        {store['Custom Counter']}
+      </div>
+      <Issue3663Cmp prop={store['Custom Counter']} />
+      <div class="issue-3663-result" data-value={a}>
+        {a}
+      </div>
+    </div>
+  );
+});
+
+function Issue3663Cmp(props: { prop: number }) {
+  return (
+    <div class="issue-3663-result" data-value={props.prop}>
+      {props.prop}
+    </div>
+  );
+}

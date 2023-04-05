@@ -272,7 +272,6 @@ test.describe('slot', () => {
       await button.click();
       await expect(button).toHaveText('Loading...');
     });
-
   }
 
   test.beforeEach(async ({ page }) => {

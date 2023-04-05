@@ -274,13 +274,12 @@ export const Issue3607 = component$(() => {
         show.value = !show.value;
       }}
     >
-        {show.value ? 'Loading...' : 'Load more'}
+      {show.value ? 'Loading...' : 'Load more'}
     </Issue3607Button>
-  )
-
+  );
 });
 
-export const Issue3607Button = component$(({onClick$}: any) => {
+export const Issue3607Button = component$(({ onClick$ }: any) => {
   return (
     <>
       <button id="issue-3607-result" onClick$={onClick$} class="btn">

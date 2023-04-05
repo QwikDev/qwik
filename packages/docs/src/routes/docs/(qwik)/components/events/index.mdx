@@ -43,7 +43,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-Notice that `onClick$` ends with [`$`](/docs/advanced/dollar/). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not be loaded into the JavaScript VM until the user triggers the `click` event, however, it will be [loaded into the browser cache](docs/advanced/speculative-module-fetching/) eagerly so as not to cause delays on first interactions.
+Notice that `onClick$` ends with [`$`](/docs/advanced/dollar/). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not be loaded into the JavaScript VM until the user triggers the `click` event, however, it will be [loaded into the browser cache](/docs/advanced/speculative-module-fetching/) eagerly so as not to cause delays on first interactions.
 
 > In real-world applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
 
@@ -259,7 +259,7 @@ import { $, component$, useOnDocument, useStore } from '@builder.io/qwik';
 
 // Assume reusable use method that does not have access to JSX
 // but needs to register event handlers.
-function useMousePosition() {
+const useMousePosition = () => {
   const position = useStore({ x: 0, y: 0 });
   useOnDocument(
     'mousemove',

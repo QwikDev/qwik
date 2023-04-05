@@ -37,9 +37,7 @@ export default component$(() => {
 
 The component above is split thanks to the `$` syntax into:
 
-**app.js**
-
-```js
+```js title="app.js"
 import { componentQrl, qrl } from '@builder.io/qwik';
 
 const App = /*#__PURE__*/ componentQrl(
@@ -49,9 +47,7 @@ const App = /*#__PURE__*/ componentQrl(
 export { App };
 ```
 
-**app_component_akbu84a8zes.js**
-
-```js
+```js title="app_component_akbu84a8zes.js"
 import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
 import { qrl } from '@builder.io/qwik';
 export const App_component_AkbU84a8zes = () => {
@@ -66,9 +62,7 @@ export const App_component_AkbU84a8zes = () => {
 };
 ```
 
-**app_component_p_onclick_01pegc10cpw.js**
-
-```js
+```js title="app_component_p_onclick_01pegc10cpw.js"
 export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 ```
 
@@ -258,9 +252,7 @@ The Optimizer will generate:
 onScroll(qrl('./chunk-a.js', 'onScroll_1'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 export const onScroll_1 = () => alert('scroll');
 ```
 
@@ -297,9 +289,7 @@ The original file:
 const MyComp = component(qrl('./chunk-a.js', 'MyComp_onMount'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 export const MyComp_onMount = () => {
   /* my component definition */
 };
@@ -328,17 +318,13 @@ this will result in:
 const Greeter = component(qrl('./chunk-a.js', 'Greeter_onMount'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 const Greeter_onMount = () => {
   return qrl('./chunk-b.js', 'Greeter_onRender');
 };
 ```
 
-`chunk-b.js`:
-
-```tsx
+```tsx title="chunk-b.js"
 const Greeter_onRender = () => <span>Hello World!</span>;
 ```
 
@@ -362,18 +348,14 @@ The naive way to extract functions will not work.
 const Greeter = component(qrl('./chunk-a.js', 'Greeter_onMount'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 const Greeter_onMount = (props) => {
   const salutation = 'Hello';
   return qrl('./chunk-b.js', 'Greeter_onRender');
 };
 ```
 
-`chunk-b.js`:
-
-```tsx
+```tsx title="chunk-b.js"
 const Greeter_onRender = () => (
   <span>
     {salutation} {props.name}!
@@ -383,18 +365,14 @@ const Greeter_onRender = () => (
 
 The issue can be seen in `chunk-b.js`. The extracted function refers to `salutation` and `props`, which are no longer in the lexical scope of the function. For this reason, the generated code must be slightly different.
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 const Greeter_onMount = (props) => {
   const salutation = 'Hello';
   return qrl('./chunk-b.js', 'Greeter_onRender', [salutation, props]);
 };
 ```
 
-`chunk-b.js`:
-
-```tsx
+```tsx title="chunk-b.js"
 const Greeter_onRender = () => {
   const [salutation, props] = useLexicalScope();
 

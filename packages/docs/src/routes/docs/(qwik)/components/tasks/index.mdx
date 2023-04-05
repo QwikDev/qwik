@@ -42,8 +42,8 @@ Thanks to [Resumability](/docs/(qwik)/concepts/resumable/index.mdx), component l
 - `Render` - runs after `TASK` and before `VisibleTask`
 - `VisibleTask` - runs after `Render` and when the component becomes visible
 
-```
-       useTask$ -------> RENDER ---> useVisibleTask$
+```bash /useTask$/#d /RENDER/#b /useVisibleTask$/#c
+      useTask$ -------> RENDER ---> useVisibleTask$
                             |
 | --- SERVER or BROWSER --- | ----- BROWSER ----- |
                             |
@@ -56,7 +56,7 @@ Thanks to [Resumability](/docs/(qwik)/concepts/resumable/index.mdx), component l
 
 **BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
-```
+```bash /useTask$/#d /RENDER/#b /useVisibleTask$/#c
   useTask$ --> RENDER --> useVisibleTask$
 
 | -------------- BROWSER --------------- |
@@ -76,15 +76,15 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
 
-```
-                       (state change) -> (re-execute)
-                                 ^            |
-                                 |            v
+```bash /useTask$(track)/#d /RENDER/#b /CLICK/#a
+                      (state change) -> (re-execute)
+                                  ^            |
+                                  |            v
  useTask$(track) -> RENDER ->  CLICK  -> useTask$(track)
- ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔      |                  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
-| ----- SERVER ------ | ----------- BROWSER ----------- |
-                      |
-                 pause|resume
+                        |
+  | ----- SERVER ------ | ----------- BROWSER ----------- |
+                        |
+                   pause|resume
 ```
 
 > If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on-mount" hook.

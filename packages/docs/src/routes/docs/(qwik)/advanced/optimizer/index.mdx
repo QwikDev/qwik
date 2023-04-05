@@ -28,18 +28,14 @@ The above code represents what a developer would write to describe the component
 const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 export const Counter_onMount = () => {
   const count = useSignal(0);
   return <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [count])}>{count.value}</button>;
 };
 ```
 
-`chunk-b.js`:
-
-```tsx
+```tsx title="chunk-b.js"
 const Counter_onClick = () => {
   const [store] = useLexicalScope();
   return store.count++;

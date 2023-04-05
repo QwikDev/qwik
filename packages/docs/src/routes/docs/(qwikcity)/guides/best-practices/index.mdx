@@ -21,7 +21,7 @@ Instead => `useOn()` methods
 
 **Best Practice**:
 
-```ts
+```tsx
 useVisibleTask$(() => {
   const listener = (event) => {
     const mouseEvent = event as MouseEvent;
@@ -46,7 +46,7 @@ Not to mention it requires the extra effort for you to manually clean up the lis
 
 **Do this instead**:
 
-```ts
+```tsx
 useOnDocument(
   'mousemove',
   $((event) => {
@@ -72,7 +72,7 @@ Instead => `useLocation()`
 
 **Best Practice**:
 
-```ts
+```tsx
 useVisibleTask$(()=> {
     if (window.location.href).includes('foo') {
         //... do the thing
@@ -101,7 +101,7 @@ When using the `if typeof window !== "undefined"` pattern you'll soon find it wi
 
 **Do this instead**:
 
-```ts
+```tsx
 const location = useLocation();
 
 if (location.url.href.includes('foo')) {

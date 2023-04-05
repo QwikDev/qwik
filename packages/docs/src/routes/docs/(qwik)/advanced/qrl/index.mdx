@@ -60,18 +60,14 @@ The optimizer breaks above code into pieces like so:
 const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 export const Counter_onMount = (props) => {
   const count = useSignal(0);
   return qrl('./chunk-b.js', 'Counter_onRender', [count, props]);
 };
 ```
 
-`chunk-b.js`:
-
-```tsx
+```tsx title="chunk-b.js"
 const Counter_onRender = () => {
   const [count, props] = useLexicalScope();
   return (
@@ -80,9 +76,7 @@ const Counter_onRender = () => {
 };
 ```
 
-`chunk-c.js`:
-
-```tsx
+```tsx title="chunk-c.js"
 const Counter_onClick = () => {
   const [count, props] = useLexicalScope();
   return (count.value += props.step || 1);

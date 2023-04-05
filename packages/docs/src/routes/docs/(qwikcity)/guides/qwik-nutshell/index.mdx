@@ -155,8 +155,7 @@ Qwik supports out of the box, CSS modules, global CSS imports and lazy loading s
 
 To use CSS modules, simply create a `.module.css` file. For example, `src/components/MyComponent/MyComponent.module.css`.
 
-```css
-/* File: src/components/MyComponent/MyComponent.module.css */
+```css title="src/components/MyComponent/MyComponent.module.css"
 .container {
   background-color: red;
 }
@@ -164,8 +163,7 @@ To use CSS modules, simply create a `.module.css` file. For example, `src/compon
 
 Then, import the CSS module in your component.
 
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
+```tsx title="src/components/MyComponent/MyComponent.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import styles from './MyComponent.module.css';
@@ -181,8 +179,7 @@ Remember that Qwik uses `class` instead of `className` for CSS classes.
 
 To use global CSS, simply import the CSS file from any typescript file. For example, `src/components/MyComponent/MyComponent.tsx`.
 
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
+```tsx title="src/components/MyComponent/MyComponent.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import './MyComponent.css';
@@ -196,8 +193,7 @@ export default component$(() => {
 
 To use scoped CSS, you can use the `useStyleScoped$()` hook exported from `@builder.io/qwik`.
 
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
+```tsx title="src/components/MyComponent/MyComponent.tsx"
 
 import { component$, useStyleScoped$ } from '@builder.io/qwik';
 
@@ -213,15 +209,13 @@ export default component$(() => {
 
 It can also import an external CSS file. For that you need to add the `?inline` query parameter to the import of the CSS file, and pass the default export of the CSS file to the `useStyleScoped$()` hook.
 
-```css
-/* File: src/components/MyComponent/MyComponent.css */
+```css title="src/components/MyComponent/MyComponent.css"
 .container {
   background-color: red;
 }
 ```
 
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
+```tsx title="src/components/MyComponent/MyComponent.tsx"
 import { component$, useStyleScoped$ } from '@builder.io/qwik';
 import styles from './MyComponent.css?inline';
 
@@ -473,8 +467,7 @@ Notice that `useVisibleTask$()` should not be used to fetch data, because it wil
 
 Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
 
-```tsx
-// File: src/routes/home/index.tsx
+```tsx title="src/routes/home/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 
@@ -489,8 +482,7 @@ It is very important to export the component as the default export, otherwise th
 
 You can create dynamic routes by adding a folder with like `[param]` in the route path. For example, `src/routes/user/[id]/index.tsx` will create a route at `/user/:id/`. In order to access the route parameter, you can use the `useLocation` hook exported from `@builder.io/qwik-city`.
 
-```tsx
-// File: src/routes/user/[userID]/index.tsx
+```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
@@ -524,8 +516,7 @@ export interface RouteLocation {
 
 To link to other routes, you can use the `Link` component exported from `@builder.io/qwik-city`. The `Link` component takes all the properties of the `<a>` HTMLAnchorElement. The only difference is that it will use the Qwik router to SPA navigate to the route instead of doing a full page navigation.
 
-```tsx
-// File: src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
@@ -545,8 +536,7 @@ export default component$(() => {
 
 The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@builder.io/qwik-city`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must exported as a name export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
 
-```tsx
-// File: src/routes/user/[userID]/index.tsx
+```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
@@ -579,8 +569,7 @@ The `routeLoader$()` function takes a function that returns a promise. The promi
 
 Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests in the server. `routeAction$()` is very similar to `routeLoader$()`, both are used to create a custom hook that can be used to access data returned from the server. The main difference is that `routeAction$()` is only executed when the form is submitted, while `routeLoader$()` is executed on the server before the route is rendered.
 
-```tsx
-// File: src/routes/user/[userID]/index.tsx
+```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';

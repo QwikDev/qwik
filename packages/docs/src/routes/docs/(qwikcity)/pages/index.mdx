@@ -21,7 +21,7 @@ Page content can be created using Qwik components. The component representing th
 
 Let's assume you have your routes set up like this:
 
-```
+```bash
 src/
 └── routes/
     └── some/
@@ -42,7 +42,7 @@ export default component$(() => {
 
 You can build complex views by composing multiple components within each other. To do that import other components into your `index.tsx` file.
 
-```
+```bash
 src/
 ├── components/
 │   └── heading.tsx
@@ -159,7 +159,7 @@ export const head: DocumentHead = ({ params, resolveValue }) => {
 
 An advanced case is that a [layout](/docs/(qwikcity)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
 
-```
+```bash
 ──src/
   └─routes/
     ├─index.tsx

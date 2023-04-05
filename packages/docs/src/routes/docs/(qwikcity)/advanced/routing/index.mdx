@@ -23,7 +23,7 @@ Instead of showing the generic (boring) 404 response, it's possible to provide a
 
 To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory.
 
-```
+```bash
 src/
 └── routes/
     ├── 404.tsx            # Custom 404
@@ -35,7 +35,7 @@ In the example above, the `404.tsx` page will also use the `layout.tsx` layout, 
 
 Additionally, using Qwik City's directory-based routing allows for custom 404 pages to be created at different paths. For example, if `src/routes/account/404.tsx` was also added to the structure, then the custom account 404 page would only be applied to the `/account/*` routes, while all other 404s would use the root `404.tsx` page.
 
-```
+```bash
 src/
 └── routes/
     ├── account/
@@ -104,7 +104,7 @@ By surrounding any directory name with parentheses, such as `(name)`, then the d
 
 For example, let's say an app placed all _account_ routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within the `src/routes/(account)/` directory. However, the URL paths exclude `(account)/`.
 
-```
+```bash
 src/
 └── routes/
     └── (account)/             # Notice the parentheses
@@ -121,7 +121,7 @@ At times related routes need to have drastically different layouts from their si
 
 Qwik City defines the convention that layouts are within `src/routes` and the filename starts with `layout`. That's why the default layout is named `layout.tsx`. A named layout also starts with `layout` followed by a dash `-` and a unique name, such as `layout-narrow.tsx`.
 
-```
+```bash
 src/
 └── routes/
     ├── contact/
@@ -158,7 +158,7 @@ src/
 
 Most times it is desirable to nest layouts into each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
 
-```
+```bash
 src/
 └── routes/
     ├── layout.tsx           # Parent layout

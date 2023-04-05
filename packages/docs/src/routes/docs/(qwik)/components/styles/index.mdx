@@ -55,9 +55,7 @@ import './global.css';
 
 Qwik has first-class CSS-in-JS support using [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract), which provides a extremely efficient css-in-js solution without any runtime!
 
-**styles.css.ts:**
-
-```tsx
+```tsx title="style.css.ts"
 import { style } from 'styled-vanilla-extract/qwik';
 
 export const blueClass = style({
@@ -68,9 +66,7 @@ export const blueClass = style({
 });
 ```
 
-**component.tsx:**
-
-```tsx
+```tsx title="component.tsx"
 import { component$ } from '@builder.io/qwik';
 import { blueClass } from './styles.css';
 
@@ -97,9 +93,7 @@ npm run qwik add styled-vanilla-extract
 
 Like this:
 
-**styles.css.ts:**
-
-```tsx
+```tsx title="styles.css.ts"
 import { styled } from 'styled-vanilla-extract/qwik';
 
 export const BlueBox = styled.div`
@@ -110,9 +104,7 @@ export const BlueBox = styled.div`
 `;
 ```
 
-**component.tsx:**
-
-```tsx
+```tsx title="component.tsx"
 import { component$ } from '@builder.io/qwik';
 import { BlueBox } from './styles.css';
 

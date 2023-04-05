@@ -388,6 +388,18 @@ test.describe('signals', () => {
       await expect(result).toHaveText('1');
       await expect(result).toHaveAttribute('data-count', '1');
     });
+
+    test('issue 3663', async ({ page }) => {
+      const button = page.locator('#issue-3663-button');
+      const result = page.locator('.issue-3663-result');
+      await expect(result).toHaveText(['0', '0', '0']);
+      await button.click();
+      await expect(result).toHaveText(['1', '1', '1']);
+      await button.click();
+      await expect(result).toHaveText(['2', '2', '2']);
+      await button.click();
+      await expect(result).toHaveText(['3', '3', '3']);
+    });
   }
 
   tests();

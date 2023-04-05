@@ -79,7 +79,7 @@ export class Cookie implements CookieInterface {
 
   constructor(cookieString?: string | undefined | null) {
     this[REQ_COOKIE] = parseCookieString(cookieString);
-    this[REQ_COOKIE] = { ...this[REQ_COOKIE] };
+    this[LIVE_COOKIE] = { ...this[REQ_COOKIE] };
   }
 
   get(cookieName: string, live: boolean = true) {

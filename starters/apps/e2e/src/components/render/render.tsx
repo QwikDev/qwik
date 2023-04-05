@@ -7,6 +7,8 @@ import {
   useStylesScoped$,
   useTask$,
   event$,
+  h,
+  jsx,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 
@@ -78,6 +80,7 @@ export const RenderChildren = component$(() => {
       <Pr3475 />
       <Issue3561 />
       <Issue3542 atom={{ code: 1 }} />
+      <Issue3643 />
       <IssueChildrenSpread />
     </>
   );
@@ -604,6 +607,29 @@ export const Issue3542 = component$(({ atom }: any) => {
   return <span id="issue-3542-result">{status}</span>;
 });
 
+export const Issue3643 = component$(() => {
+  const toggle = useSignal(false);
+  return (
+    <div>
+      <button id="issue-3643-button" onClick$={() => (toggle.value = !toggle.value)}>
+        Toggle
+      </button>
+      <div id="issue-3643-result">
+        {toggle.value ? h('div', {}, 'World') : h('div', { dangerouslySetInnerHTML: 'Hello' })}
+      </div>
+      <div id="issue-3643-result-2">
+        {toggle.value
+          ? jsx('div', { children: 'World' })
+          : jsx('div', { dangerouslySetInnerHTML: 'Hello' })}
+      </div>
+    </div>
+  );
+});
+
+function Hola(props: any) {
+  return <div {...props}></div>;
+}
+
 export const IssueChildrenSpread = component$(() => {
   const signal = useSignal({
     type: 'div',
@@ -623,6 +649,10 @@ export const IssueChildrenSpread = component$(() => {
       >
         Change
       </button>
+      <Hola id="issue-children-spread-static">
+        <div>1</div>
+        <div>2</div>
+      </Hola>
       <div id="issue-children-spread-result">
         <Type {...signal.value}></Type>
       </div>

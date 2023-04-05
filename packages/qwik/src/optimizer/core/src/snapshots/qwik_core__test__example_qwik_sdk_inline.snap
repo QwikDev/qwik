@@ -3420,29 +3420,31 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStylesScopedQrl } from "@builder.io/qwik";
 export const s_gJoMUICXoUQ = (props)=>{
     useStylesScopedQrl(/*#__PURE__*/ qrl(()=>import("./entry_Button.mjs"), "s_a1JZ0Q0Q2Oc"));
     return /* @__PURE__ */ _jsxC(Fragment, {
-        children: props.link ? /* @__PURE__ */ _jsxQ('a', {
+        children: props.link ? /* @__PURE__ */ _jsxS('a', {
             ...props.attributes,
             get href () {
                 return props.link;
             },
             target: props.openLinkInNewTab ? '_blank' : void 0,
+            children: _wrapSignal(props, 'text'),
             [_IMMUTABLE]: {
                 href: _wrapSignal(props, 'link')
             }
         }, {
             role: 'button'
-        }, _wrapSignal(props, 'text'), 0, "mR_0") : /* @__PURE__ */ _jsxQ('button', {
-            ...props.attributes
+        }, 0, "mR_0") : /* @__PURE__ */ _jsxS('button', {
+            ...props.attributes,
+            children: _wrapSignal(props, 'text')
         }, {
             class: 'button-Button'
-        }, _wrapSignal(props, 'text'), 0, null),
+        }, 0, null),
         [_IMMUTABLE]: {
             children: false
         }
@@ -3450,7 +3452,7 @@ export const s_gJoMUICXoUQ = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;6BAoBa,CAAC,QAAU;IACpB;IACA,OAAO,aAAa,GAAG,MACrB;QAEE,UAAU,MAAM,IAAI,GAChB,aAAa,GAAG,MAAI;YAElB,GAAG,MAAM,UAAU;YACnB,IAAI,QAAO;gBACT,OAAO,MAAM,IAAI;YACnB;YACA,QAAQ,MAAM,gBAAgB,GAAG,WAAW,KAAK,CAAC;YAElD,CAAC,WAAW,EAAE;gBACZ,MAAM,YAAY,OAAO;YAC3B;;YATA,MAAM;WAMI,YAAY,OAAO,sBAK/B,aAAa,GAAG,MAAI;YAElB,GAAG,MAAM,UAAU;;YADnB,OAAO;WAEG,YAAY,OAAO,iBAC7B;QACN,CAAC,WAAW,EAAE;YACZ,UAAU,KAAK;QACjB;UAEF;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;6BAoBa,CAAC,QAAU;IACpB;IACA,OAAO,aAAa,GAAG,MACrB;QAEE,UAAU,MAAM,IAAI,GAChB,aAAa,GAAG,MAAI;YAElB,GAAG,MAAM,UAAU;YACnB,IAAI,QAAO;gBACT,OAAO,MAAM,IAAI;YACnB;YACA,QAAQ,MAAM,gBAAgB,GAAG,WAAW,KAAK,CAAC;YAClD,UAAU,YAAY,OAAO;YAC7B,CAAC,WAAW,EAAE;gBACZ,MAAM,YAAY,OAAO;YAC3B;;YATA,MAAM;wBAWR,aAAa,GAAG,MAAI;YAElB,GAAG,MAAM,UAAU;YACnB,UAAU,YAAY,OAAO;;YAF7B,OAAO;mBAGP;QACN,CAAC,WAAW,EAAE;YACZ,UAAU,KAAK;QACjB;UAEF;AAEJ\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
@@ -3995,9 +3997,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 
 import { Slot } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
 export const s_ZWF9iD5WeLg = (props)=>{
-    return /* @__PURE__ */ _jsxQ('section', {
+    return /* @__PURE__ */ _jsxS('section', {
         ...props.attributes,
         style: {
             width: '100%',
@@ -4010,12 +4012,13 @@ export const s_ZWF9iD5WeLg = (props)=>{
             alignItems: 'stretch',
             marginLeft: 'auto',
             marginRight: 'auto'
-        }
-    }, null, /* @__PURE__ */ _jsxC(Slot, null, 3, '2Y_0'), 0, "mR_10");
+        },
+        children: /* @__PURE__ */ _jsxC(Slot, null, 3, '2Y_0')
+    }, null, 0, "mR_10");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;6BAmlDa,CAAC,QAAU;IACpB,OAAO,aAAa,GAAG,MAAI;QACzB,GAAG,MAAM,UAAU;QACnB,OAAO;YACL,OAAO;YACP,WAAW;YACX,UAAU;YACV,WAAW;YACX,UAAU,MAAM,QAAQ,IAAI;YAC5B,SAAS;YACT,eAAe;YACf,YAAY;YACZ,YAAY;YACZ,aAAa;QACf;aACU,aAAa,GAAG,MAAI,eAAU;AAE5C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;6BAmlDa,CAAC,QAAU;IACpB,OAAO,aAAa,GAAG,MAAI;QACzB,GAAG,MAAM,UAAU;QACnB,OAAO;YACL,OAAO;YACP,WAAW;YACX,UAAU;YACV,WAAW;YACX,UAAU,MAAM,QAAQ,IAAI;YAC5B,SAAS;YACT,eAAe;YACf,YAAY;YACZ,YAAY;YACZ,aAAa;QACf;QACA,UAAU,aAAa,GAAG,MAAI,eAAU;;AAE5C\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
@@ -4082,7 +4085,7 @@ import { RenderContent as RenderContent$1 } from "../node_modules/@builder.io/qw
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { _auto_builderContext as builderContext } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 import { _auto_className as className } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
@@ -4101,40 +4104,41 @@ export const s_WVvggdkUPdk = (props)=>{
         props,
         state
     ]));
-    return /* @__PURE__ */ _jsxQ('div', {
+    return /* @__PURE__ */ _jsxS('div', {
         ...props.attributes,
-        class: className(props)
-    }, null, /* @__PURE__ */ _jsxC(RenderContent$1, {
-        get apiKey () {
-            return builderContext$1.apiKey;
-        },
-        get context () {
-            return builderContext$1.context;
-        },
-        get customComponents () {
-            return Object.values(builderContext$1.registeredComponents);
-        },
-        data: {
-            ...props.symbol?.data,
-            ...builderContext$1.state,
-            ...props.symbol?.content?.data?.state
-        },
-        model: props.symbol?.model,
-        content: contentToUse(props, state),
-        [_IMMUTABLE]: {
-            apiKey: _wrapSignal(builderContext$1, 'apiKey'),
-            context: _wrapSignal(builderContext$1, 'context')
-        },
-        [_IMMUTABLE]: {
-            customComponents: _fnSignal((p0)=>Object.values(p0.registeredComponents), [
-                builderContext$1
-            ], "Object.values(p0.registeredComponents)")
-        }
-    }, 0, 'Wt_0'), 0, "mR_11");
+        class: className(props),
+        children: /* @__PURE__ */ _jsxC(RenderContent$1, {
+            get apiKey () {
+                return builderContext$1.apiKey;
+            },
+            get context () {
+                return builderContext$1.context;
+            },
+            get customComponents () {
+                return Object.values(builderContext$1.registeredComponents);
+            },
+            data: {
+                ...props.symbol?.data,
+                ...builderContext$1.state,
+                ...props.symbol?.content?.data?.state
+            },
+            model: props.symbol?.model,
+            content: contentToUse(props, state),
+            [_IMMUTABLE]: {
+                apiKey: _wrapSignal(builderContext$1, 'apiKey'),
+                context: _wrapSignal(builderContext$1, 'context')
+            },
+            [_IMMUTABLE]: {
+                customComponents: _fnSignal((p0)=>Object.values(p0.registeredComponents), [
+                    builderContext$1
+                ], "Object.values(p0.registeredComponents)")
+            }
+        }, 0, 'Wt_0')
+    }, null, 0, "mR_11");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;6BA65Da,CAAC,QAAU;IACpB,MAAM,mBAAmB,WAAW;IACpC,MAAM,QAAQ,SAAS;QACrB,gBAAgB,IAAI;IACtB;IACA;;;;;IA4BA,OAAO,aAAa,GAAG,MAAI;QACzB,GAAG,MAAM,UAAU;QACnB,OAAO,UAAU;aACP,aAAa,GAAG,MACxB;QAEE,IAAI,UAAS;YACX,OAAO,iBAAiB,MAAM;QAChC;QACA,IAAI,WAAU;YACZ,OAAO,iBAAiB,OAAO;QACjC;YACA;mBAAkB,OAAO,MAAM,CAAC,iBAAiB,oBAAoB;;QACrE,MAAM;YACJ,GAAG,MAAM,MAAM,EAAE,IAAI;YACrB,GAAG,iBAAiB,KAAK;YACzB,GAAG,MAAM,MAAM,EAAE,SAAS,MAAM,KAAK;QACvC;QACA,OAAO,MAAM,MAAM,EAAE;QACrB,SAAS,aAAa,OAAO;QAC7B,CAAC,WAAW,EAAE;YACZ,QAAQ,YAAY,kBAAkB;YACtC,SAAS,YAAY,kBAAkB;QACzC;;YAXA,gBAAgB,kBAAE,OAAO,MAAM,CAAC,GAAiB,oBAAoB;;;;UAavE;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;6BA65Da,CAAC,QAAU;IACpB,MAAM,mBAAmB,WAAW;IACpC,MAAM,QAAQ,SAAS;QACrB,gBAAgB,IAAI;IACtB;IACA;;;;;IA4BA,OAAO,aAAa,GAAG,MAAI;QACzB,GAAG,MAAM,UAAU;QACnB,OAAO,UAAU;QACjB,UAAU,aAAa,GAAG,MACxB;YAEE,IAAI,UAAS;gBACX,OAAO,iBAAiB,MAAM;YAChC;YACA,IAAI,WAAU;gBACZ,OAAO,iBAAiB,OAAO;YACjC;gBACA;uBAAkB,OAAO,MAAM,CAAC,iBAAiB,oBAAoB;;YACrE,MAAM;gBACJ,GAAG,MAAM,MAAM,EAAE,IAAI;gBACrB,GAAG,iBAAiB,KAAK;gBACzB,GAAG,MAAM,MAAM,EAAE,SAAS,MAAM,KAAK;YACvC;YACA,OAAO,MAAM,MAAM,EAAE;YACrB,SAAS,aAAa,OAAO;YAC7B,CAAC,WAAW,EAAE;gBACZ,QAAQ,YAAY,kBAAkB;gBACtC,SAAS,YAAY,kBAAkB;YACzC;;gBAXA,gBAAgB,kBAAE,OAAO,MAAM,CAAC,GAAiB,oBAAoB;;;;cAavE;;AAGN\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
@@ -4199,11 +4203,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 ============================= s_qdctzflyyoq.mjs ==
 
 import { _IMMUTABLE } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { _auto_spreadProps as spreadProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 export const s_qdcTZflYyoQ = (props)=>{
-    return /* @__PURE__ */ _jsxQ('video', {
+    return /* @__PURE__ */ _jsxS('video', {
         ...spreadProps(props),
         style: {
             width: '100%',
@@ -4220,7 +4224,7 @@ export const s_qdcTZflYyoQ = (props)=>{
         [_IMMUTABLE]: {
             poster: _wrapSignal(props, 'posterImage')
         }
-    }, null, null, 0, "mR_13");
+    }, null, 0, "mR_13");
 };
 
 
@@ -4337,11 +4341,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 ============================= s_fxvidbsffo8.mjs ==
 
 import { _IMMUTABLE } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { isEditing } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 export const s_FXvIDBSffO8 = (props)=>{
-    return /* @__PURE__ */ _jsxQ('img', {
+    return /* @__PURE__ */ _jsxS('img', {
         style: {
             objectFit: props.backgroundSize || 'cover',
             objectPosition: props.backgroundPosition || 'center'
@@ -4354,11 +4358,11 @@ export const s_FXvIDBSffO8 = (props)=>{
         [_IMMUTABLE]: {
             alt: _wrapSignal(props, 'altText')
         }
-    }, null, null, 0, isEditing() && props.imgSrc || 'default-key');
+    }, null, 0, isEditing() && props.imgSrc || 'default-key');
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;6BAqwEa,CAAC,QAAU;IACpB,OAAO,aAAa,GAAG,MACrB;QAEE,OAAO;YACL,WAAW,MAAM,cAAc,IAAI;YACnC,gBAAgB,MAAM,kBAAkB,IAAI;QAC9C;QACA,IAAI,OAAM;YACR,OAAO,MAAM,OAAO;QACtB;QACA,KAAK,MAAM,MAAM,IAAI,MAAM,KAAK;QAChC,GAAG,MAAM,UAAU;QACnB,CAAC,WAAW,EAAE;YACZ,KAAK,YAAY,OAAO;QAC1B;sBAEF,AAAC,eAAe,MAAM,MAAM,IAAK;AAErC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;6BAqwEa,CAAC,QAAU;IACpB,OAAO,aAAa,GAAG,MACrB;QAEE,OAAO;YACL,WAAW,MAAM,cAAc,IAAI;YACnC,gBAAgB,MAAM,kBAAkB,IAAI;QAC9C;QACA,IAAI,OAAM;YACR,OAAO,MAAM,OAAO;QACtB;QACA,KAAK,MAAM,MAAM,IAAI,MAAM,KAAK;QAChC,GAAG,MAAM,UAAU;QACnB,CAAC,WAAW,EAAE;YACZ,KAAK,YAAY,OAAO;QAC1B;gBAEF,AAAC,eAAe,MAAM,MAAM,IAAK;AAErC\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
@@ -4939,8 +4943,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 ============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
 
 import { qrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { _jsxBranch } from "@builder.io/qwik";
 import { componentQrl, _wrapSignal, _IMMUTABLE, createContext } from '@builder.io/qwik';
 import { Fragment } from '@builder.io/qwik/jsx-runtime';

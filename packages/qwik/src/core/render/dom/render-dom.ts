@@ -6,8 +6,8 @@ import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises'
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
 import { domToVnode, smartUpdateChildren } from './visitor';
-import { SkipRender, Virtual } from '../jsx/utils.public';
-import { isJSXNode, SKIP_RENDER_TYPE, _jsxC } from '../jsx/jsx-runtime';
+import { SkipRender } from '../jsx/utils.public';
+import { isJSXNode, SKIP_RENDER_TYPE, _jsxC, Virtual } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
 import type { RenderContext } from '../types';

@@ -149,6 +149,18 @@ export const AttributesChild = component$(() => {
       </div>
       <div id="input-value">{input.value}</div>
       <input id="input-copy" value={input.value} />
+      <Issue3622 />
     </>
+  );
+});
+
+export const Issue3622 = component$(() => {
+  return (
+    <div>
+      <select id="issue-3622-result" value="option1">
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </select>
+    </div>
   );
 });

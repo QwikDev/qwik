@@ -21,19 +21,15 @@ import {
 } from './visitor';
 
 export const setAttribute = (
-  staticCtx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext,
   el: QwikElement,
   prop: string,
   value: any
 ) => {
-  if (staticCtx) {
-    staticCtx.$operations$.push({
-      $operation$: _setAttribute,
-      $args$: [el, prop, value],
-    });
-  } else {
-    _setAttribute(el, prop, value);
-  }
+  staticCtx.$operations$.push({
+    $operation$: _setAttribute,
+    $args$: [el, prop, value],
+  });
 };
 
 const _setAttribute = (el: QwikElement, prop: string, value: any) => {
@@ -45,20 +41,23 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   }
 };
 
-export const setProperty = (
-  staticCtx: RenderStaticContext | undefined,
+export const setProperty = (staticCtx: RenderStaticContext, node: any, key: string, value: any) => {
+  staticCtx.$operations$.push({
+    $operation$: _setProperty,
+    $args$: [node, key, value],
+  });
+};
+
+export const setPropertyPost = (
+  staticCtx: RenderStaticContext,
   node: any,
   key: string,
   value: any
 ) => {
-  if (staticCtx) {
-    staticCtx.$operations$.push({
-      $operation$: _setProperty,
-      $args$: [node, key, value],
-    });
-  } else {
-    _setProperty(node, key, value);
-  }
+  staticCtx.$postOperations$.push({
+    $operation$: _setProperty,
+    $args$: [node, key, value],
+  });
 };
 
 const _setProperty = (node: any, key: string, value: any) => {
@@ -125,19 +124,15 @@ export const appendHeadStyle = (staticCtx: RenderStaticContext, styleTask: Style
 };
 
 export const setClasslist = (
-  staticCtx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext,
   elm: Element,
   toRemove: string[],
   toAdd: string[]
 ) => {
-  if (staticCtx) {
-    staticCtx.$operations$.push({
-      $operation$: _setClasslist,
-      $args$: [elm, toRemove, toAdd],
-    });
-  } else {
-    _setClasslist(elm, toRemove, toAdd);
-  }
+  staticCtx.$operations$.push({
+    $operation$: _setClasslist,
+    $args$: [elm, toRemove, toAdd],
+  });
 };
 
 export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[]) => {

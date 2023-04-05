@@ -337,7 +337,10 @@ export interface JSXNode<T = string | FunctionComponent> {
 }
 
 // @internal (undocumented)
-export const _jsxQ: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxQ: <T extends string>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+
+// @internal (undocumented)
+export const _jsxS: <T extends string>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;

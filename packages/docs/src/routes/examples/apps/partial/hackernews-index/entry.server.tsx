@@ -1,4 +1,4 @@
-import { renderToString, RenderOptions } from '@builder.io/qwik/server';
+import { renderToString, type RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 
 export default function (opts: RenderOptions) {

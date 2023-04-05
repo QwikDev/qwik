@@ -22,9 +22,9 @@
     "@algolia/autocomplete-shared": "1.7.4",
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.7.6",
-    "@builder.io/qwik": "0.25.0",
+    "@builder.io/qwik": "0.100.0",
     "@builder.io/qwik-city": "0.100.0",
-    "@builder.io/sdk-qwik": "0.1.15",
+    "@builder.io/sdk-qwik": "^0.1.16",
     "@docsearch/css": "3.3.3",
     "@types/prismjs": "^1.26.0",
     "algoliasearch": "4.16.0",
@@ -35,7 +35,7 @@
     "postcss": "8.4.21",
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
-    "puppeteer": "^19.8.0",
+    "puppeteer": "^19.8.3",
     "rehype-pretty-code": "^0.9.4",
     "shiki": "^0.14.1",
     "tailwindcss": "3.3.1",
@@ -44,7 +44,7 @@
     "undici": "5.21.0",
     "uvu": "0.5.6",
     "vite": "4.2.1",
-    "wrangler": "^2.13.0"
+    "wrangler": "^2.14.0"
   },
   "author": "Builder.io Team",
   "bugs": {
@@ -54,5 +54,9 @@
     "node": ">=16"
   },
   "license": "MIT",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.14.0",
+    "openai": "^3.2.1"
+  }
 }

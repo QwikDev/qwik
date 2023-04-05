@@ -5,6 +5,7 @@ contributors:
   - cunzaizhuyi
   - forresst
   - keuller
+  - hamatoyogi
 ---
 
 # `routeAction$()`
@@ -41,8 +42,8 @@ Actions are referenced using the `.use()` method from within a Qwik Component. T
 import { component$ } from '@builder.io/qwik';
 import { routeAction$ } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$((user) => {
-  const userID = db.users.add(user);
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -56,7 +57,7 @@ export default component$(() => {
   // action.status?: number;
   // action.formData: FormData | undefined;
   // action.value: {success: boolean, userID: string} | undefined;
-  // action.run: (data: any) => Promise<{success: boolean, userID: string}>;
+  // action.submit: (data: any) => Promise<{success: boolean, userID: string}>;
 
   return <>{...}</>
 });
@@ -72,8 +73,8 @@ The best way to trigger an action is by using the `<Form/>` component exported i
 import { routeAction$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useAddUser = routeAction$((user) => {
-  const userID = db.users.add(user);
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -96,14 +97,14 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 ## Using actions programatically
 
-Actions can also be triggered programatically using the `action.run()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+Actions can also be triggered programatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx title="src/routes/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
-export const useAddUser = routeAction$((user) => {
-  const userID = db.users.add(user);
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -116,7 +117,7 @@ export default component$(() => {
     <div>
       <button
         onClick={async () => {
-          const { value } = await action.run({ name: 'John' });
+          const { value } = await action.submit({ name: 'John' });
           console.log(value);
         }}
       >
@@ -128,7 +129,7 @@ export default component$(() => {
 });
 ```
 
-In the example above, the `addUser` action is triggered when the user clicks the button. The `action.run()` method returns a `Promise` that resolves when the action is done.
+In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
 ### Zod validation
 
@@ -137,9 +138,9 @@ When submitting data to an action by default, the data is not validated.
 ```tsx title="src/routes/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$((user) => {
+export const useAddUser = routeAction$(async (user) => {
   // `user` is typed Record<string, any>
-  const userID = db.users.add(user);
+  const userID = await db.users.add(user);
   return {
     success: true,
     userID,
@@ -147,15 +148,15 @@ export const useAddUser = routeAction$((user) => {
 });
 ```
 
-Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `action$()` function.
+Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `routeAction$()` function.
 
 ```tsx title="src/routes/index.tsx"
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user) => {
+  async (user) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     return {
       success: true,
       userID,
@@ -167,16 +168,16 @@ export const useAddUser = routeAction$(
 );
 ```
 
-When submitting data to an action, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.fail` property.
+When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.fail` property.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user) => {
+  async (user) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     return {
       success: true,
       userID,
@@ -192,7 +193,7 @@ export default component$(() => {
   return (
     <Form action={action}>
       <input name="name" />
-      {action.fail?.fieldErrors.name && <div>{action.fail.message}</div>}
+      {action.value?.failed && <div>{action.value.fieldErrors?.name}</div>}
       {action.value?.success && <div>User added successfully</div>}
       <button type="submit">Add user</button>
     </Form>
@@ -210,9 +211,9 @@ In order to return non-success values, the action must use the `fail()` method.
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user, { fail }) => {
+  async (user, { fail }) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     if (!userID) {
       return fail(500, {
         message: 'User could not be added',
@@ -228,7 +229,7 @@ export const useAddUser = routeAction$(
 );
 ```
 
-Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails.
+Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object according to properties defined in your Zod schema.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -240,7 +241,7 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <div>{action.value.message}</div>}
+      {action.value?.failed && <div>{action.value.fieldErrors.name}</div>}
       {action.value?.userID && <div>User added successfully</div>}
     </Form>
   );
@@ -258,9 +259,9 @@ import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
-  (user) => {
+  async (user) => {
     // `user` is typed { name: string }
-    const userID = db.users.add(user);
+    const userID = await db.users.add(user);
     return {
       userID,
     };

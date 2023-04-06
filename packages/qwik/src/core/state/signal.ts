@@ -2,7 +2,7 @@ import { assertEqual, assertTrue } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
-import { RenderEvent } from '../util/markers';
+import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isObject } from '../util/types';
 import type { ContainerState } from '../container/container';
 import {
@@ -103,10 +103,14 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
             'State mutation inside render function. Use useTask$() instead.',
             invokeCtx.$hostElement$
           );
-        }
-        if (invokeCtx.$event$ === 'ComputedEvent') {
+        } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
             'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
+            invokeCtx.$hostElement$
+          );
+        } else if (invokeCtx.$event$ === ResourceEvent) {
+          logWarn(
+            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
             invokeCtx.$hostElement$
           );
         }

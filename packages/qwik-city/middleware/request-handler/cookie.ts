@@ -67,7 +67,6 @@ const parseCookieString = (cookieString: string | undefined | null) => {
   return cookie;
 };
 
-const DELETED_COOKIE = '_qDeleted';
 const REQ_COOKIE = Symbol('request-cookies');
 const RES_COOKIE = Symbol('response-cookies');
 const LIVE_COOKIE = Symbol('live-cookies');
@@ -75,7 +74,7 @@ const LIVE_COOKIE = Symbol('live-cookies');
 export class Cookie implements CookieInterface {
   private [REQ_COOKIE]: Record<string, string>;
   private [RES_COOKIE]: Record<string, string> = {};
-  private [LIVE_COOKIE]: Record<string, string> = {};
+  private [LIVE_COOKIE]: Record<string, string | null> = {};
 
   constructor(cookieString?: string | undefined | null) {
     this[REQ_COOKIE] = parseCookieString(cookieString);
@@ -84,7 +83,7 @@ export class Cookie implements CookieInterface {
 
   get(cookieName: string, live: boolean = true) {
     const value = this[live ? LIVE_COOKIE : REQ_COOKIE][cookieName];
-    if (!value || (live && value === DELETED_COOKIE)) {
+    if (!value) {
       return null;
     }
     return {
@@ -126,7 +125,7 @@ export class Cookie implements CookieInterface {
 
   delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
     this.set(name, 'deleted', { ...options, maxAge: 0 });
-    this[LIVE_COOKIE][name] = DELETED_COOKIE;
+    this[LIVE_COOKIE][name] = null;
   }
 
   headers() {

@@ -226,7 +226,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       clientDevInput = qwikPlugin.normalizePath(clientDevInput);
 
       const vendorIds = vendorRoots.map((v) => v.id);
-      console.log(vendorIds);
       const updatedViteConfig: UserConfig = {
         ssr: {
           noExternal: vendorIds,
@@ -334,11 +333,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       return updatedViteConfig;
     },
-
-    async configResolved(config) {
-      console.log(config.ssr);
-    },
-
     async buildStart() {
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file

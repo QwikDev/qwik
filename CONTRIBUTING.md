@@ -80,6 +80,7 @@ If you would like to make use of the devlopment container solution, but don't us
 - Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v $PWD:/home/circleci/project -t qwik-container`
 
 Docker command does:
+
 - Create a new container that is removed once stopped,
 - In daemon mode,
 - With name `qwik-container`,
@@ -89,10 +90,11 @@ Docker command does:
 #### Podman extras
 
 > This section is highly influenced by SO answer: https://serverfault.com/a/1075838/352338
+> If you use [Podman](https://podman.io/) instead of Docker as your containers engine, then you need to know the following:
 
-If you use [Podman](https://podman.io/) instead of Docker as your containers engine, then you need to know the following:
 - Container runs as user `circleci` with UID `1001` and GID `1002`.
 - As you are accustomed to using Podman, you will need to append `:Z` to `volumes | -v` parameter so the command becomes:
+
 ```bash
 $ subuid_size=65536
 $ subgid_size=65536

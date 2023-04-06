@@ -9,6 +9,7 @@ import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
 
 export const App = component$((props) => {
+    const {Model} = props;
     const state = useStore({count: 0});
     const remove = $((id: number) => {
         const d = state.data;
@@ -35,7 +36,7 @@ export const App = component$((props) => {
                 <p>Hello Qwik</p>
             </Div>
             [].map(() => (
-                <Div
+                <Model
                     class={state}
                     remove$={remove}
                     mutable1={{
@@ -57,7 +58,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,wGAwChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,wGAyChB\"}")
 ============================= app_component__fragment_div_immutable4_qt1dno4izxo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -67,7 +68,7 @@ export const App_component__Fragment_Div_immutable4_QT1DNo4IZXo = (ev)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAyB6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEA0B6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -82,8 +83,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "immutable4$",
   "captures": true,
   "loc": [
-    783,
-    815
+    810,
+    842
   ]
 }
 */
@@ -140,7 +141,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 }
             }, 2, "u6_0"),
             "[].map(() => (",
-            /*#__PURE__*/ _jsxC(Div, {
+            /*#__PURE__*/ _jsxC(props.Model, {
                 class: state,
                 remove$: remove,
                 get mutable1 () {
@@ -175,7 +176,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAI8B,CAAC,QAAU;IACrC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;gBACG,UAAU,MAAM,QAAQ;gBACxB,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;gBACrC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAVH,YAAY;oBACZ,UAAU;oBAKV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MAAC;gBACG,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;wBACnC,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAI8B,CAAC,QAAU;IAErC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;gBACG,UAAU,MAAM,QAAQ;gBACxB,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;gBACrC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAVH,YAAY;oBACZ,UAAU;oBAKV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MA3BI,MAAT;gBA4BS,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;wBACnC,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -191,7 +192,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     124,
-    1388
+    1417
   ]
 }
 */
@@ -206,7 +207,7 @@ export const App_component_remove_pU6yOC5P6sY = (id)=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAMqB,CAAC;;IACd,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACN,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAOqB,CAAC;;IACd,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACN,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -221,8 +222,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    198,
-    336
+    225,
+    363
   ]
 }
 */
@@ -233,7 +234,7 @@ export const App_component__Fragment_Div_transparent_jTD8SCTNDsg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAkB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAmB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -248,8 +249,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "transparent$",
   "captures": false,
   "loc": [
-    522,
-    550
+    549,
+    577
   ]
 }
 */

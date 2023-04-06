@@ -36,29 +36,3 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions
 | [staticPaths?](#)    |           | string\[\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.                                    |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloudflare-pages/vite/index.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="cloudflarepagesadaptor" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#cloudflarepagesadaptor"><span class="icon icon-link"></span></a>cloudflarePagesAdaptor </h2>
-
-> Warning: This API is now obsolete.
->
-> Use `cloudflarePagesAdapter` exported from `@builder.io/qwik-city/adapters/cloudflare-pages/vite` instead.
-
-```typescript
-cloudflarePagesAdaptor: typeof cloudflarePagesAdapter;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloudflare-pages/vite/index.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="cloudflarepagesadaptoroptions" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#cloudflarepagesadaptoroptions"><span class="icon icon-link"></span></a>CloudflarePagesAdaptorOptions </h2>
-
-> Warning: This API is now obsolete.
->
-> Use `CloudflarePagesAdapterOptions` instead.
-
-```typescript
-export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
-```
-
-**References:** [CloudflarePagesAdapterOptions](#cloudflarepagesadapteroptions)
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloudflare-pages/vite/index.ts" target="_blanks">Edit this section</a></p>

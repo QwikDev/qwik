@@ -7,6 +7,7 @@ import type {
   RequestHandler,
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ReadonlySignal } from 'packages/qwik/src/core/state/signal';
 import type * as zod from 'zod';
 
 export type {
@@ -60,18 +61,6 @@ export interface MenuModule {
 export interface RouteLocation {
   readonly params: Readonly<Record<string, string>>;
   readonly url: URL;
-  /**
-   * @deprecated Please use `url` instead of href
-   */
-  readonly href: string;
-  /**
-   * @deprecated Please use `url` instead of pathname
-   */
-  readonly pathname: string;
-  /**
-   * @deprecated Please use `url` instead of query
-   */
-  readonly query: URLSearchParams;
   readonly isNavigating: boolean;
 }
 
@@ -255,12 +244,6 @@ export interface QwikCityPlan {
 
 /**
  * @public
- * @deprecated Please update to `PathParams` instead
- */
-export declare type RouteParams = Record<string, string>;
-
-/**
- * @public
  */
 export declare type PathParams = Record<string, string>;
 
@@ -278,12 +261,6 @@ export type LoadedRoute = [
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
-
-/**
- * @public
- * @deprecated Please use `RequestHandler` instead.
- */
-export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
 export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
 
@@ -603,15 +580,6 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
       : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
   >;
-
-  /**
-   * @deprecated - use `submit` instead
-   */
-  readonly run: QRL<
-    OPTIONAL extends true
-      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
-      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
-  >;
 }
 
 /**
@@ -625,8 +593,8 @@ export type FailReturn<T> = T & {
  * @public
  */
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? Readonly<Signal<ValueOrPromise<B>>>
-  : Readonly<Signal<T>>;
+  ? ReadonlySignal<ValueOrPromise<B>>
+  : ReadonlySignal<T>;
 
 /**
  * @public
@@ -637,11 +605,6 @@ export interface Loader<RETURN> {
    * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
    */
   (): LoaderSignal<RETURN>;
-
-  /**
-   * @deprecated - call as a function instead
-   */
-  use(): LoaderSignal<RETURN>;
 }
 
 export interface LoaderInternal extends Loader<any> {
@@ -661,11 +624,6 @@ export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends bo
    * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
    */
   (): ActionStore<RETURN, INPUT, OPTIONAL>;
-
-  /**
-   * @deprecated - call as a function instead
-   */
-  use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
 export interface ActionInternal extends Action<any, any> {

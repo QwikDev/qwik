@@ -316,27 +316,13 @@ componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) =>
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="context" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#context"><span class="icon icon-link"></span></a>Context </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `ContextId` instead.
-
-```typescript
-export interface Context<STATE extends object> extends ContextId<STATE>
-```
-
-**Extends:** [ContextId](#contextid)&lt;STATE&gt;
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="contextid" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#contextid"><span class="icon icon-link"></span></a>ContextId </h2>
 
 ContextId is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 \#\#\# Example
 
@@ -409,25 +395,13 @@ export interface CorePlatform
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="createcontext" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#createcontext"><span class="icon icon-link"></span></a>createContext </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `createContextId` instead.
-
-```typescript
-createContext: <STATE extends object>(name: string) => ContextId<STATE>;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="createcontextid" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#createcontextid"><span class="icon icon-link"></span></a>createContextId </h2>
 
 Create a context ID to be used in your application. The name should be written with no spaces.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 \#\#\# Example
 
@@ -682,7 +656,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 | [datatype?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [dir?](#)             |           | 'ltr' \| 'rtl' \| 'auto' \| undefined                                                            | _(Optional)_                                                                                                       |
 | [draggable?](#)       |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [hidden?](#)          |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
+| [hidden?](#)          |           | boolean \| 'hidden' \| 'until-found' \| undefined                                                | _(Optional)_                                                                                                       |
 | [id?](#)              |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [inlist?](#)          |           | any                                                                                              | _(Optional)_                                                                                                       |
 | [inputMode?](#)       |           | 'none' \| 'text' \| 'tel' \| 'url' \| 'email' \| 'numeric' \| 'decimal' \| 'search' \| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |
@@ -859,28 +833,6 @@ export type JSXTagName =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="mountfn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#mountfn"><span class="icon icon-link"></span></a>MountFn </h2>
-
-```typescript
-export type MountFn<T> = () => ValueOrPromise<T>;
-```
-
-**References:** [ValueOrPromise](#valueorpromise)
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="mutable" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#mutable"><span class="icon icon-link"></span></a>mutable </h2>
-
-> Warning: This API is now obsolete.
->
-> Remove it, not needed anymore
-
-```typescript
-mutable: <T>(v: T) => T;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="nativeanimationevent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativeanimationevent"><span class="icon icon-link"></span></a>NativeAnimationEvent </h2>
 
 ```typescript
@@ -1025,10 +977,9 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 export interface OnVisibleTaskOptions
 ```
 
-| Property        | Modifiers | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| --------------- | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [eagerness?](#) |           | [EagernessOptions](#eagernessoptions)       | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| [strategy?](#)  |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
+| Property       | Modifiers | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| -------------- | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [strategy?](#) |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
@@ -1429,20 +1380,6 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="ref" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ref"><span class="icon icon-link"></span></a>Ref </h2>
-
-Type of the value returned by `useRef()`.
-
-```typescript
-export interface Ref<T = Element>
-```
-
-| Property     | Modifiers | Type           | Description |
-| ------------ | --------- | -------------- | ----------- |
-| [current](#) |           | T \| undefined |             |
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="render" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#render"><span class="icon icon-link"></span></a>render </h2>
 
 Render JSX.
@@ -1468,7 +1405,7 @@ RenderOnce: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="renderoptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#renderoptions"><span class="icon icon-link"></span></a>RenderOptions </h2>
 
@@ -1951,130 +1888,6 @@ untrack: <T>(fn: () => T) => T;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="usebrowservisibletask_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletask_"><span class="icon icon-link"></span></a>useBrowserVisibleTask$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useVisibleTask$()` instead
-
-```typescript
-useBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usebrowservisibletaskqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usebrowservisibletaskqrl"><span class="icon icon-link"></span></a>useBrowserVisibleTaskQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useVisibleTask$()` instead
-
-```typescript
-useBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usecleanup_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecleanup_"><span class="icon icon-link"></span></a>useCleanup$ </h2>
-
-> Warning: This API is now obsolete.
->
-> Use the cleanup() function of `useTask$()`, `useResource$()` or `useVisibleTask$()` instead.
-
-It can be used to release resources, abort network requests, stop timers...
-
-```typescript
-useCleanup$: (first: () => void) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usecleanupqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecleanupqrl"><span class="icon icon-link"></span></a>useCleanupQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> Use the cleanup() function of `useTask$()`, `useResource$()` or `useVisibleTask$()` instead.
-
-It can be used to release resources, abort network requests, stop timers...
-
-```typescript
-useCleanupQrl: (unmountFn: QRL<() => void>) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="useclienteffect_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclienteffect_"><span class="icon icon-link"></span></a>useClientEffect$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useVisibleTask$()` instead
-
-```typescript
-useClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="useclienteffectqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclienteffectqrl"><span class="icon icon-link"></span></a>useClientEffectQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useVisibleTask$()` instead
-
-```typescript
-useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="useclientmount_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclientmount_"><span class="icon icon-link"></span></a>useClientMount$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\#usemountserver
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from "@builder.io/qwik";
-import { isBrowser } from "@builder.io/qwik/build";
-useTask$(() => {
-  if (isBrowser) {
-    // only runs on server
-  }
-});
-```
-
-```typescript
-useClientMount$: <T>(first: MountFn<T>) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="useclientmountqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useclientmountqrl"><span class="icon icon-link"></span></a>useClientMountQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\#usemountserver
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from "@builder.io/qwik";
-import { isBrowser } from "@builder.io/qwik/build";
-useTask$(() => {
-  if (isBrowser) {
-    // only runs on server
-  }
-});
-```
-
-```typescript
-useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="usecomputed_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecomputed_"><span class="icon icon-link"></span></a>useComputed$ </h2>
 
 ```typescript
@@ -2189,18 +2002,6 @@ useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: 
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="useenvdata" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useenvdata"><span class="icon icon-link"></span></a>useEnvData </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `useServerData` instead.
-
-```typescript
-useEnvData: typeof useServerData;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="useerrorboundary" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useerrorboundary"><span class="icon icon-link"></span></a>useErrorBoundary </h2>
 
 ```typescript
@@ -2216,30 +2017,6 @@ useId: () => string;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usemount_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usemount_"><span class="icon icon-link"></span></a>useMount$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` instead
-
-```typescript
-useMount$: (first: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usemountqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usemountqrl"><span class="icon icon-link"></span></a>useMountQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` instead
-
-```typescript
-useMountQrl: (qrl: QRL<import("./use-task").TaskFn>, opts?: import("./use-task").UseTaskOptions | undefined) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="useon" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useon"><span class="icon icon-link"></span></a>useOn </h2>
 
@@ -2276,45 +2053,6 @@ useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => v
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="useref" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useref"><span class="icon icon-link"></span></a>useRef </h2>
-
-> Warning: This API is now obsolete.
->
-> Use `useSignal` instead.
-
-It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
-
-```tsx
-export function useRef<T = Element>(current?: T): Ref<T> {
-  return useStore({ current });
-}
-```
-
-\#\#\# Example
-
-```tsx
-const Cmp = component$(() => {
-  const input = useRef<HTMLInputElement>();
-
-  useVisibleTask$(({ track }) => {
-    const el = track(() => input.current)!;
-    el.focus();
-  });
-
-  return (
-    <div>
-      <input type="text" ref={input} />
-    </div>
-  );
-});
-```
-
-```typescript
-useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="useresource_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useresource_"><span class="icon icon-link"></span></a>useResource$ </h2>
 
@@ -2442,54 +2180,6 @@ T \| undefined
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="useservermount_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useservermount_"><span class="icon icon-link"></span></a>useServerMount$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` with `isServer` instead. See
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik/build";
-useTask$(() => {
-  if (isServer) {
-    // only runs on server
-  }
-});
-```
-
-```typescript
-useServerMount$: <T>(first: MountFn<T>) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="useservermountqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useservermountqrl"><span class="icon icon-link"></span></a>useServerMountQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` with `isServer` instead. See
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik/build";
-useTask$(() => {
-  if (isServer) {
-    // only runs on server
-  }
-});
-```
-
-```typescript
-useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="usesignal" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usesignal"><span class="icon icon-link"></span></a>useSignal </h2>
 
 ```typescript
@@ -2578,11 +2268,10 @@ useStore: <STATE extends object>(
 export interface UseStoreOptions
 ```
 
-| Property        | Modifiers | Type    | Description                                                                                                                  |
-| --------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [deep?](#)      |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
-| [reactive?](#)  |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
-| [recursive?](#) |           | boolean | _(Optional)_                                                                                                                 |
+| Property       | Modifiers | Type    | Description                                                                                                                  |
+| -------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [deep?](#)     |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
+| [reactive?](#) |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts" target="_blanks">Edit this section</a></p>
 
@@ -2726,18 +2415,6 @@ useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="useusercontext" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useusercontext"><span class="icon icon-link"></span></a>useUserContext </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `useServerData` instead.
-
-```typescript
-useUserContext: typeof useServerData;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="usevisibletask_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usevisibletask_"><span class="icon icon-link"></span></a>useVisibleTask$ </h2>
 
 ```tsx
@@ -2790,30 +2467,6 @@ const Timer = component$(() => {
 
 ```typescript
 useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usewatch_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usewatch_"><span class="icon icon-link"></span></a>useWatch$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` instead
-
-```typescript
-useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="usewatchqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usewatchqrl"><span class="icon icon-link"></span></a>useWatchQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `useTask$()` instead
-
-```typescript
-useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>

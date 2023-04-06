@@ -2,15 +2,12 @@
 import {
   component$,
   useVisibleTask$,
-  useClientEffect$,
-  useRef,
   useStore,
   useStyles$,
   Slot,
   useSignal,
   useTask$,
   type Signal,
-  useBrowserVisibleTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -49,7 +46,7 @@ export const EffectClient = component$(() => {
 export const Timer = component$(() => {
   console.log('<Timer> renders');
 
-  const container = useRef();
+  const container = useSignal<Element>();
   const state = useStore({
     count: 0,
     msg: 'empty',
@@ -58,7 +55,7 @@ export const Timer = component$(() => {
   // Double count watch
   useVisibleTask$(() => {
     state.msg = 'run';
-    container.current!.setAttribute('data-effect', 'true');
+    container.value!.setAttribute('data-effect', 'true');
   });
 
   // Double count watch
@@ -240,7 +237,7 @@ export const Issue1955Helper = component$(() => {
 
 export const Issue1955 = component$(() => {
   const signal = useSignal('empty');
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     signal.value = 'run';
   });
   return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;
@@ -262,7 +259,7 @@ export const CleanupEffects = component$(() => {
 });
 
 export const CleanupEffectsChild = component$((props: { nuCleanups: Signal<number> }) => {
-  useBrowserVisibleTask$(({ cleanup }) => {
+  useVisibleTask$(({ cleanup }) => {
     cleanup(() => {
       props.nuCleanups.value++;
     });

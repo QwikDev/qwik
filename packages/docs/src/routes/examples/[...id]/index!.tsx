@@ -1,12 +1,14 @@
-import { component$, useStyles$, useTask$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
 import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../../components/header/header';
-import exampleSections, { ExampleApp } from '@examples-data';
+import exampleSections, { type ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../../repl/types';
-import { DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
+import { isBrowser } from '@builder.io/qwik/build';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/repl-share-url';
 
 export default component$(() => {
   useStyles$(styles);
@@ -26,6 +28,7 @@ export default component$(() => {
       entryStrategy: 'hook',
       files: app?.inputs || [],
       version: '',
+      shareUrlTmr: undefined,
     };
     return initStore;
   });
@@ -33,9 +36,51 @@ export default component$(() => {
   useTask$(({ track }) => {
     const appId = track(() => store.appId);
     const app = getExampleApp(appId);
+    if (isBrowser) {
+      const shareData = parsePlaygroundShareUrl(location.hash.slice(1));
+      if (shareData) {
+        store.version = shareData.version;
+        store.buildMode = shareData.buildMode;
+        store.entryStrategy = shareData.entryStrategy;
+        store.files = shareData.files;
+        document.title = `REPL Playground - Qwik`;
+        return;
+      }
+    }
     store.files = app?.inputs || [];
     if (typeof document !== 'undefined') {
       document.title = `${app?.title} - Qwik`;
+    }
+  });
+
+  useVisibleTask$(() => {
+    const shareData = parsePlaygroundShareUrl(location.hash.slice(1));
+    if (shareData) {
+      store.version = shareData.version;
+      store.buildMode = shareData.buildMode;
+      store.entryStrategy = shareData.entryStrategy;
+      store.files = shareData.files;
+      document.title = `REPL Playground - Qwik`;
+      return;
+    }
+  });
+
+  useTask$(({ track }) => {
+    track(() => store.buildId);
+    track(() => store.buildMode);
+    track(() => store.entryStrategy);
+    track(() => store.files);
+    track(() => store.version);
+
+    if (isBrowser) {
+      if (store.version) {
+        clearTimeout(store.shareUrlTmr);
+
+        store.shareUrlTmr = setTimeout(() => {
+          const shareUrl = createPlaygroundShareUrl(store, location.pathname);
+          history.replaceState({}, '', shareUrl);
+        }, 1000);
+      }
     }
   });
 
@@ -91,15 +136,7 @@ export default component$(() => {
 
         <main class="examples-repl">
           <div class="repl">
-            <Repl
-              input={store}
-              enableSsrOutput={false}
-              enableClientOutput={false}
-              enableHtmlOutput={false}
-              enableCopyToPlayground={true}
-              enableDownload={true}
-              enableInputDelete={false}
-            />
+            <Repl input={store} enableDownload={true} />
           </div>
         </main>
       </div>
@@ -132,6 +169,7 @@ export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
 
 interface ExamplesStore extends ReplAppInput {
   appId: string;
+  shareUrlTmr: any;
 }
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';

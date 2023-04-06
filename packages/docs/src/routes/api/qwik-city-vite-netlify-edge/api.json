@@ -3,34 +3,6 @@
   "package": "@builder.io/qwik-city/vite/netlify-edge",
   "members": [
     {
-      "name": "netifyEdgeAdapter",
-      "id": "netifyedgeadapter",
-      "hierarchy": [
-        {
-          "name": "netifyEdgeAdapter",
-          "id": "netifyedgeadapter"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.\n> \n\n\n```typescript\nnetifyEdgeAdapter: typeof netlifyEdgeAdapter\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
-      "mdFile": "qwik-city.netifyedgeadapter.md"
-    },
-    {
-      "name": "netifyEdgeAdaptor",
-      "id": "netifyedgeadaptor",
-      "hierarchy": [
-        {
-          "name": "netifyEdgeAdaptor",
-          "id": "netifyedgeadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `netlifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.\n> \n\n\n```typescript\nnetifyEdgeAdaptor: typeof netlifyEdgeAdapter\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
-      "mdFile": "qwik-city.netifyedgeadaptor.md"
-    },
-    {
       "name": "netlifyEdgeAdapter",
       "id": "netlifyedgeadapter",
       "hierarchy": [
@@ -57,20 +29,6 @@
       "content": "```typescript\nexport interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [functionRoutes?](#) |  | boolean | <p>_(Optional)_ Determines if the build should generate the edge functions declarations <code>manifest.json</code> file.</p><p>https://docs.netlify.com/edge-functions/declarations/</p><p>Defaults to <code>true</code>.</p> |\n|  [staticPaths?](#) |  | string\\[\\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
       "mdFile": "qwik-city.netlifyedgeadapteroptions.md"
-    },
-    {
-      "name": "NetlifyEdgeAdaptorOptions",
-      "id": "netlifyedgeadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "NetlifyEdgeAdaptorOptions",
-          "id": "netlifyedgeadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `NetlifyEdgeAdapterOptions` instead.\n> \n\n\n```typescript\nexport type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;\n```\n**References:** [NetlifyEdgeAdapterOptions](#netlifyedgeadapteroptions)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts",
-      "mdFile": "qwik-city.netlifyedgeadaptoroptions.md"
     }
   ]
 }

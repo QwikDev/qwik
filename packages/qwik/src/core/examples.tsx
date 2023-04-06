@@ -14,6 +14,7 @@ import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
 import { useVisibleTask$, useTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
+import { isServer, isBrowser } from '../build';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -383,28 +384,6 @@ export const CmpInline = component$(() => {
   return Stores;
 };
 
-() => {
-  // <docs anchor="use-ref">
-  const Cmp = component$(() => {
-    const input = useRef<HTMLInputElement>();
-
-    useVisibleTask$(({ track }) => {
-      const el = track(() => input.current)!;
-      el.focus();
-    });
-
-    return (
-      <div>
-        <input type="text" ref={input} />
-      </div>
-    );
-  });
-
-  // </docs>
-
-  return Cmp;
-};
-
 //
 // <docs anchor="context">
 // Declare the Context type.
@@ -486,9 +465,7 @@ function doExtraStuff() {
 // <docs anchor="qrl-capturing-rules">
 
 import { createContextId, useContext, useContextProvider } from './use/use-context';
-import { useRef } from './use/use-ref';
 import { Resource, useResource$ } from './use/use-resource';
-import { isServer, isBrowser } from '../build';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

@@ -30,13 +30,11 @@ npm run qwik add react
 
 The `@builder.io/qwik-react` package exports the `qwikify$()` function that lets you convert React components into Qwik components, that you can use across your application.
 
-> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik component look similar](/docs/(qwik)/cheat/qwik-react/index.mdx), they are fundamentally very different.
+> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik component look similar](/docs/(qwikcity)/guides/qwik-react/index.mdx), they are fundamentally very different.
 
 React and Qwik components can not be mixed in the same file, if you check your project right after running the installation command, you will see a new folder `src/integrations/react/`, from now on, all your React components will live there.
 
-**src/integrations/react/mui.tsx:**
-
-```tsx
+```tsx title="src/integrations/react/mui.tsx"
 /** @jsxImportSource react */
 
 import { qwikify$ } from '@builder.io/qwik-react';
@@ -116,8 +114,8 @@ export const MUISlider = qwikify$(Slider);
 - Each `MUISlider` is a fully isolated React application, with its own state, lifecycle, etc.
 - Styles will be duplicated
 - State will not be shared
-- [Context](https://reactjs.org/docs/context.html) will not be inherited.
-- Islands will [hydrate](https://beta.reactjs.org/apis/react-dom/client/hydrateRoot) independently
+- [Context](https://react.dev/learn/passing-data-deeply-with-context) will not be inherited.
+- Islands will [hydrate](https://react.dev/reference/react-dom/client/hydrateRoot) independently
 
 ### By default interactivity is disabled
 
@@ -245,7 +243,7 @@ export const FolderList = component$(() => {
 
 ## Adding interactivity
 
-In order to add interactivity, in React terminology we need to [hydrate](https://reactjs.org/docs/react-dom.html#hydrate), usually in React applications this hydration task happens unconditionally at load time, [adding a massive overhead](https://www.builder.io/blog/hydration-is-pure-overhead) and making sites slow.
+In order to add interactivity, in React terminology we need to [hydrate](https://react.dev/reference/react-dom/hydrate), usually in React applications this hydration task happens unconditionally at load time, [adding a massive overhead](https://www.builder.io/blog/hydration-is-pure-overhead) and making sites slow.
 
 Qwik allows you decide when to hydrate your components, by using the `client:` JSX properties, this technique is commonly called partial hydration, popularized by [Astro](https://astro.build/).
 
@@ -387,4 +385,4 @@ The host element is not part of React, meaning that hydration is not necessary t
 
 This will effectively allow you to respond to a click in a [MUI button](https://mui.com/material-ui/react-button/) without downloading a single byte of React code.
 
-Happy hacking!
+🧑‍💻Happy hacking!

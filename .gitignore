@@ -14,6 +14,7 @@ tsdoc-metadata.json
 **/.DS_Store
 src/napi/package-*
 target
+!/packages/docs/src/routes/demo/events/target
 *.node
 todo-express/
 qwik-app/

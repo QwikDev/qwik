@@ -107,7 +107,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         forceFullBuild = true;
       }
 
-      const shouldFindVendors = target === 'client' || viteCommand === 'serve';
+      const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
@@ -227,6 +227,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
+        ssr: {
+          noExternal: vendorIds,
+        },
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
@@ -300,11 +303,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (opts.target === 'ssr') {
         // SSR Build
-        if (viteCommand === 'serve') {
-          updatedViteConfig.ssr = {
-            noExternal: vendorIds,
-          };
-        } else {
+        if (viteCommand === 'build') {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
           if (viteConfig.build?.minify == null && buildMode === 'production') {
@@ -334,7 +333,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       return updatedViteConfig;
     },
-
     async buildStart() {
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file

@@ -23,7 +23,7 @@ import qwikOptimizerApiData from './qwik-optimizer/api.json';
 import qwikServerApiData from './qwik-server/api.json';
 import qwikTestingApiData from './qwik-testing/api.json';
 
-const _KINDS = new Set();
+const _KINDS = new Set<string>();
 
 const apiData = {
   qwik: qwikApiData,
@@ -95,7 +95,7 @@ export default component$(() => {
 
       <h2>References</h2>
       {Object.keys(apiData).map((key) => (
-        <ApiMemberWrapper key={`api-member-wrapper-${apiData[key].id}`} id={apiData[key].id} data={apiData[key]} filters={filters} />
+        <ApiMemberWrapper key={`api-member-wrapper-${apiData[key as keyof typeof apiData].id}`} id={apiData[key as keyof typeof apiData].id} data={apiData[key as keyof typeof apiData]} filters={filters} />
       ))}
     </>
   );
@@ -125,7 +125,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
       >
         <span>{data.id}</span>
       </h2>
-      <div hidden={isCollapsed.value ? 'until-found' : ''}>
+      <div hidden={isCollapsed.value ? 'until-found' : false}>
         <ApiMemberList id={id} data={data} filters={filters} />
       </div>
     </div>
@@ -135,7 +135,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
 
 export const ApiMemberList = component$(({ id, data, filters }: any) => (
   <ul class="grid sm:grid-cols-2 lg:grid-cols-3 pb-5">
-    {data.members.map((member) => {
+    {data.members.map((member: any) => {
       const kind = toSnakeCase(member.kind);
 
       if (!member.name) {

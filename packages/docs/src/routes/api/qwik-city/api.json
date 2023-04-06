@@ -12,23 +12,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [use()](#action-use) |  |",
+      "content": "```typescript\nexport interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.action.md"
-    },
-    {
-      "name": "action$",
-      "id": "action_",
-      "hierarchy": [
-        {
-          "name": "action$",
-          "id": "action_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `globalAction$()` instead\n> \n\n\n```typescript\naction$: ActionConstructor\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.action_.md"
     },
     {
       "name": "ActionConstructor",
@@ -73,20 +59,6 @@
       "mdFile": "qwik-city.actionoptionswithvalidation.md"
     },
     {
-      "name": "actionQrl",
-      "id": "actionqrl",
-      "hierarchy": [
-        {
-          "name": "actionQrl",
-          "id": "actionqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `globalAction$()` instead\n> \n\n\n```typescript\nactionQrl: ActionConstructorQRL\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.actionqrl.md"
-    },
-    {
       "name": "ActionStore",
       "id": "actionstore",
       "hierarchy": [
@@ -96,23 +68,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [actionPath](#) | <code>readonly</code> | string | <p>It's the \"action\" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p>\n```tsx\n <form action={action.actionPath} />\n```\n<p>Most of the time this property should not be used directly, instead use the <code>Form</code> component:</p>\n```tsx\nimport {action$, Form} from '@builder.io/qwik-city';\n\nexport const useAddUser = action$(() => { ... });\n\nexport default component$(() => {\n  const action = useAddUser();\n  return (\n    <Form action={action}/>\n  );\n});\n```\n |\n|  [formData](#) | <code>readonly</code> | FormData \\| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [isRunning](#) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |\n|  [run](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; |  |\n|  [status?](#) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [submit](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |\n|  [value](#) | <code>readonly</code> | RETURN \\| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |",
+      "content": "```typescript\nexport interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [actionPath](#) | <code>readonly</code> | string | <p>It's the \"action\" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p>\n```tsx\n <form action={action.actionPath} />\n```\n<p>Most of the time this property should not be used directly, instead use the <code>Form</code> component:</p>\n```tsx\nimport {action$, Form} from '@builder.io/qwik-city';\n\nexport const useAddUser = action$(() => { ... });\n\nexport default component$(() => {\n  const action = useAddUser();\n  return (\n    <Form action={action}/>\n  );\n});\n```\n |\n|  [formData](#) | <code>readonly</code> | FormData \\| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [isRunning](#) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |\n|  [status?](#) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [submit](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |\n|  [value](#) | <code>readonly</code> | RETURN \\| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.actionstore.md"
-    },
-    {
-      "name": "Content",
-      "id": "content",
-      "hierarchy": [
-        {
-          "name": "Content",
-          "id": "content"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `RouterOutlet` instead.\n> \n\n\n```typescript\nContent: import(\"@builder.io/qwik\").Component<{}>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts",
-      "mdFile": "qwik-city.content.md"
     },
     {
       "name": "ContentHeading",
@@ -227,20 +185,6 @@
       "mdFile": "qwik-city.documentstyle.md"
     },
     {
-      "name": "EndpointHandler",
-      "id": "endpointhandler",
-      "hierarchy": [
-        {
-          "name": "EndpointHandler",
-          "id": "endpointhandler"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `RequestHandler` instead.\n> \n\n\n```typescript\nexport type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik-city.endpointhandler.md"
-    },
-    {
       "name": "FailReturn",
       "id": "failreturn",
       "hierarchy": [
@@ -325,18 +269,32 @@
       "mdFile": "qwik-city.globalactionqrl.md"
     },
     {
-      "name": "Html",
-      "id": "html",
+      "name": "JSONObject",
+      "id": "jsonobject",
       "hierarchy": [
         {
-          "name": "Html",
-          "id": "html"
+          "name": "JSONObject",
+          "id": "jsonobject"
         }
       ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - The \"Html\" component has been renamed to \"QwikCityProvider\".\n> \n\n\n```typescript\nHtml: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.html.md"
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type JSONObject = {\n    [x: string]: JSONValue;\n};\n```\n**References:** [JSONValue](#jsonvalue)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.jsonobject.md"
+    },
+    {
+      "name": "JSONValue",
+      "id": "jsonvalue",
+      "hierarchy": [
+        {
+          "name": "JSONValue",
+          "id": "jsonvalue"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type JSONValue = string | number | boolean | {\n    [x: string]: JSONValue;\n} | Array<JSONValue>;\n```\n**References:** [JSONValue](#jsonvalue)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.jsonvalue.md"
     },
     {
       "name": "Link",
@@ -376,37 +334,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface Loader<RETURN> \n```\n\n\n|  Method | Description |\n|  --- | --- |\n|  [use()](#) |  |",
+      "content": "```typescript\nexport interface Loader<RETURN> \n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.loader.md"
-    },
-    {
-      "name": "loader$",
-      "id": "loader_",
-      "hierarchy": [
-        {
-          "name": "loader$",
-          "id": "loader_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `routeLoader$()` instead\n> \n\n\n```typescript\nloader$: LoaderConstructor\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.loader_.md"
-    },
-    {
-      "name": "loaderQrl",
-      "id": "loaderqrl",
-      "hierarchy": [
-        {
-          "name": "loaderQrl",
-          "id": "loaderqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `routeLoader$()` instead\n> \n\n\n```typescript\nloaderQrl: LoaderConstructorQRL\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.loaderqrl.md"
     },
     {
       "name": "LoaderSignal",
@@ -418,7 +348,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<T>>;\n```",
+      "content": "```typescript\nexport type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? ReadonlySignal<ValueOrPromise<B>> : ReadonlySignal<T>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.loadersignal.md"
     },
@@ -463,20 +393,6 @@
       "content": "```typescript\nexport declare type PathParams = Record<string, string>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.pathparams.md"
-    },
-    {
-      "name": "QwikCity",
-      "id": "qwikcity",
-      "hierarchy": [
-        {
-          "name": "QwikCity",
-          "id": "qwikcity"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - The \"QwikCity\" component has been renamed to \"QwikCityProvider\".\n> \n\n\n```typescript\nQwikCity: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.qwikcity.md"
     },
     {
       "name": "QwikCityMockProvider",
@@ -614,7 +530,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [href](#) | <code>readonly</code> | string |  |\n|  [isNavigating](#) | <code>readonly</code> | boolean |  |\n|  [params](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |  |\n|  [pathname](#) | <code>readonly</code> | string |  |\n|  [query](#) | <code>readonly</code> | URLSearchParams |  |\n|  [url](#) | <code>readonly</code> | URL |  |",
+      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [isNavigating](#) | <code>readonly</code> | boolean |  |\n|  [params](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |  |\n|  [url](#) | <code>readonly</code> | URL |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.routelocation.md"
     },
@@ -631,20 +547,6 @@
       "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.routenavigate.md"
-    },
-    {
-      "name": "RouteParams",
-      "id": "routeparams",
-      "hierarchy": [
-        {
-          "name": "RouteParams",
-          "id": "routeparams"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please update to `PathParams` instead\n> \n\n\n```typescript\nexport declare type RouteParams = Record<string, string>;\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
-      "mdFile": "qwik-city.routeparams.md"
     },
     {
       "name": "RouterOutlet",
@@ -729,23 +631,6 @@
       "content": "```typescript\nexport type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;\n```\n**References:** [StaticGenerate](#staticgenerate)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.staticgeneratehandler.md"
-    },
-    {
-      "name": "use",
-      "id": "action-use",
-      "hierarchy": [
-        {
-          "name": "Action",
-          "id": "action-use"
-        },
-        {
-          "name": "use",
-          "id": "action-use"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "> Warning: This API is now obsolete.\n> \n> - call as a function instead\n> \n\n\n```typescript\nuse(): ActionStore<RETURN, INPUT, OPTIONAL>;\n```\n**Returns:**\n\n[ActionStore](#actionstore)<!-- -->&lt;RETURN, INPUT, OPTIONAL&gt;",
-      "mdFile": "qwik-city.action.use.md"
     },
     {
       "name": "useContent",

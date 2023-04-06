@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.7.0",
+  "version": "0.101.0",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
@@ -24,10 +24,6 @@
       "import": "./lib/adapters/cloud-run/vite/index.mjs",
       "require": "./lib/adapters/cloud-run/vite/index.cjs"
     },
-    "./adapters/express/vite": {
-      "import": "./lib/adapters/express/vite/index.mjs",
-      "require": "./lib/adapters/express/vite/index.cjs"
-    },
     "./adapters/node-server/vite": {
       "import": "./lib/adapters/node-server/vite/index.mjs",
       "require": "./lib/adapters/node-server/vite/index.cjs"
@@ -45,38 +41,6 @@
       "require": "./lib/adapters/static/vite/index.cjs"
     },
     "./adapters/vercel-edge/vite": {
-      "import": "./lib/adapters/vercel-edge/vite/index.mjs",
-      "require": "./lib/adapters/vercel-edge/vite/index.cjs"
-    },
-    "./adaptors/azure-swa/vite": {
-      "import": "./lib/adapters/azure-swa/vite/index.mjs",
-      "require": "./lib/adapters/azure-swa/vite/index.cjs"
-    },
-    "./adaptors/cloudflare-pages/vite": {
-      "import": "./lib/adapters/cloudflare-pages/vite/index.mjs",
-      "require": "./lib/adapters/cloudflare-pages/vite/index.cjs"
-    },
-    "./adaptors/cloud-run/vite": {
-      "import": "./lib/adapters/cloud-run/vite/index.mjs",
-      "require": "./lib/adapters/cloud-run/vite/index.cjs"
-    },
-    "./adaptors/express/vite": {
-      "import": "./lib/adapters/express/vite/index.mjs",
-      "require": "./lib/adapters/express/vite/index.cjs"
-    },
-    "./adaptors/netlify-edge/vite": {
-      "import": "./lib/adapters/netlify-edge/vite/index.mjs",
-      "require": "./lib/adapters/netlify-edge/vite/index.cjs"
-    },
-    "./adaptors/shared/vite": {
-      "import": "./lib/adapters/shared/vite/index.mjs",
-      "require": "./lib/adapters/shared/vite/index.cjs"
-    },
-    "./adaptors/static/vite": {
-      "import": "./lib/adapters/static/vite/index.mjs",
-      "require": "./lib/adapters/static/vite/index.cjs"
-    },
-    "./adaptors/vercel-edge/vite": {
       "import": "./lib/adapters/vercel-edge/vite/index.mjs",
       "require": "./lib/adapters/vercel-edge/vite/index.cjs"
     },
@@ -115,7 +79,7 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "2.3.0",
-    "@types/mdx": "2.0.3",
+    "@types/mdx": "2.0.4",
     "source-map": "0.7.4",
     "vfile": "5.3.7",
     "zod": "^3.21.4"
@@ -141,7 +105,7 @@
     "remark-frontmatter": "4.0.1",
     "remark-gfm": "3.0.1",
     "tsm": "2.3.0",
-    "typescript": "5.0.2",
+    "typescript": "5.0.3",
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",

@@ -49,6 +49,10 @@ export const SlotParent = component$(() => {
             </Projector>
           </Thing>
           <Issue2751 />
+
+          <Issue3565 model={Issue3565Model} />
+
+          <Issue3607 />
         </>
       )}
       <div>
@@ -239,5 +243,48 @@ export const Bogus = component$(() => {
     <div>
       Bogus {count} {signal.value} <span>{signal.value}</span>
     </div>
+  );
+});
+
+const Issue3565Model = component$(() => {
+  return (
+    <div id="issue-3565-result">
+      Own content
+      <Slot></Slot>
+    </div>
+  );
+});
+
+export const Issue3565 = component$(({ model: Model }: any) => {
+  return (
+    <>
+      <Model>
+        <div>content projected</div>
+      </Model>
+    </>
+  );
+});
+
+export const Issue3607 = component$(() => {
+  const show = useSignal(false);
+  return (
+    <Issue3607Button
+      loading={show.value}
+      onClick$={() => {
+        show.value = !show.value;
+      }}
+    >
+      {show.value ? 'Loading...' : 'Load more'}
+    </Issue3607Button>
+  );
+});
+
+export const Issue3607Button = component$(({ onClick$ }: any) => {
+  return (
+    <>
+      <button id="issue-3607-result" onClick$={onClick$} class="btn">
+        <Slot />
+      </button>
+    </>
   );
 });

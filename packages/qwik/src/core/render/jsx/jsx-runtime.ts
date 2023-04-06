@@ -1,7 +1,7 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logOnceWarn, logWarn } from '../../util/log';
+import { logError, logOnceWarn, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke, untrack } from '../../use/use-core';
@@ -13,11 +13,13 @@ import { SkipRender } from './utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { _IMMUTABLE } from '../../internal';
 import { isBrowser } from '@builder.io/qwik/build';
+import { assertString } from '../../error/assert';
+import { static_subtree } from '../execute-component';
 
 /**
  * @internal
  */
-export const _jsxQ = <T extends string | FunctionComponent<any>>(
+export const _jsxQ = <T extends string>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
   immutableProps: Record<string, any> | null,
@@ -26,6 +28,7 @@ export const _jsxQ = <T extends string | FunctionComponent<any>>(
   key: string | number | null,
   dev?: DevJSX
 ): JSXNode<T> => {
+  assertString(type, 'jsx type must be a string');
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(
     type,
@@ -44,6 +47,25 @@ export const _jsxQ = <T extends string | FunctionComponent<any>>(
   validateJSXNode(node);
   seal(node);
   return node;
+};
+
+/**
+ * @internal
+ */
+export const _jsxS = <T extends string>(
+  type: T,
+  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
+  immutableProps: Record<string, any> | null,
+  flags: number,
+  key: string | number | null,
+  dev?: DevJSX
+): JSXNode<T> => {
+  let children = null;
+  if (mutableProps && 'children' in mutableProps) {
+    children = mutableProps.children;
+    delete mutableProps.children;
+  }
+  return _jsxQ(type, mutableProps, immutableProps, children, flags, key, dev);
 };
 
 /**
@@ -118,18 +140,34 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   ) {}
 }
 
+/**
+ * @public
+ */
+export const Virtual: FunctionComponent<Record<string, any>> = ((props: any) =>
+  props.children) as any;
+
+/**
+ * @public
+ */
+export const RenderOnce: FunctionComponent<{
+  children?: any;
+  key?: string | number | null | undefined;
+}> = (props: any, key) => {
+  return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, static_subtree, key);
+};
+
 const validateJSXNode = (node: JSXNode) => {
   const { type, props, immutableProps, children } = node;
   if (qDev) {
     invoke(undefined, () => {
-      if (props && immutableProps) {
+      if (immutableProps) {
         const propsKeys = Object.keys(props);
         const immutablePropsKeys = Object.keys(immutableProps);
         // check if there are any duplicate keys
         const duplicateKeys = propsKeys.filter((key) => immutablePropsKeys.includes(key));
         if (duplicateKeys.length > 0) {
           logOnceWarn(
-            `JSX is receiving duplicate props (${duplicateKeys.join(
+            `JSX is receiving duplicated props (${duplicateKeys.join(
               ', '
             )}). This is likely because you are spreading {...props}, make sure the props you are spreading are not already defined in the JSX.`
           );
@@ -137,11 +175,10 @@ const validateJSXNode = (node: JSXNode) => {
       }
       const isQwikC = isQwikComponent(type);
       if (!isString(type) && !isFunction(type)) {
-        throw createJSXError(
+        throw new Error(
           `The <Type> of the JSX element must be either a string or a function. Instead, it's a "${typeof type}": ${String(
             type
-          )}.`,
-          node
+          )}.`
         );
       }
       if (children) {
@@ -163,9 +200,8 @@ const validateJSXNode = (node: JSXNode) => {
                 explanation = `it's a "${typeObj}": ${String(child)}.`;
               }
 
-              throw createJSXError(
-                `One of the children of <${type}> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal. Instead, ${explanation}\n`,
-                node
+              throw new Error(
+                `One of the children of <${type}> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal. Instead, ${explanation}\n`
               );
             }
           });
@@ -196,16 +232,19 @@ const validateJSXNode = (node: JSXNode) => {
           }
         }
       }
-      if (!qRuntimeQrl && props) {
-        for (const prop of Object.keys(props)) {
-          const value = (props as any)[prop];
+
+      const allProps = [
+        ...Object.entries(props),
+        ...(immutableProps ? Object.entries(immutableProps) : []),
+      ];
+      if (!qRuntimeQrl) {
+        for (const [prop, value] of allProps) {
           if (prop.endsWith('$') && value) {
             if (!isQrl(value) && !Array.isArray(value)) {
-              throw createJSXError(
+              throw new Error(
                 `The value passed in ${prop}={...}> must be a QRL, instead you passed a "${typeof value}". Make sure your ${typeof value} is wrapped with $(...), so it can be serialized. Like this:\n$(${String(
                   value
-                )})`,
-                node
+                )})`
               );
             }
           }
@@ -218,6 +257,17 @@ const validateJSXNode = (node: JSXNode) => {
         }
       }
       if (isString(type)) {
+        const hasSetInnerHTML = allProps.some((a) => a[0] === 'dangerouslySetInnerHTML');
+        if (hasSetInnerHTML && children) {
+          const err = createJSXError(
+            `The JSX element <${type}> can not have both 'dangerouslySetInnerHTML' and children.`,
+            node
+          );
+          logError(err);
+        }
+        if (allProps.some((a) => a[0] === 'children')) {
+          throw new Error(`The JSX element <${type}> can not have both 'children' as a property.`);
+        }
         if (type === 'style') {
           if (children) {
             logOnceWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
@@ -332,37 +382,17 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
 
 export type { QwikJSX as JSX };
 
-const ONCE_JSX = new Set<string>();
-
 export const createJSXError = (message: string, node: JSXNode) => {
   const error = new Error(message);
   if (!node.dev) {
     return error;
   }
-  const id = node.dev.fileName;
-  const key = `${message}${id}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
-  if (ONCE_JSX.has(key)) {
-    return undefined;
-  }
-  Object.assign(error, {
-    id,
-    loc: {
-      file: id,
-      column: node.dev.columnNumber,
-      line: node.dev.lineNumber,
-    },
-  });
   error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
-  ONCE_JSX.add(key);
   return error;
 };
 
 const filterStack = (stack: string, offset: number = 0) => {
-  return stack
-    .split('\n')
-    .slice(offset)
-    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
-    .join('\n');
+  return stack.split('\n').slice(offset).join('\n');
 };
 
 export { jsx as jsxs };

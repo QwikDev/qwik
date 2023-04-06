@@ -31,20 +31,6 @@
       "mdFile": "qwik-city.platformazure.md"
     },
     {
-      "name": "qwikCity",
-      "id": "qwikcity",
-      "hierarchy": [
-        {
-          "name": "qwikCity",
-          "id": "qwikcity"
-        }
-      ],
-      "kind": "Function",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `createQwikCity()` instead.\n> \n> Example:\n> \n> ```ts\n> import { createQwikCity } from '@builder.io/qwik-city/middleware/azure-swa';\n> import qwikCityPlan from '@qwik-city-plan';\n> import render from './entry.ssr';\n> \n> export default createQwikCity({ render, qwikCityPlan });\n> ```\n> \n\n\n```typescript\nexport declare function qwikCity(render: Render, opts?: RenderOptions): AzureFunction;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  render | Render |  |\n|  opts | RenderOptions | _(Optional)_ |\n\n**Returns:**\n\nAzureFunction",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts",
-      "mdFile": "qwik-city.qwikcity.md"
-    },
-    {
       "name": "QwikCityAzureOptions",
       "id": "qwikcityazureoptions",
       "hierarchy": [

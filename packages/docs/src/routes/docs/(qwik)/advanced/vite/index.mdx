@@ -4,6 +4,7 @@ contributors:
   - zanettin
   - manucorporat
   - cunzaizhuyi
+  - cayter
 ---
 
 # Vite
@@ -19,7 +20,7 @@ After scaffolding a new Qwik project, you'll find a `vite.config.js` file in the
 
 Qwik comes with two plugins that make it easy to use Vite with Qwik and Qwik City.
 
-```js
+```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
@@ -232,6 +233,15 @@ mdxPlugins?: MdxPlugins;
 * MDX Options https://mdxjs.com/
 */
 mdx?: any;
+```
+
+#### `platform`
+
+```js
+/**
+* The platform object which can be used to mock the Cloudflare bindings.
+*/
+platform?: Record<string, unknown>;
 ```
 
 ## Troubleshooting

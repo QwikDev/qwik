@@ -58,9 +58,3 @@ export const RouterOutlet = component$(() => {
   }
   return SkipRender;
 });
-
-/**
- * @deprecated Please use `RouterOutlet` instead.
- * @public
- */
-export const Content = RouterOutlet;

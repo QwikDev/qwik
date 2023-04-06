@@ -3,7 +3,6 @@ export interface SyntheticEvent<T = Element, E = Event>
 
 interface BaseSyntheticEvent<E = object, C = any, T = any> {
   nativeEvent: E;
-  currentTarget: C;
   target: T;
   bubbles: boolean;
   cancelable: boolean;

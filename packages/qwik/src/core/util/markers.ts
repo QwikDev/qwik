@@ -37,6 +37,8 @@ export const QContainerAttr = 'q:container';
 
 export const QContainerSelector = '[q\\:container]';
 
+export const ResourceEvent = 'qResource';
+export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';
 /**
  * `<q:slot name="...">`

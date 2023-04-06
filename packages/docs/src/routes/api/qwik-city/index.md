@@ -10,23 +10,7 @@ title: \@builder.io/qwik-city API Reference
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true>
 ```
 
-| Method               | Description |
-| -------------------- | ----------- |
-| [use()](#action-use) |             |
-
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="action_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#action_"><span class="icon icon-link"></span></a>action$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `globalAction$()` instead
-
-```typescript
-action$: ActionConstructor;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="actionconstructor" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#actionconstructor"><span class="icon icon-link"></span></a>ActionConstructor </h2>
 
@@ -62,18 +46,6 @@ export interface ActionOptionsWithValidation<B extends TypedDataValidator = Type
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="actionqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#actionqrl"><span class="icon icon-link"></span></a>actionQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `globalAction$()` instead
-
-```typescript
-actionQrl: ActionConstructorQRL;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="actionstore" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#actionstore"><span class="icon icon-link"></span></a>ActionStore </h2>
 
 ```typescript
@@ -105,32 +77,17 @@ return (
  |
 |  [formData](#) | <code>readonly</code> | FormData \| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |
 |  [isRunning](#) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |
-|  [run](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; |  |
 |  [status?](#) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |
 |  [submit](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \| FormData \| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |
 |  [value](#) | <code>readonly</code> | RETURN \| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="content" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#content"><span class="icon icon-link"></span></a>Content </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `RouterOutlet` instead.
->
-
-
-```typescript
-Content: import("@builder.io/qwik").Component<{}>
-````
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="contentheading" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#contentheading"><span class="icon icon-link"></span></a>ContentHeading </h2>
 
 ```typescript
 export interface ContentHeading
-```
+````
 
 | Property   | Modifiers             | Type   | Description |
 | ---------- | --------------------- | ------ | ----------- |
@@ -257,18 +214,6 @@ export interface DocumentStyle
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="endpointhandler" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#endpointhandler"><span class="icon icon-link"></span></a>EndpointHandler </h2>
-
-> Warning: This API is now obsolete.
->
-> Please use `RequestHandler` instead.
-
-```typescript
-export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
 <h2 id="failreturn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#failreturn"><span class="icon icon-link"></span></a>FailReturn </h2>
 
 ```typescript
@@ -338,17 +283,34 @@ globalActionQrl: ActionConstructorQRL;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
 
-<h2 id="html" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#html"><span class="icon icon-link"></span></a>Html </h2>
-
-> Warning: This API is now obsolete.
->
-> - The "Html" component has been renamed to "QwikCityProvider".
+<h2 id="jsonobject" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#jsonobject"><span class="icon icon-link"></span></a>JSONObject </h2>
 
 ```typescript
-Html: import("@builder.io/qwik").Component<QwikCityProps>;
+export type JSONObject = {
+  [x: string]: JSONValue;
+};
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx" target="_blanks">Edit this section</a></p>
+**References:** [JSONValue](#jsonvalue)
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
+
+<h2 id="jsonvalue" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#jsonvalue"><span class="icon icon-link"></span></a>JSONValue </h2>
+
+```typescript
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | {
+      [x: string]: JSONValue;
+    }
+  | Array<JSONValue>;
+```
+
+**References:** [JSONValue](#jsonvalue)
+
+<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="link" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#link"><span class="icon icon-link"></span></a>Link </h2>
 
@@ -379,42 +341,14 @@ export interface LinkProps extends AnchorAttributes
 export interface Loader<RETURN>
 ```
 
-| Method     | Description |
-| ---------- | ----------- |
-| [use()](#) |             |
-
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="loader_" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#loader_"><span class="icon icon-link"></span></a>loader$ </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `routeLoader$()` instead
-
-```typescript
-loader$: LoaderConstructor;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="loaderqrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#loaderqrl"><span class="icon icon-link"></span></a>loaderQrl </h2>
-
-> Warning: This API is now obsolete.
->
-> - use `routeLoader$()` instead
-
-```typescript
-loaderQrl: LoaderConstructorQRL;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts" target="_blanks">Edit this section</a></p>
 
 <h2 id="loadersignal" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#loadersignal"><span class="icon icon-link"></span></a>LoaderSignal </h2>
 
 ```typescript
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? Readonly<Signal<ValueOrPromise<B>>>
-  : Readonly<Signal<T>>;
+  ? ReadonlySignal<ValueOrPromise<B>>
+  : ReadonlySignal<T>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
@@ -451,18 +385,6 @@ export declare type PathParams = Record<string, string>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="qwikcity" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#qwikcity"><span class="icon icon-link"></span></a>QwikCity </h2>
-
-> Warning: This API is now obsolete.
->
-> - The "QwikCity" component has been renamed to "QwikCityProvider".
-
-```typescript
-QwikCity: import("@builder.io/qwik").Component<QwikCityProps>;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx" target="_blanks">Edit this section</a></p>
 
 <h2 id="qwikcitymockprovider" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#qwikcitymockprovider"><span class="icon icon-link"></span></a>QwikCityMockProvider </h2>
 
@@ -564,11 +486,8 @@ export interface RouteLocation
 
 | Property          | Modifiers             | Type                                         | Description |
 | ----------------- | --------------------- | -------------------------------------------- | ----------- |
-| [href](#)         | <code>readonly</code> | string                                       |             |
 | [isNavigating](#) | <code>readonly</code> | boolean                                      |             |
 | [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |             |
-| [pathname](#)     | <code>readonly</code> | string                                       |             |
-| [query](#)        | <code>readonly</code> | URLSearchParams                              |             |
 | [url](#)          | <code>readonly</code> | URL                                          |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
@@ -579,18 +498,6 @@ export interface RouteLocation
 export type RouteNavigate = QRL<
   (path?: string, forceReload?: boolean) => Promise<void>
 >;
-```
-
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="routeparams" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#routeparams"><span class="icon icon-link"></span></a>RouteParams </h2>
-
-> Warning: This API is now obsolete.
->
-> Please update to `PathParams` instead
-
-```typescript
-export declare type RouteParams = Record<string, string>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
@@ -651,20 +558,6 @@ export type StaticGenerateHandler = () =>
 **References:** [StaticGenerate](#staticgenerate)
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
-
-<h2 id="action-use" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#action-use"><span class="icon icon-link"></span></a>use </h2>
-
-> Warning: This API is now obsolete.
->
-> - call as a function instead
-
-```typescript
-use(): ActionStore<RETURN, INPUT, OPTIONAL>;
-```
-
-**Returns:**
-
-[ActionStore](#actionstore)&lt;RETURN, INPUT, OPTIONAL&gt;
 
 <h2 id="usecontent" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecontent"><span class="icon icon-link"></span></a>useContent </h2>
 

@@ -31,14 +31,14 @@ export interface QwikCityPlugin {
 //
 // @public (undocumented)
 export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
-    // @deprecated (undocumented)
-    basePathname?: string;
     // (undocumented)
     mdx?: MdxOptions;
     // Warning: (ae-forgotten-export) The symbol "MdxPlugins" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     mdxPlugins?: MdxPlugins;
+    // (undocumented)
+    platform?: Record<string, unknown>;
 }
 
 // (No @packageDocumentation comment for this package)

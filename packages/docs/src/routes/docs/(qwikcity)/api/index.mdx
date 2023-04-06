@@ -100,8 +100,7 @@ Assume you have:
 - User navigates to: `https://example.com/sku/1234`
 - Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
-```tsx
-// src/routes/sku/[skuId]/index.tsx
+```tsx title="src/routes/sku/[skuId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -169,15 +168,16 @@ This component will have a button then when clicked, Qwik City will navigate to 
 
 > Notice that for SEO, and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.
 
-## `loader$()`
+## `routeLoader$()`
+
 ÷
-The `loader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
+The `routeLoader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { loader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useGetTime = loader$(() => {
+export const useGetTime = routeLoader$(() => {
   return { time: new Date() }
 });
 export default component$(() => {
@@ -191,9 +191,9 @@ export default component$(() => {
 
 Please refer to the [Route Loader](/docs/(qwikcity)/route-loader/index.mdx) section for more information.
 
-## `action$()`
+## `routeAction$()`
 
-The `action$()` function is used to declare a new Server Action in the given page/endpoint or layout. Qwik City will execute only the invoked action after some user interaction (such as a button click or a form submission).
+The `routeAction$()` function is used to declare a new Server Action in the given page/endpoint or layout. Qwik City will execute only the invoked action after some user interaction (such as a button click or a form submission).
 
 Please refer to the [Server Actions](/docs/(qwikcity)/action/index.mdx) section for more information.
 
@@ -203,7 +203,7 @@ The `QwikCityProvider` component initializes Qwik City in the existing document,
 
 This component is usually located at the very root of your application, in most of the starters you will find it in the `src/root.tsx` file:
 
-```tsx
+```tsx title="src/root.tsx"
 import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
 
 export default function Root() {
@@ -230,7 +230,7 @@ This component is usually located as a child of `<body>`, in most of the starter
 
 ## `<Form>`
 
-The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](/docs/(qwikcity)/action/index.mdx).
+The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](/docs/(qwikcity)/action/index.mdx#using-actions-with-form).
 
 Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled, in addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like a SPA (Single Page Navigation) instead of a full page reload.
 

@@ -29,34 +29,6 @@
       "content": "```typescript\nexport interface VercelEdgeAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [outputConfig?](#) |  | boolean | <p>_(Optional)_ Determines if the build should auto-generate the <code>.vercel/output/config.json</code> config.</p><p>Defaults to <code>true</code>.</p> |\n|  [staticPaths?](#) |  | string\\[\\] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response. |\n|  [vcConfigEntryPoint?](#) |  | string | <p>_(Optional)_ The <code>entrypoint</code> property in the <code>.vc-config.json</code> file. Indicates the initial file where code will be executed for the Edge Function.</p><p>Defaults to <code>entry.vercel-edge.js</code>.</p> |\n|  [vcConfigEnvVarsInUse?](#) |  | string\\[\\] | <p>_(Optional)_ The <code>envVarsInUse</code> property in the <code>.vc-config.json</code> file. List of environment variable names that will be available for the Edge Function to utilize.</p><p>Defaults to <code>undefined</code>.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts",
       "mdFile": "qwik-city.verceledgeadapteroptions.md"
-    },
-    {
-      "name": "vercelEdgeAdaptor",
-      "id": "verceledgeadaptor",
-      "hierarchy": [
-        {
-          "name": "vercelEdgeAdaptor",
-          "id": "verceledgeadaptor"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `vercelEdgeAdapter` exported from `@builder.io/qwik-city/adapters/vercel-edge/vite` instead.\n> \n\n\n```typescript\nvercelEdgeAdaptor: typeof vercelEdgeAdapter\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts",
-      "mdFile": "qwik-city.verceledgeadaptor.md"
-    },
-    {
-      "name": "VercelEdgeAdaptorOptions",
-      "id": "verceledgeadaptoroptions",
-      "hierarchy": [
-        {
-          "name": "VercelEdgeAdaptorOptions",
-          "id": "verceledgeadaptoroptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `VercelEdgeAdapterOptions` instead.\n> \n\n\n```typescript\nexport type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;\n```\n**References:** [VercelEdgeAdapterOptions](#verceledgeadapteroptions)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts",
-      "mdFile": "qwik-city.verceledgeadaptoroptions.md"
     }
   ]
 }

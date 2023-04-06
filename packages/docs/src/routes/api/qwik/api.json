@@ -152,20 +152,6 @@
       "mdFile": "qwik.componentqrl.md"
     },
     {
-      "name": "Context",
-      "id": "context",
-      "hierarchy": [
-        {
-          "name": "Context",
-          "id": "context"
-        }
-      ],
-      "kind": "Interface",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `ContextId` instead.\n> \n\n\n```typescript\nexport interface Context<STATE extends object> extends ContextId<STATE> \n```\n**Extends:** [ContextId](#contextid)<!-- -->&lt;STATE&gt;",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
-      "mdFile": "qwik.context.md"
-    },
-    {
       "name": "ContextId",
       "id": "contextid",
       "hierarchy": [
@@ -175,7 +161,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "ContextId is a typesafe ID for your context.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nexport interface ContextId<STATE> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_\\_brand\\_context\\_type\\_\\_](#) | <code>readonly</code> | STATE | Design-time property to store type information for the context. |\n|  [id](#) | <code>readonly</code> | string | A unique ID for the context. |",
+      "content": "ContextId is a typesafe ID for your context.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nexport interface ContextId<STATE> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_\\_brand\\_context\\_type\\_\\_](#) | <code>readonly</code> | STATE | Design-time property to store type information for the context. |\n|  [id](#) | <code>readonly</code> | string | A unique ID for the context. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.contextid.md"
     },
@@ -194,20 +180,6 @@
       "mdFile": "qwik.coreplatform.md"
     },
     {
-      "name": "createContext",
-      "id": "createcontext",
-      "hierarchy": [
-        {
-          "name": "createContext",
-          "id": "createcontext"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `createContextId` instead.\n> \n\n\n```typescript\ncreateContext: <STATE extends object>(name: string) => ContextId<STATE>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
-      "mdFile": "qwik.createcontext.md"
-    },
-    {
       "name": "createContextId",
       "id": "createcontextid",
       "hierarchy": [
@@ -217,7 +189,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```",
+      "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.createcontextid.md"
     },
@@ -481,7 +453,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#) |  | any | _(Optional)_ |\n|  [inputMode?](#) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#) |  | string \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#) |  | boolean \\| 'hidden' \\| 'until-found' \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#) |  | any | _(Optional)_ |\n|  [inputMode?](#) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#) |  | string \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
     },
@@ -627,34 +599,6 @@
       "content": "```typescript\nexport type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.jsxtagname.md"
-    },
-    {
-      "name": "MountFn",
-      "id": "mountfn",
-      "hierarchy": [
-        {
-          "name": "MountFn",
-          "id": "mountfn"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type MountFn<T> = () => ValueOrPromise<T>;\n```\n**References:** [ValueOrPromise](#valueorpromise)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.mountfn.md"
-    },
-    {
-      "name": "mutable",
-      "id": "mutable",
-      "hierarchy": [
-        {
-          "name": "mutable",
-          "id": "mutable"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Remove it, not needed anymore\n> \n\n\n```typescript\nmutable: <T>(v: T) => T\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts",
-      "mdFile": "qwik.mutable.md"
     },
     {
       "name": "NativeAnimationEvent",
@@ -876,7 +820,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [eagerness?](#) |  | [EagernessOptions](#eagernessoptions) | _(Optional)_ |\n|  [strategy?](#) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
+      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [strategy?](#) |  | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.onvisibletaskoptions.md"
     },
@@ -1217,20 +1161,6 @@
       "mdFile": "qwik.qwikwheelevent.md"
     },
     {
-      "name": "Ref",
-      "id": "ref",
-      "hierarchy": [
-        {
-          "name": "Ref",
-          "id": "ref"
-        }
-      ],
-      "kind": "Interface",
-      "content": "Type of the value returned by `useRef()`<!-- -->.\n\n\n```typescript\nexport interface Ref<T = Element> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [current](#) |  | T \\| undefined |  |",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts",
-      "mdFile": "qwik.ref.md"
-    },
-    {
       "name": "render",
       "id": "render",
       "hierarchy": [
@@ -1255,7 +1185,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nRenderOnce: FunctionComponent<{\n    children?: any;\n    key?: string | number | null | undefined;\n}>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.renderonce.md"
     },
     {
@@ -1738,118 +1668,6 @@
       "mdFile": "qwik.untrack.md"
     },
     {
-      "name": "useBrowserVisibleTask$",
-      "id": "usebrowservisibletask_",
-      "hierarchy": [
-        {
-          "name": "useBrowserVisibleTask$",
-          "id": "usebrowservisibletask_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseBrowserVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "qwik.usebrowservisibletask_.md"
-    },
-    {
-      "name": "useBrowserVisibleTaskQrl",
-      "id": "usebrowservisibletaskqrl",
-      "hierarchy": [
-        {
-          "name": "useBrowserVisibleTaskQrl",
-          "id": "usebrowservisibletaskqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseBrowserVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "qwik.usebrowservisibletaskqrl.md"
-    },
-    {
-      "name": "useCleanup$",
-      "id": "usecleanup_",
-      "hierarchy": [
-        {
-          "name": "useCleanup$",
-          "id": "usecleanup_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use the cleanup() function of `useTask$()`<!-- -->, `useResource$()` or `useVisibleTask$()` instead.\n> \n\nIt can be used to release resources, abort network requests, stop timers...\n\n\n```typescript\nuseCleanup$: (first: () => void) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
-      "mdFile": "qwik.usecleanup_.md"
-    },
-    {
-      "name": "useCleanupQrl",
-      "id": "usecleanupqrl",
-      "hierarchy": [
-        {
-          "name": "useCleanupQrl",
-          "id": "usecleanupqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use the cleanup() function of `useTask$()`<!-- -->, `useResource$()` or `useVisibleTask$()` instead.\n> \n\nIt can be used to release resources, abort network requests, stop timers...\n\n\n```typescript\nuseCleanupQrl: (unmountFn: QRL<() => void>) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
-      "mdFile": "qwik.usecleanupqrl.md"
-    },
-    {
-      "name": "useClientEffect$",
-      "id": "useclienteffect_",
-      "hierarchy": [
-        {
-          "name": "useClientEffect$",
-          "id": "useclienteffect_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseClientEffect$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "qwik.useclienteffect_.md"
-    },
-    {
-      "name": "useClientEffectQrl",
-      "id": "useclienteffectqrl",
-      "hierarchy": [
-        {
-          "name": "useClientEffectQrl",
-          "id": "useclienteffectqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useVisibleTask$()` instead\n> \n\n\n```typescript\nuseClientEffectQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "qwik.useclienteffectqrl.md"
-    },
-    {
-      "name": "useClientMount$",
-      "id": "useclientmount_",
-      "hierarchy": [
-        {
-          "name": "useClientMount$",
-          "id": "useclientmount_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\\#usemountserver\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isBrowser } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isBrowser) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseClientMount$: <T>(first: MountFn<T>) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.useclientmount_.md"
-    },
-    {
-      "name": "useClientMountQrl",
-      "id": "useclientmountqrl",
-      "hierarchy": [
-        {
-          "name": "useClientMountQrl",
-          "id": "useclientmountqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/\\#usemountserver\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isBrowser } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isBrowser) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.useclientmountqrl.md"
-    },
-    {
       "name": "useComputed$",
       "id": "usecomputed_",
       "hierarchy": [
@@ -1906,20 +1724,6 @@
       "mdFile": "qwik.usecontextprovider.md"
     },
     {
-      "name": "useEnvData",
-      "id": "useenvdata",
-      "hierarchy": [
-        {
-          "name": "useEnvData",
-          "id": "useenvdata"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `useServerData` instead.\n> \n\n\n```typescript\nuseEnvData: typeof useServerData\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
-      "mdFile": "qwik.useenvdata.md"
-    },
-    {
       "name": "useErrorBoundary",
       "id": "useerrorboundary",
       "hierarchy": [
@@ -1946,34 +1750,6 @@
       "content": "```typescript\nuseId: () => string\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts",
       "mdFile": "qwik.useid.md"
-    },
-    {
-      "name": "useMount$",
-      "id": "usemount_",
-      "hierarchy": [
-        {
-          "name": "useMount$",
-          "id": "usemount_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMount$: (first: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.usemount_.md"
-    },
-    {
-      "name": "useMountQrl",
-      "id": "usemountqrl",
-      "hierarchy": [
-        {
-          "name": "useMountQrl",
-          "id": "usemountqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseMountQrl: (qrl: QRL<import(\"./use-task\").TaskFn>, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.usemountqrl.md"
     },
     {
       "name": "useOn",
@@ -2018,20 +1794,6 @@
       "mdFile": "qwik.useonwindow.md"
     },
     {
-      "name": "useRef",
-      "id": "useref",
-      "hierarchy": [
-        {
-          "name": "useRef",
-          "id": "useref"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `useSignal` instead.\n> \n\nIt's a very thin wrapper around `useStore()`<!-- -->, including the proper type signature to be passed to the `ref` property in JSX.\n\n```tsx\nexport function useRef<T = Element>(current?: T): Ref<T> {\n  return useStore({ current });\n}\n```\n\\#\\#\\# Example\n\n```tsx\nconst Cmp = component$(() => {\n  const input = useRef<HTMLInputElement>();\n\n  useVisibleTask$(({ track }) => {\n    const el = track(() => input.current)!;\n    el.focus();\n  });\n\n  return (\n    <div>\n      <input type=\"text\" ref={input} />\n    </div>\n  );\n});\n\n```\n\n\n```typescript\nuseRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-ref.ts",
-      "mdFile": "qwik.useref.md"
-    },
-    {
       "name": "useResource$",
       "id": "useresource_",
       "hierarchy": [
@@ -2072,34 +1834,6 @@
       "content": "```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  key | string |  |\n\n**Returns:**\n\nT \\| undefined",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
       "mdFile": "qwik.useserverdata.md"
-    },
-    {
-      "name": "useServerMount$",
-      "id": "useservermount_",
-      "hierarchy": [
-        {
-          "name": "useServerMount$",
-          "id": "useservermount_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isServer` instead. See\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isServer } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isServer) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseServerMount$: <T>(first: MountFn<T>) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.useservermount_.md"
-    },
-    {
-      "name": "useServerMountQrl",
-      "id": "useservermountqrl",
-      "hierarchy": [
-        {
-          "name": "useServerMountQrl",
-          "id": "useservermountqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` with `isServer` instead. See\n> \n\nDeprecated API, equivalent of doing:\n\n```tsx\nimport { useTask$ } from '@builder.io/qwik';\nimport { isServer } from '@builder.io/qwik/build';\nuseTask$(() => {\n  if (isServer) {\n    // only runs on server\n  }\n});\n```\n\n\n```typescript\nuseServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-mount.ts",
-      "mdFile": "qwik.useservermountqrl.md"
     },
     {
       "name": "useSignal",
@@ -2153,7 +1887,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |\n|  [recursive?](#) |  | boolean | _(Optional)_ |",
+      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [deep?](#) |  | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |\n|  [reactive?](#) |  | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "qwik.usestoreoptions.md"
     },
@@ -2270,20 +2004,6 @@
       "mdFile": "qwik.usetaskqrl.md"
     },
     {
-      "name": "useUserContext",
-      "id": "useusercontext",
-      "hierarchy": [
-        {
-          "name": "useUserContext",
-          "id": "useusercontext"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Please use `useServerData` instead.\n> \n\n\n```typescript\nuseUserContext: typeof useServerData\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
-      "mdFile": "qwik.useusercontext.md"
-    },
-    {
       "name": "useVisibleTask$",
       "id": "usevisibletask_",
       "hierarchy": [
@@ -2310,34 +2030,6 @@
       "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usevisibletaskqrl.md"
-    },
-    {
-      "name": "useWatch$",
-      "id": "usewatch_",
-      "hierarchy": [
-        {
-          "name": "useWatch$",
-          "id": "usewatch_"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "qwik.usewatch_.md"
-    },
-    {
-      "name": "useWatchQrl",
-      "id": "usewatchqrl",
-      "hierarchy": [
-        {
-          "name": "useWatchQrl",
-          "id": "usewatchqrl"
-        }
-      ],
-      "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> - use `useTask$()` instead\n> \n\n\n```typescript\nuseWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "qwik.usewatchqrl.md"
     },
     {
       "name": "ValueOrPromise",

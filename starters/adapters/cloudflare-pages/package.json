@@ -2,7 +2,7 @@
   "description": "Cloudflare Pages",
   "scripts": {
     "build.server": "vite build -c adapters/cloudflare-pages/vite.config.ts",
-    "deploy": "wrangler pages dev ./dist"
+    "deploy": "wrangler pages publish ./dist --branch preview"
   },
   "devDependencies": {
     "wrangler": "latest"

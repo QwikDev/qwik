@@ -51,6 +51,8 @@ export const SlotParent = component$(() => {
           <Issue2751 />
 
           <Issue3565 model={Issue3565Model} />
+
+          <Issue3607 />
         </>
       )}
       <div>
@@ -259,6 +261,30 @@ export const Issue3565 = component$(({ model: Model }: any) => {
       <Model>
         <div>content projected</div>
       </Model>
+    </>
+  );
+});
+
+export const Issue3607 = component$(() => {
+  const show = useSignal(false);
+  return (
+    <Issue3607Button
+      loading={show.value}
+      onClick$={() => {
+        show.value = !show.value;
+      }}
+    >
+      {show.value ? 'Loading...' : 'Load more'}
+    </Issue3607Button>
+  );
+});
+
+export const Issue3607Button = component$(({ onClick$ }: any) => {
+  return (
+    <>
+      <button id="issue-3607-result" onClick$={onClick$} class="btn">
+        <Slot />
+      </button>
     </>
   );
 });

@@ -66,7 +66,9 @@ vite('command: serve, mode: development', async () => {
   equal(c.optimizeDeps?.exclude, excludeDeps);
 
   equal(c.esbuild, false);
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: serve, mode: production', async () => {
@@ -99,7 +101,9 @@ vite('command: serve, mode: production', async () => {
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, false);
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: build, mode: development', async () => {
@@ -135,7 +139,9 @@ vite('command: build, mode: development', async () => {
     logLevel: 'error',
     jsx: 'automatic',
   });
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: build, mode: production', async () => {
@@ -172,7 +178,9 @@ vite('command: build, mode: production', async () => {
     logLevel: 'error',
     jsx: 'automatic',
   });
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: build, --mode production (client)', async () => {

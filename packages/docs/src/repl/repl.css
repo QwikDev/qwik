@@ -129,7 +129,7 @@
 .repl-output-panel .repl-tab {
   background-color: var(--bg-color);
 
-  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-family: Menlo, Monaco, 'Lucida Console', Consolas, 'Courier New', monospace;
   font-weight: normal;
   font-size: 12px;
   font-feature-settings: 'liga' 0, 'calt' 0;

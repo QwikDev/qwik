@@ -32,7 +32,7 @@
 }
 
 .docs article pre code[data-language='tsx'] {
-  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-family: Menlo, Monaco, 'Lucida Console', Consolas, 'Courier New', monospace;
   font-weight: normal;
   font-size: 14px;
   font-feature-settings: 'liga' 0, 'calt' 0;

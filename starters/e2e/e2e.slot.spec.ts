@@ -261,6 +261,17 @@ test.describe('slot', () => {
       const result = page.locator('#issue-3565-result');
       await expect(result).toHaveText('Own contentcontent projected');
     });
+
+    test('issue 3607', async ({ page }) => {
+      const button = page.locator('#issue-3607-result');
+      await expect(button).toHaveText('Load more');
+      await button.click();
+      await expect(button).toHaveText('Loading...');
+      await button.click();
+      await expect(button).toHaveText('Load more');
+      await button.click();
+      await expect(button).toHaveText('Loading...');
+    });
   }
 
   test.beforeEach(async ({ page }) => {

@@ -7,6 +7,7 @@ import type {
   RequestHandler,
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ReadonlySignal } from 'packages/qwik/src/core/state/signal';
 import type * as zod from 'zod';
 
 export type {
@@ -592,8 +593,8 @@ export type FailReturn<T> = T & {
  * @public
  */
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? Readonly<Signal<ValueOrPromise<B>>>
-  : Readonly<Signal<T>>;
+  ? ReadonlySignal<ValueOrPromise<B>>
+  : ReadonlySignal<T>;
 
 /**
  * @public

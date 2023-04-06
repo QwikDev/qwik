@@ -20,7 +20,6 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
-import type { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as zod from 'zod';
@@ -255,8 +254,10 @@ export interface Loader<RETURN> {
     (): LoaderSignal<RETURN>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ReadonlySignal" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly<Signal<ValueOrPromise<B>>> : Readonly<Signal<T>>;
+export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? ReadonlySignal<ValueOrPromise<B>> : ReadonlySignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

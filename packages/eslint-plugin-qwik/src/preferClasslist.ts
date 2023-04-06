@@ -37,6 +37,13 @@ export const preferClasslist = {
     },
   },
   create(context) {
+    const modifyJsxSource = context
+      .getSourceCode()
+      .getAllComments()
+      .some((c) => c.value.includes('@jsxImportSource'));
+    if (modifyJsxSource) {
+      return {};
+    }
     const classnames = context.options[0]?.classnames ?? ['cn', 'clsx', 'classnames'];
     return {
       JSXAttribute(node) {

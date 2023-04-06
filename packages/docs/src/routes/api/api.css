@@ -64,6 +64,10 @@
   border-radius: 4px;
   position: relative;
   margin-top: 0;
+  width: 100%;
+}
+[data-theme="dark"] .docs.api .section-title {
+  background: #373737;
 }
 @media screen and (min-width: 768px) {
   .docs.api .section-title {
@@ -142,6 +146,9 @@
 .docs.api .filter-item {
   background: #eee;
   line-height: 2;
+}
+[data-theme="dark"] .docs.api .filter-item {
+  background: #373737;
 }
 @media screen and (min-width: 768px) {
   .docs.api .filter-item {

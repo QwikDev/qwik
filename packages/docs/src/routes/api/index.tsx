@@ -76,7 +76,7 @@ export default component$(() => {
       <h1 class="overview">API Reference</h1>
 
       <h2>Filters</h2>
-      <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-10">
         {Array.from(getUniqueKinds()).map((kind) => (
           <button
             key={`filter-${kind}`}

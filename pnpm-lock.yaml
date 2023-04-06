@@ -134,7 +134,7 @@ importers:
       '@builder.io/partytown': 0.7.6
       '@builder.io/qwik': 0.100.0
       '@builder.io/qwik-city': 0.100.0
-      '@builder.io/sdk-qwik': ^0.1.16
+      '@builder.io/sdk-qwik': ^0.2.0
       '@docsearch/css': 3.3.3
       '@supabase/supabase-js': ^2.14.0
       '@types/prismjs': ^1.26.0
@@ -167,7 +167,7 @@ importers:
       '@builder.io/partytown': 0.7.6
       '@builder.io/qwik': 0.100.0_undici@5.21.0
       '@builder.io/qwik-city': 0.100.0_@builder.io+qwik@0.100.0
-      '@builder.io/sdk-qwik': 0.1.16_@builder.io+qwik@0.100.0
+      '@builder.io/sdk-qwik': 0.2.0_@builder.io+qwik@0.100.0
       '@docsearch/css': 3.3.3
       '@types/prismjs': 1.26.0
       algoliasearch: 4.16.0
@@ -532,8 +532,8 @@ packages:
       undici: 5.21.0
     dev: true
 
-  /@builder.io/sdk-qwik/0.1.16_@builder.io+qwik@0.100.0:
-    resolution: {integrity: sha512-jlO+srJYtOwrnAFUTkzRI800PvwboZv/V/fVEILn/rIeYo7/cp6hXeQMUtRulDp4cxJ36hgX96tbsSdPapUyBg==}
+  /@builder.io/sdk-qwik/0.2.0_@builder.io+qwik@0.100.0:
+    resolution: {integrity: sha512-v5J87nKLTWdLsrvheA19NSvSRtf2o0kslBI+QXuTXZCawLJAEwJy7rS8A3sU22qGNuCvVWuTXG9aq6dsxY4iHw==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:

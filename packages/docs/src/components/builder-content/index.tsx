@@ -1,6 +1,7 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
+import { QWIK_MODEL } from '../../constants';
 
 export default component$<{
   apiKey: string;
@@ -12,7 +13,9 @@ export default component$<{
     const query = location.url.searchParams;
     const render =
       typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
-    const isSDK = render === 'sdk';
+    const contentId =
+      props.model === QWIK_MODEL ? render?.match(/^([\w\d]{32})$/)?.pop() : undefined;
+    const isSDK = render === 'sdk' || !!contentId;
     cache('immutable');
     if (isSDK) {
       return getCachedValue(
@@ -24,6 +27,11 @@ export default component$<{
             urlPath: location.url.pathname,
             site: 'qwik.builder.io',
           },
+          ...(contentId && {
+            query: {
+              id: contentId,
+            },
+          }),
         },
         getContent
       );

@@ -31,6 +31,27 @@
 - [server$](/docs/(qwikcity)/server$/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 
+## Integrations
+
+- [Overview](integrations/index.mdx)
+- [Partytown](integrations/partytown/index.mdx)
+- [Playwright](integrations/playwright/index.mdx)
+- [PostCSS](integrations/postcss/index.mdx)
+- [React](integrations/react/index.mdx)
+- [Styled Vanilla Extract](integrations/styled-vanilla-extract/index.mdx)
+- [Tailwind](integrations/tailwind/index.mdx)
+- [Vitest](integrations/vitest/index.mdx)
+
+## Deployments
+
+- [Overview](deployments/index.mdx)
+- [Azure SWA](deployments/azure-swa/index.mdx)
+- [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
+- [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
+- [Netlify Edge](deployments/netlify-edge/index.mdx)
+- [Node](deployments/node/index.mdx)
+- [Vercel Edge](deployments/vercel-edge/index.mdx)
+
 ## Guides
 
 - [Qwik in a nutshell](/docs/(qwikcity)/guides/qwik-nutshell/index.mdx)

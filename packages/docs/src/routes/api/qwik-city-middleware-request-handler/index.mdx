@@ -4,6 +4,7 @@ title: \@builder.io/qwik-city/middleware/request-handler API Reference
 
 <h1><a href="/api">API</a> &rsaquo; @builder.io/qwik-city/middleware/request-handler</h1>
 
+<div class="api-detail-section">
 <h2 id="cachecontrol" title="type-alias - CacheControl" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#cachecontrol"><span class="icon icon-link"></span></a>CacheControl</h2>
 
 ```typescript
@@ -21,6 +22,8 @@ export type CacheControl =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie" title="interface - Cookie" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#cookie"><span class="icon icon-link"></span></a>Cookie</h2>
 
 ```typescript
@@ -38,6 +41,8 @@ export interface Cookie
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookieoptions" title="interface - CookieOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#cookieoptions"><span class="icon icon-link"></span></a>CookieOptions</h2>
 
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
@@ -58,6 +63,8 @@ export interface CookieOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookievalue" title="interface - CookieValue" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#cookievalue"><span class="icon icon-link"></span></a>CookieValue</h2>
 
 ```typescript
@@ -72,6 +79,8 @@ export interface CookieValue
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="deferreturn" title="type-alias - DeferReturn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#deferreturn"><span class="icon icon-link"></span></a>DeferReturn</h2>
 
 ```typescript
@@ -80,6 +89,8 @@ export type DeferReturn<T> = () => Promise<T>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie-delete" title="method-signature - delete" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#cookie-delete"><span class="icon icon-link"></span></a>delete</h2>
 
 Deletes cookie value by name using the `Response` cookie header.
@@ -97,6 +108,8 @@ delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
 
 void
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie-get" title="method-signature - get" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#cookie-get"><span class="icon icon-link"></span></a>get</h2>
 
 Gets a `Request` cookie header value by name.
@@ -113,6 +126,8 @@ get(name: string): CookieValue | null;
 
 [CookieValue](#cookievalue) \| null
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie-getall" title="method-signature - getAll" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#cookie-getall"><span class="icon icon-link"></span></a>getAll</h2>
 
 Gets all `Request` cookie headers.
@@ -125,6 +140,8 @@ getAll(): Record<string, CookieValue>;
 
 Record&lt;string, [CookieValue](#cookievalue)&gt;
 
+</div>
+<div class="api-detail-section">
 <h2 id="geterrorhtml" title="function - getErrorHtml" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#geterrorhtml"><span class="icon icon-link"></span></a>getErrorHtml</h2>
 
 ```typescript
@@ -142,6 +159,8 @@ string
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie-has" title="method-signature - has" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#cookie-has"><span class="icon icon-link"></span></a>has</h2>
 
 Checks if the `Request` cookie header name exists.
@@ -158,6 +177,8 @@ has(name: string): boolean;
 
 boolean
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie-headers" title="method-signature - headers" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#cookie-headers"><span class="icon icon-link"></span></a>headers</h2>
 
 Returns an array of all the set `Response` `Set-Cookie` header values.
@@ -170,6 +191,8 @@ headers(): string[];
 
 string\[\]
 
+</div>
+<div class="api-detail-section">
 <h2 id="mergeheaderscookies" title="variable - mergeHeadersCookies" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#mergeheaderscookies"><span class="icon icon-link"></span></a>mergeHeadersCookies</h2>
 
 ```typescript
@@ -178,6 +201,8 @@ mergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/cookie.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requestevent" title="interface - RequestEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#requestevent"><span class="icon icon-link"></span></a>RequestEvent</h2>
 
 ```typescript
@@ -195,6 +220,8 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requesteventaction" title="interface - RequestEventAction" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#requesteventaction"><span class="icon icon-link"></span></a>RequestEventAction</h2>
 
 ```typescript
@@ -209,6 +236,8 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requesteventbase" title="interface - RequestEventBase" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#requesteventbase"><span class="icon icon-link"></span></a>RequestEventBase</h2>
 
 ```typescript
@@ -234,6 +263,8 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform>
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requesteventcommon" title="interface - RequestEventCommon" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#requesteventcommon"><span class="icon icon-link"></span></a>RequestEventCommon</h2>
 
 ```typescript
@@ -256,6 +287,8 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requesteventloader" title="interface - RequestEventLoader" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#requesteventloader"><span class="icon icon-link"></span></a>RequestEventLoader</h2>
 
 ```typescript
@@ -271,6 +304,8 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends Request
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requesthandler" title="function - requestHandler" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#requesthandler"><span class="icon icon-link"></span></a>requestHandler</h2>
 
 ```typescript
@@ -283,6 +318,8 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/request-handler.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="requesthandler" title="type-alias - RequestHandler" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#requesthandler"><span class="icon icon-link"></span></a>RequestHandler</h2>
 
 ```typescript
@@ -295,6 +332,8 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="resolvesyncvalue" title="interface - ResolveSyncValue" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resolvesyncvalue"><span class="icon icon-link"></span></a>ResolveSyncValue</h2>
 
 ```typescript
@@ -303,6 +342,8 @@ export interface ResolveSyncValue
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="resolvevalue" title="interface - ResolveValue" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resolvevalue"><span class="icon icon-link"></span></a>ResolveValue</h2>
 
 ```typescript
@@ -311,6 +352,8 @@ export interface ResolveValue
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="serverrenderoptions" title="interface - ServerRenderOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#serverrenderoptions"><span class="icon icon-link"></span></a>ServerRenderOptions</h2>
 
 ```typescript
@@ -326,6 +369,8 @@ export interface ServerRenderOptions extends RenderOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="serverrequestevent" title="interface - ServerRequestEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#serverrequestevent"><span class="icon icon-link"></span></a>ServerRequestEvent</h2>
 
 Request event created by the server.
@@ -346,6 +391,8 @@ export interface ServerRequestEvent<T = any>
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="serverrequestmode" title="type-alias - ServerRequestMode" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#serverrequestmode"><span class="icon icon-link"></span></a>ServerRequestMode</h2>
 
 ```typescript
@@ -354,6 +401,8 @@ export type ServerRequestMode = "dev" | "static" | "server";
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="serverresponsehandler" title="type-alias - ServerResponseHandler" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#serverresponsehandler"><span class="icon icon-link"></span></a>ServerResponseHandler</h2>
 
 ```typescript
@@ -370,6 +419,8 @@ export type ServerResponseHandler<T = any> = (
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="cookie-set" title="method-signature - set" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#cookie-set"><span class="icon icon-link"></span></a>set</h2>
 
 Sets a `Response` cookie header using the `Set-Cookie` header.
@@ -387,3 +438,5 @@ set(name: string, value: string | number | Record<string, any>, options?: Cookie
 **Returns:**
 
 void
+
+</div>

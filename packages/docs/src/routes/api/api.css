@@ -4,6 +4,11 @@
 
 .docs.api h2 {
   font-size: 1.25rem;
+  margin-top: 0;
+  width: calc(100% - 120px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .docs.api h2[data-kind-label]:before {
@@ -20,7 +25,9 @@
   font-size: 0.8rem;
   border-radius: 8px;
   box-shadow: 0 0 30px 0 rgba(0,0,0,0.1);
+  margin-bottom: 20px;
   overflow: hidden;
+  width: 100%;
 }
 [data-theme="dark"] .docs.api table {
   box-shadow: 0 0 30px 0 rgba(80,80,80,0.1);
@@ -107,9 +114,20 @@
   padding: 0;
 }
 
+.api-detail-section {
+  padding: 50px 0;
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+[data-theme="dark"] .api-detail-section {
+  border-bottom: 1px solid #373737;
+}
+
 .docs.api .api-edit {
-  margin-top: 0px;
-  text-align: right;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  margin: 0px;
 }
 .docs.api .api-edit a {
   font-size: 0.8rem;

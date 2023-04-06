@@ -4,6 +4,7 @@ title: \@builder.io/qwik/optimizer API Reference
 
 <h1><a href="/api">API</a> &rsaquo; @builder.io/qwik/optimizer</h1>
 
+<div class="api-detail-section">
 <h2 id="path-basename" title="method-signature - basename" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-basename"><span class="icon icon-link"></span></a>basename</h2>
 
 ```typescript
@@ -19,6 +20,8 @@ basename(path: string, ext?: string): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="componententrystrategy" title="interface - ComponentEntryStrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#componententrystrategy"><span class="icon icon-link"></span></a>ComponentEntryStrategy</h2>
 
 ```typescript
@@ -32,6 +35,8 @@ export interface ComponentEntryStrategy
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="createoptimizer" title="variable - createOptimizer" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#createoptimizer"><span class="icon icon-link"></span></a>createOptimizer</h2>
 
 ```typescript
@@ -40,6 +45,8 @@ createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="diagnostic" title="interface - Diagnostic" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#diagnostic"><span class="icon icon-link"></span></a>Diagnostic</h2>
 
 ```typescript
@@ -58,6 +65,8 @@ export interface Diagnostic
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="diagnosticcategory" title="type-alias - DiagnosticCategory" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#diagnosticcategory"><span class="icon icon-link"></span></a>DiagnosticCategory</h2>
 
 ```typescript
@@ -66,6 +75,8 @@ export type DiagnosticCategory = "error" | "warning" | "sourceError";
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-dirname" title="method-signature - dirname" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-dirname"><span class="icon icon-link"></span></a>dirname</h2>
 
 ```typescript
@@ -80,6 +91,8 @@ dirname(path: string): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="entrystrategy" title="type-alias - EntryStrategy" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#entrystrategy"><span class="icon icon-link"></span></a>EntryStrategy</h2>
 
 ```typescript
@@ -96,6 +109,8 @@ export type EntryStrategy =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-extname" title="method-signature - extname" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-extname"><span class="icon icon-link"></span></a>extname</h2>
 
 ```typescript
@@ -110,6 +125,8 @@ extname(path: string): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-format" title="method-signature - format" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-format"><span class="icon icon-link"></span></a>format</h2>
 
 ```typescript
@@ -130,6 +147,8 @@ format(pathObject: {
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="globalinjections" title="interface - GlobalInjections" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#globalinjections"><span class="icon icon-link"></span></a>GlobalInjections</h2>
 
 ```typescript
@@ -144,6 +163,8 @@ export interface GlobalInjections
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="hookanalysis" title="interface - HookAnalysis" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#hookanalysis"><span class="icon icon-link"></span></a>HookAnalysis</h2>
 
 ```typescript
@@ -166,6 +187,8 @@ export interface HookAnalysis
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="hookentrystrategy" title="interface - HookEntryStrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#hookentrystrategy"><span class="icon icon-link"></span></a>HookEntryStrategy</h2>
 
 ```typescript
@@ -178,6 +201,8 @@ export interface HookEntryStrategy
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="inlineentrystrategy" title="interface - InlineEntryStrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#inlineentrystrategy"><span class="icon icon-link"></span></a>InlineEntryStrategy</h2>
 
 ```typescript
@@ -190,6 +215,8 @@ export interface InlineEntryStrategy
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-isabsolute" title="method-signature - isAbsolute" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-isabsolute"><span class="icon icon-link"></span></a>isAbsolute</h2>
 
 ```typescript
@@ -204,6 +231,8 @@ isAbsolute(path: string): boolean;
 
 boolean
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-join" title="method-signature - join" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-join"><span class="icon icon-link"></span></a>join</h2>
 
 ```typescript
@@ -218,6 +247,8 @@ join(...paths: string[]): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="minifymode" title="type-alias - MinifyMode" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#minifymode"><span class="icon icon-link"></span></a>MinifyMode</h2>
 
 ```typescript
@@ -226,6 +257,8 @@ export type MinifyMode = "simplify" | "none";
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-normalize" title="method-signature - normalize" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-normalize"><span class="icon icon-link"></span></a>normalize</h2>
 
 ```typescript
@@ -240,6 +273,8 @@ normalize(path: string): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizer" title="interface - Optimizer" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#optimizer"><span class="icon icon-link"></span></a>Optimizer</h2>
 
 ```typescript
@@ -259,6 +294,8 @@ export interface Optimizer
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizeroptions" title="interface - OptimizerOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#optimizeroptions"><span class="icon icon-link"></span></a>OptimizerOptions</h2>
 
 ```typescript
@@ -272,6 +309,8 @@ export interface OptimizerOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizersystem" title="interface - OptimizerSystem" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#optimizersystem"><span class="icon icon-link"></span></a>OptimizerSystem</h2>
 
 ```typescript
@@ -290,6 +329,8 @@ export interface OptimizerSystem
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-parse" title="method-signature - parse" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-parse"><span class="icon icon-link"></span></a>parse</h2>
 
 ```typescript
@@ -310,6 +351,8 @@ parse(path: string): {
 
 { root: string; dir: string; base: string; ext: string; name: string; }
 
+</div>
+<div class="api-detail-section">
 <h2 id="path" title="interface - Path" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#path"><span class="icon icon-link"></span></a>Path</h2>
 
 ```typescript
@@ -338,6 +381,8 @@ export interface Path
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikbuildmode" title="type-alias - QwikBuildMode" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#qwikbuildmode"><span class="icon icon-link"></span></a>QwikBuildMode</h2>
 
 ```typescript
@@ -346,6 +391,8 @@ export type QwikBuildMode = "production" | "development";
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikbuildtarget" title="type-alias - QwikBuildTarget" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#qwikbuildtarget"><span class="icon icon-link"></span></a>QwikBuildTarget</h2>
 
 ```typescript
@@ -354,6 +401,8 @@ export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikbundle" title="interface - QwikBundle" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikbundle"><span class="icon icon-link"></span></a>QwikBundle</h2>
 
 ```typescript
@@ -370,6 +419,8 @@ export interface QwikBundle
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikmanifest" title="interface - QwikManifest" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikmanifest"><span class="icon icon-link"></span></a>QwikManifest</h2>
 
 ```typescript
@@ -388,6 +439,8 @@ export interface QwikManifest
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikrollup" title="function - qwikRollup" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#qwikrollup"><span class="icon icon-link"></span></a>qwikRollup</h2>
 
 ```typescript
@@ -406,6 +459,8 @@ any
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikrolluppluginoptions" title="interface - QwikRollupPluginOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikrolluppluginoptions"><span class="icon icon-link"></span></a>QwikRollupPluginOptions</h2>
 
 ```typescript
@@ -429,6 +484,8 @@ export interface QwikRollupPluginOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwiksymbol" title="interface - QwikSymbol" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwiksymbol"><span class="icon icon-link"></span></a>QwikSymbol</h2>
 
 ```typescript
@@ -448,6 +505,8 @@ export interface QwikSymbol
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikvite" title="function - qwikVite" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#qwikvite"><span class="icon icon-link"></span></a>qwikVite</h2>
 
 ```typescript
@@ -464,6 +523,8 @@ any
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikvitedevresponse" title="interface - QwikViteDevResponse" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikvitedevresponse"><span class="icon icon-link"></span></a>QwikViteDevResponse</h2>
 
 ```typescript
@@ -477,6 +538,8 @@ export interface QwikViteDevResponse
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikviteplugin" title="interface - QwikVitePlugin" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikviteplugin"><span class="icon icon-link"></span></a>QwikVitePlugin</h2>
 
 ```typescript
@@ -490,6 +553,8 @@ export interface QwikVitePlugin
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikvitepluginapi" title="interface - QwikVitePluginApi" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikvitepluginapi"><span class="icon icon-link"></span></a>QwikVitePluginApi</h2>
 
 ```typescript
@@ -506,6 +571,8 @@ export interface QwikVitePluginApi
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="qwikvitepluginoptions" title="interface - QwikVitePluginOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikvitepluginoptions"><span class="icon icon-link"></span></a>QwikVitePluginOptions</h2>
 
 ```typescript
@@ -526,6 +593,8 @@ export interface QwikVitePluginOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-relative" title="method-signature - relative" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-relative"><span class="icon icon-link"></span></a>relative</h2>
 
 ```typescript
@@ -541,6 +610,8 @@ relative(from: string, to: string): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="path-resolve" title="method-signature - resolve" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#path-resolve"><span class="icon icon-link"></span></a>resolve</h2>
 
 ```typescript
@@ -555,6 +626,8 @@ resolve(...paths: string[]): string;
 
 string
 
+</div>
+<div class="api-detail-section">
 <h2 id="singleentrystrategy" title="interface - SingleEntryStrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#singleentrystrategy"><span class="icon icon-link"></span></a>SingleEntryStrategy</h2>
 
 ```typescript
@@ -568,6 +641,8 @@ export interface SingleEntryStrategy
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="smartentrystrategy" title="interface - SmartEntryStrategy" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#smartentrystrategy"><span class="icon icon-link"></span></a>SmartEntryStrategy</h2>
 
 ```typescript
@@ -581,6 +656,8 @@ export interface SmartEntryStrategy
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="sourcelocation" title="interface - SourceLocation" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#sourcelocation"><span class="icon icon-link"></span></a>SourceLocation</h2>
 
 ```typescript
@@ -598,6 +675,8 @@ export interface SourceLocation
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="sourcemapsoption" title="type-alias - SourceMapsOption" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#sourcemapsoption"><span class="icon icon-link"></span></a>SourceMapsOption</h2>
 
 ```typescript
@@ -606,6 +685,8 @@ export type SourceMapsOption = "external" | "inline" | undefined | null;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="symbolmapper" title="type-alias - SymbolMapper" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#symbolmapper"><span class="icon icon-link"></span></a>SymbolMapper</h2>
 
 ```typescript
@@ -617,6 +698,8 @@ export type SymbolMapper = Record<
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="symbolmapperfn" title="type-alias - SymbolMapperFn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#symbolmapperfn"><span class="icon icon-link"></span></a>SymbolMapperFn</h2>
 
 ```typescript
@@ -630,6 +713,8 @@ export type SymbolMapperFn = (
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="systemenvironment" title="type-alias - SystemEnvironment" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#systemenvironment"><span class="icon icon-link"></span></a>SystemEnvironment</h2>
 
 ```typescript
@@ -643,6 +728,8 @@ export type SystemEnvironment =
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizer-transformfs" title="method-signature - transformFs" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#optimizer-transformfs"><span class="icon icon-link"></span></a>transformFs</h2>
 
 Transforms the directory from the file system.
@@ -659,6 +746,8 @@ transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
 
 Promise&lt;[TransformOutput](#transformoutput)&gt;
 
+</div>
+<div class="api-detail-section">
 <h2 id="transformfsoptions" title="interface - TransformFsOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#transformfsoptions"><span class="icon icon-link"></span></a>TransformFsOptions</h2>
 
 ```typescript
@@ -673,6 +762,8 @@ export interface TransformFsOptions extends TransformOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizer-transformfssync" title="method-signature - transformFsSync" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#optimizer-transformfssync"><span class="icon icon-link"></span></a>transformFsSync</h2>
 
 Transforms the directory from the file system.
@@ -689,6 +780,8 @@ transformFsSync(opts: TransformFsOptions): TransformOutput;
 
 [TransformOutput](#transformoutput)
 
+</div>
+<div class="api-detail-section">
 <h2 id="transformmodule" title="interface - TransformModule" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#transformmodule"><span class="icon icon-link"></span></a>TransformModule</h2>
 
 ```typescript
@@ -705,6 +798,8 @@ export interface TransformModule
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="transformmoduleinput" title="interface - TransformModuleInput" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#transformmoduleinput"><span class="icon icon-link"></span></a>TransformModuleInput</h2>
 
 ```typescript
@@ -718,6 +813,8 @@ export interface TransformModuleInput
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizer-transformmodules" title="method-signature - transformModules" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#optimizer-transformmodules"><span class="icon icon-link"></span></a>transformModules</h2>
 
 Transforms the input code string, does not access the file system.
@@ -734,6 +831,8 @@ transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
 
 Promise&lt;[TransformOutput](#transformoutput)&gt;
 
+</div>
+<div class="api-detail-section">
 <h2 id="transformmodulesoptions" title="interface - TransformModulesOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#transformmodulesoptions"><span class="icon icon-link"></span></a>TransformModulesOptions</h2>
 
 ```typescript
@@ -748,6 +847,8 @@ export interface TransformModulesOptions extends TransformOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="optimizer-transformmodulessync" title="method-signature - transformModulesSync" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#optimizer-transformmodulessync"><span class="icon icon-link"></span></a>transformModulesSync</h2>
 
 Transforms the input code string, does not access the file system.
@@ -764,6 +865,8 @@ transformModulesSync(opts: TransformModulesOptions): TransformOutput;
 
 [TransformOutput](#transformoutput)
 
+</div>
+<div class="api-detail-section">
 <h2 id="transformoptions" title="interface - TransformOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#transformoptions"><span class="icon icon-link"></span></a>TransformOptions</h2>
 
 ```typescript
@@ -791,6 +894,8 @@ export interface TransformOptions
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="transformoutput" title="interface - TransformOutput" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#transformoutput"><span class="icon icon-link"></span></a>TransformOutput</h2>
 
 ```typescript
@@ -806,6 +911,8 @@ export interface TransformOutput
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="transpileoption" title="type-alias - TranspileOption" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#transpileoption"><span class="icon icon-link"></span></a>TranspileOption</h2>
 
 ```typescript
@@ -814,6 +921,8 @@ export type TranspileOption = boolean | undefined | null;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts" target="_blanks">Edit this section</a></p>
 
+</div>
+<div class="api-detail-section">
 <h2 id="versions" title="variable - versions" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#versions"><span class="icon icon-link"></span></a>versions</h2>
 
 ```typescript
@@ -823,3 +932,5 @@ versions: {
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts" target="_blanks">Edit this section</a></p>
+
+</div>

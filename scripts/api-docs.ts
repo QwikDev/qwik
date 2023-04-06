@@ -200,6 +200,7 @@ function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
+    md.push('<div class="api-detail-section">');
     md.push(
       `<h2 id="${m.id}" title="${title}" data-kind="${toSnakeCase(
         m.kind
@@ -225,6 +226,7 @@ function createApiMarkdown(a: ApiData) {
       );
       md.push(``);
     }
+    md.push('</div>');
   }
 
   const mdOutput = format(md.join('\n'), {

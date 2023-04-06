@@ -22,7 +22,7 @@ npm run qwik add cloudflare-pages
 
 The adapter will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
 
-```
+```shell
 └── adapters/
     └── cloudflare-pages/
         └── vite.config.ts
@@ -56,8 +56,7 @@ Notice that you might need a [Cloudflare account](https://dash.cloudflare.com/si
 
 When the `cloudflare-pages` adapter is added, a new entry file will be created at `src/entry.cloudflare-pages.tsx`. Below is an example of using the built-in middleware within the entry file.
 
-```tsx
-// src/entry.cloudflare-pages.tsx
+```tsx title="src/entry.cloudflare-pages.tsx"
 import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
@@ -69,7 +68,7 @@ export { onRequest };
 
 The compiled middleware will be built in the `server/` directory and can then be used anywhere in the cloudflare pages `/functions` directory.
 
-```tsx
+```tsx title="/functions/[[path]].ts"
 // export the compiled middleware where cloudflare pages can find it.
 // for example use /functions/[[path]].ts or /functions/_middleware.ts
 // to have qwik city handle all requests.
@@ -112,7 +111,7 @@ In most cases the generated `dist/_routes.json` file is ideal. However, if you n
 
 You may access Cloudflare Page's environment variables in the endpoint method's `platform` param:
 
-```javascript
+```ts
 export const onRequest = async ({ platform }) => {
   const secret = platform['SUPER_SECRET_TOKEN'];
 };

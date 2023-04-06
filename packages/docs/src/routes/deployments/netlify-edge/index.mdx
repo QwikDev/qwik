@@ -22,7 +22,7 @@ npm run qwik add netlify-edge
 
 The adapter will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
 
-```
+```shell
 └── adapters/
     └── netlify-edge/
         └── vite.config.ts
@@ -64,8 +64,7 @@ Please refer to the Netlify docs for more information on how to deploy your site
 
 When the `netlify-edge` adapter is added, a new entry file will be created at `src/entry.netlify-edge.tsx`. Below is an example of using the built-in middleware within the entry file.
 
-```tsx
-// src/entry.netlify-edge.tsx
+```tsx title="src/entry.netlify-edge.tsx"
 import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
@@ -85,7 +84,7 @@ By default, the Netlify Edge adapter will generate a `.netlify/edge-middleware/m
 
 To override the generated manifest, you can [add a declaration](https://docs.netlify.com/edge-functions/declarations/#add-a-declaration) to the `netlify.toml` using the `[[edge_functions]]` config. For example:
 
-```toml
+```toml title="netlify.toml"
 [[edge_functions]]
   path = "/admin"
   function = "auth"
@@ -95,7 +94,7 @@ To override the generated manifest, you can [add a declaration](https://docs.net
 
 [Netlify context](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object) is available in endpoint method's `platform` param:
 
-```javascript
+```ts
 export const onRequest = async ({ platform }) => {
   platform.log('requested ip:', platform.ip);
 };
@@ -113,7 +112,7 @@ export const onGet: RequestHandlerNetlify = ({ platform }) => {
 
 ### Environment variables
 
-```javascript
+```ts
 export const onRequest = async ({ platform }) => {
   platform.log('Vite env read from .dev file', import.meta.env.VITE_DEV);
   platform.log('netlify serverless env read from Netlify UI or CLI', Deno.env.toObject());
@@ -130,7 +129,7 @@ Previous versions of Qwik City used the `@netlify/vite-plugin-netlify-edge` plug
 
 The updated adapter, using the `npm run qwik add netlify-edge` command, will instead generate a `.netlify/edge-functions/manifest.json` config at build-time. If you would like to use the new adapter, you can remove the `@netlify/vite-plugin-netlify-edge` plugin from the root `vite.config.ts` file, and the root `netlify.toml` file.
 
-```diff
+```diff title="vite.config.ts"
 import { defineConfig } from "vite";
 import { qwikVite } from "@builder.io/qwik/optimizer";
 import { qwikCity } from "@builder.io/qwik-city/vite";
@@ -157,7 +156,7 @@ export default defineConfig(() => {
 
 Remove the catch-all `edge_functions` config from `netlify.toml`
 
-```diff
+```diff title="netlify.toml"
 -[[edge_functions]]
 -path = "/*"
 -function = "entry.netlify-edge"

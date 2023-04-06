@@ -25,7 +25,7 @@ This will create a new `postcss.config.js` file at the root of the project with 
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
 - [PostCSS Preset Env](https://preset-env.cssdb.org/)
 
-```javascript
+```ts title="postcss.config.js"
 module.exports = {
   plugins: {
     autoprefixer: {},
@@ -45,10 +45,10 @@ If you wish to add a new plugin like [CssNano](https://cssnano.co/) run the foll
 npm install cssnano --save-dev
 ```
 
-```javascript
+```ts title="postcss.config.js"
 module.exports = {
   plugins: {
-    /* previous plugin configuration  */
+    /* previous plugin configuration */
     "cssnano": {
       preset: "default"
     }

@@ -20,7 +20,7 @@ npm run qwik add vitest
 
 After running the command, vitest will be installed and a new component will be added to your project. The component will be added to the `src/components/example` directory as long as a new unit test is named `example.spec.ts`.
 
-```tsx
+```tsx title="example.spec.ts"
 import { createDOM } from '@builder.io/qwik/testing';
 import { test, expect } from 'vitest';
 import { ExampleTest } from './example';

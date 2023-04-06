@@ -109,11 +109,11 @@ export function Counter() {
 ```tsx
 export const Clock = component$(() => {
   const seconds = useSignal(0);
-  useVisibleTask$(() => {
+  useVisibleTask$(({ cleanup }) => {
     const interval = setInterval(() => {
       seconds.value++;
     }, 1000);
-    return () => clearInterval(interval);
+    cleanup(() => clearInterval(interval));
   });
 
   return <div>Seconds: {seconds.value}</div>;
@@ -141,7 +141,7 @@ export function Clock() {
 
 ```tsx
 export const Fetch = component$(() => {
-  const url = useSignal('https://api.github.com/repos/qwikstart/qwikstart-docs');
+  const url = useSignal('https://api.github.com/repos/BuilderIO/qwik');
   const responseJson = useSignal(undefined);
 
   useTask$(async ({ track }) => {
@@ -153,8 +153,8 @@ export const Fetch = component$(() => {
 
   return (
     <>
-      <div>{responseJson.value?.name}</div>
-      <input name="url" onInput$={(ev) => (url.value = (ev.target as HTMLInputElement).value))} />
+      <div>{responseJson.value?.name} has {responseJson.value?.stargazers_count} ✨'s</div>
+      <input name="url" bind:value={url} />
     </>
   );
 });
@@ -228,20 +228,22 @@ export const Child = () => {
 
 ```tsx
 export const DebouncedInput = component$(() => {
-  const value = useSignal('');
+  const inputText = useSignal('');
   const debouncedValue = useSignal('');
 
-  useTask$(({ track }) => {
-    track(() => value.value);
+  useTask$(({ track, cleanup }) => {
+    track(() => inputText.value);
+
     const debounced = setTimeout(() => {
-      debouncedValue.value = value.value;
+      debouncedValue.value = inputText.value;
     }, 1000);
-    return () => clearTimeout(debounced);
+    
+    cleanup(() => clearTimeout(debounced));
   });
 
   return (
     <>
-      <input value={value.value} onInput$={(ev) => (value.value = (ev.target as HTMLInputElement).value))} />
+      <input bind:value={inputText} />
       <span>{debouncedValue.value}</span>
     </>
   );

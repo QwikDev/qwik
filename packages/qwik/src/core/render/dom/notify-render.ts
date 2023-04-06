@@ -106,6 +106,20 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
 };
 
+declare global {
+  interface ViewTransition {
+    ready: Promise<void>;
+    finished: Promise<void>;
+    updateCallbackDone: Promise<void>;
+    skipTransition: () => void;
+  }
+
+  interface Document {
+    startViewTransition?: (callback: () => void | Promise<void>) => ViewTransition;
+    __q_view_transition__?: true | undefined;
+  }
+}
+
 const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
@@ -127,6 +141,15 @@ export const _hW = () => {
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
   const doc = getDocument(containerState.$containerEl$);
+
+  if (doc.__q_view_transition__) {
+    doc.__q_view_transition__ = undefined;
+    if (typeof doc.startViewTransition === 'function') {
+      const transition = doc.startViewTransition(() => renderMarked(containerState));
+      return await transition.updateCallbackDone;
+    }
+  }
+
   try {
     const rCtx = createRenderContext(doc, containerState);
     const staticCtx = rCtx.$static$;
@@ -182,7 +205,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     // });
     executeContextWithSlots(rCtx);
     printRenderStats(staticCtx);
-    return postRendering(containerState, rCtx);
+    return await postRendering(containerState, rCtx);
   } catch (err) {
     logError(err);
   }
@@ -230,7 +253,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
 
   if (pending > 0) {
     // Immediately render again
-    containerState.$renderPromise$ = renderMarked(containerState);
+    await (containerState.$renderPromise$ = renderMarked(containerState));
   }
 };
 

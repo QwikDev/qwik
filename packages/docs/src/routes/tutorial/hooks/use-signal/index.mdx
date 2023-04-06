@@ -5,11 +5,11 @@ contributors:
   - adamdbradley
 ---
 
-Use `useSignal()` to store any single value similar to `useStore()`. `useSignal` is heavily optimized when it comes to re-rendering components. It is able to skip re-renderings of parent components even when the signal itself is defined in the parent. `useSignal` works with all [primitive types](https://developer.mozilla.org/en-US/docs/Glossary/Primitive) as well as with not nested / flat objects. If you need to store arrays or complex objects use [useStore](../../../docs/(qwik)/components/state/index.mdx) instead with the `{deep: true}` option.
+Use `useSignal()` to store any single value similar to `useStore()`. `useSignal` is heavily optimized when it comes to re-rendering components. It is able to skip re-renderings of parent components even when the signal itself is defined in the parent. `useSignal` works with all [primitive types](https://developer.mozilla.org/en-US/docs/Glossary/Primitive) as well as with not nested / flat objects. If you need to store arrays or complex objects use [useStore](../../../docs/(qwik)/components/state/index.mdx) instead.
 
 Some examples would be:
 
-```
+```tsx
 const intStore = useSignal(0);
 const stringStore = useSignal('foo');
 const booleanStore = useSignal(true);
@@ -26,7 +26,7 @@ const nestedObjectStore = useSignal({
     tomato: 7,
     broccoli: 14
   }
-);
+});
 ```
 
 To read or update the values you can simple access the `value` property:

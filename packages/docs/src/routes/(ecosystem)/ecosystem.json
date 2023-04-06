@@ -2,69 +2,69 @@
   "integrations": [
     {
       "title": "Qwik/React",
-      "href": "/integrations/react/",
+      "href": "/docs/integrations/react/",
       "imgSrc": "/ecosystem/react.svg"
     },
     {
       "title": "Partytown",
-      "href": "/integrations/partytown/",
+      "href": "/docs/integrations/partytown/",
       "imgSrc": "/ecosystem/partytown.svg"
     },
     {
       "title": "Playwright",
-      "href": "/integrations/playwright/",
+      "href": "/docs/integrations/playwright/",
       "imgSrc": "/ecosystem/playwright.svg"
     },
     {
       "title": "PostCSS",
-      "href": "/integrations/postcss/",
+      "href": "/docs/integrations/postcss/",
       "imgSrc": "/ecosystem/postcss.svg"
     },
     {
       "title": "Styled-Vanilla-Extract",
-      "href": "/integrations/styled-vanilla-extract/",
+      "href": "/docs/integrations/styled-vanilla-extract/",
       "imgSrc": "/ecosystem/styled-vanilla-extract.svg"
     },
     {
       "title": "Tailwind",
-      "href": "/integrations/tailwind/",
+      "href": "/docs/integrations/tailwind/",
       "imgSrc": "/ecosystem/tailwind.svg"
     },
     {
       "title": "Vitest",
-      "href": "/integrations/vitest/",
+      "href": "/docs/integrations/vitest/",
       "imgSrc": "/ecosystem/vitest.svg"
     }
   ],
   "deployments": [
     {
       "title": "Azure",
-      "href": "/deployments/azure-swa/",
+      "href": "/docs/deployments/azure-swa/",
       "imgSrc": "/ecosystem/azure.svg"
     },
     {
       "title": "Cloudflare",
-      "href": "/deployments/cloudflare-pages/",
+      "href": "/docs/deployments/cloudflare-pages/",
       "imgSrc": "/ecosystem/cloudflare.svg"
     },
     {
       "title": "Google Cloud Run",
-      "href": "/deployments/gcp-cloud-run/",
+      "href": "/docs/deployments/gcp-cloud-run/",
       "imgSrc": "/ecosystem/google-cloud.svg"
     },
     {
       "title": "Netlify",
-      "href": "/deployments/netlify-edge/",
+      "href": "/docs/deployments/netlify-edge/",
       "imgSrc": "/ecosystem/netlify.svg"
     },
     {
       "title": "Node.js",
-      "href": "/deployments/node/",
+      "href": "/docs/deployments/node/",
       "imgSrc": "/ecosystem/nodejs.svg"
     },
     {
       "title": "Vercel",
-      "href": "/deployments/vercel-edge/",
+      "href": "/docs/deployments/vercel-edge/",
       "imgSrc": "/ecosystem/vercel.svg"
     }
   ],

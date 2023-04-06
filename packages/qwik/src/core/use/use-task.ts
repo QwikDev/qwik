@@ -24,6 +24,7 @@ import {
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
   _createSignal,
+  type ReadonlySignal,
 } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
 
@@ -298,24 +299,25 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
 };
 
 interface ComputedQRL {
-  <T>(qrl: QRL<ComputedFn<T>>): Readonly<Signal<T>>;
+  <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal<Awaited<T>>;
 }
 
 interface Computed {
-  <T>(qrl: ComputedFn<T>): Readonly<Signal<T>>;
+  <T>(qrl: ComputedFn<T>): ReadonlySignal<Awaited<T>>;
 }
+
 /**
  * @public
  */
-export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<T> => {
-  const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<T>>();
+export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
+  const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<Awaited<T>>>();
   if (get) {
     return get;
   }
   assertQrl(qrl);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const signal = _createSignal(
-    undefined as T,
+    undefined as Awaited<T>,
     containerState,
     SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
     undefined

@@ -114,8 +114,8 @@ export const MUISlider = qwikify$(Slider);
 - Each `MUISlider` is a fully isolated React application, with its own state, lifecycle, etc.
 - Styles will be duplicated
 - State will not be shared
-- [Context](https://reactjs.org/docs/context.html) will not be inherited.
-- Islands will [hydrate](https://beta.reactjs.org/apis/react-dom/client/hydrateRoot) independently
+- [Context](https://react.dev/learn/passing-data-deeply-with-context) will not be inherited.
+- Islands will [hydrate](https://react.dev/reference/react-dom/client/hydrateRoot) independently
 
 ### By default interactivity is disabled
 
@@ -243,7 +243,7 @@ export const FolderList = component$(() => {
 
 ## Adding interactivity
 
-In order to add interactivity, in React terminology we need to [hydrate](https://reactjs.org/docs/react-dom.html#hydrate), usually in React applications this hydration task happens unconditionally at load time, [adding a massive overhead](https://www.builder.io/blog/hydration-is-pure-overhead) and making sites slow.
+In order to add interactivity, in React terminology we need to [hydrate](https://react.dev/reference/react-dom/hydrate), usually in React applications this hydration task happens unconditionally at load time, [adding a massive overhead](https://www.builder.io/blog/hydration-is-pure-overhead) and making sites slow.
 
 Qwik allows you decide when to hydrate your components, by using the `client:` JSX properties, this technique is commonly called partial hydration, popularized by [Astro](https://astro.build/).
 
@@ -385,4 +385,4 @@ The host element is not part of React, meaning that hydration is not necessary t
 
 This will effectively allow you to respond to a click in a [MUI button](https://mui.com/material-ui/react-button/) without downloading a single byte of React code.
 
-Happy hacking!
+🧑‍💻Happy hacking!

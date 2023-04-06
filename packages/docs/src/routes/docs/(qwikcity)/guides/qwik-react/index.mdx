@@ -243,7 +243,7 @@ export const DebouncedInput = component$(() => {
 
   return (
     <>
-      <input value={inputText.value} bind:value={inputText} />
+      <input bind:value={inputText} />
       <span>{debouncedValue.value}</span>
     </>
   );

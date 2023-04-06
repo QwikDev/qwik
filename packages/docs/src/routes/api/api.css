@@ -10,6 +10,39 @@
   content: attr(data-kind-label);
 }
 
+.docs.api h2 a:hover .icon {
+  position: relative;
+  top: 2px;
+  left: -46px;
+}
+
+.docs.api table {
+  font-size: 0.8rem;
+  border-radius: 8px;
+  box-shadow: 0 0 30px 0 rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+[data-theme="dark"] .docs.api table {
+  box-shadow: 0 0 30px 0 rgba(80,80,80,0.1);
+}
+.docs.api thead tr {
+  background: rgb(1 31 51);
+  color: white;
+  text-align: left;
+}
+.docs.api thead th,
+.docs.api tbody tr td {
+  padding: 12px 24px;
+}
+.docs.api tbody tr:hover,
+.docs.api tbody tr:nth-child(even) {
+  background: #f6f6f6;
+}
+[data-theme="dark"] .docs.api tbody tr:hover,
+[data-theme="dark"] .docs.api tbody tr:nth-child(even) {
+  background: black;
+}
+
 .docs.api .docs-container {
   margin: 10px auto;
   padding: 80px 30px 0;
@@ -84,6 +117,9 @@
   border-radius: 4px;
   padding: 4px 8px;
 }
+[data-theme="dark"] .docs.api .api-edit a {
+  background: #373737;
+}
 
 .docs.api .filter-item {
   background: #eee;
@@ -110,10 +146,6 @@
   text-align: center;
   min-width: 32px; /* ensure the label is always the same width on the overview */
   padding: 2px 10px;
-}
-
-.docs.api h2[data-kind-label]:before {
-  margin-right: 24px;
 }
 
 .docs.api [data-kind-label="V"]:before {

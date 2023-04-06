@@ -184,7 +184,7 @@ function createApiData(
   const apiJsonPath = join(docsDir, `api.json`);
   writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
 
-  const apiMdPath = join(docsDir, `index.md`);
+  const apiMdPath = join(docsDir, `index.mdx`);
   writeFileSync(apiMdPath, createApiMarkdown(apiData));
 }
 
@@ -195,21 +195,27 @@ function createApiMarkdown(a: ApiData) {
   md.push(`title: \\${a.package} API Reference`);
   md.push(`---`);
   md.push(``);
-  md.push(`# **API** ${a.package}`);
+  md.push(`<h1><a href="/api">API</a> &rsaquo; ${a.package}</h1>`);
   md.push(``);
 
   for (const m of a.members) {
+    const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
     md.push(
-      `<h2 id="${m.id}" data-kind="${toSnakeCase(m.kind)}" data-kind-label="${m.kind
+      `<h2 id="${m.id}" title="${title}" data-kind="${toSnakeCase(
+        m.kind
+      )}" data-kind-label="${m.kind
         .substring(0, 1)
         .toUpperCase()}"><a aria-hidden="true" tabindex="-1" href="#${
         m.id
-      }"><span class="icon icon-link"></span></a>${m.name} </h2>`
+      }"><span class="icon icon-link"></span></a>${m.name}</h2>`
     );
     md.push(``);
 
-    // sanitize output
-    const content = m.content.replace(/<!--(.|\s)*?-->/g, '').replace(/<Slot\/>/g, '');
+    // sanitize / adjust output
+    const content = m.content
+      .replace(/<!--(.|\s)*?-->/g, '')
+      .replace(/<Slot\/>/g, '')
+      .replace(/\\#\\#\\# (\w+)/gm, '<h3>$1</h3>');
     md.push(content);
     md.push(``);
 

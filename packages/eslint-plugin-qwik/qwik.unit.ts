@@ -25,7 +25,7 @@ const testConfig = {
 
 const ruleTester = new RuleTester(testConfig as any);
 test('no-use-after-await', () => {
-  ruleTester.run('my-rule', rules['no-use-after-await'] as any, {
+  ruleTester.run('my-rule', rules['use-method-usage'] as any, {
     valid: [
       `
       export const HelloWorld = component$(async () => {
@@ -47,7 +47,6 @@ test('no-use-after-await', () => {
           await something();
           await stuff();
           return $(() => {
-            useHostElement();
             return <div></div>
           });
         });`,
@@ -65,7 +64,7 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
+        errors: [{ messageId: 'use-after-await' }],
       },
       {
         code: `export const HelloWorld = component$(async () => {
@@ -81,7 +80,7 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
+        errors: [{ messageId: 'use-after-await' }],
       },
     ],
   });

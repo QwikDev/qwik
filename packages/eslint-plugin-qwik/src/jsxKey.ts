@@ -58,6 +58,13 @@ export const jsxKey = {
   },
 
   create(context) {
+    const modifyJsxSource = context
+      .getSourceCode()
+      .getAllComments()
+      .some((c) => c.value.includes('@jsxImportSource'));
+    if (modifyJsxSource) {
+      return {};
+    }
     const options = Object.assign({}, defaultOptions, context.options[0]);
     const checkFragmentShorthand = options.checkFragmentShorthand;
     const checkKeyMustBeforeSpread = options.checkKeyMustBeforeSpread;

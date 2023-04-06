@@ -1,5 +1,5 @@
 import { validLexicalScope } from './src/validLexicalScope';
-import { noUseAfterAwait } from './src/noUseAfterAwait';
+import { useMethodUsage } from './src/useMethodUsage';
 import { loaderLocation } from './src/loaderLocation';
 import { noReactProps } from './src/noReactProps';
 import { preferClasslist } from './src/preferClasslist';
@@ -8,7 +8,7 @@ import { jsxKey } from './src/jsxKey';
 import { unusedServer } from './src/unusedServer';
 
 export const rules = {
-  'no-use-after-await': noUseAfterAwait,
+  'use-method-usage': useMethodUsage,
   'valid-lexical-scope': validLexicalScope,
   'loader-location': loaderLocation,
   'no-react-props': noReactProps,
@@ -22,7 +22,7 @@ export const configs = {
   recommended: {
     plugins: ['qwik'],
     rules: {
-      'qwik/no-use-after-await': 'error',
+      'qwik/use-method-usage': 'error',
       'qwik/valid-lexical-scope': 'error',
       'qwik/no-react-props': 'error',
       'qwik/prefer-classlist': 'warn',
@@ -36,7 +36,7 @@ export const configs = {
     plugins: ['qwik'],
     rules: {
       'qwik/valid-lexical-scope': 'error',
-      'qwik/no-use-after-await': 'error',
+      'qwik/use-method-usage': 'error',
       'qwik/loader-location': 'error',
       'qwik/no-react-props': 'error',
       'qwik/prefer-classlist': 'error',

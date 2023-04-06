@@ -23,6 +23,13 @@ export const noReactProps = {
     },
   },
   create(context) {
+    const modifyJsxSource = context
+      .getSourceCode()
+      .getAllComments()
+      .some((c) => c.value.includes('@jsxImportSource'));
+    if (modifyJsxSource) {
+      return {};
+    }
     return {
       JSXOpeningElement(node) {
         for (const { from, to } of reactSpecificProps) {

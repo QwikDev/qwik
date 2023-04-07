@@ -66,21 +66,21 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true>
 | [actionPath](#) | <code>readonly</code> | string | <p>It's the "action" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p> |
 
 ```tsx
-<form action={action.actionPath} />
+ <form action=&lcub;action.actionPath&rcub; />
 ```
 
 <p>Most of the time this property should not be used directly, instead use the <code>Form</code> component:</p>
 ```tsx
-import {action$, Form} from '@builder.io/qwik-city';
+import &lcub;action$, Form&rcub; from '@builder.io/qwik-city';
 
-export const useAddUser = action$(() => { ... });
+export const useAddUser = action$(() => &lcub; ... &rcub;);
 
-export default component$(() => {
+export default component$(() => &lcub;
 const action = useAddUser();
 return (
-<Form action={action}/>
+<Form action=&lcub;action&rcub;/>
 );
-});
+&rcub;);
 
 ````
  |
@@ -231,11 +231,11 @@ export interface DocumentMeta
 export interface DocumentStyle
 ```
 
-| Property    | Modifiers             | Type                                              | Description  |
-| ----------- | --------------------- | ------------------------------------------------- | ------------ |
-| [key?](#)   | <code>readonly</code> | string                                            | _(Optional)_ |
-| [props?](#) | <code>readonly</code> | Readonly&lt;{ \[propName: string\]: string; }&gt; | _(Optional)_ |
-| [style](#)  | <code>readonly</code> | string                                            |              |
+| Property    | Modifiers             | Type                                                        | Description  |
+| ----------- | --------------------- | ----------------------------------------------------------- | ------------ |
+| [key?](#)   | <code>readonly</code> | string                                                      | _(Optional)_ |
+| [props?](#) | <code>readonly</code> | Readonly&lt;&lcub; \[propName: string\]: string; &rcub;&gt; | _(Optional)_ |
+| [style](#)  | <code>readonly</code> | string                                                      |              |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -244,9 +244,9 @@ export interface DocumentStyle
 <h2 id="failreturn" title="type-alias - FailReturn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#failreturn"><span class="icon icon-link"></span></a>FailReturn</h2>
 
 ```typescript
-export type FailReturn<T> = T & {
-  failed: true;
-};
+export type FailReturn<T> = T & &lcub;
+    failed: true;
+&rcub;;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts" target="_blanks">Edit this section</a></p>
@@ -256,10 +256,7 @@ export type FailReturn<T> = T & {
 <h2 id="form" title="variable - Form" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#form"><span class="icon icon-link"></span></a>Form</h2>
 
 ```typescript
-Form: <O, I>(
-  { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null
-) => QwikJSX.Element;
+Form: <O, I>(&lcub; action, spaReset, reloadDocument, onSubmit$, ...rest &rcub;: FormProps<O, I>, key: string | null) => QwikJSX.Element
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx" target="_blanks">Edit this section</a></p>
@@ -325,9 +322,9 @@ globalActionQrl: ActionConstructorQRL;
 <h2 id="jsonobject" title="type-alias - JSONObject" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#jsonobject"><span class="icon icon-link"></span></a>JSONObject</h2>
 
 ```typescript
-export type JSONObject = {
-  [x: string]: JSONValue;
-};
+export type JSONObject = &lcub;
+    [x: string]: JSONValue;
+&rcub;;
 ```
 
 **References:** [JSONValue](#jsonvalue)
@@ -339,14 +336,9 @@ export type JSONObject = {
 <h2 id="jsonvalue" title="type-alias - JSONValue" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#jsonvalue"><span class="icon icon-link"></span></a>JSONValue</h2>
 
 ```typescript
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | {
-      [x: string]: JSONValue;
-    }
-  | Array<JSONValue>;
+export type JSONValue = string | number | boolean | &lcub;
+    [x: string]: JSONValue;
+&rcub; | Array<JSONValue>;
 ```
 
 **References:** [JSONValue](#jsonvalue)
@@ -584,7 +576,7 @@ export type RouteNavigate = QRL<
 <h2 id="routeroutlet" title="variable - RouterOutlet" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#routeroutlet"><span class="icon icon-link"></span></a>RouterOutlet</h2>
 
 ```typescript
-RouterOutlet: import("@builder.io/qwik").Component<{}>;
+RouterOutlet: import("@builder.io/qwik").Component<&lcub;&rcub;>
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts" target="_blanks">Edit this section</a></p>
@@ -614,8 +606,9 @@ serverQrl: ServerConstructorQRL;
 <h2 id="serviceworkerregister" title="variable - ServiceWorkerRegister" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#serviceworkerregister"><span class="icon icon-link"></span></a>ServiceWorkerRegister</h2>
 
 ```typescript
-ServiceWorkerRegister: (props: { nonce?: string }) =>
-  import("@builder.io/qwik").JSXNode<"script">;
+ServiceWorkerRegister: (props: &lcub;
+    nonce?: string;
+&rcub;) => import("@builder.io/qwik").JSXNode<"script">
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx" target="_blanks">Edit this section</a></p>

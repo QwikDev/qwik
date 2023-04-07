@@ -8,9 +8,7 @@ title: \@builder.io/qwik-city/middleware/cloudflare-pages API Reference
 <h2 id="createqwikcity" title="function - createQwikCity" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#createqwikcity"><span class="icon icon-link"></span></a>createQwikCity</h2>
 
 ```typescript
-export declare function createQwikCity(
-  opts: QwikCityCloudflarePagesOptions
-): ({ request, env, waitUntil, next }: EventPluginContext) => Promise<Response>;
+export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (&lcub; request, env, waitUntil, next &rcub;: EventPluginContext) => Promise<Response>;
 ```
 
 | Parameter | Type                                                              | Description |
@@ -19,7 +17,7 @@ export declare function createQwikCity(
 
 **Returns:**
 
-({ request, env, waitUntil, next }: [EventPluginContext](#eventplugincontext)) =&gt; Promise&lt;Response&gt;
+(&lcub; request, env, waitUntil, next &rcub;: [EventPluginContext](#eventplugincontext)) =&gt; Promise&lt;Response&gt;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts" target="_blanks">Edit this section</a></p>
 

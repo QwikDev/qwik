@@ -8,23 +8,11 @@ title: \@builder.io/qwik-city/middleware/node API Reference
 <h2 id="createqwikcity" title="function - createQwikCity" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#createqwikcity"><span class="icon icon-link"></span></a>createQwikCity</h2>
 
 ```typescript
-export declare function createQwikCity(opts: QwikCityNodeRequestOptions): {
-  router: (
-    req: IncomingMessage,
-    res: ServerResponse,
-    next: NodeRequestNextFunction
-  ) => Promise<void>;
-  notFound: (
-    req: IncomingMessage,
-    res: ServerResponse,
-    next: (e: any) => void
-  ) => Promise<void>;
-  staticFile: (
-    req: IncomingMessage,
-    res: ServerResponse,
-    next: (e?: any) => void
-  ) => Promise<void>;
-};
+export declare function createQwikCity(opts: QwikCityNodeRequestOptions): &lcub;
+    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+    staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+&rcub;;
 ```
 
 | Parameter | Type                                                      | Description |
@@ -33,7 +21,7 @@ export declare function createQwikCity(opts: QwikCityNodeRequestOptions): {
 
 **Returns:**
 
-{ router: (req: IncomingMessage, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }
+&lcub; router: (req: IncomingMessage, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; &rcub;
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts" target="_blanks">Edit this section</a></p>
 
@@ -73,9 +61,9 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-| Property     | Modifiers | Type                                      | Description                                   |
-| ------------ | --------- | ----------------------------------------- | --------------------------------------------- |
-| [static?](#) |           | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |
+| Property     | Modifiers | Type                                                | Description                                   |
+| ------------ | --------- | --------------------------------------------------- | --------------------------------------------- |
+| [static?](#) |           | &lcub; root?: string; cacheControl?: string; &rcub; | _(Optional)_ Options for serving static files |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts" target="_blanks">Edit this section</a></p>
 

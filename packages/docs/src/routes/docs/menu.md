@@ -34,6 +34,7 @@
 ## Integrations
 
 - [Overview](integrations/index.mdx)
+- [Auth.js](integrations/authjs/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
 - [PostCSS](integrations/postcss/index.mdx)

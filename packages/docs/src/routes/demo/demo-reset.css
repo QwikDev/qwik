@@ -1,5 +1,6 @@
 demo {
   display: block;
+  padding: 0.75em;
 }
 
 demo h1 {
@@ -72,4 +73,60 @@ demo li {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-left: 0;
+  list-style-type: none;
+  margin-left: 1em;
+}
+
+#console.console {
+  background-color: #333;
+  border-radius: 8px 8px 0 8px;
+  padding: 1em;
+  margin: 0;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: x-small;
+  overflow: scroll;
+  max-height: 85vh;
+  max-width: 75vw;
+}
+
+#console > ul {
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+#console > h1 {
+  font-size: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+#console > li {
+}
+
+#console span {
+  white-space: break-spaces;
+  padding-right: 1em;
+}
+
+#console li.debug {
+  color: #87ceeb; /* or any other light blue color */
+}
+
+#console li.error {
+  color: #ff0000; /* or any other bold red color */
+}
+
+#console li.info {
+  color: #00ff7f; /* or any other cool green color */
+}
+
+#console li.log {
+  color: #a9a9a9; /* or any other neutral grey color */
+}
+
+#console li.warn {
+  color: #ffff00; /* or any other bright yellow color */
 }

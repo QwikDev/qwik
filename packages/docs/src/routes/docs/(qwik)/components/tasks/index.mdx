@@ -93,7 +93,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 Let's look at the simplest use case of the task to run some asynchronous work on component initialization.
 
-<CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" style={{ height: '6em' }}>
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
@@ -141,7 +141,7 @@ There are times when it is desirable to re-run a task when a component state cha
 
 > **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
 
-<CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" sandboxStyle={{ height: '6em' }} >
+<CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
@@ -151,7 +151,7 @@ export default component$(() => {
   const delayText = useSignal('');
 
   useTask$(({ track }) => {
-    track(()=> text.value);
+    track(() => text.value);
     const value = text.value;
     const update = () => (delayText.value = value);
     isServer
@@ -191,7 +191,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 In the above example `track()` was used to track a specific signal. However, `track()` can also be used as a function to track multiple signals at once.
 
-<CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" sandboxStyle={{ height: '6em' }} >
+<CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" style={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
@@ -238,7 +238,7 @@ Sometimes when running a task cleanup work needs to be performed. When a new tas
 
 This example shows how to implement a debounce feature using the `cleanup()` function.
 
-<CodeSandbox src="/src/routes/demo/tasks/cleanup/index.tsx" sandboxStyle={{ height: '6em' }} >
+<CodeSandbox src="/src/routes/demo/tasks/cleanup/index.tsx" style={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
@@ -276,7 +276,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 > **Caution**: The `useVisibleTask$()` should be used as a last resort, because it eagerly executes code on the client. Qwik through [resumability]() goes out of its way to delay the execution of code on the client, and `useVisibleTask$()` is an escape hatch that should be used with caution. See [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx#dont-register-events-eagerly-with-usevisibletask) for more details.
 > If you need to run a task on a client consider `useTask$()` with a server guard.
 > 
-> <CodeSandbox src="/src/routes/demo/tasks/track-server-guard/index.tsx" sandboxStyle={{ height: '6em' }}>
+> <CodeSandbox src="/src/routes/demo/tasks/track-server-guard/index.tsx" style={{ height: '6em' }}>
 > ```tsx
 > import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 > import { isServer } from '@builder.io/qwik/build';
@@ -286,7 +286,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 >   const isBold = useSignal(false);
 > 
 >   useTask$(({ track }) => {
->     track(()=> text.value);
+>     track(() => text.value);
 >     if (isServer) {
 >       return; // Server guard
 >     }
@@ -313,7 +313,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 
 This example shows how to use `useVisibleTask$()` to initialize a clock on the browser only when the clock component becomes visible.
 
-<CodeSandbox src="/src/routes/demo/tasks/use-visible-task/index.tsx" sandboxStyle={{ height: '6em' }} >
+<CodeSandbox src="/src/routes/demo/tasks/use-visible-task/index.tsx" style={{ height: '6em' }} >
 ```tsx
 import {
   component$,
@@ -356,7 +356,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 
 At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eagre mode. This is done by using the `{ strategy: 'document-ready' }`.
 
-<CodeSandbox src="/src/routes/demo/tasks/use-visible-task-eager/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/tasks/use-visible-task-eager/index.tsx" style={{ height: '6em' }}>
 ```tsx
 import {
   component$,
@@ -408,7 +408,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 - It is not a pure function like `useComputed$()`. It can have side effects. Specifically, it is intended that `useResource$()` will have side effects such as network requests.
 - It uses [`track()`](#track)/[`cleanup()`](#cleanup) functions similar to `useTask$()`.
 
-<CodeSandbox src="/src/routes/demo/tasks/resource/index.tsx" sandboxStyle={{height: '6em'}}>
+<CodeSandbox src="/src/routes/demo/tasks/resource/index.tsx" style={{height: '6em'}}>
 ```tsx
 import {
   component$,
@@ -418,10 +418,10 @@ import {
 } from '@builder.io/qwik';
 
 export default component$(() => {
-  const prNumber = useSignal(3576);
+  const prNumber = useSignal('3576');
 
   const prTitle = useResource$(async ({ track }) => {
-    track(()=> prNumber.value); // Requires explicit tracking of inputs
+    track(() => prNumber.value); // Requires explicit tracking of inputs
     const response = await fetch(
       `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
     );

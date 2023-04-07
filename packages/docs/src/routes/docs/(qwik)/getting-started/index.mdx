@@ -356,7 +356,7 @@ In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen 
    ```tsx
    useTask$(({ track }) => {});
    ```
-2. Add a `track` call to the re-executed the task on `isFavoriteSignal` state change:
+2. Add a `track` call to re-execute the task on `isFavoriteSignal` state change:
    ```tsx
    useTask$(({ track }) => {
      track(()=> isFavoriteSignal.value);

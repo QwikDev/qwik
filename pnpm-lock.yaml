@@ -213,8 +213,8 @@ importers:
         specifier: 0.100.0
         version: 0.100.0(@builder.io/qwik@0.100.0)
       '@builder.io/sdk-qwik':
-        specifier: ^0.1.16
-        version: 0.1.16(@builder.io/qwik@0.100.0)
+        specifier: ^0.2.0
+        version: 0.2.0(@builder.io/qwik@0.100.0)
       '@docsearch/css':
         specifier: 3.3.3
         version: 3.3.3
@@ -271,7 +271,7 @@ importers:
         version: 0.5.6
       vite:
         specifier: 4.2.1
-        version: 4.2.1(@types/node@18.15.9)(terser@5.16.8)
+        version: 4.2.1
       wrangler:
         specifier: ^2.14.0
         version: 2.14.0
@@ -411,7 +411,7 @@ importers:
         version: 0.5.6
       vite:
         specifier: 4.2.1
-        version: 4.2.1(@types/node@18.15.9)(terser@5.16.8)
+        version: 4.2.1(@types/node@18.15.9)
       yaml:
         specifier: 2.2.1
         version: 2.2.1
@@ -440,7 +440,7 @@ importers:
         version: 5.0.3
       vite:
         specifier: 4.2.1
-        version: 4.2.1(@types/node@18.15.9)(terser@5.16.8)
+        version: 4.2.1
 
 packages:
 
@@ -662,8 +662,8 @@ packages:
       undici: 5.21.0
     dev: true
 
-  /@builder.io/sdk-qwik@0.1.16(@builder.io/qwik@0.100.0):
-    resolution: {integrity: sha512-jlO+srJYtOwrnAFUTkzRI800PvwboZv/V/fVEILn/rIeYo7/cp6hXeQMUtRulDp4cxJ36hgX96tbsSdPapUyBg==}
+  /@builder.io/sdk-qwik@0.2.0(@builder.io/qwik@0.100.0):
+    resolution: {integrity: sha512-v5J87nKLTWdLsrvheA19NSvSRtf2o0kslBI+QXuTXZCawLJAEwJy7rS8A3sU22qGNuCvVWuTXG9aq6dsxY4iHw==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
@@ -8039,6 +8039,73 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
+    dev: true
+
+  /vite@4.2.1:
+    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      esbuild: 0.17.12
+      postcss: 8.4.21
+      resolve: 1.22.1
+      rollup: 3.20.0
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
+  /vite@4.2.1(@types/node@18.15.9):
+    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 18.15.9
+      esbuild: 0.17.12
+      postcss: 8.4.21
+      resolve: 1.22.1
+      rollup: 3.20.0
+    optionalDependencies:
+      fsevents: 2.3.2
     dev: true
 
   /vite@4.2.1(@types/node@18.15.9)(terser@5.16.8):

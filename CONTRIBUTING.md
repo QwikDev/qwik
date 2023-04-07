@@ -72,6 +72,48 @@ You need to have these tools up and running in your local machine:
 - Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
 - Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 
+### Using development container without Dev Containers and VSCode
+
+If you would like to make use of the devlopment container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
+
+- Build development container locally: `cd .devcontainers; docker build -t qwik-container .`
+- Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v $PWD:/home/circleci/project -t qwik-container`
+
+Docker command does:
+
+- Create a new container that is removed once stopped,
+- In daemon mode,
+- With name `qwik-container`,
+- That exposes the ports `3300` and `9229`, and
+- Binds `qwik` project directory to container working directory.
+
+#### Podman extras
+
+> This section is highly influenced by SO answer: https://serverfault.com/a/1075838/352338
+> If you use [Podman](https://podman.io/) instead of Docker as your containers engine, then you need to know the following:
+
+- Container runs as user `circleci` with UID `1001` and GID `1002`.
+- As you are accustomed to using Podman, you will need to append `:Z` to `volumes | -v` parameter so the command becomes:
+
+```bash
+$ subuid_size=65536
+$ subgid_size=65536
+$ container_uid=1001
+$ container_gid=1002
+$ podman run --rm \
+    --user $container_uid:$container_gid \
+    --uidmap=0:1:$container_uid \
+    --uidmap=$((container_uid + 1)):$((container_uid + 1)):$((subuid_size - $container_uid)) \
+    --uidmap=$container_uid:0:1 \
+    --gidmap=0:1:$container_gid \
+    --gidmap=$((container_gid + 1)):$((container_gid + 1)):$((subgid_size - $container_gid)) \
+    --gidmap=$container_gid:0:1 \
+    -d --name qwik-container \
+    -p 3300:3300 -p 9229:9299 \
+    -v .:/home/circleci/project:Z \
+    -t qwik-container
+```
+
 ## Alternative way
 
 If you're not able to use the dev container, follow these instructions:

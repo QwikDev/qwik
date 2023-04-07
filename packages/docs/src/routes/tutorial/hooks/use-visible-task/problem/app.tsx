@@ -41,7 +41,7 @@ export function updateClock(store: ClockStore) {
 
 export default component$(() => {
   return (
-    <div>
+    <main>
       <p>This is an example of Lazy executing code on component when component becomes visible.</p>
 
       <p style={{ height: '800px' }}>
@@ -49,6 +49,6 @@ export default component$(() => {
       </p>
 
       <Clock />
-    </div>
+    </main>
   );
 });

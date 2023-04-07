@@ -193,7 +193,19 @@ export default component$(() => {
 
 ### `useResource$()`
 
-Use `useResource$()` to create a computed value that is derived asynchronously or requires an external state (such as talking to a REST endpoint.)
+Use `useResource$()` to create a computed value that is derived asynchronously or requires an external state (such as talking to a REST endpoint.) The hook is called when the component is mounted (and when the tracked values change.) The `useResource$` hook is meant to be used with the `<Resource />`. The `<Resource />` component is a convenient way to render the resource state, such as loaded, resolved, or rejected.
+
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data on in the browser.
+>
+> Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/tasks/index.mdx).
+>
+> In many ways `useResource$` is similar to `useTask$` The big differences are:
+>
+> - `useResource$` allows you to return a "value".
+> - `useResource$` does not block rendering while the resource is being resolved.
+>
+> See [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
+
 
 <CodeSandbox src="/src/routes/demo/state/resource/index.tsx" style={{ height: '8em' }}>
 ```tsx {11} /useResource$/
@@ -236,6 +248,152 @@ export default component$(() => {
 While it is possible to use `useResource$()` without `<Resource>` component, it is provided for convenience. The `<Resource>` component automatically shows a fallback content while the resource is being computed.
 
 > **NOTE**: During SSR the `<Resource>` component will pause rendering until the resource is resolved. This way the SSR will not render with the loading indicator.
+
+
+**Advanced example**
+
+A more complete example of fetching data with `AbortController`, `track` and `cleanup`. This example will fetch a list of jokes based on the query typed by the user,
+automatically reacting to changes in the query, including aborting requests that are currently pending.
+
+<CodeSandbox src="/src/routes/demo/state/resource-joke/index.tsx" style={{ height: '40em' }}>
+```tsx {11} /useResource$/
+import {
+  component$,
+  useResource$,
+  Resource,
+  useSignal,
+} from '@builder.io/qwik';
+
+export default component$(() => {
+  const query = useSignal('busy');
+  const jokes = useResource$<{ value: string }[]>(
+    async ({ track, cleanup }) => {
+      track(() => query.value);
+      // A good practice is to use `AbortController` to abort the fetching of data if
+      // new request comes in. We create a new `AbortController` and register a `cleanup`
+      // function which is called when this function re-runs.
+      const controller = new AbortController();
+      cleanup(() => controller.abort());
+
+      if (query.value.length < 3) {
+        return [];
+      }
+
+      const url = new URL('https://api.chucknorris.io/jokes/search');
+      url.searchParams.set('query', query.value);
+
+      const resp = await fetch(url, { signal: controller.signal });
+      const json = (await resp.json()) as { result: { value: string }[] };
+
+      return json.result;
+    }
+  );
+
+  return (
+    <>
+      Query: <input bind:value={query} />
+      <button>search</button>
+      <Resource
+        value={jokes}
+        onPending={() => <>loading...</>}
+        onResolved={(jokes) => (
+          <ul>
+            {jokes.map((joke) => (
+              <li>{joke.value}</li>
+            ))}
+          </ul>
+        )}
+      />
+    </>
+  );
+});
+```
+</CodeSandbox>
+
+As we see in the example above, `useResource$()` returns a `ResourceReturn<T>` object that works like a reactive promise, containing the data and the resource state.
+
+The state `resource.loading` can be one of the following:
+
+- `false` - the data is not yet available.
+- `true` - the data is available. (Either resolved or rejected.)
+
+The callback passed to [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
+
+### `<Resource />`
+
+`<Resource />` is a component meant to be used with the `useResource$()` that renders different content depending on if the resource is pending, resolved, or rejected.
+
+```tsx
+<Resource
+  value={weatherResource}
+  onPending={() => <div>Loading...</div>}
+  onRejected={() => <div>Failed to load weather</div>}
+  onResolved={(weather) => {
+    return <div>Temperature: {weather.temp}</div>;
+  }}
+/>
+```
+
+It is worth noting that `<Resource />` is not required when using `useResource$()`. It is just a convenient way to render the resource state.
+
+
+This example shows how `useResource$` is used to perform a fetch call to the [agify.io](https://agify.io/) API. This will guess a person's age based on the name typed by the user, and will update whenever the user types in the name input.
+
+<CodeSandbox src="/src/routes/demo/state/resource-agify/index.tsx" style={{ height: '8em' }}>
+```tsx {11} /useResource$/
+import {
+  component$,
+  useSignal,
+  useResource$,
+  Resource,
+} from '@builder.io/qwik';
+
+export default component$(() => {
+  const name = useSignal<string>();
+
+  const ageResource = useResource$<{
+    name: string;
+    age: number;
+    count: number;
+  }>(async ({ track, cleanup }) => {
+    track(() => name.value);
+    const abortController = new AbortController();
+    cleanup(() => abortController.abort('cleanup'));
+    const res = await fetch(`https://api.agify.io?name=${name.value}`, {
+      signal: abortController.signal,
+    });
+    return res.json();
+  });
+
+  return (
+    <div>
+      <div>Enter your name, and I'll guess your age!</div>
+      <input
+        onInput$={(e: Event) =>
+          (name.value = (e.target as HTMLInputElement).value)
+        }
+      />
+      <Resource
+        value={ageResource}
+        onPending={() => <div>Loading...</div>}
+        onRejected={() => <div>Failed to person data</div>}
+        onResolved={(ageGuess) => {
+          return (
+            <div>
+              {name.value && (
+                <>
+                  {ageGuess.name} {ageGuess.age} years
+                </>
+              )}
+            </div>
+          );
+        }}
+      />
+    </div>
+  );
+});
+```
+</CodeSandbox>
 
 ## Passing state
 

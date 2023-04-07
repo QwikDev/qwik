@@ -15,7 +15,7 @@ import qwikCityStaticApiData from './qwik-city-static/api.json';
 import qwikCityViteAzureSwaApiData from './qwik-city-vite-azure-swa/api.json';
 import qwikCityViteCloudRunApiData from './qwik-city-vite-cloud-run/api.json';
 import qwikCityViteCloudflarePagesApiData from './qwik-city-vite-cloudflare-pages/api.json';
-import qwikCityViteExpressApiData from './qwik-city-vite-express/api.json';
+import qwikCityViteNodeServerApiData from './qwik-city-vite-node-server/api.json';
 import qwikCityViteNetlifyEdgeApiData from './qwik-city-vite-netlify-edge/api.json';
 import qwikCityViteStaticApiData from './qwik-city-vite-static/api.json';
 import qwikCityViteVercelApiData from './qwik-city-vite-vercel/api.json';
@@ -38,7 +38,7 @@ const apiData = {
   'qwik-city-vite-azure-swa': qwikCityViteAzureSwaApiData,
   'qwik-city-vite-cloud-run': qwikCityViteCloudRunApiData,
   'qwik-city-vite-cloudflare-pages': qwikCityViteCloudflarePagesApiData,
-  'qwik-city-vite-express': qwikCityViteExpressApiData,
+  'qwik-city-vite-node-server': qwikCityViteNodeServerApiData,
   'qwik-city-vite-netlify-edge': qwikCityViteNetlifyEdgeApiData,
   'qwik-city-vite-static': qwikCityViteStaticApiData,
   'qwik-city-vite-vercel': qwikCityViteVercelApiData,

@@ -2,7 +2,6 @@ import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik'
 import type {
   RequestEvent,
   RequestEventAction,
-  RequestEventBase,
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
@@ -19,7 +18,6 @@ export type {
   RequestEventAction,
   RequestEventCommon,
   RequestEventLoader,
-  RequestEventBase,
   RequestHandler,
   ResolveSyncValue,
   ResolveValue,
@@ -700,7 +698,7 @@ export interface ZodConstructorQRL {
 }
 
 export interface ServerFunction {
-  (this: RequestEventBase, ...args: any[]): any;
+  (this: RequestEvent, ...args: any[]): any;
 }
 
 export interface ServerConstructorQRL {

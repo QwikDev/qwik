@@ -2,12 +2,12 @@ import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <div>
+    <main>
       <Greeter />
-    </div>
+    </main>
   );
 });
 
 export const Greeter = () => {
-  return <div>Hello World!</div>;
+  return <p>Hello World!</p>;
 };

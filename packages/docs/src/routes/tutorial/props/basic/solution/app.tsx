@@ -2,9 +2,9 @@ import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <div>
+    <main>
       <Greeter salutation="Hello" name="World" />
-    </div>
+    </main>
   );
 });
 
@@ -14,8 +14,8 @@ interface GreeterProps {
 }
 export const Greeter = component$((props: GreeterProps) => {
   return (
-    <div>
+    <p>
       {props.salutation} {props.name}!
-    </div>
+    </p>
   );
 });

@@ -7,15 +7,15 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <span>
+    <main>
+      <p>
         GitHub username:
         <input
           value={github.org}
           onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
         />
-      </span>
-      <div>
+      </p>
+      <section>
         {github.repos ? (
           <ul>
             {github.repos.map((repo) => (
@@ -29,7 +29,7 @@ export default component$(() => {
         ) : (
           'loading...'
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 });

@@ -42,7 +42,7 @@ export type {
   JSONValue,
 } from './types';
 
-export { RouterOutlet } from './router-outlet-component';
+export { RouterOutlet, type RouterOutletProps } from './router-outlet-component';
 export { QwikCityProvider, QwikCityMockProvider } from './qwik-city-component';
 export { Link } from './link-component';
 export type { LinkProps } from './link-component';

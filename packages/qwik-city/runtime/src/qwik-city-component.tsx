@@ -221,7 +221,6 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
           clientNavigate(window, url, navPath);
           routeLocation.isNavigating = false;
-          document.__q_view_transition__ = true;
         }
       }
     }

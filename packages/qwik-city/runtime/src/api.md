@@ -365,7 +365,13 @@ export interface RouteLocation {
 export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<    {}>;
+export const RouterOutlet: Component<RouterOutletProps>;
+
+// @public (undocumented)
+export interface RouterOutletProps {
+    // (undocumented)
+    enableViewTransition?: boolean;
+}
 
 // Warning: (ae-forgotten-export) The symbol "ServerFunction" needs to be exported by the entry point index.d.ts
 //

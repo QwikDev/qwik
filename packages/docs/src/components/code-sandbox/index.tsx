@@ -1,18 +1,34 @@
-import { component$, useContext, useStylesScoped$, Slot } from '@builder.io/qwik';
+import { component$, useContext, useStylesScoped$, Slot, useSignal } from '@builder.io/qwik';
 import CSS from './index.css?inline';
 import { GlobalStore } from '../../context';
 import { EditIcon } from '../svgs/edit-icon';
 
 export default component$<{
-  src: string;
-  sandboxStyle: Record<string, string>;
-}>(({ src, sandboxStyle }) => {
+  src?: string;
+  url?: string;
+  tabs?: string[];
+  console?: boolean;
+  style?: Record<string, string>;
+}>(({ url, tabs, src, style, console }) => {
+  const activeTab = useSignal(0);
   useStylesScoped$(CSS);
   const state = useContext(GlobalStore);
-
+  const exampleUrl = (url || src) + (console ? '?console=true' : '');
   return (
     <>
-      <Slot />
+      {tabs && (
+        <div class="tabs">
+          {tabs.map((tab, idx) => (
+            <span
+              onClick$={() => (activeTab.value = idx)}
+              class={{ tab: true, active: idx == activeTab.value }}
+            >
+              {tab}
+            </span>
+          ))}
+        </div>
+      )}
+      <Slot name={tabs ? String(activeTab.value) : ''} />
       <div class="browser shadow-xl">
         <div class="bar bg-slate-200 rounded-tl-md rounded-tr-md flex flex-row justify-left px-5 py-2 gap-5">
           <ul>
@@ -28,16 +44,21 @@ export default component$<{
           </ul>
           <div class="url bg-slate-300 rounded-md inline-grid whitespace-nowrap text-xs px-2 py-1 content-center w-full">
             <a
-              href={examplePath(src)}
+              href={examplePath(exampleUrl)}
               target="_blank"
               class="url-link text-ellipsis overflow-hidden"
             >
-              {new URL(examplePath(src), 'https://qwik.builder.io').toString()}
+              {new URL(examplePath(exampleUrl), 'https://qwik.builder.io').toString()}
             </a>
           </div>
           <ul>
             <li class="edit">
-              <a href={examplePath(src)} rel="noopener" target="_blank" title="edit this snippet">
+              <a
+                href={examplePath(exampleUrl)}
+                rel="noopener"
+                target="_blank"
+                title="edit this snippet"
+              >
                 <EditIcon width={20} height={20} />
               </a>
             </li>
@@ -46,8 +67,8 @@ export default component$<{
         <div>
           <iframe
             loading="lazy"
-            src={examplePath({ path: src, theme: state.theme, includeTheme: true })}
-            style={{ width: '100%', height: '200px', ...sandboxStyle }}
+            src={examplePath({ path: exampleUrl, theme: state.theme, includeTheme: true })}
+            style={{ width: '100%', height: '200px', ...style }}
           />
         </div>
       </div>
@@ -73,7 +94,7 @@ function examplePath(
     .replace('/(qwik)/', '/')
     .replace('/(qwikcity)/', '/')
     .replace('/src/routes/demo', '/demo')
-    .replace('/index.tsx', '/');
+    .replace(/\/[\w\d]+.tsx?/, '/');
 
   if (!includeTheme) {
     return newPath;
@@ -85,3 +106,7 @@ function examplePath(
 
   return newPath + '?theme=' + theme;
 }
+
+export const CodeFile = component$<{ src: string }>((props) => {
+  return <Slot />;
+});

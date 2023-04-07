@@ -27,7 +27,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {7} /onClick$/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -53,7 +53,7 @@ If we want to reuse the same event handler for multiple elements or event, we mu
 
 For instance, the above example could also be written in the following way:
 
-<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a
 import { component$, useSignal, $ } from '@builder.io/qwik';
 
@@ -77,7 +77,7 @@ export default component$(() => {
 
 The first argument of the event handler is the `Event` object. This object contains information about the event that triggered the handler. For example, the `Event` object for a `click` event contains information about the mouse position and the element that was clicked. You can check out the [MDN docs to know more details about each DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
-<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" style={{ height: '6em' }}>
 ```tsx /event/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -108,7 +108,7 @@ Because of the async nature of Qwik, an event's handler execution might be delay
 
 Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
 
-<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
 import { component$ } from '@builder.io/qwik';
 
@@ -133,7 +133,7 @@ export default component$(() => {
 
 Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this Qwik handlers provide a `currentTarget` as a second argument.
 
-<CodeSandbox src="/src/routes/demo/events/target/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/target/index.tsx" style={{ height: '10em' }}>
 ```tsx /currentTarget/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -168,7 +168,7 @@ In some cases, it is necessary to handle an event traditionally, because some AP
 
 To do this, we can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
 
-<CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" style={{ height: '10em' }}>
 ```tsx {7-20}
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
@@ -215,7 +215,7 @@ When creating your components it is often useful to pass what looks like event h
 
 The above is not possible because `onClick` is a function that is not serializable. Instead, we need to tell Optimizer to convert our function into a QRL. This is done by naming the property with `$` suffix as in this example.
 
-<CodeSandbox src="/src/routes/demo/events/prop-function/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/prop-function/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { type PropFunction, component$, Slot } from '@builder.io/qwik';
 
@@ -226,9 +226,9 @@ export default component$(() => {
 export const CmpButton = component$<{
   // Important to tell TypeScript that this is async
   onClick$?: PropFunction<() => void>;
-}>(({ onClick$ }) => {
+}>((props) => {
   return (
-    <button onClick$={onClick$}>
+    <button onClick$={props.onClick$}>
       <Slot />
     </button>
   );
@@ -253,13 +253,13 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 
 `useOn[|window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
 
-<CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { $, component$, useOnDocument, useStore } from '@builder.io/qwik';
 
 // Assume reusable use method that does not have access to JSX
 // but needs to register event handlers.
-const useMousePosition = () => {
+function useMousePosition() {
   const position = useStore({ x: 0, y: 0 });
   useOnDocument(
     'mousemove',

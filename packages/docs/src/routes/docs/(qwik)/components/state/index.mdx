@@ -41,7 +41,7 @@ Use `useSignal()` to create a reactive signal (a form of state). The `useSignal(
 
 The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {4} /count/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -67,7 +67,7 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 
 > **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
 
-<CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" sandboxStyle={{ height: '6em' }} >
+<CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" style={{ height: '6em' }} >
 ```tsx {4} /state/ /count/#a
 import { component$, useStore } from '@builder.io/qwik';
 
@@ -90,7 +90,7 @@ This example above shows how `useStore()` can be used in a counter component to 
 
 By default, [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) only tracks the top-level properties in your store, which means that for an update to be registered, you have to update values at the top level property.
 
-<CodeSandbox src="/src/routes/demo/state/counter-store-no-track/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-store-no-track/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { component$, useStore } from '@builder.io/qwik';
 
@@ -123,7 +123,7 @@ store.nested = { fields: { are: 'tracked' } };
 
 To make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
 
-<CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { component$, useStore } from '@builder.io/qwik';
 
@@ -170,7 +170,7 @@ In addition to the two ways of creating computed values described above, there i
 
 Use `useComputed$` to create a computed value that can be derived synchronously from the existing application state.
 
-<CodeSandbox src="/src/routes/demo/state/computed/index.tsx" sandboxStyle={{ height: '8em' }}>
+<CodeSandbox src="/src/routes/demo/state/computed/index.tsx" style={{ height: '8em' }}>
 ```tsx {5} /useComputed$/
 import { component$, useComputed$, useSignal } from '@builder.io/qwik';
 
@@ -195,7 +195,7 @@ export default component$(() => {
 
 Use `useResource$()` to create a computed value that is derived asynchronously or requires an external state (such as talking to a REST endpoint.)
 
-<CodeSandbox src="/src/routes/demo/state/resource/index.tsx" sandboxStyle={{ height: '8em' }}>
+<CodeSandbox src="/src/routes/demo/state/resource/index.tsx" style={{ height: '8em' }}>
 ```tsx {11} /useResource$/
 import {
   component$,
@@ -205,10 +205,10 @@ import {
 } from '@builder.io/qwik';
 
 export default component$(() => {
-  const prNumber = useSignal(3576);
+  const prNumber = useSignal('3576');
 
   const prTitle = useResource$(async ({ track }) => {
-    track(()=> prNumber); // Requires explicit tracking of inputs
+    track(() => prNumber.value); // Requires explicit tracking of inputs
     const response = await fetch(
       `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
     );
@@ -250,7 +250,7 @@ There are two ways to pass state to other components:
 
 The simplest way to pass the state to other components is to pass it through props.
 
-<CodeSandbox src="/src/routes/demo/state/passing-props/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/passing-props/index.tsx" style={{ height: '6em' }}>
 ```tsx {9} /userData=/
 import { component$, useStore } from '@builder.io/qwik';
 
@@ -279,7 +279,7 @@ The context API is a way to pass state to components without having to pass it t
 
 Check the [context API](../context/index.mdx) for more information.
 
-<CodeSandbox src="/src/routes/demo/state/passing-context/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/passing-context/index.tsx" style={{ height: '6em' }}>
 ```tsx /userData/ /export const CTX = createContextId<{ count: number }>('stuff');/ /useContextProvider(CTX, userData);/ /const userData = useContext(CTX);/
 import {
   component$,
@@ -319,7 +319,7 @@ Qwik ensures that all application state is always serializable. This is importan
 
 If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from server SSR. In such a situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
-<CodeSandbox src="/src/routes/demo/state/no-serialize/index.tsx" sandboxStyle={{ height: '8em' }}>
+<CodeSandbox src="/src/routes/demo/state/no-serialize/index.tsx" style={{ height: '8em' }}>
 ```tsx /noSerialize/
 import {
   component$,
@@ -330,7 +330,7 @@ import {
 import Monaco from './monaco';
 
 export default component$(() => {
-  const state = useStore<{ monacoInstance: Monaco | undefined }>({
+  const store = useStore<{ monacoInstance: Monaco | undefined }>({
     // Don't initialize on server
     monacoInstance: undefined,
   });
@@ -338,9 +338,9 @@ export default component$(() => {
   useVisibleTask$(() => {
     // Monaco is not serializable, so we can't serialize it as part of SSR
     // We can however instantiate it on the client after the component is visible
-    setTimeout(() => (state.monacoInstance = noSerialize(new Monaco())), 1000);
+    setTimeout(() => (store.monacoInstance = noSerialize(new Monaco())), 1000);
   });
-  return <div>{state.monacoInstance ? 'Monaco is loaded' : 'loading...'}</div>;
+  return <div>{store.monacoInstance ? 'Monaco is loaded' : 'loading...'}</div>;
 });
 ```
 </CodeSandbox>

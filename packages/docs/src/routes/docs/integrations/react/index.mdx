@@ -4,35 +4,507 @@ contributors:
   - manucorporat
   - swwind
   - reemardelarosa
+  - mhevery
 ---
+import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
 
 # Qwik React ⚛️
 
-QwikReact allows you to use React components in Qwik, including the whole ecosystem of component libraries, such as [Material UI](https://mui.com/), [Threejs](https://github.com/pmndrs/react-three-fiber) and [React Spring](https://react-spring.io/).
+Qwik React allows you to use [React](https://reactjs.org/) within [Qwik](https://qwik.dev/). The advantage of using Qwik React is that you can use existing React components and libraries within Qwik. This allows you to take advantage of the large ecosystem of React components and libraries such as [Material UI](https://mui.com/), [Threejs](https://github.com/pmndrs/react-three-fiber) and [React Spring](https://react-spring.io/). It is also a good way to get the benefits of Qwik without having to rewrite your React application.
 
-## Installation
+## Basic Usage
 
-Inside your Qwik app run:
+The basic usage of Qwik React is to take existing React components and wrap them in a `qwikify$` function. This function will create a Qwik component that can be used within Qwik and which will turn the React component into an island allowing you the freedom to fine-tune when the React component should hydrate.
 
-```shell
+Basic usage
+```tsx
+// This pragma is required so that React JSX is used instead of Qwik JSX
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+
+// An existing React component
+function Greetings() {
+  return <div>Hello from React</div>;
+}
+
+// Qwik component wrapping the React component
+export const QGreetings = qwikify$(Greetings);
+```
+
+## 0. Installation
+
+Before you can use Qwik React you need to configure the Qwik project to use Qwik React. The simplest way is to run the following command:
+
+> If you don't have a Qwik app yet, then you need to [create one first](/docs/(qwik)/getting-started/index.mdx), then, follow the instructions and run the command add React to your app.
+
+
+```bash
 npm run qwik add react
 ```
 
-If you don't have a Qwik app yet, then you need to [create one first](/docs/(qwik)/getting-started/index.mdx), then, follow the instructions and run the command add React to your app.
 
-```shell
-npm create qwik
-cd to-my-app
-npm run qwik add react
+The above command will perform the following:
+
+1. Install the required dependencies in `package.json`:
+   ```json
+   {
+    ...,
+     "dependencies": {
+      ...,
+       "@builder.io/qwik-react": "0.5.0",
+       "@types/react": "18.0.28",
+       "@types/react-dom": "18.0.11",
+       "react": "18.2.0",
+       "react-dom": "18.2.0",
+     }
+   }
+   ```
+   > **Note**: This is not an emulation of React. We are using the actual React library.
+2. configure Vite to use the `@builder.io/qwik-react` plugin:
+   ```ts
+   // vite.config.ts
+   import { qwikReact } from '@builder.io/qwik-react/vite';
+
+   export default defineConfig(() => {
+      return {
+        ...,
+        plugins: [
+          ..., 
+          // The important part
+          qwikReact()
+        ],
+      };
+   });
+   ```
+
+> **Note**: The `npm run qwik add react` will also configure a demo route showcasing the Qwik React integration. These are:
+> - `package.json` `dependencies`:
+>   - `@emotion/react 11.10.6`
+>   - `@emotion/styled 11.10.6`
+>   - `@mui/material 5.11.9`
+>   - `@mui/x-data-grid 5.17.24`
+> - `src/route`:
+>   - `/src/routes/react`: New public route showcasing react integration 
+>   - `/src/integrations/react`: Here's where the react component lives
+>
+> We will ignore these in this guide and instead take you through the process from the beginning.
+
+
+## 1. Hello World
+
+Let's start with a simple example. We will create a simple React component and then wrap it in a Qwik component. We will then use the Qwik component in a Qwik route.
+
+<CodeSandbox url="/src/routes/demo/react/hello-world/" tabs={["react.tsx","index.tsx"]} style={{ height: '6em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/hello-world/react.tsx">
+```tsx /qwikify$/ /QGreetings/
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+
+// Create React component standard way
+function Greetings() {
+  return <div>Hello from React</div>;
+}
+
+// Convert React component to Qwik component
+export const QGreetings = qwikify$(Greetings);
 ```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/hello-world/index.tsx">
+```tsx /QGreetings/
+import { component$ } from '@builder.io/qwik';
+import { QGreetings } from './react';
 
-## Usage
+export default component$(() => {
+  return (
+    <div>
+      <div>Hello from Qwik</div>
+      <QGreetings />
+    </div>
+  );
+});
+```
+</CodeFile>
+</div>
+</CodeSandbox>
 
 The `@builder.io/qwik-react` package exports the `qwikify$()` function that lets you convert React components into Qwik components, that you can use across your application.
 
-> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik component look similar](/docs/(qwikcity)/guides/qwik-react/index.mdx), they are fundamentally very different.
+> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik components look similar](/docs/(qwikcity)/guides/qwik-react/index.mdx), they are fundamentally very different.
 
-React and Qwik components can not be mixed in the same file, if you check your project right after running the installation command, you will see a new folder `src/integrations/react/`, from now on, all your React components will live there.
+React and Qwik components can not be mixed in the same file, if you check your project right after running the installation command, you will see a new folder `src/integrations/react/`, we recommend that you place your React components there.
+
+## 2. Hydrating react islands
+
+The above example shows how to SSR static React content on the server. The benefit is that that component will never re-render in the browser and therefore its code never downloads to the client. But what if the component needs to be interactive, and therefore we need to download its behavior in the browser? Let's start with building a simple counter example in React.
+
+<CodeSandbox url="/src/routes/demo/react/counter-simple/" tabs={["react.tsx","index.tsx"]} style={{ height: '6em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/counter-simple/react.tsx">
+```tsx /qwikify$/ /QGreetings/
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+import { useState } from 'react';
+
+// Create React component standard way
+function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <button className="react" onClick={() => setCount(count + 1)}>
+      Count: {count}
+    </button>
+  );
+}
+
+// Convert React component to Qwik component
+export const QCounter = qwikify$(Counter);
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/counter-simple/index.tsx">
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { QCounter } from './react';
+
+export default component$(() => {
+  return (
+    <div>
+      <QCounter />
+    </div>
+  );
+});
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+Notice that clicking on the `Count` button does nothing. This is because the React has not been downloaded and therefore the component was not hydrated. We need to tell Qwik to download the React component and hydrate it, but we need to specify the condition under which we want to do that. Doing it eagerly would lose all of the benefits of turning the React application into islands. In this case, we want to download the component when the user hovers over the button, we do so by adding `{: eagerness: 'hover' }` to `qwikify$()`.
+
+<CodeSandbox url="/src/routes/demo/react/counter-simple-hover/" console={true}
+             tabs={["react.tsx","index.tsx"]} style={{ height: '20em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/counter-simple-hover/react.tsx">
+```tsx /qwikify$/ /{: eagerness: 'hover' }/
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+import { useState } from 'react';
+
+// Create React component standard way
+function Counter() {
+  // Print to console to show when the component is rendered.
+  console.log('React <Counter/> Render');
+  const [count, setCount] = useState(0);
+  return (
+    <button className="react" onClick={() => setCount(count + 1)}>
+      Count: {count}
+    </button>
+  );
+}
+
+// Specify eagerness to hydrate component on hover event.
+export const QCounter = qwikify$(Counter, { eagerness: 'hover' });
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/counter-simple-hover/index.tsx">
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { QCounter } from './react';
+
+export default component$(() => {
+  console.log('Qwik Render');
+  return (
+    <div>
+      <QCounter />
+    </div>
+  );
+});
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+In this example, we have brought up the console to show what is going on behind the scene. When you hover over the button, you will see that the React component is rendered. This is because we asked Qwik to hydrate the component on `hover`. Now that the component is hydrated you can interact with it and it will correctly update the count.
+
+By giving the `eagerness` property to `qwikify$()`, we are allowing you to fine-tune the conditions under which the component is hydrated which will impact the startup performance of your application.
+
+
+## 3. Inter-island communication
+
+In the previous example, we had a single island that we delay-hydrated. But once you have multiple islands, there will be a need to communicate between them. This example shows how to do inter-island communication with Qwik.
+
+
+<CodeSandbox url="/src/routes/demo/react/counter-two-islands/" console={true}
+             tabs={["react.tsx","index.tsx"]} style={{ height: '20em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/counter-two-islands/react.tsx">
+```tsx /qwikify$/ /{: eagerness: 'hover' }/
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+
+function Button({ onClick }: { onClick: () => void }) {
+  console.log('React <Button/> Render');
+  return <button onClick={onClick}>+1</button>;
+}
+
+function Display({ count }: { count: number }) {
+  console.log('React <Display count=' + count + '/> Render');
+  return <div className="react">Count: {count}</div>;
+}
+
+export const QButton = qwikify$(Button, { eagerness: 'hover' });
+export const QDisplay = qwikify$(Display);
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/counter-two-islands/index.tsx">
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+import { QButton, QDisplay } from './react';
+
+export default component$(() => {
+  console.log('Qwik Render');
+  const count = useSignal(0);
+  return (
+    <div>
+      <QButton
+        onClick$={() => {
+          console.log('click', count.value);
+          count.value++;
+        }}
+      />
+      <QDisplay count={count.value}></QDisplay>
+    </div>
+  );
+});
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+In the above example, we have two islands, one for the button (`QButton`) and one for the display (`QDisplay`). The button island is hydrated on `hover` and the display island is not hydrated on any event.
+
+The `react.tsx` file has:
+- `QButton` - a button that increments the count when clicked. This island is hydrated on `hover`.
+- `QDisplay` - a display that shows the current count. This island is not hydrated on any event but will be hydrated by Qwik when its props change.
+- Both of the React components have `console.log` to show when the component is hydrated or re-rendered.
+
+The `index.tsx` file has:
+- `count` - a signal that is used to track the current count.
+- Instantiates the `QButton` islands. The `onClick$` handler increments the `count` signal. Notice that Qwik automatically converts the `onClick` to `onClick$` prop allowing lazy loading of the event handlers.
+- Instantiates the `QDisplay` islands. The `count` signal is passed as a prop to the island.
+
+When you hover over the button, you will see that the `QButton` island is hydrated. When you click the button, you will see that the `QDisplay` island is hydrated and the count is updated. (The double execution of `QDisplay` is due to initial hydration first, and then updating the count second.)
+
+Notice that Qwik React only needs to eagerly hydrate components that have interactivity. Components that are dynamic, but don't have interactivity (such as `QDisplay` in this example) do not need to be eagerly hydrated instead they hydrate automatically when their props change.
+
+Also notice that `console.log('Qwik Render');` never executes in the browser.
+
+## 4. `host:` Listeners
+
+In the previous example, we had two islands. The `QButton` had to be eagerly hydrated so that React can set up the `onClick` event handler. This is a bit wasteful because the `QButton` island will never need to be re-rendered as its output is static. Clicking on the `QButton` will not cause the `QButton` island to re-render. In such a case, we can ask Qwik to register the `click` listener instead of hydrating the whole component in React just to attach a listener. This is done by using the `host:` prefix in the event name.
+
+<CodeSandbox url="/src/routes/demo/react/counter-two-islands-host/" console={true}
+             tabs={["index.tsx","react.tsx"]} style={{ height: '20em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/counter-two-islands-host/index.tsx">
+```tsx /host:onClick$/
+import { component$, useSignal } from '@builder.io/qwik';
+import { QButton, QDisplay } from './react';
+
+export default component$(() => {
+  console.log('Qwik Render');
+  const count = useSignal(0);
+  return (
+    <div>
+      <QButton
+        host:onClick$={() => {
+          console.log('click', count.value);
+          count.value++;
+        }}
+      >
+        +1
+      </QButton>
+      <QDisplay count={count.value}></QDisplay>
+    </div>
+  );
+});
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/counter-two-islands-host/react.tsx">
+```tsx
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+import { type ReactNode } from 'react';
+
+function Button({ children }: { children?: ReactNode[] }) {
+  console.log('React <Button/> Render');
+  return <button>{children}</button>;
+}
+
+function Display({ count }: { count: number }) {
+  console.log('React <Display count=' + count + '/> Render');
+  return <div className="react">Count: {count}</div>;
+}
+
+export const QButton = qwikify$(Button);
+export const QDisplay = qwikify$(Display);
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+Now hovering over the button will not do anything (no React hydration). Clicking on the button will cause Qwik to handle the event and update the signal which will in turn cause the hydration of the `QDisplay` island. Notice that the `QButton` island is never hydrated. Therefore this change allowed us to have an island that renders server side only and never needs to be hydrated in the browser, saving our user time.
+
+
+## 5. Projecting `children`
+
+A common use case is to pass content children to components. This works with Qwik React as well. In the React component just declare `children` in your props and use them as expected (See `react.tsx`).
+
+<CodeSandbox url="/src/routes/demo/react/children/" console={true}
+             tabs={["index.tsx","react.tsx"]} style={{ height: '20em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/children/index.tsx">
+```tsx /host:onClick$/
+import { component$, useSignal } from '@builder.io/qwik';
+import { QFrame } from './react';
+
+export default component$(() => {
+  console.log('Qwik Render');
+  const count = useSignal(0);
+  return (
+    <QFrame>
+      <button
+        onClick$={() => {
+          console.log('click', count.value);
+          count.value++;
+        }}
+      >
+        +1
+      </button>
+      Count: {count}
+    </QFrame>
+  );
+});
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/children/react.tsx">
+```tsx
+/** @jsxImportSource react */
+import { type ReactNode } from 'react';
+import { qwikify$ } from '@builder.io/qwik-react';
+
+function Frame({ children }: { children?: ReactNode[] }) {
+  console.log('React <Zippy/> Render');
+  return (
+    <div
+      style={{
+        display: 'inline-block',
+        border: '1px solid black',
+        borderRadius: '10px',
+        padding: '5px',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export const QFrame = qwikify$(Frame);
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+Notice that the `QFrame` island is never hydrated because it has no `eagerness` or any props which would trigger hydration. But also notice that the children do re-render when the signal changes and are correctly projected into the React `QFrame` island without the island being hydrated. This allows even more of the page to be rendered server-side and never rendered on the client.
+
+## 6. Using React libraries
+
+Finally, it is possible to use React libraries in your Qwik application. In this example [Material UI](https://mui.com/) and [Emotion](https://emotion.sh/docs/introduction) are used to render this React example. 
+
+
+<CodeSandbox url="/src/routes/demo/react/mui/"
+             tabs={["react.tsx", "index.tsx"]} style={{ height: '8em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/mui/react.tsx">
+```tsx /host:onClick$/
+/** @jsxImportSource react */
+import { qwikify$ } from '@builder.io/qwik-react';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Box from '@mui/material/Box';
+import { type ReactNode } from 'react';
+
+export const Example = qwikify$(
+  function Example({
+    selected,
+    onSelected,
+    children,
+  }: {
+    selected: number;
+    onSelected: (v: number) => any;
+    children?: ReactNode[];
+  }) {
+    console.log('React <Example/> Render');
+    return (
+      <>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={selected}
+            onChange={(e, v) => onSelected(v)}
+            aria-label="basic tabs example"
+          >
+            <Tab label="Item One" />
+            <Tab label="Item Two" />
+            <Tab label="Item Three" />
+          </Tabs>
+          {children}
+        </Box>
+      </>
+    );
+  },
+  { eagerness: 'hover' }
+);
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/mui/index.tsx">
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+import { Example } from './react';
+
+export default component$(() => {
+  console.log('Qwik Render');
+  const selected = useSignal(0);
+  return (
+    <Example
+      selected={selected.value}
+      onSelected$={(v) => (selected.value = v)}
+    >
+      Selected tab: {selected.value}
+    </Example>
+  );
+});
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+The React example is hydrated on hover and works as you would expect. 
+
+# Rules
+
+Let's look at this example to better understand the rules of Qwik React.
 
 ```tsx title="src/integrations/react/mui.tsx"
 /** @jsxImportSource react */
@@ -51,9 +523,9 @@ export const MUISlider = qwikify$(Slider, { eagerness: 'hover' });
 In a nutshell, the rules are:
 
 1. Don't mix React and Qwik components in the same file.
-2. Place all your react code inside the `src/integrations/react` folder.
+2. We recommend that you place all your react code inside the `src/integrations/react` folder.
 3. Add `/** @jsxImportSource react */` at the top of the files containing React code.
-4. Use `qwikify$()` to convert React components into Qwik components, which you can import from Qwik modules.
+4. Use `qwikify$()` to convert React components into Qwik components, that you can then import from Qwik modules.
 
 Now your Qwik can import `MUIButton` and use it as any other Qwik component:
 
@@ -76,27 +548,51 @@ export default component$(() => {
 
 The `qwikify$(ReactCmp, options?): QwikCmp` allows to implement partial hydration of React components. It works by wrapping the SSR and hydration logic of React into a Qwik component that can execute React's `renderToString()` during SSR and dynamically call `hydrateRoot()` when specified.
 
-Notice that by default no React code will run in the browser, meaning that React component will NOT be interactive by default, for example, in the following example, we _qwikify_ the [Slider](https://mui.com/material-ui/react-slider/) component from MUI, but it will not be interactive.
+Notice that by default no React code will run in the browser, meaning that React component will NOT be interactive by default, for example, in the following example, we _qwikify_ the [Slider](https://mui.com/material-ui/react-slider/) component from MUI, but it will not be interactive (it is missing an `eagerness` property to tell Qwik when the React component should be hydrated in the browser.)
 
-```tsx
+<CodeSandbox url="/src/routes/demo/react/slider/" console={true}
+             tabs={["react.tsx","index.tsx"]} style={{ height: '20em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/slider/react.tsx">
+```tsx /host:onClick$/
 /** @jsxImportSource react */
 import { qwikify$ } from '@builder.io/qwik-react';
 import { Slider } from '@mui/material';
-export const MUISlider = qwikify$(Slider);
+export const MUISlider = qwikify$<typeof Slider>(
+  Slider
+  //  Uncomment next line to make component interactive in browser
+  // { eagerness: 'hover' }
+);
 ```
-
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/children/index.tsx">
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { MUISlider } from '~/integrations/react/mui';
+import { component$, useSignal } from '@builder.io/qwik';
+import { QFrame } from './react';
 
 export default component$(() => {
+  console.log('Qwik Render');
+  const count = useSignal(0);
   return (
-    <>
-      <MUISlider></MUISlider>
-    </>
+    <QFrame>
+      <button
+        onClick$={() => {
+          console.log('click', count.value);
+          count.value++;
+        }}
+      >
+        +1
+      </button>
+      Count: {count}
+    </QFrame>
   );
 });
 ```
+</CodeFile>
+</div>
+</CodeSandbox>
 
 ## Limitations
 
@@ -127,7 +623,7 @@ Using React components in Qwik is a great way to migrate your application to Qwi
 
 It's also a great way to enjoy the React ecosystem, like [threejs](https://github.com/pmndrs/react-three-fiber) or [data-grid libs](https://mui.com/x/react-data-grid/).
 
-> Dont abuse of `qwikify$()` to build your own application, all performance gains will be lost.
+> Don't abuse `qwikify$()` to build your application, as overusing will cause performance gains to be lost.
 
 ### Build wide islands, not leaf nodes
 

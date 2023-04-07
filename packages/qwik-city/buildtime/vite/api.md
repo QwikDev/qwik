@@ -6,6 +6,7 @@
 
 import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { ConfigEnv } from 'vite';
+import type { refractor } from 'refractor';
 import { UserConfigExport } from 'vite';
 
 // @public (undocumented)

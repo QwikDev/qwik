@@ -1,3 +1,7 @@
+import type { refractor } from 'refractor';
+
+type Refractor = typeof refractor;
+
 export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
@@ -153,10 +157,15 @@ export interface PluginOptions {
   platform?: Record<string, unknown>;
 }
 
+export interface RehypeSyntaxHighlightOptions {
+  enabled?: boolean;
+  setup?: (refractor: Refractor) => void;
+}
+
 export interface MdxPlugins {
-  remarkGfm: boolean;
-  rehypeSyntaxHighlight: boolean;
-  rehypeAutolinkHeadings: boolean;
+  remarkGfm?: boolean;
+  rehypeSyntaxHighlight?: boolean | RehypeSyntaxHighlightOptions;
+  rehypeAutolinkHeadings?: boolean;
 }
 
 export interface NormalizedPluginOptions extends Required<PluginOptions> {}

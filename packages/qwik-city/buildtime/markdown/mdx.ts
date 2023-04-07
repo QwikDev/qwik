@@ -34,9 +34,17 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
 
   if (
     typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'undefined' ||
-    coreMdxPlugins.rehypeSyntaxHighlight
+    (typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'boolean' &&
+      coreMdxPlugins.rehypeSyntaxHighlight)
   ) {
     coreRehypePlugins.push(rehypeSyntaxHighlight);
+  }
+
+  if (
+    typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'object' &&
+    coreMdxPlugins.rehypeSyntaxHighlight.enabled !== false
+  ) {
+    coreRehypePlugins.push([rehypeSyntaxHighlight, coreMdxPlugins.rehypeSyntaxHighlight]);
   }
 
   if (

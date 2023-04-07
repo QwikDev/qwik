@@ -3,8 +3,13 @@ import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
 import { refractor } from 'refractor';
 import tsxLang from 'refractor/lang/tsx.js';
+import type { RehypeSyntaxHighlightOptions } from '../types';
 
-export function rehypeSyntaxHighlight(): Transformer {
+export function rehypeSyntaxHighlight(opts?: RehypeSyntaxHighlightOptions): Transformer {
+  if (opts?.setup) {
+    opts.setup(refractor);
+  }
+
   refractor.register(tsxLang);
 
   return async (ast) => {

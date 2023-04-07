@@ -111,10 +111,14 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
     }
   });
 
-  // TODO: find a solution to make this work
+  // TODO: find a solution to get this work
   useOn('beforematch', $(() => {
     isCollapsed.value = false;
   }));
+
+  if(!data.members.length) {
+    return null;
+  }
 
   return (
     <div class={`section ${isCollapsed.value}`}>

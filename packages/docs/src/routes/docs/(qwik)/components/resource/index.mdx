@@ -22,7 +22,7 @@ This hook allows you to generate computed values asynchronously, typically used 
 
 The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of SSR before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is a more low-level API that is useful when you want to fetch data on the client.
 
-> Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/lifecycle/index.mdx#use-method-rules).
+> Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/tasks/index.mdx).
 >
 > In many ways `useResource$` is similar to `useTask$` The big differences are:
 >

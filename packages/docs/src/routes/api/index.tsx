@@ -151,7 +151,7 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
             (kind in filters && !filters[kind] && 'hidden') || ''
           }`}
         >
-          <a href={`qwik#${member.id}`}>{member.name}</a>
+          <a href={`${data.id}#${member.id}`}>{member.name}</a>
         </li>
       );
     })}

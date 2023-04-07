@@ -10,15 +10,15 @@ title: \@builder.io/qwik/server API Reference
 Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader script into HTML.
 
 ```typescript
-export declare function getQwikLoaderScript(opts?: &lcub;
-    events?: string[];
-    debug?: boolean;
-&rcub;): string;
+export declare function getQwikLoaderScript(opts?: {
+  events?: string[];
+  debug?: boolean;
+}): string;
 ```
 
-| Parameter | Type                                                | Description  |
-| --------- | --------------------------------------------------- | ------------ |
-| opts      | &lcub; events?: string\[\]; debug?: boolean; &rcub; | _(Optional)_ |
+| Parameter | Type                                      | Description  |
+| --------- | ----------------------------------------- | ------------ |
+| opts      | { events?: string\[\]; debug?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
@@ -84,7 +84,7 @@ export interface PrefetchImplementation
 
 ```
 <script type="module">
-  document.dispatchEvent(new CustomEvent("qprefetch", &lcub; detail:&lcub; "bundles": [...] &rcub; &rcub;))
+  document.dispatchEvent(new CustomEvent("qprefetch", { detail:{ "bundles": [...] } }))
 </script>
 ```
 
@@ -168,7 +168,7 @@ export interface RenderOptions extends SerializeDocumentOptions
 | [containerTagName?](#)    |           | string                                                              | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code>                                            |
 | [locale?](#)              |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Language to use when rendering the document.                                                                                                                                |
 | [prefetchStrategy?](#)    |           | [PrefetchStrategy](#prefetchstrategy) \| null                       | _(Optional)_                                                                                                                                                                             |
-| [qwikLoader?](#)          |           | [QwikLoaderOptions](#qwikloaderoptions)                             | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>&lcub; include: true &rcub;</code>.                                                  |
+| [qwikLoader?](#)          |           | [QwikLoaderOptions](#qwikloaderoptions)                             | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>{ include: true }</code>.                                                            |
 | [serverData?](#)          |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
 | [snapshot?](#)            |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                               |
 
@@ -246,11 +246,11 @@ export interface RenderToStreamResult extends RenderResult
 
 **Extends:** [RenderResult](#renderresult)
 
-| Property     | Modifiers | Type                                                                | Description |
-| ------------ | --------- | ------------------------------------------------------------------- | ----------- |
-| [flushes](#) |           | number                                                              |             |
-| [size](#)    |           | number                                                              |             |
-| [timing](#)  |           | &lcub; firstFlush: number; render: number; snapshot: number; &rcub; |             |
+| Property     | Modifiers | Type                                                      | Description |
+| ------------ | --------- | --------------------------------------------------------- | ----------- |
+| [flushes](#) |           | number                                                    |             |
+| [size](#)    |           | number                                                    |             |
+| [timing](#)  |           | { firstFlush: number; render: number; snapshot: number; } |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -304,10 +304,10 @@ export interface RenderToStringResult extends RenderResult
 
 **Extends:** [RenderResult](#renderresult)
 
-| Property    | Modifiers | Type                                            | Description |
-| ----------- | --------- | ----------------------------------------------- | ----------- |
-| [html](#)   |           | string                                          |             |
-| [timing](#) |           | &lcub; render: number; snapshot: number; &rcub; |             |
+| Property    | Modifiers | Type                                  | Description |
+| ----------- | --------- | ------------------------------------- | ----------- |
+| [html](#)   |           | string                                |             |
+| [timing](#) |           | { render: number; snapshot: number; } |             |
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts" target="_blanks">Edit this section</a></p>
 
@@ -388,9 +388,9 @@ export interface StreamingOptions
 auto: Prefetch all possible QRLs used by the document. Default
 
 ```typescript
-export type SymbolsToPrefetch = 'auto' | ((opts: &lcub;
-    manifest: QwikManifest;
-&rcub;) => PrefetchResource[]);
+export type SymbolsToPrefetch =
+  | "auto"
+  | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 ```
 
 **References:** [PrefetchResource](#prefetchresource)
@@ -402,10 +402,10 @@ export type SymbolsToPrefetch = 'auto' | ((opts: &lcub;
 <h2 id="versions" title="variable - versions" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#versions"><span class="icon icon-link"></span></a>versions</h2>
 
 ```typescript
-versions: &lcub;
+versions: {
     readonly qwik: string;
     readonly qwikDom: string;
-&rcub;
+}
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/utils.ts" target="_blanks">Edit this section</a></p>

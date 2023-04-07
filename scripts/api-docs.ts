@@ -216,8 +216,6 @@ function createApiMarkdown(a: ApiData) {
     const content = m.content
       .replace(/<!--(.|\s)*?-->/g, '')
       .replace(/<Slot\/>/g, '')
-      .replace(/{/g, '&lcub;')
-      .replace(/}/g, '&rcub;')
       .replace(/\\#\\#\\# (\w+)/gm, '<h3>$1</h3>');
     md.push(content);
     md.push(``);

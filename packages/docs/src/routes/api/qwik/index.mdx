@@ -91,7 +91,77 @@ export interface AriaAttributes
 <h2 id="ariarole" title="type-alias - AriaRole" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#ariarole"><span class="icon icon-link"></span></a>AriaRole</h2>
 
 ```typescript
-export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & &lcub;&rcub;);
+export type AriaRole =
+  | "alert"
+  | "alertdialog"
+  | "application"
+  | "article"
+  | "banner"
+  | "button"
+  | "cell"
+  | "checkbox"
+  | "columnheader"
+  | "combobox"
+  | "complementary"
+  | "contentinfo"
+  | "definition"
+  | "dialog"
+  | "directory"
+  | "document"
+  | "feed"
+  | "figure"
+  | "form"
+  | "grid"
+  | "gridcell"
+  | "group"
+  | "heading"
+  | "img"
+  | "link"
+  | "list"
+  | "listbox"
+  | "listitem"
+  | "log"
+  | "main"
+  | "marquee"
+  | "math"
+  | "menu"
+  | "menubar"
+  | "menuitem"
+  | "menuitemcheckbox"
+  | "menuitemradio"
+  | "navigation"
+  | "none"
+  | "note"
+  | "option"
+  | "presentation"
+  | "progressbar"
+  | "radio"
+  | "radiogroup"
+  | "region"
+  | "row"
+  | "rowgroup"
+  | "rowheader"
+  | "scrollbar"
+  | "search"
+  | "searchbox"
+  | "separator"
+  | "slider"
+  | "spinbutton"
+  | "status"
+  | "switch"
+  | "tab"
+  | "table"
+  | "tablist"
+  | "tabpanel"
+  | "term"
+  | "textbox"
+  | "timer"
+  | "toolbar"
+  | "tooltip"
+  | "tree"
+  | "treegrid"
+  | "treeitem"
+  | (string & {});
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
@@ -133,16 +203,16 @@ Type representing the Qwik component.
 `Component` is the type returned by invoking `component$`.
 
 ```
-interface MyComponentProps &lcub;
+interface MyComponentProps {
   someProp: string;
-&rcub;
-const MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => &lcub;
-  return <span>&lcub;props.someProp&rcub;</span>;
-&rcub;);
+}
+const MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {
+  return <span>{props.someProp}</span>;
+});
 ```
 
 ```typescript
-export type Component<PROPS extends &lcub;&rcub;> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 ```
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
@@ -166,35 +236,35 @@ Qwik component is a facade that describes how the component should be used witho
 An example showing how to create a counter component:
 
 ```tsx
-export interface CounterProps &lcub;
+export interface CounterProps {
   initialValue?: number;
   step?: number;
-&rcub;
-export const Counter = component$((props: CounterProps) => &lcub;
-  const state = useStore(&lcub; count: props.initialValue || 0 &rcub;);
+}
+export const Counter = component$((props: CounterProps) => {
+  const state = useStore({ count: props.initialValue || 0 });
   return (
     <div>
-      <span>&lcub;state.count&rcub;</span>
-      <button onClick$=&lcub;() => (state.count += props.step || 1)&rcub;>+</button>
+      <span>{state.count}</span>
+      <button onClick$={() => (state.count += props.step || 1)}>+</button>
     </div>
   );
-&rcub;);
+});
 ```
 
-- `component$` is how a component gets declared. - `&lcub; value?: number; step?: number &rcub;` declares the public (props) interface of the component. - `&lcub; count: number &rcub;` declares the private (state) interface of the component.
+- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.
 
 The above can then be used like so:
 
 ```tsx
-export const OtherComponent = component$(() => &lcub;
-  return <Counter initialValue=&lcub;100&rcub; />;
-&rcub;);
+export const OtherComponent = component$(() => {
+  return <Counter initialValue={100} />;
+});
 ```
 
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-component$: <PROPS extends &lcub;&rcub;>(onMount: OnRenderFn<PROPS>) => Component<PROPS>
+component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
@@ -231,35 +301,36 @@ Qwik component is a facade that describes how the component should be used witho
 An example showing how to create a counter component:
 
 ```tsx
-export interface CounterProps &lcub;
+export interface CounterProps {
   initialValue?: number;
   step?: number;
-&rcub;
-export const Counter = component$((props: CounterProps) => &lcub;
-  const state = useStore(&lcub; count: props.initialValue || 0 &rcub;);
+}
+export const Counter = component$((props: CounterProps) => {
+  const state = useStore({ count: props.initialValue || 0 });
   return (
     <div>
-      <span>&lcub;state.count&rcub;</span>
-      <button onClick$=&lcub;() => (state.count += props.step || 1)&rcub;>+</button>
+      <span>{state.count}</span>
+      <button onClick$={() => (state.count += props.step || 1)}>+</button>
     </div>
   );
-&rcub;);
+});
 ```
 
-- `component$` is how a component gets declared. - `&lcub; value?: number; step?: number &rcub;` declares the public (props) interface of the component. - `&lcub; count: number &rcub;` declares the private (state) interface of the component.
+- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.
 
 The above can then be used like so:
 
 ```tsx
-export const OtherComponent = component$(() => &lcub;
-  return <Counter initialValue=&lcub;100&rcub; />;
-&rcub;);
+export const OtherComponent = component$(() => {
+  return <Counter initialValue={100} />;
+});
 ```
 
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-componentQrl: <PROPS extends &lcub;&rcub;>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>
+componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) =>
+  Component<PROPS>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
@@ -278,37 +349,36 @@ Use `createContextId()` to create a `ContextId`. A `ContextId` is just a seriali
 
 ```tsx
 // Declare the Context type.
-interface TodosStore &lcub;
+interface TodosStore {
   items: string[];
-&rcub;
+}
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const TodosContext = createContextId<TodosStore>("Todos");
 
 // Example of providing context to child components.
-export const App = component$(() => &lcub;
+export const App = component$(() => {
   useContextProvider(
     TodosContext,
-    useStore<TodosStore>(&lcub;
-      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
-    &rcub;)
+    useStore<TodosStore>({
+      items: ["Learn Qwik", "Build Qwik app", "Profit"],
+    })
   );
 
   return <Items />;
-&rcub;);
+});
 
 // Example of retrieving the context provided by a parent component.
-export const Items = component$(() => &lcub;
+export const Items = component$(() => {
   const todos = useContext(TodosContext);
   return (
     <ul>
-      &lcub;todos.items.map((item) => (
-        <li>&lcub;item&rcub;</li>
-      ))&rcub;
+      {todos.items.map((item) => (
+        <li>{item}</li>
+      ))}
     </ul>
   );
-&rcub;);
-
+});
 ```
 
 ```typescript
@@ -362,37 +432,36 @@ Use `createContextId()` to create a `ContextId`. A `ContextId` is just a seriali
 
 ```tsx
 // Declare the Context type.
-interface TodosStore &lcub;
+interface TodosStore {
   items: string[];
-&rcub;
+}
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const TodosContext = createContextId<TodosStore>("Todos");
 
 // Example of providing context to child components.
-export const App = component$(() => &lcub;
+export const App = component$(() => {
   useContextProvider(
     TodosContext,
-    useStore<TodosStore>(&lcub;
-      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
-    &rcub;)
+    useStore<TodosStore>({
+      items: ["Learn Qwik", "Build Qwik app", "Profit"],
+    })
   );
 
   return <Items />;
-&rcub;);
+});
 
 // Example of retrieving the context provided by a parent component.
-export const Items = component$(() => &lcub;
+export const Items = component$(() => {
   const todos = useContext(TodosContext);
   return (
     <ul>
-      &lcub;todos.items.map((item) => (
-        <li>&lcub;item&rcub;</li>
-      ))&rcub;
+      {todos.items.map((item) => (
+        <li>{item}</li>
+      ))}
     </ul>
   );
-&rcub;);
-
+});
 ```
 
 ```typescript
@@ -489,10 +558,10 @@ eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 <h2 id="fragment" title="variable - Fragment" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#fragment"><span class="icon icon-link"></span></a>Fragment</h2>
 
 ```typescript
-Fragment: FunctionComponent<&lcub;
-    children?: any;
-    key?: string | number | null;
-&rcub;>
+Fragment: FunctionComponent<{
+  children?: any;
+  key?: string | number | null;
+}>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
@@ -689,25 +758,25 @@ This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Q
 
 For example, these function calls are equivalent:
 
-- `component$(() => &lcub;...&rcub;)` is same as `component($(() => &lcub;...&rcub;))`
+- `component$(() => {...})` is same as `component($(() => {...}))`
 
 ```tsx
-export function myApi(callback: QRL<() => void>): void &lcub;
+export function myApi(callback: QRL<() => void>): void {
   // ...
-&rcub;
+}
 
 export const myApi$ = implicit$FirstArg(myApi);
 // type of myApi$: (callback: () => void): void
 
 // can be used as:
-myApi$(() => console.log('callback'));
+myApi$(() => console.log("callback"));
 
 // will be transpiled to:
 // FILE: <current file>
-myApi(qrl('./chunk-abc.js', 'callback'));
+myApi(qrl("./chunk-abc.js", "callback"));
 
 // FILE: chunk-abc.js
-export const callback = () => console.log('callback');
+export const callback = () => console.log("callback");
 ```
 
 ```typescript
@@ -1056,9 +1125,9 @@ export type PropFunction<T extends Function> = T extends (
 Infers `Props` from the component.
 
 ```typescript
-export const OtherComponent = component$(() => &lcub;
-  return $(() => <Counter value=&lcub;100&rcub; />);
-&rcub;);
+export const OtherComponent = component$(() => {
+  return $(() => <Counter value={100} />);
+});
 ```
 
 ```typescript
@@ -1080,7 +1149,9 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<
 Extends the defined component PROPS, adding the default ones (children and q:slot)..
 
 ```typescript
-export type PublicProps<PROPS extends &lcub;&rcub;> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
+  ComponentBaseProps &
+  ComponentChildren<PROPS>;
 ```
 
 **References:** [ComponentBaseProps](#componentbaseprops)
@@ -1489,10 +1560,10 @@ render: (
 <h2 id="renderonce" title="variable - RenderOnce" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#renderonce"><span class="icon icon-link"></span></a>RenderOnce</h2>
 
 ```typescript
-RenderOnce: FunctionComponent<&lcub;
-    children?: any;
-    key?: string | number | null | undefined;
-&rcub;>
+RenderOnce: FunctionComponent<{
+  children?: any;
+  key?: string | number | null | undefined;
+}>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
@@ -1577,34 +1648,37 @@ The status can be one of the following:
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
 ```tsx
-const Cmp = component$(() => &lcub;
-  const store = useStore(&lcub;
-    city: '',
-  &rcub;);
+const Cmp = component$(() => {
+  const store = useStore({
+    city: "",
+  });
 
-  const weatherResource = useResource$<any>(async (&lcub; track, cleanup &rcub;) => &lcub;
+  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
     const cityName = track(() => store.city);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort('cleanup'));
-    const res = await fetch(`http://weatherdata.com?city=$&lcub;cityName&rcub;`, &lcub;
+    cleanup(() => abortController.abort("cleanup"));
+    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
-    &rcub;);
+    });
     const data = res.json();
     return data;
-  &rcub;);
+  });
 
   return (
     <div>
-      <input name="city" onInput$=&lcub;(ev: any) => (store.city = ev.target.value)&rcub; />
+      <input
+        name="city"
+        onInput$={(ev: any) => (store.city = ev.target.value)}
+      />
       <Resource
-        value=&lcub;weatherResource&rcub;
-        onResolved=&lcub;(weather) => &lcub;
-          return <div>Temperature: &lcub;weather.temp&rcub;</div>;
-        &rcub;&rcub;
+        value={weatherResource}
+        onResolved={(weather) => {
+          return <div>Temperature: {weather.temp}</div>;
+        }}
       />
     </div>
   );
-&rcub;);
+});
 ```
 
 ```typescript
@@ -1783,9 +1857,9 @@ SkipRender: JSXNode;
 Allows to project the children of the current component. can only be used within the context of a component defined with `component$`.
 
 ```typescript
-Slot: FunctionComponent<&lcub;
-    name?: string;
-&rcub;>
+Slot: FunctionComponent<{
+  name?: string;
+}>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts" target="_blanks">Edit this section</a></p>
@@ -1876,9 +1950,9 @@ export interface SnapshotState
 <h2 id="ssrcomment" title="variable - SSRComment" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrcomment"><span class="icon icon-link"></span></a>SSRComment</h2>
 
 ```typescript
-SSRComment: FunctionComponent<&lcub;
-    data: string;
-&rcub;>
+SSRComment: FunctionComponent<{
+  data: string;
+}>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
@@ -1912,9 +1986,9 @@ export interface SSRHintProps
 <h2 id="ssrraw" title="variable - SSRRaw" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrraw"><span class="icon icon-link"></span></a>SSRRaw</h2>
 
 ```typescript
-SSRRaw: FunctionComponent<&lcub;
-    data: string;
-&rcub;>
+SSRRaw: FunctionComponent<{
+  data: string;
+}>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
@@ -1934,9 +2008,9 @@ SSRStream: FunctionComponent<SSRStreamProps>;
 <h2 id="ssrstreamblock" title="variable - SSRStreamBlock" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrstreamblock"><span class="icon icon-link"></span></a>SSRStreamBlock</h2>
 
 ```typescript
-SSRStreamBlock: FunctionComponent<&lcub;
-    children?: any;
-&rcub;>
+SSRStreamBlock: FunctionComponent<{
+  children?: any;
+}>;
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
@@ -1960,9 +2034,9 @@ export interface SSRStreamProps
 <h2 id="streamwriter" title="type-alias - StreamWriter" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#streamwriter"><span class="icon icon-link"></span></a>StreamWriter</h2>
 
 ```typescript
-export type StreamWriter = &lcub;
-    write: (chunk: string) => void;
-&rcub;;
+export type StreamWriter = {
+  write: (chunk: string) => void;
+};
 ```
 
 <p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts" target="_blanks">Edit this section</a></p>
@@ -2010,21 +2084,21 @@ The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be use
 The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.
 
 ```tsx
-const Cmp = component$(() => &lcub;
-  const store = useStore(&lcub; count: 0, doubleCount: 0 &rcub;);
-  useTask$((&lcub; track &rcub;) => &lcub;
+const Cmp = component$(() => {
+  const store = useStore({ count: 0, doubleCount: 0 });
+  useTask$(({ track }) => {
     const count = track(() => store.count);
     store.doubleCount = 2 * count;
-  &rcub;);
+  });
   return (
     <div>
       <span>
-        &lcub;store.count&rcub; / &lcub;store.doubleCount&rcub;
+        {store.count} / {store.doubleCount}
       </span>
-      <button onClick$=&lcub;() => store.count++&rcub;>+</button>
+      <button onClick$={() => store.count++}>+</button>
     </div>
   );
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2075,37 +2149,36 @@ Use `useContext()` to retrieve the value of context in a component. To retrieve 
 
 ```tsx
 // Declare the Context type.
-interface TodosStore &lcub;
+interface TodosStore {
   items: string[];
-&rcub;
+}
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const TodosContext = createContextId<TodosStore>("Todos");
 
 // Example of providing context to child components.
-export const App = component$(() => &lcub;
+export const App = component$(() => {
   useContextProvider(
     TodosContext,
-    useStore<TodosStore>(&lcub;
-      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
-    &rcub;)
+    useStore<TodosStore>({
+      items: ["Learn Qwik", "Build Qwik app", "Profit"],
+    })
   );
 
   return <Items />;
-&rcub;);
+});
 
 // Example of retrieving the context provided by a parent component.
-export const Items = component$(() => &lcub;
+export const Items = component$(() => {
   const todos = useContext(TodosContext);
   return (
     <ul>
-      &lcub;todos.items.map((item) => (
-        <li>&lcub;item&rcub;</li>
-      ))&rcub;
+      {todos.items.map((item) => (
+        <li>{item}</li>
+      ))}
     </ul>
   );
-&rcub;);
-
+});
 ```
 
 ```typescript
@@ -2128,37 +2201,36 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 ```tsx
 // Declare the Context type.
-interface TodosStore &lcub;
+interface TodosStore {
   items: string[];
-&rcub;
+}
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const TodosContext = createContextId<TodosStore>("Todos");
 
 // Example of providing context to child components.
-export const App = component$(() => &lcub;
+export const App = component$(() => {
   useContextProvider(
     TodosContext,
-    useStore<TodosStore>(&lcub;
-      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
-    &rcub;)
+    useStore<TodosStore>({
+      items: ["Learn Qwik", "Build Qwik app", "Profit"],
+    })
   );
 
   return <Items />;
-&rcub;);
+});
 
 // Example of retrieving the context provided by a parent component.
-export const Items = component$(() => &lcub;
+export const Items = component$(() => {
   const todos = useContext(TodosContext);
   return (
     <ul>
-      &lcub;todos.items.map((item) => (
-        <li>&lcub;item&rcub;</li>
-      ))&rcub;
+      {todos.items.map((item) => (
+        <li>{item}</li>
+      ))}
     </ul>
   );
-&rcub;);
-
+});
 ```
 
 ```typescript
@@ -2246,34 +2318,37 @@ The status can be one of the following:
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
 ```tsx
-const Cmp = component$(() => &lcub;
-  const store = useStore(&lcub;
-    city: '',
-  &rcub;);
+const Cmp = component$(() => {
+  const store = useStore({
+    city: "",
+  });
 
-  const weatherResource = useResource$<any>(async (&lcub; track, cleanup &rcub;) => &lcub;
+  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
     const cityName = track(() => store.city);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort('cleanup'));
-    const res = await fetch(`http://weatherdata.com?city=$&lcub;cityName&rcub;`, &lcub;
+    cleanup(() => abortController.abort("cleanup"));
+    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
-    &rcub;);
+    });
     const data = res.json();
     return data;
-  &rcub;);
+  });
 
   return (
     <div>
-      <input name="city" onInput$=&lcub;(ev: any) => (store.city = ev.target.value)&rcub; />
+      <input
+        name="city"
+        onInput$={(ev: any) => (store.city = ev.target.value)}
+      />
       <Resource
-        value=&lcub;weatherResource&rcub;
-        onResolved=&lcub;(weather) => &lcub;
-          return <div>Temperature: &lcub;weather.temp&rcub;</div>;
-        &rcub;&rcub;
+        value={weatherResource}
+        onResolved={(weather) => {
+          return <div>Temperature: {weather.temp}</div>;
+        }}
       />
     </div>
   );
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2300,34 +2375,37 @@ The status can be one of the following:
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
 ```tsx
-const Cmp = component$(() => &lcub;
-  const store = useStore(&lcub;
-    city: '',
-  &rcub;);
+const Cmp = component$(() => {
+  const store = useStore({
+    city: "",
+  });
 
-  const weatherResource = useResource$<any>(async (&lcub; track, cleanup &rcub;) => &lcub;
+  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
     const cityName = track(() => store.city);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort('cleanup'));
-    const res = await fetch(`http://weatherdata.com?city=$&lcub;cityName&rcub;`, &lcub;
+    cleanup(() => abortController.abort("cleanup"));
+    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
-    &rcub;);
+    });
     const data = res.json();
     return data;
-  &rcub;);
+  });
 
   return (
     <div>
-      <input name="city" onInput$=&lcub;(ev: any) => (store.city = ev.target.value)&rcub; />
+      <input
+        name="city"
+        onInput$={(ev: any) => (store.city = ev.target.value)}
+      />
       <Resource
-        value=&lcub;weatherResource&rcub;
-        onResolved=&lcub;(weather) => &lcub;
-          return <div>Temperature: &lcub;weather.temp&rcub;</div>;
-        &rcub;&rcub;
+        value={weatherResource}
+        onResolved={(weather) => {
+          return <div>Temperature: {weather.temp}</div>;
+        }}
       />
     </div>
   );
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2388,50 +2466,50 @@ Use `useStore` to create a state for your application. The returned object is a 
 Example showing how `useStore` is used in Counter example to keep track of the count.
 
 ```tsx
-const Stores = component$(() => &lcub;
+const Stores = component$(() => {
   const counter = useCounter(1);
 
   // Reactivity happens even for nested objects and arrays
-  const userData = useStore(&lcub;
-    name: 'Manu',
-    address: &lcub;
-      address: '',
-      city: '',
-    &rcub;,
+  const userData = useStore({
+    name: "Manu",
+    address: {
+      address: "",
+      city: "",
+    },
     orgs: [],
-  &rcub;);
+  });
 
   // useStore() can also accept a function to calculate the initial value
-  const state = useStore(() => &lcub;
-    return &lcub;
+  const state = useStore(() => {
+    return {
       value: expensiveInitialValue(),
-    &rcub;;
-  &rcub;);
+    };
+  });
 
   return (
     <div>
-      <div>Counter: &lcub;counter.value&rcub;</div>
-      <Child userData=&lcub;userData&rcub; state=&lcub;state&rcub; />
+      <div>Counter: {counter.value}</div>
+      <Child userData={userData} state={state} />
     </div>
   );
-&rcub;);
+});
 
-function useCounter(step: number) &lcub;
+function useCounter(step: number) {
   // Multiple stores can be created in custom hooks for convenience and composability
-  const counterStore = useStore(&lcub;
+  const counterStore = useStore({
     value: 0,
-  &rcub;);
-  useVisibleTask$(() => &lcub;
+  });
+  useVisibleTask$(() => {
     // Only runs in the client
-    const timer = setInterval(() => &lcub;
+    const timer = setInterval(() => {
       counterStore.value += step;
-    &rcub;, 500);
-    return () => &lcub;
+    }, 500);
+    return () => {
       clearInterval(timer);
-    &rcub;;
-  &rcub;);
+    };
+  });
   return counterStore;
-&rcub;
+}
 ```
 
 ```typescript
@@ -2467,13 +2545,13 @@ A lazy-loadable reference to a component's styles.
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import styles from './code-block.css?inline';
+import styles from "./code-block.css?inline";
 
-export const CmpStyles = component$(() => &lcub;
+export const CmpStyles = component$(() => {
   useStyles$(styles);
 
   return <div>Some text</div>;
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2491,13 +2569,13 @@ A lazy-loadable reference to a component's styles.
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import styles from './code-block.css?inline';
+import styles from "./code-block.css?inline";
 
-export const CmpStyles = component$(() => &lcub;
+export const CmpStyles = component$(() => {
   useStyles$(styles);
 
   return <div>Some text</div>;
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2529,13 +2607,13 @@ A lazy-loadable reference to a component's styles, that is scoped to the compone
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import scoped from './code-block.css?inline';
+import scoped from "./code-block.css?inline";
 
-export const CmpScopedStyles = component$(() => &lcub;
+export const CmpScopedStyles = component$(() => {
   useStylesScoped$(scoped);
 
   return <div>Some text</div>;
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2553,13 +2631,13 @@ A lazy-loadable reference to a component's styles, that is scoped to the compone
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import scoped from './code-block.css?inline';
+import scoped from "./code-block.css?inline";
 
-export const CmpScopedStyles = component$(() => &lcub;
+export const CmpScopedStyles = component$(() => {
   useStylesScoped$(scoped);
 
   return <div>Some text</div>;
-&rcub;);
+});
 ```
 
 ```typescript
@@ -2619,23 +2697,23 @@ useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 <h2 id="usevisibletask_" title="variable - useVisibleTask$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usevisibletask_"><span class="icon icon-link"></span></a>useVisibleTask$</h2>
 
 ```tsx
-const Timer = component$(() => &lcub;
-  const store = useStore(&lcub;
+const Timer = component$(() => {
+  const store = useStore({
     count: 0,
-  &rcub;);
+  });
 
-  useVisibleTask$(() => &lcub;
+  useVisibleTask$(() => {
     // Only runs in the client
-    const timer = setInterval(() => &lcub;
+    const timer = setInterval(() => {
       store.count++;
-    &rcub;, 500);
-    return () => &lcub;
+    }, 500);
+    return () => {
       clearInterval(timer);
-    &rcub;;
-  &rcub;);
+    };
+  });
 
-  return <div>&lcub;store.count&rcub;</div>;
-&rcub;);
+  return <div>{store.count}</div>;
+});
 ```
 
 ```typescript
@@ -2649,23 +2727,23 @@ useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => voi
 <h2 id="usevisibletaskqrl" title="variable - useVisibleTaskQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usevisibletaskqrl"><span class="icon icon-link"></span></a>useVisibleTaskQrl</h2>
 
 ```tsx
-const Timer = component$(() => &lcub;
-  const store = useStore(&lcub;
+const Timer = component$(() => {
+  const store = useStore({
     count: 0,
-  &rcub;);
+  });
 
-  useVisibleTask$(() => &lcub;
+  useVisibleTask$(() => {
     // Only runs in the client
-    const timer = setInterval(() => &lcub;
+    const timer = setInterval(() => {
       store.count++;
-    &rcub;, 500);
-    return () => &lcub;
+    }, 500);
+    return () => {
       clearInterval(timer);
-    &rcub;;
-  &rcub;);
+    };
+  });
 
-  return <div>&lcub;store.count&rcub;</div>;
-&rcub;);
+  return <div>{store.count}</div>;
+});
 ```
 
 ```typescript

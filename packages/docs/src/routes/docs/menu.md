@@ -88,3 +88,5 @@
 - [GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.builder.io/chat)
+- [Community Projects](/community/projects/index.mdx)
+- [Values](/community/values/index.mdx)

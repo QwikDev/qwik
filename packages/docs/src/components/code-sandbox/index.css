@@ -51,6 +51,10 @@
   color: #666;
 }
 
+.slot-container {
+  border-radius: 8px;
+}
+
 .tabs {
   display: flex;
   justify-content: flex-start;

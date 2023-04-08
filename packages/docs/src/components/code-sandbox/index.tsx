@@ -8,8 +8,9 @@ export default component$<{
   url?: string;
   tabs?: string[];
   console?: boolean;
+  maxHeight?: number;
   style?: Record<string, string>;
-}>(({ url, tabs, src, style, console }) => {
+}>(({ url, tabs, src, style, console, maxHeight }) => {
   const activeTab = useSignal(0);
   useStylesScoped$(CSS);
   const state = useContext(GlobalStore);
@@ -28,7 +29,14 @@ export default component$<{
           ))}
         </div>
       )}
-      <Slot name={tabs ? String(activeTab.value) : ''} />
+      <div
+        class="overflow-auto slot-container mb-4"
+        style={{
+          maxHeight: maxHeight ? maxHeight + 'px' : 'none',
+        }}
+      >
+        <Slot name={tabs ? String(activeTab.value) : ''} />
+      </div>
       <div class="browser shadow-xl">
         <div class="bar bg-slate-200 rounded-tl-md rounded-tr-md flex flex-row justify-left px-5 py-2 gap-5">
           <ul>

@@ -5,30 +5,38 @@ import type {
   ServerRequestMode,
   RequestHandler,
   RequestEventCommon,
-  GetData,
+  ResolveValue,
+  QwikSerializer,
 } from './types';
-import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
+import type {
+  ActionInternal,
+  JSONValue,
+  LoadedRoute,
+  LoaderInternal,
+} from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
+import type { ValueOrPromise } from '@builder.io/qwik';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
-const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
-const RequestEvStatus = Symbol('RequestEvStatus');
 const RequestEvRoute = Symbol('RequestEvRoute');
-export const RequestEvAction = Symbol('RequestEvAction');
+export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
-export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
+export const RequestEvSharedActionId = '@actionId';
+export const RequestEvSharedActionFormData = '@actionFormData';
+export const RequestEvSharedNonce = '@nonce';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
-  requestHandlers: RequestHandler<unknown>[],
+  requestHandlers: RequestHandler<any>[],
   trailingSlash = true,
   basePathname = '/',
+  qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
   const { request, platform, env } = serverRequestEv;
@@ -39,6 +47,9 @@ export function createRequestEvent(
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
+  let requestData: Promise<JSONValue | undefined> | undefined = undefined;
+  let locale = serverRequestEv.locale;
+  let status = 200;
 
   const next = async () => {
     routeModuleIndex++;
@@ -62,14 +73,13 @@ export function createRequestEvent(
   const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
     if (typeof statusOrResponse === 'number') {
-      requestEv[RequestEvStatus] = statusOrResponse;
+      status = statusOrResponse;
       const writableStream = requestEv.getWritableStream();
       const writer = writableStream.getWriter();
       writer.write(typeof body === 'string' ? encoder.encode(body) : body);
       writer.close();
     } else {
-      const status = statusOrResponse.status;
-      requestEv[RequestEvStatus] = status;
+      status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
         headers.append(key, value);
       });
@@ -89,15 +99,13 @@ export function createRequestEvent(
 
   const loaders: Record<string, Promise<any>> = {};
 
+  const sharedMap = new Map();
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
-    [RequestEvLocale]: serverRequestEv.locale,
     [RequestEvMode]: serverRequestEv.mode,
-    [RequestEvStatus]: 200,
-    [RequestEvAction]: undefined,
     [RequestEvTrailingSlash]: trailingSlash,
-    [RequestEvBasePathname]: basePathname,
     [RequestEvRoute]: loadedRoute,
+    [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
@@ -108,7 +116,8 @@ export function createRequestEvent(
     query: url.searchParams,
     request,
     url,
-    sharedMap: new Map(),
+    basePathname,
+    sharedMap,
     get headersSent() {
       return writableStream !== null;
     },
@@ -128,9 +137,9 @@ export function createRequestEvent(
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
+    resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
-      const id = loaderOrAction.__qrl.getHash();
+      const id = loaderOrAction.__id;
       if (loaderOrAction.__brand === 'server_loader') {
         if (!(id in loaders)) {
           throw new Error(
@@ -140,33 +149,33 @@ export function createRequestEvent(
       }
 
       return loaders[id];
-    }) as GetData,
+    }) as ResolveValue,
 
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
         check();
-        requestEv[RequestEvStatus] = statusCode;
+        status = statusCode;
         return statusCode;
       }
-      return requestEv[RequestEvStatus];
+      return status;
     },
 
-    locale: (locale?: string) => {
-      if (typeof locale === 'string') {
-        requestEv[RequestEvLocale] = locale;
+    locale: (_locale?: string) => {
+      if (typeof _locale === 'string') {
+        locale = _locale;
       }
-      return requestEv[RequestEvLocale] || '';
+      return locale || '';
     },
 
     error: (statusCode: number, message: string) => {
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.delete('Cache-Control');
       return new ErrorResponse(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {
       check();
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
       if (statusCode > 301) {
@@ -175,9 +184,13 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
+    defer: (returnData) => {
+      return typeof returnData === 'function' ? returnData : () => returnData;
+    },
+
     fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.delete('Cache-Control');
       return {
         failed: true,
@@ -195,6 +208,13 @@ export function createRequestEvent(
       return send(statusCode, html);
     },
 
+    parseBody: async () => {
+      if (requestData !== undefined) {
+        return requestData;
+      }
+      return (requestData = parseRequest(requestEv.request, sharedMap, qwikSerializer));
+    },
+
     json: (statusCode: number, data: any) => {
       headers.set('Content-Type', 'application/json; charset=utf-8');
       return send(statusCode, JSON.stringify(data));
@@ -202,10 +222,14 @@ export function createRequestEvent(
 
     send: send as any,
 
+    isDirty: () => {
+      return writableStream !== null;
+    },
+
     getWritableStream: () => {
       if (writableStream === null) {
         writableStream = serverRequestEv.getWritableStream(
-          requestEv[RequestEvStatus],
+          status,
           headers,
           cookie,
           resolved,
@@ -215,18 +239,22 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return requestEv;
+  return Object.freeze(requestEv);
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  [RequestEvLoaders]: Record<string, Promise<any>>;
-  [RequestEvLocale]: string | undefined;
+  [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvMode]: ServerRequestMode;
-  [RequestEvStatus]: number;
-  [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
-  [RequestEvBasePathname]: string;
   [RequestEvRoute]: LoadedRoute | null;
+  [RequestEvQwikSerializer]: QwikSerializer;
+
+  /**
+   * Check if this request is already written to.
+   *
+   * @returns true, if `getWritableStream()` has already been called.
+   */
+  isDirty(): boolean;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
@@ -237,19 +265,8 @@ export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
 }
 
-export function getRequestBasePathname(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvBasePathname];
-}
-
 export function getRequestRoute(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvRoute];
-}
-export function getRequestAction(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvAction];
-}
-
-export function setRequestAction(requestEv: RequestEventCommon, id: string) {
-  (requestEv as RequestEventInternal)[RequestEvAction] = id;
 }
 
 export function getRequestMode(requestEv: RequestEventCommon) {
@@ -257,3 +274,55 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 }
 
 const ABORT_INDEX = 999999999;
+
+const parseRequest = async (
+  request: Request,
+  sharedMap: Map<string, any>,
+  qwikSerializer: QwikSerializer
+): Promise<JSONValue | undefined> => {
+  const req = request.clone();
+  const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
+  if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
+    const formData = await req.formData();
+    sharedMap.set(RequestEvSharedActionFormData, formData);
+    return formToObj(formData);
+  } else if (type === 'application/json') {
+    const data = await req.json();
+    return data;
+  } else if (type === 'application/qwik-json') {
+    return qwikSerializer._deserializeData(await req.text());
+  }
+  return undefined;
+};
+
+const formToObj = (formData: FormData): Record<string, any> => {
+  // Convert FormData to object
+  // Handle nested form input using dot notation
+  // Handle array input using square bracket notation
+  const obj: any = {};
+  formData.forEach((value, key) => {
+    const keys = key.split('.').filter((k) => k);
+    let current = obj;
+    for (let i = 0; i < keys.length; i++) {
+      let k = keys[i];
+      // Last key
+      if (i === keys.length - 1) {
+        if (k.endsWith('[]')) {
+          k = k.slice(0, -2);
+          current[k] = current[k] || [];
+          current[k].push(value);
+        } else {
+          current[k] = value;
+        }
+      } else {
+        current = current[k] = { ...current[k] };
+      }
+    }
+  });
+  return obj;
+};
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  return types.includes(type);
+}

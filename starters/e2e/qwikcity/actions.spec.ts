@@ -95,6 +95,19 @@ test.describe('actions', () => {
         await page.waitForTimeout(200);
         expect(new URL(page.url()).pathname).toEqual('/qwikcity-test/');
       });
+
+      test('issue with action', async ({ page }) => {
+        const errorMessage = page.locator('#form-error');
+        const username = page.locator('#label-username > input');
+        const code = page.locator('#label-code > input');
+        const submit = page.locator('#submit');
+
+        await username.fill('123');
+        await submit.click();
+        await expect(errorMessage).toHaveText('Invalid username or code');
+        await expect(username).toHaveValue('123');
+        await expect(code).toHaveValue('');
+      });
     });
 
     test.describe('issue2644', () => {
@@ -113,6 +126,20 @@ test.describe('actions', () => {
         await expect(pageUrl.pathname).toBe('/qwikcity-test/issue2644/other/');
 
         await expect(page.locator('#issue2644-list > li')).toHaveText(['AAA', 'BBB']);
+      });
+    });
+
+    test.describe('issue3497', () => {
+      test('should parse formdata', async ({ page }) => {
+        await page.goto('/qwikcity-test/actions/issue3497/');
+        const success = page.locator('#issue3497-success');
+
+        await expect(success).toBeHidden();
+        await page.locator('#issue3497-button').click();
+        await expect(success).toHaveText(
+          '{"credentials":{"username":"user","password":"pass"},"array":["1","2"]}'
+        );
+        await expect(true).toBeTruthy();
       });
     });
   }

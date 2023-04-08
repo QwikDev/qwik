@@ -1,9 +1,9 @@
 import {
   component$,
   implicit$FirstArg,
-  NoSerialize,
+  type NoSerialize,
   noSerialize,
-  QRL,
+  type QRL,
   useTask$,
   SkipRender,
   useSignal,
@@ -88,7 +88,7 @@ export function qwikifyQrl<PROPS extends {}>(
         slotRef,
         hydrationKeys
       );
-      return <RenderOnce>{jsx}</RenderOnce>;
+      return <RenderOnce key={2}>{jsx}</RenderOnce>;
     }
 
     return (

@@ -40,6 +40,18 @@ Before submitting a pull request, consider the following guidelines:
 
 > If you aren't sure your PR is ready, open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
 
+#### ⚠ Troubleshooting PR build issues on CI
+
+Every PR is being automatically merged with `main` before the CI Github actions run.
+That's why if the CI checks aren't passing your PR branch is probably not up to date.
+
+**For non documentation PRs please do the following:**
+
+1. Merge `main` into your PR branch
+2. Run `pnpm api.update`
+3. Run `pnpm build.full`
+4. Commit and push any changes as a result of the above steps
+
 # Getting started
 
 There are several ways to set up your local environment so that you are ready to build, test and contribute to the Qwik project.
@@ -57,8 +69,50 @@ You need to have these tools up and running in your local machine:
 
 #### Steps
 
-- Install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
-- Once installed you will be prompted to reopen the folder in a container. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+- Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
+- Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+
+### Using development container without Dev Containers and VSCode
+
+If you would like to make use of the devlopment container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
+
+- Build development container locally: `cd .devcontainers; docker build -t qwik-container .`
+- Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v $PWD:/home/circleci/project -t qwik-container`
+
+Docker command does:
+
+- Create a new container that is removed once stopped,
+- In daemon mode,
+- With name `qwik-container`,
+- That exposes the ports `3300` and `9229`, and
+- Binds `qwik` project directory to container working directory.
+
+#### Podman extras
+
+> This section is highly influenced by SO answer: https://serverfault.com/a/1075838/352338
+> If you use [Podman](https://podman.io/) instead of Docker as your containers engine, then you need to know the following:
+
+- Container runs as user `circleci` with UID `1001` and GID `1002`.
+- As you are accustomed to using Podman, you will need to append `:Z` to `volumes | -v` parameter so the command becomes:
+
+```bash
+$ subuid_size=65536
+$ subgid_size=65536
+$ container_uid=1001
+$ container_gid=1002
+$ podman run --rm \
+    --user $container_uid:$container_gid \
+    --uidmap=0:1:$container_uid \
+    --uidmap=$((container_uid + 1)):$((container_uid + 1)):$((subuid_size - $container_uid)) \
+    --uidmap=$container_uid:0:1 \
+    --gidmap=0:1:$container_gid \
+    --gidmap=$((container_gid + 1)):$((container_gid + 1)):$((subgid_size - $container_gid)) \
+    --gidmap=$container_gid:0:1 \
+    -d --name qwik-container \
+    -p 3300:3300 -p 9229:9299 \
+    -v .:/home/circleci/project:Z \
+    -t qwik-container
+```
 
 ## Alternative way
 
@@ -214,8 +268,8 @@ More commands can be found in each package's package.json scripts section.
 
 ## Pull Request
 
-- [Open Qwik in Stackblitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
-- Review PR in Stackblitz
+- [Open Qwik in StackBlitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
+- Review PR in StackBlitz
   ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
 ### Committing using "Commitizen":

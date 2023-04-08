@@ -1,5 +1,3 @@
-@import 'prism-themes/themes/prism-dracula.css';
-
 /* latin */
 @font-face {
   font-family: 'Poppins';
@@ -33,13 +31,12 @@
     U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-code[class*='language-'],
-pre[class*='language-'] {
-  font-family: Menlo, Monaco, 'Courier New', monospace;
+.docs article pre code[data-language='tsx'] {
+  font-family: Menlo, Monaco, 'Lucida Console', Consolas, 'Courier New', monospace;
   font-weight: normal;
   font-size: 14px;
   font-feature-settings: 'liga' 0, 'calt' 0;
-  line-height: 18px;
+  line-height: 1.7;
   letter-spacing: 0px;
 }
 
@@ -54,7 +51,7 @@ pre[class*='language-'] {
 
 :root {
   color-scheme: light;
-  --header-height: 118px;
+  --header-height: 80px;
   --builder-bar-height: 56px;
   --panel-toggle-height: 0px;
   --scroll-margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
@@ -64,6 +61,7 @@ pre[class*='language-'] {
   --qwik-light-blue: #daf0ff;
   --qwik-purple: #ac7ef4;
   --qwik-dark-purple: #6000ff;
+  --qwik-dark-purple-bg: #151934;
 
   --bg-color: #ffffff;
   --bg-secondary-color: #f7f8fb;
@@ -95,9 +93,9 @@ pre[class*='language-'] {
   --repl-log-text: #0e201a;
   --repl-border-color: #e3e3e3;
 
-  --tutorial-nav-button-bg-color: var(--bg-color);
-  --tutorial-nav-button-hover-bg-color: var(--qwik-blue);
-  --tutorial-nav-button-text-color: var(--qwik-dark-blue);
+  --tutorial-nav-button-bg-color: var(--qwik-dark-blue);
+  --tutorial-nav-button-hover-bg-color: var(--bg-color);
+  --tutorial-nav-button-text-color: #ffffff;
 
   --examples-header-text-color: #494949;
   --examples-active-bg-color: #e2ebff;
@@ -134,9 +132,6 @@ pre[class*='language-'] {
   --code-border-color: #525252;
   --blockquote-bg-color: #353639;
 
-  --tutorial-nav-button-bg-color: var(--qwik-dark-blue);
-  --tutorial-nav-button-hover-bg-color: var(--bg-color);
-
   --repl-tab-button-hover-bg-color: #ffffff25;
   --repl-tab-button-input-hover-border-color: #c3c1de75;
   --repl-tab-button-input-active-border-color: #d8c2fa;
@@ -144,10 +139,8 @@ pre[class*='language-'] {
   --repl-diagnostics-hover-border-color: rgba(255, 0, 144, 0.46);
   --repl-diagnostics-active-border-color: rgb(255, 0, 144);
   --repl-commands-color: var(--qwik-light-blue);
-  --repl-tab-bg-color: var(--qwik-dark-blue);
+  --repl-tab-bg-color: var(--bg-color);
   --repl-border-color: rgba(255, 255, 255, 0.2);
-
-  --tutorial-nav-button-text-color: #ffffff;
 
   --examples-header-text-color: var(--text-color);
   --examples-active-bg-color: #1d1d1d;
@@ -166,7 +159,8 @@ pre[class*='language-'] {
 @media (max-width: 768px) {
   :root {
     --panel-toggle-height: 56px;
-    --header-height: 80px;
+    --builder-bar-height: 40px;
+    --header-height: 60px;
   }
 }
 
@@ -187,7 +181,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen;
+  @apply antialiased min-h-screen;
 }
 
 @media (max-width: 1023px) {
@@ -278,6 +272,18 @@ body {
   filter: invert(90%) hue-rotate(180deg);
 }
 
+:root[data-theme='dark'] .dark-mode-invert {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
+:root[data-theme='dark'] .dark-mode-hide {
+  display: none !important;
+}
+
+:root[data-theme='light'] .light-mode-hide {
+  display: none !important;
+}
+
 :root[data-theme='dark'] .builder .dark-mode :is(img, iframe, video) {
   filter: invert(100%) hue-rotate(180deg);
 }
@@ -286,4 +292,24 @@ body {
 :root[data-theme='dark'] .builder .csoetdv,
 :root[data-theme='dark'] .builder .cvha93q {
   filter: invert(90%) hue-rotate(180deg);
+}
+
+.purple-bg {
+  background-color: var(--qwik-dark-purple-bg);
+  height: auto;
+}
+
+.purple-bg header.header-container {
+  background-color: var(--qwik-dark-purple-bg);
+}
+
+code .line.line--highlighted {
+  background: rgba(200, 200, 255, 0.1);
+  border-left-color: #60a5fa;
+}
+
+code .word {
+  background: rgba(200, 200, 255, 0.15);
+  padding: 0.25rem;
+  border-radius: 0.25rem;
 }

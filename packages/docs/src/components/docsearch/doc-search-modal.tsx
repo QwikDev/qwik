@@ -1,9 +1,9 @@
 import {
   component$,
-  useRef,
+  useSignal,
   noSerialize,
   useContextProvider,
-  useClientEffect$,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
@@ -49,11 +49,11 @@ export const DocSearchModal = component$(
       searchBox: searchBoxTranslations,
       ...screenStateTranslations
     } = translations;
-    const containerRef = useRef();
-    const modalRef = useRef();
-    const formElementRef = useRef();
-    const dropdownRef = useRef();
-    const inputRef = useRef();
+    const containerRef = useSignal<Element>();
+    const modalRef = useSignal<Element>();
+    const formElementRef = useSignal<Element>();
+    const dropdownRef = useSignal<Element>();
+    const inputRef = useSignal<Element>();
     function saveRecentSearch(item: InternalDocSearchHit) {
       if (disableUserPersonalization) {
         return;
@@ -135,7 +135,7 @@ export const DocSearchModal = component$(
     // TODO:
     // useTrapFocus(containerRef as any);
 
-    useClientEffect$(() => {
+    useVisibleTask$(() => {
       state.favoriteSearches = createStoredSearches<StoredDocSearchHit>({
         key: `__DOCSEARCH_FAVORITE_SEARCHES__${indexName}`,
         limit: 10,
@@ -171,10 +171,10 @@ export const DocSearchModal = component$(
       };
     });
 
-    useClientEffect$(({ track }) => {
-      track(state, 'query');
-      if (dropdownRef.current) {
-        dropdownRef.current.scrollTop = 0;
+    useVisibleTask$(({ track }) => {
+      track(() => state.query);
+      if (dropdownRef.value) {
+        dropdownRef.value.scrollTop = 0;
       }
     });
 
@@ -183,15 +183,15 @@ export const DocSearchModal = component$(
     // keyboard appearing.
     // We therefore need to refresh the autocomplete instance to load all the
     // results, which is usually triggered on focus.
-    useClientEffect$(({ track }) => {
-      const initialQuery = track(state, 'initialQuery');
+    useVisibleTask$(({ track }) => {
+      const initialQuery = track(() => state.initialQuery);
       if (initialQuery && initialQuery.length > 0) {
         onInput?.({
           target: {
             value: initialQuery,
           },
         } as any);
-        if (inputRef.current) {
+        if (inputRef.value) {
           // @ts-ignore
           inputRef.current.focus();
         }
@@ -201,12 +201,12 @@ export const DocSearchModal = component$(
     // We rely on a CSS property to set the modal height to the full viewport height
     // because all mobile browsers don't compute their height the same way.
     // See https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
-    useClientEffect$(() => {
+    useVisibleTask$(() => {
       function setFullViewportHeight() {
-        if (modalRef.current) {
+        if (modalRef.value) {
           const vh = window.innerHeight * 0.01;
           // @ts-ignore
-          modalRef.current.style.setProperty('--docsearch-vh', `${vh}px`);
+          modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
         }
       }
 
@@ -237,7 +237,7 @@ export const DocSearchModal = component$(
         role="button"
         tabIndex={0}
         onMouseDown$={(event) => {
-          if (event.target === containerRef.current) {
+          if (event.target === containerRef.value) {
             onClose$.apply(undefined, []);
           }
         }}

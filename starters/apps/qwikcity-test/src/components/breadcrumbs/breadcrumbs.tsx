@@ -1,14 +1,14 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import { Link, useContent, useLocation, ContentMenu } from '@builder.io/qwik-city';
+import { Link, useContent, useLocation, type ContentMenu } from '@builder.io/qwik-city';
 import styles from './breadcrumbs.css?inline';
 
 export const Breadcrumbs = component$(() => {
   useStyles$(styles);
 
   const { menu } = useContent();
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
-  const breadcrumbs = createBreadcrumbs(menu, pathname);
+  const breadcrumbs = createBreadcrumbs(menu, url.pathname);
   if (breadcrumbs.length === 0) {
     return null;
   }

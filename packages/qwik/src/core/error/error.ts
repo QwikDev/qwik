@@ -62,8 +62,8 @@ export const codeToText = (code: number): string => {
       'props are immutable', // 17
       '<div> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
-      `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called syncronously within the 'component$' function or another 'use' method.
-For more information see: https://qwik.builder.io/docs/components/lifecycle/#use-method-rules`, // 20
+      `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.
+For more information see: https://qwik.builder.io/docs/components/tasks/#use-method-rules`, // 20
       'Container is already paused. Skipping', // 21
       'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead', // 22
       'When rendering directly on top of Document, the root node must be a <html>', // 23
@@ -71,7 +71,7 @@ For more information see: https://qwik.builder.io/docs/components/lifecycle/#use
       'Invalid JSXNode type. It must be either a function or a string. Found:', // 25
       'Tracking value changes can only be done to useStore() objects and component props', // 26
       'Missing Object ID for captured object', // 27
-      'The provided Context reference is not a valid context created by createContext()', // 28
+      'The provided Context reference is not a valid context created by createContextId()', // 28
       '<html> is the root container, it can not be rendered inside a component', // 29
       'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
       'QRLs can not be dynamically resolved, because it does not have a chunk path', // 31

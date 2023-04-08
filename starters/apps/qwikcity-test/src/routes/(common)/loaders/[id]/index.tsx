@@ -1,28 +1,38 @@
 import { component$, Resource } from '@builder.io/qwik';
-import { action$, DocumentHead, Form, Link, loader$, z, zod$ } from '@builder.io/qwik-city';
+import {
+  type DocumentHead,
+  Form,
+  Link,
+  routeLoader$,
+  routeAction$,
+  z,
+  zod$,
+} from '@builder.io/qwik-city';
 import { delay } from '../../actions/login';
 
-export const dateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
+export const useDateLoader = routeLoader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
-export const dependencyLoader = loader$(async ({ params, redirect, json, getData }) => {
-  const formData = await getData(form);
-  await delay(100);
-  if (params.id === 'redirect') {
-    throw redirect(302, '/qwikcity-test/');
-  } else if (params.id === 'redirect-welcome') {
-    throw redirect(302, '/qwikcity-test/loaders/welcome/');
-  } else if (params.id === 'json') {
-    throw json(200, { nu: 42 });
+export const useDependencyLoader = routeLoader$(
+  async ({ params, redirect, json, resolveValue }) => {
+    const formData = await resolveValue(useForm);
+    await delay(100);
+    if (params.id === 'redirect') {
+      throw redirect(302, '/qwikcity-test/');
+    } else if (params.id === 'redirect-welcome') {
+      throw redirect(302, '/qwikcity-test/loaders/welcome/');
+    } else if (params.id === 'json') {
+      throw json(200, { nu: 42 });
+    }
+    return {
+      nu: 42,
+      name: formData?.name ?? params.id,
+    };
   }
-  return {
-    nu: 42,
-    name: formData?.name ?? params.id,
-  };
-});
+);
 
-export const asyncLoader = loader$(async ({ getData }) => {
-  const p1 = getData(dateLoader);
-  const p2 = getData(dependencyLoader);
+export const useAsyncLoader = routeLoader$(async ({ resolveValue }) => {
+  const p1 = resolveValue(useDateLoader);
+  const p2 = resolveValue(useDependencyLoader);
   if (!(p1 instanceof Promise)) {
     throw new Error('Expected date to be a promise');
   }
@@ -44,27 +54,27 @@ export const asyncLoader = loader$(async ({ getData }) => {
   };
 });
 
-export const slowLoader = loader$(async () => {
+export const useSlowLoader = routeLoader$(async () => {
   await delay(500);
   return {
     foo: 123,
   };
 });
 
-export const realDateLoader = loader$(() => {
+export const useRealDateLoader = routeLoader$(() => {
   return [new Date().toISOString()];
 });
 
 export const DateCmp = component$(() => {
-  const date = realDateLoader.use();
+  const date = useRealDateLoader();
   return <p id="real-date">real-date: {date.value[0]}</p>;
 });
 
 export default component$(() => {
-  const date = dateLoader.use();
-  const slow = slowLoader.use();
-  const signal = asyncLoader.use();
-  const action = form.use();
+  const date = useDateLoader();
+  const slow = useSlowLoader();
+  const signal = useAsyncLoader();
+  const action = useForm();
   return (
     <div class="loaders">
       <h1>Loaders</h1>
@@ -114,7 +124,7 @@ export default component$(() => {
   );
 });
 
-export const form = action$(
+export const useForm = routeAction$(
   async (stuff) => {
     return stuff;
   },
@@ -123,10 +133,10 @@ export const form = action$(
   })
 );
 
-export const head: DocumentHead = ({ getData }) => {
-  const date = getData(dateLoader);
-  const dep = getData(dependencyLoader);
-  const action = getData(form);
+export const head: DocumentHead = ({ resolveValue }) => {
+  const date = resolveValue(useDateLoader);
+  const dep = resolveValue(useDependencyLoader);
+  const action = resolveValue(useForm);
   let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;

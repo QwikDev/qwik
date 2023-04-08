@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -17,7 +17,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         state.count = thing.doStuff() + import("./sibling");
     });
 
@@ -33,30 +33,30 @@ export const Child = component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { useClientEffectQrl } from "@builder.io/qwik";
+import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { useStore } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
-export const Child = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
-    useStylesQrl(inlinedQrl('somestring', "Child_component_useStyles_qBZTuFM0160"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+    useStylesQrl(/*#__PURE__*/ inlinedQrl('somestring', "Child_component_useStyles_qBZTuFM0160"));
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useClientEffectQrl(inlinedQrl(()=>{
+    useBrowserVisibleTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
         const [state] = useLexicalScope();
         state.count = thing.doStuff() + import("./sibling");
-    }, "Child_component_useClientEffect_kYRT1iERt9g", [
+    }, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
-    return <div onClick$={inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_elliVSnAiOQ")}>
+    return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_elliVSnAiOQ")}>
 
         </div>;
 }, "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;AAAA,SAAuC,QAAQ,QAAoB,mBAAmB;AACtF,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,wBAAW,IAAM;IAElC,wBAAW;IACX,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB,8BAAiB;;QACb,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAG3C,QACK,IAAI,qBAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;;QAC3C,EAAE;AAEV,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,mBAAmB;AAC5F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW,IAAM;IAElC,sCAAW;IACX,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB,kDAAuB;;QACnB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAG3C,QACK,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;;QAC3C,EAAE;AAEV,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

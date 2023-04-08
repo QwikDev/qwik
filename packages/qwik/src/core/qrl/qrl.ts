@@ -1,6 +1,6 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import { assertQrl, createQRL, emitEvent, getSymbolHash, QRLInternal } from './qrl-class';
+import { assertQrl, createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
 import {
   qError,
@@ -26,6 +26,9 @@ const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 const announcedQRL = /*@__PURE__*/ new Set<string>();
 
+/**
+ * @public
+ */
 export interface QRLDev {
   file: string;
   lo: number;
@@ -46,7 +49,7 @@ export interface QRLDev {
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
  * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @alpha
+ * @public
  */
 // </docs>
 export const qrl = <T = any>(
@@ -129,7 +132,7 @@ export const qrlDEV = <T = any>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
-  newQrl.$dev$ = opts;
+  newQrl.dev = opts;
   return newQrl;
 };
 
@@ -143,7 +146,7 @@ export const inlinedQrlDEV = <T = any>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  qrl.$dev$ = opts;
+  qrl.dev = opts;
   return qrl;
 };
 
@@ -161,7 +164,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const platform = getPlatform();
 
   if (platform) {
-    const result = platform.chunkForSymbol(refSymbol);
+    const result = platform.chunkForSymbol(refSymbol, chunk);
     if (result) {
       chunk = result[1];
       if (!qrl.$refSymbol$) {
@@ -258,4 +261,15 @@ export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
     assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
     return obj;
   }));
+};
+
+/**
+ * @internal
+ */
+export const _regSymbol = (symbol: any, hash: string) => {
+  if (typeof (globalThis as any).__qwik_reg_symbols === 'undefined') {
+    (globalThis as any).__qwik_reg_symbols = new Map<string, any>();
+  }
+  (globalThis as any).__qwik_reg_symbols.set(hash, symbol);
+  return symbol;
 };

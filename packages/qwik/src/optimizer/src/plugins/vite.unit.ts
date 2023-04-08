@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
 import { qwikVite } from './vite';
 import type { OptimizerOptions } from '../types';
-import type { OutputOptions } from 'rollup';
+import type { Rollup } from 'vite';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { normalizePath } from '../../../testing/util';
@@ -46,7 +46,7 @@ vite('command: serve, mode: development', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   equal(opts.target, 'client');
   equal(opts.buildMode, 'development');
@@ -66,7 +66,9 @@ vite('command: serve, mode: development', async () => {
   equal(c.optimizeDeps?.exclude, excludeDeps);
 
   equal(c.esbuild, false);
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: serve, mode: production', async () => {
@@ -78,7 +80,7 @@ vite('command: serve, mode: production', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   equal(opts.target, 'client');
   equal(opts.buildMode, 'production');
@@ -99,7 +101,9 @@ vite('command: serve, mode: production', async () => {
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, false);
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: build, mode: development', async () => {
@@ -111,7 +115,7 @@ vite('command: build, mode: development', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   equal(opts.target, 'client');
   equal(opts.buildMode, 'development');
@@ -135,7 +139,9 @@ vite('command: build, mode: development', async () => {
     logLevel: 'error',
     jsx: 'automatic',
   });
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: build, mode: production', async () => {
@@ -147,7 +153,7 @@ vite('command: build, mode: production', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   equal(opts.target, 'client');
   equal(opts.buildMode, 'production');
@@ -172,7 +178,9 @@ vite('command: build, mode: production', async () => {
     logLevel: 'error',
     jsx: 'automatic',
   });
-  equal(c.ssr, undefined);
+  equal(c.ssr, {
+    noExternal: [],
+  });
 });
 
 vite('command: build, --mode production (client)', async () => {
@@ -210,11 +218,11 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);

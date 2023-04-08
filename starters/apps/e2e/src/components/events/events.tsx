@@ -1,4 +1,4 @@
-import { component$, useStore, PropFunction } from '@builder.io/qwik';
+import { component$, useStore, type PropFunction } from '@builder.io/qwik';
 
 export const Events = component$(() => {
   const store = useStore({

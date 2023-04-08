@@ -1,7 +1,15 @@
 [
   {
+    "href": "https://wope.com/",
+    "tags": "sass"
+  },
+  {
     "href": "https://www.builder.io/",
     "tags": "saas"
+  },
+  {
+    "href": "https://jose-aguilar.vercel.app/",
+    "tags": "portfolio"
   },
   {
     "href": "https://shaunchander.me",
@@ -71,6 +79,10 @@
     "tags": "portfolio"
   },
   {
+    "href": "https://www.blackflag.dev/",
+    "tags": "site"
+  },
+  {
     "href": "https://qwik.builder.io",
     "tags": "site",
     "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
@@ -106,5 +118,17 @@
   {
     "href": "https://tatbiqit.com/",
     "tags": "company"
+  },
+  {
+    "href": "https://keyboardz.co/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://travelcalc.pages.dev",
+    "tags": "app"
+  },
+  {
+    "href": "https://upester.com",
+    "tags": "app"
   }
 ]

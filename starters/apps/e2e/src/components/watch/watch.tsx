@@ -1,15 +1,16 @@
 /* eslint-disable */
 import {
   component$,
-  useServerMount$,
   useTask$,
   useStore,
   useSignal,
-  Signal,
-  createContext,
+  type Signal,
+  createContextId,
   useContext,
   useContextProvider,
+  $,
 } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 
 interface State {
   count: number;
@@ -29,8 +30,10 @@ export const Watch = component$(() => {
     server: '',
   });
 
-  useServerMount$(() => {
-    store.server = 'comes from server';
+  useTask$(() => {
+    if (isServer) {
+      store.server = 'comes from server';
+    }
   });
 
   // This watch should be treeshaken
@@ -47,7 +50,7 @@ export const Watch = component$(() => {
 
   // Debouncer watch
   useTask$(({ track }) => {
-    const doubleCount = track(store, 'doubleCount');
+    const doubleCount = track(() => store.doubleCount);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
     }, 2000);
@@ -70,6 +73,7 @@ export const WatchShell = component$(({ store }: { nav: any; store: State }) => 
         +
       </button>
       <Issue1766Root />
+      <Issue2972 />
     </div>
   );
 });
@@ -91,7 +95,7 @@ export const GrandChild = component$((props: { state: State }) => {
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContext<{ value: string }>('link-path');
+export const LinkPath = createContextId<{ value: string }>('link-path');
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({
@@ -180,5 +184,22 @@ export const Link = component$((props: { href: string }) => {
     >
       Navigate
     </button>
+  );
+});
+
+export function foo(this: any) {
+  return this.value;
+}
+
+export const Issue2972 = component$(() => {
+  const message = useSignal('');
+  useTask$(async () => {
+    message.value = await $(foo).apply({ value: 'passed' });
+  });
+
+  return (
+    <>
+      <div id="issue-2972">{message.value}</div>
+    </>
   );
 });

@@ -1,0 +1,285 @@
+---
+title: Qwik City - routeAction$()
+contributors:
+  - manucorporat
+  - cunzaizhuyi
+  - forresst
+  - keuller
+  - hamatoyogi
+---
+
+# `routeAction$()`
+
+Actions are similar to [loaders](/docs/(qwikcity)/route-loader/index.mdx) but they are not executed during rendering. Instead, they are executed when called explicitly, ie they run after some user interaction, such as a click or a form submission.
+
+## Declaring an action
+
+Actions can be declared using the `routeAction$()` or `globalAction$()`. Essencially, the do the same thing and share exactly the same API, the only difference between the two is that `routeAction$()` is scoped to a route, while `globalAction$()` is globally available across the whole app.
+
+- `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
+
+```tsx title="src/routes/form/index.tsx"
+export const useChangePassword = routeAction$((data) => {
+  // ...
+});
+```
+
+- `globalAction$()` however, can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user. Think about it like a "public" action.
+
+```tsx title="src/components/login/login.tsx"
+export const useLogin = globalAction$((data) => {
+  // ...
+});
+```
+
+> We recommend starting with `routeAction$()` and only use `globalAction$()` when you need to share an action across multiple routes, or if you wish to use the action in a component that is not a route.
+
+## Using an action
+
+Actions are referenced using the `.use()` method from within a Qwik Component. The `use()` method returns `ActionStore` object with methods to trigger the action and get its state.
+
+```tsx title="src/routes/layout.tsx"
+import { component$ } from '@builder.io/qwik';
+import { routeAction$ } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
+});
+
+export default component$(() => {
+  const action = useAddUser();
+  // action.actionPath: string;
+  // action.isRunning: boolean;
+  // action.status?: number;
+  // action.formData: FormData | undefined;
+  // action.value: {success: boolean, userID: string} | undefined;
+  // action.submit: (data: any) => Promise<{success: boolean, userID: string}>;
+
+  return <>{...}</>
+});
+```
+
+> Since actions are not executed during rendering, they can have side effects such as writing to a database, or sending an email. An action only runs when called explicitly.
+
+## Using actions with `<Form/>`
+
+The best way to trigger an action is by using the `<Form/>` component exported in `@builder.io/qwik-city`.
+
+```tsx title="src/routes/index.tsx"
+import { routeAction$, Form } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
+});
+
+export default component$(() => {
+  const action = useAddUser();
+  return (
+    <Form action={action}>
+      <input name="name" />
+      <button type="submit">Add user</button>
+      {action.value?.success && <div>User added successfully</div>}
+    </Form>
+  );
+});
+```
+
+Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript. When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
+
+## Using actions programatically
+
+Actions can also be triggered programatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+
+```tsx title="src/routes/index.tsx"
+import { routeAction$ } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+
+export const useAddUser = routeAction$(async (user) => {
+  const userID = await db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
+});
+
+export default component$(() => {
+  const action = useAddUser();
+  return (
+    <div>
+      <button
+        onClick={async () => {
+          const { value } = await action.submit({ name: 'John' });
+          console.log(value);
+        }}
+      >
+        Add user
+      </button>
+      {action.value?.success && <div>User added successfully</div>}
+    </div>
+  );
+});
+```
+
+In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
+
+### Zod validation
+
+When submitting data to an action by default, the data is not validated.
+
+```tsx title="src/routes/index.tsx"
+import { routeAction$ } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$(async (user) => {
+  // `user` is typed Record<string, any>
+  const userID = await db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
+});
+```
+
+Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `routeAction$()` function.
+
+```tsx title="src/routes/index.tsx"
+import { routeAction$, zod$, z } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$(
+  async (user) => {
+    // `user` is typed { name: string }
+    const userID = await db.users.add(user);
+    return {
+      success: true,
+      userID,
+    };
+  },
+  zod$({
+    name: z.string(),
+  })
+);
+```
+
+When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.fail` property.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$(
+  async (user) => {
+    // `user` is typed { name: string }
+    const userID = await db.users.add(user);
+    return {
+      success: true,
+      userID,
+    };
+  },
+  zod$({
+    name: z.string(),
+  })
+);
+
+export default component$(() => {
+  const action = useAddUser();
+  return (
+    <Form action={action}>
+      <input name="name" />
+      {action.value?.failed && <div>{action.value.fieldErrors?.name}</div>}
+      {action.value?.success && <div>User added successfully</div>}
+      <button type="submit">Add user</button>
+    </Form>
+  );
+});
+```
+
+Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
+
+## Action Failures
+
+In order to return non-success values, the action must use the `fail()` method.
+
+```tsx
+import { routeAction$, zod$, z } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$(
+  async (user, { fail }) => {
+    // `user` is typed { name: string }
+    const userID = await db.users.add(user);
+    if (!userID) {
+      return fail(500, {
+        message: 'User could not be added',
+      });
+    }
+    return {
+      userID,
+    };
+  },
+  zod$({
+    name: z.string(),
+  })
+);
+```
+
+Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object according to properties defined in your Zod schema.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const action = useAddUser();
+  return (
+    <Form action={action}>
+      <input name="name" />
+      <button type="submit">Add user</button>
+      {action.value?.failed && <div>{action.value.fieldErrors.name}</div>}
+      {action.value?.userID && <div>User added successfully</div>}
+    </Form>
+  );
+});
+```
+
+Thanks to Typescript type discrimination, you can use the `action.value.failed` property to discriminate between success and failure.
+
+## Previous form state
+
+When an action is triggered, the previous state is stored in the `action.formData` property. This is useful to display a loading state while the action is running.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
+
+export const useAddUser = routeAction$(
+  async (user) => {
+    // `user` is typed { name: string }
+    const userID = await db.users.add(user);
+    return {
+      userID,
+    };
+  },
+  zod$({
+    name: z.string(),
+  })
+);
+
+export default component$(() => {
+  const action = useAddUser();
+  return (
+    <Form action={action}>
+      <input name="name" value={action.formData?.get('name')} />
+      <button type="submit">Add user</button>
+    </Form>
+  );
+});
+```
+
+The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, allowing to have a full SPA experience, even with JS disabled.

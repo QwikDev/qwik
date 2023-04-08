@@ -1,0 +1,158 @@
+---
+title: Qwik City - routeLoader$()
+contributors:
+  - manucorporat
+---
+
+# `routeLoader$()`
+
+Route Loaders allow data to flow from the server to the Qwik Components. For this reason, Qwik routeLoaders should be always understood in the context of **loading data in the server that is later consumed by a Qwik Component**, if you want to create a RESTful endpoint, please check the [Endpoints](/docs/(qwikcity)/endpoints/index.mdx) guide instead.
+
+They behave like RPC server-side functions that can be invoked by Qwik Components during rendering.
+
+## Declaring a loader
+
+Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
+
+```tsx title="src/routes/layout.tsx"
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../products');
+  const product = await res.json();
+  return product;
+});
+```
+
+> `routeLoader$`s are not endpoints, it's an internal communication channel between the server and the Qwik Components. Also, `routeLoader$`s must return a JSON serializable value.
+
+## Using a `routeLoader$`
+
+`routeLoader$`s can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
+
+```tsx title="src/routes/index.tsx"
+import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
+  return product;
+});
+
+export default component$(() => {
+  // Retrieve a reactive signal of the loader data
+  const signal = useProductData(); // Signal<Product>
+  return <div>Product name: {signal.value.product.name}</div>;
+});
+```
+
+> It may appear that `useProductData()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useProductData` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useProductData()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
+
+## Multiple `routeLoader$`s
+
+Multiple `routeLoader$`s are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple `routeLoader$`s in the same file**.
+
+
+```tsx title="src/routes/layout.tsx"
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import { Footer } from '../components/footer.tsx';
+
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
+  return product;
+});
+
+export default component$(() => {
+  const signal = useProductData();
+  return (
+    <main>
+      <Slot />
+      <Footer />
+    </main>
+  );
+});
+```
+
+```tsx title="src/components/footer.tsx"
+import { component$ } from '@builder.io/qwik';
+
+// Import the loader from the layout
+import { useProductData } from '../routes/layout.tsx';
+
+export const Footer = component$(() => {
+  // Consume the loader data
+  const signal = useProductData();
+  return <footer>Product name: {signal.value.product.name}</footer>;
+});
+```
+
+The above example shows using `useProductData()` in two different components across different files. This is intentional behavior.
+
+```tsx title="src/routes/admin/index.tsx"
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useLoginStatus = routeLoader$(async ({cookie}) => {
+  return {
+    isUserLoggedIn: checkCookie(cookie);
+  }
+});
+
+export const useCurrentUser = routeLoader$(async ({cookie}) => {
+  return {
+    user: currentUserFromCookie(cookie);
+  }
+});
+
+export default component$(() => {
+  const loginStatus = useLoginStatus();
+  const currentUser = useCurrentUser();
+  return (
+    <section>
+      <h1>Admin</h1>
+      {loginStatus.value.isUserLoggedIn ? (
+        <p>Welcome {currentUser.value.user.name}</p>
+      ) : (
+        <p>You are not logged in</p>
+      )}
+    </section>
+  );
+});
+```
+
+The above example shows two `routeLoader$`s being used in the same file. A generic `useLoginStatus` loader is used to check if the user is logged in, and a more specific `useCurrentUser` loader is used to retrieve the user data.
+
+## routeLoader context
+
+Just like request handlers such as `onRequest` and `onGet`, `routeLoader$`s have access to the `RequestEvent` object which includes information about the current request.
+
+This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
+
+```tsx
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useProductRecommendations = routeLoader$(
+  async ({ headers, cookie, url, method, params }) => {
+    console.log('Request headers:', headers);
+    console.log('Request cookies:', cookie);
+    console.log('Request url:', url);
+    console.log('Request method:', method);
+    console.log('Request params:', params);
+
+    // Use request details to fetch personalized data
+    const res = fetch(`https://.../recommendations?user=${params.user}`);
+    const products = (await res.json()) as Product[];
+
+    return products;
+  }
+);
+```
+
+## When to use a routeLoader?
+
+A routeLoader should be used when you need to provide some server-side data to your Qwik Components. For example, if you need to fetch some data from a database or an API, you can use a routeLoader to do that.
+
+You should not use a routeLoader to create a REST API, for that you’d be better off using an [Endpoint](/docs/(qwikcity)/endpoints/index.mdx), which allows you to have tight control over the response headers and body.

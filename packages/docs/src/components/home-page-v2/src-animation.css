@@ -1,0 +1,149 @@
+.sticky {
+  position: sticky;
+  bottom: 100px;
+  z-index: 1;
+  width: 100%;
+  background-color: black;
+}
+ul.layers {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+li.layer {
+  display: block;
+  position: absolute;
+  top: 0;
+  margin: 0;
+  transform-style: preserve-3d;
+  width: 630px;
+  perspective: 5000px;
+  font-weight: 500;
+}
+li.layer.layer-0 {
+  position: static;
+}
+li.layer > div {
+  padding: 1em;
+}
+li.layer-0 > div {
+  /*background-color: rgb(29, 166, 243, var(--opacity));*/
+  background-color: rgb(15, 83, 172, var(--opacity));
+}
+
+li.layer-1 > div {
+  /*background-color: rgb(220, 220, 220, var(--opacity));*/
+  background-color: rgb(110, 110, 110, var(--opacity));
+}
+
+li.layer-2 > div {
+  /*background-color: rgb(155, 99, 241, var(--opacity));*/
+  background-color: rgb(78, 50, 120, var(--opacity));
+}
+
+li.layer-0 span.layer-0 {
+  background-color: rgb(29, 166, 243, var(--layer-alpha));
+}
+
+li.layer-1 span.layer-1 {
+  background-color: rgb(255, 255, 255, var(--layer-alpha));
+}
+
+li.layer-2 span.layer-2 {
+  background-color: rgb(155, 99, 241, var(--layer-alpha));
+}
+
+#srcOut,
+li.layer {
+  white-space: pre;
+}
+
+.code {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 900;
+}
+
+.code-keyword {
+  color: rgb(29, 166, 243);
+}
+
+.code-brace {
+  color: rgb(254, 209, 11);
+}
+
+.code-ident {
+  color: rgb(141, 211, 254);
+}
+
+.code-misc {
+  color: rgb(202, 202, 202);
+}
+
+.code-decl {
+  color: rgb(70, 137, 204);
+}
+
+.code-string {
+  color: rgb(194, 127, 101);
+}
+
+.code-invocation {
+  color: rgb(212, 214, 153);
+}
+
+.code-type {
+  color: rgb(67, 191, 161);
+}
+
+.code-JSX-element {
+  color: rgb(70, 137, 204);
+}
+
+.code-JSX-brace {
+  color: rgb(109, 109, 109);
+}
+
+.code-JSX-component {
+  color: rgb(66, 187, 157);
+}
+
+.code-JSX-attr {
+  color: rgb(141, 211, 254);
+}
+
+.code-transparent {
+  color: rgb(0, 0, 0, 0);
+}
+
+.callout {
+  margin-top: 10px;
+  width: 300px;
+  padding: 1em;
+  background-color: darkgrey;
+  border-radius: 5px;
+  border: 1px solid black;
+}
+
+.callout:before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  left: 23px;
+  top: -26px;
+  border: 10px solid transparent;
+  border-bottom: 16px solid black; /* IE8 Fallback */
+  border-bottom: 16px solid black;
+  z-index: 2;
+}
+.callout:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  left: 25px;
+  top: -22px;
+  border: 8px solid transparent;
+  border-bottom: 14px solid darkgrey;
+  z-index: 3;
+}

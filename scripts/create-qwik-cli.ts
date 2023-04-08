@@ -1,4 +1,4 @@
-import { BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
+import { type BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'node:path';
 import { getBanner, readdir, watcher, run } from './util';
@@ -114,7 +114,7 @@ export async function publishCreateQwikCli(
 export async function copyStartersDir(
   config: BuildConfig,
   distCliDir: string,
-  typeDirs: ('apps' | 'features' | 'adaptors')[]
+  typeDirs: ('apps' | 'features' | 'adapters')[]
 ) {
   const distStartersDir = join(distCliDir, 'starters');
   try {

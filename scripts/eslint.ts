@@ -1,4 +1,4 @@
-import { BuildConfig, copyFile, watcher, run, nodeTarget } from './util';
+import { type BuildConfig, copyFile, watcher, run, nodeTarget } from './util';
 import { join } from 'node:path';
 import { build } from 'esbuild';
 import { readPackageJson, writePackageJson } from './package-json';

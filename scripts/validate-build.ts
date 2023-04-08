@@ -1,4 +1,4 @@
-import { BuildConfig, PackageJSON, panic } from './util';
+import { type BuildConfig, type PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -196,6 +196,7 @@ async function validateModuleTreeshake(
   const bundle = await rollup({
     input: virtualInputId,
     treeshake: true,
+    external: ['@builder.io/qwik/build'],
     plugins: [
       {
         name: 'resolver',
@@ -227,7 +228,7 @@ async function validateModuleTreeshake(
 
   if (outputCode !== '') {
     console.log(outputCode);
-    throw new Error(`🧨  Not all code was not treeshaken (treeshooken? treeshaked?)`);
+    throw new Error(`🧨  Unable to treeshake everything!`);
   }
 
   console.log(`🌳  validated treeshake`);

@@ -131,7 +131,9 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
     lastIdx = idx;
   }
   function insertScopingSelector(idx: number) {
-    if (mode === pseudoGlobal || shouldNotInsertScoping()) return;
+    if (mode === pseudoGlobal || shouldNotInsertScoping()) {
+      return;
+    }
 
     flush(idx);
     out.push('.', ComponentStylesPrefixContent, scopeId);

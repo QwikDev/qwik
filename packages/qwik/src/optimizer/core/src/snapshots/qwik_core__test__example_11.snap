@@ -57,7 +57,7 @@ import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
 
@@ -65,7 +65,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,0FAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,wGAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -90,11 +90,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 import { Header } from "./project/test";
 import { foo } from "./state";
 export const App_component_wGkRHWXaqjs = ()=>{
-    return <Header >{foo()}</Header>;
+    return <Header>{foo()}</Header>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,SAAQ,QAAQ;AAEzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,QAAQ,QAAQ;AAEzB\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -118,11 +118,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,gFAMnB;AAEH,OAAO,MAAM,oBAAM,6EAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8FAMnB;AAEH,OAAO,MAAM,oBAAM,2FAIhB\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";

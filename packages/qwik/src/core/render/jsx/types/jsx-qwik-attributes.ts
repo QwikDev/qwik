@@ -1,6 +1,5 @@
 import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
-import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikAnimationEvent,
@@ -177,7 +176,7 @@ export type ClassList = BaseClassList | BaseClassList[];
 export interface QwikProps<T> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Signal<Element | undefined> | ((el: Element) => void) | undefined;
 
   /**
    *
@@ -242,7 +241,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
  * @public
  */
 export interface ComponentBaseProps {
-  key?: string | number;
+  key?: string | number | null | undefined;
   'q:slot'?: string;
 }
 
@@ -259,6 +258,7 @@ export type JSXChildren =
   | RegExp
   | JSXChildren[]
   | Promise<JSXChildren>
+  | Signal<JSXChildren>
   | JSXNode;
 
 /**
@@ -266,5 +266,5 @@ export type JSXChildren =
  */
 export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
-  key?: string | number;
+  key?: string | number | null | undefined;
 }

@@ -24,7 +24,7 @@ import { updateBuildContext } from '../build';
 import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp } from '../../middleware/node/http';
+import { fromNodeHttp, getUrl } from '../../middleware/node/http';
 import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
 
@@ -58,7 +58,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+      const url = getUrl(req);
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
@@ -77,6 +77,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
+        const { _deserializeData, _serializeData, _verifySerializable } =
+          await server.ssrLoadModule('@qwik-serializer');
+        const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+
         // use vite to dynamically load each layout/page module in this route's hierarchy
 
         const serverPlugins: RouteModule[] = [];
@@ -115,6 +119,11 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestEv.headers.forEach((value, key) => {
               res.setHeader(key, value);
             });
+
+            const cookieHeaders = requestEv.cookie.headers();
+            if (cookieHeaders.length > 0) {
+              res.setHeader('Set-Cookie', cookieHeaders);
+            }
 
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
@@ -160,13 +169,17 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
+          if (ctx.opts.platform) {
+            serverRequestEv.platform = ctx.opts.platform;
+          }
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
             ctx.opts.trailingSlash,
-            ctx.opts.basePathname
+            ctx.opts.basePathname,
+            qwikSerializer
           );
           const result = await completion;
           if (result != null) {

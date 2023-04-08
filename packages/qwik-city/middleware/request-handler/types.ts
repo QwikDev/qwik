@@ -3,13 +3,14 @@ import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export interface EnvGetter {
   get(key: string): string | undefined;
 }
 
 /**
- * @alpha
+ * @public
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = any> {
@@ -23,12 +24,12 @@ export interface ServerRequestEvent<T = any> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type ServerRequestMode = 'dev' | 'static' | 'server';
 
 /**
- * @alpha
+ * @public
  */
 export type ServerResponseHandler<T = any> = (
   status: number,
@@ -39,7 +40,7 @@ export type ServerResponseHandler<T = any> = (
 ) => WritableStream<Uint8Array>;
 
 /**
- * @alpha
+ * @public
  */
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
@@ -47,14 +48,14 @@ export interface ServerRenderOptions extends RenderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
-export type RequestHandler<PLATFORM = unknown> = (
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (
   ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
 
 /**
- * @alpha
+ * @public
  */
 export interface SendMethod {
   (statusCode: number, data: any): AbortMessage;
@@ -64,9 +65,10 @@ export interface SendMethod {
 export type RedirectCode = 301 | 302 | 303 | 307 | 308;
 
 /**
- * @alpha
+ * @public
  */
-export interface RequestEventCommon<PLATFORM = unknown> {
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
+  extends RequestEventBase<PLATFORM> {
   /**
    * HTTP response status code. Sets the status code when called with an
    * argument. Always returns the status code, so calling `status()` without
@@ -128,7 +130,12 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   readonly send: SendMethod;
 
   readonly exit: () => AbortMessage;
+}
 
+/**
+ * @public
+ */
+export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
    * HTTP response headers.
    *
@@ -139,6 +146,8 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   /**
    * HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value.
    * Use the `set()` method to set a response cookie value.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
    */
   readonly cookie: Cookie;
 
@@ -165,6 +174,8 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   /**
    * URL Query Strings (URL Search Params).
    * Use `params` to instead retrieve the route params found in the url pathname.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
    */
   readonly query: URLSearchParams;
 
@@ -172,6 +183,12 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * HTTP request URL.
    */
   readonly url: URL;
+
+  /**
+   * The base pathname of the request, which can be configured at build time.
+   * Defaults to `/`.
+   */
+  readonly basePathname: string;
 
   /**
    * HTTP request information.
@@ -193,10 +210,25 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * the shared map. The shared map is useful for sharing data between request handlers.
    */
   readonly sharedMap: Map<string, any>;
+
+  /**
+   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
+   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+   *
+   * If the `Content-Type` header is not set, it will return `null`.
+   */
+  readonly parseBody: () => Promise<unknown>;
+
+  /**
+   * Convenience method to set the Cache-Control header.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+   */
+  readonly cacheControl: (cacheControl: CacheControl) => void;
 }
 
 /**
- * @alpha
+ * @public
  */
 export type CacheControl =
   | CacheControlOptions
@@ -210,7 +242,7 @@ export type CacheControl =
   | 'private';
 
 /**
- * @alpha
+ * @public
  */
 export interface CacheControlOptions {
   /**
@@ -261,13 +293,11 @@ export interface CacheControlOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
   readonly exited: boolean;
-  readonly cacheControl: (cacheControl: CacheControl) => void;
-
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
@@ -277,38 +307,50 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
   readonly next: () => Promise<void>;
 }
 
+declare global {
+  interface QwikCityPlatform {}
+}
+
 /**
- * @alpha
+ * @public
  */
-export interface RequestEventAction<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+export interface RequestEventAction<PLATFORM = QwikCityPlatform>
+  extends RequestEventCommon<PLATFORM> {
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventAction<PLATFORM> {
-  getData: GetData;
+export type DeferReturn<T> = () => Promise<T>;
+
+/**
+ * @public
+ */
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
+  extends RequestEventAction<PLATFORM> {
+  resolveValue: ResolveValue;
+  defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface GetData {
+export interface ResolveValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
-  <T>(loader: Action<T>): Promise<T | undefined>;
+  <T>(action: Action<T>): Promise<T | undefined>;
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface GetSyncData {
+export interface ResolveSyncValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
   <T>(action: Action<T>): Awaited<T> | undefined;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface Cookie {
   /**
@@ -338,12 +380,12 @@ export interface Cookie {
 }
 
 /**
- * @alpha
+ * @public
  */
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
- * @alpha
+ * @public
  */
 export interface CookieOptions {
   /**
@@ -384,7 +426,7 @@ export interface CookieOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface CookieValue {
   value: string;
@@ -393,7 +435,16 @@ export interface CookieValue {
 }
 
 /**
- * @alpha
+ * @public
+ */
+export interface QwikSerializer {
+  _deserializeData: typeof _deserializeData;
+  _serializeData: typeof _serializeData;
+  _verifySerializable: typeof _verifySerializable;
+}
+
+/**
+ * @public
  */
 export type HttpMethod =
   | 'GET'

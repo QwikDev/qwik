@@ -1,5 +1,5 @@
 import { component$, useSignal } from '@builder.io/qwik';
-import { action$, zod$, z, Form } from '@builder.io/qwik-city';
+import { zod$, z, Form, globalAction$ } from '@builder.io/qwik-city';
 import styles from './actions.module.css';
 
 export function delay(nu: number) {
@@ -8,7 +8,7 @@ export function delay(nu: number) {
   });
 }
 
-export const secretAction = action$(
+export const useSecretAction = globalAction$(
   async (payload, { fail, redirect }) => {
     if (payload.username === 'admin' && payload.code === 123) {
       await delay(2000);
@@ -26,11 +26,12 @@ export const secretAction = action$(
   zod$({
     username: z.string().min(3).max(10),
     code: z.coerce.number(),
+    button: z.string().startsWith('hello'),
   })
 );
 
 export const SecretForm = component$(() => {
-  const action = secretAction.use();
+  const action = useSecretAction();
   const message = useSignal('');
 
   return (
@@ -74,7 +75,7 @@ export const SecretForm = component$(() => {
             {action.value.secret}
           </p>
         )}
-        <button id="submit" disabled={action.isRunning}>
+        <button value="hello" name="button" id="submit" disabled={action.isRunning}>
           Submit
         </button>
       </Form>
@@ -82,9 +83,10 @@ export const SecretForm = component$(() => {
       <button
         type="button"
         onClick$={async () => {
-          const { value } = await action.run({
+          const { value } = await action.submit({
             username: 'admin',
             code: 123,
+            button: 'hello',
           });
           console.warn(value?.secret);
           message.value = value!.secret!;

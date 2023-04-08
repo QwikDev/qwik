@@ -1,6 +1,7 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
+import { QWIK_MODEL } from '../../constants';
 
 export default component$<{
   apiKey: string;
@@ -9,20 +10,28 @@ export default component$<{
 }>((props) => {
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
-    const query = location.query;
+    const query = location.url.searchParams;
     const render =
       typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
-    const isSDK = render === 'sdk';
+    const contentId =
+      props.model === QWIK_MODEL ? render?.match(/^([\w\d]{32})$/)?.pop() : undefined;
+    const isSDK = render === 'sdk' || !!contentId;
     cache('immutable');
     if (isSDK) {
       return getCachedValue(
         {
           model: props.model!,
           apiKey: props.apiKey!,
-          options: getBuilderSearchParams(location.query),
+          options: getBuilderSearchParams(query),
           userAttributes: {
-            urlPath: location.pathname,
+            urlPath: location.url.pathname,
+            site: 'qwik.builder.io',
           },
+          ...(contentId && {
+            query: {
+              id: contentId,
+            },
+          }),
         },
         getContent
       );
@@ -31,7 +40,7 @@ export default component$<{
         {
           apiKey: props.apiKey,
           model: props.model,
-          urlPath: location.pathname,
+          urlPath: location.url.pathname,
         },
         getBuilderContent
       );
@@ -70,12 +79,8 @@ export function getCachedValue<T>(
   });
   const cacheValue = CACHE.get(keyString);
   if (cacheValue && cacheValue.timestamp + cacheTime > now) {
-    // eslint-disable-next-line no-console
-    isDev && console.log('cache hit', keyString);
     return cacheValue.content;
   } else {
-    // eslint-disable-next-line no-console
-    isDev && console.log('cache miss', keyString);
     const content = factory(key);
     CACHE.set(keyString, { timestamp: now, content });
     return content;
@@ -110,5 +115,5 @@ export async function getBuilderContent({
     const content: BuilderContent = JSON.parse(await response.text());
     return content;
   }
-  throw new Error('Unable to load Builder content');
+  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
 }

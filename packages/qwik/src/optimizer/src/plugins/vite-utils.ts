@@ -1,21 +1,10 @@
 import type { OptimizerSystem } from '../types';
 
-export const filterStack = (stack: string, offset: number = 0) => {
-  return stack
-    .split('\n')
-    .slice(offset)
-    .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'))
-    .join('\n');
-};
-
 export async function formatError(sys: OptimizerSystem, e: Error) {
   const err = e as any;
   let loc = err.loc;
 
   if (!err.frame && !err.plugin) {
-    if (typeof e.stack === 'string') {
-      e.stack = filterStack(e.stack);
-    }
     if (!loc) {
       loc = findLocation(err);
     }
@@ -46,12 +35,15 @@ export interface Loc {
 export const findLocation = (e: Error): Loc | undefined => {
   const stack = e.stack;
   if (typeof stack === 'string') {
-    const lines = stack.split('\n');
+    const lines = stack
+      .split('\n')
+      .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'));
+
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].replace('file:///', '/');
       if (/^\s+at/.test(line)) {
         const start = line.indexOf('/');
-        const end = line.indexOf(')', start);
+        const end = line.lastIndexOf(')', start);
         if (start > 0) {
           const path = line.slice(start, end);
           const parts = path.split(':');
@@ -98,9 +90,14 @@ const range: number = 2;
 
 export function posToNumber(
   source: string,
-  pos: number | { line: number; column: number }
+  pos: number | { line: number; column: number; lo: number }
 ): number {
-  if (typeof pos === 'number') return pos;
+  if (typeof pos === 'number') {
+    return pos;
+  }
+  if (pos.lo != null) {
+    return pos.lo;
+  }
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
@@ -112,7 +109,7 @@ export function posToNumber(
 
 export function generateCodeFrame(
   source: string,
-  start: number | { line: number; column: number } = 0,
+  start: number | { line: number; column: number; lo: number } = 0,
   end?: number
 ): string {
   start = posToNumber(source, start);
@@ -124,7 +121,9 @@ export function generateCodeFrame(
     count += lines[i].length + 1;
     if (count >= start) {
       for (let j = i - range; j <= i + range || end > count; j++) {
-        if (j < 0 || j >= lines.length) continue;
+        if (j < 0 || j >= lines.length) {
+          continue;
+        }
         const line = j + 1;
         res.push(`${line}${' '.repeat(Math.max(3 - String(line).length, 0))}|  ${lines[j]}`);
         const lineLength = lines[j].length;

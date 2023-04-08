@@ -6,8 +6,8 @@ export type {
   Cookie,
   CookieOptions,
   CookieValue,
-  GetData,
-  GetSyncData,
+  ResolveValue,
+  ResolveSyncValue,
   RequestEvent,
   RequestEventLoader,
   RequestEventAction,
@@ -17,4 +17,6 @@ export type {
   ServerRenderOptions,
   ServerRequestEvent,
   ServerResponseHandler,
+  DeferReturn,
+  RequestEventBase,
 } from './types';

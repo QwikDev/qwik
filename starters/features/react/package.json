@@ -1,13 +1,13 @@
 {
   "description": "Use React components into your Qwik app",
   "devDependencies": {
-    "@builder.io/qwik-react": "0.2.1",
-    "@emotion/react": "11.10.4",
-    "@emotion/styled": "11.10.4",
-    "@mui/material": "5.10.10",
-    "@mui/x-data-grid": "5.17.8",
-    "@types/react": "18.0.14",
-    "@types/react-dom": "18.0.5",
+    "@builder.io/qwik-react": "0.5.0",
+    "@emotion/react": "11.10.6",
+    "@emotion/styled": "11.10.6",
+    "@mui/material": "5.11.9",
+    "@mui/x-data-grid": "5.17.24",
+    "@types/react": "18.0.28",
+    "@types/react-dom": "18.0.11",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
@@ -20,10 +20,8 @@
     "nextSteps": {
       "title": "New folders created!",
       "lines": [
-        "",
         " - /src/routes/react: New public route showcasing react integration",
-        " - /src/integrations/react: Here's where react component live",
-        ""
+        " - /src/integrations/react: Here's where the react component lives"
       ]
     },
     "viteConfig": {

@@ -1,0 +1,125 @@
+{
+  "integrations": [
+    {
+      "title": "Qwik/React",
+      "href": "/docs/integrations/react/",
+      "imgSrc": "/ecosystem/react.svg"
+    },
+    {
+      "title": "Partytown",
+      "href": "/docs/integrations/partytown/",
+      "imgSrc": "/ecosystem/partytown.svg"
+    },
+    {
+      "title": "Playwright",
+      "href": "/docs/integrations/playwright/",
+      "imgSrc": "/ecosystem/playwright.svg"
+    },
+    {
+      "title": "PostCSS",
+      "href": "/docs/integrations/postcss/",
+      "imgSrc": "/ecosystem/postcss.svg"
+    },
+    {
+      "title": "Styled-Vanilla-Extract",
+      "href": "/docs/integrations/styled-vanilla-extract/",
+      "imgSrc": "/ecosystem/styled-vanilla-extract.svg"
+    },
+    {
+      "title": "Tailwind",
+      "href": "/docs/integrations/tailwind/",
+      "imgSrc": "/ecosystem/tailwind.svg"
+    },
+    {
+      "title": "Vitest",
+      "href": "/docs/integrations/vitest/",
+      "imgSrc": "/ecosystem/vitest.svg"
+    }
+  ],
+  "deployments": [
+    {
+      "title": "Azure",
+      "href": "/docs/deployments/azure-swa/",
+      "imgSrc": "/ecosystem/azure.svg"
+    },
+    {
+      "title": "Cloudflare",
+      "href": "/docs/deployments/cloudflare-pages/",
+      "imgSrc": "/ecosystem/cloudflare.svg"
+    },
+    {
+      "title": "Google Cloud Run",
+      "href": "/docs/deployments/gcp-cloud-run/",
+      "imgSrc": "/ecosystem/google-cloud.svg"
+    },
+    {
+      "title": "Netlify",
+      "href": "/docs/deployments/netlify-edge/",
+      "imgSrc": "/ecosystem/netlify.svg"
+    },
+    {
+      "title": "Node.js",
+      "href": "/docs/deployments/node/",
+      "imgSrc": "/ecosystem/nodejs.svg"
+    },
+    {
+      "title": "Vercel",
+      "href": "/docs/deployments/vercel-edge/",
+      "imgSrc": "/ecosystem/vercel.svg"
+    }
+  ],
+  "communities": [
+    {
+      "title": "France",
+      "href": "https://www.linkedin.com/groups/14153723/",
+      "imgSrc": "/ecosystem/qwik-france.svg"
+    },
+    {
+      "title": "Israel",
+      "href": "https://www.facebook.com/groups/qwikisrael",
+      "imgSrc": "/ecosystem/qwik-israel.svg"
+    },
+    {
+      "title": "Taiwan",
+      "href": "https://www.facebook.com/groups/836365297555873",
+      "imgSrc": "/ecosystem/qwik-taiwan.svg"
+    },
+    {
+      "title": "London",
+      "href": "https://www.meetup.com/qwik-london/",
+      "imgSrc": "/ecosystem/qwik-london.svg"
+    }
+  ],
+  "social": [
+    {
+      "title": "Twitter",
+      "href": "https://twitter.com/QwikDev",
+      "imgSrc": "/ecosystem/twitter.svg"
+    },
+    {
+      "title": "GitHub",
+      "href": "https://github.com/BuilderIO/qwik",
+      "imgSrc": "/ecosystem/github.svg"
+    },
+    {
+      "title": "Discord",
+      "href": "https://qwik.builder.io/chat",
+      "imgSrc": "/ecosystem/discord.svg"
+    },
+    {
+      "title": "Facebook",
+      "href": "https://www.facebook.com/groups/qwikdevs",
+      "imgSrc": "/ecosystem/facebook.svg"
+    },
+    {
+      "title": "Reddit",
+      "href": "https://www.reddit.com/r/qwik/",
+      "imgSrc": "/ecosystem/reddit.svg"
+    },
+    {
+      "title": "LinkedIn",
+      "href": "https://www.linkedin.com/groups/12677766/",
+      "imgSrc": "/ecosystem/linkedin.svg"
+    }
+  ]
+}

@@ -6,21 +6,16 @@
 
 import type { AzureFunction } from '@azure/functions';
 import type { Context } from '@azure/functions';
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction;
 
-// @alpha (undocumented)
-export interface EventPluginContext extends Context {
+// @public (undocumented)
+export interface PlatformAzure extends Partial<Context> {
 }
 
-// @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions): AzureFunction;
-
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityAzureOptions extends ServerRenderOptions {
 }
 

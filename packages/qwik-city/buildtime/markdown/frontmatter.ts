@@ -65,6 +65,38 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
         if (attrValue != null) {
           if (attrName === 'title') {
             head.title = attrValue.toString();
+            head.title = head.title.replace(/\\@/g, '@');
+          } else if (attrName === 'og' || attrName === 'opengraph') {
+            // set custom open graph property
+            if (typeof attrValue === 'object') {
+              for (const opengraph of Array.isArray(attrValue) ? attrValue : [attrValue]) {
+                if (
+                  opengraph != null &&
+                  typeof opengraph === 'object' &&
+                  !Array.isArray(opengraph)
+                ) {
+                  for (const [property, content] of Object.entries(opengraph)) {
+                    // proxy title & description if value is set to `true`
+                    if ((property === 'title' || property === 'description') && content === true) {
+                      // only proxy property when exists in attrs
+                      if (attrNames.includes(property)) {
+                        (head.meta as DocumentMeta[]).push({
+                          property: `og:${property}`,
+                          content: attrs[property]?.toString(),
+                        });
+                      }
+                    }
+                    // otherwise set custom property and content
+                    else {
+                      (head.meta as DocumentMeta[]).push({
+                        property: `og:${property}`,
+                        content: content?.toString(),
+                      });
+                    }
+                  }
+                }
+              }
+            }
           } else if (metaNames[attrName]) {
             (head.meta as DocumentMeta[]).push({
               name: attrName,

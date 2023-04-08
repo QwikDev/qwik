@@ -19,28 +19,28 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrlDEV } from "@builder.io/qwik";
-import { jsxDEV as _jsxDEV } from "@builder.io/qwik/jsx-dev-runtime";
-export const App = /*#__PURE__*/ componentQrl(inlinedQrlDEV(()=>{
-    return /*#__PURE__*/ _jsxDEV(Cmp, {
-        children: /*#__PURE__*/ _jsxDEV("p", {
+import { _jsxQ } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
+    return /*#__PURE__*/ _jsxC(Cmp, {
+        children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
-            onClick$: inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
+            onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
                 file: "/user/qwik/src/test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
-            }),
-            children: "Hello Qwik"
-        }, void 0, false, {
-            fileName: "/user/qwik/src/test.tsx",
+            })
+        }, "Hello Qwik", 3, null, {
+            fileName: "test.tsx",
             lineNumber: 7,
             columnNumber: 13
-        }, this)
-    }, "u6_0", false, {
-        fileName: "/user/qwik/src/test.tsx",
+        })
+    }, 3, "u6_0", {
+        fileName: "test.tsx",
         lineNumber: 6,
         columnNumber: 9
-    }, this);
+    });
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 90,
@@ -49,7 +49,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,oBAAM,2BAAW,IAAM;IAChC,qBACI,QAAC;kBACG,cAAA,QAAC;YAAE,OAAM;YAAQ,QAAQ,gBAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;sBAAS;;;;;;;;;;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;;;;;;;;;AAGlE;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

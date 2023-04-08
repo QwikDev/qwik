@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, Link, loader$, useLocation } from '@builder.io/qwik-city';
+import { type DocumentHead, Link, routeLoader$, useLocation } from '@builder.io/qwik-city';
 
-export const weatherLoader = loader$(({ params, query }) => {
+export const useWeatherLoader = routeLoader$(({ params, query }) => {
   return {
     city: params.city,
     country: params.country,
@@ -13,7 +13,7 @@ export const weatherLoader = loader$(({ params, query }) => {
 
 export default component$(() => {
   const loc = useLocation();
-  const weather = weatherLoader.use().value;
+  const weather = useWeatherLoader().value;
 
   return (
     <>
@@ -32,8 +32,8 @@ export default component$(() => {
         <code>&deg; </code>
       </p>
       <p>
-        <span>loc.query.get('unit'): </span>
-        <code data-test-params="unit">{loc.query.get('unit') || 'C'}</code>
+        <span>url.url.searchParams.get('unit'): </span>
+        <code data-test-params="unit">{loc.url.searchParams.get('unit') || 'C'}</code>
       </p>
       <p>
         <span>resource weather.forecast: </span>
@@ -53,9 +53,9 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = ({ getData, params, query }) => {
-  const weather = getData(weatherLoader);
-  const forecast = query.get('forecast') || '10day';
+export const head: DocumentHead = ({ resolveValue, params, url }) => {
+  const weather = resolveValue(useWeatherLoader);
+  const forecast = url.searchParams.get('forecast') || '10day';
 
   return {
     title: `Weather: ${weather.country} ${params.city}, ${weather.temperature}${weather.unit}, ${forecast}`,

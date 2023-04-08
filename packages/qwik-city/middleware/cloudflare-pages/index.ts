@@ -2,22 +2,30 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RequestHandler } from '@builder.io/qwik-city';
 import {
   mergeHeadersCookies,
   requestHandler,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   (globalThis as any).TextEncoderStream = TextEncoderStream;
-
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
   async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
@@ -65,10 +73,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
         handledResponse.completion.then((v) => {
-          console.error(v);
+          if (v) {
+            console.error(v);
+          }
         });
         const response = await handledResponse.response;
         if (response) {
@@ -102,12 +112,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface EventPluginContext {
   request: Request;
@@ -117,9 +127,11 @@ export interface EventPluginContext {
 }
 
 /**
- * @alpha
+ * @public
  */
-export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;
+export interface PlatformCloudflarePages {
+  env?: EventPluginContext['env'];
+}
 
 const resolved = Promise.resolve();
 

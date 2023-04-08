@@ -5,22 +5,18 @@
 ```ts
 
 import type { Context } from '@netlify/edge-functions';
-import type { RequestHandler } from '@builder.io/qwik-city';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
 
-// @alpha (undocumented)
-export interface EventPluginContext extends Context {
+// @public (undocumented)
+export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {
 }
-
-// @alpha (undocumented)
-export type RequestHandlerNetlify = RequestHandler<Omit<Context, 'next' | 'cookies'>>;
 
 // (No @packageDocumentation comment for this package)
 

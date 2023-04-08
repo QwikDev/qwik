@@ -19,25 +19,25 @@ export const App = Component((props) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAMhB\"}")
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 export const App_Component_1_A08tXHb9pEk = ()=>{
     const [state] = useLexicalScope();
-    return /*#__PURE__*/ _jsx("div", {
-        children: _wrapSignal(state, "thing")
-    }, "u6_0");
+    return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.thing, [
+        state
+    ], "p0.thing"), 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,KAAC;8BAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -65,7 +65,7 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return qrl(()=>import("./app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
+    return /*#__PURE__*/ qrl(()=>import("./app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };

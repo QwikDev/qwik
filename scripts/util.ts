@@ -18,9 +18,9 @@ import {
   mkdir as fsMkdir,
 } from 'node:fs';
 import { promisify } from 'util';
-import { minify, MinifyOptions } from 'terser';
+import { minify, type MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
-import { execa, Options } from 'execa';
+import { execa, type Options } from 'execa';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -48,6 +48,7 @@ export interface BuildConfig {
   build?: boolean;
   qwikcity?: boolean;
   qwikreact?: boolean;
+  qwikauth?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -168,7 +169,7 @@ export const target = 'es2020';
 export const nodeTarget = 'node14';
 
 /**
- * Helper just to know which NodeJS modules that should stay external.
+ * Helper just to know which Node.js modules that should stay external.
  */
 export const nodeBuiltIns = [
   'assert',

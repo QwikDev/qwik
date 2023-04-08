@@ -1,6 +1,6 @@
 import { getBanner, importPath, nodeTarget, target, watcher } from './util';
-import { build, BuildOptions } from 'esbuild';
-import { BuildConfig, injectGlobalThisPoly, PackageJSON } from './util';
+import { build, type BuildOptions } from 'esbuild';
+import { type BuildConfig, injectGlobalThisPoly, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
@@ -16,6 +16,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
+    external: ['@builder.io/qwik/build'],
     platform: 'node',
     // external: [...nodeBuiltIns],
   };

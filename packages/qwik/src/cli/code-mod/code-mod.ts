@@ -42,7 +42,6 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
           statements.push(
             ts.factory.updateExportAssignment(
               s,
-              s.decorators,
               s.modifiers,
               updateDefineConfig(ts, s.expression, updates)
             )
@@ -226,7 +225,6 @@ function appendImports(
     statements[i] = ts.factory.updateImportDeclaration(
       n,
       undefined,
-      undefined,
       ts.factory.createImportClause(false, defaultIdentifier, namedBindings),
       n.moduleSpecifier,
       undefined
@@ -252,7 +250,6 @@ function appendImports(
     }
 
     const newNamedImport = ts.factory.createImportDeclaration(
-      undefined,
       undefined,
       ts.factory.createImportClause(false, defaultIdentifier, namedBindings),
       ts.factory.createStringLiteral(importPath)

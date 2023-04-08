@@ -58,7 +58,7 @@
 - [Qwik in a nutshell](/docs/(qwikcity)/guides/qwik-nutshell/index.mdx)
 - [Markdown & MDX](/docs/(qwikcity)/guides/mdx/index.mdx)
 - [SSG](/docs/(qwikcity)/guides/static-site-generation/index.mdx)
-- [React Cheat Sheet](/docs/(qwikcity)/guides/qwik-react/index.mdx)
+- [React Cheat Sheet](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx)
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
 
 ## Concepts
@@ -89,3 +89,5 @@
 - [GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.builder.io/chat)
+- [Community Projects](/community/projects/index.mdx)
+- [Values](/community/values/index.mdx)

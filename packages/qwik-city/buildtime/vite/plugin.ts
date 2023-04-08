@@ -1,6 +1,7 @@
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
+import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../context';
@@ -78,6 +79,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     async configResolved(config) {
+      Object.assign(process.env, loadEnv(config.mode, process.cwd(), ''));
       rootDir = resolve(config.root);
 
       const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';

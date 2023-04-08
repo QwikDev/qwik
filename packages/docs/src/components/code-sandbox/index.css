@@ -50,3 +50,21 @@
   text-decoration: none;
   color: #666;
 }
+
+.tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.tab.active {
+  border-radius: 8px 8px 0 0;
+  background-color: var(--repl-tab-bg-color);
+  border-bottom: 2px solid blue;
+}

@@ -18,13 +18,14 @@ export const qwikGPT = server$(async function* (query: string) {
   });
 
   const embeddings = res.data.data[0].embedding;
-  const docs = await supabase.rpc('match_docs_2', {
+  const docs = await supabase.rpc('match_docs_3', {
     query_embedding: embeddings,
     match_count: 5,
-    similarity_threshold: 0.78,
+    similarity_threshold: 0.75,
   });
 
   // Download docs
+  const dataCloned = structuredClone(docs.data);
   try {
     for (const result of docs.data) {
       const commit_hash = result.commit_hash;
@@ -85,7 +86,7 @@ export const qwikGPT = server$(async function* (query: string) {
       .insert({
         query: query,
         embedding: embeddings,
-        results: docs.data,
+        results: dataCloned,
         model,
       })
       .select('id');

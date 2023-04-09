@@ -186,7 +186,7 @@ export const DocSearchModal = component$(
             <div class="DocSearch-Dropdown-Container">
               <section class="DocSearch-Hits">
                 <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">
-                  <AIButton state={state}/>
+                  <AIButton state={state} />
                 </ul>
               </section>
             </div>

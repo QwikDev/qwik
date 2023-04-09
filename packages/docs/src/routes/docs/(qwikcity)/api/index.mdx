@@ -32,16 +32,40 @@ Menus are contextual data declared with `menu.md` files. See [menus file definit
 
 ## `useDocumentHead()`
 
-Use the `useDocumentHead()` function to retrieve the document head metadata.
+Use the `useDocumentHead()` function to read the document [head metadata](/docs/(qwikcity)/pages/index.mdx#head-export).
 
-`useDocumentHead()` retrieves a `DocumentHead` object that will allow you to:
+`useDocumentHead()` retrieves a readonly `DocumentHead` object that includes:
 
-- update the `title` in `<head>`.
-- update the `meta` tags in `<head>`.
-- update the `link` tags in `<head>`.
-- update the `style` tags in `<head>`.
+```ts
+export interface DocumentHead {
+  /**
+   * Represents the `<title>` element of the document.
+   */
+  readonly title?: string;
+  /**
+   * Used to manually set meta tags in the head. Additionally, the `data`
+   * property could be used to set arbitrary data which the `<head>` component
+   * could later use to generate `<meta>` tags.
+   */
+  readonly meta?: readonly DocumentMeta[];
+  /**
+   * Used to manually append `<link>` elements to the `<head>`.
+   */
+  readonly links?: readonly DocumentLink[];
+  /**
+   * Used to manually append `<style>` elements to the `<head>`.
+   */
+  readonly styles?: readonly DocumentStyle[];
+  /**
+   * Arbitrary object containing custom data. When the document head is created from
+   * markdown files, the frontmatter attributes that are not recognized as a well-known
+   * meta names (such as title, description, author, etc...), are stored in this property.
+   */
+  readonly frontmatter?: Readonly<Record<string, any>>;
+}
+```
 
-The `useDocumentHead()` function can be used within a Qwik component, such as `<RouterHead>`, to create the inner elements within `document.head`.
+All starters include a `<RouterHead>` component that is responsible for generating the `<head>` element of the document. It uses the `useDocumentHead()` function to retrieve the current head metadata and render the appropriate `<meta>`, `<link>`, `<style>` and `<title>` elements.
 
 ```tsx title="src/components/router-head/router-head.tsx"
 import { component$ } from '@builder.io/qwik';

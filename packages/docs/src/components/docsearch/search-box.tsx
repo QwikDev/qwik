@@ -21,7 +21,6 @@ interface SearchBoxProps {
 }
 
 export const SearchBox = component$((props: SearchBoxProps) => {
-
   useVisibleTask$(() => {
     if (props.autoFocus) {
       props.inputRef.value?.focus();
@@ -121,7 +120,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
       <button
         class="DocSearch-Cancel"
         type="reset"
-        aria-label='Cancel'
+        aria-label="Cancel"
         onClick$={() => props.onClose$.apply(null, [])}
       >
         Cancel
@@ -130,12 +129,20 @@ export const SearchBox = component$((props: SearchBoxProps) => {
   );
 });
 
-export function getNextActiveItemId(moveAmount: number, baseIndex: number | null, itemCount: number, defaultActiveItemId: number | null) {
+export function getNextActiveItemId(
+  moveAmount: number,
+  baseIndex: number | null,
+  itemCount: number,
+  defaultActiveItemId: number | null
+) {
   if (!itemCount) {
     return null;
   }
 
-  if (moveAmount < 0 && (baseIndex === null || defaultActiveItemId !== null && baseIndex === -1)) {
+  if (
+    moveAmount < 0 &&
+    (baseIndex === null || (defaultActiveItemId !== null && baseIndex === -1))
+  ) {
     return itemCount + moveAmount;
   }
 

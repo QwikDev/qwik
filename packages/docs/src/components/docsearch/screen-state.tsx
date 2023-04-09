@@ -26,15 +26,11 @@ export const ScreenState = component$((props: ScreenStateProps) => {
   const hasCollections = props.state.collections.some((collection) => collection.items.length > 0);
 
   if (!props.state.query) {
-    return (
-      <StartScreen />
-    );
+    return <StartScreen />;
   }
 
   if (hasCollections === false) {
-    return (
-      <NoResultsScreen state={props.state} />
-    );
+    return <NoResultsScreen state={props.state} />;
   }
 
   return <ResultsScreen state={props.state} />;

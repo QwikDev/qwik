@@ -104,46 +104,48 @@ export const Result = component$(
   }
 );
 
-
-export const AIButton = component$(
-  ({ state }: { state: DocSearchState }) => {
-
-    const gpt = useSignal<string>();
-    const ai = -1;
-    return (
-      <>
-        <li
-          role="option"
-          style={{'margin-top': '10px'}}
-          id={`docsearch-item-${ai}`}
-          aria-selected={state.activeItemId === ai ? 'true' : undefined}
-          class="ai-li"
-          onMouseOver$={() => {
-            if (state.activeItemId !== ai) {
-              state.activeItemId = ai;
-            }
-          }}
-        >
-          <div class="ai-button">
-            <button onClick$={() => {
+export const AIButton = component$(({ state }: { state: DocSearchState }) => {
+  const gpt = useSignal<string>();
+  const ai = -1;
+  return (
+    <>
+      <li
+        role="option"
+        style={{ 'margin-top': '10px' }}
+        id={`docsearch-item-${ai}`}
+        aria-selected={state.activeItemId === ai ? 'true' : undefined}
+        class="ai-li"
+        onMouseOver$={() => {
+          if (state.activeItemId !== ai) {
+            state.activeItemId = ai;
+          }
+        }}
+      >
+        <div class="ai-button">
+          <button
+            onClick$={() => {
               gpt.value = state.query;
-            }}>
-              <span>🤖 Ask QwikGPT{state.query === '' ? '...' : (
+            }}
+          >
+            <span>
+              🤖 Ask QwikAI (beta)
+              {state.query === '' ? (
+                '...'
+              ) : (
                 <>
-                  {': '}<strong>{state.query}</strong>
+                  {': '}
+                  <strong>{state.query}</strong>
                 </>
               )}
-              </span>
-            </button>
-            {gpt.value && (
-              <div class="qwikgpt-box">
-                <QwikGPT query={gpt.value}></QwikGPT>
-              </div>
-            )}
-          </div>
-        </li>
-      </>
-
-    );
-  }
-);
+            </span>
+          </button>
+          {gpt.value && (
+            <div class="qwikgpt-box">
+              <QwikGPT query={gpt.value}></QwikGPT>
+            </div>
+          )}
+        </div>
+      </li>
+    </>
+  );
+});

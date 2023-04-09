@@ -1,22 +1,22 @@
-import { component$, useComputed$, useSignal, useTask$ } from "@builder.io/qwik";
-import { qwikGPT, rateResponse } from "./search";
-import { CodeBlock } from "../code-block/code-block";
-import { isBrowser } from "@builder.io/qwik/build";
-import snarkdown from "snarkdown";
+import { component$, useComputed$, useSignal, useTask$ } from '@builder.io/qwik';
+import { qwikGPT, rateResponse } from './search';
+import { CodeBlock } from '../code-block/code-block';
+import { isBrowser } from '@builder.io/qwik/build';
+import snarkdown from 'snarkdown';
 
 const snarkdownEnhanced = (md: string) => {
   const htmls = md
-      .split(/(?:\r?\n){2,}/)
-      .map(l =>
-          [' ', '\t', '#', '-', '*'].some(ch => l.startsWith(ch))
-              ? snarkdown(l)
-              : `<p>${snarkdown(l)}</p>`,
-      )
+    .split(/(?:\r?\n){2,}/)
+    .map((l) =>
+      [' ', '\t', '#', '-', '*'].some((ch) => l.startsWith(ch))
+        ? snarkdown(l)
+        : `<p>${snarkdown(l)}</p>`
+    );
 
-  return htmls.join('\n\n')
-}
+  return htmls.join('\n\n');
+};
 
-export const QwikGPT = component$((props: {query: string}) => {
+export const QwikGPT = component$((props: { query: string }) => {
   const message = useSignal('');
   const done = useSignal(false);
   const id = useSignal<string>();
@@ -24,7 +24,7 @@ export const QwikGPT = component$((props: {query: string}) => {
 
   const process = useComputed$(() => {
     const rawLines = message.value.split('\n');
-    const lines: {type: any, [key: string]: any }[] = [];
+    const lines: { type: any; [key: string]: any }[] = [];
     let insideCode = false;
     let accumulated = '';
     for (const line of rawLines) {
@@ -35,7 +35,7 @@ export const QwikGPT = component$((props: {query: string}) => {
           lines.push({
             type: CodeBlock,
             code: accumulated,
-            language: 'tsx'
+            language: 'tsx',
           });
           accumulated = '';
         } else {
@@ -45,7 +45,7 @@ export const QwikGPT = component$((props: {query: string}) => {
         if (lineParsed.startsWith('```')) {
           lines.push({
             type: 'div',
-            dangerouslySetInnerHTML: snarkdownEnhanced(accumulated)
+            dangerouslySetInnerHTML: snarkdownEnhanced(accumulated),
           });
           accumulated = '';
           insideCode = true;
@@ -58,19 +58,19 @@ export const QwikGPT = component$((props: {query: string}) => {
       lines.push({
         type: CodeBlock,
         code: accumulated,
-        language: 'tsx'
+        language: 'tsx',
       });
     } else {
       lines.push({
         type: 'div',
-        dangerouslySetInnerHTML: snarkdownEnhanced(accumulated)
+        dangerouslySetInnerHTML: snarkdownEnhanced(accumulated),
       });
     }
 
     return lines;
   });
 
-  useTask$(({track}) => {
+  useTask$(({ track }) => {
     const query = track(() => props.query);
     if (isBrowser) {
       const run = async () => {
@@ -84,7 +84,7 @@ export const QwikGPT = component$((props: {query: string}) => {
           }
         }
         done.value = true;
-      }
+      };
       run();
     }
   });
@@ -100,8 +100,12 @@ export const QwikGPT = component$((props: {query: string}) => {
   return (
     <>
       <div>
-        {process.value.map(({type: Type, children, ...rest}, index) => {
-          return <Type key={index} {...rest}>{children}</Type>
+        {process.value.map(({ type: Type, children, ...rest }, index) => {
+          return (
+            <Type key={index} {...rest}>
+              {children}
+            </Type>
+          );
         })}
       </div>
       {done.value && (
@@ -111,18 +115,28 @@ export const QwikGPT = component$((props: {query: string}) => {
           ) : (
             <>
               Help us improve! Rate the answer:
-              <button class="rate-good" onClick$={async () => {
-                rated.value = true;
-                await rateResponse(id.value!, message.value, 1)
-              }}>👍</button>
-              <button class="rate-bad" onClick$={async () => {
-                rated.value = true;
-                await rateResponse(id.value!, message.value, -1)
-              }}>👎</button>
+              <button
+                class="rate-good"
+                onClick$={async () => {
+                  rated.value = true;
+                  await rateResponse(id.value!, message.value, 1);
+                }}
+              >
+                👍
+              </button>
+              <button
+                class="rate-bad"
+                onClick$={async () => {
+                  rated.value = true;
+                  await rateResponse(id.value!, message.value, -1);
+                }}
+              >
+                👎
+              </button>
             </>
           )}
         </div>
       )}
     </>
-  )
+  );
 });

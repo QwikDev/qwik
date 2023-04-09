@@ -49,10 +49,12 @@
   -webkit-touch-callout: none;
 }
 
-:root {
+:root body {
   --docsearch-modal-width: 600px;
   --docsearch-modal-height: 800px;
+}
 
+:root {
   color-scheme: light;
   --header-height: 80px;
   --builder-bar-height: 56px;
@@ -334,7 +336,7 @@ code .word {
   padding: 15px;
 }
 
-.ai-li[aria-selected=true] button {
+.ai-li[aria-selected='true'] button {
   background-color: var(--docsearch-highlight-color);
   color: white;
 }
@@ -413,10 +415,10 @@ code .word {
 
 @keyframes indeterminate-progress-bar {
   from {
-      left: -50%;
+    left: -50%;
   }
   to {
-      left: 100%;
+    left: 100%;
   }
 }
 
@@ -444,5 +446,3 @@ code .word {
   background: #ffc2c2;
   border: 2px solid red;
 }
-
-

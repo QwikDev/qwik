@@ -21,86 +21,88 @@ export function handleSearch(
 
   let q = Promise.resolve([] as any[]);
   if (query) {
-    q = client.search<DocSearchHit>([{
-        query,
-        indexName,
-        params: {
-          attributesToRetrieve: [
-            'hierarchy.lvl0',
-            'hierarchy.lvl1',
-            'hierarchy.lvl2',
-            'hierarchy.lvl3',
-            'hierarchy.lvl4',
-            'hierarchy.lvl5',
-            'hierarchy.lvl6',
-            'content',
-            'type',
-            'url',
-          ],
-          attributesToSnippet: [
-            `hierarchy.lvl1:${snippetLength}`,
-            `hierarchy.lvl2:${snippetLength}`,
-            `hierarchy.lvl3:${snippetLength}`,
-            `hierarchy.lvl4:${snippetLength}`,
-            `hierarchy.lvl5:${snippetLength}`,
-            `hierarchy.lvl6:${snippetLength}`,
-            `content:${snippetLength}`,
-          ],
-          snippetEllipsisText: '…',
-          highlightPreTag: '<mark>',
-          highlightPostTag: '</mark>',
-          hitsPerPage: 20,
-        },
-      },
-    ])
-    .then(({ results }) => {
-      const { hits, nbHits } = results[0];
-      const rawSources = groupBy(hits, (hit) => removeHighlightTags(hit));
-
-      // We store the `lvl0`s to display them as search suggestions
-      // in the "no results" screen.
-      if ((state.context.searchSuggestions as any[]).length < Object.keys(rawSources).length) {
-        state.context.searchSuggestions = Object.keys(rawSources);
-      }
-      state.context.nbHits = nbHits;
-
-      return Object.values<DocSearchHit[]>(rawSources).map((items, index) => {
-        return {
-          sourceId: `hits${index}`,
-          items,
-          getItemUrl: ({ item }: any) => item.url,
-          getItemInputValue: () => {},
-          onSelect: () => {},
-          getItems() {
-            return Promise.all(
-              Object.values(groupBy(items, (item) => item.hierarchy.lvl1)).map((x) => {
-                if (transformItems) {
-                  return transformItems(x);
-                }
-                return x;
-              })
-            ).then((resp) => {
-              return resp
-                .map((groupedHits) =>
-                  groupedHits.map((item: any) => {
-                    return {
-                      ...item,
-                      __docsearch_parent:
-                        item.type !== 'lvl1' &&
-                        groupedHits.find(
-                          (siblingItem: any) =>
-                            siblingItem.type === 'lvl1' &&
-                            siblingItem.hierarchy.lvl1 === item.hierarchy.lvl1
-                        ),
-                    };
-                  })
-                )
-                .flat();
-            });
+    q = client
+      .search<DocSearchHit>([
+        {
+          query,
+          indexName,
+          params: {
+            attributesToRetrieve: [
+              'hierarchy.lvl0',
+              'hierarchy.lvl1',
+              'hierarchy.lvl2',
+              'hierarchy.lvl3',
+              'hierarchy.lvl4',
+              'hierarchy.lvl5',
+              'hierarchy.lvl6',
+              'content',
+              'type',
+              'url',
+            ],
+            attributesToSnippet: [
+              `hierarchy.lvl1:${snippetLength}`,
+              `hierarchy.lvl2:${snippetLength}`,
+              `hierarchy.lvl3:${snippetLength}`,
+              `hierarchy.lvl4:${snippetLength}`,
+              `hierarchy.lvl5:${snippetLength}`,
+              `hierarchy.lvl6:${snippetLength}`,
+              `content:${snippetLength}`,
+            ],
+            snippetEllipsisText: '…',
+            highlightPreTag: '<mark>',
+            highlightPostTag: '</mark>',
+            hitsPerPage: 20,
           },
-        };
+        },
+      ])
+      .then(({ results }) => {
+        const { hits, nbHits } = results[0];
+        const rawSources = groupBy(hits, (hit) => removeHighlightTags(hit));
+
+        // We store the `lvl0`s to display them as search suggestions
+        // in the "no results" screen.
+        if ((state.context.searchSuggestions as any[]).length < Object.keys(rawSources).length) {
+          state.context.searchSuggestions = Object.keys(rawSources);
+        }
+        state.context.nbHits = nbHits;
+
+        return Object.values<DocSearchHit[]>(rawSources).map((items, index) => {
+          return {
+            sourceId: `hits${index}`,
+            items,
+            getItemUrl: ({ item }: any) => item.url,
+            getItemInputValue: () => {},
+            onSelect: () => {},
+            getItems() {
+              return Promise.all(
+                Object.values(groupBy(items, (item) => item.hierarchy.lvl1)).map((x) => {
+                  if (transformItems) {
+                    return transformItems(x);
+                  }
+                  return x;
+                })
+              ).then((resp) => {
+                return resp
+                  .map((groupedHits) =>
+                    groupedHits.map((item: any) => {
+                      return {
+                        ...item,
+                        __docsearch_parent:
+                          item.type !== 'lvl1' &&
+                          groupedHits.find(
+                            (siblingItem: any) =>
+                              siblingItem.type === 'lvl1' &&
+                              siblingItem.hierarchy.lvl1 === item.hierarchy.lvl1
+                          ),
+                      };
+                    })
+                  )
+                  .flat();
+              });
+            },
+          };
+        });
       });
-    });
   }
   return q
     .then((sources) => {

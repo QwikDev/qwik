@@ -1,5 +1,4 @@
 import { server$ } from '@builder.io/qwik-city';
-import { Configuration, OpenAIApi } from 'openai';
 import { createClient } from '@supabase/supabase-js';
 import gpt from './gpt.md?raw';
 
@@ -7,22 +6,20 @@ const files = new Map<string, Promise<string>>();
 
 export const qwikGPT = server$(async function* (query: string) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
-  const configuration = new Configuration({
-    organization: this.env.get('OPENAI_ORG'),
-    apiKey: this.env.get('OPENAI_KEY'),
-  });
-  const openai = new OpenAIApi(configuration);
-  const res = await openai.createEmbedding({
-    input: normalizeLine(query),
-    model: 'text-embedding-ada-002',
-  });
 
-  console.log('searching docs', {
-    organization: this.env.get('OPENAI_ORG'),
-    apiKey: this.env.get('OPENAI_KEY'),
+  const response = await fetch('https://api.openai.com/v1/embeddings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.env.get('OPENAI_KEY')}`,
+    },
+    body: JSON.stringify({
+      input: normalizeLine(query),
+      model: 'text-embedding-ada-002',
+    }),
   });
-
-  const embeddings = res.data.data[0].embedding;
+  const data = await response.json();
+  const embeddings = data.data[0].embedding;
   const docs = await supabase.rpc('match_docs_3', {
     query_embedding: embeddings,
     match_count: 5,
@@ -95,8 +92,14 @@ export const qwikGPT = server$(async function* (query: string) {
         model,
       })
       .select('id');
-    const response = await openai.createChatCompletion(
-      {
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.env.get('OPENAI_KEY')}`,
+      },
+      body: JSON.stringify({
         model: model,
         temperature: 0,
         messages: [
@@ -115,9 +118,8 @@ export const qwikGPT = server$(async function* (query: string) {
           },
         ],
         stream: true,
-      },
-      { responseType: 'stream' }
-    );
+      }),
+    });
 
     const id = (await insert).data?.[0].id as string;
     yield {
@@ -125,9 +127,8 @@ export const qwikGPT = server$(async function* (query: string) {
       content: id,
     };
     let output = '';
-    for await (const chunk of toIterable(response.data)) {
+    for await (const chunk of toIterable(response.body!)) {
       output += chunk;
-      console.log(chunk);
       yield chunk as string;
     }
     await supabase.from('search_output').insert({
@@ -208,12 +209,15 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
   }
 }
 
-async function* toIterable(data: any) {
-  for await (const chunk of data as any) {
-    const lines = chunk
-      .toString('utf8')
-      .split('\n')
-      .filter((line: string) => line.trim().startsWith('data: '));
+async function* toIterable(data: ReadableStream<Uint8Array>) {
+  const a = data.getReader();
+  while (true) {
+    const { done, value } = await a.read();
+    if (done) {
+      break;
+    }
+    const chunk = new TextDecoder().decode(value);
+    const lines = chunk.split('\n').filter((line: string) => line.trim().startsWith('data: '));
 
     for (const line of lines) {
       const message = line.replace(/^data: /, '');

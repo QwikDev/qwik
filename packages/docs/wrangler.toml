@@ -1,0 +1,5 @@
+[vars]
+OPENAI_ORG="org-0lZ2uyQ3PXcGcRbxDp2nKHJM"
+OPENAI_KEY="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"
+SUPABASE_URL="https://owawvgdfgngaioylikgu.supabase.co"
+SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93YXd2Z2RmZ25nYWlveWxpa2d1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY4MTA2NjAxOSwiZXhwIjoxOTk2NjQyMDE5fQ.ES8egct0i89o89h4btvEP0FcyxOiy7wIWbqKGTFrHiM"

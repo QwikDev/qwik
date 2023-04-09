@@ -14,7 +14,6 @@
 - [Events](/docs/(qwik)/components/events/index.mdx)
 - [Tasks & Lifecycle](/docs/(qwik)/components/tasks/index.mdx)
 - [Context](/docs/(qwik)/components/context/index.mdx)
-- [Resource](/docs/(qwik)/components/resource/index.mdx)
 - [Slots](/docs/(qwik)/components/slots/index.mdx)
 - [Rendering](/docs/(qwik)/components/rendering/index.mdx)
 - [Styling](/docs/(qwik)/components/styles/index.mdx)

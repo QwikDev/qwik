@@ -73,23 +73,8 @@ Everything starts by serving a page at a particular route. So let's build a simp
 1. Create a new `index.tsx` file in the `src/routes/joke/` directory in your project. (You will need to create the `joke` directory first.)
 2. Each route's `index.tsx` file must have an `export default component$(...)` so that Qwikcity knows what content to serve. Paste the following content to `src/routes/joke/index.tsx`:
 
-```tsx
-import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return <div class="section bright">A Joke!</div>;
-});
-```
-
-3. Navigate to `http://127.0.0.1:5173/joke/` to see your new page working.
-
-> NOTE:
->
-> - Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
-> - For more details about how to author components see the [Component API](/docs/(qwik)/components/overview/index.mdx) section.
-
 <CodeSandbox src="/src/routes/demo/getting-started/01-route/index.tsx" style={{ height: '6em' }}>
-```tsx
+```tsx {3-5}
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -98,13 +83,20 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
+3. Navigate to `http://127.0.0.1:5173/joke/` to see your new page working.
+
+> NOTE:
+>
+> - Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
+> - For more details about how to author components see the [Component API](/docs/(qwik)/components/overview/index.mdx) section.
+
 ## 2. Loading Data
 
 A common thing a page does is load data to display to the user. This is performed using [route loaders](/docs/route-loader/).
 
 1. Open `src/routes/joke/index.tsx` and add this code:
 
-```tsx
+```tsx {3-8} /routeLoader\$/
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
@@ -117,7 +109,7 @@ export const useDadJoke = routeLoader$(async () => {
 
 2. Then add the `useDadJoke()` hook to the `default` component and use the result in the JSX:
 
-```tsx
+```tsx {2,5} /dadJokeSignal/
 export default component$(() => {
   const dadJokeSignal = useDadJoke();
   return (
@@ -141,7 +133,7 @@ What does the above code do?
 > - The `routeLoader$` return type is inferred in the component without the need for any additional type information.
 
 <CodeSandbox src="/src/routes/demo/getting-started/02-loading-data/index.tsx" style={{ height: '6em' }}>
-```tsx
+```tsx /routeLoader$/ /useDadJoke/
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
@@ -178,7 +170,7 @@ To declare an action:
 1. Open `src/routes/joke/index.tsx` and add this code:
 
 
-```tsx
+```tsx /routeAction\$/
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useJokeVoteAction = routeAction$((props) => {
@@ -189,7 +181,7 @@ export const useJokeVoteAction = routeAction$((props) => {
 
 2. Update the `export default` component to use the `useJokeVoteAction` hook. This is done by adding the `<Form>`.
 
-```tsx
+```tsx {3,7-11} /favoriteJokeAction/
 export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
@@ -198,12 +190,8 @@ export default component$(() => {
       <div>{dadJokeSignal.value.joke}</div>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
-        <button name="vote" value="up">
-          👍
-        </button>
-        <button name="vote" value="down">
-          👎
-        </button>
+        <button name="vote" value="up">👍</button>
+        <button name="vote" value="down">👎</button>
       </Form>
     </div>
   );
@@ -226,8 +214,7 @@ Things to note:
 - If JavaScript is enabled the `Form` component will prevent the browser from posting the form and instead post the data using JavaScript and emulate the browser's native form behavior without full refresh.
 
 <CodeSandbox src="/src/routes/demo/getting-started/03-posting-data/index.tsx" style={{ height: '8em' }}>
-```tsx
-/* eslint-disable no-console */
+```tsx {21,25-29} /favoriteJokeAction/
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
@@ -254,12 +241,8 @@ export default component$(() => {
       <div>{dadJokeSignal.value.joke}</div>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
-        <button name="vote" value="up">
-          👍
-        </button>
-        <button name="vote" value="down">
-          👎
-        </button>
+        <button name="vote" value="up">👍</button>
+        <button name="vote" value="down">👎</button>
       </Form>
     </div>
   );
@@ -274,23 +257,23 @@ Keeping track of the state and updating UI is core to what applications do. Qwik
 To declare state:
 
 1. Declare the component's state using `useSignal()`.
-   ```tsx
+   ```tsx /useSignal/
    const isFavoriteSignal = useSignal(false);
    ```
 2. Add a button to the component that will modify the state.
-   ```tsx
-   <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+   ```tsx /isFavoriteSignal/
+   <button 
+    onClick$={() => {
+      isFavoriteSignal.value = !isFavoriteSignal.value
+    }}>
      {isFavoriteSignal.value ? '❤️' : '🤍'}
    </button>
    ```
 
-NOTE:
+NOTE: Clicking on the button will update the state and the UI will be updated.
 
-- Clicking on the button will update the state and the UI will be updated.
-
-<CodeSandbox src="/src/routes/demo/getting-started/04-state/index.tsx" style={{ height: '10em' }}>
-```tsx
-/* eslint-disable no-console */
+<CodeSandbox maxHeight={500} src="/src/routes/demo/getting-started/04-state/index.tsx" style={{ height: '10em' }}>
+```tsx /isFavoriteSignal/
 import { component$, useSignal } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
@@ -319,12 +302,8 @@ export default component$(() => {
       <div>{dadJokeSignal.value.joke}</div>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
-        <button name="vote" value="up">
-          👍
-        </button>
-        <button name="vote" value="down">
-          👎
-        </button>
+        <button name="vote" value="up">👍</button>
+        <button name="vote" value="down">👎</button>
       </Form>
       <button
         onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
@@ -342,24 +321,24 @@ export default component$(() => {
 In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen when a state changes. (Similar to an "effect" in other frameworks.) In this example, we will use the task to invoke code on the server.
 
 1. Create a new task that tracks the `isFavoriteSignal` state:
-   ```tsx
+   ```tsx /useTask\$/
    useTask$(({ track }) => {});
    ```
 2. Add a `track` call to re-execute the task on `isFavoriteSignal` state change:
-   ```tsx
+   ```tsx /track/
    useTask$(({ track }) => {
      track(()=> isFavoriteSignal.value);
    });
    ```
 3. Add the work that you want to execute on state change:
-   ```tsx
+   ```tsx {3}
    useTask$(({ track }) => {
      track(()=> isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
    });
    ```
 4. If you want to have work happen on the server only, wrap it in `server$()`
-   ```tsx
+   ```tsx /server\$/ {4-6}
    useTask$(({ track }) => {
      track(()=> isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
@@ -375,9 +354,8 @@ NOTE:
 - On SSR server prints `FAVORITE (isomorphic) false` and `FAVORITE (server) false`.
 - When the user interacts with favorite, the client prints `FAVORITE (isomorphic) true` and the server prints `FAVORITE (server) true`.
 
-<CodeSandbox src="/src/routes/demo/getting-started/05-tasks/index.tsx" style={{ height: '10em' }}>
-```tsx
-/* eslint-disable no-console */
+<CodeSandbox maxHeight={500} src="/src/routes/demo/getting-started/05-tasks/index.tsx" style={{ height: '10em' }}>
+```tsx {28-34}
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import {
   routeLoader$,
@@ -417,12 +395,8 @@ export default component$(() => {
       <div>{dadJokeSignal.value.joke}</div>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
-        <button name="vote" value="up">
-          👍
-        </button>
-        <button name="vote" value="down">
-          👎
-        </button>
+        <button name="vote" value="up">👍</button>
+        <button name="vote" value="down">👎</button>
       </Form>
       <button
         onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
@@ -454,11 +428,9 @@ To add styles:
    ```
 
 2. import the styles in `src/routes/joke/index.tsx`:
-```tsx
-import STYLES from "./index.css?inline";
-``
-
-   `
+    ```tsx
+    import STYLES from "./index.css?inline";
+    ```
 3. Tell the component to load the styles:
    ```tsx
    useStylesScoped$(STYLES);
@@ -470,9 +442,8 @@ NOTE:
 - The `useStylesScoped$` call tells Qwik to associate the styles with the component only (scoping).
 - Styles are only loaded if they are not already inlined as part of SSR and only for the first component.
 
-<CodeSandbox src="/src/routes/demo/getting-started/06-styling/index.tsx" style={{ height: '10em' }}>
-```tsx
-/* eslint-disable no-console */
+<CodeSandbox maxHeight={500} src="/src/routes/demo/getting-started/06-styling/index.tsx" style={{ height: '10em' }}>
+```tsx /useStylesScoped\$/
 import {
   component$,
   useSignal,
@@ -519,12 +490,8 @@ export default component$(() => {
       <div>{dadJokeSignal.value.joke}</div>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
-        <button name="vote" value="up">
-          👍
-        </button>
-        <button name="vote" value="down">
-          👎
-        </button>
+        <button name="vote" value="up">👍</button>
+        <button name="vote" value="down">👎</button>
       </Form>
       <button
         onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}

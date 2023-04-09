@@ -1,5 +1,5 @@
 ---
-title: Qwik City - Page
+title: Qwik City - Pages
 contributors:
   - adamdbradley
   - manucorporat
@@ -11,23 +11,7 @@ contributors:
 
 # Pages
 
-Both pages and endpoints in Qwik City are created by adding a new `index.tsx` file in the `src/routes` directory.
-
-The only difference is that a page exports a `default` Qwik component, which will be rendered as the content of the page, while an endpoint only exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
-
-## Components
-
-Page content can be created using Qwik components. The component representing the content should be exported as a `default` export.
-
-Let's assume you have your routes set up like this:
-
-```bash
-src/
-└── routes/
-    └── some/
-        └── path/
-            └── index.tsx              # https://example.com/some/path
-```
+Both pages are created by adding a new `index.tsx` file in the `src/routes` directory. Pages exports a `default` Qwik component, which will be rendered as the content of the page.
 
 ```tsx title="src/routes/some/path/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -38,117 +22,90 @@ export default component$(() => {
 });
 ```
 
-### Importing other components
+> The only difference between a page and an endpoint is that an endpoint only exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
 
-You can build complex views by composing multiple components within each other. To do that import other components into your `index.tsx` file.
-
-```bash
-src/
-├── components/
-│   └── heading.tsx
-└── routes/
-    └── some/
-        └── path/
-            ├── index.tsx              # https://example.com/some/path
-            └── sub_component.tsx
-```
-
-Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/(qwik)/components/overview/index.mdx).
-The following component will be rendered at `https://example.com/some/path` according to the directory-structure, we have set up above.
-
-```tsx title="src/routes/some/path/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import Heading from '../../../components/heading';
-import SubComponent from './sub_component';
-
-export default component$(() => {
-  return (
-    <>
-      <Heading />
-      <h2>Hello World!</h2>
-      <SubComponent />
-    </>
-  );
-});
-```
-
-```tsx title="src/components/heading.tsx"
-import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return <h1>Site Heading</h1>;
-});
-```
-
-```tsx title="src/routes/some/path/sub_component.tsx"
-import { component$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  return <div>Other component content.</div>;
-});
-```
 
 ## `head` export
 
-HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly, yet you still need to control its content. This can be achieved by exporting a `head` property (or function) from your page component.
+Every page can export a `head` property (or function) that returns a `DocumentHead` object. The `DocumentHead` object is used to resolve the title of the page, as well as the meta, links and styles.
 
-```tsx title="src/routes/index.tsx"
+This API allows you to set the title of the page, as well as the meta, open graph, twitter tags and links. This is useful for SEO and social sharing.
+
+```tsx {8} /head/ title="src/routes/about/index.tsx"
 import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  return <h1>Hello World</h1>;
+  return <h1>About page</h1>;
 });
 
-export const head = {
-  title: 'My Page',
+export const head: DocumentHead = {
+  // This will used to resolve the <title> of the page
+  title: 'About page',
   meta: [
     {
       name: 'description',
-      content: 'My page description',
+      content: 'This is the about page',
+    },
+    // Open graph
+    {
+      property: 'og:title',
+      content: 'About page',
+    },
+    {
+      property: 'og:description',
+      content: 'This is the about page',
     },
   ],
 };
 ```
 
-> Every endpoint (index) and layout can export a `head` property (or function) that returns a `DocumentHead` object. The `DocumentHead` object is used to resolve the title of the page, as well as the meta, links and styles.
+> HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly because it would break the HTML streaming.
+
+Look into `useDocumentHead()` to read and consume the `DocumentHead` object from within your component.
+
 
 ### Dynamic head
 
-In the example above, the `head` is static. However, you can also export a function that returns a `DocumentHead` object. This allows you to dynamically set the title of the page based on the data that is retrieved from `loaders` or request handlers that executed before the page component is rendered.
+You can also export a function that returns a `DocumentHead` object. This allows you to dynamically set the title of the page based on the data that is retrieved from `routeLoader$()` or `routeAction$()` that executed before the page component is rendered.
 
-```tsx title="src/routes/product/[productId]/index.tsx"
+```tsx title="src/routes/jokes/[jokeId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { DocumentHead } from '@builder.io/qwik-city';
 
-export const useGetProductData = routeLoader$(async ({ params }) => {
-  const product = db.getProduct({ id: params.productId });
-  return product;
+export const useJoke = routeLoader$(async (requestEvent) => {
+  // Fetch a joke from a public API
+  const jokeId = requestEvent.params.jokeId;
+  const response = await fetch(`https://api.chucknorris.io/jokes/${jokeId}`);
+  const joke = await response.json();
+  return joke;
 });
 
 export default component$(() => {
-  const product = useGetProductData();
-
+  const joke = useJoke();
   return (
     <div>
-      <h1>{product.value.title}</h1>
-      <h1>{product.value.description}</h1>
+      <h1>{joke.value.title}</h1>
+      <div>{joke.value.text}</div>
+      <div>{joke.value.author}</div>
     </div>
   );
 });
 
-export const head: DocumentHead = ({ params, resolveValue }) => {
-  const product = resolveValue(useGetProductData);
+// Now we can export a function that returns a DocumentHead object
+export const head: DocumentHead = ({resolveValue, params}) => {
+  const joke = resolveValue(useJoke);
   return {
-    title: `Product "${product.title}"`,
+    title: `Joke "${joke.title}"`,
     meta: [
       {
         name: 'description',
-        content: product.description,
+        content: joke.text,
       },
       {
         name: 'id',
-        content: params.productId,
+        content: params.jokeId,
       },
     ],
   };

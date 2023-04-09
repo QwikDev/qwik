@@ -20,13 +20,7 @@ This concept has different names in different frameworks:
 
 - In Angular is called Content Projection
 - In React, it's the `children` of the props
-- In Vue, and web components it's called slots as well
-
-Slots in Qwik are symbolic, allowing Qwik to render parents and children in perfect isolation, allowing to render the parent component without ever rerender the childrens and vice versa.
-
-> Note: Because slots are symbolic, the children can NOT be read, or transformed by the components, like it's possible in React.
-
-## Usage
+- In Web components it's [`<slot>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) as well
 
 The main API to achieve this is the `<Slot>` component, exported in `@builder.io/qwik`:
 
@@ -44,30 +38,33 @@ export const Button = component$(() => {
 
 The `<Slot>` component is a placeholder for the children of the component. The `<Slot>` component will be replaced by the children of the component, when rendering the app.
 
-Let's see the usage of this component:
-
 ```tsx
 <Button>
   {... this will be placed where the <Slot> is used inside the Button component ...}
 </Button>
 ```
 
+> Slots in Qwik are symbolic, allowing Qwik to render parents and children in perfect isolation, which is good for performance.
+
+> Because slots are symbolic, the children can NOT be read, or transformed by the components.
+
+
 ### Named slots
 
 The `Slot` component can be used multiple times in the same component, as long as it has a different `name` property:
 
-```tsx
+```tsx {7,11} /start/#a /end/#c
 import { Slot, component$ } from '@builder.io/qwik';
 
 export const Button = component$(() => {
   return (
     <button>
       <div>
-        <Slot name="start" /> {/* "start" slot */}
+        <Slot name="start" />
       </div>
       <Slot /> {/* default slot */}
       <div>
-        <Slot name="end" /> {/* "end" slot */}
+        <Slot name="end" />
       </div>
     </button>
   );
@@ -76,7 +73,7 @@ export const Button = component$(() => {
 
 Now, when consuming the `<Button>` component, we can pass children and specify in which slot they should be placed, using the `q:slot` attribute:
 
-```tsx
+```tsx /q:slot/ /start/#a /end/#c
 <Button>
   <div q:slot="start">Start</div>
   <div>Default</div>
@@ -85,32 +82,14 @@ Now, when consuming the `<Button>` component, we can pass children and specify i
 </Button>
 ```
 
-The result will be:
-
-```html
-<button>
-  <div>
-    <!-- Slot name=start -->
-    <div q:slot="start">Start</div>
-  </div>
-  <!-- Slot (default) -->
-  <div>Default</div>
-  <div>
-    <!-- Slot name=end -->
-    <div q:slot="end">End</div>
-    <icon q:slot="end"></icon>
-  </div>
-</button>
-```
-
 Notice that:
 
 - If `q:slot` is not specified or it's an empty string, the content will be projected into the default `<Slot>`, i.e. the `<Slot>` without a `name` property.
 - Multiple `q:slot="end"` attributes coalesce items together in the content projection.
 
-### Not projecting content
+### Unprojected content
 
-Qwik keeps all content around, even if not projected. This is because the content could be projected in the future.
+Qwik keeps all content around, even if not projected. This is because the content could be projected in the future. When projected content does not match any `<Slot>` component, the content is moved into an inert `<q:template>` element.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -212,8 +191,6 @@ export const MyApp = component$(() => {
 ```
 
 The `Collapsible` component will always display the title, but the body of the text will only display if `store.isOpen` is `true`.
-
-### Rendered output
 
 The above example would render into this HTML if `isOpen===true`:
 

@@ -34,3 +34,5 @@ lerna-debug.log*
 *.sw?
 
 # Cloudflare
+
+*.local

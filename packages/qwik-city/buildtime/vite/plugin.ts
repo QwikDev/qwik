@@ -5,13 +5,7 @@ import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../context';
-import {
-  getExtension,
-  isMarkdownExt,
-  isMenuFileName,
-  normalizePath,
-  removeExtension,
-} from '../../utils/fs';
+import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
@@ -189,15 +183,14 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     async transform(code, id) {
-      if (ctx) {
+      const isMD = id.endsWith('.md') || id.endsWith('.mdx');
+      if (ctx && isMD) {
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {
           const menuCode = await transformMenu(ctx.opts, id, code);
           return menuCode;
         }
-
-        const ext = getExtension(fileName);
-        if (isMarkdownExt(ext) && mdxTransform) {
+        if (mdxTransform) {
           try {
             const mdxResult = await mdxTransform(code, id);
             return mdxResult;

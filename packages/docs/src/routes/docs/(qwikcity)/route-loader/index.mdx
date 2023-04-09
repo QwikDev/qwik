@@ -6,48 +6,31 @@ contributors:
 
 # `routeLoader$()`
 
-Route Loaders allow data to flow from the server to the Qwik Components. For this reason, Qwik routeLoaders should be always understood in the context of **loading data in the server that is later consumed by a Qwik Component**, if you want to create a RESTful endpoint, please check the [Endpoints](/docs/(qwikcity)/endpoints/index.mdx) guide instead.
-
-They behave like RPC server-side functions that can be invoked by Qwik Components during rendering.
-
-## Declaring a loader
+Route Loaders load data in the server so it becomes available to use inside Qwik Components. They behave like RPC server-side functions that can be invoked by Qwik Components during rendering.
 
 Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
-```tsx title="src/routes/layout.tsx"
-import { routeLoader$ } from '@builder.io/qwik-city';
-
-export const useProductData = routeLoader$(async () => {
-  const res = await fetch('https://.../products');
-  const product = await res.json();
-  return product;
-});
-```
-
-> `routeLoader$`s are not endpoints, it's an internal communication channel between the server and the Qwik Components. Also, `routeLoader$`s must return a JSON serializable value.
-
-## Using a `routeLoader$`
-
-`routeLoader$`s can be used by any component in the application, as long as the loader is declared in a `layout.tsx` or `index.tsx` file that is part of the existing route.
-
-```tsx title="src/routes/index.tsx"
-import { routeLoader$ } from '@builder.io/qwik-city';
+```tsx /routeLoader$/ /useProductData/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useProductData = routeLoader$(async () => {
-  const res = await fetch('https://.../product');
-  const product = (await res.json()) as Product;
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  // This code runs only on the server, after every navigation
+  const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
+  const product = await res.json();
   return product;
 });
 
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
-  const signal = useProductData(); // Signal<Product>
+  const signal = useProductDetails(); // ReadonlySignal<Product>
   return <div>Product name: {signal.value.product.name}</div>;
 });
 ```
 
-> It may appear that `useProductData()` initiates the retrieval of the server data when the component renders. But in reality, the `routeLoader$` associated with `useProductData` gets executed eagerly at HTTP request. In this way, the asynchronous work of fetching server data can initiate as early as possible. (`routeLoader$` function invokes eagerly on HTTP request regardless of whether `useProductData()` is invoked in the component.) For this reason, they are only allowed in the `src/routes` folder, in a `layout.tsx` or `index.tsx` files.
+Route Loaders are perfect to fetch data from a database or an API. For example you can use them to fetch data from a CMS, a weather API, of a list of users from your database.
+
+> You should not use a `routeLoader$` to create a REST API, for that you’d be better off using an [Endpoint](/docs/(qwikcity)/endpoints/index.mdx), which allows you to have tight control over the response headers and body.
 
 ## Multiple `routeLoader$`s
 
@@ -125,34 +108,34 @@ export default component$(() => {
 
 The above example shows two `routeLoader$`s being used in the same file. A generic `useLoginStatus` loader is used to check if the user is logged in, and a more specific `useCurrentUser` loader is used to retrieve the user data.
 
-## routeLoader context
+## RequestEvent
 
-Just like request handlers such as `onRequest` and `onGet`, `routeLoader$`s have access to the `RequestEvent` object which includes information about the current request.
+Just like request handlers such as `onRequest` and `onGet`, `routeLoader$`s have access to the `RequestEvent` object which includes information about the current HTTP request and response.
 
 This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
 
-```tsx
+```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useProductRecommendations = routeLoader$(
-  async ({ headers, cookie, url, method, params }) => {
-    console.log('Request headers:', headers);
-    console.log('Request cookies:', cookie);
-    console.log('Request url:', url);
-    console.log('Request method:', method);
-    console.log('Request params:', params);
+export const useProductRecommendations = routeLoader$(async (requestEvent) => {
+  console.log('Request headers:', requestEvent.headers);
+  console.log('Request cookies:', requestEvent.cookie);
+  console.log('Request url:', requestEvent.url);
+  console.log('Request method:', requestEvent.method);
+  console.log('Request params:', requestEvent.params);
 
-    // Use request details to fetch personalized data
-    const res = fetch(`https://.../recommendations?user=${params.user}`);
-    const products = (await res.json()) as Product[];
+  // Use request details to fetch personalized data
+  const res = fetch(`https://.../recommendations?user=${requestEvent.params.user}`);
+  const recommendedProducts = (await res.json()) as Product[];
 
-    return products;
-  }
-);
+  return recommendedProducts;
+});
 ```
 
-## When to use a routeLoader?
+## Performance considerations
 
-A routeLoader should be used when you need to provide some server-side data to your Qwik Components. For example, if you need to fetch some data from a database or an API, you can use a routeLoader to do that.
+Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in SPA or MPA, and they are executed even if the user is navigating to the same page.
 
-You should not use a routeLoader to create a REST API, for that you’d be better off using an [Endpoint](/docs/(qwikcity)/endpoints/index.mdx), which allows you to have tight control over the response headers and body.
+Loaders execute after the Qwik Middlewares handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered, this allows to start fetching data as soon as possible, reducing latency.
+
+

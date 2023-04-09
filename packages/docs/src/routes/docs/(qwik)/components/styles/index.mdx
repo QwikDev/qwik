@@ -16,6 +16,8 @@ contributors:
 
 # Styles
 
+Qwik does not enforce a specific styling approach, you can style your Qwik app using any method you prefer, such as CSS, CSS-in-JS, CSS modules...
+
 ## CSS Modules
 
 Qwik supports [CSS Modules](https://github.com/css-modules/css-modules) out of the box thanks to [Vite](https://vitejs.dev/guide/features.html#css-modules).
@@ -113,59 +115,42 @@ export const Cmp = component$(() => {
 });
 ```
 
-## Per-component styles
+## Scoped CSS
 
-Qwik provided built-in support for per-component styles, this technology allows Qwik to only inject the provided styles only if the component is used in the current page, this can be achieved by using the `useStyles$()` and `useStylesScoped$()` hook.
+To use scoped CSS, you can use the `useStyleScoped$()` hook exported from `@builder.io/qwik`.
 
-### `useStyles$()`
+```tsx {4-8} title="src/components/MyComponent/MyComponent.tsx"
+import { component$, useStyleScoped$ } from '@builder.io/qwik';
 
-A lazy-loadable reference to component's styles.
-
-Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
-
-```tsx
-import { useStyles$, component$ } from '@builder.io/qwik';
-import styles from './code-block.css?inline';
-
-export const CmpStyles = component$(() => {
-  useStyles$(styles);
-  return <span class="my-text">Some text</span>;
+export default component$(() => {
+  useStyleScoped$(`
+    .container {
+      background-color: red;
+    }
+  `);
+  return <div class="container">Hello world</div>;
 });
 ```
 
-```css
-// code-block.css
-.my-text {
-  color: red;
+You can also import an external CSS file. For that you need to add the `?inline` query parameter to the import of the CSS file, and pass the default export of the CSS file to the `useStyleScoped$()` hook.
+
+```css title="src/components/MyComponent/MyComponent.css"
+.container {
+  background-color: red;
 }
 ```
 
-> Notice that in order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`
+```tsx {3,6} title="src/components/MyComponent/MyComponent.tsx"
+import { component$, useStyleScoped$ } from '@builder.io/qwik';
 
-### `useStylesScoped$`
+import styles from './MyComponent.css?inline';
 
-In previous sections, we have discussed how styles can be loaded lazily as they are needed using the [`useStyles$()`](/docs/(qwik)/components/styles/index.mdx#usestyles) hook.
-Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component.
-This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
-
-```tsx
-import { useStylesScoped$, component$ } from '@builder.io/qwik';
-import styles from './code-block.css?inline';
-
-export const CmpStyles = component$(() => {
-  useStylesScoped$(styles);
-  return <span class="my-text">Some text</span>;
+export default component$(() => {
+  useStyleScoped$(styles);
+  return <div class="container">Hello world</div>;
 });
 ```
 
-```css
-// code-block.css
-.my-text {
-  color: blue;
-}
-```
-
-> Please note that you need to add `?inline` to your styles import.
 
 ### `:global()` selector
 
@@ -196,6 +181,33 @@ export const List = component$(() => {
 This will render a css selector of `.list.⭐️8vzca0-0 > *:nth-child(3)`, allowing you to target child components. This could be considered the equivalent of using `::ng-deep` in Angular.
 
 > Beware that this may have unintended effects that cascade down your component tree.
+
+
+## `useStyles$()`
+
+A lazy-loadable reference to component's styles.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+```tsx
+import { useStyles$, component$ } from '@builder.io/qwik';
+import styles from './code-block.css?inline';
+
+export const CmpStyles = component$(() => {
+  useStyles$(styles);
+  return <span class="my-text">Some text</span>;
+});
+```
+
+```css
+// code-block.css
+.my-text {
+  color: red;
+}
+```
+
+> Notice that in order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`
+
 
 ## Preprocessors
 

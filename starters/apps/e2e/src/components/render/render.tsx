@@ -82,6 +82,7 @@ export const RenderChildren = component$(() => {
       <Issue3542 atom={{ code: 1 }} />
       <Issue3643 />
       <IssueChildrenSpread />
+      <Issue3731 />
     </>
   );
 });
@@ -658,4 +659,40 @@ export const IssueChildrenSpread = component$(() => {
       </div>
     </div>
   );
+});
+
+const states = [
+  ['think', 'containers', 'hydrating', 'usestylesscoped', 'slots'],
+  ['think', 'containers', 'cleanup', 'usevisibletask', 'hydrating'],
+  ['cleanup', 'usevisibletask', 'think', 'containers', 'slots'],
+];
+
+export const Issue3731 = component$(() => {
+  const state = useSignal(0);
+  const signal = useSignal(states[0]);
+  return (
+    <div>
+      <button
+        id="issue-3731-button"
+        onClick$={() => {
+          state.value++;
+          if (state.value > states.length - 1) {
+            state.value = 0;
+          }
+          signal.value = states[state.value];
+        }}
+      >
+        Change
+      </button>
+      <ul>
+        {signal.value.map((item) => {
+          return <Issue3731Child key={item} value={item}></Issue3731Child>;
+        })}
+      </ul>
+    </div>
+  );
+});
+
+export const Issue3731Child = component$((props: any) => {
+  return <div class="issue-3731-result">{props.value}</div>;
 });

@@ -1110,9 +1110,9 @@ export const directInsertAfter = (
   ref: Node | VirtualElement | null
 ) => {
   if (isVirtualElement(child)) {
-    child.insertBeforeTo(parent, getRootNode(ref)?.nextSibling);
+    child.insertBeforeTo(parent, ref?.nextSibling ?? null);
   } else {
-    parent.insertBefore(child, getRootNode(ref)?.nextSibling);
+    parent.insertBefore(child, ref?.nextSibling ?? null);
   }
 };
 

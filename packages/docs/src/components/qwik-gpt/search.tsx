@@ -1,6 +1,7 @@
 import { server$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
 import gpt from './gpt.md?raw';
+import { chatCompletion } from './streaming-gpt';
 
 const files = new Map<string, Promise<string>>();
 
@@ -96,32 +97,24 @@ export const qwikGPT = server$(async function* (query: string) {
       })
       .select('id');
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.env.get('OPENAI_KEY')}`,
-      },
-      body: JSON.stringify({
-        model: model,
-        temperature: 0,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are QwikGPT, your job is to answer questions about Qwik, a new javascript framework focused on instant interactivity and server-side rendering.\nRelevant Qwik documentation and the user question will be provided. Try to answer the question in a short and concise way.',
-          },
-          {
-            role: 'user',
-            content: docsStr,
-          },
-          {
-            role: 'user',
-            content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you don not know:\n\n${query}`,
-          },
-        ],
-        stream: true,
-      }),
+    const generator = chatCompletion(this.env.get('OPENAI_KEY')!, {
+      model: model,
+      temperature: 0,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are QwikGPT, your job is to answer questions about Qwik, a new javascript framework focused on instant interactivity and server-side rendering.\nRelevant Qwik documentation and the user question will be provided. Try to answer the question in a short and concise way.',
+        },
+        {
+          role: 'user',
+          content: docsStr,
+        },
+        {
+          role: 'user',
+          content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you don not know:\n\n${query}`,
+        },
+      ],
     });
 
     const id = (await insert).data?.[0].id as string;
@@ -130,7 +123,7 @@ export const qwikGPT = server$(async function* (query: string) {
       content: id,
     };
     let output = '';
-    for await (const chunk of toIterable(response.body!)) {
+    for await (const chunk of generator) {
       output += chunk;
       yield chunk as string;
     }
@@ -210,74 +203,3 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
     }
   }
 }
-
-async function* toIterable(data: ReadableStream<Uint8Array>) {
-  const { writable, readable } = getSSETransformer();
-  data?.pipeTo(writable);
-
-  const a = readable.getReader();
-  while (true) {
-    const { done, value } = await a.read();
-    if (done) {
-      return;
-    }
-    const message = value.data.trim();
-    if (message === '[DONE]') {
-      return;
-    }
-    console.log(message);
-    const json = JSON.parse(message);
-    const token = json.choices[0].delta.content;
-    if (token) {
-      yield token;
-    }
-  }
-}
-
-interface SSEvent {
-  data: string;
-  [key: string]: string;
-}
-const parseEvent = (message: string): SSEvent => {
-  const lines = message.split('\n');
-  const event: SSEvent = {
-    data: '',
-  };
-  let data = '';
-  for (const line of lines) {
-    if (line.startsWith('data: ')) {
-      data += line.slice(6) + '\n';
-    } else {
-      const [key, value] = line.split(':');
-      if (typeof key === 'string' && typeof value === 'string') {
-        event[key] = value.trim();
-      }
-    }
-  }
-  event.data = data;
-  return event;
-};
-
-
-const getSSETransformer = () => {
-  // Convert the stream into a stream of lines
-  let currentLine = '';
-  const encoder = new TextDecoder();
-  const transformer = new TransformStream<Uint8Array, SSEvent>({
-    transform(chunk, controller) {
-      const lines = encoder.decode(chunk).split('\n\n');
-      for (let i = 0; i < lines.length - 1; i++) {
-        const line = currentLine + lines[i];
-        if (line.length === 0) {
-          controller.terminate();
-          break;
-        } else {
-          controller.enqueue(parseEvent(line));
-          currentLine = '';
-        }
-      }
-      currentLine += lines[lines.length - 1];
-    },
-  });
-  return transformer;
-};

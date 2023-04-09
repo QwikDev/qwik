@@ -8359,6 +8359,7 @@ packages:
     dependencies:
       esbuild: 0.17.12
       postcss: 8.4.21
+      resolve: 1.22.1
       rollup: 3.20.2
     optionalDependencies:
       fsevents: 2.3.2
@@ -8392,6 +8393,7 @@ packages:
       '@types/node': 18.15.9
       esbuild: 0.17.12
       postcss: 8.4.21
+      resolve: 1.22.1
       rollup: 3.20.2
     optionalDependencies:
       fsevents: 2.3.2
@@ -8425,6 +8427,7 @@ packages:
       '@types/node': 18.15.9
       esbuild: 0.17.12
       postcss: 8.4.21
+      resolve: 1.22.1
       rollup: 3.20.2
       terser: 5.16.8
     optionalDependencies:

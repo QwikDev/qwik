@@ -270,6 +270,7 @@
     "unselectable",
     "unsub",
     "urlset",
+    "usestore",
     "valign",
     "valuenow",
     "valuetext",
@@ -287,5 +288,7 @@
     "wmode",
     "xlink"
   ],
-  "enableFiletypes": ["mdx"]
+  "enableFiletypes": [
+    "mdx"
+  ]
 }

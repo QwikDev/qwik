@@ -22,6 +22,7 @@ contributors:
   - gkatsanos
   - adamdbradley
   - mhevery
+  - un33k
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -30,16 +31,27 @@ import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 State management is an important part of any app. In Qwik, we can differentiate between two types of state, reactive and static:
 
-1. Static state is anything that can be serialized: a string, number, object, array... anything.
-2. A reactive state on the other hand is created with `useSignal()` or `useStore()`.
+- Static state is anything that can be serialized: a string, number, object, array... anything.
+- A reactive state on the other hand is created with `useSignal()` or `useStore()`.
 
 It is important to notice that state in Qwik is not necessarily a local component state, but rather an app state that can be instantiated by any component.
 
+State management is essential in any application. The Qwik framework categorizes state into two main types: `static` and `reactive`.
+
+- `Static state` represents a snapshot of any serializable data captured at a specific moment in time.
+  - Serializable data consists of strings, numbers, objects, arrays, and more.
+  - This state can be paused by the server, transmitted to, and resumed by the browser.
+  - Any non-serializable data must be set to `undefined`, with the responsibility of proper initialization handed over to the client once the state is resumed and the specific component becomes visible (hint: use useVisibleTask()).
+- `Reactive state`, in contrast, can change at any given time.
+  - Reactive state is created using the `useSignal()` or `useStore()` functions, (aka hooks).
+  - These functions must be declared within components.
+  - Reactive states are not confined to the component that generated them, as they can be shared among other components across the application.
+  - Reactive states can be passed down via `props` or distributed throughout the application via `context`.
+  - Any and all components that depend on a reactive state will be automatically updated when the state changes.
+
 ## `useSignal()`
 
-Use `useSignal()` to create a reactive signal (a form of state). The `useSignal()` takes an initial value and returns a reactive signal.
-
-The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
+The `useSignal()` function accepts an `initial value`, creates, and returns a `reactive state`, also known as a `signal`. This signal is an object with a single property, `.value`. Multiple components can consume the signal. When any component with access to the signal modifies the `.value` property, all dependent components will automatically update in response to the change.
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {4} /count/
@@ -57,15 +69,22 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-This example above shows how `useSignal()` can be used in a counter component to keep track of the count. Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
+The example above demonstrates how useSignal() can be employed in a counter component to monitor the count. When the count.value property is modified, the component automatically updates. This can be observed in the button click handler in the example, where altering the property triggers the update.
+
+> **Note**
+> In situations where a component requires multiple signals, managing each signal as an independent state may not be desirable. In such cases, it is recommended to use `useStore()` instead.
+
+> **Note**
+> To ensure proper reactivity, it is important to maintain a reference to the reactive object rather than just its `.value` property. For instance, if you execute `let { value } = useSignal(0)` and then mutate `value`, it will not cause updates in components that depend on the property. Make sure to keep a reference to the reactive object itself.
 
 ## `useStore()`
 
-Works very similarly to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal or an object made of several signals.
+`useStore()` works similarly to `useSignal()`, but it accepts an object as its initial value. A store can be thought of as a multi-value signal or an object composed of several signals.
 
-Use `useStore(initialStateObject)` hook to create a reactive object. It takes an initial object (or a factory function) and returns a reactive object.
+To create a reactive object, use the `useStore(initialStateObject)` function, (aka hook). This hook takes an initial object and returns a reactive object.  Alternatively, `userStore(() => initialStateObject)` can be used to create a reactive object lazily.
 
-> **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
+> **Note**
+> To ensure proper reactivity, it is important to maintain a reference to the reactive object rather than just its properties. For instance, if you execute `let { count } = useStore({ count: 0 })` and then mutate `count`, it will not cause updates in components that depend on the property. Make sure to keep a reference to the reactive object itself.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" style={{ height: '6em' }} >
 ```tsx {4} /state/ /count/#a
@@ -84,11 +103,11 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-This example above shows how `useStore()` can be used in a counter component to keep track of the count.
+The example above demonstrates how `useStore()` can be implemented in a counter component to monitor the count. By using useStore(), the component can efficiently manage a single or multiple reactive properties as part of a single reactive object.
 
 ### Recursive values
 
-By default, [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) only tracks the top-level properties in your store, which means that for an update to be registered, you have to update values at the top level property.
+By default, [`useStore()`](#usesignal) tracks only the `top-level` properties in your store. This means that, in order for an update to be registered, you must modify values at the top-level property.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store-no-track/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -115,13 +134,17 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-For the updates to be registered with the default tracking strategy, we would have to update the top-level `nested` field like so:
+The example above demonstrates how the default tracking strategy does not track changes to nested properties. To make the above example work, we would have to update the top-level `nested` field like so:
 
 ```ts
+// `nested` is a top-level property that is an object itself, and it will be replaced with a new object
 store.nested = { fields: { are: 'tracked' } };
 ```
 
-To make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
+While tracking top-level properties is the default behavior and suits most use cases, there might be instances where tracking changes to nested properties is required. In such cases, pass a second argument to `useStore(initialStateObject, { deep: true })` to enable recursion for tracking all the nested values in the store.
+
+> **Note**
+> There is no recursion `depth limit` when passing `{ deep: true }`. That being said, it is recommended to use this option only when necessary, as tracking `extremely deep` nested properties can have performance implications.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -132,7 +155,7 @@ export default component$(() => {
     {
       nested: { fields: { are: 'not tracked' } },
     },
-    { deep: true }
+    { deep: true } // warning: no recursion `depth limit`
   );
 
   return (
@@ -151,7 +174,10 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-Now, the component will update as expected. This will also track individual values inside of arrays!
+Passing the `{ deep: true }` ensures that the component will update as expected.
+
+> **Note**
+> This will also track individual values inside of arrays!. Use with caution.
 
 ## Computed state
 

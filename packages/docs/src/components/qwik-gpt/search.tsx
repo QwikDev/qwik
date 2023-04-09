@@ -212,27 +212,72 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
 }
 
 async function* toIterable(data: ReadableStream<Uint8Array>) {
-  const a = data.getReader();
+  const { writable, readable } = getSSETransformer();
+  data?.pipeTo(writable);
+
+  const a = readable.getReader();
   while (true) {
     const { done, value } = await a.read();
     if (done) {
       return;
     }
-    const chunk = new TextDecoder().decode(value);
-    const lines = chunk.split('\n').filter((line: string) => line.trim().startsWith('data: '));
-
-    for (const line of lines) {
-      const message = line.replace(/^data: /, '');
-      if (message === '[DONE]') {
-        return;
-      }
-
-      console.log(message);
-      const json = JSON.parse(message);
-      const token = json.choices[0].delta.content;
-      if (token) {
-        yield token;
-      }
+    const message = value.data.trim();
+    if (message === '[DONE]') {
+      return;
+    }
+    console.log(message);
+    const json = JSON.parse(message);
+    const token = json.choices[0].delta.content;
+    if (token) {
+      yield token;
     }
   }
 }
+
+interface SSEvent {
+  data: string;
+  [key: string]: string;
+}
+const parseEvent = (message: string): SSEvent => {
+  const lines = message.split('\n');
+  const event: SSEvent = {
+    data: '',
+  };
+  let data = '';
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      data += line.slice(6) + '\n';
+    } else {
+      const [key, value] = line.split(':');
+      if (typeof key === 'string' && typeof value === 'string') {
+        event[key] = value.trim();
+      }
+    }
+  }
+  event.data = data;
+  return event;
+};
+
+
+const getSSETransformer = () => {
+  // Convert the stream into a stream of lines
+  let currentLine = '';
+  const encoder = new TextDecoder();
+  const transformer = new TransformStream<Uint8Array, SSEvent>({
+    transform(chunk, controller) {
+      const lines = encoder.decode(chunk).split('\n\n');
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = currentLine + lines[i];
+        if (line.length === 0) {
+          controller.terminate();
+          break;
+        } else {
+          controller.enqueue(parseEvent(line));
+          currentLine = '';
+        }
+      }
+      currentLine += lines[lines.length - 1];
+    },
+  });
+  return transformer;
+};

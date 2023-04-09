@@ -7,6 +7,8 @@ const files = new Map<string, Promise<string>>();
 export const qwikGPT = server$(async function* (query: string) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
 
+  console.log('platform', this.platform);
+
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -20,6 +22,8 @@ export const qwikGPT = server$(async function* (query: string) {
   });
   const data = await response.json();
   const embeddings = data.data[0].embedding;
+  console.log('embeddings', embeddings);
+
   const docs = await supabase.rpc('match_docs_3', {
     query_embedding: embeddings,
     match_count: 5,

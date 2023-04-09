@@ -17,6 +17,11 @@ export const qwikGPT = server$(async function* (query: string) {
     model: 'text-embedding-ada-002',
   });
 
+  console.log('searching docs', {
+    organization: this.env.get('OPENAI_ORG'),
+    apiKey: this.env.get('OPENAI_KEY'),
+  });
+
   const embeddings = res.data.data[0].embedding;
   const docs = await supabase.rpc('match_docs_3', {
     query_embedding: embeddings,
@@ -122,6 +127,7 @@ export const qwikGPT = server$(async function* (query: string) {
     let output = '';
     for await (const chunk of toIterable(response.data)) {
       output += chunk;
+      console.log(chunk);
       yield chunk as string;
     }
     await supabase.from('search_output').insert({

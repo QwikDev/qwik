@@ -1,6 +1,7 @@
 import { server$ } from '@builder.io/qwik-city';
 import { Configuration, OpenAIApi } from 'openai';
 import { createClient } from '@supabase/supabase-js';
+import gpt from './gpt.md?raw';
 
 const files = new Map<string, Promise<string>>();
 
@@ -15,11 +16,12 @@ export const qwikGPT = server$(async function* (query: string) {
     input: normalizeLine(query),
     model: 'text-embedding-ada-002',
   });
+
   const embeddings = res.data.data[0].embedding;
   const docs = await supabase.rpc('match_docs_2', {
     query_embedding: embeddings,
     match_count: 5,
-    similarity_threshold: 0.75,
+    similarity_threshold: 0.78,
   });
 
   const insert = supabase
@@ -77,12 +79,12 @@ export const qwikGPT = server$(async function* (query: string) {
           .filter((a) => !a.startsWith('('))
           .join('/');
         const docsURL = `https://qwik.builder.io/${parts}/`;
-        docsLines.push('Qwik documentation (' + docsURL + '):\n');
+        docsLines.push('FROM (' + docsURL + '):\n');
         docsLines.push(...lines);
         docsLines.push('');
       }
     }
-    const docsStr = docsLines.join('\n');
+    const docsStr = gpt + '\n\n' + docsLines.filter(a => !a.includes('CodeSandbox')).join('\n');
     const response = await openai.createChatCompletion(
       {
         model: 'gpt-4',
@@ -91,7 +93,7 @@ export const qwikGPT = server$(async function* (query: string) {
           {
             role: 'system',
             content:
-              'You are QwikGPT, your job is to answer questions about Qwik, a new javascript framework focused on instant interactivity and server-side rendering, completely unrelated with React or any other framework.\nRelevant Qwik documentation and the user question will be provided. Try to answer the question in a short and concise way, pointing to the source URL.',
+              'You are QwikGPT, your job is to answer questions about Qwik, a new javascript framework focused on instant interactivity and server-side rendering.\nRelevant Qwik documentation and the user question will be provided. Try to answer the question in a short and concise way.',
           },
           {
             role: 'user',
@@ -99,7 +101,7 @@ export const qwikGPT = server$(async function* (query: string) {
           },
           {
             role: 'user',
-            content: `User question, respond in markdown format including links to the sources, if you are not sure about the answer, it is ok to say you do not know, do not make up answers.\n${query}`,
+            content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you don not know:\n\n${query}`,
           },
         ],
         stream: true,

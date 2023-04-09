@@ -73,19 +73,24 @@ export const QwikGPT = component$((props: { query: string }) => {
   useTask$(({ track }) => {
     const query = track(() => props.query);
     if (isBrowser) {
-      const run = async () => {
-        done.value = false;
-        const response = await qwikGPT(query);
-        for await (const value of response) {
-          if (typeof value === 'string') {
-            message.value += value;
-          } else if (value.type === 'id') {
-            id.value = value.content;
+      message.value = '';
+      done.value = false;
+      id.value = undefined;
+      if (props.query !== '') {
+        const run = async () => {
+          done.value = false;
+          const response = await qwikGPT(query);
+          for await (const value of response) {
+            if (typeof value === 'string') {
+              message.value += value;
+            } else if (value.type === 'id') {
+              id.value = value.content;
+            }
           }
-        }
-        done.value = true;
-      };
-      run();
+          done.value = true;
+        };
+        run();
+      }
     }
   });
 

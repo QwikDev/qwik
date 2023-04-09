@@ -142,7 +142,6 @@ export const qwikGPT = server$(async function* (query: string) {
     });
   } catch (e) {
     console.error(e);
-    throw e;
   }
 });
 

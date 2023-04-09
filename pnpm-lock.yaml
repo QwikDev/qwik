@@ -55,7 +55,7 @@ importers:
       typescript: 5.0.3
       undici: 5.21.0
       uvu: 0.5.6
-      vite: 4.3.0-beta.3
+      vite: 4.2.1
       vite-tsconfig-paths: 4.0.8
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
@@ -112,8 +112,8 @@ importers:
       typescript: 5.0.3
       undici: 5.21.0
       uvu: 0.5.6
-      vite: 4.3.0-beta.3_mrs5dkoyeq2wfpy5pnapn2fbom
-      vite-tsconfig-paths: 4.0.8_zfuz75tj6udebt54mn3prjcena
+      vite: 4.2.1_mrs5dkoyeq2wfpy5pnapn2fbom
+      vite-tsconfig-paths: 4.0.8_mqt6hr36lqfsnn3kcfure5ceka
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
       zod: 3.21.4
@@ -272,7 +272,7 @@ importers:
       unist-util-visit: 4.1.2
       uvu: 0.5.6
       vfile: 5.3.7
-      vite: 4.3.0-beta.3
+      vite: 4.2.1
       yaml: 2.2.1
       zod: ^3.21.4
     dependencies:
@@ -306,7 +306,7 @@ importers:
       unified: 10.1.2
       unist-util-visit: 4.1.2
       uvu: 0.5.6
-      vite: 4.3.0-beta.3_@types+node@18.15.9
+      vite: 4.2.1_@types+node@18.15.9
       yaml: 2.2.1
 
   packages/qwik-dom:
@@ -320,7 +320,7 @@ importers:
       react: 18.2.0
       react-dom: 18.2.0
       typescript: 5.0.3
-      vite: 4.3.0-beta.3
+      vite: 4.2.1
     devDependencies:
       '@builder.io/qwik': link:../qwik
       '@types/react': 18.0.31
@@ -328,7 +328,7 @@ importers:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       typescript: 5.0.3
-      vite: 4.3.0-beta.3
+      vite: 4.2.1
 
 packages:
 
@@ -8341,7 +8341,7 @@ packages:
       unist-util-stringify-position: 3.0.3
       vfile-message: 3.1.4
 
-  /vite-tsconfig-paths/4.0.8_zfuz75tj6udebt54mn3prjcena:
+  /vite-tsconfig-paths/4.0.8_mqt6hr36lqfsnn3kcfure5ceka:
     resolution: {integrity: sha512-p04zH+Ey+NT78571x0pdX7nVRIJSlmKVvYryFglSWOK3Hc72eDL0+JJfbyQiugaIBApJkaEqbBQvqpsFZOSVGg==}
     peerDependencies:
       vite: '*'
@@ -8352,7 +8352,7 @@ packages:
       debug: 4.3.4
       globrex: 0.1.2
       tsconfck: 2.1.1_typescript@5.0.3
-      vite: 4.3.0-beta.3_mrs5dkoyeq2wfpy5pnapn2fbom
+      vite: 4.2.1_mrs5dkoyeq2wfpy5pnapn2fbom
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -8391,40 +8391,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vite/4.3.0-beta.3:
-    resolution: {integrity: sha512-fitATqiujzSy82No2+TRXz7s+zngmsggt6RyQOeTx0bxkDWE6Gi6HsckJGPTQWxxJOba8x1pMSKlsQglM90OLA==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>= 14'
-      less: '*'
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      esbuild: 0.17.12
-      postcss: 8.4.21
-      rollup: 3.20.2
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
-  /vite/4.3.0-beta.3_@types+node@18.15.9:
-    resolution: {integrity: sha512-fitATqiujzSy82No2+TRXz7s+zngmsggt6RyQOeTx0bxkDWE6Gi6HsckJGPTQWxxJOba8x1pMSKlsQglM90OLA==}
+  /vite/4.2.1_@types+node@18.15.9:
+    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -8451,13 +8419,14 @@ packages:
       '@types/node': 18.15.9
       esbuild: 0.17.12
       postcss: 8.4.21
+      resolve: 1.22.1
       rollup: 3.20.2
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
 
-  /vite/4.3.0-beta.3_mrs5dkoyeq2wfpy5pnapn2fbom:
-    resolution: {integrity: sha512-fitATqiujzSy82No2+TRXz7s+zngmsggt6RyQOeTx0bxkDWE6Gi6HsckJGPTQWxxJOba8x1pMSKlsQglM90OLA==}
+  /vite/4.2.1_mrs5dkoyeq2wfpy5pnapn2fbom:
+    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -8484,6 +8453,7 @@ packages:
       '@types/node': 18.15.9
       esbuild: 0.17.12
       postcss: 8.4.21
+      resolve: 1.22.1
       rollup: 3.20.2
       terser: 5.16.8
     optionalDependencies:

@@ -24,15 +24,6 @@ export const qwikGPT = server$(async function* (query: string) {
     similarity_threshold: 0.78,
   });
 
-  const insert = supabase
-    .from('search_queries')
-    .insert({
-      query: query,
-      embedding: embeddings,
-      results: docs.data,
-    })
-    .select('id');
-
   // Download docs
   try {
     for (const result of docs.data) {
@@ -85,9 +76,22 @@ export const qwikGPT = server$(async function* (query: string) {
       }
     }
     const docsStr = gpt + '\n\n' + docsLines.filter(a => !a.includes('CodeSandbox')).join('\n');
+    let model = 'gpt-4';
+    if (docsStr.length < 3500*3.5) {
+      model = 'gpt-3.5-turbo';
+    }
+    const insert = supabase
+      .from('search_queries')
+      .insert({
+        query: query,
+        embedding: embeddings,
+        results: docs.data,
+        model,
+      })
+      .select('id');
     const response = await openai.createChatCompletion(
       {
-        model: 'gpt-4',
+        model: model,
         temperature: 0,
         messages: [
           {
@@ -114,9 +118,18 @@ export const qwikGPT = server$(async function* (query: string) {
       type: 'id',
       content: id,
     };
+    let output = '';
     for await (const chunk of toIterable(response.data)) {
+      output += chunk;
       yield chunk as string;
     }
+    await supabase
+      .from('search_output')
+      .insert({
+        query_id: id,
+        embedding: embeddings,
+        output,
+      })
   } catch (e) {
     console.error(e);
     throw e;

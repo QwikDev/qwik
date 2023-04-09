@@ -6,9 +6,6 @@ const files = new Map<string, Promise<string>>();
 
 export const qwikGPT = server$(async function* (query: string) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
-
-  console.log('platform', this.platform);
-
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -22,7 +19,6 @@ export const qwikGPT = server$(async function* (query: string) {
   });
   const data = await response.json();
   const embeddings = data.data[0].embedding;
-  console.log('embeddings', embeddings);
 
   const docs = await supabase.rpc('match_docs_3', {
     query_embedding: embeddings,
@@ -31,9 +27,12 @@ export const qwikGPT = server$(async function* (query: string) {
   });
 
   // Download docs
-  const dataCloned = structuredClone(docs.data);
+  const dataCloned = [];
   try {
     for (const result of docs.data) {
+      dataCloned.push({
+        ...result
+      });
       const commit_hash = result.commit_hash;
       const file_path = result.file;
       const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
@@ -217,7 +216,7 @@ async function* toIterable(data: ReadableStream<Uint8Array>) {
   while (true) {
     const { done, value } = await a.read();
     if (done) {
-      break;
+      return;
     }
     const chunk = new TextDecoder().decode(value);
     const lines = chunk.split('\n').filter((line: string) => line.trim().startsWith('data: '));
@@ -228,6 +227,7 @@ async function* toIterable(data: ReadableStream<Uint8Array>) {
         return;
       }
 
+      console.log(message);
       const json = JSON.parse(message);
       const token = json.choices[0].delta.content;
       if (token) {

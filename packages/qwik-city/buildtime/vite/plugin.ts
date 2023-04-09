@@ -5,11 +5,7 @@ import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../context';
-import {
-  isMenuFileName,
-  normalizePath,
-  removeExtension,
-} from '../../utils/fs';
+import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';

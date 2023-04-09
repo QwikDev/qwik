@@ -76,9 +76,9 @@ export const qwikGPT = server$(async function* (query: string) {
         docsLines.push('');
       }
     }
-    const docsStr = gpt + '\n\n' + docsLines.filter(a => !a.includes('CodeSandbox')).join('\n');
+    const docsStr = gpt + '\n\n' + docsLines.filter((a) => !a.includes('CodeSandbox')).join('\n');
     let model = 'gpt-4';
-    if (docsStr.length < 3500*3.5) {
+    if (docsStr.length < 3500 * 3.5) {
       model = 'gpt-3.5-turbo';
     }
     const insert = supabase
@@ -124,13 +124,11 @@ export const qwikGPT = server$(async function* (query: string) {
       output += chunk;
       yield chunk as string;
     }
-    await supabase
-      .from('search_output')
-      .insert({
-        query_id: id,
-        embedding: embeddings,
-        output,
-      })
+    await supabase.from('search_output').insert({
+      query_id: id,
+      embedding: embeddings,
+      output,
+    });
   } catch (e) {
     console.error(e);
     throw e;

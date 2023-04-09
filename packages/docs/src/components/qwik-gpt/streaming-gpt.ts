@@ -14,6 +14,7 @@ export async function* chatCompletion(apiKey: string, request: CreateChatComplet
     }),
   });
 
+
   for await (const chunk of toIterable(response.body!)) {
     yield chunk as string;
   }
@@ -29,13 +30,13 @@ async function* toIterable(data: ReadableStream<Uint8Array>) {
     if (done) {
       return;
     }
-    console.log(value);
-    const message = value.data.trim();
+    console.log('LINE', value);
+    const message = value.trim();
     if (message === '[DONE]') {
       return;
     }
     const json = JSON.parse(message);
-    const token = json.choices[0].delta.content;
+    const token = json.choices?.[0]?.delta?.content;
     if (token) {
       yield token;
     }
@@ -72,7 +73,7 @@ const getSSETransformer = () => {
   // Convert the stream into a stream of lines
   let currentLine = '';
   const encoder = new TextDecoder();
-  const transformer = new TransformStream<Uint8Array, SSEvent>({
+  const transformer = new TransformStream<Uint8Array, string>({
     transform(chunk, controller) {
       const lines = encoder.decode(chunk).split('\n\n');
       for (let i = 0; i < lines.length - 1; i++) {
@@ -81,7 +82,7 @@ const getSSETransformer = () => {
           controller.terminate();
           break;
         } else {
-          controller.enqueue(parseEvent(line));
+          controller.enqueue(parseEvent(line).data);
           currentLine = '';
         }
       }

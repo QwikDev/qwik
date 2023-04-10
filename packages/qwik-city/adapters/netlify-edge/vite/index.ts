@@ -49,7 +49,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
               path: basePathname + '*',
               function: 'entry.netlify-edge',
               cache: 'manual',
-              excludedPath: Array.isArray(opts.excludedPath) ? opts.excludedPath : []
+              excludedPath: Array.isArray(opts.excludedPath) ? opts.excludedPath : [],
             },
           ],
           version: 1,

@@ -35,7 +35,7 @@ To override the generated manifest, you can [add a declaration](https://docs.net
 
 Netlify-specific option fields that can be passed to the adapter options:
 
-- `excludedPath` this option accepts a `string` array and represents which glob patterns should not go through the generated Edge Functions.
+- `excludedPath` this option accepts a `string` array of glob patterns and represents which paths should not go through the generated Edge Functions.
 
 
 ### Deployments

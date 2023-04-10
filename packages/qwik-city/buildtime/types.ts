@@ -160,7 +160,6 @@ export interface PluginOptions {
 }
 
 export interface RehypeSyntaxHighlightOptions {
-  enabled?: boolean;
   setup?: (refractor: Refractor) => void;
 }
 

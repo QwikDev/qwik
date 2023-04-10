@@ -26,8 +26,13 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
 
   const coreRemarkPlugins = [];
 
-  if (typeof coreMdxPlugins?.remarkGfm === 'undefined' || coreMdxPlugins.remarkGfm) {
+  if (
+    typeof coreMdxPlugins?.remarkGfm === 'undefined' ||
+    (typeof coreMdxPlugins?.remarkGfm === 'boolean' && coreMdxPlugins.remarkGfm)
+  ) {
     coreRemarkPlugins.push(remarkGfm);
+  } else if (typeof coreMdxPlugins?.remarkGfm === 'object') {
+    coreRemarkPlugins.push([remarkGfm, coreMdxPlugins.remarkGfm]);
   }
 
   const coreRehypePlugins = [];
@@ -38,20 +43,18 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       coreMdxPlugins.rehypeSyntaxHighlight)
   ) {
     coreRehypePlugins.push(rehypeSyntaxHighlight);
-  }
-
-  if (
-    typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'object' &&
-    coreMdxPlugins.rehypeSyntaxHighlight.enabled !== false
-  ) {
+  } else if (typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'object') {
     coreRehypePlugins.push([rehypeSyntaxHighlight, coreMdxPlugins.rehypeSyntaxHighlight]);
   }
 
   if (
     typeof coreMdxPlugins?.rehypeAutolinkHeadings === 'undefined' ||
-    coreMdxPlugins.rehypeAutolinkHeadings
+    (typeof coreMdxPlugins?.rehypeAutolinkHeadings === 'boolean' &&
+      coreMdxPlugins.rehypeAutolinkHeadings)
   ) {
     coreRehypePlugins.push(rehypeAutolinkHeadings);
+  } else if (typeof coreMdxPlugins?.rehypeAutolinkHeadings === 'object') {
+    coreRehypePlugins.push([rehypeAutolinkHeadings, coreMdxPlugins.rehypeAutolinkHeadings]);
   }
 
   const mdxOpts: CompileOptions = {

@@ -1,4 +1,6 @@
 import type { refractor } from 'refractor';
+import type { Options as RemarkGfmOptions } from 'remark-gfm';
+import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings';
 
 type Refractor = typeof refractor;
 
@@ -163,9 +165,9 @@ export interface RehypeSyntaxHighlightOptions {
 }
 
 export interface MdxPlugins {
-  remarkGfm?: boolean;
+  remarkGfm?: boolean | RemarkGfmOptions;
   rehypeSyntaxHighlight?: boolean | RehypeSyntaxHighlightOptions;
-  rehypeAutolinkHeadings?: boolean;
+  rehypeAutolinkHeadings?: boolean | RehypeAutolinkHeadingsOptions;
 }
 
 export interface NormalizedPluginOptions extends Required<PluginOptions> {}

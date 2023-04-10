@@ -6,6 +6,8 @@
 
 import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { ConfigEnv } from 'vite';
+import type { Options } from 'remark-gfm';
+import type { Options as Options_2 } from 'rehype-autolink-headings';
 import type { refractor } from 'refractor';
 import { UserConfigExport } from 'vite';
 

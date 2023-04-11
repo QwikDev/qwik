@@ -3,6 +3,9 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
 
 export const useQueryData = routeLoader$(async (ev) => {
+  if (ev.query.get('token') !== ev.env.get('DEBUG_TOKEN')) {
+    throw ev.redirect(308, '/');
+  }
   const query_id = ev.params.id;
   const supabase = createClient(ev.env.get('SUPABASE_URL')!, ev.env.get('SUPABASE_KEY')!);
   const output = await supabase
@@ -27,9 +30,14 @@ export const useQueryData = routeLoader$(async (ev) => {
     result.included = entry.results.some((r: any) => r.key === result.key);
   });
 
+  const output2 = await supabase.rpc('match_output_6', {
+    match_id: query_id,
+  });
+
   return {
     query: entry.query,
     results: all_results,
+    similar: output2.data,
     model: entry.model,
   };
 });
@@ -49,8 +57,10 @@ export default component$(() => {
         <tbody>
           {queryData.results.data.map((result: any, i: any) => (
             <tr
-              class="border-spacing-5"
-              style={{ background: result.included ? 'green' : 'transparent' }}
+              class={{
+                'border-spacing-5': true,
+                'bg-green-400': result.included,
+              }}
             >
               <td class="border border-slate-600">{i}</td>
               <td class="border border-slate-600">{(result.similarity as number).toFixed(2)}</td>
@@ -58,6 +68,26 @@ export default component$(() => {
                 {result.file.replace('packages/docs/src/routes/', '')}:{result.line}
               </td>
               <td class="border border-slate-600">{result.content}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Similar queries</h2>
+      <table class="text-xs table-auto border-collapse border border-slate-500">
+        <tbody>
+          {queryData.similar.map((result: any) => (
+            <tr
+              class={{
+                'border-spacing-5': true,
+                'bg-red-400': result.rate < 0,
+                'bg-green-400': result.rate > 0,
+              }}
+            >
+              <td class="border border-slate-600">{result.id}</td>
+              <td class="border border-slate-600">{result.query}</td>
+              <td class="border border-slate-600">{result.message}</td>
+              <td class="border border-slate-600">{result.rate}</td>
             </tr>
           ))}
         </tbody>

@@ -34,7 +34,6 @@ async function* toIterable(data: ReadableStream<Uint8Array>) {
         return;
       } else {
         const message = parseEvent(line).trim();
-        console.log('message', message);
         if (message === '[DONE]') {
           return;
         }

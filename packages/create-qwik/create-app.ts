@@ -176,7 +176,12 @@ function isValidOption(value: any) {
 }
 
 export function getOutDir(outDir: string) {
-  return resolve(process.cwd(), outDir);
+  // check if the outDir start with home ~
+  if (outDir.startsWith('~/')) {
+    return resolve(os.homedir(), outDir);
+  } else {
+    return resolve(process.cwd(), outDir);
+  }
 }
 
 export function writeToCwd() {

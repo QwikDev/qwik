@@ -42,6 +42,7 @@ export const qwikGPT = server$(async function* (query: string) {
     similarity_threshold: 0.79,
   });
 
+
   // Download docs
   const dataCloned = [];
   try {
@@ -112,6 +113,17 @@ export const qwikGPT = server$(async function* (query: string) {
       })
       .select('id');
 
+    const id = (await insert).data?.[0].id as string;
+    yield {
+      type: 'id',
+      content: id,
+    };
+
+    if (docs.data.length === 0) {
+      yield 'We could not find any documentation that matches your question. Please try again rephrasing your question to be more factual.';
+      return;
+    }
+
     const generator = chatCompletion(this.env.get('OPENAI_KEY')!, {
       model: model,
       temperature: 0,
@@ -132,11 +144,6 @@ export const qwikGPT = server$(async function* (query: string) {
       ],
     });
 
-    const id = (await insert).data?.[0].id as string;
-    yield {
-      type: 'id',
-      content: id,
-    };
     let output = '';
     for await (const chunk of generator) {
       output += chunk;

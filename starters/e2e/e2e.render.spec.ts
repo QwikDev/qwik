@@ -336,6 +336,34 @@ test.describe('render', () => {
       await button.click();
       await expect(result).toHaveText('Changed');
     });
+
+    test('issue3731', async ({ page }) => {
+      const button = page.locator('#issue-3731-button');
+      const results = page.locator('.issue-3731-result');
+      await expect(results).toHaveText([
+        'think',
+        'containers',
+        'hydrating',
+        'usestylesscoped',
+        'slots',
+      ]);
+      await button.click();
+      await expect(results).toHaveText([
+        'think',
+        'containers',
+        'cleanup',
+        'usevisibletask',
+        'hydrating',
+      ]);
+      await button.click();
+      await expect(results).toHaveText([
+        'cleanup',
+        'usevisibletask',
+        'think',
+        'containers',
+        'slots',
+      ]);
+    });
   }
 
   tests();

@@ -149,7 +149,7 @@ Methods that start with `use` are special in Qwik, such as `useSignal()`, `useSt
 
 ## Styling
 
-Qwik supports out of the box, CSS modules, global CSS imports and lazy loading scoped CSS using `useStyleScoped$()`.
+Qwik supports out of the box, CSS modules, or even tailwind, global CSS imports and lazy loading scoped CSS using `useStyleScoped$()`. CSS Modules are the recommended way to style Qwik components.
 
 ### CSS Modules
 
@@ -174,56 +174,6 @@ export default component$(() => {
 ```
 
 Remember that Qwik uses `class` instead of `className` for CSS classes.
-
-### Global CSS
-
-To use global CSS, simply import the CSS file from any typescript file. For example, `src/components/MyComponent/MyComponent.tsx`.
-
-```tsx title="src/components/MyComponent/MyComponent.tsx"
-
-import { component$ } from '@builder.io/qwik';
-import './MyComponent.css';
-
-export default component$(() => {
-  return <div class="container">Hello world</div>;
-});
-```
-
-### Scoped CSS
-
-To use scoped CSS, you can use the `useStyleScoped$()` hook exported from `@builder.io/qwik`.
-
-```tsx title="src/components/MyComponent/MyComponent.tsx"
-
-import { component$, useStyleScoped$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  useStyleScoped$(`
-    .container {
-      background-color: red;
-    }
-  `);
-  return <div class="container">Hello world</div>;
-});
-```
-
-It can also import an external CSS file. For that you need to add the `?inline` query parameter to the import of the CSS file, and pass the default export of the CSS file to the `useStyleScoped$()` hook.
-
-```css title="src/components/MyComponent/MyComponent.css"
-.container {
-  background-color: red;
-}
-```
-
-```tsx title="src/components/MyComponent/MyComponent.tsx"
-import { component$, useStyleScoped$ } from '@builder.io/qwik';
-import styles from './MyComponent.css?inline';
-
-export default component$(() => {
-  useStyleScoped$(styles);
-  return <div class="container">Hello world</div>;
-});
-```
 
 ## $(...) rules
 
@@ -567,12 +517,12 @@ The `routeLoader$()` function takes a function that returns a promise. The promi
 
 ## Handle form submissions
 
-Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests in the server. `routeAction$()` is very similar to `routeLoader$()`, both are used to create a custom hook that can be used to access data returned from the server. The main difference is that `routeAction$()` is only executed when the form is submitted, while `routeLoader$()` is executed on the server before the route is rendered.
+Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests in the server. `routeAction$()` is only executed in the server when the form is submitted.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
-import { routeAction$, Form } from '@builder.io/qwik-city';
+import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
 // The `routeAction$()` function is used to create a data loader that will be executed on the server when the form is submitted.
 // The return of `routeAction$()` is a custom use hook, which can be used to access the data returned from `routeAction$()`.
@@ -584,7 +534,10 @@ export const useUserUpdate = routeAction$(async (data, requestContext) => {
   return {
     user,
   };
-});
+}, zod$({
+  name: z.string(),
+  email: z.string(),
+}));
 
 export default component$(() => {
   // The `useUserUpdate` hook will return a `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.

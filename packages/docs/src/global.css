@@ -49,6 +49,11 @@
   -webkit-touch-callout: none;
 }
 
+:root body {
+  --docsearch-modal-width: 600px;
+  --docsearch-modal-height: 800px;
+}
+
 :root {
   color-scheme: light;
   --header-height: 80px;
@@ -312,4 +317,132 @@ code .word {
   background: rgba(200, 200, 255, 0.15);
   padding: 0.25rem;
   border-radius: 0.25rem;
+}
+
+.ai-button {
+  background: var(--docsearch-hit-background);
+  border-radius: 4px;
+  box-shadow: var(--docsearch-hit-shadow);
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ai-button > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding-left: 12px;
+  padding: 15px;
+}
+
+.ai-li[aria-selected='true'] button {
+  background-color: var(--docsearch-highlight-color);
+  color: white;
+}
+
+.qwikgpt-box {
+  background: white;
+  padding: 10px;
+  margin: 0;
+  font-weight: 100;
+  font-size: 14px;
+}
+
+.qwikgpt-box p {
+  margin: 10px 0;
+}
+
+.qwikgpt-box ol,
+.qwikgpt-box ul {
+  margin: 10px 15px 0;
+  list-style: auto;
+}
+
+.qwikgpt-box li {
+  font-weight: initial;
+}
+
+.qwikgpt-box code:not(.language-tsx) {
+  background: #5468ff5c;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+
+.qwikgpt-box a {
+  color: var(--interactive-text-color);
+  text-decoration: underline;
+}
+
+.qwikgpt-box pre {
+  font-size: 12px !important;
+  border-radius: 12px;
+  margin: 10px 0;
+}
+
+.indeterminate-progress-bar {
+  /* Color */
+  background-color: #d1d5db;
+
+  /* Rounded border */
+  border-radius: 9999px;
+
+  /* Size */
+  height: 0.5rem;
+
+  position: relative;
+  overflow: hidden;
+}
+
+.indeterminate-progress-bar__progress {
+  /* Color */
+  background-color: #3b82f6;
+
+  /* Rounded border */
+  border-radius: 9999px;
+
+  /* Absolute position */
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  width: 50%;
+
+  /* Move the bar infinitely */
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-name: indeterminate-progress-bar;
+}
+
+@keyframes indeterminate-progress-bar {
+  from {
+    left: -50%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+.ai-rate {
+  text-align: right;
+  margin-top: 20px;
+  border-top: 1px solid #cdcdcd;
+  padding: 10px 13px 0 0;
+  font-size: 12px;
+}
+
+.ai-rate button {
+  padding: 0px 18px;
+  font-size: 18px;
+  border-radius: 10px;
+  margin: 0 5px;
+}
+
+.ai-rate button.rate-good {
+  background: #c2ffc6;
+  border: 2px solid green;
+}
+
+.ai-rate button.rate-bad {
+  background: #ffc2c2;
+  border: 2px solid red;
 }

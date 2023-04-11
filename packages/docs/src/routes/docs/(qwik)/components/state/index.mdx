@@ -38,7 +38,7 @@ In Qwik:
 
 ## `useSignal()`
 
-The `useSignal()` function accepts an `initial value`, creates, and returns a `reactive state`, also known as a `signal`. This signal is an object with a single property, `.value`. Multiple components can consume the signal. When any component with access to the signal modifies the `.value` property, all dependent components will automatically update in response to the change.
+The `useSignal()` hook accepts an `initial value`, creates, and returns a `reactive state`, also known as a `signal`. This signal is an object with a single property, `.value`. Multiple components can consume the signal. When any component with access to the signal modifies the `.value` property, all dependent components will automatically update in response to the change.
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {4} /count/
@@ -56,7 +56,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-The example above demonstrates how useSignal() can be employed in a counter component to monitor the count. When the count.value property is modified, the component automatically updates. This can be observed in the button click handler in the example, where altering the property triggers the update.
+The example above demonstrates how useSignal() can be employed in a counter component to monitor the count. When the `count.value` property is modified, the component automatically updates. This can be observed in the button click handler in the example, where altering the property triggers the update.
 
 > **Note**
 > In situations where a component requires multiple signals, managing each signal as an independent state may not be desirable. In such cases, it is recommended to use `useStore()` instead.
@@ -68,7 +68,7 @@ The example above demonstrates how useSignal() can be employed in a counter comp
 
 `useStore()` works similarly to `useSignal()`, but it accepts an object as its initial value. A store can be thought of as a multi-value signal or an object composed of several signals.
 
-To create a reactive object, use the `useStore(initialStateObject)` function, (aka hook). This hook takes an initial object and returns a reactive object.  Alternatively, `userStore(() => initialStateObject)` can be used to create a reactive object lazily.
+To create a reactive object, use the `useStore(initialStateObject)` hook. This hook takes an initial object and returns a reactive object.  Alternatively, `userStore(() => initialStateObject)` can be used to create a reactive object lazily.
 
 > **Note**
 > To ensure proper reactivity, it is important to maintain a reference to the reactive object rather than just its properties. For instance, if you execute `let { count } = useStore({ count: 0 })` and then mutate `count`, it will not cause updates in components that depend on the property. Make sure to keep a reference to the reactive object itself.

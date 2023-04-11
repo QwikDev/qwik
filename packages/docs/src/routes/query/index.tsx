@@ -3,7 +3,8 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
 
 export const useQueryData = routeLoader$(async (ev) => {
-  if (ev.query.get('token') !== ev.env.get('DEBUG_TOKEN')) {
+  const token = ev.query.get('token');
+  if (token !== ev.env.get('DEBUG_TOKEN')) {
     throw ev.redirect(308, '/');
   }
   const supabase = createClient(ev.env.get('SUPABASE_URL')!, ev.env.get('SUPABASE_KEY')!);
@@ -16,6 +17,7 @@ export const useQueryData = routeLoader$(async (ev) => {
     .limit(100);
 
   return {
+    token,
     results: output,
   };
 });
@@ -37,7 +39,7 @@ export default component$(() => {
               <td class="border border-slate-500">{result.query}</td>
               <td class="border border-slate-500">{result.created_at}</td>
               <td class="border border-slate-500">
-                <a href={`/query/${result.id}`}>Open</a>
+                <a href={`/query/${result.id}/?token=${queryData.token}`}>Open</a>
               </td>
             </tr>
           ))}

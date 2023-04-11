@@ -15,8 +15,8 @@ export const useDadJoke = routeLoader$(async () => {
 export default component$(() => {
   const dadJokeSignal = useDadJoke();
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
-    </div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
+    </section>
   );
 });

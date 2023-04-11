@@ -79,7 +79,7 @@ import type { StaticGenerateHandler } from '@builder.io/qwik-city';
 export default component$(() => {
   const { params } = useLocation();
 
-  return <div>Example: {params.id}</div>;
+  return <p>Example: {params.id}</p>;
 });
 
 export const onStaticGenerate: StaticGenerateHandler = () => {

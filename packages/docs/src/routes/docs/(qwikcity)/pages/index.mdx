@@ -85,11 +85,11 @@ export const useJoke = routeLoader$(async (requestEvent) => {
 export default component$(() => {
   const joke = useJoke();
   return (
-    <div>
+    <section>
       <h1>{joke.value.title}</h1>
-      <div>{joke.value.text}</div>
-      <div>{joke.value.author}</div>
-    </div>
+      <p>{joke.value.text}</p>
+      <p>{joke.value.author}</p>
+    </section>
   );
 });
 

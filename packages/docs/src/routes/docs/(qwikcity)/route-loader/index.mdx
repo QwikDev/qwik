@@ -24,7 +24,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
   const signal = useProductDetails(); // ReadonlySignal<Product>
-  return <div>Product name: {signal.value.product.name}</div>;
+  return <p>Product name: {signal.value.product.name}</p>;
 });
 ```
 

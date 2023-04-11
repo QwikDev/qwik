@@ -30,7 +30,7 @@ const serverGreeter = server$((name) => {
 export default component$(() => {
   const name = useSignal('World');
   return (
-    <div>
+    <section>
       Name: <input bind:value={name} />
       <button
         onClick$={async () => {
@@ -40,7 +40,7 @@ export default component$(() => {
       >
         greet
       </button>
-    </div>
+    </section>
   );
 });
 ```

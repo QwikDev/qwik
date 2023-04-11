@@ -34,8 +34,8 @@ export default component$(() => {
     })();
   });
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">
@@ -50,6 +50,6 @@ export default component$(() => {
       >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
-    </div>
+    </section>
   );
 });

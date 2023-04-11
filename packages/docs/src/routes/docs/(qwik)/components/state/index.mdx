@@ -29,25 +29,12 @@ import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 # State
 
-State management is an important part of any app. In Qwik, we can differentiate between two types of state, reactive and static:
+Reactive state management is an approach to managing the state of an application in response to changes in data or user interactions.
 
-- Static state is anything that can be serialized: a string, number, object, array... anything.
-- A reactive state on the other hand is created with `useSignal()` or `useStore()`.
+In Qwik:
 
-It is important to notice that state in Qwik is not necessarily a local component state, but rather an app state that can be instantiated by any component.
-
-State management is essential in any application. The Qwik framework categorizes state into two main types: `static` and `reactive`.
-
-- `Static state` represents a snapshot of any serializable data captured at a specific moment in time.
-  - Serializable data consists of strings, numbers, objects, arrays, and more.
-  - This state can be paused by the server, transmitted to, and resumed by the browser.
-  - Any non-serializable data must be set to `undefined`, with the responsibility of proper initialization handed over to the client once the state is resumed and the specific component becomes visible (hint: use useVisibleTask()).
-- `Reactive state`, in contrast, can change at any given time.
   - Reactive state is created using the `useSignal()` or `useStore()` functions, (aka hooks).
-  - These functions must be declared within components.
-  - Reactive states are not confined to the component that generated them, as they can be shared among other components across the application.
-  - Reactive states can be passed down via `props` or distributed throughout the application via `context`.
-  - Any and all components that depend on a reactive state will be automatically updated when the state changes.
+  - Reactive states can be shared with other components across the application to update them in response to changes.
 
 ## `useSignal()`
 

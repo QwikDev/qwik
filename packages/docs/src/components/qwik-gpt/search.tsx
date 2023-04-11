@@ -7,6 +7,7 @@ const files = new Map<string, Promise<string>>();
 
 export const qwikGPT = server$(async function* (query: string) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
+  const normalizedQuery = normalizeLine(query);
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -14,17 +15,18 @@ export const qwikGPT = server$(async function* (query: string) {
       Authorization: `Bearer ${this.env.get('OPENAI_KEY')}`,
     },
     body: JSON.stringify({
-      input: normalizeLine(query),
+      input: normalizedQuery,
       model: 'text-embedding-ada-002',
     }),
   });
   const data = await response.json();
   const embeddings = data.data[0].embedding;
 
-  const docs = await supabase.rpc('match_docs_3', {
+  const docs = await supabase.rpc('match_docs_7', {
+    query_text: normalizedQuery,
     query_embedding: embeddings,
     match_count: 5,
-    similarity_threshold: 0.75,
+    similarity_threshold: 0.8,
   });
 
   // Download docs
@@ -32,7 +34,7 @@ export const qwikGPT = server$(async function* (query: string) {
   try {
     for (const result of docs.data) {
       dataCloned.push({
-        ...result
+        ...result,
       });
       const commit_hash = result.commit_hash;
       const file_path = result.file;

@@ -1,7 +1,6 @@
 import type { CreateChatCompletionRequest } from 'openai';
 
 export async function* chatCompletion(apiKey: string, request: CreateChatCompletionRequest) {
-
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -14,14 +13,12 @@ export async function* chatCompletion(apiKey: string, request: CreateChatComplet
     }),
   });
 
-
   for await (const chunk of toIterable(response.body!)) {
     yield chunk as string;
   }
 }
 
 async function* toIterable(data: ReadableStream<Uint8Array>) {
-
   const reader = data.getReader();
   const encoder = new TextDecoder();
   let currentLine = '';

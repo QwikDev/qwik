@@ -15,7 +15,8 @@
     "preview.wrangler": "wrangler pages dev ./dist",
     "build.showcase": "pnpm node scripts/showcase.js",
     "start": "pnpm dev",
-    "codesandbox.sync": "tsm codesandbox.sync.ts"
+    "codesandbox.sync": "tsm codesandbox.sync.ts",
+    "deploy": "wrangler pages publish ./dist --branch preview"
   },
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
@@ -66,6 +67,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.14.0",
     "@vespaiach/axios-fetch-adapter": "^0.3.1",
+    "openai": "^3.2.1",
     "snarkdown": "^2.0.0"
   }
 }

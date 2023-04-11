@@ -144,6 +144,7 @@ importers:
       '@types/prismjs': ^1.26.0
       '@types/react': 18.0.28
       '@types/react-dom': 18.0.11
+      '@vespaiach/axios-fetch-adapter': ^0.3.1
       algoliasearch: 4.16.0
       autoprefixer: 10.4.14
       fflate: 0.7.4
@@ -168,6 +169,7 @@ importers:
       wrangler: ^2.14.0
     dependencies:
       '@supabase/supabase-js': 2.14.0
+      '@vespaiach/axios-fetch-adapter': 0.3.1
       openai: 3.2.1
       snarkdown: 2.0.0
     devDependencies:
@@ -2664,6 +2666,12 @@ packages:
       '@typescript-eslint/types': 5.57.1
       eslint-visitor-keys: 3.4.0
     dev: true
+
+  /@vespaiach/axios-fetch-adapter/0.3.1:
+    resolution: {integrity: sha512-+1F52VWXmQHSRFSv4/H0wtnxfvjRMPK5531e880MIjypPdUSX6QZuoDgEVeCE1vjhzDdxCVX7rOqkub7StEUwQ==}
+    peerDependencies:
+      axios: '>=0.26.0'
+    dev: false
 
   /accepts/1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}

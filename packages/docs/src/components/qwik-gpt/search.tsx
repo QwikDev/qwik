@@ -22,6 +22,19 @@ export const qwikGPT = server$(async function* (query: string) {
   const data = await response.json();
   const embeddings = data.data[0].embedding;
 
+  const existingQuery = await supabase.rpc('match_query', {
+    query_embedding: embeddings,
+    similarity_threshold: 0.95,
+  });
+  if (existingQuery.data.length === 1) {
+    const entry = existingQuery.data[0];
+    yield {
+      type: 'id',
+      content: entry.id,
+    };
+    yield entry.output;
+    return;
+  }
   const docs = await supabase.rpc('match_docs_7', {
     query_text: normalizedQuery,
     query_embedding: embeddings,
@@ -129,11 +142,7 @@ export const qwikGPT = server$(async function* (query: string) {
       output += chunk;
       yield chunk as string;
     }
-    await supabase.from('search_output').insert({
-      query_id: id,
-      embedding: embeddings,
-      output,
-    });
+    await supabase.from('search_queries').update({ output }).eq('id', id);
   } catch (e) {
     console.error(e);
   }
@@ -141,13 +150,11 @@ export const qwikGPT = server$(async function* (query: string) {
 
 export const rateResponse = server$(async function (
   query_id: string,
-  message: string,
   rate: number
 ) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
   await supabase.from('search_rate').insert({
     query_id: query_id,
-    message: message,
     rate: rate,
   });
 });

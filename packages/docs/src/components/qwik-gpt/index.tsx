@@ -75,6 +75,7 @@ export const QwikGPT = component$((props: { query: string }) => {
     if (isBrowser) {
       message.value = '';
       done.value = false;
+      rated.value = false;
       id.value = undefined;
       if (props.query !== '') {
         const run = async () => {
@@ -124,7 +125,7 @@ export const QwikGPT = component$((props: { query: string }) => {
                 class="rate-good"
                 onClick$={async () => {
                   rated.value = true;
-                  await rateResponse(id.value!, message.value, 1);
+                  await rateResponse(id.value!, 1);
                 }}
               >
                 👍
@@ -133,7 +134,7 @@ export const QwikGPT = component$((props: { query: string }) => {
                 class="rate-bad"
                 onClick$={async () => {
                   rated.value = true;
-                  await rateResponse(id.value!, message.value, -1);
+                  await rateResponse(id.value!, -1);
                 }}
               >
                 👎

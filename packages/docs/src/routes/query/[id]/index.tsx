@@ -1,6 +1,11 @@
 import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$, server$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
+
+export const approveId = server$(async function (id: string, approved: boolean) {
+  const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
+  await supabase.from('search_queries').update({approved}).filter('id', 'eq', id);
+});
 
 export const useQueryData = routeLoader$(async (ev) => {
   if (ev.query.get('token') !== ev.env.get('DEBUG_TOKEN')) {
@@ -10,7 +15,7 @@ export const useQueryData = routeLoader$(async (ev) => {
   const supabase = createClient(ev.env.get('SUPABASE_URL')!, ev.env.get('SUPABASE_KEY')!);
   const output = await supabase
     .from('search_queries')
-    .select('query, embedding, results, model')
+    .select('query, embedding, results, model, approved')
     .filter('id', 'eq', query_id)
     .limit(1);
 
@@ -30,15 +35,16 @@ export const useQueryData = routeLoader$(async (ev) => {
     result.included = entry.results.some((r: any) => r.key === result.key);
   });
 
-  const output2 = await supabase.rpc('match_output_6', {
+  const output2 = await supabase.rpc('match_output_9', {
     match_id: query_id,
   });
-
   return {
+    id: query_id,
     query: entry.query,
     results: all_results,
     similar: output2.data,
     model: entry.model,
+    approved: entry.approved,
   };
 });
 
@@ -52,6 +58,21 @@ export default component$(() => {
     <div>
       <h1>Query: {queryData.query}</h1>
       <h2>Model: {queryData.model}</h2>
+      <div>
+        <div>
+          Currently {queryData.approved ? 'APPROVED' : 'NOT APPROVED'}
+        </div>
+        <div>
+          <button class="block border p-5 " onClick$={async () => {
+            await approveId(queryData.id, !queryData.approved);
+            location.reload();
+          }}>
+            {!queryData.approved ? 'SET APPROVED' : 'UNAPPROVE'}
+          </button>
+
+        </div>
+      </div>
+      <button>Set approved</button>
       <h2>Results</h2>
       <table class="text-xs table-auto border-collapse border border-slate-500">
         <tbody>

@@ -49,7 +49,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
               path: basePathname + '*',
               function: 'entry.netlify-edge',
               cache: 'manual',
-              excludedPath: Array.isArray(opts.excludedPath) ? opts.excludedPath : [],
+              excludedPath: opts.excludedPath || '',
             },
           ],
           version: 1,
@@ -97,10 +97,10 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
    */
   staticPaths?: string[];
   /**
-   * Manually add pathnames that should be excluded from the edge function routes
+   * Manually add path pattern that should be excluded from the edge function routes
    * that are created by the 'manifest.json' file.
    */
-  excludedPath?: string[];
+  excludedPath?: string;
 }
 
 /**

@@ -31,6 +31,12 @@ To override the generated manifest, you can [add a declaration](https://docs.net
   function = "auth"
 ```
 
+### Addition Adapter Options
+
+Netlify-specific option fields that can be passed to the adapter options:
+
+- `excludedPath` this option accepts a `string` glob pattern that represents which path pattern should not go through the generated Edge Functions.
+
 ### Deployments
 
 You can [deploy your site to Netlify](https://docs.netlify.com/site-deploys/create-deploys/) either via a Git provider integration or through the Netlify CLI. This starter site includes a `netlify.toml` file to configure your build for deployment.

@@ -15,7 +15,7 @@ export const useQueryData = routeLoader$(async (ev) => {
   const supabase = createClient(ev.env.get('SUPABASE_URL')!, ev.env.get('SUPABASE_KEY')!);
   const output = await supabase
     .from('search_queries')
-    .select('query, embedding, results, model, approved')
+    .select('query, embedding, results, output, model, approved')
     .filter('id', 'eq', query_id)
     .limit(1);
 
@@ -24,11 +24,11 @@ export const useQueryData = routeLoader$(async (ev) => {
   }
   const entry = output.data[0];
 
-  const all_results = await supabase.rpc('match_docs_7', {
+  const all_results = await supabase.rpc('match_docs_8', {
     query_text: entry.query,
     query_embedding: entry.embedding,
     match_count: 40,
-    similarity_threshold: 0.8,
+    similarity_threshold: 0.6,
   });
 
   all_results.data.forEach((result: any) => {
@@ -43,6 +43,7 @@ export const useQueryData = routeLoader$(async (ev) => {
     query: entry.query,
     results: all_results,
     similar: output2.data,
+    output: entry.output,
     model: entry.model,
     approved: entry.approved,
   };
@@ -58,6 +59,11 @@ export default component$(() => {
     <div>
       <h1>Query: {queryData.query}</h1>
       <h2>Model: {queryData.model}</h2>
+      <div>
+        <h2>Output:</h2>
+        <pre>{queryData.output}</pre>
+      </div>
+
       <div>
         <div>
           Currently {queryData.approved ? 'APPROVED' : 'NOT APPROVED'}
@@ -84,7 +90,7 @@ export default component$(() => {
               }}
             >
               <td class="border border-slate-600">{i}</td>
-              <td class="border border-slate-600">{(result.similarity as number).toFixed(2)}</td>
+              <td class="border border-slate-600">{(result.similarity as number).toFixed(4)}</td>
               <td class="border border-slate-600">
                 {result.file.replace('packages/docs/src/routes/', '')}:{result.line}
               </td>

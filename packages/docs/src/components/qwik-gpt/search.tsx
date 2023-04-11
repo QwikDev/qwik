@@ -36,10 +36,10 @@ export const qwikGPT = server$(async function* (query: string) {
     return;
   }
   const docs = await supabase.rpc('match_docs_7', {
-    query_text: normalizedQuery,
+    query_text: query,
     query_embedding: embeddings,
     match_count: 5,
-    similarity_threshold: 0.8,
+    similarity_threshold: 0.79,
   });
 
   // Download docs

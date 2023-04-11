@@ -8,13 +8,9 @@ export const useQueryData = routeLoader$(async (ev) => {
     throw ev.redirect(308, '/');
   }
   const supabase = createClient(ev.env.get('SUPABASE_URL')!, ev.env.get('SUPABASE_KEY')!);
-  const output = await supabase
-    .from('search_queries')
-    .select('id, query, created_at')
-    .order('created_at', {
-      ascending: false,
-    })
-    .limit(100);
+  const output = await supabase.rpc('list_searches', {
+    match_count: 100
+  });
 
   return {
     token,
@@ -34,7 +30,10 @@ export default component$(() => {
       <table class="border border-slate-500">
         <tbody>
           {queryData.results.data?.map((result: any, i: any) => (
-            <tr>
+            <tr class={{
+              'bg-red-400': result.rate < 0,
+              'bg-green-400': result.rate > 0
+            }}>
               <td class="border border-slate-500">{i}</td>
               <td class="border border-slate-500">{result.query}</td>
               <td class="border border-slate-500">{result.created_at}</td>

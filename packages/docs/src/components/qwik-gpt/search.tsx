@@ -139,7 +139,7 @@ export const qwikGPT = server$(async function* (query: string) {
         },
         {
           role: 'user',
-          content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you don not know:\n\n${query}`,
+          content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you do not know:\n\n${query}`,
         },
       ],
     });

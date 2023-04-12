@@ -1,74 +1,133 @@
-<br>
-<p align="center">
-  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/qwik-logo.svg" />
-</p>
-<br>
+# Qwik Docs Site ⚡️
 
-[![Qwik CI](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml)
-[![Azure SWA Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml)
-[![Cloudflare Pages Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml)
-[![Netlify Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml)
-[![Node Servers](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml)
-[![Vercel Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml)
-<br>
-<br>
+## Development Builds
 
-<h1 align="center">The HTML-first framework</h1>
+### Client only
 
-Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://qwik.builder.io/docs/concepts/resumable/).
+During development, the index.html is not a result of server-side rendering, but rather the Qwik app is built using client-side JavaScript only. This is ideal for development with Vite and its ability to reload modules quickly and on-demand. However, this mode is only for development and does not showcase "how" Qwik works since JavaScript is required to execute, and Vite imports many development modules for the app to work.
 
-As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://qwik.builder.io/docs/concepts/progressive/) is what makes Qwik so quick.
-
-## Getting Started
-
-```sh
-npm create qwik@latest
-# or
-pnpm create qwik@latest
-# or
-yarn create qwik@latest
+```
+pnpm dev
 ```
 
-- Understand the difference between [resumable and replayable](https://qwik.builder.io/docs/concepts/resumable/) applications.
-- Learn about Qwik's high level [mental model](https://qwik.builder.io/docs/think-qwik/).
+### Server-side Rendering (SSR) and Client
 
-## Resources
+Server-side rendered index.html, with client-side modules prefetched and loaded by the browser. This can be used to test out server-side rendered content during development, but will be slower than the client-only development builds.
 
-- [Docs](https://qwik.builder.io/)
-- [Examples](https://qwik.builder.io/examples/introduction/hello-world/)
-- [Tutorials](https://qwik.builder.io/tutorial/welcome/overview/)
-- [Videos](https://qwik.builder.io/media/#videos)
-- [Podcasts](https://qwik.builder.io/media/#podcasts)
-- [Presentations](https://qwik.builder.io/media/#presentations)
-- [Blogs](https://qwik.builder.io/media/#blogs)
+```
+pnpm dev.ssr
+```
 
-## Community
+## Production Builds
 
-- Ping us at [@QwikDev](https://twitter.com/QwikDev)
-- Join our [Discord](https://qwik.builder.io/chat) community
-- Join all the [other community groups](https://qwikcommunity.com)
+A production build should generate the client and server modules by running both client and server build commands.
 
-## Development
+```
+pnpm build
+```
 
-- See [Contributing.md](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
+### Client Modules
 
-## Related
+Production build that creates only the client-side modules that are dynamically imported by the browser.
 
-- [Partytown](https://partytown.builder.io/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
-- [Mitosis](https://github.com/BuilderIO/mitosis): Write components once, run everywhere. Compiles to Vue, React, Solid, Angular, Svelte, and more.
-- [Builder](https://github.com/BuilderIO/builder): Drag and drop page builder and CMS for React, Vue, Angular, and more.
+```
+pnpm build.client
+```
 
+### Server Modules
 
-<br>
-<br>
+Production build that creates the server-side render (SSR) module that is used by the server to render the HTML.
 
+```
+pnpm build.ssr
+```
 
+## Cloudflare Pages
 
-<p align="center">
-   <a href="https://www.builder.io/m/developers">
-      <picture>
-         <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/844291/230786554-eb225eeb-2f6b-4286-b8c2-535b1131744a.png">
-         <img width="250" alt="Made with love by Builder.io" src="https://user-images.githubusercontent.com/844291/230786555-a58479e4-75f3-4222-a6eb-74c5af953eac.png">
-       </picture>
-   </a>
-</p>
+Cloudflare's [wrangler](https://github.com/cloudflare/wrangler) CLI can be used to preview a production build locally. To start a local server, run:
+
+```
+pnpm serve
+```
+
+Then visit [http://localhost:8787/](http://localhost:8787/)
+
+### Deployments
+
+[Cloudflare Pages](https://pages.cloudflare.com/) are deployable through their [Git provider integrations](https://developers.cloudflare.com/pages/platform/git-integration/).
+
+If you don't already have an account, then [create a Cloudflare account here](https://dash.cloudflare.com/sign-up/pages). Next go to your dashboard and follow the [Cloudflare Pages deployment guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/).
+
+Within the projects "Settings" for "Build and deployments", the "Build command" should be `pnpm build`, and the "Build output directory" should be set to `dist`.
+
+## Algolia search
+
+STILL WIP
+
+resource: https://docsearch.algolia.com/
+
+### Crawler
+
+Setup in https://crawler.algolia.com/
+
+### Debug local site with crawler settings
+
+To crawl localhost site for testing index settings for content hierarchy. use this docker command
+
+```shell
+# create apiKey via https://www.algolia.com/account/api-keys
+touch .env
+# APPLICATION_ID=APPLICATION_ID
+# API_KEY=API_KEY
+docker run -it --rm --env-file=.env -e "CONFIG=$(cat ./packages/docs/algolia.json | jq -r tostring)" algolia/docsearch-scraper
+```
+
+see guide of [DocSearch-legacy docker command](https://docsearch.algolia.com/docs/legacy/run-your-own#run-the-crawl-from-the-docker-image)
+
+> In mac machine, docker container can access host's network, workaround is to use `host.docker.internal`
+## Cloudflare Pages
+
+Cloudflare's [wrangler](https://github.com/cloudflare/wrangler) CLI can be used to preview a production build locally. To start a local server, run:
+
+```
+pnpm serve
+```
+
+Then visit [http://localhost:8787/](http://localhost:8787/)
+
+### Deployments
+
+[Cloudflare Pages](https://pages.cloudflare.com/) are deployable through their [Git provider integrations](https://developers.cloudflare.com/pages/platform/git-integration/).
+
+If you don't already have an account, then [create a Cloudflare account here](https://dash.cloudflare.com/sign-up/pages). Next go to your dashboard and follow the [Cloudflare Pages deployment guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/).
+
+Within the projects "Settings" for "Build and deployments", the "Build command" should be `pnpm build`, and the "Build output directory" should be set to `dist`.
+
+### Function Invocation Routes
+
+Cloudflare Page's [function-invocation-routes config](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) can be used to include, or exclude, certain paths to be used by the worker functions. Having a `_routes.json` file gives developers more granular control over when your Function is invoked.
+This is useful to determine if a page response should be Server-Side Rendered (SSR) or if the response should use a static-site generated (SSG) `index.html` file.
+
+By default, the Cloudflare pages adaptor _does not_ include a `public/_routes.json` config, but rather it is auto-generated from the build by the Cloudflare adaptor. An example of an auto-generate `dist/_routes.json` would be:
+
+```
+{
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/_headers",
+    "/_redirects",
+    "/build/*",
+    "/favicon.ico",
+    "/manifest.json",
+    "/service-worker.js",
+    "/about"
+  ],
+  "version": 1
+}
+```
+
+In the above example, it's saying _all_ pages should be SSR'd. However, the root static files such as `/favicon.ico` and any static assets in `/build/*` should be excluded from the Functions, and instead treated as a static file.
+
+In most cases the generated `dist/_routes.json` file is ideal. However, if you need more granular control over each path, you can instead provide you're own `public/_routes.json` file. When the project provides its own `public/_routes.json` file, then the Cloudflare adaptor will not auto-generate the routes config and instead use the committed one within the `public` directory.

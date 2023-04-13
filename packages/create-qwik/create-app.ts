@@ -12,6 +12,8 @@ import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 import { logSuccessFooter } from '../qwik/src/cli/utils/log';
 import { updateApp } from '../qwik/src/cli/add/update-app';
 
+const os = require('node:os');
+
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
     // write to the current working directory

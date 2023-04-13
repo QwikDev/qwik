@@ -2757,6 +2757,33 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_issue_33443() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const Issue3742 = component$(({description = '', other}: any) => {
+    const counter = useSignal(0);
+    return (
+      <div
+        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+      >
+        Issue3742
+        <button onClick$={() => counter.value++}>
+          Increment
+        </button>
+      </div>
+    )
+  });
+  "#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+#[test]
 fn example_getter_generation() {
     test_input!(TestInput {
         code: r#"

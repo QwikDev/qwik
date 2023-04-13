@@ -364,6 +364,16 @@ test.describe('render', () => {
         'slots',
       ]);
     });
+
+    test('issue3702', async ({ page }) => {
+      const button = page.locator('#issue-3702-button');
+      const result = page.locator('#issue-3702-result');
+      await expect(result).toHaveAttribute('data-title', 'Bye 0');
+      await button.click();
+      await expect(result).toHaveAttribute('data-title', 'Bye 1');
+      await button.click();
+      await expect(result).toHaveAttribute('data-title', 'Bye 2');
+    });
   }
 
   tests();

@@ -71,10 +71,12 @@ For a Javascript project, it's quite common for the build's runtime to be built 
 
 ## Dynamic SSG Routes
 
+So far, we've only discussed how to generate static HTML files for a single route path. However, in most cases, you'll want to generate HTML files for multiple route paths that has dynamic params. For example, a product site may have a route path for each product, such as `/product/:id`. In this case, you'll want to generate HTML files for each product page, which would require generating HTML files for each product ID.
+
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
-import type { StaticGenerateHandler } from '@builder.io/qwik-city';
+import { useLocation, type StaticGenerateHandler } from '@builder.io/qwik-city';
+import { loadProductIds } from './load-product-ids';
 
 export default component$(() => {
   const { params } = useLocation();
@@ -82,8 +84,10 @@ export default component$(() => {
   return <div>Example: {params.id}</div>;
 });
 
-export const onStaticGenerate: StaticGenerateHandler = () => {
-  const ids = [...]; // id data load implementation
+export const onStaticGenerate: StaticGenerateHandler = async () => {
+  // example of loading params for this use case
+  // every implementation will be different
+  const ids = await loadProductIds();
 
   return {
     params: ids.map((id) => {
@@ -92,3 +96,19 @@ export const onStaticGenerate: StaticGenerateHandler = () => {
   };
 };
 ```
+
+In the above example, the `onStaticGenerate()` function is loading the product IDs from a `loadProductIds()` function. This function would be custom for each implementation, but the general idea is that you'll need to load the data for each product ID, and then generate HTML files for each product ID.
+
+The `onStaticGenerate` function should be exported from the top-level of the module, and should return an object with a `params` property. The `params` property should be an array of objects, where each object is a set of params for the route path. For example, if the route path is `/product/:id`, then the `params` array should be an array of objects with an `id` property.
+
+The directory structure for this example would be:
+
+```bash
+src/
+└── routes/
+    └── product/
+        └── [id]/
+            └── index.tsx
+```
+
+Notice that the `index.tsx` file is inside a directory named `[id]`. This is a special directory name that tells Qwik City to generate HTML files for each `id` param. The `index.tsx` file is the default file that Qwik City will use when generating HTML files for a route path.

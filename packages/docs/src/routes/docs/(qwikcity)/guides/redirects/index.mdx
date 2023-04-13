@@ -15,28 +15,29 @@ import { component$ } from '@builder.io/qwik';
 import { checkAuthorization } from '../auth'; // Your authorization code
 import type { DashboardData } from '../types'; // Your types
 
-export const onGet: RequestHandler<DashboardData> = async ({ request, response }) => {
-  const isAuthorized = checkAuthorization(request.headers.get('cookie'));
+export const onGet: RequestHandler<any> = async ({ cookie, redirect }) => {
+  const isAuthorized = checkAuthorization(cookie.get('cookie'));
 
   if (!isAuthorized) {
     // User is not authorized!
     // throw the redirect response to
     // relocate the user to the log-in page
-    throw response.redirect('/login');
+    throw redirect(302, '/login');
   } else {
     // ...
   }
 };
 ```
 
-The `response.redirect()` function takes a URL and optionally a status code as the second argument.
+The `redirect()` function, which was destructured in the RequestHandler function arguments, takes a redirect status code and URL.
 
 ```tsx
-throw response.redirect('/login', 301); // Moved Permanently
+throw redirect(302, '/login');
 ```
 
 [Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):
 
+- `301`: Moved Permanently. This and all future requests should be directed to the given URI.
 - `302`: Found. This response code means that the URI of requested resource has been changed temporarily. Further changes in the URI might be made in the future. Therefore, this same URI should be used by the client in future requests.
 - `307`: Temporary Redirect. The server sends this response to direct the client to get the requested resource at another URI with the same method that was used in the prior request. This has the same semantics as the 302 Found HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
 - `308`: Permanent Redirect. This means that the resource is now permanently located at another URI, specified by the `Location` HTTP Response header. This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.

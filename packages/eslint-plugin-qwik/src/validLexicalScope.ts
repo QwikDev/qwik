@@ -163,21 +163,44 @@ export const validLexicalScope = createRule({
               const type = typeChecker.getTypeAtLocation(tsNode);
 
               if (!isTypeQRL(type)) {
-                const symbolName = type.symbol.name;
-                if (symbolName === 'PropFnInterface') {
-                  return;
+                if (type.isUnionOrIntersection()) {
+                  if (
+                    !type.types.every((t) => {
+                      if (t.symbol) {
+                        return t.symbol.name === 'PropFnInterface';
+                      }
+                      if (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+                        return true;
+                      }
+                      return false;
+                    })
+                  ) {
+                    context.report({
+                      messageId: 'invalidJsxDollar',
+                      node: firstArg.expression,
+                      data: {
+                        varName: firstArg.expression.name,
+                        solution: `Fix the type of ${firstArg.expression.name} to be PropFunction`,
+                      },
+                    });
+                  }
+                } else {
+                  const symbolName = type.symbol.name;
+                  if (symbolName === 'PropFnInterface') {
+                    return;
+                  }
+                  context.report({
+                    messageId: 'invalidJsxDollar',
+                    node: firstArg.expression,
+                    data: {
+                      varName: firstArg.expression.name,
+                      solution: `const ${firstArg.expression.name} = $(\n${getContent(
+                        type.symbol,
+                        context.getSourceCode().text
+                      )}\n);\n`,
+                    },
+                  });
                 }
-                context.report({
-                  messageId: 'invalidJsxDollar',
-                  node: firstArg.expression,
-                  data: {
-                    varName: firstArg.expression.name,
-                    solution: `const ${firstArg.expression.name} = $(\n${getContent(
-                      type.symbol,
-                      context.getSourceCode().text
-                    )}\n);\n`,
-                  },
-                });
               }
             }
           }

@@ -132,8 +132,8 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.6
-      '@builder.io/qwik': 0.100.0
-      '@builder.io/qwik-city': 0.100.0
+      '@builder.io/qwik': 0.101.0
+      '@builder.io/qwik-city': 0.101.0
       '@builder.io/qwik-react': 0.5.0
       '@builder.io/sdk-qwik': ^0.2.0
       '@docsearch/css': 3.3.3
@@ -174,10 +174,10 @@ importers:
       '@algolia/autocomplete-shared': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.7.6
-      '@builder.io/qwik': 0.100.0_undici@5.21.0
-      '@builder.io/qwik-city': 0.100.0_@builder.io+qwik@0.100.0
-      '@builder.io/qwik-react': 0.5.0_sumctzdkqnmuekd2wvjibbwyyy
-      '@builder.io/sdk-qwik': 0.2.0_@builder.io+qwik@0.100.0
+      '@builder.io/qwik': 0.101.0_undici@5.21.0
+      '@builder.io/qwik-city': 0.101.0_@builder.io+qwik@0.101.0
+      '@builder.io/qwik-react': 0.5.0_rahkhqxwkemclvmvm262k46ns4
+      '@builder.io/sdk-qwik': 0.2.0_@builder.io+qwik@0.101.0
       '@docsearch/css': 3.3.3
       '@emotion/react': 11.10.6_pmekkgnqduwlme35zpnqhenc34
       '@emotion/styled': 11.10.6_oouaibmszuch5k64ms7uxp2aia
@@ -552,15 +552,15 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-city/0.100.0_@builder.io+qwik@0.100.0:
-    resolution: {integrity: sha512-EEZ8q10vmEjOOe5qQIel+jLcuuFYOjakIIgHt5KOWnY/L0HBw9xzFDkFDcdmPJlrCmHTm3y4T1ZtqKPEFNgO9w==}
+  /@builder.io/qwik-city/0.101.0_@builder.io+qwik@0.101.0:
+    resolution: {integrity: sha512-26hoEbBQ5yEn13zjt5YCL/eULAptSoTPwylFSKrHPQd/3iafjGFr+DjiwpHUEodW3io1MsqZ0Uu9PIDKnGJbOg==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     peerDependencies:
       '@builder.io/qwik': '>=0.22.0'
     dependencies:
-      '@builder.io/qwik': 0.100.0_undici@5.21.0
+      '@builder.io/qwik': 0.101.0_undici@5.21.0
       '@mdx-js/mdx': 2.3.0
-      '@types/mdx': 2.0.3
+      '@types/mdx': 2.0.4
       source-map: 0.7.4
       vfile: 5.3.7
       zod: 3.21.4
@@ -568,7 +568,7 @@ packages:
       - supports-color
     dev: true
 
-  /@builder.io/qwik-react/0.5.0_sumctzdkqnmuekd2wvjibbwyyy:
+  /@builder.io/qwik-react/0.5.0_rahkhqxwkemclvmvm262k46ns4:
     resolution: {integrity: sha512-JdJWQWOJGv7ddQqEZwzR8wPh0IoCQZwD9qo75+reiQaLp6eH+Pjsm/kn1LaMQt6u72pCCNjnj5kEn/bnbfnIjQ==}
     engines: {node: '>=16'}
     peerDependencies:
@@ -578,15 +578,15 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': 0.100.0_undici@5.21.0
+      '@builder.io/qwik': 0.101.0_undici@5.21.0
       '@types/react': 18.0.28
       '@types/react-dom': 18.0.11
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: true
 
-  /@builder.io/qwik/0.100.0_undici@5.21.0:
-    resolution: {integrity: sha512-p2DAHZTkPFVN3fz3I6Ael6pLLdlzf89owPJVAIoQ9vt5jULnDJRf096qGc84Y+gaoqfoFWBYHYVnHOP0fnRjQg==}
+  /@builder.io/qwik/0.101.0_undici@5.21.0:
+    resolution: {integrity: sha512-uXeN5tlquw8OKsRp/tQie2tEKv5h6AuyiVpNzdCqc6VUW5c0OEB063HnUr072u0ojL/3vPfdY1mAi+6MwMaEXQ==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     hasBin: true
     peerDependencies:
@@ -595,12 +595,12 @@ packages:
       undici: 5.21.0
     dev: true
 
-  /@builder.io/sdk-qwik/0.2.0_@builder.io+qwik@0.100.0:
+  /@builder.io/sdk-qwik/0.2.0_@builder.io+qwik@0.101.0:
     resolution: {integrity: sha512-v5J87nKLTWdLsrvheA19NSvSRtf2o0kslBI+QXuTXZCawLJAEwJy7rS8A3sU22qGNuCvVWuTXG9aq6dsxY4iHw==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.100.0_undici@5.21.0
+      '@builder.io/qwik': 0.101.0_undici@5.21.0
     dev: true
 
   /@clack/core/0.3.2:
@@ -2406,10 +2406,6 @@ packages:
     resolution: {integrity: sha512-Y/uImid8aAwrEA24/1tcRZwpxX3pIFTSilcNDKSPn+Y2iDywSEachzRuvgAYYLR3wpGXAsMbv5lvKLDZLeYPAw==}
     dependencies:
       '@types/unist': 2.0.6
-
-  /@types/mdx/2.0.3:
-    resolution: {integrity: sha512-IgHxcT3RC8LzFLhKwP3gbMPeaK7BM9eBH46OdapPA7yvuIUJ8H6zHZV53J8hGZcTSnt95jANt+rTBNUUc22ACQ==}
-    dev: true
 
   /@types/mdx/2.0.4:
     resolution: {integrity: sha512-qCYrNdpKwN6YO6FVnx+ulfqifKlE3lQGsNhvDaW9Oxzyob/cRLBJWow8GHBBD4NxQ7BVvtsATgLsX0vZAWmtrg==}

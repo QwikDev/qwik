@@ -83,7 +83,7 @@ export const RenderChildren = component$(() => {
       <Issue3643 />
       <IssueChildrenSpread />
       <Issue3731 />
-      <Issue3742 />
+      <Issue3702 />
     </>
   );
 });
@@ -698,17 +698,17 @@ export const Issue3731Child = component$((props: any) => {
   return <div class="issue-3731-result">{props.value}</div>;
 });
 
-export const Issue3742 = component$(({ description = '', other }: any) => {
+export const Issue3702 = component$(({ description = '', other }: any) => {
   const counter = useSignal(0);
   return (
     <div
-      id="issue-3742-result"
+      id="issue-3702-result"
       data-title={
         description && 'description' in other ? `Hello ${counter.value}` : `Bye ${counter.value}`
       }
     >
-      Issue3742
-      <button id="issue-3742-button" onClick$={() => counter.value++}>
+      Issue3702
+      <button id="issue-3702-button" onClick$={() => counter.value++}>
         Increment
       </button>
     </div>

@@ -160,7 +160,7 @@ The computed state is derived from the existing state.
 In Qwik there are two ways to create computed values, each with a different use case (in order of preference):
 
 1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last name into a full name.
-2. [`useResource$()`](/docs/(qwik)/components/resource/index.mdx): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
+2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
 The way to think about the above is that they observe the existing state, and when the state changes the computed value is recomputed. The result is a newly computed value which is a signal returned from `useComputed$()` or `useResource$()`.
 
@@ -317,7 +317,7 @@ The state `resource.loading` can be one of the following:
 - `false` - the data is not yet available.
 - `true` - the data is available. (Either resolved or rejected.)
 
-The callback passed to [`useResource$()`](/docs/(qwik)/components/resource/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
+The callback passed to [`useResource$()`](/docs/(qwik)/components/state/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
 
 ### `<Resource />`
 

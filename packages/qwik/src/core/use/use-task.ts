@@ -108,10 +108,10 @@ export interface TaskCtx {
  * @public
  */
 export interface ResourceCtx<T> {
-  track: Tracker;
+  readonly track: Tracker;
   cleanup(callback: () => void): void;
   cache(policyOrMilliseconds: number | 'immutable'): void;
-  previous: T | undefined;
+  readonly previous: T | undefined;
 }
 
 /**
@@ -127,7 +127,7 @@ export type ComputedFn<T> = () => T;
 /**
  * @public
  */
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
 
 /**
  * @public

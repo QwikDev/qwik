@@ -3,13 +3,14 @@
   <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/qwik-logo.svg" />
 </p>
 <br>
-
-[![Qwik CI](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml)
-[![Azure SWA Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml)
-[![Cloudflare Pages Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml)
-[![Netlify Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml)
-[![Node Servers](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml)
-[![Vercel Server](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml/badge.svg)](https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml)
+<p align="center">
+   <a href="https://github.com/BuilderIO/qwik/actions/workflows/ci.yml"><img src="https://github.com/BuilderIO/qwik/actions/workflows/ci.yml/badge.svg?event=push" alt="Qwik CI"></a>
+   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml/badge.svg" alt="Azure SWA Server"></a>
+   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg" alt="Cloudflare Pages Server"></a>
+   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg" alt="Netlify Server"></a>
+   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml/badge.svg" alt="Node Servers"></a>
+   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml/badge.svg" alt="Vercel Server"></a>
+</p>
 <br>
 <br>
 

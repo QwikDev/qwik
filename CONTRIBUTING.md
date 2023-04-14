@@ -1,10 +1,10 @@
-## Contributing to Qwik
+# Contributing to Qwik
 
 Thank you for taking an interest in contributing to Qwik! We appreciate you! 🫶🏽
 
 Below are the guidelines on how to help in the best possible way.
 
-### Submitting an Issue
+## Submitting an Issue
 
 Before creating a new issue, please search through open issues using the [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests). You might find the solution to your problem, or can verify that it is an already known issue.
 
@@ -14,19 +14,19 @@ Therefore, to solve the problem in the best possible way, please create a minima
 
 Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
 
-### Submitting a Pull Request (PR)
+## Submitting a Pull Request (PR)
 
-#### Branch Organization
+### Branch Organization
 
 We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made against the main branch because we do not use separate branches for development or for the versions we release.
 
-#### Good first issue
+### Good first issue
 
 The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is:open+is:issue+label:%22good+first+issue%22) are a good starting point to familiarize yourself with the project.
 
 Before solving the problem, please check with the maintainers that the issue is still relevant. Feel free to leave a comment on the issue to show your intention to work on it and prevent other people from unintentionally duplicating your effort.
 
-#### Sending a Pull Request
+### Sending a Pull Request
 
 Before submitting a pull request, consider the following guidelines:
 
@@ -40,7 +40,7 @@ Before submitting a pull request, consider the following guidelines:
 
 > If you aren't sure your PR is ready, open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
 
-#### ⚠ Troubleshooting PR build issues on CI
+### ⚠ Troubleshooting PR build issues on CI
 
 Every PR is being automatically merged with `main` before the CI Github actions run.
 That's why if the CI checks aren't passing your PR branch is probably not up to date.
@@ -52,22 +52,18 @@ That's why if the CI checks aren't passing your PR branch is probably not up to 
 3. Run `pnpm build.full`
 4. Commit and push any changes as a result of the above steps
 
-# Getting started
-
-There are several ways to set up your local environment so that you are ready to build, test and contribute to the Qwik project.
-
-## The recommended way
+## Local development
 
 This is the best approach because all required dependencies will be installed in the docker container for you and won't affect your personal configuration in any way.
 
-#### Prerequisites
+### Prerequisites
 
 You need to have these tools up and running in your local machine:
 
 - [VSCode](https://code.visualstudio.com/)
 - [Docker](https://www.docker.com/)
 
-#### Steps
+### Steps
 
 - Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
 - Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
@@ -87,7 +83,7 @@ Docker command does:
 - That exposes the ports `3300` and `9229`, and
 - Binds `qwik` project directory to container working directory.
 
-#### Podman extras
+### Podman extras
 
 > This section is highly influenced by SO answer: https://serverfault.com/a/1075838/352338
 > If you use [Podman](https://podman.io/) instead of Docker as your containers engine, then you need to know the following:
@@ -118,7 +114,7 @@ $ podman run --rm \
 
 If you're not able to use the dev container, follow these instructions:
 
-## Installation
+### Installation
 
 > These are for a full build that includes Rust binaries.
 

@@ -1,10 +1,9 @@
 import type { SearchClient } from 'algoliasearch/lite';
 import { component$, useStore, useStyles$, useSignal } from '@builder.io/qwik';
-import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from './types';
+import type { DocSearchHit, InternalDocSearchHit } from './types';
 import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
-import type { StoredSearchPlugin } from './stored-searches';
 import type { QwikKeyboardEvent } from '../../../../../packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export type DocSearchTranslations = Partial<{
@@ -25,8 +24,6 @@ export type DocSearchState = {
   snippetLength: number;
   status: 'idle' | 'loading' | 'stalled' | 'error';
   initialQuery?: string;
-  favoriteSearches?: StoredSearchPlugin<StoredDocSearchHit>;
-  recentSearches?: StoredSearchPlugin<StoredDocSearchHit>;
 };
 
 export interface DocSearchProps {
@@ -52,8 +49,6 @@ export const DocSearch = component$((props: DocSearchProps) => {
   const state = useStore<DocSearchState>({
     isOpen: false,
     initialQuery: '',
-    favoriteSearches: null as any,
-    recentSearches: null as any,
     query: '',
     collections: [],
     context: {
@@ -111,11 +106,10 @@ export const DocSearch = component$((props: DocSearchProps) => {
       />
       {state.isOpen && (
         <DocSearchModal
-          {...props}
+          indexName={props.indexName}
+          apiKey={props.apiKey}
+          appId={props.appId}
           state={state}
-          onClose$={() => {
-            state.isOpen = false;
-          }}
         />
       )}
     </div>

@@ -12,36 +12,15 @@ let client: SearchClient;
 
 export function handleSearch(
   query: string,
-  { state, appId, apiKey, indexName, snippetLength, transformSearchClient, transformItems }: any
+  { state, appId, apiKey, indexName, snippetLength, transformItems }: any
 ) {
   if (!client) {
     client = algoliasearch(appId, apiKey);
     client.addAlgoliaAgent('docsearch', version);
-    if (transformSearchClient) {
-      client = transformSearchClient(client);
-    }
   }
+
   let q = Promise.resolve([] as any[]);
-  if (!query) {
-    q = Promise.resolve([
-      {
-        sourceId: 'recentSearches',
-        onSelect() {},
-        getItemUrl: ({ item }: any) => item.url,
-        getItems() {
-          return state.recentSearches?.getAll();
-        },
-      },
-      {
-        sourceId: 'favoriteSearches',
-        onSelect() {},
-        getItemUrl: ({ item }: any) => item.url,
-        getItems() {
-          return state.favoriteSearches?.getAll();
-        },
-      },
-    ]);
-  } else {
+  if (query) {
     q = client
       .search<DocSearchHit>([
         {

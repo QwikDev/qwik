@@ -1,6 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, server$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
+import { resolveContext } from '../../../components/qwik-gpt/search';
 
 export const approveId = server$(async function (id: string, approved: boolean) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
@@ -42,6 +43,7 @@ export const useQueryData = routeLoader$(async (ev) => {
     id: query_id,
     query: entry.query,
     results: all_results,
+    input: await resolveContext(entry.results),
     similar: output2.data,
     output: entry.output,
     model: entry.model,
@@ -57,13 +59,8 @@ export default component$(() => {
 
   return (
     <div>
-      <h1>Query: {queryData.query}</h1>
-      <h2>Model: {queryData.model}</h2>
-      <div>
-        <h2>Output:</h2>
-        <pre>{queryData.output}</pre>
-      </div>
-
+      <h1 class="text-3xl">Query: {queryData.query}</h1>
+      <h2 class="text-3xl">Model: {queryData.model}</h2>
       <div>
         <div>Currently {queryData.approved ? 'APPROVED' : 'NOT APPROVED'}</div>
         <div>
@@ -78,8 +75,18 @@ export default component$(() => {
           </button>
         </div>
       </div>
-      <button>Set approved</button>
-      <h2>Results</h2>
+      <div class="flex">
+        <div class="flex-1 w-0">
+          <h2 class="text-3xl">Input:</h2>
+          <pre class="text-xs overflow-x-scroll">{queryData.input}</pre>
+        </div>
+        <div class="flex-1 w-0">
+          <h2 class="text-3xl">Output:</h2>
+          <pre class="text-xs overflow-x-scroll">{queryData.output}</pre>
+        </div>
+      </div>
+
+      <h2 class="text-3xl">Results</h2>
       <table class="text-xs table-auto border-collapse border border-slate-500">
         <tbody>
           {queryData.results.data.map((result: any, i: any) => (

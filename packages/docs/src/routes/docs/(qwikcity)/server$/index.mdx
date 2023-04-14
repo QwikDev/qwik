@@ -6,14 +6,9 @@ contributors:
 
 # `server$()`
 
-`server$()` allows you to mark a function as always executing on a server. This is a form of RPC mechanism between the client and server.
+`server$()` allows you to create a function that always execute on the server, making it a great place to access the DB or perform server-only actions.
 
-The `server$()` wraps a function and returns a proxy an async proxy to the function. On the server, the proxy function directly calls the wrapped function. On the client, the proxy function invokes the wrapped function via an HTTP request. The HTTP endpoint is automatically created by the `server$()` function. The HTTP endpoint is not intended to be called directly. It is only intended to be called by the proxy function.
-
-> Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew
-> the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
-
-## Example
+`server$` is a form of RPC (Remote Procedure Call) mechanism between the client and server, just like a traditional HTTP endpoint but strongly typed thanks for Typescript, and easier to maintain.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -21,20 +16,24 @@ import { server$ } from '@builder.io/qwik-city';
 
 // By wrapping a function with `server$()` we mark it to always
 // execute on the server. This is a form of RPC mechanism.
-const serverGreeter = server$((name) => {
-  const greeting = 'Hello ' + name;
-  console.log('SERVER', greeting);
+const serverGreeter = server$((firstName, lastName) => {
+  const greeting = `Hello ${firstName} ${lastName}`;
+  console.log('Prints in the server', greeting);
   return greeting;
 });
 
 export default component$(() => {
-  const name = useSignal('World');
+  const firstName = useSignal('');
+  const lastName = useSignal('');
+
   return (
     <div>
-      Name: <input bind:value={name} />
+      First name: <input bind:value={name} />
+      Last name: <input bind:value={name} />
+
       <button
         onClick$={async () => {
-          const greeting = await serverGreeter(name.value);
+          const greeting = await serverGreeter(firstName.value, lastName.value);
           alert(greeting);
         }}
       >
@@ -44,3 +43,75 @@ export default component$(() => {
   );
 });
 ```
+
+`server$` can also read the HTTP cookies, headers, or environment variables, using `this`. In this case you will need to use a function instead of an arrow function.
+
+```tsx
+// Notice that the wrapped function is declared as a `async function`
+const addUser = server$(async function(id: number, fullName: string, address: Address) {
+  // The `this` is the `RequestEvent` object, which contains
+  // the HTTP headers, cookies, and environment variables.
+  const db = createClient(this.env.get('DB_KEY'));
+  if (this.cookie.get('user-session')) {
+    await db.from('users').insert({
+      id,
+      fullName,
+      address
+    });
+    return {
+      success: true,
+    }
+  }
+  return {
+    success: false,
+  }
+})
+```
+
+> Server$ can accept any number of arguments and return any value that can be serialized by Qwik, that includes primitives, objects, arrays, bigint, JSX nodes and even Promises, just to name a few.
+
+
+## Streaming responses
+
+`server$` can return a stream of data by using an async generator. This is useful for streaming data from the server to the client.
+
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+
+const stream = server$(async function() {
+  for (let i = 0; i < 10; i++) {
+    yield i;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+});
+
+export default component$(() => {
+  const message = useSignal('');
+  return (
+    <div>
+      <button
+        onClick$={async () => {
+          for await (const i of stream()) {
+            message.value += ` ${i}`;
+          }
+        }}
+      >
+        start
+      </button>
+      <div>{message.value}</div>
+    </div>
+  );
+});
+```
+
+This API is actually used to implement QwikGPT streaming responses in our docs site.
+
+
+## How does `server$()` work?
+
+Un `server$()` wraps a function and returns an async proxy to the function. On the server, the proxy function directly calls the wrapped function, and a HTTP endpoint is automatically created by the `server$()` function.
+
+On the client, the proxy function invokes the wrapped function via an HTTP request, using `fetch()`.
+
+> Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.

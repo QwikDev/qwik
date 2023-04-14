@@ -14,7 +14,11 @@ contributors:
 
 # Reactivity
 
-Reactivity is a key component of Qwik. Reactivity allows Qwik to track which components are subscribed to which state. This information enables Qwik to invalidate only the relevant component on state change, which minimizes the number of components that need to be re-rendered. Without reactivity, a state change would require re-rendering from the root component, which would force the whole component tree to be eagerly downloaded.
+Reactivity allows Qwik to track which components are subscribed to which state. This information enables Qwik to invalidate only the relevant component on state change, which minimizes the number of components that need to be re-rendered.
+
+Without fine-grained reacitivyt, a state change would require re-rendering from the root component, which would force the whole component tree to be eagerly downloaded.
+
+It's important to notice that Qwik does not do change detection like Angular. Instead, Qwik relies on signals to surgically update the component templates when the relevant state changes, without having to dirty-check the whole state.
 
 ## Proxy
 

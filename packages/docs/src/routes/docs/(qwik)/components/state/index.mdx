@@ -155,20 +155,20 @@ Now, the component will update as expected. This will also track individual valu
 
 ## Computed state
 
-The computed state is derived from the existing state.
-
 In Qwik there are two ways to create computed values, each with a different use case (in order of preference):
 
 1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last name into a full name.
+
 2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
-The way to think about the above is that they observe the existing state, and when the state changes the computed value is recomputed. The result is a newly computed value which is a signal returned from `useComputed$()` or `useResource$()`.
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) and [`useVisibleTask$()`](/docs/components/tasks/#usevisibletask)) way of modifying/creating state as a result of input change. This way does not produce a new signal, but rather modifies the existing state or produces a side effect.:
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
 
 ### `useComputed$()`
 
-Use `useComputed$` to create a computed value that can be derived synchronously from the existing application state.
+Use `useComputed$` allows to memoize a value derived synchronously from other state.
+
+It is similar to `memo` in other frameworks, since it will only recompute the value when one of the input signals changes.
 
 <CodeSandbox src="/src/routes/demo/state/computed/index.tsx" style={{ height: '8em' }}>
 ```tsx {5} /useComputed$/
@@ -176,7 +176,10 @@ import { component$, useComputed$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const name = useSignal('Qwik');
-  const capitalizedName = useComputed$(() => name.value.toUpperCase());
+  const capitalizedName = useComputed$(() => {
+    // it will automatically reexecute when name.value changes
+    return name.value.toUpperCase();
+  });
 
   return (
     <>
@@ -249,8 +252,7 @@ While it is possible to use `useResource$()` without `<Resource>` component, it 
 
 > **NOTE**: During SSR the `<Resource>` component will pause rendering until the resource is resolved. This way the SSR will not render with the loading indicator.
 
-
-**Advanced example**
+#### Advanced example
 
 A more complete example of fetching data with `AbortController`, `track` and `cleanup`. This example will fetch a list of jokes based on the query typed by the user,
 automatically reacting to changes in the query, including aborting requests that are currently pending.
@@ -319,7 +321,7 @@ The state `resource.loading` can be one of the following:
 
 The callback passed to [`useResource$()`](/docs/(qwik)/components/state/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
 
-### `<Resource />`
+#### `<Resource />`
 
 `<Resource />` is a component meant to be used with the `useResource$()` that renders different content depending on if the resource is pending, resolved, or rejected.
 
@@ -473,7 +475,11 @@ export const Child = component$(() => {
 
 ## `noSerialize()`
 
-Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property. At times it is necessary to store data that can't be serialized. For example a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/). In such a situation use `noSerialize()` to mark the value as non-serializable.
+Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
+
+At times it is necessary to store data that can't be serialized, `noSerialize()` tells Qwik not even bother trying to serialize the marked value.
+
+For example a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
 
 If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from server SSR. In such a situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
@@ -482,23 +488,28 @@ If a value is marked as non-serializable then that value will not survive serial
 import {
   component$,
   useStore,
+  useSignal,
   noSerialize,
   useVisibleTask$,
+  type NoSerialize,
 } from '@builder.io/qwik';
-import Monaco from './monaco';
+import * as monaco from 'monaco-editor';
 
 export default component$(() => {
-  const store = useStore<{ monacoInstance: Monaco | undefined }>({
-    // Don't initialize on server
+  const editorRef = useSignal<Element>();
+  const store = useStore<{ monacoInstance: NoSerialize<Monaco> }>({
     monacoInstance: undefined,
   });
 
   useVisibleTask$(() => {
+    const editor = monaco.editor.create(editorRef.value, {
+      value: 'Hello, world!',
+    });
     // Monaco is not serializable, so we can't serialize it as part of SSR
     // We can however instantiate it on the client after the component is visible
-    setTimeout(() => (store.monacoInstance = noSerialize(new Monaco())), 1000);
+    store.monacoInstance = noSerialize(editor);
   });
-  return <div>{store.monacoInstance ? 'Monaco is loaded' : 'loading...'}</div>;
+  return <div ref={editorRef} />;
 });
 ```
 </CodeSandbox>

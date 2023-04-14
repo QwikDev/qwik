@@ -43,61 +43,8 @@ export const qwikGPT = server$(async function* (query: string) {
   });
 
   // Download docs
-  const dataCloned = [];
   try {
-    for (const result of docs.data) {
-      dataCloned.push({
-        ...result,
-      });
-      const commit_hash = result.commit_hash;
-      const file_path = result.file;
-      const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
-      if (!files.has(url)) {
-        files.set(
-          url,
-          fetch(url).then((r) => r.text())
-        );
-      }
-      result.url = url;
-      result.content = await files.get(url);
-    }
-
-    // Parse docs
-    const docsRanges: Record<string, [number, number][]> = {};
-    for (const result of docs.data) {
-      const file = result.content;
-      let range = docsRanges[result.url];
-      if (!range) {
-        docsRanges[result.url] = range = [];
-      }
-      get_docs_ranges(range, file, result['line']);
-    }
-
-    const docsLines: string[] = [];
-
-    for (const [url, ranges] of Object.entries(docsRanges)) {
-      const file = await files.get(url)!;
-      const lines = file.split('\n').filter((_, index) => {
-        for (const [start, end] of ranges) {
-          if (index >= start && index < end) {
-            return true;
-          }
-        }
-        return false;
-      });
-      if (lines.length > 0) {
-        const parts = new URL(url).pathname
-          .split('/')
-          .slice(8, -1)
-          .filter((a) => !a.startsWith('('))
-          .join('/');
-        const docsURL = `https://qwik.builder.io/${parts}/`;
-        docsLines.push('FROM (' + docsURL + '):\n');
-        docsLines.push(...lines);
-        docsLines.push('');
-      }
-    }
-    const docsStr = gpt + '\n\n' + docsLines.filter((a) => !a.includes('CodeSandbox')).join('\n');
+    const docsStr = await resolveContext(docs.data);
     let model = 'gpt-4';
     if (docsStr.length < 3500 * 3.5) {
       model = 'gpt-3.5-turbo';
@@ -107,7 +54,7 @@ export const qwikGPT = server$(async function* (query: string) {
       .insert({
         query: query,
         embedding: embeddings,
-        results: dataCloned,
+        results: docs.data,
         model,
       })
       .select('id');
@@ -176,6 +123,71 @@ function normalizeLine(line: string) {
   line = line.replaceAll('  ', ' ');
   line = line.trim();
   return line;
+}
+
+export async function resolveContext(docsData: any) {
+  // Download docs
+  const dataCloned = [];
+  try {
+    for (const result of docsData) {
+      const commit_hash = result.commit_hash;
+      const file_path = result.file;
+      const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
+      if (!files.has(url)) {
+        files.set(
+          url,
+          fetch(url).then((r) => r.text())
+        );
+      }
+      const copied = {
+        ...result,
+        url: url,
+        content: await files.get(url),
+      };
+      dataCloned.push(copied);
+    }
+
+    // Parse docs
+    const docsRanges: Record<string, [number, number][]> = {};
+    for (const result of dataCloned) {
+      const file = result.content;
+      let range = docsRanges[result.url];
+      if (!range) {
+        docsRanges[result.url] = range = [];
+      }
+      get_docs_ranges(range, file, result['line']);
+    }
+
+    const docsLines: string[] = [];
+
+    for (const [url, ranges] of Object.entries(docsRanges)) {
+      const file = await files.get(url)!;
+      const lines = file.split('\n').filter((_, index) => {
+        for (const [start, end] of ranges) {
+          if (index >= start && index < end) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (lines.length > 0) {
+        const parts = new URL(url).pathname
+          .split('/')
+          .slice(8, -1)
+          .filter((a) => !a.startsWith('('))
+          .join('/');
+        const docsURL = `https://qwik.builder.io/${parts}/`;
+        docsLines.push('FROM (' + docsURL + '):\n');
+        docsLines.push(...lines);
+        docsLines.push('');
+      }
+    }
+    const docsStr = gpt + '\n\n' + docsLines.filter((a) => !a.includes('CodeSandbox')).join('\n');
+    return docsStr;
+  } catch (e) {
+    console.error(e);
+  }
+  return '';
 }
 
 function get_docs_ranges(ranges: [number, number][], fileContent: string, line: number) {

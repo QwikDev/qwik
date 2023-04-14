@@ -49,9 +49,9 @@ Notice that `onClick$` ends with [`$`](/docs/advanced/dollar/). This is a hint t
 
 ## Reusing event handlers
 
-If we want to reuse the same event handler for multiple elements or event, we must extract the event handler into a [`QRLs`](/docs/advanced/qrl/) and pass it to the event listener. In order to do so, we need to import `$` from `@builder.io/qwik` and wrap the event handler in it.
+If we want to reuse the same event handler for multiple elements or event, we need to import `$` from `@builder.io/qwik` and wrap the event handler in it.
 
-For instance, the above example could also be written in the following way:
+This way we must extract the event handler into a [`QRLs`](/docs/advanced/qrl/) and pass it to the event listener.
 
 <CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a
@@ -72,6 +72,31 @@ export default component$(() => {
 
 
 > **Note:** If you extract the event handler then you must manually wrap the event handler in the `$(...handler...)` so that it can be lazy attached.
+
+## Multiple event handlers
+
+If we want to register multiple event handlers for the same event, we can pass an array of event handlers to the `on{EventName}$` attribute.
+
+```tsx /onClick$/
+import { component$, useSignal, $ } from '@builder.io/qwik';
+
+export default component$(() => {
+  const count = useSignal(0);
+  const print = $((ev) => console.log('CLICKED!', ev));
+  const increment = $(() => count.value++);
+
+  // The button when clicked will print "CLICKED!" to the console, increment the count and send a event to Google Analytics.
+  return (
+    <button
+      onClick$={[print, increment, $(() => {
+        ga.send('click', { label: 'increment' });
+      })]}
+    >
+      Count: {count.value}
+    </button>
+  );
+});
+```
 
 ## Event object
 

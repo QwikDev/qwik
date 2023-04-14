@@ -18,12 +18,12 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
   // This code runs only on the server, after every navigation
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
   const product = await res.json();
-  return product;
+  return product as Product;
 });
 
 export default component$(() => {
-  // Retrieve a reactive signal of the loader data
-  const signal = useProductDetails(); // ReadonlySignal<Product>
+  // In order to access the `routeLoader$` data within a Qwik Component, you need to call the hook.
+  const signal = useProductDetails(); // Readonly<Signal<Product>>
   return <div>Product name: {signal.value.product.name}</div>;
 });
 ```
@@ -131,6 +131,33 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
   return recommendedProducts;
 });
 ```
+
+## Access the `routeLoader$` data within another `routeLoader$`
+
+You can to access the data from one `routeLoader$` inside another `routeLoader$` using the `requestEvent.resolveValue` method.
+
+```tsx /requestEvent/ title="src/routes/product/[productId]/index.tsx"
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
+  const product = await res.json();
+  return product;
+});
+
+export const useProductRecommendations = routeLoader$(async (requestEvent) => {
+  // Resolve the product details from the other loader
+  const product = await requestEvent.resolveValue(useProductDetails);
+
+  // Use the product details to fetch personalized data
+  const res = fetch(`https://.../recommendations?product=${product.id}`);
+  const recommendedProducts = (await res.json()) as Product[];
+
+  return recommendedProducts;
+});
+```
+
+> The same API can be used to access the data from a `routeAction$` or a `globalAction$`.
 
 ## Failed values with `routeLoader$`
 

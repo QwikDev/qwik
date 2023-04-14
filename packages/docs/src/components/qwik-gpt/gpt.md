@@ -11,7 +11,7 @@
 - Content projection is done by the `<Slot/>` component. Slots can be named, and can be projected into using the `q:slot` attribute.
 
 ```tsx
-import { component$, useSignal, Slot, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, $, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 import US_PRESIDENTS from './us-presidents.json';
 import { MyOtherComponent } from './my-other-component';
 
@@ -25,36 +25,47 @@ interface MyComponentProps {
 // Components are always declared with the `component$` function.
 export const MyComponent = component$((props: MyComponentProps) => {
   // Components use the `useSignal` hook to create reactive state.
-  const count = useSignal(0); // { value: 0 }
+  const seconds = useSignal(0); // { value: 0 }
+  const count = useSignal(0);
 
   useVisibleTask$(async (taskCtx) => {
     // `useVisibleTask$` runs only in the browser AFTER the component is first mounted in the DOM.
     // It's ok to inspect the DOM, or use browser APIS, initialize browser-only libraries, start an animation, or a timer...
     const timer = setInterval(() => {
-      count.value = count.value + 1;
+      seconds.value = seconds.value + 1;
     }, 1000);
+
     taskCtx.onCleanup(() => {
       clearInterval(timer);
     });
   });
+
+  // Event handler that are not inlined must be wrapped in the `$` function.
+  const toggleDarkMode = $(() => {
+    darkMode.value = !darkMode.value;
+    document.body.classList.toggle('dark-mode', darkMode.value);
+  });
+
   return (
     <>
-      <button
-        class={styles.button}
-        onClick$={() => {
+      <header>
+        <button
+          class={{
+            [styles.button]: true,
+            [styles.darkMode]: darkMode.value, // Conditional classes are supported
+          }}
+          onClick$={toggleDarkMode}
+        >
+          Toggle Dark Mode
+        </button>
+      </header>
+      <main class={styles.main}>
+        <button onClick$={() => {
           // Event handlers have the `$` suffix.
           count.value = count.value + props.step;
-        }}
-      >
-        Increment by {props.step}
-      </button>
-
-      <main
-        class={{
-          conditionalClass: count.value % 2 === 0,
-        }}
-      >
-        <h1>Count: {count.value}</h1>
+        }}>
+          Count: {count.value}
+        </button>
         <MyOtherComponent>
           {count.value > 10 && <p>Count is greater than 10</p>}
         </MyOtherComponent>
@@ -66,6 +77,9 @@ export const MyComponent = component$((props: MyComponentProps) => {
           ))}
         </ul>
       </main>
+      <footer>
+        Seconds: {seconds.value}
+      </footer>
     </>
   );
 });

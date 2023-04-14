@@ -51,7 +51,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "checked": checked,
                 "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [checked] = useLexicalScope();
-                    return checked.value = elm.value;
+                    return checked.value = elm.checked;
                 }, "s_VKebOylP0Dk", [
                     checked
                 ])
@@ -60,7 +60,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "stuff": stuff,
                 "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [stuff] = useLexicalScope();
-                    return stuff.value = elm.value;
+                    return stuff.value = elm.stuff;
                 }, "s_HplsUb3Bodg", [
                     stuff
                 ])

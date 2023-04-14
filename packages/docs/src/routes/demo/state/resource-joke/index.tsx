@@ -39,8 +39,8 @@ export default component$(() => {
         onPending={() => <>loading...</>}
         onResolved={(jokes) => (
           <ul>
-            {jokes.map((joke) => (
-              <li>{joke.value}</li>
+            {jokes.map((joke, i) => (
+              <li key={i}>{joke.value}</li>
             ))}
           </ul>
         )}

@@ -40,7 +40,7 @@ In Qwik:
 
 The `useSignal()` hook takes an initial value and generates a reactive state or signal. The signal is an object that consists of a sole property called `.value`. 
 
-The `signal` can be shared with other components which can observe or update it.  When the `.value` property is modified, the signal will notify all components that depend on it.
+The `signal` can be shared with other components which can observe and/or update it.  When the `.value` property is modified, the signal will notify all components that depend on it.
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {4} /count/

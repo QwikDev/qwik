@@ -472,9 +472,10 @@ export interface LoaderOptions {
  */
 export interface LoaderConstructor {
   // Without validation
-  <O>(loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>, options?: LoaderOptions): Loader<
-    O
-  >;
+  <O>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    options?: LoaderOptions
+  ): Loader<O>;
 
   // With validation
   <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(

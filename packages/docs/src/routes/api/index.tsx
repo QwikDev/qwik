@@ -146,6 +146,11 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
         return;
       }
 
+      const name = member.name.toLowerCase()
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .replace(/ /g, '-');
+
+
       return (
         <li
           key={`${id}-member-${member.id}-${kind}`}
@@ -155,7 +160,7 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
             (kind in filters && !filters[kind] && 'hidden') || ''
           }`}
         >
-          <a href={`${data.id}#${member.id}`}>{member.name}</a>
+          <a href={`${data.id}#${name}`}>{member.name}</a>
         </li>
       );
     })}

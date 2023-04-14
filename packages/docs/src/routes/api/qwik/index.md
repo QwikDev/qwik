@@ -2,18 +2,15 @@
 title: \@builder.io/qwik API Reference
 ---
 
-<h1><a href="/api">API</a> &rsaquo; @builder.io/qwik</h1>
+# [API](/api) &rsaquo; @builder.io/qwik
 
-<div class="api-detail-section">
-<h2 id="componentbaseprops-_q_slot_" title="property-signature - q:slot" data-kind="property-signature" data-kind-label="P"><a aria-hidden="true" tabindex="-1" href="#componentbaseprops-_q_slot_"><span class="icon icon-link"></span></a>"q:slot"</h2>
+## "q:slot"
 
 ```typescript
 'q:slot'?: string;
 ```
 
-</div>
-<div class="api-detail-section">
-<h2 id="_" title="variable - $" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#_"><span class="icon icon-link"></span></a>$</h2>
+## $
 
 Qwik Optimizer marker function.
 
@@ -23,11 +20,9 @@ Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a
 $: <T>(expression: T) => QRL<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ariaattributes" title="interface - AriaAttributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ariaattributes"><span class="icon icon-link"></span></a>AriaAttributes</h2>
+## AriaAttributes
 
 ```typescript
 export interface AriaAttributes
@@ -84,11 +79,9 @@ export interface AriaAttributes
 | ["aria-valuenow"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the current value for a range widget.                                                                                                                                                                        |
 | ["aria-valuetext"?](#)        |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines the human readable text alternative of aria-valuenow for a range widget.                                                                                                                                     |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ariarole" title="type-alias - AriaRole" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#ariarole"><span class="icon icon-link"></span></a>AriaRole</h2>
+## AriaRole
 
 ```typescript
 export type AriaRole =
@@ -164,11 +157,9 @@ export type AriaRole =
   | (string & {});
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourcectx-cache" title="method-signature - cache" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#resourcectx-cache"><span class="icon icon-link"></span></a>cache</h2>
+## cache
 
 ```typescript
 cache(policyOrMilliseconds: number | 'immutable'): void;
@@ -182,9 +173,7 @@ cache(policyOrMilliseconds: number | 'immutable'): void;
 
 void
 
-</div>
-<div class="api-detail-section">
-<h2 id="renderresult-cleanup" title="method-signature - cleanup" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#renderresult-cleanup"><span class="icon icon-link"></span></a>cleanup</h2>
+## cleanup
 
 ```typescript
 cleanup(): void;
@@ -194,9 +183,7 @@ cleanup(): void;
 
 void
 
-</div>
-<div class="api-detail-section">
-<h2 id="component" title="type-alias - Component" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#component"><span class="icon icon-link"></span></a>Component</h2>
+## Component
 
 Type representing the Qwik component.
 
@@ -217,11 +204,9 @@ export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="component_" title="variable - component$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#component_"><span class="icon icon-link"></span></a>component$</h2>
+## component$
 
 Declare a Qwik component that can be used to create UI.
 
@@ -231,7 +216,7 @@ Side note: You can also declare regular (standard JSX) components that will have
 
 Qwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
 
-<h3>Example</h3>
+### Example
 
 An example showing how to create a counter component:
 
@@ -267,11 +252,9 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="componentbaseprops" title="interface - ComponentBaseProps" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#componentbaseprops"><span class="icon icon-link"></span></a>ComponentBaseProps</h2>
+## ComponentBaseProps
 
 ```typescript
 export interface ComponentBaseProps
@@ -282,11 +265,9 @@ export interface ComponentBaseProps
 | ["q:slot"?](#componentbaseprops-_q_slot_) |           | string                                | _(Optional)_ |
 | [key?](#)                                 |           | string \| number \| null \| undefined | _(Optional)_ |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="componentqrl" title="variable - componentQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#componentqrl"><span class="icon icon-link"></span></a>componentQrl</h2>
+## componentQrl
 
 Declare a Qwik component that can be used to create UI.
 
@@ -296,7 +277,7 @@ Side note: You can also declare regular (standard JSX) components that will have
 
 Qwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
 
-<h3>Example</h3>
+### Example
 
 An example showing how to create a counter component:
 
@@ -333,11 +314,9 @@ componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) =>
   Component<PROPS>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="contextid" title="interface - ContextId" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#contextid"><span class="icon icon-link"></span></a>ContextId</h2>
+## ContextId
 
 ContextId is a typesafe ID for your context.
 
@@ -345,7 +324,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
-<h3>Example</h3>
+### Example
 
 ```tsx
 // Declare the Context type.
@@ -390,11 +369,9 @@ export interface ContextId<STATE>
 | [\_\_brand_context_type\_\_](#) | <code>readonly</code> | STATE  | Design-time property to store type information for the context. |
 | [id](#)                         | <code>readonly</code> | string | A unique ID for the context.                                    |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="coreplatform" title="interface - CorePlatform" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#coreplatform"><span class="icon icon-link"></span></a>CorePlatform</h2>
+## CorePlatform
 
 Low-level API for platform abstraction.
 
@@ -416,11 +393,9 @@ export interface CorePlatform
 | [nextTick](#)       |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next tick.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | [raf](#)            |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next request-animation-frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="createcontextid" title="variable - createContextId" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#createcontextid"><span class="icon icon-link"></span></a>createContextId</h2>
+## createContextId
 
 Create a context ID to be used in your application. The name should be written with no spaces.
 
@@ -428,7 +403,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
-<h3>Example</h3>
+### Example
 
 ```tsx
 // Declare the Context type.
@@ -468,11 +443,9 @@ export const Items = component$(() => {
 createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="domattributes" title="interface - DOMAttributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#domattributes"><span class="icon icon-link"></span></a>DOMAttributes</h2>
+## DOMAttributes
 
 ```typescript
 export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T>
@@ -485,21 +458,17 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T>
 | [children?](#) |           | [JSXChildren](#jsxchildren)           | _(Optional)_ |
 | [key?](#)      |           | string \| number \| null \| undefined | _(Optional)_ |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="eagernessoptions" title="type-alias - EagernessOptions" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#eagernessoptions"><span class="icon icon-link"></span></a>EagernessOptions</h2>
+## EagernessOptions
 
 ```typescript
 export type EagernessOptions = "visible" | "load" | "idle";
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="h-jsx-element" title="interface - Element" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-element"><span class="icon icon-link"></span></a>Element</h2>
+## Element
 
 ```typescript
 interface Element extends QwikJSX.Element
@@ -507,9 +476,7 @@ interface Element extends QwikJSX.Element
 
 **Extends:** [QwikJSX.Element](#)
 
-</div>
-<div class="api-detail-section">
-<h2 id="h-jsx-elementchildrenattribute" title="interface - ElementChildrenAttribute" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-elementchildrenattribute"><span class="icon icon-link"></span></a>ElementChildrenAttribute</h2>
+## ElementChildrenAttribute
 
 ```typescript
 interface ElementChildrenAttribute
@@ -519,9 +486,7 @@ interface ElementChildrenAttribute
 | -------------- | --------- | ---- | ------------ |
 | [children?](#) |           | any  | _(Optional)_ |
 
-</div>
-<div class="api-detail-section">
-<h2 id="errorboundarystore" title="interface - ErrorBoundaryStore" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#errorboundarystore"><span class="icon icon-link"></span></a>ErrorBoundaryStore</h2>
+## ErrorBoundaryStore
 
 ```typescript
 export interface ErrorBoundaryStore
@@ -531,31 +496,25 @@ export interface ErrorBoundaryStore
 | ---------- | --------- | ---------------- | ----------- |
 | [error](#) |           | any \| undefined |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="event_" title="variable - event$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#event_"><span class="icon icon-link"></span></a>event$</h2>
+## event$
 
 ```typescript
 event$: <T>(first: T) => QRL<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="eventqrl" title="variable - eventQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#eventqrl"><span class="icon icon-link"></span></a>eventQrl</h2>
+## eventQrl
 
 ```typescript
 eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="fragment" title="variable - Fragment" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#fragment"><span class="icon icon-link"></span></a>Fragment</h2>
+## Fragment
 
 ```typescript
 Fragment: FunctionComponent<{
@@ -564,21 +523,17 @@ Fragment: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="functioncomponent" title="interface - FunctionComponent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#functioncomponent"><span class="icon icon-link"></span></a>FunctionComponent</h2>
+## FunctionComponent
 
 ```typescript
 export interface FunctionComponent<P = Record<string, any>>
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qrl-getcaptured" title="method-signature - getCaptured" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#qrl-getcaptured"><span class="icon icon-link"></span></a>getCaptured</h2>
+## getCaptured
 
 ```typescript
 getCaptured(): any[] | null;
@@ -588,9 +543,7 @@ getCaptured(): any[] | null;
 
 any\[\] \| null
 
-</div>
-<div class="api-detail-section">
-<h2 id="qrl-gethash" title="method-signature - getHash" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#qrl-gethash"><span class="icon icon-link"></span></a>getHash</h2>
+## getHash
 
 ```typescript
 getHash(): string;
@@ -600,9 +553,7 @@ getHash(): string;
 
 string
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikkeyboardevent-getmodifierstate" title="method-signature - getModifierState" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent-getmodifierstate"><span class="icon icon-link"></span></a>getModifierState</h2>
+## getModifierState
 
 See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
 
@@ -618,9 +569,7 @@ getModifierState(key: string): boolean;
 
 boolean
 
-</div>
-<div class="api-detail-section">
-<h2 id="getplatform" title="variable - getPlatform" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#getplatform"><span class="icon icon-link"></span></a>getPlatform</h2>
+## getPlatform
 
 Retrieve the `CorePlatform`.
 
@@ -630,11 +579,9 @@ The `CorePlatform` is also responsible for retrieving the Manifest, that contain
 getPlatform: () => CorePlatform;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qrl-getsymbol" title="method-signature - getSymbol" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#qrl-getsymbol"><span class="icon icon-link"></span></a>getSymbol</h2>
+## getSymbol
 
 ```typescript
 getSymbol(): string;
@@ -644,9 +591,7 @@ getSymbol(): string;
 
 string
 
-</div>
-<div class="api-detail-section">
-<h2 id="h" title="function - h" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#h"><span class="icon icon-link"></span></a>h</h2>
+## h
 
 ```typescript
 export declare namespace h
@@ -666,11 +611,9 @@ export declare namespace h
 | ------------- | ----------- |
 | [JSX](#h-jsx) |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="h" title="namespace - h" data-kind="namespace" data-kind-label="N"><a aria-hidden="true" tabindex="-1" href="#h"><span class="icon icon-link"></span></a>h</h2>
+## h
 
 ```typescript
 export declare namespace h
@@ -690,11 +633,9 @@ export declare namespace h
 | ------------- | ----------- |
 | [JSX](#h-jsx) |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="htmlattributes" title="interface - HTMLAttributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#htmlattributes"><span class="icon icon-link"></span></a>HTMLAttributes</h2>
+## HTMLAttributes
 
 ```typescript
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
@@ -744,11 +685,9 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 | [unselectable?](#)    |           | 'on' \| 'off' \| undefined                                                                       | _(Optional)_                                                                                                       |
 | [vocab?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="implicit_firstarg" title="variable - implicit$FirstArg" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#implicit_firstarg"><span class="icon icon-link"></span></a>implicit$FirstArg</h2>
+## implicit$FirstArg
 
 Create a `____$(...)` convenience method from `___(...)`.
 
@@ -787,11 +726,9 @@ implicit$FirstArg: <FIRST, REST extends any[], RET>(
     RET;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="h-jsx-intrinsicattributes" title="interface - IntrinsicAttributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-intrinsicattributes"><span class="icon icon-link"></span></a>IntrinsicAttributes</h2>
+## IntrinsicAttributes
 
 ```typescript
 interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes
@@ -799,9 +736,7 @@ interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes
 
 **Extends:** [QwikJSX.IntrinsicAttributes](#)
 
-</div>
-<div class="api-detail-section">
-<h2 id="h-jsx-intrinsicelements" title="interface - IntrinsicElements" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#h-jsx-intrinsicelements"><span class="icon icon-link"></span></a>IntrinsicElements</h2>
+## IntrinsicElements
 
 ```typescript
 interface IntrinsicElements extends QwikJSX.IntrinsicElements
@@ -809,9 +744,7 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 
 **Extends:** [QwikJSX.IntrinsicElements](#)
 
-</div>
-<div class="api-detail-section">
-<h2 id="jsx" title="variable - jsx" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#jsx"><span class="icon icon-link"></span></a>jsx</h2>
+## jsx
 
 ```typescript
 jsx: <T extends string | FunctionComponent<any>>(
@@ -821,11 +754,9 @@ jsx: <T extends string | FunctionComponent<any>>(
 ) => JSXNode<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="h-jsx" title="namespace - JSX" data-kind="namespace" data-kind-label="N"><a aria-hidden="true" tabindex="-1" href="#h-jsx"><span class="icon icon-link"></span></a>JSX</h2>
+## JSX
 
 ```typescript
 namespace JSX
@@ -838,9 +769,7 @@ namespace JSX
 | [IntrinsicAttributes](#h-jsx-intrinsicattributes)           |             |
 | [IntrinsicElements](#h-jsx-intrinsicelements)               |             |
 
-</div>
-<div class="api-detail-section">
-<h2 id="jsxchildren" title="type-alias - JSXChildren" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#jsxchildren"><span class="icon icon-link"></span></a>JSXChildren</h2>
+## JSXChildren
 
 ```typescript
 export type JSXChildren =
@@ -859,11 +788,9 @@ export type JSXChildren =
 
 **References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="jsxdev" title="variable - jsxDEV" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#jsxdev"><span class="icon icon-link"></span></a>jsxDEV</h2>
+## jsxDEV
 
 ```typescript
 jsxDEV: <T extends string | FunctionComponent<any>>(
@@ -876,11 +803,9 @@ jsxDEV: <T extends string | FunctionComponent<any>>(
 ) => JSXNode<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="jsxnode" title="interface - JSXNode" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#jsxnode"><span class="icon icon-link"></span></a>JSXNode</h2>
+## JSXNode
 
 ```typescript
 export interface JSXNode<T = string | FunctionComponent>
@@ -896,11 +821,9 @@ export interface JSXNode<T = string | FunctionComponent>
 | [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;string, any&gt; |              |
 | [type](#)           |           | T                                                                                                |              |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="jsxtagname" title="type-alias - JSXTagName" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#jsxtagname"><span class="icon icon-link"></span></a>JSXTagName</h2>
+## JSXTagName
 
 ```typescript
 export type JSXTagName =
@@ -908,131 +831,105 @@ export type JSXTagName =
   | Omit<string, keyof HTMLElementTagNameMap>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativeanimationevent" title="type-alias - NativeAnimationEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativeanimationevent"><span class="icon icon-link"></span></a>NativeAnimationEvent</h2>
+## NativeAnimationEvent
 
 ```typescript
 export type NativeAnimationEvent = AnimationEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativeclipboardevent" title="type-alias - NativeClipboardEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativeclipboardevent"><span class="icon icon-link"></span></a>NativeClipboardEvent</h2>
+## NativeClipboardEvent
 
 ```typescript
 export type NativeClipboardEvent = ClipboardEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativecompositionevent" title="type-alias - NativeCompositionEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativecompositionevent"><span class="icon icon-link"></span></a>NativeCompositionEvent</h2>
+## NativeCompositionEvent
 
 ```typescript
 export type NativeCompositionEvent = CompositionEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativedragevent" title="type-alias - NativeDragEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativedragevent"><span class="icon icon-link"></span></a>NativeDragEvent</h2>
+## NativeDragEvent
 
 ```typescript
 export type NativeDragEvent = DragEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativefocusevent" title="type-alias - NativeFocusEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativefocusevent"><span class="icon icon-link"></span></a>NativeFocusEvent</h2>
+## NativeFocusEvent
 
 ```typescript
 export type NativeFocusEvent = FocusEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativekeyboardevent" title="type-alias - NativeKeyboardEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativekeyboardevent"><span class="icon icon-link"></span></a>NativeKeyboardEvent</h2>
+## NativeKeyboardEvent
 
 ```typescript
 export type NativeKeyboardEvent = KeyboardEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativemouseevent" title="type-alias - NativeMouseEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativemouseevent"><span class="icon icon-link"></span></a>NativeMouseEvent</h2>
+## NativeMouseEvent
 
 ```typescript
 export type NativeMouseEvent = MouseEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativepointerevent" title="type-alias - NativePointerEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativepointerevent"><span class="icon icon-link"></span></a>NativePointerEvent</h2>
+## NativePointerEvent
 
 ```typescript
 export type NativePointerEvent = PointerEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativetouchevent" title="type-alias - NativeTouchEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativetouchevent"><span class="icon icon-link"></span></a>NativeTouchEvent</h2>
+## NativeTouchEvent
 
 ```typescript
 export type NativeTouchEvent = TouchEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativetransitionevent" title="type-alias - NativeTransitionEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativetransitionevent"><span class="icon icon-link"></span></a>NativeTransitionEvent</h2>
+## NativeTransitionEvent
 
 ```typescript
 export type NativeTransitionEvent = TransitionEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativeuievent" title="type-alias - NativeUIEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativeuievent"><span class="icon icon-link"></span></a>NativeUIEvent</h2>
+## NativeUIEvent
 
 ```typescript
 export type NativeUIEvent = UIEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="nativewheelevent" title="type-alias - NativeWheelEvent" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#nativewheelevent"><span class="icon icon-link"></span></a>NativeWheelEvent</h2>
+## NativeWheelEvent
 
 ```typescript
 export type NativeWheelEvent = WheelEvent;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="noserialize" title="variable - noSerialize" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#noserialize"><span class="icon icon-link"></span></a>noSerialize</h2>
+## noSerialize
 
 Marks a property on a store as non-serializable.
 
@@ -1046,11 +943,9 @@ See: \[noSerialize Tutorial\](http://qwik.builder.io/tutorial/store/no-serialize
 noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="noserialize" title="type-alias - NoSerialize" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#noserialize"><span class="icon icon-link"></span></a>NoSerialize</h2>
+## NoSerialize
 
 Marks a property on a store as non-serializable.
 
@@ -1064,11 +959,9 @@ See: \[noSerialize Tutorial\](http://qwik.builder.io/tutorial/store/no-serialize
 noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="onrenderfn" title="type-alias - OnRenderFn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#onrenderfn"><span class="icon icon-link"></span></a>OnRenderFn</h2>
+## OnRenderFn
 
 ```typescript
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
@@ -1076,11 +969,9 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 **References:** [JSXNode](#jsxnode)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="onvisibletaskoptions" title="interface - OnVisibleTaskOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#onvisibletaskoptions"><span class="icon icon-link"></span></a>OnVisibleTaskOptions</h2>
+## OnVisibleTaskOptions
 
 ```typescript
 export interface OnVisibleTaskOptions
@@ -1090,21 +981,17 @@ export interface OnVisibleTaskOptions
 | -------------- | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [strategy?](#) |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="propfninterface" title="interface - PropFnInterface" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#propfninterface"><span class="icon icon-link"></span></a>PropFnInterface</h2>
+## PropFnInterface
 
 ```typescript
 export interface PropFnInterface<ARGS extends any[], RET>
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="propfunction" title="type-alias - PropFunction" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#propfunction"><span class="icon icon-link"></span></a>PropFunction</h2>
+## PropFunction
 
 ```typescript
 export type PropFunction<T extends Function> = T extends (
@@ -1116,11 +1003,9 @@ export type PropFunction<T extends Function> = T extends (
 
 **References:** [PropFnInterface](#propfninterface)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="propsof" title="type-alias - PropsOf" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#propsof"><span class="icon icon-link"></span></a>PropsOf</h2>
+## PropsOf
 
 Infers `Props` from the component.
 
@@ -1140,11 +1025,9 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<
 
 **References:** [Component](#component)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="publicprops" title="type-alias - PublicProps" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#publicprops"><span class="icon icon-link"></span></a>PublicProps</h2>
+## PublicProps
 
 Extends the defined component PROPS, adding the default ones (children and q:slot)..
 
@@ -1156,11 +1039,9 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
 
 **References:** [ComponentBaseProps](#componentbaseprops)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qrl" title="variable - qrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#qrl"><span class="icon icon-link"></span></a>qrl</h2>
+## qrl
 
 Used by Qwik Optimizer to point to lazy-loaded resources.
 
@@ -1175,11 +1056,9 @@ qrl: <T = any>(
 ) => QRL<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qrl" title="interface - QRL" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qrl"><span class="icon icon-link"></span></a>QRL</h2>
+## QRL
 
 Used by Qwik Optimizer to point to lazy-loaded resources.
 
@@ -1194,11 +1073,9 @@ qrl: <T = any>(
 ) => QRL<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikanimationevent" title="interface - QwikAnimationEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikanimationevent"><span class="icon icon-link"></span></a>QwikAnimationEvent</h2>
+## QwikAnimationEvent
 
 ```typescript
 export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent>
@@ -1212,11 +1089,9 @@ export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, Nativ
 | [elapsedTime](#)   |           | number |             |
 | [pseudoElement](#) |           | string |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikchangeevent" title="interface - QwikChangeEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikchangeevent"><span class="icon icon-link"></span></a>QwikChangeEvent</h2>
+## QwikChangeEvent
 
 ```typescript
 export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T>
@@ -1228,11 +1103,9 @@ export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T>
 | ----------- | --------- | ------------------- | ----------- |
 | [target](#) |           | EventTarget &amp; T |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikclipboardevent" title="interface - QwikClipboardEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikclipboardevent"><span class="icon icon-link"></span></a>QwikClipboardEvent</h2>
+## QwikClipboardEvent
 
 ```typescript
 export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent>
@@ -1244,11 +1117,9 @@ export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, Nativ
 | ------------------ | --------- | ------------ | ----------- |
 | [clipboardData](#) |           | DataTransfer |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikcompositionevent" title="interface - QwikCompositionEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikcompositionevent"><span class="icon icon-link"></span></a>QwikCompositionEvent</h2>
+## QwikCompositionEvent
 
 ```typescript
 export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent>
@@ -1260,11 +1131,9 @@ export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, Nat
 | --------- | --------- | ------ | ----------- |
 | [data](#) |           | string |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikdomattributes" title="interface - QwikDOMAttributes" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikdomattributes"><span class="icon icon-link"></span></a>QwikDOMAttributes</h2>
+## QwikDOMAttributes
 
 ```typescript
 export interface QwikDOMAttributes extends DOMAttributes<any>
@@ -1272,11 +1141,9 @@ export interface QwikDOMAttributes extends DOMAttributes<any>
 
 **Extends:** [DOMAttributes](#domattributes)&lt;any&gt;
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikdragevent" title="interface - QwikDragEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikdragevent"><span class="icon icon-link"></span></a>QwikDragEvent</h2>
+## QwikDragEvent
 
 ```typescript
 export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent>
@@ -1288,11 +1155,9 @@ export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDrag
 | ----------------- | --------- | ------------ | ----------- |
 | [dataTransfer](#) |           | DataTransfer |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikfocusevent" title="interface - QwikFocusEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikfocusevent"><span class="icon icon-link"></span></a>QwikFocusEvent</h2>
+## QwikFocusEvent
 
 ```typescript
 export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent>
@@ -1305,11 +1170,9 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 | [relatedTarget](#) |           | EventTarget \| null |             |
 | [target](#)        |           | EventTarget &amp; T |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikintrinsicelements" title="interface - QwikIntrinsicElements" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikintrinsicelements"><span class="icon icon-link"></span></a>QwikIntrinsicElements</h2>
+## QwikIntrinsicElements
 
 ```typescript
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements
@@ -1321,11 +1184,9 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 | ----------- | --------- | ------------------------------------------------- | ----------- |
 | [script](#) |           | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikinvalidevent" title="interface - QwikInvalidEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikinvalidevent"><span class="icon icon-link"></span></a>QwikInvalidEvent</h2>
+## QwikInvalidEvent
 
 ```typescript
 export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T>
@@ -1337,11 +1198,9 @@ export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T>
 | ----------- | --------- | ------------------- | ----------- |
 | [target](#) |           | EventTarget &amp; T |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikjsx" title="namespace - QwikJSX" data-kind="namespace" data-kind-label="N"><a aria-hidden="true" tabindex="-1" href="#qwikjsx"><span class="icon icon-link"></span></a>QwikJSX</h2>
+## QwikJSX
 
 ```typescript
 export declare namespace QwikJSX
@@ -1354,11 +1213,9 @@ export declare namespace QwikJSX
 | [IntrinsicAttributes](#)      |             |
 | [IntrinsicElements](#)        |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikkeyboardevent" title="interface - QwikKeyboardEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikkeyboardevent"><span class="icon icon-link"></span></a>QwikKeyboardEvent</h2>
+## QwikKeyboardEvent
 
 ```typescript
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent>
@@ -1384,11 +1241,9 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikmouseevent" title="interface - QwikMouseEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikmouseevent"><span class="icon icon-link"></span></a>QwikMouseEvent</h2>
+## QwikMouseEvent
 
 ```typescript
 export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E>
@@ -1420,11 +1275,9 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [getModifierState(key)](#) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikpointerevent" title="interface - QwikPointerEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikpointerevent"><span class="icon icon-link"></span></a>QwikPointerEvent</h2>
+## QwikPointerEvent
 
 ```typescript
 export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent>
@@ -1443,11 +1296,9 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
 | [tiltY](#)       |           | number                      |             |
 | [width](#)       |           | number                      |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwiksubmitevent" title="interface - QwikSubmitEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwiksubmitevent"><span class="icon icon-link"></span></a>QwikSubmitEvent</h2>
+## QwikSubmitEvent
 
 ```typescript
 export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T>
@@ -1455,11 +1306,9 @@ export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T>
 
 **Extends:** SyntheticEvent&lt;T&gt;
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwiktouchevent" title="interface - QwikTouchEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwiktouchevent"><span class="icon icon-link"></span></a>QwikTouchEvent</h2>
+## QwikTouchEvent
 
 ```typescript
 export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent>
@@ -1481,11 +1330,9 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [getModifierState(key)](#) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwiktransitionevent" title="interface - QwikTransitionEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwiktransitionevent"><span class="icon icon-link"></span></a>QwikTransitionEvent</h2>
+## QwikTransitionEvent
 
 ```typescript
 export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent>
@@ -1499,11 +1346,9 @@ export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, Nati
 | [propertyName](#)  |           | string |             |
 | [pseudoElement](#) |           | string |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikuievent" title="interface - QwikUIEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikuievent"><span class="icon icon-link"></span></a>QwikUIEvent</h2>
+## QwikUIEvent
 
 ```typescript
 export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent>
@@ -1516,11 +1361,9 @@ export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEven
 | [detail](#) |           | number       |             |
 | [view](#)   |           | AbstractView |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qwikwheelevent" title="interface - QwikWheelEvent" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#qwikwheelevent"><span class="icon icon-link"></span></a>QwikWheelEvent</h2>
+## QwikWheelEvent
 
 ```typescript
 export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent>
@@ -1535,11 +1378,9 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
 | [deltaY](#)    |           | number |             |
 | [deltaZ](#)    |           | number |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="render" title="variable - render" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#render"><span class="icon icon-link"></span></a>render</h2>
+## render
 
 Render JSX.
 
@@ -1553,11 +1394,9 @@ render: (
 ) => Promise<RenderResult>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="renderonce" title="variable - RenderOnce" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#renderonce"><span class="icon icon-link"></span></a>RenderOnce</h2>
+## RenderOnce
 
 ```typescript
 RenderOnce: FunctionComponent<{
@@ -1566,11 +1405,9 @@ RenderOnce: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="renderoptions" title="interface - RenderOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#renderoptions"><span class="icon icon-link"></span></a>RenderOptions</h2>
+## RenderOptions
 
 ```typescript
 export interface RenderOptions
@@ -1580,11 +1417,9 @@ export interface RenderOptions
 | ---------------- | --------- | ------------------------- | ------------ |
 | [serverData?](#) |           | Record&lt;string, any&gt; | _(Optional)_ |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="renderresult" title="interface - RenderResult" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#renderresult"><span class="icon icon-link"></span></a>RenderResult</h2>
+## RenderResult
 
 ```typescript
 export interface RenderResult
@@ -1594,11 +1429,9 @@ export interface RenderResult
 | ---------------------------------- | ----------- |
 | [cleanup()](#renderresult-cleanup) |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="renderssroptions" title="interface - RenderSSROptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#renderssroptions"><span class="icon icon-link"></span></a>RenderSSROptions</h2>
+## RenderSSROptions
 
 ```typescript
 export interface RenderSSROptions
@@ -1615,11 +1448,9 @@ export interface RenderSSROptions
 | [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                               |              |
 | [url?](#)                |           | string                                                                                                                      | _(Optional)_ |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="qrl-resolve" title="method-signature - resolve" data-kind="method-signature" data-kind-label="M"><a aria-hidden="true" tabindex="-1" href="#qrl-resolve"><span class="icon icon-link"></span></a>resolve</h2>
+## resolve
 
 Resolve the QRL and return the actual value.
 
@@ -1631,9 +1462,7 @@ resolve(): Promise<TYPE>;
 
 Promise&lt;TYPE&gt;
 
-</div>
-<div class="api-detail-section">
-<h2 id="resource" title="variable - Resource" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#resource"><span class="icon icon-link"></span></a>Resource</h2>
+## Resource
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
@@ -1643,7 +1472,7 @@ The status can be one of the following:
 
 - 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.
 
-<h3>Example</h3>
+### Example
 
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
@@ -1685,43 +1514,37 @@ const Cmp = component$(() => {
 Resource: <T>(props: ResourceProps<T>) => JSXNode;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourcectx" title="interface - ResourceCtx" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resourcectx"><span class="icon icon-link"></span></a>ResourceCtx</h2>
+## ResourceCtx
 
 ```typescript
 export interface ResourceCtx<T>
 ```
 
-| Property      | Modifiers | Type                | Description |
-| ------------- | --------- | ------------------- | ----------- |
-| [previous](#) |           | T \| undefined      |             |
-| [track](#)    |           | [Tracker](#tracker) |             |
+| Property      | Modifiers             | Type                | Description |
+| ------------- | --------------------- | ------------------- | ----------- |
+| [previous](#) | <code>readonly</code> | T \| undefined      |             |
+| [track](#)    | <code>readonly</code> | [Tracker](#tracker) |             |
 
 | Method                                            | Description |
 | ------------------------------------------------- | ----------- |
 | [cache(policyOrMilliseconds)](#resourcectx-cache) |             |
 | [cleanup(callback)](#)                            |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourcefn" title="type-alias - ResourceFn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#resourcefn"><span class="icon icon-link"></span></a>ResourceFn</h2>
+## ResourceFn
 
 ```typescript
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
 ```
 
 **References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourceoptions" title="interface - ResourceOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resourceoptions"><span class="icon icon-link"></span></a>ResourceOptions</h2>
+## ResourceOptions
 
 Options to pass to `useResource$()`
 
@@ -1733,11 +1556,9 @@ export interface ResourceOptions
 | ------------- | --------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [timeout?](#) |           | number | _(Optional)_ Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout. Resulting on a rejected resource. |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourcepending" title="interface - ResourcePending" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resourcepending"><span class="icon icon-link"></span></a>ResourcePending</h2>
+## ResourcePending
 
 ```typescript
 export interface ResourcePending<T>
@@ -1748,11 +1569,9 @@ export interface ResourcePending<T>
 | [loading](#) | <code>readonly</code> | boolean          |             |
 | [value](#)   | <code>readonly</code> | Promise&lt;T&gt; |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourceprops" title="interface - ResourceProps" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resourceprops"><span class="icon icon-link"></span></a>ResourceProps</h2>
+## ResourceProps
 
 ```typescript
 export interface ResourceProps<T>
@@ -1765,11 +1584,9 @@ export interface ResourceProps<T>
 | [onResolved](#)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
 | [value](#)       | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourcerejected" title="interface - ResourceRejected" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resourcerejected"><span class="icon icon-link"></span></a>ResourceRejected</h2>
+## ResourceRejected
 
 ```typescript
 export interface ResourceRejected<T>
@@ -1780,11 +1597,9 @@ export interface ResourceRejected<T>
 | [loading](#) | <code>readonly</code> | boolean          |             |
 | [value](#)   | <code>readonly</code> | Promise&lt;T&gt; |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourceresolved" title="interface - ResourceResolved" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#resourceresolved"><span class="icon icon-link"></span></a>ResourceResolved</h2>
+## ResourceResolved
 
 ```typescript
 export interface ResourceResolved<T>
@@ -1795,11 +1610,9 @@ export interface ResourceResolved<T>
 | [loading](#) | <code>readonly</code> | boolean          |             |
 | [value](#)   | <code>readonly</code> | Promise&lt;T&gt; |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="resourcereturn" title="type-alias - ResourceReturn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#resourcereturn"><span class="icon icon-link"></span></a>ResourceReturn</h2>
+## ResourceReturn
 
 ```typescript
 export type ResourceReturn<T> =
@@ -1810,11 +1623,9 @@ export type ResourceReturn<T> =
 
 **References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="setplatform" title="variable - setPlatform" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#setplatform"><span class="icon icon-link"></span></a>setPlatform</h2>
+## setPlatform
 
 Sets the `CorePlatform`.
 
@@ -1824,11 +1635,9 @@ This is useful to override the platform in tests to change the behavior of, `req
 setPlatform: (plt: CorePlatform) => CorePlatform;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="signal" title="interface - Signal" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#signal"><span class="icon icon-link"></span></a>Signal</h2>
+## Signal
 
 ```typescript
 export interface Signal<T = any>
@@ -1838,23 +1647,19 @@ export interface Signal<T = any>
 | ---------- | --------- | ---- | ----------- |
 | [value](#) |           | T    |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="skiprender" title="variable - SkipRender" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#skiprender"><span class="icon icon-link"></span></a>SkipRender</h2>
+## SkipRender
 
 ```typescript
 SkipRender: JSXNode;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="slot" title="variable - Slot" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#slot"><span class="icon icon-link"></span></a>Slot</h2>
+## Slot
 
-Allows to project the children of the current component. can only be used within the context of a component defined with `component$`.
+Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`.
 
 ```typescript
 Slot: FunctionComponent<{
@@ -1862,11 +1667,9 @@ Slot: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="snapshotlistener" title="interface - SnapshotListener" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#snapshotlistener"><span class="icon icon-link"></span></a>SnapshotListener</h2>
+## SnapshotListener
 
 ```typescript
 export interface SnapshotListener
@@ -1878,11 +1681,9 @@ export interface SnapshotListener
 | [key](#) |           | string                 |             |
 | [qrl](#) |           | [QRL](#qrl)&lt;any&gt; |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="snapshotmeta" title="type-alias - SnapshotMeta" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#snapshotmeta"><span class="icon icon-link"></span></a>SnapshotMeta</h2>
+## SnapshotMeta
 
 ```typescript
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
@@ -1890,11 +1691,9 @@ export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 **References:** [SnapshotMetaValue](#snapshotmetavalue)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="snapshotmetavalue" title="interface - SnapshotMetaValue" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#snapshotmetavalue"><span class="icon icon-link"></span></a>SnapshotMetaValue</h2>
+## SnapshotMetaValue
 
 ```typescript
 export interface SnapshotMetaValue
@@ -1907,11 +1706,9 @@ export interface SnapshotMetaValue
 | [s?](#)  |           | string | _(Optional)_ |
 | [w?](#)  |           | string | _(Optional)_ |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="snapshotresult" title="interface - SnapshotResult" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#snapshotresult"><span class="icon icon-link"></span></a>SnapshotResult</h2>
+## SnapshotResult
 
 ```typescript
 export interface SnapshotResult
@@ -1926,11 +1723,9 @@ export interface SnapshotResult
 | [resources](#) |           | ResourceReturnInternal&lt;any&gt;\[\] |             |
 | [state](#)     |           | [SnapshotState](#snapshotstate)       |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="snapshotstate" title="interface - SnapshotState" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#snapshotstate"><span class="icon icon-link"></span></a>SnapshotState</h2>
+## SnapshotState
 
 ```typescript
 export interface SnapshotState
@@ -1943,11 +1738,9 @@ export interface SnapshotState
 | [refs](#) |           | Record&lt;string, string&gt;  |             |
 | [subs](#) |           | any\[\]                       |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrcomment" title="variable - SSRComment" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrcomment"><span class="icon icon-link"></span></a>SSRComment</h2>
+## SSRComment
 
 ```typescript
 SSRComment: FunctionComponent<{
@@ -1955,21 +1748,17 @@ SSRComment: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrhint" title="variable - SSRHint" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrhint"><span class="icon icon-link"></span></a>SSRHint</h2>
+## SSRHint
 
 ```typescript
 SSRHint: FunctionComponent<SSRHintProps>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrhintprops" title="interface - SSRHintProps" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ssrhintprops"><span class="icon icon-link"></span></a>SSRHintProps</h2>
+## SSRHintProps
 
 ```typescript
 export interface SSRHintProps
@@ -1979,11 +1768,9 @@ export interface SSRHintProps
 | ------------- | --------- | ------- | ------------ |
 | [dynamic?](#) |           | boolean | _(Optional)_ |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrraw" title="variable - SSRRaw" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrraw"><span class="icon icon-link"></span></a>SSRRaw</h2>
+## SSRRaw
 
 ```typescript
 SSRRaw: FunctionComponent<{
@@ -1991,21 +1778,17 @@ SSRRaw: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrstream" title="variable - SSRStream" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrstream"><span class="icon icon-link"></span></a>SSRStream</h2>
+## SSRStream
 
 ```typescript
 SSRStream: FunctionComponent<SSRStreamProps>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrstreamblock" title="variable - SSRStreamBlock" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#ssrstreamblock"><span class="icon icon-link"></span></a>SSRStreamBlock</h2>
+## SSRStreamBlock
 
 ```typescript
 SSRStreamBlock: FunctionComponent<{
@@ -2013,11 +1796,9 @@ SSRStreamBlock: FunctionComponent<{
 }>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="ssrstreamprops" title="interface - SSRStreamProps" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#ssrstreamprops"><span class="icon icon-link"></span></a>SSRStreamProps</h2>
+## SSRStreamProps
 
 ```typescript
 export interface SSRStreamProps
@@ -2027,11 +1808,9 @@ export interface SSRStreamProps
 | ------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | [children](#) |           | AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt; \| ((stream: [StreamWriter](#streamwriter)) =&gt; Promise&lt;void&gt;) \| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt;) |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="streamwriter" title="type-alias - StreamWriter" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#streamwriter"><span class="icon icon-link"></span></a>StreamWriter</h2>
+## StreamWriter
 
 ```typescript
 export type StreamWriter = {
@@ -2039,11 +1818,9 @@ export type StreamWriter = {
 };
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="taskctx" title="interface - TaskCtx" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#taskctx"><span class="icon icon-link"></span></a>TaskCtx</h2>
+## TaskCtx
 
 ```typescript
 export interface TaskCtx
@@ -2057,11 +1834,9 @@ export interface TaskCtx
 | ---------------------- | ----------- |
 | [cleanup(callback)](#) |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="taskfn" title="type-alias - TaskFn" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#taskfn"><span class="icon icon-link"></span></a>TaskFn</h2>
+## TaskFn
 
 ```typescript
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
@@ -2069,17 +1844,15 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 **References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="tracker" title="interface - Tracker" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#tracker"><span class="icon icon-link"></span></a>Tracker</h2>
+## Tracker
 
 Used to signal to Qwik which state should be watched for changes.
 
 The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.
 
-<h3>Example</h3>
+### Example
 
 The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.
 
@@ -2105,47 +1878,39 @@ const Cmp = component$(() => {
 export interface Tracker
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="untrack" title="variable - untrack" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#untrack"><span class="icon icon-link"></span></a>untrack</h2>
+## untrack
 
 ```typescript
 untrack: <T>(fn: () => T) => T;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usecomputed_" title="variable - useComputed$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecomputed_"><span class="icon icon-link"></span></a>useComputed$</h2>
+## useComputed$
 
 ```typescript
 useComputed$: Computed;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usecomputedqrl" title="variable - useComputedQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecomputedqrl"><span class="icon icon-link"></span></a>useComputedQrl</h2>
+## useComputedQrl
 
 ```typescript
 useComputedQrl: ComputedQRL;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usecontext" title="variable - useContext" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecontext"><span class="icon icon-link"></span></a>useContext</h2>
+## useContext
 
 Retrieve Context value.
 
 Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
 
-<h3>Example</h3>
+### Example
 
 ```tsx
 // Declare the Context type.
@@ -2185,11 +1950,9 @@ export const Items = component$(() => {
 useContext: UseContext;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usecontextprovider" title="variable - useContextProvider" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usecontextprovider"><span class="icon icon-link"></span></a>useContextProvider</h2>
+## useContextProvider
 
 Assign a value to a Context.
 
@@ -2197,7 +1960,7 @@ Use `useContextProvider()` to assign a value to a context. The assignment happen
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-<h3>Example</h3>
+### Example
 
 ```tsx
 // Declare the Context type.
@@ -2237,31 +2000,25 @@ export const Items = component$(() => {
 useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useerrorboundary" title="variable - useErrorBoundary" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useerrorboundary"><span class="icon icon-link"></span></a>useErrorBoundary</h2>
+## useErrorBoundary
 
 ```typescript
 useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useid" title="variable - useId" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useid"><span class="icon icon-link"></span></a>useId</h2>
+## useId
 
 ```typescript
 useId: () => string;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useon" title="variable - useOn" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useon"><span class="icon icon-link"></span></a>useOn</h2>
+## useOn
 
 Register a listener on the current component's host element.
 
@@ -2271,11 +2028,9 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useondocument" title="variable - useOnDocument" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useondocument"><span class="icon icon-link"></span></a>useOnDocument</h2>
+## useOnDocument
 
 Register a listener on `document`.
 
@@ -2285,11 +2040,9 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useonwindow" title="variable - useOnWindow" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useonwindow"><span class="icon icon-link"></span></a>useOnWindow</h2>
+## useOnWindow
 
 Register a listener on `window`.
 
@@ -2299,11 +2052,9 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useresource_" title="variable - useResource$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useresource_"><span class="icon icon-link"></span></a>useResource$</h2>
+## useResource$
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
@@ -2313,7 +2064,7 @@ The status can be one of the following:
 
 - 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.
 
-<h3>Example</h3>
+### Example
 
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
@@ -2356,11 +2107,9 @@ useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useresourceqrl" title="variable - useResourceQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#useresourceqrl"><span class="icon icon-link"></span></a>useResourceQrl</h2>
+## useResourceQrl
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
@@ -2370,7 +2119,7 @@ The status can be one of the following:
 
 - 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.
 
-<h3>Example</h3>
+### Example
 
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
@@ -2413,11 +2162,9 @@ useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="useserverdata" title="function - useServerData" data-kind="function" data-kind-label="F"><a aria-hidden="true" tabindex="-1" href="#useserverdata"><span class="icon icon-link"></span></a>useServerData</h2>
+## useServerData
 
 ```typescript
 export declare function useServerData<T>(key: string): T | undefined;
@@ -2431,37 +2178,31 @@ export declare function useServerData<T>(key: string): T | undefined;
 
 T \| undefined
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usesignal" title="variable - useSignal" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usesignal"><span class="icon icon-link"></span></a>useSignal</h2>
+## useSignal
 
 ```typescript
 useSignal: UseSignal;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usesignal" title="interface - UseSignal" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#usesignal"><span class="icon icon-link"></span></a>UseSignal</h2>
+## UseSignal
 
 ```typescript
 useSignal: UseSignal;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestore" title="variable - useStore" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usestore"><span class="icon icon-link"></span></a>useStore</h2>
+## useStore
 
 Creates an object that Qwik can track across serializations.
 
 Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
 
-<h3>Example</h3>
+### Example
 
 Example showing how `useStore` is used in Counter example to keep track of the count.
 
@@ -2519,11 +2260,9 @@ useStore: <STATE extends object>(
 ) => STATE;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestoreoptions" title="interface - UseStoreOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#usestoreoptions"><span class="icon icon-link"></span></a>UseStoreOptions</h2>
+## UseStoreOptions
 
 ```typescript
 export interface UseStoreOptions
@@ -2534,11 +2273,9 @@ export interface UseStoreOptions
 | [deep?](#)     |           | boolean | _(Optional)_ If <code>true</code> then all nested objects and arrays will be tracked as well. Default is <code>false</code>. |
 | [reactive?](#) |           | boolean | _(Optional)_ If <code>false</code> then the object will not be tracked for changes. Default is <code>true</code>.            |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestyles_" title="variable - useStyles$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usestyles_"><span class="icon icon-link"></span></a>useStyles$</h2>
+## useStyles$
 
 A lazy-loadable reference to a component's styles.
 
@@ -2558,11 +2295,9 @@ export const CmpStyles = component$(() => {
 useStyles$: (first: string) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestylesqrl" title="variable - useStylesQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usestylesqrl"><span class="icon icon-link"></span></a>useStylesQrl</h2>
+## useStylesQrl
 
 A lazy-loadable reference to a component's styles.
 
@@ -2582,11 +2317,9 @@ export const CmpStyles = component$(() => {
 useStylesQrl: (styles: QRL<string>) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestylesscoped" title="interface - UseStylesScoped" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#usestylesscoped"><span class="icon icon-link"></span></a>UseStylesScoped</h2>
+## UseStylesScoped
 
 ```typescript
 export interface UseStylesScoped
@@ -2596,11 +2329,9 @@ export interface UseStylesScoped
 | ------------ | --------- | ------ | ----------- |
 | [scopeId](#) |           | string |             |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestylesscoped_" title="variable - useStylesScoped$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usestylesscoped_"><span class="icon icon-link"></span></a>useStylesScoped$</h2>
+## useStylesScoped$
 
 A lazy-loadable reference to a component's styles, that is scoped to the component.
 
@@ -2620,11 +2351,9 @@ export const CmpScopedStyles = component$(() => {
 useStylesScoped$: (first: string) => UseStylesScoped;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usestylesscopedqrl" title="variable - useStylesScopedQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usestylesscopedqrl"><span class="icon icon-link"></span></a>useStylesScopedQrl</h2>
+## useStylesScopedQrl
 
 A lazy-loadable reference to a component's styles, that is scoped to the component.
 
@@ -2644,11 +2373,9 @@ export const CmpScopedStyles = component$(() => {
 useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usetask_" title="variable - useTask$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usetask_"><span class="icon icon-link"></span></a>useTask$</h2>
+## useTask$
 
 Reruns the `taskFn` when the observed inputs change.
 
@@ -2660,11 +2387,9 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usetaskoptions" title="interface - UseTaskOptions" data-kind="interface" data-kind-label="I"><a aria-hidden="true" tabindex="-1" href="#usetaskoptions"><span class="icon icon-link"></span></a>UseTaskOptions</h2>
+## UseTaskOptions
 
 ```typescript
 export interface UseTaskOptions
@@ -2674,11 +2399,9 @@ export interface UseTaskOptions
 | --------------- | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [eagerness?](#) |           | [EagernessOptions](#eagernessoptions) | _(Optional)_ - <code>visible</code>: run the effect when the element is visible. - <code>load</code>: eagerly run the effect when the application resumes. |
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usetaskqrl" title="variable - useTaskQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usetaskqrl"><span class="icon icon-link"></span></a>useTaskQrl</h2>
+## useTaskQrl
 
 Reruns the `taskFn` when the observed inputs change.
 
@@ -2690,11 +2413,9 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usevisibletask_" title="variable - useVisibleTask$" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usevisibletask_"><span class="icon icon-link"></span></a>useVisibleTask$</h2>
+## useVisibleTask$
 
 ```tsx
 const Timer = component$(() => {
@@ -2720,11 +2441,9 @@ const Timer = component$(() => {
 useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="usevisibletaskqrl" title="variable - useVisibleTaskQrl" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#usevisibletaskqrl"><span class="icon icon-link"></span></a>useVisibleTaskQrl</h2>
+## useVisibleTaskQrl
 
 ```tsx
 const Timer = component$(() => {
@@ -2750,11 +2469,9 @@ const Timer = component$(() => {
 useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="valueorpromise" title="type-alias - ValueOrPromise" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#valueorpromise"><span class="icon icon-link"></span></a>ValueOrPromise</h2>
+## ValueOrPromise
 
 Type representing a value which is either resolve or a promise.
 
@@ -2762,11 +2479,9 @@ Type representing a value which is either resolve or a promise.
 export type ValueOrPromise<T> = T | Promise<T>;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/types.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/types.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="version" title="variable - version" data-kind="variable" data-kind-label="V"><a aria-hidden="true" tabindex="-1" href="#version"><span class="icon icon-link"></span></a>version</h2>
+## version
 
 QWIK_VERSION
 
@@ -2774,11 +2489,9 @@ QWIK_VERSION
 version: string;
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/version.ts" target="_blanks">Edit this section</a></p>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/version.ts)
 
-</div>
-<div class="api-detail-section">
-<h2 id="visibletaskstrategy" title="type-alias - VisibleTaskStrategy" data-kind="type-alias" data-kind-label="T"><a aria-hidden="true" tabindex="-1" href="#visibletaskstrategy"><span class="icon icon-link"></span></a>VisibleTaskStrategy</h2>
+## VisibleTaskStrategy
 
 ```typescript
 export type VisibleTaskStrategy =
@@ -2787,6 +2500,4 @@ export type VisibleTaskStrategy =
   | "document-idle";
 ```
 
-<p class="api-edit"><a href="https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts" target="_blanks">Edit this section</a></p>
-
-</div>
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)

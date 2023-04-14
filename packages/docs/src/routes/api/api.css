@@ -5,12 +5,33 @@
 .docs.api h2 {
   font-size: 1.25rem;
   margin-top: 0;
-  width: calc(100% - 120px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: 100%;
 }
 
+/* styling for sections on detail view */
+.docs.api h2:not(:not([id])) {
+  margin-top: 50px;
+  position: relative;
+  width: 100%;
+}
+.docs.api h2:not(:not([id])):not(:nth-of-type(1)) {
+  border-top: 1px solid #eee;
+  padding-top: 50px;
+}
+
+.docs.api article a[href*="github.com"] {
+  display: inline-block;
+  position: relative;
+  left: calc(100% - 115px);
+  border-radius: 4px;
+  background: #eee;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+
+/* 
 .docs.api h2[data-kind-label]:before {
   content: attr(data-kind-label);
 }
@@ -19,7 +40,7 @@
   position: relative;
   top: 2px;
   left: -46px;
-}
+} */
 
 .docs.api table {
   font-size: 0.8rem;

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path';
 import { type BuildConfig } from './util';
 import { format } from 'prettier';
-import { toSnakeCase } from '../packages/docs/src/utils/utils';
+// import { toSnakeCase } from '../packages/docs/src/utils/utils';
 
 export async function generateApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -184,7 +184,7 @@ function createApiData(
   const apiJsonPath = join(docsDir, `api.json`);
   writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
 
-  const apiMdPath = join(docsDir, `index.mdx`);
+  const apiMdPath = join(docsDir, `index.md`);
   writeFileSync(apiMdPath, createApiMarkdown(apiData));
 }
 
@@ -195,38 +195,26 @@ function createApiMarkdown(a: ApiData) {
   md.push(`title: \\${a.package} API Reference`);
   md.push(`---`);
   md.push(``);
-  md.push(`<h1><a href="/api">API</a> &rsaquo; ${a.package}</h1>`);
+  md.push(`# [API](/api) &rsaquo; ${a.package}`);
   md.push(``);
 
   for (const m of a.members) {
-    const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    md.push('<div class="api-detail-section">');
-    md.push(
-      `<h2 id="${m.id}" title="${title}" data-kind="${toSnakeCase(
-        m.kind
-      )}" data-kind-label="${m.kind
-        .substring(0, 1)
-        .toUpperCase()}"><a aria-hidden="true" tabindex="-1" href="#${
-        m.id
-      }"><span class="icon icon-link"></span></a>${m.name}</h2>`
-    );
+    // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
+    md.push(`## ${m.name}`);
     md.push(``);
 
     // sanitize / adjust output
     const content = m.content
       .replace(/<!--(.|\s)*?-->/g, '')
-      .replace(/<Slot\/>/g, '')
-      .replace(/\\#\\#\\# (\w+)/gm, '<h3>$1</h3>');
+      // .replace(/<Slot\/>/g, '')
+      .replace(/\\#\\#\\# (\w+)/gm, '### $1');
     md.push(content);
     md.push(``);
 
     if (m.editUrl) {
-      md.push(
-        `<p class="api-edit"><a href="${m.editUrl}" target="_blanks">Edit this section</a></p>`
-      );
+      md.push(`[Edit this section](${m.editUrl})`);
       md.push(``);
     }
-    md.push('</div>');
   }
 
   const mdOutput = format(md.join('\n'), {

@@ -15,7 +15,6 @@ export const useUsed = routeLoader$(() => {
 export default component$(() => {
   const data = useUsed();
   const signal = useSignal(0);
-
   return (
     <div class="actions">
       <button onClick$={() => signal.value++}>{signal.value}</button>

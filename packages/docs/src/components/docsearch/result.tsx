@@ -1,9 +1,16 @@
-import { component$, Slot, useContext, useSignal, useStore } from '@builder.io/qwik';
+import {
+  Slot,
+  component$,
+  useContext,
+  useSignal,
+  useStore,
+  useVisibleTask$,
+} from '@builder.io/qwik';
+import { QwikGPT } from '../qwik-gpt';
 import { SearchContext } from './context';
-import type { DocSearchState } from './doc-search';
+import { AiResultOpenContext, type DocSearchState } from './doc-search';
 import { Snippet } from './snippet';
 import type { InternalDocSearchHit } from './types';
-import { QwikGPT } from '../qwik-gpt';
 
 export const Result = component$(
   ({ state, item }: { state: DocSearchState; item: InternalDocSearchHit }) => {
@@ -106,46 +113,60 @@ export const Result = component$(
 
 export const AIButton = component$(({ state }: { state: DocSearchState }) => {
   const gpt = useSignal<string>();
+  const aiResultOpen = useContext(AiResultOpenContext);
+
+  useVisibleTask$(({ track }) => {
+    aiResultOpen.value = Boolean(track(() => gpt.value?.trim()));
+  });
+
+  useVisibleTask$(({ track }) => {
+    // When query changes, reset gpt value
+    track(() => state.query);
+    gpt.value = '';
+  });
+
   const ai = -1;
   return (
     <>
-      <li
-        role="option"
-        style={{ 'margin-top': '10px' }}
-        id={`docsearch-item-${ai}`}
-        aria-selected={state.activeItemId === ai ? 'true' : undefined}
-        class="ai-li"
-        onMouseOver$={() => {
-          if (state.activeItemId !== ai) {
-            state.activeItemId = ai;
-          }
-        }}
-      >
-        <div class="ai-button">
-          <button
-            onClick$={() => {
-              gpt.value = state.query;
-            }}
-          >
-            <span>
-              🤖 Ask QwikAI (beta)
-              {state.query === '' ? (
-                '...'
-              ) : (
-                <>
-                  {': '}
-                  <strong>{state.query}</strong>
-                </>
-              )}
-            </span>
-          </button>
-          {gpt.value && (
-            <div class="qwikgpt-box">
-              <QwikGPT query={gpt.value}></QwikGPT>
-            </div>
-          )}
-        </div>
-      </li>
+      {state.query.length > 3 && (
+        <li
+          role="option"
+          style={{ 'margin-top': '10px' }}
+          id={`docsearch-item-${ai}`}
+          aria-selected={state.activeItemId === ai ? 'true' : undefined}
+          class="ai-li"
+          onMouseOver$={() => {
+            if (state.activeItemId !== ai) {
+              state.activeItemId = ai;
+            }
+          }}
+        >
+          <div class="ai-button">
+            <button
+              onClick$={() => {
+                gpt.value = state.query;
+              }}
+            >
+              <span>
+                🤖 Ask QwikAI (beta)
+                {state.query === '' ? (
+                  '...'
+                ) : (
+                  <>
+                    {': '}
+                    <strong>{state.query}</strong>
+                  </>
+                )}
+              </span>
+            </button>
+            {gpt.value && (
+              <div class="qwikgpt-box">
+                <QwikGPT query={gpt.value}></QwikGPT>
+              </div>
+            )}
+          </div>
+        </li>
+      )}
     </>
   );
 });

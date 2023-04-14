@@ -35,6 +35,34 @@
   --docsearch-muted-color: var(--interactive-text-color);
 }
 
+@media (min-width: 1000px) {
+  .docsearch.ai-result-open {
+    --docsearch-modal-width: 1000px;
+    /* max-width: 1000px; */
+  }
+
+  .docsearch.ai-result-open .DocSearch-Dropdown-Container {
+    max-width: 450px;
+  }
+
+  .docsearch.ai-result-open .qwikgpt-box {
+    position: absolute;
+    left: 475px;
+    top: 80px;
+    right: 15px;
+    max-height: calc(100% - 100px);
+    overflow: auto;
+    border-radius: 4px;
+    box-shadow: var(--docsearch-hit-shadow);
+    padding: 5px 20px 20px;
+  }
+
+  .docsearch.ai-result-open .DocSearch-Dropdown {
+    min-height: 700px;
+    max-height: 70vh;
+  }
+}
+
 .docsearch kbd {
   font-family: system-ui;
 }

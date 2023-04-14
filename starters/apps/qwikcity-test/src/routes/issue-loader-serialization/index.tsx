@@ -19,7 +19,10 @@ export const useCmp2 = routeLoader$(() => {
   };
 });
 
-export const useCmp3 = routeLoader$(() => {
+export const useCmp3 = routeLoader$(({ fail }) => {
+  if (fdf) {
+    return fail(404, { error: 'loader-cmp3' });
+  }
   return {
     message: 'loader-cmp3',
   };
@@ -83,7 +86,6 @@ export const Cmp2 = component$(() => {
 export const Cmp3 = component$(() => {
   const date = useCmp3();
   const signal = useSignal(0);
-
   return (
     <div>
       <button id="update-cmp3" onClick$={() => signal.value++}>

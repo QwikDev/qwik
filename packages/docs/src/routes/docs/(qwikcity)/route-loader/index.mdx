@@ -132,6 +132,42 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
 });
 ```
 
+## Failed values with `routeLoader$`
+
+`routeLoader$`s can use the `fail` method to return a failed value, which is a special value that indicates that the loader didn't succeed loading the expected data.
+
+In addition, the `fail` function allows `routeLoader$` to override the HTTP status code, for example retuning 404.
+
+This is useful when the loader needs to return a "error" value that is not `undefined`, but it also needs to indicate that the data failed to load.
+
+```tsx /requestEvent.fail/ /errorMessage/#a title="src/routes/product/[productId]/index.tsx"
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const product = await db.from('products').filter('id', 'eq', requestEvent.params.productId);
+  if (!product) {
+    // Return a failed value to indicate that product was not found
+    return requestEvent.fail(404, {
+      errorMessage: 'Product not found'
+    });
+  }
+  return {
+    productName: product.name
+  };
+});
+
+export default component$(() => {
+  const product = useProductDetails();
+
+  if (product.value.errorMessage) {
+    // Render UI for failed value
+    return <div>{product.value.errorMessage}</div>;
+  }
+  return <div>Product name: {product.value.productName}</div>;
+});
+```
+
+
 ## Performance considerations
 
 Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in SPA or MPA, and they are executed even if the user is navigating to the same page.

@@ -50,7 +50,7 @@
     left: 475px;
     top: 80px;
     right: 15px;
-    height: calc(100% - 100px);
+    max-height: calc(100% - 100px);
     overflow: auto;
     border-radius: 4px;
     box-shadow: var(--docsearch-hit-shadow);

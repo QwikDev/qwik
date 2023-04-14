@@ -473,7 +473,7 @@ export interface LoaderOptions {
 export interface LoaderConstructor {
   // Without validation
   <O>(loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>, options?: LoaderOptions): Loader<
-    StrictUnion<O>
+    O
   >;
 
   // With validation

@@ -27,6 +27,7 @@ export type ModalTranslations = Partial<{
 export type DocSearchModalProps = DocSearchProps & {
   translations?: ModalTranslations;
   state: DocSearchState;
+  aiResultOpen?: boolean;
 };
 
 export const DocSearchModal = component$(
@@ -36,6 +37,7 @@ export const DocSearchModal = component$(
     indexName,
     state,
     transformItems$ = identity,
+    aiResultOpen,
     disableUserPersonalization = false,
   }: DocSearchModalProps) => {
     const containerRef = useSignal<Element>();

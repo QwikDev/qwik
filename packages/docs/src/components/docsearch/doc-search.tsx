@@ -1,5 +1,13 @@
 import type { SearchClient } from 'algoliasearch/lite';
-import { component$, useStore, useStyles$, useSignal } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  useStyles$,
+  useSignal,
+  createContextId,
+  useContextProvider,
+  type Signal,
+} from '@builder.io/qwik';
 import type { DocSearchHit, InternalDocSearchHit } from './types';
 import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
@@ -42,9 +50,13 @@ export function isEditingContent(event: QwikKeyboardEvent<HTMLElement>): boolean
   return isContentEditable || tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
 }
 
+export const AiResultOpenContext = createContextId<Signal<boolean>>('aiResultOpen');
+
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
-  // useContextBoundary();
+  const aiResultOpen = useSignal(false);
+
+  useContextProvider(AiResultOpenContext, aiResultOpen);
 
   const state = useStore<DocSearchState>({
     isOpen: false,
@@ -63,7 +75,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
 
   return (
     <div
-      class="docsearch"
+      class={{ docsearch: true, 'ai-result-open': aiResultOpen.value }}
       window:onKeyDown$={(event) => {
         function open() {
           // We check that no other DocSearch modal is showing before opening
@@ -106,6 +118,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
       />
       {state.isOpen && (
         <DocSearchModal
+          aiResultOpen={aiResultOpen.value}
           indexName={props.indexName}
           apiKey={props.apiKey}
           appId={props.appId}

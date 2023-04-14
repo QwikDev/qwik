@@ -394,6 +394,8 @@ code .word {
 
   position: relative;
   overflow: hidden;
+
+  margin: 80px;
 }
 
 .indeterminate-progress-bar__progress {

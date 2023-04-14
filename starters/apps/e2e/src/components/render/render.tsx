@@ -82,6 +82,8 @@ export const RenderChildren = component$(() => {
       <Issue3542 atom={{ code: 1 }} />
       <Issue3643 />
       <IssueChildrenSpread />
+      <Issue3731 />
+      <Issue3702 />
     </>
   );
 });
@@ -656,6 +658,59 @@ export const IssueChildrenSpread = component$(() => {
       <div id="issue-children-spread-result">
         <Type {...signal.value}></Type>
       </div>
+    </div>
+  );
+});
+
+const states = [
+  ['think', 'containers', 'hydrating', 'usestylesscoped', 'slots'],
+  ['think', 'containers', 'cleanup', 'usevisibletask', 'hydrating'],
+  ['cleanup', 'usevisibletask', 'think', 'containers', 'slots'],
+];
+
+export const Issue3731 = component$(() => {
+  const state = useSignal(0);
+  const signal = useSignal(states[0]);
+  return (
+    <div>
+      <button
+        id="issue-3731-button"
+        onClick$={() => {
+          state.value++;
+          if (state.value > states.length - 1) {
+            state.value = 0;
+          }
+          signal.value = states[state.value];
+        }}
+      >
+        Change
+      </button>
+      <ul>
+        {signal.value.map((item) => {
+          return <Issue3731Child key={item} value={item}></Issue3731Child>;
+        })}
+      </ul>
+    </div>
+  );
+});
+
+export const Issue3731Child = component$((props: any) => {
+  return <div class="issue-3731-result">{props.value}</div>;
+});
+
+export const Issue3702 = component$(({ description = '', other }: any) => {
+  const counter = useSignal(0);
+  return (
+    <div
+      id="issue-3702-result"
+      data-title={
+        description && 'description' in other ? `Hello ${counter.value}` : `Bye ${counter.value}`
+      }
+    >
+      Issue3702
+      <button id="issue-3702-button" onClick$={() => counter.value++}>
+        Increment
+      </button>
     </div>
   );
 });

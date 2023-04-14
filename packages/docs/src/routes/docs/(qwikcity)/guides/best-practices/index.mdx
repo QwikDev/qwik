@@ -9,17 +9,16 @@ contributors:
   - wfairclough
   - cunzaizhuyi
   - reemardelarosa
+  - un33k
 ---
 
-# Avoid footguns
+# Best Practices
 
-## Don't register events eagerly with `useVisibleTask$()`
+## Avoid registering events eagerly with `useVisibleTask$()`
 
 > ⚠ Use `useVisibleTask$()` with caution ⚠
 
-Instead => `useOn()` methods
-
-**Best Practice**:
+**`Suboptimal Implantation`**:
 
 ```tsx
 useVisibleTask$(() => {
@@ -35,16 +34,16 @@ useVisibleTask$(() => {
 });
 ```
 
-**Why is above a problem**:
-This forces more javascript to eagerly load, rather than be surgically reactive to user events. More upfront javascript => slower app performance.
+**`Issue`**:
+The above implementation causes more JavaScript to load eagerly, rather than responding precisely to user events. Increased upfront JavaScript loading results in slower app performance.
 
-It also requires you, the developer, to stay more aware of the server/client relationship (there's a reason you reached for `use > Visible < Task` after all).
+Additionally, it demands that developers maintain a higher awareness of the server/client relationship, despite the initial preference for `use > Visible < Task`.
 
-While that's sometimes necessary, it should be the job of the framework to keep you from having to worry about it as much as possible.
+Ideally, the framework should minimize the need for developers to focus on this aspect.
 
-Not to mention it requires the extra effort for you to manually clean up the listener.
+Moreover, the implementation necessitates manual cleanup of the listener, adding extra effort for developers.
 
-**Do this instead**:
+**`Optimal Implantation`**:
 
 ```tsx
 useOnDocument(
@@ -57,20 +56,24 @@ useOnDocument(
 );
 ```
 
-> NOTE: Similar hooks exist for window and individual components.
-> `window` -> `useOnWindow` , component -> `useOn`
->
+When in doubt, instead of `useVisibleTask$()` use:
+- `useOn()`: listen to events on the root element of `the current component`.
+- `useOnWindow()`: listen to events on the `window` object.
+- `useOnDocument()`: listen to events on the `document` object.
+
+> More:
+-
 > - [useOn / useOnDocument / useOnWindow docs](/docs/(qwik)/components/events/index.mdx#useon-hooks)
 > - [Example](https://qwik.builder.io/tutorial/hooks/use-on/#example)
 > - [Tutorial](https://qwik.builder.io/tutorial/events/programmatic/)
 
 ---
 
-## Don't rely on `window` to get the location
+## Avoid accessing the location from the `window` object
 
-Instead => `useLocation()`
+⚠ Don't access `window.location` directly ⚠
 
-**Best Practice**:
+**Suboptimal Implantation(s)**:
 
 ```tsx
 useVisibleTask$(()=> {
@@ -78,9 +81,9 @@ useVisibleTask$(()=> {
         //... do the thing
     }
 })
+```
 
-//OR
-
+```tsx
 //(in the root of a component)
 if (typeof window !== "undefined") {
     const queryParams = new URLSearchParams(window.location.search);
@@ -91,15 +94,17 @@ if (typeof window !== "undefined") {
     doTheThing(query);
 }
 ```
+**`Issue`**:
 
-**Why is above a problem**:
-Many, many things you'll do in response to location information can easily be done on the initial render on the server, and will result in pure HTML with no JS overhead.
+Many actions related to location information can be executed during the initial server-side render, resulting in pure HTML without any JavaScript overhead.
 
-If you force that logic to instead run on the client side, it introduces more upfront JS & causes an eager load.
+By forcing this logic to run on the client side, it introduces increased upfront JavaScript and leads to eager loading.
 
-When using the `if typeof window !== "undefined"` pattern you'll soon find it will simply skip that code. It will run one time on the server and skip the code block because window will always be undefined on the server. You're used to code running twice. Qwik doesn't need to! 😎
+Using the if typeof window !== "undefined" pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
 
-**Do this instead**:
+While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
+
+**Optimal Implantation(s)**:
 
 ```tsx
 const location = useLocation();
@@ -107,14 +112,21 @@ const location = useLocation();
 if (location.url.href.includes('foo')) {
   // Do the thing
 }
-//OR
+```
+
+```tsx
+const location = useLocation();
+
 doTheThing(location.url.searchParams);
 ```
 
 ## EXCEPTION
 
-When doing SSG for pure static files, this is a necessary evil. The server won't have current location information when the server generates the files at build time.
+When using SSG for purely static files, it's inevitable to rely on the server without current location information during the build time.
 
-But be mindful! If the information you need (e.g., query parameters) won't be necessary until some sort of user event, include the check in your event handling code instead to avoid the eager loading of JS.
+However, exercise caution! If the required information (such as query parameters) isn't needed until a user event occurs, incorporate the check within your event handling code.
+
+This approach helps to prevent eager loading of JavaScript and improves performance.
 
 > See: [useLocation() Docs](/docs/(qwikcity)/api/index.mdx#uselocation)
+

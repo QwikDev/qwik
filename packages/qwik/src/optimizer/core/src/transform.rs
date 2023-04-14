@@ -1203,11 +1203,12 @@ impl<'a> QwikTransform<'a> {
                                     }
                                 } else if !is_fn && key_word.starts_with("bind:") {
                                     let folded = node.value.clone().fold_with(self);
+                                    let prop_name: JsWord = key_word[5..].into();
                                     immutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                         ast::Prop::KeyValue(ast::KeyValueProp {
                                             key: ast::PropName::Str(ast::Str {
                                                 span: DUMMY_SP,
-                                                value: key_word[5..].into(),
+                                                value: prop_name.clone(),
                                                 raw: None,
                                             }),
                                             value: folded.clone(),
@@ -1241,10 +1242,7 @@ impl<'a> QwikTransform<'a> {
                                                     ast::MemberExpr {
                                                         obj: Box::new(ast::Expr::Ident(elm)),
                                                         prop: ast::MemberProp::Ident(
-                                                            ast::Ident::new(
-                                                                "value".into(),
-                                                                DUMMY_SP,
-                                                            ),
+                                                            ast::Ident::new(prop_name, DUMMY_SP),
                                                         ),
                                                         span: DUMMY_SP,
                                                     },

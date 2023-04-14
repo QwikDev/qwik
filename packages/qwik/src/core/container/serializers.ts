@@ -406,6 +406,18 @@ const JSXNodeSerializer: Serializer<JSXNode> = {
   },
 };
 
+const BigIntSerializer: Serializer<bigint> = {
+  prefix: '\u0018',
+  test: (v) => typeof v === 'bigint',
+  serialize: (v) => {
+    return v.toString();
+  },
+  prepare: (data) => {
+    return BigInt(data);
+  },
+  fill: undefined,
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
@@ -423,6 +435,7 @@ const serializers: Serializer<any>[] = [
   URLSearchParamsSerializer, // \u0015
   FormDataSerializer, ///////// \u0016
   JSXNodeSerializer, ////////// \u0017
+  BigIntSerializer, /////////// \u0018
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

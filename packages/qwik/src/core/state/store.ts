@@ -192,8 +192,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
 
     const oldValue = target[prop];
+    target[prop] = unwrappedNewValue;
     if (oldValue !== unwrappedNewValue) {
-      target[prop] = unwrappedNewValue;
       this.$manager$.$notifySubs$(prop);
     }
     return true;

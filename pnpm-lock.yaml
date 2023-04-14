@@ -161,11 +161,11 @@ importers:
         specifier: 0.5.6
         version: 0.5.6
       vite:
-        specifier: 4.2.1
-        version: 4.2.1(@types/node@18.15.9)(terser@5.16.8)
+        specifier: 4.3.0-beta.3
+        version: 4.3.0-beta.3(@types/node@18.15.9)(terser@5.16.8)
       vite-tsconfig-paths:
         specifier: 4.0.8
-        version: 4.0.8(typescript@5.0.3)(vite@4.2.1)
+        version: 4.0.8(typescript@5.0.3)(vite@4.3.0-beta.3)
       watchlist:
         specifier: 0.3.1
         version: 0.3.1
@@ -190,14 +190,17 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.14.0
         version: 2.14.0
+      '@vespaiach/axios-fetch-adapter':
+        specifier: ^0.3.1
+        version: 0.3.1
       openai:
         specifier: ^3.2.1
         version: 3.2.1
+      snarkdown:
+        specifier: ^2.0.0
+        version: 2.0.0
     devDependencies:
       '@algolia/autocomplete-core':
-        specifier: 1.7.4
-        version: 1.7.4
-      '@algolia/autocomplete-shared':
         specifier: 1.7.4
         version: 1.7.4
       '@algolia/client-search':
@@ -207,17 +210,17 @@ importers:
         specifier: 0.7.6
         version: 0.7.6
       '@builder.io/qwik':
-        specifier: 0.100.0
-        version: 0.100.0(undici@5.21.0)
+        specifier: BuilderIO/qwik-build#99b2c3fd6a743caf0ac59f89901cf9f68600e05d
+        version: github.com/BuilderIO/qwik-build/99b2c3fd6a743caf0ac59f89901cf9f68600e05d(undici@5.21.0)
       '@builder.io/qwik-city':
-        specifier: 0.100.0
-        version: 0.100.0(@builder.io/qwik@0.100.0)
+        specifier: BuilderIO/qwik-city-build#1f0f8bfb0b7269815275cac6803f7104a4075872
+        version: github.com/BuilderIO/qwik-city-build/1f0f8bfb0b7269815275cac6803f7104a4075872(@builder.io/qwik@0.101.0)
       '@builder.io/qwik-react':
         specifier: 0.5.0
-        version: 0.5.0(@builder.io/qwik@0.100.0)(@types/react-dom@18.0.11)(@types/react@18.0.28)(react-dom@18.2.0)(react@18.2.0)
+        version: 0.5.0(@builder.io/qwik@0.101.0)(@types/react-dom@18.0.11)(@types/react@18.0.28)(react-dom@18.2.0)(react@18.2.0)
       '@builder.io/sdk-qwik':
         specifier: ^0.2.0
-        version: 0.2.0(@builder.io/qwik@0.100.0)
+        version: 0.2.0(@builder.io/qwik@0.101.0)
       '@docsearch/css':
         specifier: 3.3.3
         version: 3.3.3
@@ -297,8 +300,8 @@ importers:
         specifier: 0.5.6
         version: 0.5.6
       vite:
-        specifier: 4.2.1
-        version: 4.2.1
+        specifier: 4.3.0-beta.3
+        version: 4.3.0-beta.3
       wrangler:
         specifier: ^2.14.0
         version: 2.14.0
@@ -437,8 +440,8 @@ importers:
         specifier: 0.5.6
         version: 0.5.6
       vite:
-        specifier: 4.2.1
-        version: 4.2.1(@types/node@18.15.9)
+        specifier: 4.3.0-beta.3
+        version: 4.3.0-beta.3(@types/node@18.15.9)
       yaml:
         specifier: 2.2.1
         version: 2.2.1
@@ -466,8 +469,8 @@ importers:
         specifier: 5.0.3
         version: 5.0.3
       vite:
-        specifier: 4.2.1
-        version: 4.2.1
+        specifier: 4.3.0-beta.3
+        version: 4.3.0-beta.3
 
 packages:
 
@@ -691,23 +694,7 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-city@0.100.0(@builder.io/qwik@0.100.0):
-    resolution: {integrity: sha512-EEZ8q10vmEjOOe5qQIel+jLcuuFYOjakIIgHt5KOWnY/L0HBw9xzFDkFDcdmPJlrCmHTm3y4T1ZtqKPEFNgO9w==}
-    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
-    peerDependencies:
-      '@builder.io/qwik': '>=0.22.0'
-    dependencies:
-      '@builder.io/qwik': 0.100.0(undici@5.21.0)
-      '@mdx-js/mdx': 2.3.0
-      '@types/mdx': 2.0.3
-      source-map: 0.7.4
-      vfile: 5.3.7
-      zod: 3.21.4
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@builder.io/qwik-react@0.5.0(@builder.io/qwik@0.100.0)(@types/react-dom@18.0.11)(@types/react@18.0.28)(react-dom@18.2.0)(react@18.2.0):
+  /@builder.io/qwik-react@0.5.0(@builder.io/qwik@0.101.0)(@types/react-dom@18.0.11)(@types/react@18.0.28)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-JdJWQWOJGv7ddQqEZwzR8wPh0IoCQZwD9qo75+reiQaLp6eH+Pjsm/kn1LaMQt6u72pCCNjnj5kEn/bnbfnIjQ==}
     engines: {node: '>=16'}
     peerDependencies:
@@ -717,29 +704,19 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': 0.100.0(undici@5.21.0)
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/99b2c3fd6a743caf0ac59f89901cf9f68600e05d(undici@5.21.0)
       '@types/react': 18.0.28
       '@types/react-dom': 18.0.11
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: true
 
-  /@builder.io/qwik@0.100.0(undici@5.21.0):
-    resolution: {integrity: sha512-p2DAHZTkPFVN3fz3I6Ael6pLLdlzf89owPJVAIoQ9vt5jULnDJRf096qGc84Y+gaoqfoFWBYHYVnHOP0fnRjQg==}
-    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
-    hasBin: true
-    peerDependencies:
-      undici: ^5.14.0
-    dependencies:
-      undici: 5.21.0
-    dev: true
-
-  /@builder.io/sdk-qwik@0.2.0(@builder.io/qwik@0.100.0):
+  /@builder.io/sdk-qwik@0.2.0(@builder.io/qwik@0.101.0):
     resolution: {integrity: sha512-v5J87nKLTWdLsrvheA19NSvSRtf2o0kslBI+QXuTXZCawLJAEwJy7rS8A3sU22qGNuCvVWuTXG9aq6dsxY4iHw==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.100.0(undici@5.21.0)
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/99b2c3fd6a743caf0ac59f89901cf9f68600e05d(undici@5.21.0)
     dev: true
 
   /@clack/core@0.3.2:
@@ -2561,10 +2538,6 @@ packages:
     dependencies:
       '@types/unist': 2.0.6
 
-  /@types/mdx@2.0.3:
-    resolution: {integrity: sha512-IgHxcT3RC8LzFLhKwP3gbMPeaK7BM9eBH46OdapPA7yvuIUJ8H6zHZV53J8hGZcTSnt95jANt+rTBNUUc22ACQ==}
-    dev: true
-
   /@types/mdx@2.0.4:
     resolution: {integrity: sha512-qCYrNdpKwN6YO6FVnx+ulfqifKlE3lQGsNhvDaW9Oxzyob/cRLBJWow8GHBBD4NxQ7BVvtsATgLsX0vZAWmtrg==}
 
@@ -2848,6 +2821,12 @@ packages:
       '@typescript-eslint/types': 5.57.1
       eslint-visitor-keys: 3.4.0
     dev: true
+
+  /@vespaiach/axios-fetch-adapter@0.3.1:
+    resolution: {integrity: sha512-+1F52VWXmQHSRFSv4/H0wtnxfvjRMPK5531e880MIjypPdUSX6QZuoDgEVeCE1vjhzDdxCVX7rOqkub7StEUwQ==}
+    peerDependencies:
+      axios: '>=0.26.0'
+    dev: false
 
   /accepts@1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
@@ -7610,14 +7589,6 @@ packages:
       estree-walker: 0.6.1
     dev: true
 
-  /rollup@3.20.0:
-    resolution: {integrity: sha512-YsIfrk80NqUDrxrjWPXUa7PWvAfegZEXHuPsEZg58fGCdjL1I9C1i/NaG+L+27kxxwkrG/QEDEQc8s/ynXWWGQ==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
   /rollup@3.20.2:
     resolution: {integrity: sha512-3zwkBQl7Ai7MFYQE0y1MeQ15+9jsi7XxfrqwTb/9EK8D9C9+//EBR4M+CuA1KODRaNbFez/lWxA5vhEGZp4MUg==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
@@ -7799,6 +7770,10 @@ packages:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
     dev: true
+
+  /snarkdown@2.0.0:
+    resolution: {integrity: sha512-MgL/7k/AZdXCTJiNgrO7chgDqaB9FGM/1Tvlcenenb7div6obaDATzs16JhFyHHBGodHT3B7RzRc5qk8pFhg3A==}
+    dev: false
 
   /snoop@1.0.4:
     resolution: {integrity: sha512-VgTDhcpNDEf63CMPWh/J/kr2mTKDYsonG6Kpd9kXCpoMyUMZoe+3NkkbMKIcu7dUwmX4OeeQQ0m/uQfTjMY8bw==}
@@ -8511,7 +8486,7 @@ packages:
       unist-util-stringify-position: 3.0.3
       vfile-message: 3.1.4
 
-  /vite-tsconfig-paths@4.0.8(typescript@5.0.3)(vite@4.2.1):
+  /vite-tsconfig-paths@4.0.8(typescript@5.0.3)(vite@4.3.0-beta.3):
     resolution: {integrity: sha512-p04zH+Ey+NT78571x0pdX7nVRIJSlmKVvYryFglSWOK3Hc72eDL0+JJfbyQiugaIBApJkaEqbBQvqpsFZOSVGg==}
     peerDependencies:
       vite: '*'
@@ -8522,14 +8497,14 @@ packages:
       debug: 4.3.4
       globrex: 0.1.2
       tsconfck: 2.1.1(typescript@5.0.3)
-      vite: 4.2.1(@types/node@18.15.9)(terser@5.16.8)
+      vite: 4.3.0-beta.3(@types/node@18.15.9)(terser@5.16.8)
     transitivePeerDependencies:
       - supports-color
       - typescript
     dev: true
 
-  /vite@4.2.1:
-    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
+  /vite@4.3.0-beta.3:
+    resolution: {integrity: sha512-fitATqiujzSy82No2+TRXz7s+zngmsggt6RyQOeTx0bxkDWE6Gi6HsckJGPTQWxxJOba8x1pMSKlsQglM90OLA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -8555,14 +8530,13 @@ packages:
     dependencies:
       esbuild: 0.17.12
       postcss: 8.4.21
-      resolve: 1.22.1
-      rollup: 3.20.0
+      rollup: 3.20.2
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
 
-  /vite@4.2.1(@types/node@18.15.9):
-    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
+  /vite@4.3.0-beta.3(@types/node@18.15.9):
+    resolution: {integrity: sha512-fitATqiujzSy82No2+TRXz7s+zngmsggt6RyQOeTx0bxkDWE6Gi6HsckJGPTQWxxJOba8x1pMSKlsQglM90OLA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -8589,14 +8563,13 @@ packages:
       '@types/node': 18.15.9
       esbuild: 0.17.12
       postcss: 8.4.21
-      resolve: 1.22.1
-      rollup: 3.20.0
+      rollup: 3.20.2
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
 
-  /vite@4.2.1(@types/node@18.15.9)(terser@5.16.8):
-    resolution: {integrity: sha512-7MKhqdy0ISo4wnvwtqZkjke6XN4taqQ2TBaTccLIpOKv7Vp2h4Y+NpmWCnGDeSvvn45KxvWgGyb0MkHvY1vgbg==}
+  /vite@4.3.0-beta.3(@types/node@18.15.9)(terser@5.16.8):
+    resolution: {integrity: sha512-fitATqiujzSy82No2+TRXz7s+zngmsggt6RyQOeTx0bxkDWE6Gi6HsckJGPTQWxxJOba8x1pMSKlsQglM90OLA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -8623,8 +8596,7 @@ packages:
       '@types/node': 18.15.9
       esbuild: 0.17.12
       postcss: 8.4.21
-      resolve: 1.22.1
-      rollup: 3.20.0
+      rollup: 3.20.2
       terser: 5.16.8
     optionalDependencies:
       fsevents: 2.3.2
@@ -8925,3 +8897,35 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+  github.com/BuilderIO/qwik-build/99b2c3fd6a743caf0ac59f89901cf9f68600e05d(undici@5.21.0):
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-build/tar.gz/99b2c3fd6a743caf0ac59f89901cf9f68600e05d}
+    id: github.com/BuilderIO/qwik-build/99b2c3fd6a743caf0ac59f89901cf9f68600e05d
+    name: '@builder.io/qwik'
+    version: 0.101.0
+    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
+    hasBin: true
+    peerDependencies:
+      undici: ^5.14.0
+    dependencies:
+      undici: 5.21.0
+    dev: true
+
+  github.com/BuilderIO/qwik-city-build/1f0f8bfb0b7269815275cac6803f7104a4075872(@builder.io/qwik@0.101.0):
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-city-build/tar.gz/1f0f8bfb0b7269815275cac6803f7104a4075872}
+    id: github.com/BuilderIO/qwik-city-build/1f0f8bfb0b7269815275cac6803f7104a4075872
+    name: '@builder.io/qwik-city'
+    version: 0.101.0
+    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
+    peerDependencies:
+      '@builder.io/qwik': '>=0.22.0'
+    dependencies:
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/99b2c3fd6a743caf0ac59f89901cf9f68600e05d(undici@5.21.0)
+      '@mdx-js/mdx': 2.3.0
+      '@types/mdx': 2.0.4
+      source-map: 0.7.4
+      vfile: 5.3.7
+      zod: 3.21.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true

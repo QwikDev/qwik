@@ -1,11 +1,11 @@
 ---
-title: Qwik City Data Overview
+title: Qwik City Request Handling
 contributors:
   - adamdbradley
   - manucorporat
 ---
 
-# Data Overview
+# Request handling
 
 Each `layout.ts` and `index.ts` file inside the `src/routes` directory has the ability to access the current HTTP request, response, and URL. This allows you to retrieve and modify data, and even respond with custom content.
 
@@ -61,10 +61,7 @@ interface Cookie {
 }
 ```
 
-The cookie class is used to get and set cookies in your Qwik City app. It exposes the following methods:
-
 **get**
-
 Takes a string with the cookie name and returns the `CookieValue`, if present and null if not.
 
 ```tsx
@@ -82,11 +79,9 @@ A cookie value is a simple record with three fields:
 3. `number()`: Runs `Number()` on the value and returns the result
 
 **getAll**
-
 Returns an object with all cookies, if any. _This is sometimes required if the names of cookies are unknown and must be parsed through._
 
 **set**
-
 Takes a key and value and creates a header that will be appended to the response. Value can be a `string | number | Record<string, any>`
 
 As a third argument, you can optionally provide a `CookieOptions` record for setting additional fields.
@@ -106,16 +101,11 @@ export interface CookieOptions {
 For more information on these attributes and their values, please refer to [the MDN article on the Set-Cookie header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes).
 
 **delete**
-
 Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browers to remove it.
 
 ```tsx
 cookie.delete('my-cookie');
-```
-
-Equivalent to calling:
-
-```tsx
+// equivalent to
 cookie.set('my-cookie', 'deleted', new Date(0));
 ```
 
@@ -126,10 +116,7 @@ cookie.delete('my-cookie', { domain: 'https://qwik.builder.io', path: '/docs/' }
 ```
 
 **has**
-
 A convenience method which returns true or false based on the presence of the provided key in cookie.
-
-Equivalent to calling:
 
 ```tsx
 !!cookie.get('my-cookie');

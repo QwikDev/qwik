@@ -326,6 +326,7 @@ code .word {
   display: block;
   width: 100%;
   overflow: hidden;
+  color: var(--docsearch-hit-color);
 }
 
 .ai-button > button {
@@ -334,6 +335,7 @@ code .word {
   text-align: left;
   padding-left: 12px;
   padding: 15px;
+  color: inherit;
 }
 
 .ai-li[aria-selected='true'] button {
@@ -342,7 +344,7 @@ code .word {
 }
 
 .qwikgpt-box {
-  background: white;
+  background: var(--docsearch-hit-background);
   padding: 10px;
   margin: 0;
   font-weight: 100;

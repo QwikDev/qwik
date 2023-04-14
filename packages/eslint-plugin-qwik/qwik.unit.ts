@@ -248,11 +248,15 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
 
   export interface Props {
     method$: PropFunction<() => void>;
+    method1$: PropFunction<() => void>;
+    method2$: PropFunction<() => void> | null;
   }
 
-  export const HelloWorld = component$(({method$}: Props) => {
+  export const HelloWorld = component$(({method$, method1$, method2$, method3$}: Props) => {
     return <div
      onKeydown$={method$}
+     onKeydown1$={method1$}
+     onKeydown2$={method2$}
      onClick$={async () => {
       await method$();
     }}></div>;

@@ -10,7 +10,9 @@ contributors:
 
 # `routeAction$()`
 
-Actions allows to handle form submissions in the server side, allowing to perform side effects such as writing to a database, or sending an email. They can also return data to the client, allowing to update the UI accordingly.
+Actions allows to handle form submissions, allowing to perform side effects such as writing to a database, or sending an email.
+
+Actions can also return data back to the client/browser, allowing to update the UI accordingly, i.e. showing a success message after a form submission.
 
 Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@builder.io/qwik-city`.
 
@@ -54,7 +56,7 @@ export default component$(() => {
 
 ## Using actions with `<Form/>`
 
-The best way to trigger an action is by using the `<Form/>` component exported in `@builder.io/qwik-city`.
+The best way to call an action is using the `<Form/>` component exported in `@builder.io/qwik-city`.
 
 ```tsx title="src/routes/index.tsx"
 import { routeAction$, Form } from '@builder.io/qwik-city';
@@ -80,7 +82,9 @@ export default component$(() => {
 });
 ```
 
-Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript. When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
+Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
+
+When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
 
 ## Using actions programatically
 
@@ -118,18 +122,18 @@ export default component$(() => {
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
-## Zod validation
+## Validation and type safety
 
-Qwik comes with built-in support for [Zod](https://zod.dev/) that can be used directly with actions, using the `zod$()` function.
+Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
 
-Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `routeAction$()` function.
+Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
 
 ```tsx {15-18} /firstName/#a /lastName/#b /email/#c title="src/routes/index.tsx"
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
   async (user) => {
-    // `user` is typed { firstName: string, lastName: string }
+    // The "user" is strongly typed: { firstName: string, lastName: string }
     const userID = await db.users.add({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -139,6 +143,7 @@ export const useAddUser = routeAction$(
       userID,
     };
   },
+  // Zod schema is used to validate that the FormData includes "firstName" and "lastName"
   zod$({
     firstName: z.string(),
     lastName: z.string(),

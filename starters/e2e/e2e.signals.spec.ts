@@ -337,6 +337,7 @@ test.describe('signals', () => {
       const text1 = page.locator('#bind-text-1');
       const text2 = page.locator('#bind-text-2');
       const checkbox = page.locator('#bind-checkbox');
+      const checkbox2 = page.locator('#bind-checkbox-2');
 
       await expect(input).toHaveValue('initial');
       await expect(textarea).toHaveValue('initial');
@@ -364,11 +365,25 @@ test.describe('signals', () => {
       await expect(text2).toHaveText('Value: ');
 
       await expect(checkbox).not.toBeChecked();
+      await expect(checkbox2).not.toBeChecked();
       await expect(input).not.toBeDisabled();
       await expect(textarea).not.toBeDisabled();
 
       await checkbox.click();
       await expect(checkbox).toBeChecked();
+      await expect(checkbox2).toBeChecked();
+      await expect(input).toBeDisabled();
+      await expect(textarea).toBeDisabled();
+
+      await checkbox2.click();
+      await expect(checkbox).not.toBeChecked();
+      await expect(checkbox2).not.toBeChecked();
+      await expect(input).not.toBeDisabled();
+      await expect(textarea).not.toBeDisabled();
+
+      await checkbox2.click();
+      await expect(checkbox).toBeChecked();
+      await expect(checkbox2).toBeChecked();
       await expect(input).toBeDisabled();
       await expect(textarea).toBeDisabled();
     });

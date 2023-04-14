@@ -2,7 +2,10 @@
 import { component$, useResource$, useSignal, Resource } from '@builder.io/qwik';
 
 export const ResourceFn = component$(() => {
-  const resource = useResource$(() => {
+  const resource = useResource$(({ track }) => {
+    track(() => {
+      return;
+    });
     return { name: 'resource' };
   });
   const signal = useSignal({ name: 'signal' });

@@ -38,9 +38,9 @@ In Qwik:
 
 ## `useSignal()`
 
-The `useSignal()` hook accepts an `initial value`, creates, and returns a `reactive state`, also known as a `signal`. This signal is an object with a single property, `.value`.
+The `useSignal()` hook takes an initial value and generates a reactive state or signal. The signal is an object that consists of a sole property called `.value`. 
 
-Multiple components can consume the same signal. When any component with access to the signal modifies the `.value` property, all dependent components will automatically update in response to the change.
+The `signal` can be shared with other components which can observe or update it.  When the `.value` property is modified, the signal will notify all components that depend on it.
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {4} /count/

@@ -42,7 +42,6 @@ export const qwikGPT = server$(async function* (query: string) {
     similarity_threshold: 0.79,
   });
 
-
   // Download docs
   const dataCloned = [];
   try {
@@ -155,10 +154,7 @@ export const qwikGPT = server$(async function* (query: string) {
   }
 });
 
-export const rateResponse = server$(async function (
-  query_id: string,
-  rate: number
-) {
+export const rateResponse = server$(async function (query_id: string, rate: number) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
   await supabase.from('search_rate').insert({
     query_id: query_id,

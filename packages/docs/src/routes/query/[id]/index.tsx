@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const approveId = server$(async function (id: string, approved: boolean) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
-  await supabase.from('search_queries').update({approved}).filter('id', 'eq', id);
+  await supabase.from('search_queries').update({ approved }).filter('id', 'eq', id);
 });
 
 export const useQueryData = routeLoader$(async (ev) => {
@@ -65,17 +65,17 @@ export default component$(() => {
       </div>
 
       <div>
+        <div>Currently {queryData.approved ? 'APPROVED' : 'NOT APPROVED'}</div>
         <div>
-          Currently {queryData.approved ? 'APPROVED' : 'NOT APPROVED'}
-        </div>
-        <div>
-          <button class="block border p-5 " onClick$={async () => {
-            await approveId(queryData.id, !queryData.approved);
-            location.reload();
-          }}>
+          <button
+            class="block border p-5 "
+            onClick$={async () => {
+              await approveId(queryData.id, !queryData.approved);
+              location.reload();
+            }}
+          >
             {!queryData.approved ? 'SET APPROVED' : 'UNAPPROVE'}
           </button>
-
         </div>
       </div>
       <button>Set approved</button>

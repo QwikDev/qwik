@@ -1,20 +1,16 @@
 import {
-  component$,
   Slot,
+  component$,
   useContext,
   useSignal,
   useStore,
-  type PropFunction,
-  useTask$,
   useVisibleTask$,
 } from '@builder.io/qwik';
+import { QwikGPT } from '../qwik-gpt';
 import { SearchContext } from './context';
 import { AiResultOpenContext, type DocSearchState } from './doc-search';
 import { Snippet } from './snippet';
 import type { InternalDocSearchHit } from './types';
-import { QwikGPT } from '../qwik-gpt';
-import useTask from '../../routes/demo/tasks/use-task';
-import track from '../../routes/demo/tasks/track';
 
 export const Result = component$(
   ({ state, item }: { state: DocSearchState; item: InternalDocSearchHit }) => {

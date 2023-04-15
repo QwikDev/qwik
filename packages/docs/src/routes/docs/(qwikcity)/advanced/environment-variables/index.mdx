@@ -1,4 +1,78 @@
 ---
+title: Qwik City - Environment variables
 contributors:
   - manucorporat
 ---
+
+# Environment variables
+
+Qwik apps can read environment variables in two main ways: **build-time variables** and **server-side variables**.
+
+> `process.env` is a Node.js only API, and should be avoided at all costs.
+
+## Build-time variables
+
+Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode.html). They are defined in `.env` files and are available **in the browser and in the server-side code**.
+
+Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
+
+Build-time variables are prefixed by default with `VITE_` and can be accessed with with `import.meta.env.VITE_`.
+
+```tsx title=".env" /VITE_API_URL/#a
+VITE_API_URL=https://api.example.com
+```
+
+```tsx {4} /VITE_API_URL/#a title="src/routes/index.tsx"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <div>VITE_API_URL: {import.meta.env.VITE_API_URL}</div>
+})
+```
+
+> `import.meta.url.VITE_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
+
+## Server-side variables
+
+Server-side variables are fundamentally runtime variables that are only available in the server-side code.
+
+They are not known at build-time and are not available in the browser, so they can be considered as **private**.
+
+Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost, `onRequest, etc.
+
+```tsx /DB_PRIVATE_KEY/ title="src/routes/index.tsx"
+import { routeLoader$, routeAction$, server$ } from '@builder.io/qwik-city';
+
+export const onGet = (requestEvent: RequestEvent) => {
+  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+};
+
+export const onPost = (requestEvent: RequestEvent) => {
+  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+};
+
+export const useAction = routeAction$((_, requestEvent) => {
+  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+});
+
+export const useLoader = routeLoader$((requestEvent) => {
+  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+});
+
+export const serverFunction = server$(function() {
+  // `this` is the `RequestEvent` object
+  console.log(this.get('DB_PRIVATE_KEY'))
+});
+```
+
+### Defining server-side variables
+
+During development server-side variables can be defined in the `.env.local` file, this file is ignored by git by default, so it is safe to put sensitive information in it.
+
+```env title=".env.local"
+DB_PRIVATE_KEY=123456789
+```
+
+> Make sure you never commit `.env.local` files to git.
+
+During production, setting server-side variables is very platform specific, but in general. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform documentation for more information.

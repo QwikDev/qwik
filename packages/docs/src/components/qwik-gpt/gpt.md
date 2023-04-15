@@ -1,12 +1,11 @@
 ## Qwik Components
 
-[Qwik](https://qwik.builder.io/) components are very similar to React components, they are functions that return JSX, but there are some main differences are:
+[Qwik](https://qwik.builder.io/) components are very similar to React components, they are functions that return JSX, but there are some main differences:
 
 - Non of the React APIs are available, instead Qwik provides a set of hooks and components that are designed to work with Qwik.
 - Components are always declared with the `component$` function.
 - Components can use the `useSignal` hook to create reactive state.
 - Event handlers are declared with the `$` suffix.
-- For `<input>`, the `onChange` event is called `onInput$` in Qwik.
 - JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
 - Content projection is done by the `<Slot/>` component. Slots can be named, and can be projected into using the `q:slot` attribute.
 
@@ -26,7 +25,7 @@ interface MyComponentProps {
 export const MyComponent = component$((props: MyComponentProps) => {
   // Components use the `useSignal` hook to create reactive state.
   const seconds = useSignal(0); // { value: 0 }
-  const count = useSignal(0);
+  const count = useSignal(0); // Signal<number>
 
   useVisibleTask$(async (taskCtx) => {
     // `useVisibleTask$` runs only in the browser AFTER the component is first mounted in the DOM.
@@ -93,10 +92,22 @@ To link to other routes, you can use the `Link` component, it is like `<a>` but 
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 import { component$ } from '@builder.io/qwik';
-import { useLocation, Link } from '@builder.io/qwik-city';
+import { routeLoader$, useLocation, Link } from '@builder.io/qwik-city';
+
+export const useUserData = routeLoader$(async (requestEvent) => {
+  const { userID } = requestEvent.params;
+  const db = await createDB(requestEvent.env.get('DB_KEY'));
+  const user = await db.from('users').filter('id', userID);
+  return {
+    name: user.name,
+    email: user.email,
+  }
+});
 
 export default component$(() => {
   const loc = useLocation();
+  const userData = useUserData(); // Signal<{name, email}>
+
   return (
     <>
       <nav>
@@ -105,6 +116,8 @@ export default component$(() => {
       </nav>
       <main>
         <h1>User: {loc.params.userID}</h1>
+        <div>Name: {userData.value.name}</div>
+        <div>Email: {userData.value.email}</div>
         <div>Current URL: {loc.url.href}</div>
       </main>
     </>

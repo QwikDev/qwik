@@ -38,7 +38,7 @@ export const qwikGPT = server$(async function* (query: string) {
   const docs = await supabase.rpc('match_docs_7', {
     query_text: query,
     query_embedding: embeddings,
-    match_count: 5,
+    match_count: 6,
     similarity_threshold: 0.79,
   });
 
@@ -46,7 +46,7 @@ export const qwikGPT = server$(async function* (query: string) {
   try {
     const docsStr = await resolveContext(docs.data);
     let model = 'gpt-4';
-    if (docsStr.length < 3500 * 3.5) {
+    if (docsStr.length < 3500 * 3 && Math.random() < 0.5) {
       model = 'gpt-3.5-turbo';
     }
     const insert = supabase
@@ -220,7 +220,7 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
         for (let j = i + 1; j < top_header; j++) {
           if (lines[j].startsWith('#')) {
             ranges.push([i, j]);
-            break;
+            return;
           }
         }
       }

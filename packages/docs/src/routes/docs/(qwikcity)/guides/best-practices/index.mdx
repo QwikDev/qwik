@@ -14,13 +14,48 @@ contributors:
 
 # Best Practices
 
-## Avoid registering events eagerly with `useVisibleTask$()`
+## Inline operations in templates
 
-> ⚠ Use `useVisibleTask$()` with caution ⚠
+Qwik optimizer can better optimize the reactivity of the application if the operations are inlined in the template.
 
-**`Suboptimal Implementation`**:
+```tsx title="Suboptimal implementation"
+// Don't do this!
+export default component$(() => {
+  const signal = useSignal(0);
+  const isBiggerThanZero = signal > 0 ? 'Bigger than zero' : 'Smaller than zero';
+  return (
+    <div>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+      <div>{isBiggerThanZero}</div>
+    </div>
+  );
+});
+```
 
-```tsx
+The above implementation will cause the whole template to be re-rendered when the signal changes. This is because the `isBiggerThanZero` is not inlined in the template.
+
+```tsx title="Optimal Implementation"
+export default component$(() => {
+  const signal = useSignal(0);
+  return (
+    <div>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+      <div>{signal > 0 ? 'Bigger than zero' : 'Smaller than zero'}</div>
+    </div>
+  );
+});
+```
+
+## Avoid registering DOM events in `useVisibleTask$()`
+
+Qwik allows to register event listeners in a declarative way, using the `useOn()` or using JSX.
+
+When using `useVisibleTask` to programatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
+
+```tsx title="Suboptimal implementation"
+// Don't do this!
 useVisibleTask$(() => {
   const listener = (event) => {
     const mouseEvent = event as MouseEvent;
@@ -34,18 +69,11 @@ useVisibleTask$(() => {
 });
 ```
 
-**`Issue`**:
 The above implementation causes more JavaScript to load eagerly, rather than responding precisely to user events. Increased upfront JavaScript loading results in slower app performance.
 
-Additionally, it demands that developers maintain a higher awareness of the server/client relationship, despite the initial preference for `use > Visible < Task`.
+Instead, use the `useOnDocument()` hook to register events on the `document` object, this way Qwik will not execute any JS until the event is triggered.
 
-Ideally, the framework should minimize the need for developers to focus on this aspect.
-
-Moreover, the implementation necessitates manual cleanup of the listener, adding extra effort for developers.
-
-**`Optimal Implementation`**:
-
-```tsx
+```tsx title="Optimal Implementation"
 useOnDocument(
   'mousemove',
   $((event) => {
@@ -61,30 +89,19 @@ When in doubt, instead of `useVisibleTask$()` use:
 - `useOnWindow()`: listen to events on the `window` object.
 - `useOnDocument()`: listen to events on the `document` object.
 
-> More:
--
-> - [useOn / useOnDocument / useOnWindow docs](/docs/(qwik)/components/events/index.mdx#useon-hooks)
-> - [Example](https://qwik.builder.io/tutorial/hooks/use-on/#example)
-> - [Tutorial](https://qwik.builder.io/tutorial/events/programmatic/)
-
----
 
 ## Avoid accessing the location from the `window` object
 
-⚠ Don't access `window.location` directly ⚠
+Don't access `window.location` directly, use `useLocation()` hook instead.
 
-**Suboptimal Implementation(s)**:
-
-```tsx
+```tsx title="Suboptimal implementation"
+// Don't do this!
 useVisibleTask$(()=> {
     if (window.location.href).includes('foo') {
         //... do the thing
     }
 })
-```
-
-```tsx
-//(in the root of a component)
+// or
 if (typeof window !== "undefined") {
     const queryParams = new URLSearchParams(window.location.search);
     const query: Record<string, string> = {};
@@ -94,7 +111,6 @@ if (typeof window !== "undefined") {
     doTheThing(query);
 }
 ```
-**`Issue`**:
 
 Many actions related to location information can be executed during the initial server-side render, resulting in pure HTML without any JavaScript overhead.
 
@@ -104,23 +120,18 @@ Using the if typeof window !== "undefined" pattern may cause the code to be skip
 
 While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
 
-**Optimal Implementation(s)**:
-
-```tsx
+```tsx title="Optimal Implementation"
+// Do this!
 const location = useLocation();
 
 if (location.url.href.includes('foo')) {
   // Do the thing
 }
-```
-
-```tsx
-const location = useLocation();
 
 doTheThing(location.url.searchParams);
 ```
 
-## EXCEPTION
+### Exception
 
 When using SSG for purely static files, it's inevitable to rely on the server without current location information during the build time.
 

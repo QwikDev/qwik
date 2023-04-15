@@ -20,7 +20,7 @@ Actions can be declared using the `routeAction$()` or `globalAction$()` exported
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$(async (data) => {
+export const useAddUser = routeAction$(async (data, requestEvent) => {
   // This will only run on the server when the user submits the form (or when the action is called programatically)
   const userID = await db.users.add({
     firstName: data.firstName,
@@ -172,6 +172,25 @@ export default component$(() => {
 When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
+
+## HTTP request and response
+
+`routeAction$` and `globalAction$` have access to the `RequestEvent` object which includes information about the current HTTP request and response.
+
+This allows actions to access the request headers, cookies, url and environment variables within the `routeAction$` function.
+
+```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
+import { routeAction$ } from '@builder.io/qwik-city';
+
+// The second argument of the action is the `RequestEvent` object
+export const useProductRecommendations = routeAction$(async (_data, requestEvent) => {
+  console.log('Request headers:', requestEvent.headers);
+  console.log('Request cookies:', requestEvent.cookie);
+  console.log('Request url:', requestEvent.url);
+  console.log('Request params:', requestEvent.params);
+  console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR')));
+});
+```
 
 ## Action Failures
 

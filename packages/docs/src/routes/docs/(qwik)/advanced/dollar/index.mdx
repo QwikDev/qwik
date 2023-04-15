@@ -24,8 +24,6 @@ The `$` suffix is used to signal both the optimizer and the developer when this 
 
 The `$` tells the optimizer which functions to extract into a separate file and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
-### Example
-
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
@@ -35,7 +33,7 @@ export default component$(() => {
 });
 ```
 
-The component above is split thanks to the `$` syntax into:
+The component above is split into multiple chunks thanks to the `$` syntax:
 
 ```js title="app.js"
 import { componentQrl, qrl } from '@builder.io/qwik';
@@ -76,61 +74,44 @@ The optimizer uses `$` as a signal to extract the code. The developer needs to u
 
 The first argument of any function that ends with `$` has certain restrictions:
 
-#### 1. Literals without local identifiers
+#### Literals without local identifiers
 
-**Invalid**
 
 ```tsx
 const bar = 'bar';
+const foo = 'foo';
+
+// Invalid expressions
 foo$({ value: bar }); // it contains a local identifier "bar"
-```
-
-**Invalid**
-
-```tsx
-const bar = 'bar';
 foo$(`Hello, ${bar}`); // it contains a local identifier "bar"
-```
-
-**Invalid**
-
-```tsx
-const count = 0;
 foo$(count + 1); // it contains a local identifier "count"
+foo$(foo); // foo is not exported, so it's not importable
+
+// Valid expressions
+foo$(`Hello, bar`); // string literal without local identifiers
+foo$({ value: 'stuff' }); // object literal without local identifiers
+foo$(1 + 3); // expression without local identifiers
 ```
 
-**Valid**
+
+#### Importable identifiers
+
 
 ```tsx
-foo$(`Hello, bar`);
-foo$({ value: 'stuff' });
-foo$(1 + 3);
-```
-
-#### 2. Importable identifiers
-
-**Invalid**
-
-```tsx
+// Invalid
 const foo = 'foo';
 foo$(foo); // foo is not exported, so it's not importable
-```
 
-**Valid**
-
-```tsx
+// Valid
 export const bar = 'bar';
 foo$(bar);
-```
 
-**Valid**
-
-```tsx
+// Valid
 import { bar } from './bar';
 foo$(bar);
 ```
 
-#### 3. Closures
+#### Closures
 
 For closures, the rules are a bit relaxed, and local identifiers can be referenced and captured.
 
@@ -139,14 +120,14 @@ For closures, the rules are a bit relaxed, and local identifiers can be referenc
 > 1. a `const` and
 > 2. the value must be serializable.
 
-##### 3.1. Captured variables must be declared as a `const`.
+##### Captured variables must be declared as a `const`.
 
 **Invalid**
 
 ```tsx
 component$(() => {
   let foo = 'value'; // variable is not a const
-  return <div onClick$={() => console.log(foo)}>
+  return <div onClick$={() => console.log(foo)}/>
 });
 ```
 
@@ -155,57 +136,46 @@ component$(() => {
 ```tsx
 component$(() => {
   const foo = 'value';
-  return <div onClick$={() => console.log(foo)}>
+  return <div onClick$={() => console.log(foo)}/>
 });
 ```
 
-##### 3.2. Local captured variables must be serializable
-
-**Invalid**
+##### Local captured variables must be serializable
 
 ```tsx
+// Invalid
 component$(() => {
   const foo = new MyCustomClass(12); // MyCustomClass is not serializable
-  return <div onClick$={() => console.log(foo)}>
+  return <div onClick$={() => console.log(foo)}/>
 });
-```
 
-**Valid**
-
-```tsx
+// Valid
 component$(() => {
   const foo = { data: 12 };
-  return <div onClick$={() => console.log(foo)}>
+  return <div onClick$={() => console.log(foo)}/>
 });
 ```
 
-##### 3.3. Module-declared variables can be importable
+##### Module-declared variables can be importable
 
-> **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
-
-**Valid**
+If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 
 ```tsx
-import { foo } from './foo';
+// Invalid
+const foo = new MyCustomClass(12);
 component$(() => {
+  // Foo is declared at the module level, but it's not exported
   console.log(foo);
 });
-```
 
-**Valid**
-
-```tsx
+// Valid
 export const foo = new MyCustomClass(12);
 component$(() => {
   console.log(foo);
 });
-```
 
-**Invalid**
-
-```tsx
-// Foo is declared at the module level, but it's not exported
-const foo = new MyCustomClass(12);
+// Valid
+import { foo } from './foo';
 component$(() => {
   console.log(foo);
 });
@@ -219,7 +189,6 @@ Let's look at the hypothetical problem of acting on a scroll event. You may be t
 function onScroll(fn: () => void) {
   document.addEventListener('scroll', fn);
 }
-
 onScroll(() => alert('scroll'));
 ```
 
@@ -255,8 +224,6 @@ onScroll(qrl('./chunk-a.js', 'onScroll_1'));
 ```tsx title="chunk-a.js"
 export const onScroll_1 = () => alert('scroll');
 ```
-
-Notice:
 
 1. All that the developer had to do was to wrap the function in the `$()` to signal to the Optimizer that the function should be moved to a new file and therefore be lazy-loaded.
 2. The `onScroll` function had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `QRL.resolve()` is rare in Qwik applications as the Qwik framework provides higher-level APIs that rarely expect the developer to work with `QRL.resolve()` directly.
@@ -390,7 +357,3 @@ Notice two changes:
 2. The generated closure `Greeter_onRender` now has a preamble which restores the `salutation` and `props` (`const [salutation, props] = useLexicalScope()`.)
 
 The ability for the Optimizer (and Qwik runtime) to capture lexically scoped constants significantly improves which functions can be extracted into lazy-loaded resources. It is a powerful tool for breaking up complex applications into smaller lazy-loadable chunks.
-
-## Serialization
-
-See [serialization](../../concepts/resumable/index.mdx#serialization) for discussion of what is serializable.

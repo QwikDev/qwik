@@ -196,19 +196,11 @@ export default component$(() => {
 
 ### `useResource$()`
 
-Use `useResource$()` to create a computed value that is derived asynchronously or requires an external state (such as talking to a REST endpoint.) The hook is called when the component is mounted (and when the tracked values change.) The `useResource$` hook is meant to be used with the `<Resource />`. The `<Resource />` component is a convenient way to render the resource state, such as loaded, resolved, or rejected.
+Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data on in the browser.
->
-> Just like all the `use-` hooks, it must be called within the context of [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), and all the [hook rules apply](/docs/(qwik)/components/tasks/index.mdx).
->
-> In many ways `useResource$` is similar to `useTask$` The big differences are:
->
-> - `useResource$` allows you to return a "value".
-> - `useResource$` does not block rendering while the resource is being resolved.
->
-> See [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
+A common use case for `useResource$()` is to fetch data from an external API within the component itself, this means that the execution might happen in the server or the client.
 
+The `useResource$` hook is meant to be used with `<Resource />`. The `<Resource />` component is a convenient way to render different UI based on the state of the resource.
 
 <CodeSandbox src="/src/routes/demo/state/resource/index.tsx" style={{ height: '8em' }}>
 ```tsx {11} /useResource$/
@@ -223,12 +215,14 @@ export default component$(() => {
   const prNumber = useSignal('3576');
 
   const prTitle = useResource$(async ({ track }) => {
-    track(() => prNumber.value); // Requires explicit tracking of inputs
+    // it will run first on mount (server), then re-run whenever prNumber changes (client)
+    // this means this code will run on the server and the browser
+    track(() => prNumber.value);
     const response = await fetch(
       `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
     );
     const data = await response.json();
-    return (data.title || data.message || 'Error') as string;
+    return data.title as string;
   });
 
   return (
@@ -236,19 +230,29 @@ export default component$(() => {
       <input type="number" bind:value={prNumber} />
       <h1>
         PR#{prNumber}:
-        <Resource
-          value={prTitle}
-          onPending={() => <>Loading...</>}
-          onResolved={(title) => <>{title}</>}
-        />
       </h1>
+      <Resource
+        value={prTitle}
+        onPending={() => <p>Loading...</p>}
+        onResolved={(title) => <h2>{title}</h2>}
+      />
     </>
   );
 });
 ```
 </CodeSandbox>
 
-While it is possible to use `useResource$()` without `<Resource>` component, it is provided for convenience. The `<Resource>` component automatically shows a fallback content while the resource is being computed.
+
+
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data on in the browser.
+>
+>
+> In many ways `useResource$` is similar to `useTask$` The big differences are:
+>
+> - `useResource$` allows you to return a "value".
+> - `useResource$` does not block rendering while the resource is being resolved.
+>
+> See [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
 
 > **NOTE**: During SSR the `<Resource>` component will pause rendering until the resource is resolved. This way the SSR will not render with the loading indicator.
 

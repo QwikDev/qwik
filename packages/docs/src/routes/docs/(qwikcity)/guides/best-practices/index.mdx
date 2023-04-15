@@ -18,7 +18,7 @@ contributors:
 
 > ⚠ Use `useVisibleTask$()` with caution ⚠
 
-**`Suboptimal Implantation`**:
+**`Suboptimal Implementation`**:
 
 ```tsx
 useVisibleTask$(() => {
@@ -43,7 +43,7 @@ Ideally, the framework should minimize the need for developers to focus on this 
 
 Moreover, the implementation necessitates manual cleanup of the listener, adding extra effort for developers.
 
-**`Optimal Implantation`**:
+**`Optimal Implementation`**:
 
 ```tsx
 useOnDocument(
@@ -73,7 +73,7 @@ When in doubt, instead of `useVisibleTask$()` use:
 
 ⚠ Don't access `window.location` directly ⚠
 
-**Suboptimal Implantation(s)**:
+**Suboptimal Implementation(s)**:
 
 ```tsx
 useVisibleTask$(()=> {
@@ -104,7 +104,7 @@ Using the if typeof window !== "undefined" pattern may cause the code to be skip
 
 While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
 
-**Optimal Implantation(s)**:
+**Optimal Implementation(s)**:
 
 ```tsx
 const location = useLocation();

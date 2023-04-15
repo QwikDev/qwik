@@ -11,11 +11,11 @@ Sometimes you want to redirect a user from the current page to another page.
 Let's say a user tries to go to a dashboard page but has not logged in yet. We want them to be redirected to a login page so they can be authenticated.
 
 ```tsx title="src/routes/dashboard.tsx"
-import { component$ } from '@builder.io/qwik';
+import type { RequestEvent } from '@builder.io/qwik-city';
 import { checkAuthorization } from '../auth'; // Your authorization code
 import type { DashboardData } from '../types'; // Your types
 
-export const onGet: RequestHandler<any> = async ({ cookie, redirect }) => {
+export const onGet = async ({ cookie, redirect }: RequestEvent) => {
   const isAuthorized = checkAuthorization(cookie.get('cookie'));
 
   if (!isAuthorized) {

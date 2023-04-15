@@ -8,7 +8,7 @@ export const useQueryData = routeLoader$(async (ev) => {
     throw ev.redirect(308, '/');
   }
   const supabase = createClient(ev.env.get('SUPABASE_URL')!, ev.env.get('SUPABASE_KEY')!);
-  const output = await supabase.rpc('list_searches', {
+  const output = await supabase.rpc('list_queries_2', {
     match_count: 100,
   });
 
@@ -34,6 +34,7 @@ export default component$(() => {
               class={{
                 'bg-red-400': result.rate < 0,
                 'bg-green-400': result.rate > 0,
+                'bg-blue-400': result.approved > 0,
               }}
             >
               <td class="border border-slate-500">{i}</td>

@@ -12,11 +12,13 @@ contributors:
   - adamdbradley
 ---
 
-# Cheat sheet
+# React Vs Qwik
 
-### Hello world component
+Several examples comparing React and Qwik.
 
-#### ⚡️ Qwik
+## Hello world component
+
+### ⚡️ Qwik
 
 ```tsx
 export const HelloWorld = component$(() => {
@@ -24,7 +26,7 @@ export const HelloWorld = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function HelloWorld() {
@@ -32,9 +34,9 @@ export function HelloWorld() {
 }
 ```
 
-### Button with a click handler
+## Button with a click handler
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Button = component$(() => {
@@ -42,7 +44,7 @@ export const Button = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Button() {
@@ -50,20 +52,18 @@ export function Button() {
 }
 ```
 
-### Declare local state
+## Declare local state
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const LocalStateExample = component$(() => {
-  const state = useStore({
-    value: 0,
-  });
-  return <div>Value is: {state.value}</div>;
+  const count = useSignal(0);
+  return <div>Value is: {count.value}</div>;
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function UseStateExample() {
@@ -72,9 +72,9 @@ export function UseStateExample() {
 }
 ```
 
-### Create a counter component
+## Create a counter component
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Counter = component$(() => {
@@ -88,7 +88,7 @@ export const Counter = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Counter() {
@@ -102,9 +102,9 @@ export function Counter() {
 }
 ```
 
-### Create a clock that increments every second
+## Create a clock that increments every second
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Clock = component$(() => {
@@ -120,7 +120,7 @@ export const Clock = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Clock() {
@@ -135,9 +135,9 @@ export function Clock() {
 }
 ```
 
-### Perform a fetch request every time the state changes
+## Perform a fetch request every time the state changes
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Fetch = component$(() => {
@@ -160,7 +160,7 @@ export const Fetch = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Fetch() {
@@ -180,9 +180,9 @@ export function Fetch() {
 }
 ```
 
-### Declare some context and consume it
+## Declare some context and consume it
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const MyContext = createContextId('my-context');
@@ -203,7 +203,7 @@ export const Child = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export const MyContext = createContext({ message: 'some example value' });
@@ -222,9 +222,9 @@ export const Child = () => {
 };
 ```
 
-### Create a debounced input
+## Create a debounced input
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const DebouncedInput = component$(() => {
@@ -237,7 +237,7 @@ export const DebouncedInput = component$(() => {
     const debounced = setTimeout(() => {
       debouncedValue.value = inputText.value;
     }, 1000);
-    
+
     cleanup(() => clearTimeout(debounced));
   });
 
@@ -250,7 +250,7 @@ export const DebouncedInput = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export const DebouncedInput = () => {
@@ -274,9 +274,9 @@ export const DebouncedInput = () => {
 };
 ```
 
-### Change background color randomly every button click
+## Change background color randomly every button click
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const DynamicBackground = component$(() => {
@@ -304,7 +304,7 @@ export const DynamicBackground = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function DynamicBackground() {
@@ -331,9 +331,9 @@ export function DynamicBackground() {
 }
 ```
 
-### Create a component that renders a list of the presidents
+## Create a component that renders a list of the presidents
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Presidents = component$(() => {
@@ -373,7 +373,7 @@ export const Presidents = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Presidents() {

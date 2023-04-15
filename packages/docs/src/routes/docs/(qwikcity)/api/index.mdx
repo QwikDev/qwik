@@ -112,7 +112,7 @@ export interface RouteLocation {
 }
 ```
 
-The return value of [`useLocation()`](/docs/(qwikcity)/api/index.mdx#uselocation) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object.
+The return value of [`useLocation()`](/docs/(qwikcity)/api/index.mdx#uselocation) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object, and it's reactive so it can be tracked.
 
 ### Path Route Parameters
 
@@ -124,7 +124,7 @@ Assume you have:
 - User navigates to: `https://example.com/sku/1234`
 - Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
-```tsx title="src/routes/sku/[skuId]/index.tsx"
+```tsx /useLocation/ title="src/routes/sku/[skuId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -157,7 +157,7 @@ The `useNavigate()` function allows to programatically navigate to the next page
 
 This function returns a `goto()` function that can be used to navigate to a new path.
 
-```tsx
+```tsx {12,21} /useNavigate/
 import { component$ } from '@builder.io/qwik';
 import { useNavigate } from '@builder.io/qwik-city';
 
@@ -167,18 +167,18 @@ export default component$(() => {
   return (
     <>
       <button
-        onClick$={() => {
-          // this assigment causes SPA navigation
-          nav('/dashboard');
+        onClick$={async () => {
+          //  SPA navigate to /dashboard
+          await nav('/dashboard');
         }}
       >
         Go to dashboard
       </button>
 
       <button
-        onClick$={() => {
+        onClick$={async() => {
           // call without arguments to refresh the current page
-          nav();
+          await nav();
         }}
       >
         Refresh page

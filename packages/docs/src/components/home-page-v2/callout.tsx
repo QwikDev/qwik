@@ -6,7 +6,7 @@ export const CALLOUTS: Record<string, Callout> = {
   component$: {
     nextToken: '(',
     html: `Declares component in Qwik. The <code>$</code> suffix tells 
-  Qwik Optimizer to pull out the component into a seperate lazy-executed (lazy-loaded) symbol so
+  Qwik Optimizer to pull out the component into a separate lazy-executed (lazy-loaded) symbol so
   that the component only gets download to the client if it is needed for re-rendering.`,
   },
   routeLoader$: {

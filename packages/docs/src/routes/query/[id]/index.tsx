@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, server$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
-import { resolveContext } from '../../../components/qwik-gpt/search';
+import { normalizeLine, resolveContext } from '../../../components/qwik-gpt/search';
 
 export const approveId = server$(async function (id: string, approved: boolean) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
@@ -25,8 +25,8 @@ export const useQueryData = routeLoader$(async (ev) => {
   }
   const entry = output.data[0];
 
-  const all_results = await supabase.rpc('match_docs_8', {
-    query_text: entry.query,
+  const all_results = await supabase.rpc('match_docs_10', {
+    query_text: normalizeLine(entry.query).replaceAll(' ', '|'),
     query_embedding: entry.embedding,
     match_count: 40,
     similarity_threshold: 0.6,
@@ -98,6 +98,7 @@ export default component$(() => {
             >
               <td class="border border-slate-600">{i}</td>
               <td class="border border-slate-600">{(result.similarity as number).toFixed(4)}</td>
+              <td class="border border-slate-600">{(result.fts_rank as number).toFixed(4)}</td>
               <td class="border border-slate-600">
                 {result.file.replace('packages/docs/src/routes/', '')}:{result.line}
               </td>

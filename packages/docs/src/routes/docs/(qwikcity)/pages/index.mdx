@@ -67,9 +67,9 @@ Look into `useDocumentHead()` to read and consume the `DocumentHead` object from
 
 ### Dynamic head
 
-You can also export a function that returns a `DocumentHead` object, allowing to programatically set the title or meta.
+You can also export a function that returns a `DocumentHead` object, allowing to programatically set the `<title>`, `<meta>` or `<link>` tags.
 
-This allows to configure the the `<head>`, including the title using data from `routeLoader$()` or `routeAction$()`.
+This allows to configure the `<head>`, including the title, meta or links using data from `routeLoader$()` or `routeAction$()`.
 
 We can use the `resolveValue` method to get the value of a `routeLoader$()` or `routeAction$()` within the `head` function.
 
@@ -123,7 +123,7 @@ export const head: DocumentHead = {
 ```
 
 ```tsx title="src/routes/layout.tsx"
-export const head: DocumentHead<EndpointData> = ({ head }) => {
+export const head: DocumentHead = ({ head }) => {
   return {
     title: `MyCompany - ${head.title}`,
   };

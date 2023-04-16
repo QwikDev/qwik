@@ -51,11 +51,11 @@ export const onPost = (requestEvent: RequestEvent) => {
   console.log(requestEvent.get('DB_PRIVATE_KEY'))
 };
 
-export const useAction = routeAction$((_, requestEvent) => {
+export const useAction = routeAction$(async (_, requestEvent) => {
   console.log(requestEvent.get('DB_PRIVATE_KEY'))
 });
 
-export const useLoader = routeLoader$((requestEvent) => {
+export const useLoader = routeLoader$(async (requestEvent) => {
   console.log(requestEvent.get('DB_PRIVATE_KEY'))
 });
 

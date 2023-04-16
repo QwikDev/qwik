@@ -51,11 +51,11 @@ export const onPost = (requestEvent: RequestEvent) => {
   console.log(requestEvent.get('DB_PRIVATE_KEY'))
 };
 
-export const useAction = routeAction$((_, requestEvent) => {
+export const useAction = routeAction$(async (_, requestEvent) => {
   console.log(requestEvent.get('DB_PRIVATE_KEY'))
 });
 
-export const useLoader = routeLoader$((requestEvent) => {
+export const useLoader = routeLoader$(async (requestEvent) => {
   console.log(requestEvent.get('DB_PRIVATE_KEY'))
 });
 
@@ -75,4 +75,4 @@ DB_PRIVATE_KEY=123456789
 
 > Make sure you never commit `.env.local` files to git.
 
-During production, setting server-side variables is very platform specific, but in general. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform documentation for more information.
+During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.

@@ -496,7 +496,8 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 export const useUserData = routeLoader$(async (requestContext) => {
   const user = await db.table('users').get(requestContext.params.userID);
   return {
-    user,
+    name: user.name,
+    email: user.email,
   };
 });
 
@@ -506,11 +507,26 @@ export default component$(() => {
   return (
     <main>
       <h1>User data</h1>
-      <div>User name: {userData.value.user.name}</div>
-      <div>User email: {userData.value.user.email}</div>
+      <div>User name: {userData.value.name}</div>
+      <div>User email: {userData.value.email}</div>
     </main>
   );
 });
+
+// Exported `head` function is used to set the document head for the route.
+export const head: DocumentHead = ({resolveValue}) => {
+  // It can use the `resolveValue()` method to resolve the value from `routeLoader$()`.
+  const user = resolveValue(useUserData);
+  return {
+    title: `User: "${user.name}"`,
+    meta: [
+      {
+        name: 'description',
+        content: 'User page',
+      },
+    ],
+  };
+};
 ```
 
 The `routeLoader$()` function takes a function that returns a promise. The promise is resolved on the server, and the resolved value is passed to the `useCustomLoader$()` hook. The `useCustomLoader$()` hook is a custom hook that is created by the `routeLoader$()` function. The `useCustomLoader$()` hook returns a `Signal` that contains the resolved value of the promise returned from the `routeLoader$()` function. The `useCustomLoader$()` hook will re-render the component whenever the route changes, and the `routeLoader$()` function is re-run.

@@ -39,7 +39,7 @@ To get started with Qwik locally, you need the following:
 
 ## Create an app using the CLI
 
-First, create a Qwik application with the Qwik CLI, which generates a blank starter so that you can quickly familiarize yourself with it. 
+First, create a Qwik application with the Qwik CLI, which generates a blank starter so that you can quickly familiarize yourself with it.
 
 Run the Qwik CLI in your shell. Qwik supports NPM, yarn and pnpm. Choose the package manager you prefer and run one of the following commands:
 
@@ -59,12 +59,12 @@ pnpm start
 yarn start
 ```
 
-## Qwik Hello World
+## Qwik Joke App
 
 The Qwik Hello World tutorial guides you through building a joke app with Qwik while covering the most important Qwik concepts. The app displays a random joke from https://icanhazdadjoke.com and features a button to get a new joke on click.
 
 
-## 1. Create A Route
+### 1. Create A Route
 
 Start by serving a page at a particular route. This basic app serves a random dad joke application on the `/joke/` route. This tutorial relies on Qwikcity, Qwik's meta-framework, which uses [directory-based](/docs/routing/) routing. To get started:
 
@@ -88,52 +88,14 @@ export default component$(() => {
 > - Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
 > - For more details about how to author components, see the [Component API](/docs/(qwik)/components/overview/index.mdx) section.
 
-## 2. Loading Data
+### 2. Loading Data
 
-To load data to display to the user, use [route loaders](/docs/route-loader/).
+We will use the external JSON API at https://icanhazdadjoke.com to load random jokes. We will use [route loaders](/docs/route-loader/), to load this data in the server and then render it in the component.
 
 1. Open `src/routes/joke/index.tsx` and add this code:
 
-```tsx {3-8} /routeLoader\$/
-import { routeLoader$ } from '@builder.io/qwik-city';
-
-export const useDadJoke = routeLoader$(async () => {
-  const response = await fetch('https://icanhazdadjoke.com/', {
-    headers: { Accept: 'application/json' },
-  });
-  return response.json();
-});
-```
-
-2. Then add the `useDadJoke()` hook to the `default` component and use the result in the JSX:
-
-```tsx {2,5} /dadJokeSignal/
-export default component$(() => {
-  const dadJokeSignal = useDadJoke();
-  return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
-    </div>
-  );
-});
-```
-
-3. Now on `http://localhost:5173/joke/`, the browser displays a random joke.
-
-Code explanation:
-
-- The function passed to `routeLoader$` is invoked on the server eagerly before any component is rendered and is responsible for loading data.
-- The `routeLoader$` returns a use-hook, `useDadJoke()`, that can be used in the component to retrieve the server data.
-
-> **NOTE**
->
-> - The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if its use-hook is not invoked in any component.
-> - The `routeLoader$` return type is inferred in the component without the need for any additional type information.
-
-For reference, the complete code snippet for this section is as follows:
-
 <CodeSandbox src="/src/routes/demo/getting-started/02-loading-data/index.tsx" style={{ height: '6em' }}>
-```tsx /routeLoader$/ /useDadJoke/
+```tsx /routeLoader$/ /useDadJoke/#a title="src/routes/joke/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
@@ -149,6 +111,7 @@ export const useDadJoke = routeLoader$(async () => {
 });
 
 export default component$(() => {
+  // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   return (
     <div class="section bright">
@@ -159,18 +122,28 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-## 3. Posting Data to the Server
+2. Now on `http://localhost:5173/joke/`, the browser displays a random joke.
+
+Code explanation:
+
+- The function passed to `routeLoader$` is invoked on the server eagerly before any component is rendered and is responsible for loading data.
+- The `routeLoader$` returns a use-hook, `useDadJoke()`, that can be used in the component to retrieve the server data.
+
+> **NOTE**
+>
+> - The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if its use-hook is not invoked in any component.
+> - The `routeLoader$` return type is inferred in the component without the need for any additional type information.
+
+
+### 3. Posting Data to the Server
 
 Previously, we used `routeLoader$` to send data from the server to the client. To post (send) data from the client back to the server, we use [`routeAction$`](/docs/action/) .
 
 NOTE: `routeAction$` is the preferred way to send data to the server because it uses the browser native form API, which works even if JavaScript is disabled.
 
-To declare an action:
+To declare an action, add this code:
 
-1. In `src/routes/joke/index.tsx`, add this code:
-
-
-```tsx /routeAction\$/
+```tsx /routeAction\$/ title="src/routes/joke/index.tsx"
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useJokeVoteAction = routeAction$((props) => {
@@ -181,7 +154,7 @@ export const useJokeVoteAction = routeAction$((props) => {
 
 2. Update the `export default` component to use the `useJokeVoteAction` hook with `<Form>`.
 
-```tsx {3,7-11} /favoriteJokeAction/
+```tsx {3,7-11} /favoriteJokeAction/ title="src/routes/joke/index.tsx"
 export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
@@ -216,7 +189,7 @@ Things to note:
 For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/03-posting-data/index.tsx" style={{ height: '8em' }}>
-```tsx {21,25-29} /favoriteJokeAction/
+```tsx {21,25-29} /favoriteJokeAction/ title="src/routes/joke/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
@@ -252,7 +225,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-## 4. Modifying State
+### 4. Modifying State
 
 Keeping track of the state and updating the UI is core to what applications do. Qwik provides a `useSignal` hook to keep track of the application's state. To learn more, see [state management](/docs/components/state/).
 
@@ -268,9 +241,9 @@ To declare state:
    ```
 3. After the closing `Form` tag, add a button to the component to modify the state.
    ```tsx /isFavoriteSignal/
-   <button 
+   <button
     onClick$={() => {
-      isFavoriteSignal.value = !isFavoriteSignal.value
+      isFavoriteSignal.value = !isFavoriteSignal.value;
     }}>
      {isFavoriteSignal.value ? '❤️' : '🤍'}
    </button>
@@ -324,7 +297,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-## 5. Tasks and Invoking Server Code
+### 5. Tasks and Invoking Server Code
 
 In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
 
@@ -419,7 +392,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-## 6. Styling
+### 6. Styling
 
 Styling is an important part of any application. Qwik provides a way to associate and scope styles with your component.
 
@@ -516,7 +489,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-## 7. Preview
+### 7. Preview
 
 We built a minimal application that gave you an overview of key Qwik concepts and API. The application is running in dev mode, which uses hot-module-reloading (HMR) to continuously update the application while changing the code.
 
@@ -538,7 +511,7 @@ NOTE:
 
 ## Review
 
-Congratulations! You've learned a lot about Qwik! 
+Congratulations! You've learned a lot about Qwik!
 For more on just how much you can achieve with Qwik, we recommend reading the dedicated docs on each of the topics touched on in this tutorial:
 
 - [Project structure](/docs/(qwikcity)/project-structure/index.mdx):

@@ -184,6 +184,60 @@ For the given example, the Qwik components will be rendered in the following ord
 </RootLayout>
 ```
 
+## SPA navigation
+
+Qwik provides the `<Link>` component and the `useNavigate()` hook to refresh and navigate between pages.
+
+The `Link` is usually the recommend way to navigate because it uses the HTML `<a>` tag, which is the most accessible way to navigate between pages.
+
+However, if you need to navigate programmatically, you can use the `useNavigate()` hook.
+
+```tsx
+import { component$, Link, useNavigate } from '@builder.io/qwik';
+
+export default component$(() => {
+  const nav = useNavigate();
+  return (
+    <div>
+      <Link href="/about">About (prefered)</Link>
+      <button onClick={() => nav('/about')}>About</button>
+    </div>
+  );
+});
+```
+
+### Refreshing
+
+You can use the `Link` with the `reload` prop to refresh the page.
+
+You can also  call the `nav()` function from the `useNavigate()` hook, without any arguments.
+
+```tsx
+import { component$, Link, useNavigate } from '@builder.io/qwik';
+
+export const useServerTime = routeLoader$(() => {
+  // This will re execute in the server when the page refreshes
+  return Date.now();
+});
+
+export default component$(() => {
+  const nav = useNavigate();
+  const serverTime = useServerTime();
+
+  return (
+    <div>
+      <Link reload>Refresh (better accesibility)</Link>
+      <button onClick={() => nav()}>Refresh</button>
+      <p>Server time: {serverTime.value}</p>
+    </div>
+  );
+});
+```
+
+> When the page refreshes, all the matching `routeLoader$` and server handlers (`onRequest`) will reexecute in the server and the UI will re-render accordingly.
+
+> While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.
+
 ## Request Event
 
 Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed in a `RequestEvent` object as the first argument to the handler. The `RequestEvent` object contains utility functions and properties to get and set values to the server's request and response. This object contains the following properties:

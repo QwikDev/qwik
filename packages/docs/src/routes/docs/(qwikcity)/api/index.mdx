@@ -104,10 +104,21 @@ export const RouterHead = component$(() => {
 
 Use the [`useLocation()`](/docs/(qwikcity)/api/index.mdx#uselocation) function to retrieve a `RouteLocation` object for the current location.
 
+`useLocation()` allows developers to know the current URL, params as well as if the app is currently navigating, which is useful for showing a loading indicator.
+
 ```tsx
 export interface RouteLocation {
-  readonly params: PathParams; // Readonly<Record<string, string>>
+  /**
+   * Route params extracted from the URL.
+   */
+  readonly params: Record<string, string>;
+  /**
+   * The current URL.
+   */
   readonly url: URL;
+  /**
+   * True if the app is currently navigating.
+   */
   readonly isNavigating: boolean;
 }
 ```
@@ -134,6 +145,7 @@ export default component$(() => {
   return (
     <>
       <h1>SKU</h1>
+      {loc.isNavigating && <p>Loading...</p>}
       <p>pathname: {loc.url.pathname}</p>
       <p>skuId: {loc.params.skuId}</p>
     </>
@@ -155,7 +167,9 @@ The above code would generate:
 
 The `useNavigate()` function allows to programatically navigate to the next page without involving a user click or causing a full-page reload. This is the API used by the `<Link>` component internally to support SPA navigation.
 
-This function returns a `goto()` function that can be used to navigate to a new path.
+This function returns a `nav()` function that can be used to navigate to a new path.
+
+Also, `useNavigate` can be used to SPA refresh the current page, by calling the `nav()` function without arguments.
 
 ```tsx {12,21} /useNavigate/
 import { component$ } from '@builder.io/qwik';
@@ -168,7 +182,7 @@ export default component$(() => {
     <>
       <button
         onClick$={async () => {
-          //  SPA navigate to /dashboard
+          // SPA navigate to /dashboard
           await nav('/dashboard');
         }}
       >
@@ -177,7 +191,7 @@ export default component$(() => {
 
       <button
         onClick$={async() => {
-          // call without arguments to refresh the current page
+          // refresh page: call without arguments
           await nav();
         }}
       >
@@ -200,7 +214,7 @@ The `routeLoader$()` function is used to declare a new Server Loader in the give
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useGetTime = routeLoader$(() => {
+export const useGetTime = routeLoader$(async () => {
   return { time: new Date() }
 });
 export default component$(() => {
@@ -257,12 +271,12 @@ The `Form` component is a wrapper around the native `<form>` element, and it's d
 
 Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled, in addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like a SPA (Single Page Navigation) instead of a full page reload.
 
-```tsx
+```tsx title="src/routes/login/index.tsx"
 import { component$ } from '@builder.io/qwik';
-import { Form, action$ } from '@builder.io/qwik-city';
+import { Form, routeAction$ } from '@builder.io/qwik-city';
 
 // this action will be called when the form is submitted
-export const useLoginAction = action$((data, { cookies, redirect }) => {
+export const useLoginAction = routeAction$((data, { cookies, redirect }) => {
   if (validate(data.username, data.password)) {
     cookies.set('auth', getAuthToken(data.username));
     throw redirect(302, '/dashboard');

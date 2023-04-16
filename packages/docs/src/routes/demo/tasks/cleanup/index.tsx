@@ -12,9 +12,9 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <label>
         Enter text: <input bind:value={text} />
-      </p>
+      </label>
       <p>Debounced text: {debounceText}</p>
     </section>
   );

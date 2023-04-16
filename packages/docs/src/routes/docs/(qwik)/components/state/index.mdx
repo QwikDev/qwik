@@ -297,7 +297,9 @@ export default component$(() => {
 
   return (
     <>
-      Query: <input bind:value={query} />
+      <label>
+        Query: <input bind:value={query} />
+      </label>
       <button>search</button>
       <Resource
         value={jokes}
@@ -373,12 +375,16 @@ export default component$(() => {
 
   return (
     <section>
-      <p>Enter your name, and I'll guess your age!</p>
-      <input
-        onInput$={(e: Event) =>
-          (name.value = (e.target as HTMLInputElement).value)
-        }
-      />
+      <p>
+        <label>
+          Enter your name, and I'll guess your age!
+          <input
+            onInput$={(e: Event) =>
+              (name.value = (e.target as HTMLInputElement).value)
+            }
+          />
+        </label>
+      </p>
       <Resource
         value={ageResource}
         onPending={() => <p>Loading...</p>}

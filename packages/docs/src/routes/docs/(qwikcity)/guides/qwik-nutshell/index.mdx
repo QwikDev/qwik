@@ -552,10 +552,10 @@ export default component$(() => {
       <h1>User data</h1>
       <Form action={userData}>
         <p>
-          User name: <input name="name" defaultValue={userData.formData?.get('name')} />
+          <label>User name: <input name="name" defaultValue={userData.formData?.get('name')} /></label>
         </p>
         <p>
-          User email: <input name="email" defaultValue={userData.formData?.get('email')} />
+          <label>User email: <input name="email" defaultValue={userData.formData?.get('email')} /></label>
         </p>
         <button type="submit">Update</button>
       </form>

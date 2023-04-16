@@ -18,10 +18,12 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <label>
         Enter text: <input bind:value={text} />
+      </label>
+      <label>
         Is uppercase? <input type="checkbox" bind:checked={isUppercase} />
-      </p>
+      </label>
       <p>Delay text: {delayText}</p>
     </section>
   );

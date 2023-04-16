@@ -16,9 +16,9 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <label>
         Enter text: <input bind:value={text} />
-      </p>
+      </label>
       <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
         Text: {text}
       </p>

@@ -28,8 +28,8 @@ export default component$(() => {
 
   return (
     <section>
-      First name: <input bind:value={name} />
-      Last name: <input bind:value={name} />
+      <label>First name: <input bind:value={name} /></label>
+      <label>Last name: <input bind:value={name} /></label>
       
       <button
         onClick$={async () => {

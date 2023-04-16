@@ -161,9 +161,9 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <label>
         Enter text: <input bind:value={text} />
-      </p>
+      </label>
       <p>Delayed text: {delayText}</p>
     </section>
   );
@@ -215,10 +215,12 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <label>
         Enter text: <input bind:value={text} />
+      </label>
+      <label>
         Is uppercase? <input type="checkbox" bind:checked={isUppercase} />
-      </p>
+      </label>
       <p>Delay text: {delayText}</p>
     </section>
   );
@@ -258,9 +260,9 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <label>
         Enter text: <input bind:value={text} />
-      </p>
+      </label>
       <p>Debounced text: {debounceText}</p>
     </section>
   );
@@ -302,9 +304,9 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 > 
 >   return (
 >     <section>
->       <p>
+>       <label>
 >         Enter text: <input bind:value={text} />
->       </p>
+>       </label>
 >       <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
 >         Text: {text}
 >       </p>

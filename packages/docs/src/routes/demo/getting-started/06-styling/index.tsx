@@ -24,7 +24,7 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 

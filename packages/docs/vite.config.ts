@@ -15,7 +15,6 @@ export default defineConfig(() => {
       noExternal: [
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
-        '@algolia/autocomplete-shared',
         'algoliasearch/lite',
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',

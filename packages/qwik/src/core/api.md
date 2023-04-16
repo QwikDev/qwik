@@ -735,13 +735,13 @@ export interface ResourceCtx<T> {
     // (undocumented)
     cleanup(callback: () => void): void;
     // (undocumented)
-    previous: T | undefined;
+    readonly previous: T | undefined;
     // (undocumented)
-    track: Tracker;
+    readonly track: Tracker;
 }
 
 // @public (undocumented)
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
 
 // @public
 export interface ResourceOptions {

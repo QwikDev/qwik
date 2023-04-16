@@ -1,14 +1,10 @@
-import { getNextActiveItemId } from '@algolia/autocomplete-core/dist/esm/utils';
-import { getItemsCount } from '@algolia/autocomplete-shared';
 import { component$, useVisibleTask$, useContext, type Signal } from '@builder.io/qwik';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchState } from './doc-search';
 import { LoadingIcon } from './icons/LoadingIcon';
-import { ResetIcon } from './icons/ResetIcon';
 import { SearchIcon } from './icons/SearchIcon';
-import { getActiveItem } from './utils/getActiveItem';
 
 export type SearchBoxTranslations = Partial<{
   resetButtonTitle: string;
@@ -22,17 +18,9 @@ interface SearchBoxProps {
   autoFocus: boolean;
   inputRef: Signal<HTMLInputElement | null>;
   onClose$: () => void;
-  translations?: SearchBoxTranslations;
 }
 
 export const SearchBox = component$((props: SearchBoxProps) => {
-  const {
-    resetButtonTitle = 'Clear the query',
-    resetButtonAriaLabel = 'Clear the query',
-    cancelButtonText = 'Cancel',
-    cancelButtonAriaLabel = 'Cancel',
-  } = props.translations ?? {};
-
   useVisibleTask$(() => {
     if (props.autoFocus) {
       props.inputRef.value?.focus();
@@ -75,13 +63,10 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           enterKeyHint={props.state.activeItemId ? 'go' : 'search'}
           spellcheck={false}
           autoFocus={props.autoFocus}
-          placeholder="Search docs"
+          placeholder="Search docs or ask a question"
           type="search"
           ref={props.inputRef as any}
           onInput$={(event: Event) => {
-            context.onInput?.(event);
-          }}
-          onChange$={(event) => {
             context.onInput?.(event);
           }}
           // TODO: preventdefault:keydown by key's condition
@@ -112,31 +97,13 @@ export const SearchBox = component$((props: SearchBoxProps) => {
             }
             if (event.key === 'Escape') {
               props.state.isOpen = false;
-              // TODO: cancel pending request
             }
             if (event.key === 'Enter') {
-              const activeItem = getActiveItem(props.state as any);
-              if (!activeItem) {
-                return;
-              }
-              const { itemUrl, item } = activeItem;
-              if (event.metaKey || event.ctrlKey) {
-                if (itemUrl !== undefined) {
-                  context.onSelectItem({ item, event });
-                  const windowReference = window.open(itemUrl, '_blank', 'noopener');
-                  windowReference?.focus();
-                }
-              } else if (event.shiftKey) {
-                if (itemUrl !== undefined) {
-                  context.onSelectItem({ item, event });
-                  window.open(itemUrl, '_blank', 'noopener');
-                }
-              } else if (event.altKey) {
-                // Keep native browser behavior
-              } else {
-                if (itemUrl !== undefined) {
-                  context.onSelectItem({ item, event });
-                  location.assign(itemUrl);
+              if (props.state.activeItemId !== null) {
+                const id = `docsearch-item-${props.state.activeItemId}`;
+                const element = document.querySelector(`#${id} a, #${id} button`) as HTMLElement;
+                if (element) {
+                  element.click();
                 }
               }
             }
@@ -148,26 +115,51 @@ export const SearchBox = component$((props: SearchBoxProps) => {
             // noop
           }}
         />
-
-        <button
-          type="reset"
-          title={resetButtonTitle}
-          class="DocSearch-Reset"
-          aria-label={resetButtonAriaLabel}
-          hidden={!props.state.query}
-        >
-          <ResetIcon />
-        </button>
       </form>
 
       <button
         class="DocSearch-Cancel"
         type="reset"
-        aria-label={cancelButtonAriaLabel}
+        aria-label="Cancel"
         onClick$={() => props.onClose$.apply(null, [])}
       >
-        {cancelButtonText}
+        Cancel
       </button>
     </>
   );
 });
+
+export function getNextActiveItemId(
+  moveAmount: number,
+  baseIndex: number | null,
+  itemCount: number,
+  defaultActiveItemId: number | null
+) {
+  if (!itemCount) {
+    return null;
+  }
+
+  if (
+    moveAmount < 0 &&
+    (baseIndex === null || (defaultActiveItemId !== null && baseIndex === -1))
+  ) {
+    return itemCount + moveAmount;
+  }
+
+  const numericIndex = (baseIndex === null ? -2 : baseIndex) + moveAmount;
+
+  if (numericIndex <= -2 || numericIndex >= itemCount) {
+    return defaultActiveItemId === null ? null : -1;
+  }
+
+  return numericIndex;
+}
+export function getItemsCount(state: DocSearchState) {
+  if (state.collections.length === 0) {
+    return 0;
+  }
+
+  return state.collections.reduce(function (sum, collection) {
+    return sum + collection.items.length;
+  }, 0);
+}

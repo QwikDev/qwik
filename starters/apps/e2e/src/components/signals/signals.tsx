@@ -810,11 +810,12 @@ export const BindSignal = component$(() => {
       <div id="bind-text-1">Value: {value}</div>
       <div id="bind-text-2">Value: {value.value}</div>
       <textarea id="bind-input-2" bind:value={value} disabled={checked.value} />
+      <input id="bind-checkbox-2" type="checkbox" bind:checked={checked} />
     </>
   );
 });
 
-export const Issue3482 = component$((props) => {
+export const Issue3482 = component$(() => {
   const count = useStore({
     'data-foo': 0,
   });

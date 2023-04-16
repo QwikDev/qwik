@@ -24,7 +24,9 @@ import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 # Components
 
-Components are the basic building blocks of Qwik Applications. Qwik components are unique in that:
+Components are the basic building blocks of Qwik Applications. They are reusable piece of code that can be used to build a UI.
+
+Qwik components are unique in that:
 
 - Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../../advanced/optimizer/index.mdx).
 - They are [resumable](../../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
@@ -32,9 +34,7 @@ Components are the basic building blocks of Qwik Applications. Qwik components a
 
 ## `component$()`
 
-A component is a small, reusable piece of code that can be used to build a UI.
-
-In Qwik, they are declared using the `component$` method:
+A Qwik component is a function that returns JSX wrapped in a `component$` call.
 
 <CodeSandbox src="/src/routes/demo/component/simple/index.tsx" style={{ height: '3em' }}>
 ```tsx /component$/
@@ -51,6 +51,7 @@ export default component$(() => {
 ### Composing Components
 
 Components can be composed together to create more complex components.
+
 
 <CodeSandbox src="/src/routes/demo/component/child/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
@@ -70,6 +71,8 @@ const Child = component$(() => {
 });
 ```
 </CodeSandbox>
+
+> Notice that Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.
 
 ### Counter Example
 

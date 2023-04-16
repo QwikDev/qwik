@@ -10,7 +10,9 @@ contributors:
 
 # `routeAction$()`
 
-Actions allows to handle form submissions in the server side, allowing to perform side effects such as writing to a database, or sending an email. They can also return data to the client, allowing to update the UI accordingly.
+Actions allows to handle form submissions, allowing to perform side effects such as writing to a database, or sending an email.
+
+Actions can also return data back to the client/browser, allowing to update the UI accordingly, i.e. showing a success message after a form submission.
 
 Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@builder.io/qwik-city`.
 
@@ -18,7 +20,7 @@ Actions can be declared using the `routeAction$()` or `globalAction$()` exported
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$(async (data) => {
+export const useAddUser = routeAction$(async (data, requestEvent) => {
   // This will only run on the server when the user submits the form (or when the action is called programatically)
   const userID = await db.users.add({
     firstName: data.firstName,
@@ -54,7 +56,7 @@ export default component$(() => {
 
 ## Using actions with `<Form/>`
 
-The best way to trigger an action is by using the `<Form/>` component exported in `@builder.io/qwik-city`.
+The best way to call an action is using the `<Form/>` component exported in `@builder.io/qwik-city`.
 
 ```tsx title="src/routes/index.tsx"
 import { routeAction$, Form } from '@builder.io/qwik-city';
@@ -80,7 +82,9 @@ export default component$(() => {
 });
 ```
 
-Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript. When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
+Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
+
+When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
 
 ## Using actions programatically
 
@@ -118,18 +122,18 @@ export default component$(() => {
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
-## Zod validation
+## Validation and type safety
 
-Qwik comes with built-in support for [Zod](https://zod.dev/) that can be used directly with actions, using the `zod$()` function.
+Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
 
-Fortunately, actions have first class support for [Zod](https://zod.dev/), a TypeScript-first data validation library. To use Zod, simply pass the Zod schema as the second argument to the `routeAction$()` function.
+Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
 
 ```tsx {15-18} /firstName/#a /lastName/#b /email/#c title="src/routes/index.tsx"
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
   async (user) => {
-    // `user` is typed { firstName: string, lastName: string }
+    // The "user" is strongly typed: { firstName: string, lastName: string }
     const userID = await db.users.add({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -139,6 +143,7 @@ export const useAddUser = routeAction$(
       userID,
     };
   },
+  // Zod schema is used to validate that the FormData includes "firstName" and "lastName"
   zod$({
     firstName: z.string(),
     lastName: z.string(),
@@ -167,6 +172,25 @@ export default component$(() => {
 When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
+
+## HTTP request and response
+
+`routeAction$` and `globalAction$` have access to the `RequestEvent` object which includes information about the current HTTP request and response.
+
+This allows actions to access the request headers, cookies, url and environment variables within the `routeAction$` function.
+
+```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
+import { routeAction$ } from '@builder.io/qwik-city';
+
+// The second argument of the action is the `RequestEvent` object
+export const useProductRecommendations = routeAction$(async (_data, requestEvent) => {
+  console.log('Request headers:', requestEvent.headers);
+  console.log('Request cookies:', requestEvent.cookie);
+  console.log('Request url:', requestEvent.url);
+  console.log('Request params:', requestEvent.params);
+  console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR')));
+});
+```
 
 ## Action Failures
 

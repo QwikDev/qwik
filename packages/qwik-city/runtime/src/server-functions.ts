@@ -10,6 +10,7 @@ import {
   _serializeData,
   _deserializeData,
   _getContextElement,
+  useServerData,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -38,7 +39,7 @@ import type {
   ValidatorConstructorQRL,
   ServerConstructorQRL,
 } from './types';
-import { useAction, useLocation } from './use-functions';
+import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
@@ -291,7 +292,8 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
   function stuff() {
     return $(async (...args: any[]) => {
       if (isServer) {
-        return qrl(...(args as any));
+        const requestEvent = useQwikCityEnv()?.ev;
+        return qrl.apply(requestEvent, args);
       } else {
         const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {

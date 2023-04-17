@@ -336,7 +336,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
   return url.pathname;
 }
 
-export const encoder = /*@__PURE__*/ new TextEncoder();
+export const encoder = /*#__PURE__*/ new TextEncoder();
 
 export function securityMiddleware({ url, request, error }: RequestEvent) {
   let inputOrigin = request.headers.get('origin');

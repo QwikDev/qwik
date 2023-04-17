@@ -7,6 +7,9 @@ import {
   useContextProvider,
   createContextId,
   type Signal,
+  _jsxBranch,
+  jsx,
+  type JSXNode,
 } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
@@ -53,6 +56,7 @@ export const SlotParent = component$(() => {
           <Issue3565 model={Issue3565Model} />
 
           <Issue3607 />
+          <Issue3727 />
         </>
       )}
       <div>
@@ -286,5 +290,79 @@ export const Issue3607Button = component$(({ onClick$ }: any) => {
         <Slot />
       </button>
     </>
+  );
+});
+
+const CTX = createContextId<Signal<any[]>>('content-Issue3727');
+
+export const Issue3727 = component$(() => {
+  const content = useSignal<any[]>([Issue3727ParentA, Issue3727ChildA]);
+  useContextProvider(CTX, content);
+
+  const contentsLen = content.value.length;
+  let cmp: JSXNode | null = null;
+  for (let i = contentsLen - 1; i >= 0; i--) {
+    cmp = jsx(content.value[i], {
+      children: cmp,
+    });
+  }
+  return cmp;
+});
+
+export const Issue3727ParentA = component$(() => {
+  return (
+    <main id="Issue3727ParentA">
+      <Slot />
+    </main>
+  );
+});
+
+export const Issue3727ParentB = component$(() => {
+  return (
+    <main id="Issue3727ParentB">
+      <Slot />
+    </main>
+  );
+});
+
+export const Issue3727ChildA = component$(() => {
+  const content = useContext(CTX);
+
+  return (
+    <article>
+      <h1>First</h1>
+      <button
+        id="issue-3727-navigate"
+        onClick$={() => {
+          content.value = [Issue3727ParentB, Issue3727ChildB];
+        }}
+      >
+        Navigate
+      </button>
+    </article>
+  );
+});
+
+export const Issue3727ChildB = component$(() => {
+  const copyList = useSignal<string[]>([]);
+  const content = useContext(CTX);
+  return (
+    <article>
+      <h1>Second</h1>
+      <button
+        id="issue-3727-add"
+        onClick$={async () => {
+          content.value = [Issue3727ParentB, Issue3727ChildB];
+          copyList.value = [...copyList.value, `item ${copyList.value.length}`];
+        }}
+      >
+        Add item
+      </button>
+      <ul id="issue-3727-results">
+        {copyList.value.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </article>
   );
 });

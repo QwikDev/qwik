@@ -272,6 +272,18 @@ test.describe('slot', () => {
       await button.click();
       await expect(button).toHaveText('Loading...');
     });
+
+    test('issue 3727', async ({ page }) => {
+      const navigate = page.locator('#issue-3727-navigate');
+      await navigate.click();
+      const results = page.locator('#issue-3727-results > li');
+      const add = page.locator('#issue-3727-add');
+      await expect(results).toHaveText([]);
+      await add.click();
+      await expect(results).toHaveText(['item 0']);
+      await add.click();
+      await expect(results).toHaveText(['item 0', 'item 1']);
+    });
   }
 
   test.beforeEach(async ({ page }) => {

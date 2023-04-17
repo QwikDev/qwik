@@ -5,7 +5,7 @@ export default component$(() => {
   console.log('Qwik Render');
   const count = useSignal(0);
   return (
-    <div>
+    <main>
       <QButton
         onClick$={() => {
           console.log('click', count.value);
@@ -13,6 +13,6 @@ export default component$(() => {
         }}
       />
       <QDisplay count={count.value}></QDisplay>
-    </div>
+    </main>
   );
 });

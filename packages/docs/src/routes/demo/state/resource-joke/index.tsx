@@ -32,7 +32,9 @@ export default component$(() => {
 
   return (
     <>
-      Query: <input bind:value={query} />
+      <label>
+        Query: <input bind:value={query} />
+      </label>
       <button>search</button>
       <Resource
         value={jokes}

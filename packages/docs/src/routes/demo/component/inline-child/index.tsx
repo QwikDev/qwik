@@ -8,9 +8,9 @@ export const MyButton = (props: { text: string }) => {
 // Component: declared using `component$()`.
 export default component$(() => {
   return (
-    <div>
+    <p>
       Some text:
       <MyButton text="Click me" />
-    </div>
+    </p>
   );
 });

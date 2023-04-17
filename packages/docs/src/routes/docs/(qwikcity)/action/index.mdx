@@ -44,7 +44,7 @@ export default component$(() => {
       </Form>
       {action.value?.success && (
         // When the action is done successfully, the `action.value` property will contain the return value of the action
-        <div>User {action.value.userID} added successfully</div>
+        <p>User {action.value.userID} added successfully</p>
       )}
     </>
   );
@@ -76,7 +76,7 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.success && <div>User added successfully</div>}
+      {action.value?.success && <p>User added successfully</p>}
     </Form>
   );
 });
@@ -105,7 +105,7 @@ export const useAddUser = routeAction$(async (user) => {
 export default component$(() => {
   const action = useAddUser();
   return (
-    <div>
+    <section>
       <button
         onClick={async () => {
           const { value } = await action.submit({ name: 'John' });
@@ -114,8 +114,8 @@ export default component$(() => {
       >
         Add user
       </button>
-      {action.value?.success && <div>User added successfully</div>}
-    </div>
+      {action.value?.success && <p>User added successfully</p>}
+    </section>
   );
 });
 ```
@@ -158,11 +158,11 @@ export default component$(() => {
         <input name="firstName" />
         <input name="lastName" />
 
-        {action.value?.failed && <div>{action.value.fieldErrors?.firstName}</div>}
+        {action.value?.failed && <p>{action.value.fieldErrors?.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
       {action.value?.success && (
-        <div>User {action.value.userID} added successfully</div>
+        <p>User {action.value.userID} added successfully</p>
       )}
     </>
   );
@@ -230,8 +230,8 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <div>{action.value.fieldErrors.name}</div>}
-      {action.value?.userID && <div>User added successfully</div>}
+      {action.value?.failed && <p>{action.value.fieldErrors.name}</p>}
+      {action.value?.userID && <p>User added successfully</p>}
     </Form>
   );
 });

@@ -15,12 +15,14 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      <div style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
         Text: {text}
-      </div>
-    </div>
+      </p>
+    </section>
   );
 });
 

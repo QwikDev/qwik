@@ -77,7 +77,7 @@ export default component$(() => {
   return (
     <>
       <button onClick$={() => state.count++}>Increment</button>
-      <div>Count: {state.count}</div>
+      <p>Count: {state.count}</p>
     </>
   );
 });
@@ -184,8 +184,8 @@ export default component$(() => {
   return (
     <>
       <input type="text" bind:value={name} />
-      <div>Name: {name.value}</div>
-      <div>Capitalized name: {capitalizedName.value}</div>
+      <p>Name: {name.value}</p>
+      <p>Capitalized name: {capitalizedName.value}</p>
     </>
   );
 });
@@ -297,7 +297,9 @@ export default component$(() => {
 
   return (
     <>
-      Query: <input bind:value={query} />
+      <label>
+        Query: <input bind:value={query} />
+      </label>
       <button>search</button>
       <Resource
         value={jokes}
@@ -372,30 +374,34 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div>Enter your name, and I'll guess your age!</div>
-      <input
-        onInput$={(e: Event) =>
-          (name.value = (e.target as HTMLInputElement).value)
-        }
-      />
+    <section>
+      <p>
+        <label>
+          Enter your name, and I'll guess your age!
+          <input
+            onInput$={(e: Event) =>
+              (name.value = (e.target as HTMLInputElement).value)
+            }
+          />
+        </label>
+      </p>
       <Resource
         value={ageResource}
-        onPending={() => <div>Loading...</div>}
-        onRejected={() => <div>Failed to person data</div>}
+        onPending={() => <p>Loading...</p>}
+        onRejected={() => <p>Failed to person data</p>}
         onResolved={(ageGuess) => {
           return (
-            <div>
+            <p>
               {name.value && (
                 <>
                   {ageGuess.name} {ageGuess.age} years
                 </>
               )}
-            </div>
+            </p>
           );
         }}
       />
-    </div>
+    </section>
   );
 });
 ```
@@ -430,7 +436,7 @@ export const Child = component$<ChildProps>(({ userData }) => {
   return (
     <>
       <button onClick$={() => userData.count++}>Increment</button>
-      <div>Count: {userData.count}</div>
+      <p>Count: {userData.count}</p>
     </>
   );
 });
@@ -470,7 +476,7 @@ export const Child = component$(() => {
   return (
     <>
       <button onClick$={() => userData.count++}>Increment</button>
-      <div>Count: {userData.count}</div>
+      <p>Count: {userData.count}</p>
     </>
   );
 });

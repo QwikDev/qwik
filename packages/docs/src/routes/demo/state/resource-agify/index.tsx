@@ -23,8 +23,8 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div>Enter your name, and I'll guess your age!</div>
+    <section>
+      <p>Enter your name, and I'll guess your age!</p>
       <input
         onInput$={(e: Event) =>
           (name.value = (e.target as HTMLInputElement).value)
@@ -32,20 +32,20 @@ export default component$(() => {
       />
       <Resource
         value={ageResource}
-        onPending={() => <div>Loading...</div>}
-        onRejected={() => <div>Failed to person data</div>}
+        onPending={() => <p>Loading...</p>}
+        onRejected={() => <p>Failed to person data</p>}
         onResolved={(ageGuess) => {
           return (
-            <div>
+            <p>
               {name.value && (
                 <>
                   {ageGuess.name} {ageGuess.age} years
                 </>
               )}
-            </div>
+            </p>
           );
         }}
       />
-    </div>
+    </section>
   );
 });

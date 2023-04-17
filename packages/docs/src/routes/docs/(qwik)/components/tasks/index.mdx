@@ -111,7 +111,7 @@ export default component$(() => {
     fibonacci.value = array;
   });
 
-  return <div>{fibonacci.value?.join(', ')}</div>;
+  return <p>{fibonacci.value?.join(', ')}</p>;
 });
 
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
@@ -160,10 +160,12 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      <div>Delayed text: {delayText}</div>
-    </div>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <p>Delayed text: {delayText}</p>
+    </section>
   );
 });
 
@@ -212,11 +214,15 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      Is uppercase? <input type="checkbox" bind:checked={isUppercase} />
-      <div>Delay text: {delayText}</div>
-    </div>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <label>
+        Is uppercase? <input type="checkbox" bind:checked={isUppercase} />
+      </label>
+      <p>Delay text: {delayText}</p>
+    </section>
   );
 });
 
@@ -253,10 +259,12 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      <div>Debounced text: {debounceText}</div>
-    </div>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <p>Debounced text: {debounceText}</p>
+    </section>
   );
 });
 ```
@@ -295,12 +303,14 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 >   });
 > 
 >   return (
->     <div>
->       Enter text: <input bind:value={text} />
->       <div style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
+>     <section>
+>       <label>
+>         Enter text: <input bind:value={text} />
+>       </label>
+>       <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
 >         Text: {text}
->       </div>
->     </div>
+>       </p>
+>     </section>
 >   );
 > });
 > 

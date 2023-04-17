@@ -15,10 +15,12 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      <div>Delayed text: {delayText}</div>
-    </div>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <p>Delayed text: {delayText}</p>
+    </section>
   );
 });
 

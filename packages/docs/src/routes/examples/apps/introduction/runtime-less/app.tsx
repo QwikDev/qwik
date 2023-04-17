@@ -3,7 +3,7 @@ import { component$ } from '@builder.io/qwik';
 export default component$(() => {
   console.log('render <App>');
   return (
-    <div id="container">
+    <article id="container">
       <button
         onClick$={() => {
           // The click handler is completely stateless, and does not use any QWIK api.
@@ -15,6 +15,6 @@ export default component$(() => {
       >
         Action
       </button>
-    </div>
+    </article>
   );
 });

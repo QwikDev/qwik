@@ -71,7 +71,7 @@ export const ComplexCounter = component$(() => {
         {store.visible ? 'hide' : 'show'}
       </button>
       <button onClick$={() => store.count++}>increment</button>
-      {store.visible ? <span>{store.count}</span> : null}
+      {store.visible ? <p>{store.count}</p> : null}
     </>
   );
 });
@@ -104,10 +104,10 @@ export const MyComp = component$(() => {
   store.location = {street: 'main st'};
 
   return (
-    <div>
-      <div>{store.person.last}, {store.person.first}</div>
-      </div>{store.location.street}</div>
-    </div>
+    <section>
+      <p>{store.person.last}, {store.person.first}</p>
+      </p>{store.location.street}</p>
+    </section>
   );
 })
 ```

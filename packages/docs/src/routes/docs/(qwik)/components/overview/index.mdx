@@ -41,7 +41,7 @@ A Qwik component is a function that returns JSX wrapped in a `component$` call.
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <span>Hello World!</span>;
+  return <p>Hello World!</p>;
 });
 ```
 </CodeSandbox>
@@ -60,14 +60,14 @@ import { component$ } from '@builder.io/qwik';
 export default component$(() => {
   return (
     <>
-      <div>Parent Text</div>
+      <p>Parent Text</p>
       <Child />
     </>
   );
 });
 
 const Child = component$(() => {
-  return <div>Child Text</div>;
+  return <p>Child Text</p>;
 });
 ```
 </CodeSandbox>
@@ -87,7 +87,7 @@ export default component$(() => {
 
   return (
     <>
-      <div>Count: {count.value}</div>
+      <p>Count: {count.value}</p>
       <button onClick$={() => count.value++}>Increment</button>
     </>
   );
@@ -169,15 +169,15 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+    <section>
+      <article ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
         Change text value here to stretch the box.
-      </div>
-      <div>
+      </article>
+      <p>
         The above red box is {height.value} pixels high and {width.value}{' '}
         pixels wide.
-      </div>
-    </div>
+      </p>
+    </section>
   );
 });
 ```
@@ -206,7 +206,7 @@ To avoid the above problem we don't refer to components directly, instead, we re
 import { component$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
-  return <span>child</span>;
+  return <p>child</p>;
 });
 
 export const Parent = component$(() => {
@@ -240,11 +240,11 @@ Notice that after the Optimizer transforms the code, the `Parent` no longer dire
 So what happens when the `Parent` component needs to render a `Child` component, but the `Child` component has not yet been downloaded? First, the `Parent` component renders its DOM like so.
 
 ```html
-<div>
+<main>
   <section>
     <!--qv--><!--/qv-->
   </section>
-</div>
+</main>
 ```
 
 As you can see in the above example, the `<!--qv-->` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
@@ -267,10 +267,10 @@ export const MyButton = (props: { text: string }) => {
 // Component: declared using `component$()`.
 export default component$(() => {
   return (
-    <div>
+    <p>
       Some text:
       <MyButton text="Click me" />
-    </div>
+    </p>
   );
 });
 ```

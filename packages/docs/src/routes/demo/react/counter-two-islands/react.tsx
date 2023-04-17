@@ -8,7 +8,7 @@ function Button({ onClick }: { onClick: () => void }) {
 
 function Display({ count }: { count: number }) {
   console.log('React <Display count=' + count + '/> Render');
-  return <div className="react">Count: {count}</div>;
+  return <p className="react">Count: {count}</p>;
 }
 
 export const QButton = qwikify$(Button, { eagerness: 'hover' });

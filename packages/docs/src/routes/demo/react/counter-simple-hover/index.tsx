@@ -4,8 +4,8 @@ import { QCounter } from './react';
 export default component$(() => {
   console.log('Qwik Render');
   return (
-    <div>
+    <main>
       <QCounter />
-    </div>
+    </main>
   );
 });

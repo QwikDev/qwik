@@ -441,9 +441,9 @@ export default component$(() => {
   const loc = useLocation();
   return (
     <main>
-      {loc.isNavigating && <div>Loading...</div>}
+      {loc.isNavigating && <p>Loading...</p>}
       <h1>User: {loc.params.userID}</h1>
-      <div>Current URL: {loc.url.href}</div>
+      <p>Current URL: {loc.url.href}</p>
     </main>
   );
 });
@@ -507,8 +507,8 @@ export default component$(() => {
   return (
     <main>
       <h1>User data</h1>
-      <div>User name: {userData.value.name}</div>
-      <div>User email: {userData.value.email}</div>
+      <p>User name: {userData.value.name}</p>
+      <p>User email: {userData.value.email}</p>
     </main>
   );
 });
@@ -567,12 +567,12 @@ export default component$(() => {
     <main>
       <h1>User data</h1>
       <Form action={userData}>
-        <div>
-          User name: <input name="name" defaultValue={userData.formData?.get('name')} />
-        </div>
-        <div>
-          User email: <input name="email" defaultValue={userData.formData?.get('email')} />
-        </div>
+        <p>
+          <label>User name: <input name="name" defaultValue={userData.formData?.get('name')} /></label>
+        </p>
+        <p>
+          <label>User email: <input name="email" defaultValue={userData.formData?.get('email')} /></label>
+        </p>
         <button type="submit">Update</button>
       </form>
     </main>

@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
-  return <span>child</span>;
+  return <p>child</p>;
 });
 
 export const Parent = component$(() => {

@@ -22,7 +22,7 @@ Several examples comparing React and Qwik.
 
 ```tsx
 export const HelloWorld = component$(() => {
-  return <div>Hello world</div>;
+  return <p>Hello world</p>;
 });
 ```
 
@@ -30,7 +30,7 @@ export const HelloWorld = component$(() => {
 
 ```tsx
 export function HelloWorld() {
-  return <div>Hello world</div>;
+  return <p>Hello world</p>;
 }
 ```
 
@@ -59,7 +59,7 @@ export function Button() {
 ```tsx
 export const LocalStateExample = component$(() => {
   const count = useSignal(0);
-  return <div>Value is: {count.value}</div>;
+  return <p>Value is: {state.value}</p>;
 });
 ```
 
@@ -68,7 +68,7 @@ export const LocalStateExample = component$(() => {
 ```tsx
 export function UseStateExample() {
   const [value, setValue] = useState(0);
-  return <div>Value is: {value}</div>;
+  return <p>Value is: {value}</p>;
 }
 ```
 
@@ -81,7 +81,7 @@ export const Counter = component$(() => {
   const count = useSignal(0);
   return (
     <>
-      <div>Value is: {count.value}</div>
+      <p>Value is: {count.value}</p>
       <button onClick$={() => count.value++}>Increment</button>
     </>
   );
@@ -95,7 +95,7 @@ export function Counter() {
   const [count, setCount] = useState(0);
   return (
     <>
-      <div>Value is: {count}</div>
+      <p>Value is: {count}</p>
       <button onClick={() => setCount(count + 1)}>Increment</button>
     </>
   );
@@ -116,7 +116,7 @@ export const Clock = component$(() => {
     cleanup(() => clearInterval(interval));
   });
 
-  return <div>Seconds: {seconds.value}</div>;
+  return <p>Seconds: {seconds.value}</p>;
 });
 ```
 
@@ -131,7 +131,7 @@ export function Clock() {
     }, 1000);
     return () => clearInterval(interval);
   });
-  return <div>Seconds: {seconds}</div>;
+  return <p>Seconds: {seconds}</p>;
 }
 ```
 
@@ -153,7 +153,7 @@ export const Fetch = component$(() => {
 
   return (
     <>
-      <div>{responseJson.value?.name} has {responseJson.value?.stargazers_count} ✨'s</div>
+      <p>{responseJson.value?.name} has {responseJson.value?.stargazers_count} ✨'s</p>
       <input name="url" bind:value={url} />
     </>
   );
@@ -173,7 +173,7 @@ export function Fetch() {
   }, [url]);
   return (
     <>
-      <div>{responseJson?.name}</div>
+      <p>{responseJson?.name}</p>
       <input name="url" onInput={(ev) => setUrl((ev.target as HTMLInputElement).value))} />
     </>
   );
@@ -199,7 +199,7 @@ export const Parent = component$(() => {
 
 export const Child = component$(() => {
   const message = useContext(MyContext);
-  return <span>{message.value}</span>;
+  return <p>{message.value}</p>;
 });
 ```
 
@@ -218,7 +218,7 @@ export default function Parent() {
 
 export const Child = () => {
   const value = useContext(MyContext);
-  return <span>{value.message}</span>;
+  return <p>{value.message}</p>;
 };
 ```
 
@@ -244,7 +244,7 @@ export const DebouncedInput = component$(() => {
   return (
     <>
       <input bind:value={inputText} />
-      <span>{debouncedValue.value}</span>
+      <p>{debouncedValue.value}</p>
     </>
   );
 });
@@ -268,7 +268,7 @@ export const DebouncedInput = () => {
   return (
     <>
       <input value={value} onChange={(ev) => setValue((ev.target as HTMLInputElement).value))} />
-      <span>{debouncedValue}</span>
+      <p>{debouncedValue}</p>
     </>
   );
 };

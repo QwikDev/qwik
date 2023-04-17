@@ -14,7 +14,7 @@ export default component$(() => {
     fibonacci.value = array;
   });
 
-  return <div>{fibonacci.value?.join(', ')}</div>;
+  return <p>{fibonacci.value?.join(', ')}</p>;
 });
 
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));

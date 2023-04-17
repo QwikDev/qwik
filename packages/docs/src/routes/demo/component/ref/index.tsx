@@ -14,14 +14,17 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+    <section>
+      <article
+        ref={outputRef}
+        style={{ border: '1px solid red', width: '100px' }}
+      >
         Change text value here to stretch the box.
-      </div>
-      <div>
+      </article>
+      <p>
         The above red box is {height.value} pixels high and {width.value}{' '}
         pixels wide.
-      </div>
-    </div>
+      </p>
+    </section>
   );
 });

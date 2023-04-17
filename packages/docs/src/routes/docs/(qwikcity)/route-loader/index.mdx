@@ -24,7 +24,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 export default component$(() => {
   // In order to access the `routeLoader$` data within a Qwik Component, you need to call the hook.
   const signal = useProductDetails(); // Readonly<Signal<Product>>
-  return <div>Product name: {signal.value.product.name}</div>;
+  return <p>Product name: {signal.value.product.name}</p>;
 });
 ```
 

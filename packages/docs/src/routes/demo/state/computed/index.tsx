@@ -2,7 +2,10 @@ import { component$, useComputed$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const name = useSignal('Qwik');
-  const capitalizedName = useComputed$(() => name.value.toUpperCase());
+  const capitalizedName = useComputed$(() => {
+    // it will automatically reexecute when name.value changes
+    return name.value.toUpperCase();
+  });
 
   return (
     <>

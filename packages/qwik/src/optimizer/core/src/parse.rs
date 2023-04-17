@@ -17,7 +17,6 @@ use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocati
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
-use swc_ecmascript::transforms::optimization::simplify::inlining::inlining;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -283,6 +282,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             Some(&comments),
                             react_options,
                             top_level_mark,
+                            unresolved_mark,
                         ));
                     }
 
@@ -292,11 +292,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         top_level_mark,
                         is_type_script && !transpile_ts,
                     ));
-
-                    if transpile_ts {
-                        main_module.visit_mut_with(&mut inlining(Default::default()));
-                    }
-
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
 

@@ -374,6 +374,11 @@ test.describe('render', () => {
       await button.click();
       await expect(result).toHaveAttribute('data-title', 'Bye 2');
     });
+
+    test('issue3795', async ({ page }) => {
+      const result = page.locator('#issue-3795-result');
+      await expect(result).toHaveText('foo foobar');
+    });
   }
 
   tests();

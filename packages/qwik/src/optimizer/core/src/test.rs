@@ -652,6 +652,31 @@ export const AtomStatus = component$(({ctx,atom})=>{
 }
 
 #[test]
+fn example_optimization_issue_3795() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3795 = component$(() => {
+    let base = "foo";
+    const firstAssignment = base;
+    base += "bar";
+    const secondAssignment = base;
+    return (
+      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_reg_ctx_name_hooks() {
     test_input!(TestInput {
         code: r#"

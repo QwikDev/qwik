@@ -129,6 +129,14 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
             if var_decl.kind == ast::VarDeclKind::Const {
                 for decl in var_decl.decls.iter_mut() {
                     let convert = match &decl.init {
+                        Some(box ast::Expr::Lit(lit)) => {
+                            let new_ident = private_ident!("_unused");
+                            Some((
+                                new_ident,
+                                ast::Expr::Lit(lit.clone()),
+                                TransformInit::Remove,
+                            ))
+                        }
                         Some(box ast::Expr::Member(member_expr)) => match &member_expr.obj {
                             box ast::Expr::Ident(ident) => {
                                 let new_ident = private_ident!("_unused");
@@ -253,6 +261,8 @@ fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut Pro
                         }
                     }
                 }
+            } else {
+                break;
             }
         }
     }

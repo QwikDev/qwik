@@ -84,6 +84,7 @@ export const RenderChildren = component$(() => {
       <IssueChildrenSpread />
       <Issue3731 />
       <Issue3702 />
+      <Issue3795 />
     </>
   );
 });
@@ -711,6 +712,18 @@ export const Issue3702 = component$(({ description = '', other }: any) => {
       <button id="issue-3702-button" onClick$={() => counter.value++}>
         Increment
       </button>
+    </div>
+  );
+});
+
+export const Issue3795 = component$(() => {
+  let base = 'foo';
+  const firstAssignment = base;
+  base += 'bar';
+  const secondAssignment = base;
+  return (
+    <div id="issue-3795-result">
+      {firstAssignment} {secondAssignment}
     </div>
   );
 });

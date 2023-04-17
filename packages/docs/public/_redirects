@@ -40,7 +40,6 @@
 /qwikcity/data/modify/ /docs/endpoints/ 308
 /qwikcity/data/endpoints/ /docs/endpoints/ 308
 /qwikcity/data/redirects/ /docs/guides/redirects/ 308
-/qwikcity/data/redirects/ /docs/guides/redirects/ 308
 /qwikcity/content/component/ /docs/pages/ 308
 /qwikcity/content/mdx/ /docs/guides/mdx/ 308
 /qwikcity/content/menu/ /docs/advanced/menu/ 308
@@ -53,9 +52,6 @@
 /qwikcity/prefetching/service-worker-prefetching/ /docs/advanced/speculative-module-fetching/ 308
 /qwikcity/prefetching/request-response-cache/ /docs/advanced/speculative-module-fetching/ 308
 /qwikcity/prefetching/parallelizing-network-requests/ /docs/advanced/speculative-module-fetching/ 308
-/qwikcity/* /docs/:splat 308
-/integrations/* /docs/integrations/:splat 308
-/deployments/* /docs/deployments/:splat 308
 /docs/overview /docs/ 308
 /docs/overview/ /docs/ 308
 /docs/cheat/qwik-react/ /docs/guides/qwik-react/ 308
@@ -64,3 +60,7 @@
 /docs/components/lifecycle/ /docs/components/tasks/ 308
 /docs/components/projection/ /docs/components/slots/ 308
 /docs/components/resource/ /docs/components/state/ 308
+
+/qwikcity/* /docs/:splat 308
+/integrations/* /docs/integrations/:splat 308
+/deployments/* /docs/deployments/:splat 308

@@ -760,22 +760,22 @@ const createElm = (
       }
       const slotMap = getSlotMap(elCtx);
       const p: Promise<void>[] = [];
-      for (const node of children) {
-        const slotCtx = getSlotCtx(
-          staticCtx,
-          slotMap,
-          elCtx,
-          getSlotName(node),
-          staticCtx.$containerState$
-        );
+      const splittedNewChildren = splitChildren(children);
+      for (const slotName of Object.keys(splittedNewChildren)) {
+        const newVnode = splittedNewChildren[slotName];
+        const slotCtx = getSlotCtx(staticCtx, slotMap, elCtx, slotName, staticCtx.$containerState$);
         const slotRctx = pushRenderContext(rCtx);
         slotRctx.$slotCtx$ = slotCtx;
-        const nodeElm = createElm(slotRctx, node, flags, p);
-        assertDefined(node.$elm$, 'vnode elm must be defined');
-        assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
-        appendChild(staticCtx, slotCtx.$element$, nodeElm);
-      }
+        slotCtx.$vdom$ = newVnode;
+        newVnode.$elm$ = slotCtx.$element$;
 
+        for (const node of newVnode.$children$) {
+          const nodeElm = createElm(slotRctx, node, flags, p);
+          assertDefined(node.$elm$, 'vnode elm must be defined');
+          assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
+          appendChild(staticCtx, slotCtx.$element$, nodeElm);
+        }
+      }
       return promiseAllLazy(p);
     });
     if (isPromise(wait)) {

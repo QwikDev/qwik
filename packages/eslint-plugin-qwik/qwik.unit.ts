@@ -57,22 +57,6 @@ export const useSession5 = () => useContext().value + 10;
 
       `
 export const useSession1 = () => {
-  myExpression() ?? useContext();
-}
-
-export const useSession2 = () => {
-  return myExpression() ?? useContext();
-}
-
-export const useSession3 = () => myExpression() ?? useContext();
-
-export const useSession4 = () => myExpression() ?? useContext().value 
-
-export const useSession5 = () => myExpression() ?? useContext().value + 10;
-`,
-
-      `
-export const useSession1 = () => {
   useContext()?.value;
 }
 

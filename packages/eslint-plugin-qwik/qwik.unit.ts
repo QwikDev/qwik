@@ -28,6 +28,33 @@ test('no-use-after-await', () => {
   ruleTester.run('my-rule', rules['use-method-usage'] as any, {
     valid: [
       `
+export function useSession1() {
+  useContext();
+}
+export function useSession2() {
+  return useContext();
+}
+export function useSession3() {
+  return useContext().value;
+}
+`,
+      `
+export const useSession1 = () => {
+  useContext();
+}
+
+export const useSession2 = () => {
+  return useContext();
+}
+
+export const useSession3 = () => useContext();
+
+export const useSession4 = () => useContext().value;
+
+export const useSession5 = () => useContext().value + 10;
+
+`,
+      `
       export const HelloWorld = component$(async () => {
           useMethod();
           await something();

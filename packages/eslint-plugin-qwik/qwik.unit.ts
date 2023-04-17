@@ -24,7 +24,7 @@ const testConfig = {
 };
 
 const ruleTester = new RuleTester(testConfig as any);
-test('no-use-after-await', () => {
+test('use-method-usage', () => {
   ruleTester.run('my-rule', rules['use-method-usage'] as any, {
     valid: [
       `
@@ -54,6 +54,40 @@ export const useSession4 = () => useContext().value;
 export const useSession5 = () => useContext().value + 10;
 
 `,
+
+      `
+export const useSession1 = () => {
+  myExpression() ?? useContext();
+}
+
+export const useSession2 = () => {
+  return myExpression() ?? useContext();
+}
+
+export const useSession3 = () => myExpression() ?? useContext();
+
+export const useSession4 = () => myExpression() ?? useContext().value 
+
+export const useSession5 = () => myExpression() ?? useContext().value + 10;
+`,
+
+      `
+export const useSession1 = () => {
+  useContext()?.value;
+}
+
+export const useSession2 = () => {
+  return useContext()?.value;
+}
+
+export const useSession3 = () => useContext()?.value;
+
+export const useSession4 = () => useContext()?.value;
+
+export const useSession5 = () => useContext()?.value; + 10;
+
+`,
+
       `
       export const HelloWorld = component$(async () => {
           useMethod();
@@ -108,6 +142,39 @@ export const useSession5 = () => useContext().value + 10;
             });
           });`,
         errors: [{ messageId: 'use-after-await' }],
+      },
+
+      {
+        code: `export function noUseSession() {
+          useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+          useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => useContext();`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => useContext().value;`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
       },
     ],
   });

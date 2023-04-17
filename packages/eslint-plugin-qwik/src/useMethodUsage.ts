@@ -58,6 +58,7 @@ export const useMethodUsage: Rule.RuleModule = {
             case 'UnaryExpression':
             case 'ReturnStatement':
             case 'BlockStatement':
+            case 'ChainExpression':
               break;
             case 'ArrowFunctionExpression':
             case 'FunctionExpression':

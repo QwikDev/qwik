@@ -309,14 +309,6 @@ function _isTypeCapturable(
       reason: 'is any, which is not serializable',
     };
   }
-  const isBigInt = type.flags & ts.TypeFlags.BigIntLike;
-  if (isBigInt) {
-    return {
-      type,
-      typeStr: checker.typeToString(type),
-      reason: 'is BigInt and it is not supported yet, use a number instead',
-    };
-  }
   const isSymbol = type.flags & ts.TypeFlags.ESSymbolLike;
   if (isSymbol) {
     return {

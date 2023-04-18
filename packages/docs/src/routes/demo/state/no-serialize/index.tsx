@@ -6,7 +6,7 @@ import {
   useVisibleTask$,
   type NoSerialize,
 } from '@builder.io/qwik';
-import * as monaco from 'monaco-editor';
+import * as monaco from './monaco';
 
 export default component$(() => {
   const editorRef = useSignal<HTMLElement>();

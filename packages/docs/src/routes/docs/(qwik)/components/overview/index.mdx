@@ -41,7 +41,7 @@ A Qwik component is a function that returns JSX wrapped in a `component$` call.
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <p>Hello World!</p>;
+  return <div>Hello World!</div>;
 });
 ```
 </CodeSandbox>
@@ -190,7 +190,10 @@ export default component$(() => {
 
   return (
     <section>
-      <article ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+      <article
+        ref={outputRef}
+        style={{ border: '1px solid red', width: '100px' }}
+      >
         Change text value here to stretch the box.
       </article>
       <p>

@@ -96,9 +96,9 @@ import { component$ } from '@builder.io/qwik';
 export const Parent = component$(() => {
   return (
     <>
-      {data.map(({ content, uniqueKey }) => (
+      {data.map(({ message, uniqueKey }) => (
         <div key={uniqueKey}>
-          <p>{content}</p>
+          <p>{message}</p>
         </div>
       ))}
     </>

@@ -373,7 +373,7 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <div>
         <label>
           Enter your name, and I'll guess your age!
           <input
@@ -382,7 +382,7 @@ export default component$(() => {
             }
           />
         </label>
-      </p>
+      </div>
       <Resource
         value={ageResource}
         onPending={() => <p>Loading...</p>}
@@ -501,7 +501,7 @@ import {
   useVisibleTask$,
   type NoSerialize,
 } from '@builder.io/qwik';
-import * as monaco from 'monaco-editor';
+import * as monaco from './monaco';
 
 export default component$(() => {
   const editorRef = useSignal<HTMLElement>();

@@ -168,6 +168,23 @@ test('valid-lexical-scope', () => {
   ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
     valid: [
       `
+      import { component$, useTask$, useSignal } from '@builder.io/qwik';
+      enum Color {
+        Red,
+        Blue,
+        Green,
+      }
+
+      export default component$(() => {
+        const color: Color = useSignal({ color: Color.Red })
+
+        useTask$(() => {
+          color.value.color = Color.Blue
+        });
+        return <></>
+      })
+      `,
+      `
       import { component$, SSRStream } from "@builder.io/qwik";
 import { Readable } from "stream";
 
@@ -447,6 +464,24 @@ export default component$(() => {
             return <div></div>;
           });`,
 
+        errors: [{ messageId: 'referencesOutside' }],
+      },
+      {
+        code: `
+        import { component$, useTask$, useSignal } from '@builder.io/qwik';
+
+        export default component$(() => {
+          const color: Color = useSignal({ color: Color.Red })
+          enum Color {
+            Red,
+            Blue,
+            Green,
+          }
+          useTask$(() => {
+            color.value.color = Color.Blue
+          });
+          return <></>
+        })`,
         errors: [{ messageId: 'referencesOutside' }],
       },
       {

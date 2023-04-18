@@ -13,6 +13,7 @@ export const useDadJoke = routeLoader$(async () => {
 });
 
 export default component$(() => {
+  // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   return (
     <section class="section bright">

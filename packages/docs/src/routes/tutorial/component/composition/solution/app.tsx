@@ -9,5 +9,5 @@ export default component$(() => {
 });
 
 export const Greeter = component$(() => {
-  return <p>Hello World!</p>;
+  return <div>Hello World!</div>;
 });

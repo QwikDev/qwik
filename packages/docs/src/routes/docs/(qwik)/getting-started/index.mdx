@@ -190,6 +190,7 @@ For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/03-posting-data/index.tsx" style={{ height: '8em' }}>
 ```tsx {21,25-29} /favoriteJokeAction/ title="src/routes/joke/index.tsx"
+/* eslint-disable no-console */
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
@@ -216,8 +217,12 @@ export default component$(() => {
       <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
-        <button name="vote" value="up">👍</button>
-        <button name="vote" value="down">👎</button>
+        <button name="vote" value="up">
+          👍
+        </button>
+        <button name="vote" value="down">
+          👎
+        </button>
       </Form>
     </section>
   );

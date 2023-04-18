@@ -41,7 +41,7 @@ A Qwik component is a function that returns JSX wrapped in a `component$` call.
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <p>Hello World!</p>;
+  return <div>Hello World!</div>;
 });
 ```
 </CodeSandbox>
@@ -136,6 +136,24 @@ export default component$(() => {
 
 > In the example above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
 
+### Default props
+
+You can use the destructuring pattern with props to provide default values.
+
+```tsx
+interface Props {
+  enabled?: boolean;
+  placeholder?: string;
+}
+
+// We can use JS's destructuring of props to provide a default value.
+export default component$<Props>(({enabled = true, placeholder = ''}) => {
+  return (
+    <input disabled={!enabled} placeholder={placeholder} />
+  );
+});
+```
+
 ## Rendering on Reactivity
 
 Qwik components are reactive. This means that they automatically update on a state change. There are two kinds of updates:
@@ -150,6 +168,8 @@ A state change causes the component to get invalidated. When components get inva
 ## Getting hold of DOM element
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
+
+> Getting a reference to DOM elements can be useful to calculate the element size (`getBoundingClientRect`), computed styles, initializing a WebGL canvas, or even wire-up some third-party library that interacts with DOM elements directly.
 
 <CodeSandbox src="/src/routes/demo/component/ref/index.tsx" style={{ height: '10em' }}>
 ```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
@@ -170,7 +190,10 @@ export default component$(() => {
 
   return (
     <section>
-      <article ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+      <article
+        ref={outputRef}
+        style={{ border: '1px solid red', width: '100px' }}
+      >
         Change text value here to stretch the box.
       </article>
       <p>

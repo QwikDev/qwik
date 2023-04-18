@@ -30,7 +30,6 @@ const d = $(()=>console.log('thing'));
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
-/*#__PURE__*/ qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,wBAAU,gHAapB\"}")

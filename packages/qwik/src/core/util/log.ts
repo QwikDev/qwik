@@ -26,7 +26,7 @@ export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
   return err;
 };
 
-const _printed = /*@__PURE__*/ new Set<string>();
+const _printed = /*#__PURE__*/ new Set<string>();
 
 export const logOnceWarn = (message?: any, ...optionalParams: any[]) => {
   if (qDev) {

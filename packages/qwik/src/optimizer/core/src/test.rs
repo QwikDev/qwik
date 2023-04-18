@@ -677,6 +677,39 @@ export const Issue3795 = component$(() => {
 }
 
 #[test]
+fn example_drop_side_effects() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { clientSupabase } from 'supabase';
+import { Client } from 'openai';
+import { secret } from './secret';
+
+const supabase = clientSupabase();
+const dfd = new Client(secret);
+
+export const api = server$(() => {
+    supabase.from('ffg').do(dfd);
+});
+
+export default component$(() => {
+    return (
+      <button onClick$={() => await api()}></button>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        strip_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_reg_ctx_name_hooks() {
     test_input!(TestInput {
         code: r#"

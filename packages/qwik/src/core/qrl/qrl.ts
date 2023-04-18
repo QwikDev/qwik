@@ -24,7 +24,7 @@ const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 // https://regexr.com/6a83h
 const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
-const announcedQRL = /*@__PURE__*/ new Set<string>();
+const announcedQRL = /*#__PURE__*/ new Set<string>();
 
 /**
  * @public

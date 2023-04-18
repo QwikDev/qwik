@@ -381,15 +381,6 @@ impl<'a> QwikTransform<'a> {
             })
         };
         let local_idents = self.get_local_idents(&folded);
-
-        for id in &local_idents {
-            if !self.options.global_collect.exports.contains_key(id)
-                && self.options.global_collect.root.contains_key(id)
-            {
-                self.ensure_export(id);
-            }
-        }
-
         let hook_data = HookData {
             extension: self.options.extension.clone(),
             local_idents,
@@ -402,7 +393,17 @@ impl<'a> QwikTransform<'a> {
             need_transform: false,
             hash,
         };
-        if !self.should_emit_hook(&hook_data) {
+        let should_emit = self.should_emit_hook(&hook_data);
+        if should_emit {
+            for id in &hook_data.local_idents {
+                if !self.options.global_collect.exports.contains_key(id)
+                    && self.options.global_collect.root.contains_key(id)
+                {
+                    self.ensure_export(id);
+                }
+            }
+        }
+        if !should_emit {
             self.create_noop_qrl(&symbol_name, hook_data)
         } else if self.is_inline() {
             let folded = if self.should_reg_hook(&hook_data.ctx_name) {
@@ -549,27 +550,6 @@ impl<'a> QwikTransform<'a> {
         // Collect local idents
         let local_idents = self.get_local_idents(&folded);
 
-        for id in &local_idents {
-            if !self.options.global_collect.exports.contains_key(id) {
-                if self.options.global_collect.root.contains_key(id) {
-                    self.ensure_export(id);
-                }
-                if invalid_decl.iter().any(|entry| entry.0 == *id) {
-                    HANDLER.with(|handler| {
-                        handler
-                            .struct_err_with_code(
-                                &format!(
-                                    "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
-                                    id.0
-                                ),
-                                errors::get_diagnostic_id(errors::Error::FunctionReference),
-                            )
-                            .emit();
-                    });
-                }
-            }
-        }
-
         let (mut scoped_idents, immutable) =
             compute_scoped_idents(&descendent_idents, &decl_collect);
         if !can_capture && !scoped_idents.is_empty() {
@@ -597,7 +577,30 @@ impl<'a> QwikTransform<'a> {
             need_transform: true,
             hash,
         };
-        if !self.should_emit_hook(&hook_data) {
+        let should_emit = self.should_emit_hook(&hook_data);
+        if should_emit {
+            for id in &hook_data.local_idents {
+                if !self.options.global_collect.exports.contains_key(id) {
+                    if self.options.global_collect.root.contains_key(id) {
+                        self.ensure_export(id);
+                    }
+                    if invalid_decl.iter().any(|entry| entry.0 == *id) {
+                        HANDLER.with(|handler| {
+                            handler
+                                .struct_err_with_code(
+                                    &format!(
+                                        "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+                                        id.0
+                                    ),
+                                    errors::get_diagnostic_id(errors::Error::FunctionReference),
+                                )
+                                .emit();
+                        });
+                    }
+                }
+            }
+        }
+        if !should_emit {
             (self.create_noop_qrl(&symbol_name, hook_data), immutable)
         } else if self.is_inline() {
             let folded = if !hook_data.scoped_idents.is_empty() {

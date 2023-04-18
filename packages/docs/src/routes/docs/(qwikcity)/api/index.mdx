@@ -167,7 +167,7 @@ The above code would generate:
 
 The `useNavigate()` function allows to programatically navigate to the next page without involving a user click or causing a full-page reload. This is the API used by the `<Link>` component internally to support SPA navigation.
 
-This function returns a `nav()` function that can be used to navigate to a new path.
+This function returns a `nav()` function that can be used to "push" to a new path.
 
 Also, `useNavigate` can be used to SPA refresh the current page, by calling the `nav()` function without arguments.
 

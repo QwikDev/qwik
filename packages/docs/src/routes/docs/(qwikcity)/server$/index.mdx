@@ -27,10 +27,10 @@ export default component$(() => {
   const lastName = useSignal('');
 
   return (
-    <div>
-      First name: <input bind:value={name} />
-      Last name: <input bind:value={name} />
-
+    <section>
+      <label>First name: <input bind:value={name} /></label>
+      <label>Last name: <input bind:value={name} /></label>
+      
       <button
         onClick$={async () => {
           const greeting = await serverGreeter(firstName.value, lastName.value);
@@ -39,7 +39,7 @@ export default component$(() => {
       >
         greet
       </button>
-    </div>
+    </section>
   );
 });
 ```

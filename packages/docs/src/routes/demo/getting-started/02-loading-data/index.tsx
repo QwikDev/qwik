@@ -16,8 +16,8 @@ export default component$(() => {
   // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
-    </div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
+    </section>
   );
 });

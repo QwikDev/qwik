@@ -76,7 +76,7 @@ Start by serving a page at a particular route. This basic app serves a random da
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <div class="section bright">A Joke!</div>;
+  return <section class="section bright">A Joke!</section>;
 });
 ```
 </CodeSandbox>
@@ -114,9 +114,9 @@ export default component$(() => {
   // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
-    </div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
+    </section>
   );
 });
 ```
@@ -159,14 +159,14 @@ export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">👍</button>
         <button name="vote" value="down">👎</button>
       </Form>
-    </div>
+    </section>
   );
 });
 ```
@@ -213,8 +213,8 @@ export default component$(() => {
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">
@@ -224,7 +224,7 @@ export default component$(() => {
           👎
         </button>
       </Form>
-    </div>
+    </section>
   );
 });
 ```
@@ -284,8 +284,8 @@ export default component$(() => {
   const favoriteJokeAction = useJokeVoteAction();
 
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">👍</button>
@@ -296,7 +296,7 @@ export default component$(() => {
       >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
-    </div>
+    </section>
   );
 });
 ```
@@ -379,8 +379,8 @@ export default component$(() => {
     })();
   });
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">👍</button>
@@ -391,7 +391,7 @@ export default component$(() => {
       >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
-    </div>
+    </section>
   );
 });
 ```
@@ -406,7 +406,7 @@ To add styles:
 1. Create a new file `src/routes/joke/index.css`:
 
    ```css
-   div {
+   p {
      font-weight: bold;
    }
 
@@ -476,8 +476,8 @@ export default component$(() => {
     })();
   });
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">👍</button>
@@ -488,7 +488,7 @@ export default component$(() => {
       >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
-    </div>
+    </section>
   );
 });
 ```

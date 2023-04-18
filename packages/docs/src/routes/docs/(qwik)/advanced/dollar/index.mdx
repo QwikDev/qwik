@@ -275,7 +275,7 @@ Let's look at a simple case:
 
 ```tsx
 export const Greeter = component$(() => {
-  return <span>Hello World!</span>;
+  return <p>Hello World!</p>;
 });
 ```
 
@@ -302,9 +302,9 @@ export const Greeter = component$((props: { name: string }) => {
   const salutation = 'Hello';
 
   return (
-    <span>
+    <p>
       {salutation} {props.name}!
-    </span>
+    </p>
   );
 });
 ```
@@ -324,9 +324,9 @@ const Greeter_onMount = (props) => {
 
 ```tsx title="chunk-b.js"
 const Greeter_onRender = () => (
-  <span>
+  <p>
     {salutation} {props.name}!
-  </span>
+  </p>
 );
 ```
 
@@ -344,9 +344,9 @@ const Greeter_onRender = () => {
   const [salutation, props] = useLexicalScope();
 
   return (
-    <span>
+    <p>
       {salutation} {props.name}!
-    </span>
+    </p>
   );
 };
 ```

@@ -113,10 +113,8 @@ export const onGet: RequestHandlerNetlify = ({ platform }) => {
 ### Environment variables
 
 ```ts
-export const onRequest = async ({ platform }) => {
-  platform.log('Vite env read from .dev file', import.meta.env.VITE_DEV);
-  platform.log('netlify serverless env read from Netlify UI or CLI', Deno.env.toObject());
-  return {};
+export const onRequest = async ({ env }) => {
+  platform.log('netlify serverless env read from Netlify UI or CLI', env.get('API_KEY'));
 };
 ```
 

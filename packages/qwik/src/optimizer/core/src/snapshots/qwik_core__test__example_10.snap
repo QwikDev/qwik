@@ -72,6 +72,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 */
 ============================= project/test.tsx ==
 
+import { qrl } from "@builder.io/qwik";
+/*#__PURE__*/ qrl(()=>import("../header_wlr3xni6u38"), "Header_WlR3xnI6u38");
 
 
 Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")

@@ -353,7 +353,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             &path_data,
                             config.src_dir,
                         ));
-                    } else if config.minify != MinifyMode::None {
+                    } else if config.minify != MinifyMode::None
+                        && matches!(config.is_server, Some(false))
+                    {
                         let mut clean_transform = CleanSideEffects::new();
                         main_module.visit_mut_with(&mut clean_transform);
                         if clean_transform.did_drop {

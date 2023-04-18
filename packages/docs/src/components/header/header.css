@@ -50,8 +50,8 @@ header .mobile-menu {
   @apply p-5 lg:hidden;
 }
 
-header ul {
-  @apply hidden lg:block;
+header .menu-toolkit {
+  @apply hidden lg:flex;
   @apply pt-0 pb-6 lg:pt-0;
   height: 100%;
   align-items: center;
@@ -107,7 +107,7 @@ header .header-logo {
     padding: 0.5rem 1rem;
   }
 
-  .header-open header ul {
+  .header-open header ul:not([role='listbox']) {
     position: absolute;
     z-index: 10;
     display: block;

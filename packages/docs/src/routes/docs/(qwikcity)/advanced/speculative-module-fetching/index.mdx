@@ -159,8 +159,26 @@ So while Qwik City does provide a way to help prefetch and cache bundles, it doe
 
 ## Disabled During Development and Preview
 
-One gotcha is that during development, and using Vite's preview mode, is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the fresh code is being used, and not cached. To see speculative module fetching in action you'll need to run the production build on a server other than development or preview.
+One gotcha is that during development, and using Vite's preview mode, is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the latest development code is always being used, rather than previous code. 
 
-Next, caching modules can happen at various levels, and may give the impression and prefetching isn't happening. For example, the browser itself may cache requests in its HTTP cache, and the service worker may cache modules using the [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
+Speculative module fetching only kicks on a production build. To see speculative module fetching in action you'll need to run the production build on a server other than development or preview.
 
-When developers run [Empty Cache and Hard Reload](https://developer.chrome.com/blog/hard-reload/), it's actually only emptying the browser's HTTP cache. It's not, however, emptying the service worker's cache. Even though the browser's HTTP cache is empty, the service worker still has the requets it fetched early happily sitting in the cache. This explains why when a Hard Reload happens you may not see speculative module fetching, since the service worker cache already knows it doesn't need to fetch again.
+### HTTP Cache vs. Service Worker Cache
+
+Speculative module fetching may appear to not be working partly due to the various levels of caching. For example, the browser itself may cache requests in its [HTTP cache](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching), and the service worker may cache requests in the [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Just emptying one of the caches may not be enough to see the effects of speculative module fetching.
+
+### Misleading Empty Cache and Hard Reload
+
+When developers run [Empty Cache and Hard Reload](https://developer.chrome.com/blog/hard-reload/), it's a bit misleading because it actually _only_ empties the browser's HTTP cache. It's not, however, emptying the service worker's cache. Even though the browser's HTTP cache is empty, the service worker still has the previous cached requests.
+
+Additionally, when "Empty Cache and Hard Reload" is used, the browser sends a `no-cache` cache-control header in the _request_ to the server. Because the request has a `no-cache` cache-control header, the service worker purposely does not use its own cache, and instead the browser performs the usual HTTP fetch again.
+
+### Emptying the Service Worker Cache
+
+The recommended way to test specualtive module fetching is to:
+
+- **Unregister the service worker**: In Chrome DevTools, go to the Application tab, and under Service Workers, click the "Unregister" link for the for your site's service worker.
+- **Delete the "QwikBuild" Cache Storage**: In Chrome DevTools, go to the Application tab, and under Cache Storage on the left side, right click "Delete" on the "QwikBuild" cache storage.
+- **Do not hard reload**: Instead of hard reloading, which would send a no-cache cache-control to the service worker, just click the URL bar and hit enter. This will send a normal request as if you were a first time visitor.
+
+Note that this process is only for testing the speculative module fetching, and is not required for new builds. Each build will create a new service worker, and the old service worker will be automatically unregistered.

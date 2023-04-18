@@ -18,7 +18,7 @@ Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode
 
 Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
 
-Build-time variables are prefixed by default with `VITE_` and can be accessed with with `import.meta.env.VITE_`.
+Build-time variables are prefixed by default with `VITE_` and can be accessed with with `import.meta.env.VITE_*`.
 
 ```tsx title=".env" /VITE_API_URL/#a
 VITE_API_URL=https://api.example.com

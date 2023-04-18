@@ -10,7 +10,6 @@ import {
   _serializeData,
   _deserializeData,
   _getContextElement,
-  useServerData,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';

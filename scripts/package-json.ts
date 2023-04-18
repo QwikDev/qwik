@@ -31,12 +31,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './cli': {
@@ -48,12 +48,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './jsx-dev-runtime': {

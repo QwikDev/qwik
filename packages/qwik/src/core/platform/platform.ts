@@ -79,7 +79,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
   return new URL(url, base);
 };
 
-let _platform = /* @__PURE__ */ createPlatform();
+let _platform = /*#__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

@@ -184,7 +184,7 @@ export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
   }
 }
 
-const EMITTED = /*@__PURE__*/ new Set();
+const EMITTED = /*#__PURE__*/ new Set();
 
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
   if (!EMITTED.has(symbol)) {

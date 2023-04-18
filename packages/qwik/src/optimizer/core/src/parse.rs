@@ -6,6 +6,7 @@ use std::path::{Component, Path, PathBuf};
 use std::str;
 
 use crate::add_side_effect::SideEffectVisitor;
+use crate::clean_side_effects::CleanSideEffects;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
@@ -352,6 +353,21 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             &path_data,
                             config.src_dir,
                         ));
+                    } else if config.minify != MinifyMode::None {
+                        let mut clean_transform = CleanSideEffects::new();
+                        main_module.visit_mut_with(&mut clean_transform);
+                        if clean_transform.did_drop {
+                            main_module = main_module.fold_with(&mut simplify::simplifier(
+                                unresolved_mark,
+                                simplify::Config {
+                                    dce: simplify::dce::Config {
+                                        preserve_imports_with_side_effects: false,
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                },
+                            ));
+                        }
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                     main_module.visit_mut_with(&mut fixer(None));

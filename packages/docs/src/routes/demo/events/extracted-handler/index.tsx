@@ -6,7 +6,7 @@ export default component$(() => {
   return (
     <>
       <button onClick$={increment}>Increment</button>
-      <div>Count: {count.value}</div>
+      <p>Count: {count.value}</p>
     </>
   );
 });

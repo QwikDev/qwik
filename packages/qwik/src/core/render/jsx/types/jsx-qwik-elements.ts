@@ -15,7 +15,6 @@ interface QwikCustomHTMLElement extends HTMLElement {}
  */
 export interface QwikIntrinsicAttributes {
   key?: string | number | undefined | null;
-  children?: any;
 }
 
 /**

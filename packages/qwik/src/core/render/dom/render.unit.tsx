@@ -938,7 +938,7 @@ export const Project = component$(() => {
 export const SimpleProject = component$(() => {
   return (
     <section>
-      <Slot>..default..</Slot>
+      <Slot></Slot>
     </section>
   );
 });

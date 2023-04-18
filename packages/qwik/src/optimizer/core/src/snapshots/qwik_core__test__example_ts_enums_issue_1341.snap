@@ -26,11 +26,15 @@ export const App = component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 let Thing;
+(function(Thing) {
+    Thing[Thing["A"] = 0] = "A";
+    Thing[Thing["B"] = 1] = "B";
+})(Thing || (Thing = {}));
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 export { Thing as _auto_Thing };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;IAGA;AAKA,OAAO,MAAM,oBAAM,wGAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;IAGA;UAAK,KAAK;IAAL,MAAA,MACD,OAAA,KAAA;IADC,MAAA,MAED,OAAA,KAAA;GAFC,UAAA;AAKL,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { _auto_Thing as Thing } from "./test";

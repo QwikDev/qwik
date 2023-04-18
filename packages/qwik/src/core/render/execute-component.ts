@@ -34,13 +34,8 @@ export const executeComponent = (
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
   const newCtx = pushRenderContext(rCtx);
-  const invocationContext = newInvokeContext(
-    rCtx.$static$.$locale$,
-    hostElement,
-    undefined,
-    RenderEvent
-  );
-  const waitOn = (invocationContext.$waitOn$ = []);
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, RenderEvent);
+  const waitOn = (iCtx.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
@@ -49,12 +44,12 @@ export const executeComponent = (
   newCtx.$slotCtx$ = null;
 
   // Invoke render hook
-  invocationContext.$subscriber$ = [0, hostElement];
-  invocationContext.$renderCtx$ = rCtx;
+  iCtx.$subscriber$ = [0, hostElement];
+  iCtx.$renderCtx$ = rCtx;
 
   // Resolve render function
   componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
-  const componentFn = componentQRL.getFn(invocationContext);
+  const componentFn = componentQRL.getFn(iCtx);
 
   return safeCall(
     () => componentFn(props),

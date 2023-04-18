@@ -296,6 +296,7 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
+  ev: RequestEvent;
   params: PathParams;
   response: EndpointResponse;
   loadedRoute: LoadedRoute | null;

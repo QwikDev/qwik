@@ -1,4 +1,4 @@
-import { useInvokeContext } from './use-core';
+import { tryGetInvokeContext } from './use-core';
 
 /**
  * @public
@@ -14,6 +14,6 @@ export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
  * @public
  */
 export function useServerData(key: string, defaultValue?: any) {
-  const ctx = useInvokeContext();
-  return ctx.$renderCtx$.$static$.$containerState$.$serverData$[key] ?? defaultValue;
+  const ctx = tryGetInvokeContext();
+  return ctx?.$renderCtx$?.$static$.$containerState$.$serverData$[key] ?? defaultValue;
 }

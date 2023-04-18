@@ -364,14 +364,14 @@ const renderSSRComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
-    const invocationContext = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
-    invocationContext.$subscriber$ = [0, hostElement];
-    invocationContext.$renderCtx$ = newRCtx;
+    const iCtx = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
+    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       ...ssrCtx,
       $projectedChildren$: splitProjectedChildren(node.children, ssrCtx),
       $projectedCtxs$: [rCtx, ssrCtx],
-      $invocationContext$: invocationContext,
+      $invocationContext$: iCtx,
     };
 
     const extraNodes: JSXNode<string>[] = [];

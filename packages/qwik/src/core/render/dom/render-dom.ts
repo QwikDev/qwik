@@ -33,10 +33,10 @@ export const renderComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const staticCtx = rCtx.$static$;
     const newCtx = res.rCtx;
-    const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
+    const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocationContext.$subscriber$ = [0, hostElement];
-    invocationContext.$renderCtx$ = newCtx;
+    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
         for (const style of elCtx.$appendStyles$) {
@@ -44,7 +44,7 @@ export const renderComponent = (
         }
       }
     }
-    const processedJSXNode = processData(res.node, invocationContext);
+    const processedJSXNode = processData(res.node, iCtx);
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       // const oldVdom = getVdom(hostElement);

@@ -14,9 +14,11 @@ Qwik apps can read environment variables in two main ways: **build-time variable
 
 Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode.html). They are defined in `.env` files and are available **in the browser and in the server-side code**.
 
+> **IMPORTANT! DO NOT** use `import.meta.env.PUBLIC_*` to store any sensitive information, such as API keys, secrets, passworlds, etc. **Only public data**.
+
 Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
 
-Build-time variables are prefixed by default with `PUBLIC_` and can be accessed with with `import.meta.env.PUBLIC_`.
+Build-time variables are prefixed by default with `PUBLIC_` and can be accessed with with `import.meta.env.PUBLIC_*`.
 
 ```tsx title=".env" /PUBLIC_API_URL/#a
 PUBLIC_API_URL=https://api.example.com
@@ -26,6 +28,7 @@ PUBLIC_API_URL=https://api.example.com
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
+  // `import.meta.env.VITE_*` variables can be read anywhere, including browser
   return <div>PUBLIC_API_URL: {import.meta.env.PUBLIC_API_URL}</div>
 })
 ```

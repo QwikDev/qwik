@@ -316,16 +316,18 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
           },
           body,
         });
-        if (!res.ok) {
-          throw new Error(`Server function failed: ${res.statusText}`);
-        }
-        if (res.headers.get('Content-Type') === 'text/event-stream') {
+
+        const contentType = res.headers.get('Content-Type');
+        if (res.ok && contentType === 'text/event-stream') {
           const { writable, readable } = getSSETransformer();
           res.body?.pipeTo(writable);
           return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
-        } else {
+        } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          if (res.status === 500) {
+            throw obj;
+          }
           return obj;
         }
       }

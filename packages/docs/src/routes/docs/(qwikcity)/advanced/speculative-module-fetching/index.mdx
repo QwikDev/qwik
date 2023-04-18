@@ -156,3 +156,11 @@ Additionally, the default `src/routes/service-worker.ts` file comes with an [ins
 Another important note is that Qwik City's request intercepting is _only_ for Qwik bundles, it does not attempt to handle any requests which are not a part of its build.
 
 So while Qwik City does provide a way to help prefetch and cache bundles, it does not take full control of the app's service worker. This still allows developers to add their service worker logic without conflicting with Qwik.
+
+## Disabled During Development and Preview
+
+One gotcha is that during development, and using Vite's preview mode, is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the fresh code is being used, and not cached. To see speculative module fetching in action you'll need to run the production build on a server other than development or preview.
+
+Next, caching modules can happen at various levels, and may give the impression and prefetching isn't happening. For example, the browser itself may cache requests in its HTTP cache, and the service worker may cache modules using the [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
+
+When developers run [Empty Cache and Hard Reload](https://developer.chrome.com/blog/hard-reload/), it's actually only emptying the browser's HTTP cache. It's not, however, emptying the service worker's cache. Even though the browser's HTTP cache is empty, the service worker still has the requets it fetched early happily sitting in the cache. This explains why when a Hard Reload happens you may not see speculative module fetching, since the service worker cache already knows it doesn't need to fetch again.

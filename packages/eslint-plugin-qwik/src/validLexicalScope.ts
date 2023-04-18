@@ -317,7 +317,7 @@ function _isTypeCapturable(
       reason: 'is Symbol, which is not serializable',
     };
   }
-  const isEnum = type.flags & ts.TypeFlags.EnumLike;
+  const isEnum = type.flags & ts.TypeFlags.Enum;
   if (isEnum) {
     return {
       type,

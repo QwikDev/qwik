@@ -16,21 +16,21 @@ Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode
 
 Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
 
-Build-time variables are prefixed by default with `VITE_` and can be accessed with with `import.meta.env.VITE_`.
+Build-time variables are prefixed by default with `PUBLIC_` and can be accessed with with `import.meta.env.PUBLIC_`.
 
-```tsx title=".env" /VITE_API_URL/#a
-VITE_API_URL=https://api.example.com
+```tsx title=".env" /PUBLIC_API_URL/#a
+PUBLIC_API_URL=https://api.example.com
 ```
 
-```tsx {4} /VITE_API_URL/#a title="src/routes/index.tsx"
+```tsx {4} /PUBLIC_API_URL/#a title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <div>VITE_API_URL: {import.meta.env.VITE_API_URL}</div>
+  return <div>PUBLIC_API_URL: {import.meta.env.PUBLIC_API_URL}</div>
 })
 ```
 
-> `import.meta.url.VITE_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
+> `import.meta.url.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
 
 ## Server-side variables
 

@@ -230,6 +230,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         ssr: {
           noExternal: vendorIds,
         },
+        envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],

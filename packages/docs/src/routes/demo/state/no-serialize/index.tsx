@@ -17,5 +17,5 @@ export default component$(() => {
     // We can however instantiate it on the client after the component is visible
     setTimeout(() => (store.monacoInstance = noSerialize(new Monaco())), 1000);
   });
-  return <div>{store.monacoInstance ? 'Monaco is loaded' : 'loading...'}</div>;
+  return <p>{store.monacoInstance ? 'Monaco is loaded' : 'loading...'}</p>;
 });

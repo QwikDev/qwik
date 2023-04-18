@@ -7,8 +7,8 @@ export default component$(() => {
   return (
     <>
       <input type="text" bind:value={name} />
-      <div>Name: {name.value}</div>
-      <div>Capitalized name: {capitalizedName.value}</div>
+      <p>Name: {name.value}</p>
+      <p>Capitalized name: {capitalizedName.value}</p>
     </>
   );
 });

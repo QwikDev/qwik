@@ -3,12 +3,12 @@ import { component$ } from '@builder.io/qwik';
 export default component$(() => {
   return (
     <>
-      <div>Parent Text</div>
+      <p>Parent Text</p>
       <Child />
     </>
   );
 });
 
 const Child = component$(() => {
-  return <div>Child Text</div>;
+  return <p>Child Text</p>;
 });

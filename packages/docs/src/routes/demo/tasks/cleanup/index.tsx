@@ -11,9 +11,11 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      <div>Debounced text: {debounceText}</div>
-    </div>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <p>Debounced text: {debounceText}</p>
+    </section>
   );
 });

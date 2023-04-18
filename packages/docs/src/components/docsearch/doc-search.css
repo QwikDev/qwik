@@ -33,6 +33,7 @@
   --docsearch-text-color: var(--docsearch-muted-color);
   border: 2px solid var(--interactive-text-color);
   --docsearch-muted-color: var(--interactive-text-color);
+  margin: 0 16px;
 }
 
 @media (min-width: 1000px) {
@@ -79,6 +80,7 @@
 
 @media (max-width: 1023px) {
   .docsearch {
-    display: none;
+    display: inline-block;
+    margin: 0 auto;
   }
 }

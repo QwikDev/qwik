@@ -22,7 +22,7 @@ Several examples comparing React and Qwik.
 
 ```tsx
 export const HelloWorld = component$(() => {
-  return <p>Hello world</p>;
+  return <div>Hello world</div>;
 });
 ```
 
@@ -30,7 +30,7 @@ export const HelloWorld = component$(() => {
 
 ```tsx
 export function HelloWorld() {
-  return <p>Hello world</p>;
+  return <div>Hello world</div>;
 }
 ```
 
@@ -59,7 +59,7 @@ export function Button() {
 ```tsx
 export const LocalStateExample = component$(() => {
   const count = useSignal(0);
-  return <p>Value is: {state.value}</p>;
+  return <div>Value is: {state.value}</div>;
 });
 ```
 
@@ -68,7 +68,7 @@ export const LocalStateExample = component$(() => {
 ```tsx
 export function UseStateExample() {
   const [value, setValue] = useState(0);
-  return <p>Value is: {value}</p>;
+  return <div>Value is: {value}</div>;
 }
 ```
 

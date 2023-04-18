@@ -24,12 +24,16 @@ export default component$(() => {
 
   return (
     <section>
-      <p>Enter your name, and I'll guess your age!</p>
-      <input
-        onInput$={(e: Event) =>
-          (name.value = (e.target as HTMLInputElement).value)
-        }
-      />
+      <div>
+        <label>
+          Enter your name, and I'll guess your age!
+          <input
+            onInput$={(e: Event) =>
+              (name.value = (e.target as HTMLInputElement).value)
+            }
+          />
+        </label>
+      </div>
       <Resource
         value={ageResource}
         onPending={() => <p>Loading...</p>}

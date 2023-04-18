@@ -214,7 +214,7 @@ import {
 export default component$(() => {
   const prNumber = useSignal('3576');
 
-  const prTitle = useResource$(async ({ track }) => {
+  const prTitle = useResource$<string>(async ({ track }) => {
     // it will run first on mount (server), then re-run whenever prNumber changes (client)
     // this means this code will run on the server and the browser
     track(() => prNumber.value);
@@ -228,9 +228,7 @@ export default component$(() => {
   return (
     <>
       <input type="number" bind:value={prNumber} />
-      <h1>
-        PR#{prNumber}:
-      </h1>
+      <h1>PR#{prNumber}:</h1>
       <Resource
         value={prTitle}
         onPending={() => <p>Loading...</p>}
@@ -306,8 +304,8 @@ export default component$(() => {
         onPending={() => <>loading...</>}
         onResolved={(jokes) => (
           <ul>
-            {jokes.map((joke) => (
-              <li>{joke.value}</li>
+            {jokes.map((joke, i) => (
+              <li key={i}>{joke.value}</li>
             ))}
           </ul>
         )}
@@ -375,7 +373,7 @@ export default component$(() => {
 
   return (
     <section>
-      <p>
+      <div>
         <label>
           Enter your name, and I'll guess your age!
           <input
@@ -384,7 +382,7 @@ export default component$(() => {
             }
           />
         </label>
-      </p>
+      </div>
       <Resource
         value={ageResource}
         onPending={() => <p>Loading...</p>}
@@ -503,16 +501,16 @@ import {
   useVisibleTask$,
   type NoSerialize,
 } from '@builder.io/qwik';
-import * as monaco from 'monaco-editor';
+import * as monaco from './monaco';
 
 export default component$(() => {
-  const editorRef = useSignal<Element>();
-  const store = useStore<{ monacoInstance: NoSerialize<Monaco> }>({
+  const editorRef = useSignal<HTMLElement>();
+  const store = useStore<{ monacoInstance: NoSerialize<any> }>({
     monacoInstance: undefined,
   });
 
   useVisibleTask$(() => {
-    const editor = monaco.editor.create(editorRef.value, {
+    const editor = monaco.editor.create(editorRef.value!, {
       value: 'Hello, world!',
     });
     // Monaco is not serializable, so we can't serialize it as part of SSR

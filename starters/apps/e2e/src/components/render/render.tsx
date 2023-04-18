@@ -657,7 +657,7 @@ export const IssueChildrenSpread = component$(() => {
         <div>2</div>
       </Hola>
       <div id="issue-children-spread-result">
-        <Type {...signal.value as any}></Type>
+        <Type {...(signal.value as any)}></Type>
       </div>
     </div>
   );

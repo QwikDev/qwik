@@ -10,9 +10,19 @@ import { server$ } from '@builder.io/qwik-city';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
+import { sideEffect } from './secret';
 
 const supabase = clientSupabase();
 const dfd = new Client(secret);
+
+(function() {
+    console.log('run');
+  })();
+  (() => {
+    console.log('run');
+  })();
+
+sideEffect();
 
 export const api = server$(() => {
     supabase.from('ffg').do(dfd);
@@ -30,18 +40,26 @@ import { serverQrl } from "@builder.io/qwik-city";
 import { _noopQrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
+import { sideEffect } from './secret';
+(function() {
+    console.log('run');
+})();
+(()=>{
+    console.log('run');
+})();
+sideEffect();
 export const api = serverQrl(/*#__PURE__*/ _noopQrl("api_server_JonPp043gH0"));
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAUA,OAAO,MAAM,MAAM,4DAEhB;AAEH,6BAAe,0GAIV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKrC,CAAA,WAAW;IACR,QAAQ,GAAG,CAAC;AACd,CAAA;AACC,CAAA,IAAM;IACL,QAAQ,GAAG,CAAC;AACd,CAAA;AAEF;AAEA,OAAO,MAAM,MAAM,4DAEhB;AAEH,6BAAe,0GAIV\"}")
 ============================= test_component_button_onclick_dgk9xlyroka.js (ENTRY POINT)==
 
 import { api } from "./test";
 export const test_component_button_onClick_DGk9xLyRokA = ()=>await api();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDAgBwB,IAAM,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDA0BwB,IAAM,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -56,8 +74,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    423,
-    440
+    567,
+    584
   ]
 }
 */
@@ -72,7 +90,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAc0B,IAAM;IAC5B,qBACE,MAAC;QAAO,QAAQ;;AAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B,IAAM;IAC5B,qBACE,MAAC;QAAO,QAAQ;;AAEpB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -87,8 +105,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    378,
-    461
+    522,
+    605
   ]
 }
 */

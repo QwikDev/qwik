@@ -685,9 +685,19 @@ import { server$ } from '@builder.io/qwik-city';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
+import { sideEffect } from './secret';
 
 const supabase = clientSupabase();
 const dfd = new Client(secret);
+
+(function() {
+    console.log('run');
+  })();
+  (() => {
+    console.log('run');
+  })();
+
+sideEffect();
 
 export const api = server$(() => {
     supabase.from('ffg').do(dfd);

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   component$,
   useSignal,
@@ -31,6 +30,7 @@ export const useJokeVoteAction = routeAction$((props) => {
 export default component$(() => {
   useStylesScoped$(STYLES);
   const isFavoriteSignal = useSignal(false);
+  // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {

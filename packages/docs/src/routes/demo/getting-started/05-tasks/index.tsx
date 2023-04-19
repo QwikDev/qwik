@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import {
   routeLoader$,
@@ -24,6 +23,7 @@ export const useJokeVoteAction = routeAction$((props) => {
 
 export default component$(() => {
   const isFavoriteSignal = useSignal(false);
+  // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {

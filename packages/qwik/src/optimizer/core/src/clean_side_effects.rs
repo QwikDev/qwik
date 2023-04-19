@@ -30,11 +30,8 @@ impl Treeshaker {
 
 impl VisitMut for CleanMarker {
     fn visit_mut_module_item(&mut self, node: &mut ast::ModuleItem) {
-        match node {
-            ast::ModuleItem::Stmt(ast::Stmt::Expr(expr)) => {
-                expr.span = expr.span.apply_mark(self.mark);
-            }
-            _ => {}
+        if let ast::ModuleItem::Stmt(ast::Stmt::Expr(expr)) = node {
+            expr.span = expr.span.apply_mark(self.mark);
         }
     }
 }

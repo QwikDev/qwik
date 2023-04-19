@@ -70,6 +70,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     buildMode: 'development',
     debug: false,
     rootDir: null as any,
+    tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
     outDir: null as any,
     resolveQwikBuild: false,
@@ -314,7 +315,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (optimizer.sys.env === 'node' && opts.target !== 'ssr') {
       try {
-        linter = await createLinter(optimizer.sys, opts.rootDir);
+        linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {
         // Nothing
       }
@@ -850,6 +851,7 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   forceFullBuild?: boolean;
   rootDir?: string;
+  tsconfigFileNames?: string[];
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;

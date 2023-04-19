@@ -6,7 +6,11 @@ export interface QwikLinter {
   lint(ctx: Rollup.PluginContext, code: string, id: string): void;
 }
 
-export async function createLinter(sys: OptimizerSystem, rootDir: string): Promise<QwikLinter> {
+export async function createLinter(
+  sys: OptimizerSystem,
+  rootDir: string,
+  tsconfigFileNames: string[]
+): Promise<QwikLinter> {
   const module: typeof import('eslint') = await sys.dynamicImport('eslint');
   const options: ESLint.Options = {
     cache: true,
@@ -23,7 +27,7 @@ export async function createLinter(sys: OptimizerSystem, rootDir: string): Promi
       parser: '@typescript-eslint/parser',
       parserOptions: {
         tsconfigRootDir: rootDir,
-        project: ['./tsconfig.json'],
+        project: tsconfigFileNames,
         ecmaVersion: 2021,
         sourceType: 'module',
         ecmaFeatures: {

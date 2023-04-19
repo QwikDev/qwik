@@ -6,7 +6,7 @@ use std::path::{Component, Path, PathBuf};
 use std::str;
 
 use crate::add_side_effect::SideEffectVisitor;
-use crate::clean_side_effects::CleanSideEffects;
+use crate::clean_side_effects::Treeshaker;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
@@ -332,7 +332,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     // Run main transform
                     main_module = main_module.fold_with(&mut qwik_transform);
 
+                    let mut treeshaker = Treeshaker::new();
+
                     if config.minify != MinifyMode::None {
+                        main_module.visit_mut_with(&mut treeshaker.marker);
+
                         main_module = main_module.fold_with(&mut simplify::simplifier(
                             unresolved_mark,
                             simplify::Config {
@@ -356,9 +360,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     } else if config.minify != MinifyMode::None
                         && matches!(config.is_server, Some(false))
                     {
-                        let mut clean_transform = CleanSideEffects::new();
-                        main_module.visit_mut_with(&mut clean_transform);
-                        if clean_transform.did_drop {
+                        main_module.visit_mut_with(&mut treeshaker.cleaner);
+                        if treeshaker.cleaner.did_drop {
                             main_module = main_module.fold_with(&mut simplify::simplifier(
                                 unresolved_mark,
                                 simplify::Config {

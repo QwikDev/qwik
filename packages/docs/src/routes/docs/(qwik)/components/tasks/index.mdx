@@ -299,9 +299,9 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 `useVisibleTask$()` has these properties:
 
 - runs on the client only.
-- eagerly executes code on the client when the component because visible.
-- Runs after initial rendering.
-- Does not block rendering.
+- eagerly executes code on the client when the component becomes visible.
+- runs after initial rendering.
+- does not block rendering.
 
 > **Caution**: The `useVisibleTask$()` should be used as a last resort, because it eagerly executes code on the client. Qwik through [resumability]() goes out of its way to delay the execution of code on the client, and `useVisibleTask$()` is an escape hatch that should be used with caution. See [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx#dont-register-events-eagerly-with-usevisibletask) for more details.
 > If you need to run a task on a client consider `useTask$()` with a server guard.

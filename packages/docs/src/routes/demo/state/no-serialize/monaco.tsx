@@ -1,6 +1,9 @@
 export default class Monaco {}
-export const editor = {
-  create(..._args: any[]): any {
-    return _args;
+export const monacoEditor = {
+  create(element: HTMLElement, { value }: { value: string }): any {
+    setTimeout(() => {
+      element.textContent = value;
+    }, 1000);
+    return new Monaco();
   },
 };

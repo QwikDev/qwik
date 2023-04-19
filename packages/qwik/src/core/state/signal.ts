@@ -1,7 +1,7 @@
 import { assertEqual, assertTrue } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isObject } from '../util/types';
 import type { ContainerState } from '../container/container';
@@ -102,7 +102,9 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
       if (this[QObjectSignalFlags] & SIGNAL_IMMUTABLE) {
         throw new Error('Cannot mutate immutable signal');
       }
-      verifySerializable(v);
+      if (qSerialize) {
+        verifySerializable(v);
+      }
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx) {
         if (invokeCtx.$event$ === RenderEvent) {

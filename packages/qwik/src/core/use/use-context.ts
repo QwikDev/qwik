@@ -1,6 +1,6 @@
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
 import {
@@ -207,7 +207,7 @@ export const useContextProvider = <STATE extends object>(
   if (!contexts) {
     elCtx.$contexts$ = contexts = new Map();
   }
-  if (qDev) {
+  if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
   contexts.set(context.id, newValue);

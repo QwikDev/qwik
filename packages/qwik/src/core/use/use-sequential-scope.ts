@@ -1,6 +1,6 @@
 import { verifySerializable } from '../state/common';
 import { getContext, type QContext } from '../state/context';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { type RenderInvokeContext, useInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {
@@ -20,7 +20,7 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
 
   iCtx.$seq$++;
   const set = (value: T) => {
-    if (qDev) {
+    if (qDev && qSerialize) {
       verifySerializable(value);
     }
     return (seq[i] = value);

@@ -1,7 +1,7 @@
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { qError, QError_immutableProps } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
@@ -163,7 +163,9 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const recursive = (flags & QObjectRecursive) !== 0;
     const unwrappedNewValue = recursive ? unwrapProxy(newValue) : newValue;
     if (qDev) {
-      verifySerializable(unwrappedNewValue);
+      if (qSerialize) {
+        verifySerializable(unwrappedNewValue);
+      }
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx) {
         if (invokeCtx.$event$ === RenderEvent) {

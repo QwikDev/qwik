@@ -3,15 +3,15 @@
 // DO NOT USE FOR PRODUCTION!!!
 /* eslint-disable no-console */
 
-import express, { NextFunction, Request, Response } from 'express';
-import { build, InlineConfig, PluginOption } from 'vite';
+import type { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { build, type InlineConfig, type PluginOption } from 'vite';
 import { join, resolve } from 'node:path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'node:fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
-import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
 import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
 
 const app = express();
@@ -88,7 +88,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
-  const baseUrl = `/${appName}/`;
+  const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
 
   // always clean the build directory
@@ -100,7 +100,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   if (enableCityServer) {
     // ssr entry existed in service folder, use dev plugin to
     // 1. export router
-    // 2. set baseUrl
+    // 2. set basePath
     plugins.push({
       name: 'devPlugin',
       resolveId(id) {
@@ -114,12 +114,12 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
           return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-import render from '${resolve(appSrcDir, 'entry.ssr')}';
 import qwikCityPlan from '@qwik-city-plan';
+import render from '${resolve(appSrcDir, 'entry.ssr')}';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
-  base: '${baseUrl}build/',
+  base: '${basePath}build/',
 });
 export {
   router,
@@ -139,19 +139,18 @@ export {
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(
-      qwikCityVite.qwikCity({
-        basePathname: '/qwikcity-test/',
-      })
-    );
+
+    plugins.push(qwikCityVite.qwikCity());
   }
+
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
     mode: 'development',
     configFile: false,
-    base: baseUrl,
+    base: basePath,
     ...extra,
     resolve: {
+      conditions: ['development'],
       alias: {
         '@builder.io/qwik': qwikDistDir,
         '@builder.io/qwik-city': qwikCityDistDir,
@@ -255,7 +254,7 @@ async function ssrApp(
     manifest,
     debug: true,
     base,
-    envData: {
+    serverData: {
       url,
     },
   };
@@ -288,40 +287,66 @@ function startersHomepage(_: Request, res: Response) {
   `);
 }
 
-(global as any).fetch = nodeFetch;
-(global as any).Headers = Headers;
-(global as any).Request = R;
-(global as any).Response = RE;
-
 function favicon(_: Request, res: Response) {
   const path = join(startersAppsDir, 'base', 'public', 'favicon.svg');
   res.sendFile(path);
 }
 
-const partytownPath = resolve(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
-app.use(`/~partytown`, express.static(partytownPath));
+async function main() {
+  await patchGlobalFetch();
 
-appNames.forEach((appName) => {
-  const buildPath = join(startersAppsDir, appName, 'dist', 'build');
-  app.use(`/${appName}/build`, express.static(buildPath));
+  const partytownPath = resolve(
+    startersDir,
+    '..',
+    'node_modules',
+    '@builder.io',
+    'partytown',
+    'lib'
+  );
+  app.use(`/~partytown`, express.static(partytownPath));
 
-  const publicPath = join(startersAppsDir, appName, 'public');
-  app.use(`/${appName}`, express.static(publicPath));
-});
-
-app.get('/', startersHomepage);
-app.get('/favicon*', favicon);
-app.all('/*', handleApp);
-
-const server = app.listen(port, () => {
-  console.log(`Starter Dir: ${startersDir}`);
-  console.log(`Dev Server: ${address}\n`);
-
-  console.log(`Starters:`);
   appNames.forEach((appName) => {
-    console.log(`  ${address}${appName}/`);
-  });
-  console.log(``);
-});
+    const buildPath = join(startersAppsDir, appName, 'dist', 'build');
+    app.use(`/${appName}/build`, express.static(buildPath));
 
-process.on('SIGTERM', () => server.close());
+    const publicPath = join(startersAppsDir, appName, 'public');
+    app.use(`/${appName}`, express.static(publicPath));
+  });
+
+  app.get('/', startersHomepage);
+  app.get('/favicon*', favicon);
+  app.all('/*', handleApp);
+
+  const server = app.listen(port, () => {
+    console.log(`Starter Dir: ${startersDir}`);
+    console.log(`Dev Server: ${address}\n`);
+
+    console.log(`Starters:`);
+    appNames.forEach((appName) => {
+      console.log(`  ${address}${appName}/`);
+    });
+    console.log(``);
+  });
+
+  process.on('SIGTERM', () => server.close());
+}
+
+main();
+
+async function patchGlobalFetch() {
+  if (
+    typeof global !== 'undefined' &&
+    typeof globalThis.fetch !== 'function' &&
+    typeof process !== 'undefined' &&
+    process.versions.node
+  ) {
+    if (!globalThis.fetch) {
+      const { fetch, Headers, Request, Response, FormData } = await import('undici');
+      globalThis.fetch = fetch as any;
+      globalThis.Headers = Headers as any;
+      globalThis.Request = Request as any;
+      globalThis.Response = Response as any;
+      globalThis.FormData = FormData as any;
+    }
+  }
+}

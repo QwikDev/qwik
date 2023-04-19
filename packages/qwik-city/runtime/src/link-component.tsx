@@ -1,59 +1,37 @@
-import type { ClientHistoryWindow } from './client-navigate';
-import { component$, Slot, QwikIntrinsicElements, $, useOnDocument } from '@builder.io/qwik';
-import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
+import { component$, Slot, type QwikIntrinsicElements, untrack } from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
+import { event$ } from '../../../qwik/src/core';
 
 /**
- * @alpha
+ * @public
  */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;
   const linkProps = { ...props };
-  const clientNavPath = getClientNavPath(linkProps, loc);
-  const prefetchDataset = getPrefetchDataset(props, clientNavPath, loc);
-
+  const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
+  const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
+  const reload = !!linkProps.reload;
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
-
-  useOnDocument(
-    'qinit',
-    $(() => {
-      if (!(window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]) {
-        (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED] = () => {
-          if (!(window as ClientHistoryWindow)[CLIENT_HISTORY_INITIALIZED]) {
-            // possible for page reload then hit back button to
-            // navigate to a client route added with history.pushState()
-            // in this scenario we need to reload the page
-            location.reload();
-          }
-        };
-
-        setTimeout(() => {
-          // this popstate listener will be removed when the client history is initialized
-          addEventListener(
-            'popstate',
-            (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]!
-          );
-        }, 0);
-      }
-    })
+  const event = event$((ev: any, elm: HTMLAnchorElement) =>
+    prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
   );
-
   return (
     <a
       {...linkProps}
-      onClick$={() => {
-        if (clientNavPath) {
-          nav.path = linkProps.href as any;
+      onClick$={(_, elm) => {
+        if (elm.href) {
+          nav(elm.href, reload);
         }
       }}
       data-prefetch={prefetchDataset}
-      onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
-      onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement, true)}
+      onMouseOver$={event}
+      onFocus$={event}
+      onQVisible$={event}
     >
       <Slot />
     </a>
@@ -72,7 +50,7 @@ export const prefetchLinkResources = (elm: HTMLAnchorElement, isOnVisible?: bool
     if (!isOnVisible || (isOnVisible && windowInnerWidth < 520)) {
       // either this is a mouseover event, probably on desktop
       // or the link is visible, and the viewport width is less than X
-      loadClientData(elm.href);
+      loadClientData(new URL(elm.href), elm);
     }
   }
 };
@@ -82,8 +60,9 @@ let windowInnerWidth = 0;
 type AnchorAttributes = QwikIntrinsicElements['a'];
 
 /**
- * @alpha
+ * @public
  */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
+  reload?: boolean;
 }

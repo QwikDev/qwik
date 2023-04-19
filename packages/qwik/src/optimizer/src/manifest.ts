@@ -14,7 +14,7 @@ import type {
 // still further optimize the priorities depending on the user/document.
 // This also helps ensure a stable q-manifest.json file.
 
-function prioritorizeSymbolNames(manifest: QwikManifest) {
+function prioritizeSymbolNames(manifest: QwikManifest) {
   const symbols = manifest.symbols;
 
   return Object.keys(symbols).sort((symbolNameA, symbolNameB) => {
@@ -35,7 +35,7 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
       const bIndex = EVENT_PRIORITY.indexOf(b.ctxName.toLowerCase());
 
       if (aIndex > -1 && bIndex > -1) {
-        // both symbols have an event with a prioritory
+        // both symbols have an event with a priority
         if (aIndex < bIndex) {
           return -1;
         }
@@ -58,7 +58,7 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
       const bIndex = FUNCTION_PRIORITY.indexOf(b.ctxName.toLowerCase());
 
       if (aIndex > -1 && bIndex > -1) {
-        // both symbols have a function with a prioritory
+        // both symbols have a function with a priority
         if (aIndex < bIndex) {
           return -1;
         }
@@ -165,9 +165,8 @@ const EVENT_PRIORITY = [
 ].map((n) => `on${n.toLowerCase()}$`);
 
 const FUNCTION_PRIORITY = [
-  'useWatch$',
-  'useClientEffect$',
-  'useEffect$',
+  'useTask$',
+  'useVisibleTask$',
   'component$',
   'useStyles$',
   'useStylesScoped$',
@@ -180,13 +179,13 @@ function sortBundleNames(manifest: QwikManifest) {
 }
 
 function updateSortAndPriorities(manifest: QwikManifest) {
-  const prioritorizedSymbolNames = prioritorizeSymbolNames(manifest);
-  const prioritorizedSymbols: { [symbolName: string]: QwikSymbol } = {};
-  const prioritorizedMapping: { [symbolName: string]: string } = {};
+  const prioritizedSymbolNames = prioritizeSymbolNames(manifest);
+  const prioritizedSymbols: { [symbolName: string]: QwikSymbol } = {};
+  const prioritizedMapping: { [symbolName: string]: string } = {};
 
-  for (const symbolName of prioritorizedSymbolNames) {
-    prioritorizedSymbols[symbolName] = manifest.symbols[symbolName];
-    prioritorizedMapping[symbolName] = manifest.mapping[symbolName];
+  for (const symbolName of prioritizedSymbolNames) {
+    prioritizedSymbols[symbolName] = manifest.symbols[symbolName];
+    prioritizedMapping[symbolName] = manifest.mapping[symbolName];
   }
 
   const sortedBundleNames = sortBundleNames(manifest);
@@ -201,8 +200,8 @@ function updateSortAndPriorities(manifest: QwikManifest) {
       bundle.dynamicImports.sort(sortAlphabetical);
     }
     const symbols: string[] = [];
-    for (const symbolName of prioritorizedSymbolNames) {
-      if (bundleName === prioritorizedMapping[symbolName]) {
+    for (const symbolName of prioritizedSymbolNames) {
+      if (bundleName === prioritizedMapping[symbolName]) {
         symbols.push(symbolName);
       }
     }
@@ -212,8 +211,8 @@ function updateSortAndPriorities(manifest: QwikManifest) {
     }
   }
 
-  manifest.symbols = prioritorizedSymbols;
-  manifest.mapping = prioritorizedMapping;
+  manifest.symbols = prioritizedSymbols;
+  manifest.mapping = prioritizedMapping;
   manifest.bundles = sortedBundles;
 
   return manifest;
@@ -222,8 +221,12 @@ function updateSortAndPriorities(manifest: QwikManifest) {
 function sortAlphabetical(a: string, b: string) {
   a = a.toLocaleLowerCase();
   b = b.toLocaleLowerCase();
-  if (a < b) return -1;
-  if (a > b) return 1;
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
   return 0;
 }
 
@@ -325,7 +328,7 @@ function addBundleToManifest(
       bundle.dynamicImports = bundleDynamicImports;
     }
 
-    const modulePaths = Object.keys(outputBundle.modules);
+    const modulePaths = Object.keys(outputBundle.modules).filter((m) => !m.startsWith(`\u0000`));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
     }

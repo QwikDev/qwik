@@ -33,6 +33,7 @@ const exec = async (cache: Cache, pkgName: string, pkgVersion: string, pkgPath: 
   const res = await depResponse(cache, pkgName, pkgVersion, pkgPath);
   if (res) {
     console.debug(`Run: ${res.url}`);
+    // eslint-disable-next-line no-new-func
     const run = new Function(await res.clone().text());
     run();
   } else {
@@ -55,6 +56,12 @@ export const loadDependencies = async (options: ReplInputOptions) => {
     depResponse(cache, 'prettier', PRETTIER_VERSION, '/standalone.js'),
     depResponse(cache, 'prettier', PRETTIER_VERSION, '/parser-html.js'),
   ]);
+
+  self.qwikBuild = {
+    isServer: true,
+    isBrowser: false,
+    isDev: false,
+  };
 
   if (!isSameQwikVersion(self.qwikCore?.version, version)) {
     await exec(cache, QWIK_PKG_NAME, version, '/core.cjs');

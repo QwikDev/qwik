@@ -20,6 +20,7 @@ import {
 } from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
+const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 
 test('isGroupedLayoutName', () => {
   const t = [
@@ -247,7 +248,8 @@ test('createFileId, Layout', () => {
     t.basePathname
   }`, () => {
     const opts: NormalizedPluginOptions = {
-      routesDir: routesDir,
+      routesDir,
+      serverPluginsDir,
       basePathname: t.basePathname,
       trailingSlash: t.trailingSlash,
       mdxPlugins: {
@@ -256,7 +258,7 @@ test('createFileId, Layout', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: t.basePathname,
+      platform: {},
     };
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
     equal(pathname, t.expect, t.dirPath);
@@ -346,7 +348,8 @@ test('parseRouteIndexName', () => {
 ].forEach((t) => {
   test(``, () => {
     const opts: NormalizedPluginOptions = {
-      routesDir: routesDir,
+      routesDir,
+      serverPluginsDir,
       basePathname: t.basePathname,
       trailingSlash: t.trailingSlash,
       mdxPlugins: {
@@ -355,7 +358,7 @@ test('parseRouteIndexName', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: t.basePathname,
+      platform: {},
     };
     const pathname = getMenuPathname(opts, t.filePath);
     equal(pathname, t.expect);

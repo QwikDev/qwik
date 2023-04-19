@@ -2,11 +2,11 @@
 
 This folder stores "starter" projects for the CLI. The idea is that during the CLI execution, the developer can choose a particular starter app and combine it with a specific server and features.
 
-All starters are based off of `starters/apps/base`, to include the `package.json` and `tsconfig.json`. Depending on the options the user selects, their starter merges into the `base` app.
+All starters are based on `starters/apps/base`, including the `package.json` and `tsconfig.json`. Depending on the options the user selects, their starter merges into the `base` app.
 
 ## Developer
 
-Here are steps to try out the CLI in local environment.
+Here are steps to try out the CLI in a local environment.
 
 1. Build CLI:
 

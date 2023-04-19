@@ -4,7 +4,7 @@ import { getWrappingContainer, getInvokeContext } from './use-core';
 import { assertQrl } from '../qrl/qrl-class';
 import { getContext } from '../state/context';
 import { resumeIfNeeded } from '../container/resume';
-import { getContainerState } from '../container/container';
+import { _getContainerState } from '../container/container';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -31,7 +31,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
     qrl = parseQRL(decodeURIComponent(String(context.$url$)), container);
     assertQrl(qrl);
     resumeIfNeeded(container);
-    const elCtx = getContext(el, getContainerState(container));
+    const elCtx = getContext(el, _getContainerState(container));
     inflateQrl(qrl, elCtx);
   } else {
     assertQrl(qrl);

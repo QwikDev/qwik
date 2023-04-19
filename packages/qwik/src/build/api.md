@@ -4,10 +4,13 @@
 
 ```ts
 
-// @alpha
+// @public
 export const isBrowser: boolean;
 
-// @alpha
+// @public
+export const isDev: boolean;
+
+// @public
 export const isServer: boolean;
 
 // (No @packageDocumentation comment for this package)

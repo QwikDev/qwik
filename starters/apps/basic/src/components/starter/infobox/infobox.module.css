@@ -1,0 +1,19 @@
+.infobox {
+  font-size: 0.8rem;
+  line-height: 2;
+  margin: 0 0 40px;
+}
+
+.infobox h3 {
+  color: #333;
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0 0 15px;
+  padding: 0;
+}
+
+@media screen and (min-width: 600px) {
+  .infobox {
+    margin: 0;
+  }
+}

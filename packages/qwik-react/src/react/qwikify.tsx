@@ -1,10 +1,10 @@
 import {
   component$,
   implicit$FirstArg,
-  NoSerialize,
+  type NoSerialize,
   noSerialize,
-  QRL,
-  useWatch$,
+  type QRL,
+  useTask$,
   SkipRender,
   useSignal,
   Slot,
@@ -36,7 +36,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const TagName = opts?.tagName ?? ('qwik-react' as any);
 
     // Watch takes cares of updates and partial hydration
-    useWatch$(async ({ track }) => {
+    useTask$(async ({ track }) => {
       const trackedProps = track(() => ({ ...props }));
       track(signal);
 
@@ -88,7 +88,7 @@ export function qwikifyQrl<PROPS extends {}>(
         slotRef,
         hydrationKeys
       );
-      return <RenderOnce>{jsx}</RenderOnce>;
+      return <RenderOnce key={2}>{jsx}</RenderOnce>;
     }
 
     return (

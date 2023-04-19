@@ -1,13 +1,18 @@
 import type { OptimizerSystem } from '../types';
 
-export async function formatError(sys: OptimizerSystem, err: any) {
-  if (!err.loc && !err.frame) {
-    const loc = findLocation(err);
+export async function formatError(sys: OptimizerSystem, e: Error) {
+  const err = e as any;
+  let loc = err.loc;
+
+  if (!err.frame && !err.plugin) {
+    if (!loc) {
+      loc = findLocation(err);
+    }
     if (loc) {
       err.loc = loc;
       if (loc.file) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        const { normalizePath }: typeof import('vite') = await sys.strictDynamicImport('vite');
+        const { normalizePath }: typeof import('vite') = await sys.dynamicImport('vite');
         err.id = normalizePath(err.loc.file);
         try {
           const code = fs.readFileSync(err.loc.file, 'utf-8');
@@ -18,7 +23,7 @@ export async function formatError(sys: OptimizerSystem, err: any) {
       }
     }
   }
-  return err;
+  return e;
 }
 
 export interface Loc {
@@ -30,13 +35,16 @@ export interface Loc {
 export const findLocation = (e: Error): Loc | undefined => {
   const stack = e.stack;
   if (typeof stack === 'string') {
-    const lines = stack.split('\n');
+    const lines = stack
+      .split('\n')
+      .filter((l) => !l.includes('/node_modules/') && !l.includes('(node:'));
+
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
+      const line = lines[i].replace('file:///', '/');
       if (/^\s+at/.test(line)) {
-        const start = line.indexOf('(/') + 1;
-        const end = line.indexOf(')', start);
-        if (start > 0 && end > start) {
+        const start = line.indexOf('/');
+        const end = line.lastIndexOf(')', start);
+        if (start > 0) {
           const path = line.slice(start, end);
           const parts = path.split(':');
           const nu0 = safeParseInt(parts[parts.length - 1]);
@@ -82,23 +90,26 @@ const range: number = 2;
 
 export function posToNumber(
   source: string,
-  pos: number | { line: number; column: number }
+  pos: number | { line: number; column: number; lo: number }
 ): number {
-  if (typeof pos === 'number') return pos;
+  if (typeof pos === 'number') {
+    return pos;
+  }
+  if (pos.lo != null) {
+    return pos.lo;
+  }
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
-  for (let i = 0; i < line - 1; i++) {
-    if (lines[i]) {
-      start += lines[i].length + 1;
-    }
+  for (let i = 0; i < line - 1 && i < lines.length; i++) {
+    start += lines[i].length + 1;
   }
   return start + column;
 }
 
 export function generateCodeFrame(
   source: string,
-  start: number | { line: number; column: number } = 0,
+  start: number | { line: number; column: number; lo: number } = 0,
   end?: number
 ): string {
   start = posToNumber(source, start);
@@ -110,7 +121,9 @@ export function generateCodeFrame(
     count += lines[i].length + 1;
     if (count >= start) {
       for (let j = i - range; j <= i + range || end > count; j++) {
-        if (j < 0 || j >= lines.length) continue;
+        if (j < 0 || j >= lines.length) {
+          continue;
+        }
         const line = j + 1;
         res.push(`${line}${' '.repeat(Math.max(3 - String(line).length, 0))}|  ${lines[j]}`);
         const lineLength = lines[j].length;

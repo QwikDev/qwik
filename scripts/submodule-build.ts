@@ -1,6 +1,6 @@
-import { BuildConfig, ensureDir, watcher, target, copyFile, PackageJSON } from './util';
+import { type BuildConfig, ensureDir, watcher, target, copyFile, type PackageJSON } from './util';
 import { join } from 'node:path';
-import { BuildOptions, build } from 'esbuild';
+import { type BuildOptions, build } from 'esbuild';
 import { writePackageJson } from './package-json';
 
 export async function submoduleBuild(config: BuildConfig) {
@@ -29,6 +29,13 @@ export async function submoduleBuild(config: BuildConfig) {
   const cjs = build({
     ...opts,
     format: 'cjs',
+
+    banner: {
+      js: `globalThis.qwikBuild = (function (module) {`,
+    },
+    footer: {
+      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+    },
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
   });

@@ -1,8 +1,8 @@
 // import { basename } from 'node:path';
-import { ConfigEnv, mergeConfig, UserConfigExport } from 'vite';
+import { type ConfigEnv, mergeConfig, type UserConfigExport } from 'vite';
 
 /**
- * @alpha
+ * @public
  */
 export function extendConfig(
   baseConfigExport: UserConfigExport,

@@ -1,12 +1,11 @@
 name: Qwik CI
 
 on:
+  pull_request:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+      - next
   workflow_dispatch:
     inputs:
       disttag:
@@ -44,8 +43,8 @@ jobs:
               - 'packages/qwik/src/**/*.ts'
               - 'packages/qwik/src/**/*.tsx'
               - 'packages/qwik/src/**/*.rs'
-              - 'packages/qwik-city/src/**/*.ts'
-              - 'packages/qwik-city/src/**/*.tsx'
+              - 'packages/qwik-city/**/*.ts'
+              - 'packages/qwik-city/**/*.tsx'
               - 'packages/eslint-plugin-qwik/**/*.ts'
               - 'starters/apps/**/*.ts'
               - 'starters/apps/**/*.tsx'
@@ -53,6 +52,8 @@ jobs:
               - 'tsconfig.json'
               - 'pnpm-lock.yaml'
               - 'Cargo.yaml'
+              - '.github/workflows/*.yaml'
+              - 'scripts/*.ts'
       - name: Print fullbuild output
         run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 
@@ -65,8 +66,6 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -133,8 +132,6 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        with:
-          version: 7
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -177,6 +174,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - uses: jetli/wasm-pack-action@v0.3.0
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         with:
           version: 'v0.10.3'
 
@@ -228,8 +226,6 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        with:
-          version: 7
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -312,6 +308,28 @@ jobs:
       - changes
 
     steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+
+      - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: corepack enable
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+
+      - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm install --frozen-lockfile
+
       - name: Create packages/qwik/dist/ directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
@@ -337,7 +355,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-bindings-*/* packages/qwik/dist/bindings/
 
-      - name: Print dist-dev
+      - name: Print Packages Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree packages/qwik/dist/
 
@@ -348,6 +366,28 @@ jobs:
           name: builderio-qwik-distribution
           path: packages/qwik/dist/*
           if-no-files-found: error
+
+      - name: Build QwikCity
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --api
+
+      - name: Print QwikCity Lib Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/qwik-city/lib/
+
+      - name: Upload QwikCity Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builderio-qwikcity-distribution
+          path: packages/qwik-city/lib/
+          if-no-files-found: error
+
+      - name: Commit Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
+        env:
+          QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+        run: pnpm run qwik-save-artifacts
 
   ############ RELEASE ############
   release:
@@ -365,8 +405,6 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -390,6 +428,8 @@ jobs:
         run: |
           mkdir -p packages/qwik/dist/
           mv builderio-qwik-distribution/* packages/qwik/dist/
+          mkdir -p packages/qwik-city/lib/
+          mv builderio-qwikcity-distribution/* packages/qwik-city/lib/
           mkdir -p packages/create-qwik/dist/
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -412,11 +452,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Save artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        run: pnpm run qwik-save-artifacts
+  ############ TRIGGER QWIKCITY E2E Test ############
+  trigger-qwikcity-e2e:
+    name: Trigger Qwik City E2E
+    runs-on: ubuntu-latest
+
+    needs:
+      - release
+
+    if: ${{ needs.changes.outputs.fullbuild == 'true' && github.ref_name == 'main' }}
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+          repository: builderIO/qwik-city-e2e
+          event-type: main-updated
 
   ############ E2E TEST ############
   test-e2e:
@@ -444,8 +495,6 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        with:
-          version: 7
 
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -468,6 +517,8 @@ jobs:
         run: |
           mkdir -p packages/qwik/dist/
           mv builderio-qwik-distribution/* packages/qwik/dist/
+          mkdir -p packages/qwik-city/lib/
+          mv builderio-qwikcity-distribution/* packages/qwik-city/lib/
           mkdir -p packages/create-qwik/dist/
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -476,10 +527,6 @@ jobs:
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm install --frozen-lockfile
-
-      - name: Build QwikCity
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --tsc --qwikcity --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -505,8 +552,6 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -597,8 +642,6 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
 
       - name: Setup Node
         uses: actions/setup-node@v3

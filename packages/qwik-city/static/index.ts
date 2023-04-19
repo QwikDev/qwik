@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type {
   StaticGenerateRenderOptions,
   StaticGenerateOptions,
@@ -10,7 +9,7 @@ import type {
 /**
  * Use this function when SSG should be generated from another module, such as a Vite plugin.
  * This function's should be passed the paths of the entry module and Qwik City Plan.
- * @alpha
+ * @public
  */
 export async function generate(opts: StaticGenerateOptions) {
   const ssgPlatform = await getEntryModule();
@@ -18,7 +17,7 @@ export async function generate(opts: StaticGenerateOptions) {
   return result;
 }
 
-export { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
+export type { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
 
 function getEntryModulePath() {
   if (isDeno()) {

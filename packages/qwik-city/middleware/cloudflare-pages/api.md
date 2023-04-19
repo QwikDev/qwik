@@ -4,14 +4,12 @@
 
 ```ts
 
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, env, waitUntil, next }: EventPluginContext) => Promise<Response>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface EventPluginContext {
     // (undocumented)
     env: Record<string, any>;
@@ -23,16 +21,15 @@ export interface EventPluginContext {
     waitUntil: (promise: Promise<any>) => void;
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {
+// @public (undocumented)
+export interface PlatformCloudflarePages {
+    // (undocumented)
+    env?: EventPluginContext['env'];
 }
 
-// @alpha (undocumented)
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler_2<T, {
-    env: EventPluginContext['env'];
-}>;
+// @public (undocumented)
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
+}
 
 // (No @packageDocumentation comment for this package)
 

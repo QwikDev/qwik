@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
+import { _renderSSR, Fragment, jsx, _pauseFromContexts, type JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -11,15 +11,13 @@ import type {
   StreamWriter,
   RenderOptions,
 } from './types';
+import { isDev } from '@builder.io/qwik/build';
 import { getQwikLoaderScript } from './scripts';
-import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
+import { getPrefetchResources, type ResolvedManifest } from './prefetch-strategy';
 import type { SymbolMapper } from '../optimizer/src/types';
-import { qDev } from '../core/util/qdev';
-import { EMPTY_OBJ } from '../core/util/flyweight';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
-import { assertDefined } from '../core/error/assert';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -27,7 +25,7 @@ const DOCTYPE = '<!DOCTYPE html>';
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
  *
- * @alpha
+ * @public
  *
  */
 export async function renderToStream(
@@ -133,7 +131,7 @@ export async function renderToStream(
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
-    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
+    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
     : undefined;
 
   const renderTimer = createTimer();
@@ -142,11 +140,11 @@ export async function renderToStream(
   let snapshotTime = 0;
   let containsDynamic = false;
 
-  await renderSSR(rootNode, {
+  await _renderSSR(rootNode, {
     stream,
     containerTagName,
     containerAttributes,
-    envData: opts.envData,
+    serverData: opts.serverData,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState, dynamic) => {
@@ -156,13 +154,23 @@ export async function renderToStream(
       containsDynamic = dynamic;
       snapshotResult = await _pauseFromContexts(contexts, containerState);
 
-      const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
+      const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
+          nonce: opts.serverData?.nonce,
         }),
       ];
+      if (snapshotResult.funcs.length > 0) {
+        children.push(
+          jsx('script', {
+            'q:func': 'qwik/json',
+            dangerouslySetInnerHTML: serializeFunctions(snapshotResult.funcs),
+            nonce: opts.serverData?.nonce,
+          })
+        );
+      }
 
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
@@ -170,7 +178,8 @@ export async function renderToStream(
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             opts.prefetchStrategy,
-            prefetchResources
+            prefetchResources,
+            opts.serverData?.nonce
           );
           if (prefetchImpl) {
             children.push(prefetchImpl);
@@ -190,6 +199,7 @@ export async function renderToStream(
           jsx('script', {
             id: 'qwikloader',
             dangerouslySetInnerHTML: qwikLoaderScript,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -203,6 +213,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -221,16 +232,14 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
-  assertDefined(snapshotResult, 'snapshotResult must be defined');
-
-  const isStatic = !containsDynamic && !snapshotResult.resources.some((r) => r._cache !== Infinity);
+  const isDynamic = containsDynamic || snapshotResult!.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: totalSize,
-    isStatic,
+    isStatic: !isDynamic,
     timing: {
       render: renderTime,
       snapshot: snapshotTime,
@@ -245,7 +254,7 @@ export async function renderToStream(
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
  *
- * @alpha
+ * @public
  *
  */
 export async function renderToString(
@@ -269,7 +278,7 @@ export async function renderToString(
 }
 
 /**
- * @alpha
+ * @public
  */
 export function resolveManifest(
   manifest: QwikManifest | ResolvedManifest | undefined
@@ -316,4 +325,8 @@ function normalizeOptions<T extends RenderOptions>(opts: T | undefined): T {
     }
   }
   return normalizedOpts;
+}
+
+function serializeFunctions(funcs: string[]) {
+  return `document.currentScript.qFuncs=[${funcs.join(',\n')}]`;
 }

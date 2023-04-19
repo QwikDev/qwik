@@ -1,48 +1,8 @@
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
-import { Listener, normalizeOnProp } from '../state/listeners';
-import { implicit$FirstArg } from '../util/implicit_dollar';
+import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
-import { useSequentialScope } from './use-sequential-scope';
-import { Watch, WatchFlagsIsCleanup } from './use-watch';
-
-// <docs markdown="../readme.md#useCleanup">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useCleanup instead)
-/**
- * It can be used to release resources, abort network requests, stop timers...
- *
- * @alpha
- * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
- * `useClientEffect$()` instead.
- */
-// </docs>
-export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
-  const { get, set, i, elCtx } = useSequentialScope<boolean>();
-  if (!get) {
-    assertQrl(unmountFn);
-    const watch = new Watch(WatchFlagsIsCleanup, i, elCtx.$element$, unmountFn, undefined);
-    set(true);
-    if (!elCtx.$watches$) {
-      elCtx.$watches$ = [];
-    }
-    elCtx.$watches$.push(watch);
-  }
-};
-
-// <docs markdown="../readme.md#useCleanup">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useCleanup instead)
-/**
- * It can be used to release resources, abort network requests, stop timers...
- *
- * @alpha
- * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
- * `useClientEffect$()` instead.
- */
-// </docs>
-export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -55,7 +15,7 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  *
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
@@ -88,7 +48,7 @@ export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => voi
  * });
  * ```
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
@@ -122,7 +82,7 @@ export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event
  * });
  * ```
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>

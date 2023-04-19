@@ -4,6 +4,11 @@ test.describe('watch', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/watch');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should watch correctly', async ({ page }) => {
@@ -63,5 +68,10 @@ test.describe('watch', () => {
     await linkBtn.click();
     await expect(loc).toHaveText('Loc: /PAGE');
     await expect(result).toHaveText('watch ran');
+  });
+
+  test('issue-2972', async ({ page }) => {
+    const result = page.locator('#issue-2972');
+    await expect(result).toHaveText('passed');
   });
 });

@@ -1,4 +1,4 @@
-import { component$, useStore, PropFunction } from '@builder.io/qwik';
+import { component$, useStore, type PropFunction } from '@builder.io/qwik';
 
 export const Events = component$(() => {
   const store = useStore({
@@ -22,7 +22,7 @@ export const Events = component$(() => {
           Should prevent default
         </a>
       </p>
-      <p>
+      <div>
         <div
           onClick$={() => {
             throw new Error('event was not stopped');
@@ -40,7 +40,7 @@ export const Events = component$(() => {
             Should count
           </a>
         </div>
-      </p>
+      </div>
 
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>

@@ -46,18 +46,18 @@ export const hW = 12;
 export const handleWatch = 42;
 const componentQrl1 = ()=>console.log('not this', qrl1());
 componentQrl1();
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentQrl(qrl(()=>import("./root_component_royhjyacbye"), "Root_component_royhjYaCbYE"), {
+export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./root_component_royhjyacbye"), "Root_component_royhjYaCbYE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,SAAS,OAAA,IAAG,QAAQ,wBAAwB;AAE5C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,0FAQhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,MAAM,qBAAO,4FAOjB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,wBAAwB;AAE5C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,wGAQhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,MAAM,qBAAO,0GAOjB;IACC,SAAS;AACb,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxQ } from "@builder.io/qwik";
 import { hW } from "./test";
 import { handleWatch } from "./test";
 import { qrl } from "@builder.io/qwik";
@@ -65,16 +65,13 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
-    const qrl1 = 23;
-    return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
-            qrl1
-        ])
-    });
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw")
+    }, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IACZ,MAAM,OAAM;IACZ,qBACI,KAAC;QAAI,QAAQ;;;;AAErB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IAEZ,qBACI,MAAC;QAAI,QAAQ;;AAErB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -125,8 +122,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@builder.io/qwik";
 import { useStyles } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = ()=>{
-    useStyles(qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu"), "Root_component_useStyles_u5DkUxGrGnU"));
-    return qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
+    useStyles(/*#__PURE__*/ qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu"), "Root_component_useStyles_u5DkUxGrGnU"));
+    return /*#__PURE__*/ qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
 };
 
 
@@ -152,14 +149,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= root_component_1_cbpqnyduhi4.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxQ } from "@builder.io/qwik";
 export const Root_component_1_cBpQNYDUHI4 = ()=>{
-    return /*#__PURE__*/ _jsx("div", {});
+    return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_1");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa,IAAM;IACX,qBACI,KAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa,IAAM;IACX,qBACI,MAAC;AAET\"}")
 /*
 {
   "origin": "test.tsx",
@@ -181,14 +178,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= foo_component_div_onclick_m48dyiidsjw.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-export const Foo_component_div_onClick_M48DYiidSJw = ()=>{
-    const [qrl] = useLexicalScope();
-    return console.log(qrl);
-};
+export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log(23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAgBuB;;WAAK,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAgBuB,IAAK,QAAQ,GAAG,CAFvB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -199,9 +192,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "foo_component_div_onclick_m48dyiidsjw",
   "extension": "js",
   "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     416,
     437

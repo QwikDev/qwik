@@ -1,17 +1,35 @@
-import fetch, { Headers, Request, Response } from 'node-fetch';
+import {
+  TextEncoderStream,
+  TextDecoderStream,
+  WritableStream,
+  ReadableStream,
+} from 'node:stream/web';
+import { fetch, Headers, Request, Response, FormData } from 'undici';
 
-export function patchGlobalFetch() {
+import crypto from 'crypto';
+
+export function patchGlobalThis() {
   if (
     typeof global !== 'undefined' &&
     typeof globalThis.fetch !== 'function' &&
     typeof process !== 'undefined' &&
     process.versions.node
   ) {
-    if (!globalThis.fetch) {
-      globalThis.fetch = fetch as any;
-      globalThis.Headers = Headers as any;
-      globalThis.Request = Request as any;
-      globalThis.Response = Response as any;
-    }
+    globalThis.fetch = fetch as any;
+    globalThis.Headers = Headers as any;
+    globalThis.Request = Request as any;
+    globalThis.Response = Response as any;
+    globalThis.FormData = FormData as any;
+  }
+  if (typeof globalThis.TextEncoderStream === 'undefined') {
+    globalThis.TextEncoderStream = TextEncoderStream;
+    globalThis.TextDecoderStream = TextDecoderStream;
+  }
+  if (typeof globalThis.WritableStream === 'undefined') {
+    globalThis.WritableStream = WritableStream as any;
+    globalThis.ReadableStream = ReadableStream as any;
+  }
+  if (typeof globalThis.crypto === 'undefined') {
+    globalThis.crypto = crypto.webcrypto as any;
   }
 }

@@ -6,7 +6,7 @@ import styles from './header.css?inline';
 export default component$(() => {
   useStyles$(styles);
 
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
   return (
     <header>
@@ -14,10 +14,10 @@ export default component$(() => {
         <QwikLogo />
       </a>
       <nav>
-        <a href="/docs" class={{ active: pathname.startsWith('/docs') }}>
+        <a href="/docs" class={{ active: url.pathname.startsWith('/docs') }}>
           Docs
         </a>
-        <a href="/about-us" class={{ active: pathname.startsWith('/about-us') }}>
+        <a href="/about-us" class={{ active: url.pathname.startsWith('/about-us') }}>
           About Us
         </a>
       </nav>

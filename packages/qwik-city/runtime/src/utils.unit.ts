@@ -182,7 +182,7 @@ test(`isSameOrigin`, () => {
 ].forEach((t) => {
   test(`getClientNavPath ${t.props.href}`, () => {
     const baseUrl = new URL('https://qwik.dev/');
-    equal(getClientNavPath(t.props, baseUrl), t.expect, `${t.props.href} ${t.expect}`);
+    equal(getClientNavPath(t.props, { url: baseUrl }), t.expect, `${t.props.href} ${t.expect}`);
   });
 });
 
@@ -190,56 +190,62 @@ test('no prefetch, missing clientNavPath', () => {
   const props: LinkProps = { prefetch: true };
   const clientNavPath = null;
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), null);
 });
 
 test('no prefetch, path and current path the same, has querystring and hash', () => {
   const props: LinkProps = {};
   const clientNavPath = '/about?qs#hash';
   const currentLoc = new URL('https://qwik.builder.io/about');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), null);
 });
 
 test('no prefetch, path and current path the same', () => {
   const props: LinkProps = {};
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/about');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), null);
 });
 
 test('valid prefetchUrl, has querystring and hash', () => {
-  const props: LinkProps = {};
+  const props: LinkProps = {
+    prefetch: true,
+  };
   const clientNavPath = '/about?qs#hash';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), '');
 });
 
 test('valid prefetchUrl, trailing slash', () => {
-  const props: LinkProps = {};
+  const props: LinkProps = {
+    prefetch: true,
+  };
   const clientNavPath = '/about/';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), '');
 });
 
 test('valid prefetchUrl, prefetch true', () => {
   const props: LinkProps = { prefetch: true };
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), '');
 });
 
 test('valid prefetchUrl, add by default', () => {
-  const props: LinkProps = {};
+  const props: LinkProps = {
+    prefetch: true,
+  };
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), '');
 });
 
 test('prefetch false', () => {
   const props: LinkProps = { prefetch: false };
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
+  equal(getPrefetchDataset(props, clientNavPath, { url: currentLoc }), null);
 });
 
 test.run();

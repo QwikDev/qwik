@@ -21,7 +21,7 @@ export function App() {
 import { qrl } from "@builder.io/qwik";
 export const App_Header_component_B9F3YeqcO1w = ()=>{
     console.log("mount");
-    return <div onClick={qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
 };
 
 
@@ -76,12 +76,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export function App() {
-    const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_header_component_b9f3yeqco1w"), "App_Header_component_B9F3YeqcO1w"));
+    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_header_component_b9f3yeqco1w"), "App_Header_component_B9F3YeqcO1w"));
     return Header;
 }
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,SAAS,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACX,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,SAAS,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACX,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

@@ -3,8 +3,13 @@ import type { Page } from '@playwright/test';
 
 test.describe('Todo', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/todo.test/');
+    await page.goto('/todo-test/');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('todo title', async ({ page }) => {

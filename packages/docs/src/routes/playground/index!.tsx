@@ -1,14 +1,14 @@
-import { $, component$, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
+import { $, component$, useStyles$, useStore, useVisibleTask$, useTask$ } from '@builder.io/qwik';
+import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
-import type { DocumentHead } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import type { QwikPointerEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export default component$(() => {
   useStyles$(styles);
@@ -32,7 +32,7 @@ export default component$(() => {
     list: ['Input', 'Output', 'Console'],
   }));
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     // run once on the client
     const shareData = parsePlaygroundShareUrl(location.hash.slice(1));
     if (shareData) {
@@ -43,20 +43,22 @@ export default component$(() => {
     }
   });
 
-  useClientEffect$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => store.buildId);
     track(() => store.buildMode);
     track(() => store.entryStrategy);
     track(() => store.files);
     track(() => store.version);
 
-    if (store.version) {
-      clearTimeout(store.shareUrlTmr);
+    if (isBrowser) {
+      if (store.version) {
+        clearTimeout(store.shareUrlTmr);
 
-      store.shareUrlTmr = setTimeout(() => {
-        const shareUrl = createPlaygroundShareUrl(store);
-        history.replaceState({}, '', shareUrl);
-      }, 1000);
+        store.shareUrlTmr = setTimeout(() => {
+          const shareUrl = createPlaygroundShareUrl(store);
+          history.replaceState({}, '', shareUrl);
+        }, 1000);
+      }
     }
   });
 
@@ -130,9 +132,11 @@ export interface PlaygroundStore extends ReplAppInput {
   shareUrlTmr: any;
 }
 
-export const onGet: RequestHandler = ({ response }) => {
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };

@@ -132,6 +132,10 @@ export function isIndexModule(extlessName: string) {
   return /^index(|!|@.+)$/.test(extlessName);
 }
 
+export function isPluginModule(extlessName: string) {
+  return /^plugin(|@.+)$/.test(extlessName);
+}
+
 export function isLayoutModule(extlessName: string) {
   return /^layout(|!|-.+)$/.test(extlessName);
 }
@@ -180,7 +184,7 @@ export function isGroupedLayoutName(dirName: string, warn = true) {
       console.warn(
         `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
           2
-        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future verions.`
+        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`
       );
     }
     return true;

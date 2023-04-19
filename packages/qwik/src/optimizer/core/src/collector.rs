@@ -42,6 +42,7 @@ pub struct Import {
 }
 
 pub struct GlobalCollect {
+    pub synthetic: Vec<(Id, Import)>,
     pub imports: HashMap<Id, Import>,
     pub exports: HashMap<Id, Option<JsWord>>,
     pub root: HashMap<Id, Span>,
@@ -52,6 +53,7 @@ pub struct GlobalCollect {
 
 pub fn global_collect(module: &ast::Module) -> GlobalCollect {
     let mut collect = GlobalCollect {
+        synthetic: vec![],
         imports: HashMap::with_capacity(16),
         exports: HashMap::with_capacity(16),
 
@@ -72,18 +74,31 @@ impl GlobalCollect {
             .map(|s| s.0.clone())
     }
 
-    pub fn import(&mut self, specifier: JsWord, source: JsWord) -> Id {
+    pub fn is_global(&self, local: &Id) -> bool {
+        if self.imports.contains_key(local) {
+            return true;
+        }
+        if self.exports.contains_key(local) {
+            return true;
+        }
+        if self.root.contains_key(local) {
+            return true;
+        }
+        false
+    }
+
+    pub fn import(&mut self, specifier: &JsWord, source: &JsWord) -> Id {
         self.rev_imports
             .get(&(specifier.clone(), source.clone()))
             .cloned()
             .map_or_else(
                 || {
-                    let local = id!(private_ident!(&specifier));
+                    let local = id!(private_ident!(specifier));
                     self.add_import(
                         local.clone(),
                         Import {
-                            source,
-                            specifier,
+                            source: source.clone(),
+                            specifier: specifier.clone(),
                             kind: ImportKind::Named,
                             synthetic: true,
                             asserts: None,
@@ -96,6 +111,9 @@ impl GlobalCollect {
     }
 
     pub fn add_import(&mut self, local: Id, import: Import) {
+        if import.synthetic {
+            self.synthetic.push((local.clone(), import.clone()));
+        }
         self.rev_imports.insert(
             (import.specifier.clone(), import.source.clone()),
             local.clone(),
@@ -370,25 +388,29 @@ impl Visit for IdentCollector {
     }
 }
 
-pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) {
+pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) -> bool {
     match pat {
         ast::Pat::Ident(ident) => {
             identifiers.push((id!(ident.id), ident.id.span));
+            true
         }
         ast::Pat::Array(array) => {
             for el in array.elems.iter().flatten() {
                 collect_from_pat(el, identifiers);
             }
+            false
         }
         ast::Pat::Rest(rest) => {
             if let ast::Pat::Ident(ident) = rest.arg.as_ref() {
                 identifiers.push((id!(ident.id), ident.id.span));
             }
+            false
         }
         ast::Pat::Assign(expr) => {
             if let ast::Pat::Ident(ident) = expr.left.as_ref() {
                 identifiers.push((id!(ident.id), ident.id.span));
             }
+            false
         }
         ast::Pat::Object(obj) => {
             for prop in &obj.props {
@@ -406,7 +428,8 @@ pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) {
                     }
                 }
             }
+            false
         }
-        _ => {}
-    };
+        _ => false,
+    }
 }

@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -13,7 +13,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -30,36 +30,71 @@ export const Child = component$(() => {
 });
 
 
+============================= child_component_usebrowservisibletask_0igfpoyjmqa.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
+    const [state] = useLexicalScope();
+    const timer = setInterval(()=>{
+        state.count++;
+    }, 1000);
+    return ()=>{
+        clearInterval(timer);
+    };
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAS2B;;IACnB,MAAM,QAAQ,YAAY,IAAM;QAChC,MAAM,KAAK;IACX,GAAG;IACH,OAAO,IAAM;QACb,cAAc;IACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useBrowserVisibleTask_0IGFPOyJmQA",
+  "entry": null,
+  "displayName": "Child_component_useBrowserVisibleTask",
+  "hash": "0IGFPOyJmQA",
+  "canonicalFilename": "child_component_usebrowservisibletask_0igfpoyjmqa",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useBrowserVisibleTask$",
+  "captures": true,
+  "loc": [
+    244,
+    403
+  ]
+}
+*/
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,sBAAQ,8FAoBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,4GAoBlB\"}")
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-import { useClientEffectQrl } from "@builder.io/qwik";
+import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useClientEffectQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g"), "Child_component_useClientEffect_kYRT1iERt9g", [
+    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
-    return /*#__PURE__*/ _jsx("div", {
-        children: _wrapSignal(state, "count")
-    });
+    return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
+        state
+    ], "p0.count"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC,IAAM;IAClC,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB;;;IASA,qBACI,KAAC;8BACA;;AAGT\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC,IAAM;IAClC,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB;;;IASA,qBACI,MAAC,mCACA,GAAM,KAAK;;;AAGpB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,43 +109,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    122,
-    463
-  ]
-}
-*/
-============================= child_component_useclienteffect_kyrt1iert9g.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@builder.io/qwik";
-export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
-    const [state] = useLexicalScope();
-    const timer = setInterval(()=>{
-        state.count++;
-    }, 1000);
-    return ()=>{
-        clearInterval(timer);
-    };
-};
-export { _hW } from "@builder.io/qwik";
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2DASqB;;IACb,MAAM,QAAQ,YAAY,IAAM;QAChC,MAAM,KAAK;IACX,GAAG;IACH,OAAO,IAAM;QACb,cAAc;IACd\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_useClientEffect_kYRT1iERt9g",
-  "entry": null,
-  "displayName": "Child_component_useClientEffect",
-  "hash": "kYRT1iERt9g",
-  "canonicalFilename": "child_component_useclienteffect_kyrt1iert9g",
-  "extension": "js",
-  "parent": "Child_component_9GyF01GDKqw",
-  "ctxKind": "function",
-  "ctxName": "useClientEffect$",
-  "captures": true,
-  "loc": [
-    232,
-    391
+    128,
+    475
   ]
 }
 */

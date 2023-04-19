@@ -44,7 +44,7 @@ export const codeToText = (code: number): string => {
     const MAP = [
       'Error while serializing class attribute', // 0
       'Can not serialize a HTML Node that is not an Element', // 1
-      'Rruntime but no instance found on element.', // 2
+      'Runtime but no instance found on element.', // 2
       'Only primitive and object literals can be serialized', // 3
       'Crash while rendering', // 4
       'You can render over a existing q:container. Skipping render().', // 5
@@ -59,10 +59,11 @@ export const codeToText = (code: number): string => {
       "Invoking 'use*()' method outside of invocation context.", // 14
       'Cant access renderCtx for existing context', // 15
       'Cant access document for existing context', // 16
-      'props are inmutable', // 17
+      'props are immutable', // 17
       '<div> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
-      'use- method must be called only at the root level of a component$()', // 20
+      `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.
+For more information see: https://qwik.builder.io/docs/components/tasks/#use-method-rules`, // 20
       'Container is already paused. Skipping', // 21
       'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead', // 22
       'When rendering directly on top of Document, the root node must be a <html>', // 23
@@ -70,7 +71,7 @@ export const codeToText = (code: number): string => {
       'Invalid JSXNode type. It must be either a function or a string. Found:', // 25
       'Tracking value changes can only be done to useStore() objects and component props', // 26
       'Missing Object ID for captured object', // 27
-      'The provided Context reference is not a valid context created by createContext()', // 28
+      'The provided Context reference is not a valid context created by createContextId()', // 28
       '<html> is the root container, it can not be rendered inside a component', // 29
       'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
       'QRLs can not be dynamically resolved, because it does not have a chunk path', // 31

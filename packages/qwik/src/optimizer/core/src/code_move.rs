@@ -30,6 +30,7 @@ pub struct NewModuleCtx<'a> {
     pub local_idents: &'a [Id],
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
+    pub core_module: &'a JsWord,
     pub is_entry: bool,
     pub need_handle_watch: bool,
     pub need_transform: bool,
@@ -55,7 +56,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         let new_local = id!(private_ident!(&USE_LEXICAL_SCOPE.clone()));
         module
             .body
-            .push(create_synthetic_named_import(&new_local, &BUILDER_IO_QWIK));
+            .push(create_synthetic_named_import(&new_local, ctx.core_module));
         Some(new_local)
     } else {
         None
@@ -154,7 +155,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
     module.body.push(create_named_export(expr, ctx.name));
     if ctx.need_handle_watch {
         // Inject qwik internal import
-        add_handle_watch(&mut module.body);
+        add_handle_watch(&mut module.body, ctx.core_module);
     }
     Ok((module, comments))
 }
@@ -229,7 +230,9 @@ fn test_fix_path() {
 
 pub fn generate_entries(
     mut output: TransformOutput,
+    core_module: &JsWord,
     explicit_extensions: bool,
+    root_dir: Option<&Path>,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map: BTreeMap<&str, Vec<&HookAnalysis>> = BTreeMap::new();
@@ -246,9 +249,10 @@ pub fn generate_entries(
         }
 
         for (entry, hooks) in &entries_map {
-            let module = new_entry_module(hooks, explicit_extensions);
-            let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false)
-                .context("Emitting source code")?;
+            let module = new_entry_module(hooks, core_module, explicit_extensions);
+            let (code, map) =
+                emit_source_code(Lrc::clone(&source_map), None, &module, root_dir, false)
+                    .context("Emitting source code")?;
             new_modules.push(TransformModule {
                 path: [entry, ".js"].concat(),
                 code,
@@ -264,7 +268,11 @@ pub fn generate_entries(
     Ok(output)
 }
 
-fn new_entry_module(hooks: &[&HookAnalysis], explicit_extensions: bool) -> ast::Module {
+fn new_entry_module(
+    hooks: &[&HookAnalysis],
+    core_module: &JsWord,
+    explicit_extensions: bool,
+) -> ast::Module {
     let mut module = ast::Module {
         span: DUMMY_SP,
         body: Vec::with_capacity(hooks.len()),
@@ -304,7 +312,7 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicit_extensions: bool) -> ast::
             )));
     }
     if need_handle_watch {
-        add_handle_watch(&mut module.body);
+        add_handle_watch(&mut module.body, core_module);
     }
     module
 }
@@ -329,29 +337,29 @@ fn transform_arrow_fn(
     scoped_idents: &[Id],
 ) -> ast::ArrowExpr {
     match arrow.body {
-        ast::BlockStmtOrExpr::BlockStmt(mut block) => {
+        box ast::BlockStmtOrExpr::BlockStmt(mut block) => {
             let mut stmts = Vec::with_capacity(1 + block.stmts.len());
             stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
-                body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                     span: DUMMY_SP,
                     stmts,
-                }),
+                })),
                 ..arrow
             }
         }
-        ast::BlockStmtOrExpr::Expr(expr) => {
+        box ast::BlockStmtOrExpr::Expr(expr) => {
             let mut stmts = Vec::with_capacity(2);
             if !scoped_idents.is_empty() {
                 stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
             }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
-                body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                     span: DUMMY_SP,
                     stmts,
-                }),
+                })),
                 ..arrow
             }
         }
@@ -384,7 +392,7 @@ fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id])
     }
 }
 
-const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
+pub const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
     ast::Stmt::Return(ast::ReturnStmt {
         arg: Some(expr),
         span: DUMMY_SP,

@@ -1,25 +1,28 @@
 import { qError, QError_invalidRefValue } from '../error/error';
-import { isServer } from '../platform/platform';
-import type { Ref } from '../use/use-ref';
-import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-watch';
+import { isServerPlatform } from '../platform/platform';
+import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
-import type { QwikElement } from '../render/dom/virtual-element';
-import type { RenderContext } from '../render/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
 import { isElement } from '../util/element';
-import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from '../state/common';
+import {
+  createSubscriptionManager,
+  type SubscriberSignal,
+  type SubscriptionManager,
+} from '../state/common';
 import type { Signal } from '../state/signal';
+import { directGetAttribute } from '../render/fast-calls';
+import type { QContext } from '../state/context';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
 export type MustGetObjID = (obj: any) => string;
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotMetaValue {
   w?: string; // q:watches
@@ -29,12 +32,12 @@ export interface SnapshotMetaValue {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotState {
   ctx: SnapshotMeta;
@@ -44,7 +47,7 @@ export interface SnapshotState {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotListener {
   key: string;
@@ -53,10 +56,11 @@ export interface SnapshotListener {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SnapshotResult {
   state: SnapshotState;
+  funcs: string[];
   qrls: QRL[];
   objs: any[];
   resources: ResourceReturnInternal<any>[];
@@ -66,7 +70,7 @@ export interface SnapshotResult {
 export type ObjToProxyMap = WeakMap<any, any>;
 
 /**
- * @alpha
+ * @public
  */
 export interface PauseContext {
   getObject: GetObject;
@@ -75,7 +79,7 @@ export interface PauseContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContainerState {
   readonly $containerEl$: Element;
@@ -88,12 +92,14 @@ export interface ContainerState {
 
   readonly $opsNext$: Set<SubscriberSignal>;
 
-  readonly $hostsNext$: Set<QwikElement>;
-  readonly $hostsStaging$: Set<QwikElement>;
-  $hostsRendering$: Set<QwikElement> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
+  readonly $hostsNext$: Set<QContext>;
+  readonly $hostsStaging$: Set<QContext>;
+  readonly $base$: string;
 
-  $envData$: Record<string, any>;
+  $hostsRendering$: Set<QContext> | undefined;
+  $renderPromise$: Promise<void> | undefined;
+
+  $serverData$: Record<string, any>;
   $elementIndex$: number;
 
   $pauseCtx$: PauseContext | undefined;
@@ -103,15 +109,21 @@ export interface ContainerState {
 
 const CONTAINER_STATE = Symbol('ContainerState');
 
-export const getContainerState = (containerEl: Element): ContainerState => {
+/**
+ * @internal
+ */
+export const _getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(containerEl);
+    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
+      containerEl,
+      directGetAttribute(containerEl, 'q:base') ?? '/'
+    );
   }
   return set;
 };
 
-export const createContainerState = (containerEl: Element) => {
+export const createContainerState = (containerEl: Element, base: string) => {
   const containerState: ContainerState = {
     $containerEl$: containerEl,
 
@@ -130,7 +142,8 @@ export const createContainerState = (containerEl: Element) => {
     $styleIds$: new Set(),
     $events$: new Set(),
 
-    $envData$: {},
+    $serverData$: {},
+    $base$: base,
     $renderPromise$: undefined,
     $hostsRendering$: undefined,
     $pauseCtx$: undefined,
@@ -141,13 +154,15 @@ export const createContainerState = (containerEl: Element) => {
   return containerState;
 };
 
+export const removeContainerState = (containerEl: Element) => {
+  delete (containerEl as any)[CONTAINER_STATE];
+};
+
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
   } else if (isObject(value)) {
-    if ('current' in value) {
-      return ((value as Ref<Element>).current = elm);
-    } else if ('value' in value) {
+    if ('value' in value) {
       return ((value as Signal<Element>).value = elm);
     }
   }
@@ -156,7 +171,7 @@ export const setRef = (value: any, elm: Element) => {
 
 export const addQwikEvent = (prop: string, containerState: ContainerState) => {
   const eventName = getEventName(prop);
-  if (!qTest && !isServer()) {
+  if (!qTest && !isServerPlatform()) {
     try {
       const qwikevents = ((globalThis as any).qwikevents ||= []);
       qwikevents.push(eventName);

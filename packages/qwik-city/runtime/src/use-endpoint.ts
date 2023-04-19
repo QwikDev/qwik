@@ -1,64 +1,99 @@
-import { useResource$ } from '@builder.io/qwik';
-import { useLocation, useQwikCityEnv } from './use-functions';
-import { isServer } from '@builder.io/qwik/build';
-import type { GetEndpointData } from './types';
 import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
+import type { ClientPageData, RouteActionValue } from './types';
+import { _deserializeData } from '@builder.io/qwik';
 
-/**
- * @alpha
- */
-export const useEndpoint = <T = unknown>() => {
-  const loc = useLocation();
-  const env = useQwikCityEnv();
-
-  return useResource$<GetEndpointData<T>>(async ({ track }) => {
-    const href = track(() => loc.href);
-
-    if (isServer) {
-      if (!env) {
-        throw new Error('Endpoint response body is missing');
-      }
-      return env.response.body;
-    } else {
-      // fetch() for new data when the pathname has changed
-      const clientData = await loadClientData(href, true);
-      return clientData && clientData.body;
-    }
-  });
-};
-
-export const loadClientData = async (href: string, clearCache?: boolean) => {
-  const url = new URL(href);
+export const loadClientData = async (
+  url: URL,
+  element: unknown,
+  clearCache?: boolean,
+  action?: RouteActionValue
+) => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
-  const clientDataPath = getClientDataPath(pagePathname, pageSearch);
-  let qData = CLIENT_DATA_CACHE.get(clientDataPath);
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
+  let qData = undefined;
+  if (!action) {
+    qData = CLIENT_DATA_CACHE.get(clientDataPath);
+  }
 
   dispatchPrefetchEvent({
     links: [pagePathname],
   });
 
   if (!qData) {
-    qData = fetch(clientDataPath).then((rsp) => {
-      if (rsp.ok && (rsp.headers.get('content-type') || '').includes('json')) {
-        return rsp.json().then((clientData) => {
-          dispatchPrefetchEvent({
-            bundles: clientData.prefetch,
-          });
+    const options = getFetchOptions(action);
+    if (action) {
+      action.data = undefined;
+    }
+    qData = fetch(clientDataPath, options).then((rsp) => {
+      const redirectedURL = new URL(rsp.url);
+      if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+        location.href = redirectedURL.href;
+        return;
+      }
+      if ((rsp.headers.get('content-type') || '').includes('json')) {
+        // we are safe we are reading a q-data.json
+        return rsp.text().then((text) => {
+          const clientData = _deserializeData(text, element) as ClientPageData | null;
+          if (!clientData) {
+            location.href = url.href;
+            return;
+          }
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
+          }
+          if (clientData.redirect) {
+            location.href = clientData.redirect;
+          } else if (action) {
+            const actionData = clientData.loaders[action.id];
+            action.resolve!({ status: rsp.status, result: actionData });
           }
           return clientData;
         });
       } else {
-        CLIENT_DATA_CACHE.delete(clientDataPath);
+        location.href = url.href;
+        return undefined;
       }
     });
 
-    CLIENT_DATA_CACHE.set(clientDataPath, qData);
+    if (!action) {
+      CLIENT_DATA_CACHE.set(clientDataPath, qData);
+    }
   }
 
-  return qData;
+  return qData.then((v) => {
+    if (!v) {
+      CLIENT_DATA_CACHE.delete(clientDataPath);
+    }
+    return v;
+  });
 };
+
+const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | undefined => {
+  const actionData = action?.data;
+  if (!actionData) {
+    return undefined;
+  }
+  if (actionData instanceof FormData) {
+    return {
+      method: 'POST',
+      body: actionData,
+    };
+  } else {
+    return {
+      method: 'POST',
+      body: JSON.stringify(actionData),
+      headers: {
+        'Content-Type': 'application/json, charset=UTF-8',
+      },
+    };
+  }
+};
+
+export const isQDataJson = (pathname: string) => {
+  return pathname.endsWith(QDATA_JSON);
+};
+
+export const QDATA_JSON = '/q-data.json';

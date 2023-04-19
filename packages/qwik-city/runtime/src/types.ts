@@ -1,19 +1,44 @@
-import type { Cookie, CookieOptions, CookieValue } from '../../middleware/request-handler/types';
-import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
-import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
-import type { NoSerialize } from '@builder.io/qwik';
+import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
+import type {
+  RequestEvent,
+  RequestEventAction,
+  RequestEventBase,
+  RequestEventLoader,
+  RequestHandler,
+  ResolveSyncValue,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import type { ReadonlySignal } from 'packages/qwik/src/core/state/signal';
+import type * as zod from 'zod';
+
+export type {
+  Cookie,
+  CookieOptions,
+  CookieValue,
+  DeferReturn,
+  RequestEvent,
+  RequestEventAction,
+  RequestEventCommon,
+  RequestEventLoader,
+  RequestEventBase,
+  RequestHandler,
+  ResolveSyncValue,
+  ResolveValue,
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
-  onDelete?: RequestHandler<BODY>;
-  onGet?: RequestHandler<BODY>;
-  onHead?: RequestHandler<BODY>;
-  onOptions?: RequestHandler<BODY>;
-  onPatch?: RequestHandler<BODY>;
-  onPost?: RequestHandler<BODY>;
-  onPut?: RequestHandler<BODY>;
-  onRequest?: RequestHandler<BODY>;
+  onDelete?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onGet?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onHead?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onOptions?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPatch?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPost?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPut?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onRequest?: RequestHandler<BODY> | RequestHandler<BODY>[];
 }
 
+/**
+ * @public
+ */
 export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
@@ -31,72 +56,84 @@ export interface MenuModule {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RouteLocation {
-  readonly params: RouteParams;
-  readonly href: string;
-  readonly pathname: string;
-  readonly query: Record<string, string>;
+  readonly params: Readonly<Record<string, string>>;
+  readonly url: URL;
+  readonly isNavigating: boolean;
 }
 
-export interface RouteNavigate {
-  path: string;
-}
+/**
+ * @public
+ */
+export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+
+export type RouteAction = Signal<RouteActionValue>;
+
+export type RouteActionResolver = { status: number; result: any };
+export type RouteActionValue =
+  | {
+      id: string;
+      data: FormData | Record<string, any> | undefined;
+      output?: RouteActionResolver;
+      resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+    }
+  | undefined;
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
 
-type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentHeadValue {
   /**
    * Sets `document.title`.
    */
-  title?: string;
+  readonly title?: string;
   /**
    * Used to manually set meta tags in the head. Additionally, the `data`
    * property could be used to set arbitrary data which the `<head>` component
    * could later use to generate `<meta>` tags.
    */
-  meta?: DocumentMeta[];
+  readonly meta?: readonly DocumentMeta[];
   /**
    * Used to manually append `<link>` elements to the `<head>`.
    */
-  links?: DocumentLink[];
+  readonly links?: readonly DocumentLink[];
   /**
    * Used to manually append `<style>` elements to the `<head>`.
    */
-  styles?: DocumentStyle[];
+  readonly styles?: readonly DocumentStyle[];
   /**
    * Arbitrary object containing custom data. When the document head is created from
    * markdown files, the frontmatter attributes that are not recognized as a well-known
    * meta names (such as title, description, author, etc...), are stored in this property.
    */
-  frontmatter?: Record<string, any>;
+  readonly frontmatter?: Readonly<Record<string, any>>;
 }
 
 /**
- * @alpha
+ * @public
  */
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentMeta {
-  content?: string;
-  httpEquiv?: string;
-  name?: string;
-  property?: string;
-  key?: string;
-  itemprop?: string;
+  readonly content?: string;
+  readonly httpEquiv?: string;
+  readonly name?: string;
+  readonly property?: string;
+  readonly key?: string;
+  readonly itemprop?: string;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentLink {
   as?: string;
@@ -119,55 +156,54 @@ export interface DocumentLink {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface DocumentStyle {
-  style: string;
-  props?: { [propName: string]: string };
-  key?: string;
+  readonly style: string;
+  readonly props?: Readonly<{ [propName: string]: string }>;
+  readonly key?: string;
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface DocumentHeadProps<T = unknown> extends RouteLocation {
-  data: T;
-  head: ResolvedDocumentHead;
-  withLocale: <T>(fn: () => T) => T;
+export interface DocumentHeadProps extends RouteLocation {
+  readonly head: ResolvedDocumentHead;
+  readonly withLocale: <T>(fn: () => T) => T;
+  readonly resolveValue: ResolveSyncValue;
 }
 
 /**
- * @alpha
+ * @public
  */
-export type DocumentHead<T = unknown> =
-  | DocumentHeadValue
-  | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
+export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
-export interface ContentStateInternal {
-  contents: NoSerialize<ContentModule[]>;
-}
+export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
+/**
+ * @public
+ */
 export interface ContentState {
-  headings: ContentHeading[] | undefined;
-  menu: ContentMenu | undefined;
+  readonly headings: ContentHeading[] | undefined;
+  readonly menu: ContentMenu | undefined;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContentMenu {
-  text: string;
-  href?: string;
-  items?: ContentMenu[];
+  readonly text: string;
+  readonly href?: string;
+  readonly items?: ContentMenu[];
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ContentHeading {
-  text: string;
-  id: string;
-  level: number;
+  readonly text: string;
+  readonly id: string;
+  readonly level: number;
 }
 
 export type ContentModuleLoader = () => Promise<ContentModule>;
@@ -176,7 +212,7 @@ export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
 /**
- * @alpha
+ * @public
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -189,30 +225,34 @@ export type RouteData =
       routeBundleNames: string[]
     ];
 
+/**
+ * @public
+ */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityPlan {
-  routes: RouteData[];
-  basePathname?: string;
-  menus?: MenuData[];
-  trailingSlash?: boolean;
-  cacheModules?: boolean;
+  readonly routes: RouteData[];
+  readonly serverPlugins?: RouteModule[];
+  readonly basePathname?: string;
+  readonly menus?: MenuData[];
+  readonly trailingSlash?: boolean;
+  readonly cacheModules?: boolean;
 }
 
 /**
- * @alpha
+ * @public
  */
-export type RouteParams = Record<string, string>;
+export declare type PathParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export type LoadedRoute = [
-  params: RouteParams,
+  params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
   routeBundleNames: string[] | undefined
@@ -222,146 +262,45 @@ export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
 
-/**
- * @alpha
- */
-export interface RequestContext {
-  formData(): Promise<FormData>;
-  headers: Headers;
-  json(): Promise<any>;
-  method: string;
-  text(): Promise<string>;
-  url: string;
-}
-
-/**
- * @alpha
- */
-export interface ResponseContext {
-  /**
-   * HTTP response status code.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   */
-  status: number;
-
-  /**
-   * Which locale the content is in.
-   *
-   * The locale value can be retrieved from selected methods using `getLocale()`:
-   */
-  locale: string | undefined;
-
-  /**
-   * HTTP response headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
-   */
-  readonly headers: Headers;
-
-  /**
-   * URL to redirect to. When called, the response will immediately
-   * end with the correct redirect status and headers.
-   * Defaults to use the `307` response status code, but can be
-   * overridden by setting the `status` argument.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-   */
-  readonly redirect: (url: string, status?: number) => RedirectResponse;
-
-  /**
-   * When called, the response will immediately end with the given
-   * status code. This could be useful to end a response with `404`,
-   * and use the 404 handler in the routes directory.
-   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   * for which status code should be used.
-   */
-  readonly error: (status: number) => ErrorResponse;
-}
-
-/**
- * @alpha
- */
-export interface RequestEvent<PLATFORM = unknown> {
-  request: RequestContext;
-  response: ResponseContext;
-  url: URL;
-
-  /** URL Route params which have been parsed from the current url pathname. */
-  params: RouteParams;
-
-  /** Platform specific data and functions */
-  platform: PLATFORM;
-
-  cookie: Cookie;
-
-  next: () => Promise<void>;
-  abort: () => void;
-}
-
-/**
- * @alpha
- */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-
-/**
- * @alpha
- */
-export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (
-  ev: RequestEvent<PLATFORM>
-) => RequestHandlerResult<BODY>;
-
-/**
- * @alpha
- * @deprecated Please use `RequestHandler` instead.
- */
-export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
-
 export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
 
 export type RequestHandlerBodyFunction<BODY> = () =>
   | RequestHandlerBody<BODY>
   | Promise<RequestHandlerBody<BODY>>;
 
-export type RequestHandlerResult<BODY> =
-  | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
-  | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
-
 export interface EndpointResponse {
-  body: any;
   status: number;
+  loaders: Record<string, unknown>;
+  formData?: FormData;
+  action?: string;
 }
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
-  status?: number;
-  prefetch?: string[];
+  status: number;
+  href: string;
   redirect?: string;
-  isStatic: boolean;
 }
 
 /**
- * @alpha
+ * @public
  */
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerate {
-  params?: RouteParams[];
+  params?: PathParams[];
 }
 
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
-  mode: QwikCityMode;
-  params: RouteParams;
+  ev: RequestEvent;
+  params: PathParams;
   response: EndpointResponse;
+  loadedRoute: LoadedRoute | null;
 }
-
-export type QwikCityMode = 'dev' | 'static' | 'server';
-
-export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
 
 export interface SimpleURL {
   origin: string;
@@ -371,4 +310,400 @@ export interface SimpleURL {
   hash: string;
 }
 
-export { Cookie, CookieOptions, CookieValue };
+export type Editable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
+type UnionKeys<T> = T extends T ? keyof T : never;
+type StrictUnionHelper<T, TAll> = T extends any
+  ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, never>>
+  : never;
+
+type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+
+type Prettify<T> = {} & {
+  [K in keyof T]?: T[K];
+};
+
+/**
+ * @public
+ */
+export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
+/**
+ * @public
+ */
+export type JSONObject = { [x: string]: JSONValue };
+
+export type GetValidatorType<B extends TypedDataValidator> = B extends TypedDataValidator<
+  infer TYPE
+>
+  ? zod.infer<TYPE>
+  : never;
+
+/**
+ * @public
+ */
+export interface ActionOptions {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+}
+
+/**
+ * @public
+ */
+export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
+  readonly id?: string;
+  readonly validation: [val: B, ...a: DataValidator[]];
+}
+
+/**
+ * @public
+ */
+export interface CommonLoaderActionOptions {
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+}
+
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
+  infer ERROR
+>[]
+  ? ERROR
+  : never;
+
+/**
+ * @public
+ */
+export interface ActionConstructor {
+  // With validation
+  <O extends Record<string, any> | void | null, B extends TypedDataValidator>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B | ActionOptionsWithValidation<B>
+  ): Action<
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // With multiple validators
+  <
+    O extends Record<string, any> | void | null,
+    B extends TypedDataValidator,
+    REST extends DataValidator[]
+  >(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
+    options: B,
+    ...rest: REST
+  ): Action<
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // Without validation
+  <O>(
+    actionQrl: (
+      form: JSONObject,
+      event: RequestEventAction,
+      options: ActionOptions
+    ) => ValueOrPromise<O>,
+    options?: ActionOptions
+  ): Action<O>;
+
+  // Without validation
+  <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
+    ...rest: REST
+  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+/**
+ * @public
+ */
+export interface ActionConstructorQRL {
+  // With validation
+  <O extends Record<string, any> | void | null, B extends TypedDataValidator>(
+    actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
+    options: B | ActionOptionsWithValidation<B>
+  ): Action<
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // With multiple validators
+  <
+    O extends Record<string, any> | void | null,
+    B extends TypedDataValidator,
+    REST extends DataValidator[]
+  >(
+    actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
+    options: B,
+    ...rest: REST
+  ): Action<
+    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
+    GetValidatorType<B>,
+    false
+  >;
+
+  // Without validation
+  <O>(
+    actionQrl: QRL<
+      (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>
+    >,
+    options?: ActionOptions
+  ): Action<O>;
+
+  // Without validation
+  <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
+    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>,
+    ...rest: REST
+  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+/**
+ * @public
+ */
+export interface LoaderOptions {
+  id?: string;
+}
+
+/**
+ * @public
+ */
+export interface LoaderConstructor {
+  // Without validation
+  <O>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    options?: LoaderOptions
+  ): Loader<O>;
+
+  // With validation
+  <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+    ...rest: REST
+  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+/**
+ * @public
+ */
+export interface LoaderConstructorQRL {
+  // Without validation
+  <O>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+    options?: LoaderOptions
+  ): Loader<O>;
+
+  // With validation
+  <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+    ...rest: REST
+  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+}
+
+export type LoaderStateHolder = Record<string, Signal<any>>;
+
+/**
+ * @public
+ */
+export interface ActionReturn<RETURN> {
+  readonly status?: number;
+  readonly value: RETURN;
+}
+
+/**
+ * @public
+ */
+export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
+  /**
+   * It's the "action" path that a native `<form>` should have in order to call the action.
+   *
+   * ```tsx
+   *  <form action={action.actionPath} />
+   * ```
+   *
+   * Most of the time this property should not be used directly, instead use the `Form` component:
+   *
+   * ```tsx
+   * import {action$, Form} from '@builder.io/qwik-city';
+   *
+   * export const useAddUser = action$(() => { ... });
+   *
+   * export default component$(() => {
+   *   const action = useAddUser();
+   *   return (
+   *     <Form action={action}/>
+   *   );
+   * });
+   * ```
+   */
+  readonly actionPath: string;
+
+  /**
+   * Reactive property that becomes `true` only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.
+   *
+   * This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.
+   *
+   * It will be always `false` in the server, and only becomes `true` briefly while the action is running.
+   */
+  readonly isRunning: boolean;
+
+  /**
+   * Returned HTTP status code of the action after its last execution.
+   *
+   * It's `undefined` before the action is first called.
+   */
+  readonly status?: number;
+
+  /**
+   * When calling an action through a `<form>`, this property contains the previously submitted `FormData`.
+   *
+   * This is useful to keep the filled form data even after a full page reload.
+   *
+   * It's `undefined` before the action is first called.
+   */
+  readonly formData: FormData | undefined;
+
+  /**
+   * Returned successful data of the action. This reactive property will contain the data returned inside the `action$` function.
+   *
+   * It's `undefined` before the action is first called.
+   */
+  readonly value: RETURN | undefined;
+
+  /**
+   * Method to execute the action programmatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
+   * in order to execute the action in the server.
+   */
+  readonly submit: QRL<
+    OPTIONAL extends true
+      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+  >;
+}
+
+/**
+ * @public
+ */
+export type FailReturn<T> = T & {
+  failed: true;
+};
+
+/**
+ * @public
+ */
+export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
+  ? ReadonlySignal<ValueOrPromise<B>>
+  : ReadonlySignal<T>;
+
+/**
+ * @public
+ */
+export interface Loader<RETURN> {
+  /**
+   * Returns the `Signal` containing the data returned by the `loader$` function.
+   * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
+   */
+  (): LoaderSignal<RETURN>;
+}
+
+export interface LoaderInternal extends Loader<any> {
+  readonly __brand?: 'server_loader';
+  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
+  __id: string;
+  __validators: DataValidator[] | undefined;
+  (): LoaderSignal<any>;
+}
+
+/**
+ * @public
+ */
+export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
+  /**
+   * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
+   * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
+   */
+  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+}
+
+export interface ActionInternal extends Action<any, any> {
+  readonly __brand: 'server_action';
+  __id: string;
+  __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<any>>;
+  __validators: DataValidator[] | undefined;
+
+  (): ActionStore<any, any>;
+}
+
+export type ValidatorReturn<T extends Record<string, any> = {}> =
+  | ValidatorReturnSuccess
+  | ValidatorReturnFail<T>;
+
+export interface ValidatorReturnSuccess {
+  readonly success: true;
+  readonly data?: any;
+}
+
+export interface ValidatorReturnFail<T extends Record<string, any> = {}> {
+  readonly success: false;
+  readonly error: T;
+  readonly status?: number;
+}
+
+/**
+ * @public
+ */
+export interface DataValidator<T extends Record<string, any> = {}> {
+  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
+}
+
+/**
+ * @public
+ */
+export interface TypedDataValidator<T extends zod.ZodType = any> {
+  __zod: zod.ZodSchema<T>;
+  validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;
+}
+
+export interface ValidatorConstructor {
+  <T extends ValidatorReturn>(
+    validator: (ev: RequestEvent, data: unknown) => ValueOrPromise<T>
+  ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
+}
+
+export interface ValidatorConstructorQRL {
+  <T extends ValidatorReturn>(
+    validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<T>>
+  ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
+}
+
+/**
+ * @public
+ */
+export interface ZodConstructor {
+  <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+}
+
+/**
+ * @public
+ */
+export interface ZodConstructorQRL {
+  <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.ZodRawShape>(schema: QRL<(zs: typeof zod) => T>): TypedDataValidator<
+    zod.ZodObject<T>
+  >;
+  <T extends zod.Schema>(schema: QRL<T>): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: QRL<(z: typeof zod) => T>): TypedDataValidator<T>;
+}
+
+export interface ServerFunction {
+  (this: RequestEventBase, ...args: any[]): any;
+}
+
+export interface ServerConstructorQRL {
+  <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
+}

@@ -2,17 +2,19 @@ import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { isArray, isString, ValueOrPromise } from '../util/types';
+import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
+import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
-import { ContainerState, intToStr } from '../container/container';
+import { type ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { seal } from '../util/qdev';
-import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
-import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
+import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
+import { isSignal, SignalUnassignedException } from '../state/signal';
+import { isJSXNode } from './jsx/jsx-runtime';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -32,13 +34,8 @@ export const executeComponent = (
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
   const newCtx = pushRenderContext(rCtx);
-  const invocationContext = newInvokeContext(
-    rCtx.$static$.$locale$,
-    hostElement,
-    undefined,
-    RenderEvent
-  );
-  const waitOn = (invocationContext.$waitOn$ = []);
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, RenderEvent);
+  const waitOn = (iCtx.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
@@ -47,12 +44,12 @@ export const executeComponent = (
   newCtx.$slotCtx$ = null;
 
   // Invoke render hook
-  invocationContext.$subscriber$ = hostElement;
-  invocationContext.$renderCtx$ = rCtx;
+  iCtx.$subscriber$ = [0, hostElement];
+  iCtx.$renderCtx$ = rCtx;
 
   // Resolve render function
   componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
-  const componentFn = componentQRL.getFn(invocationContext);
+  const componentFn = componentQRL.getFn(iCtx);
 
   return safeCall(
     () => componentFn(props),
@@ -77,6 +74,11 @@ export const executeComponent = (
       };
     },
     (err) => {
+      if (err === SignalUnassignedException) {
+        return Promise.all(waitOn).then(() => {
+          return executeComponent(rCtx, elCtx);
+        });
+      }
       handleError(err, hostElement, rCtx);
       return {
         node: SkipRender,
@@ -93,7 +95,7 @@ export const createRenderContext = (
   const ctx: RenderContext = {
     $static$: {
       $doc$: doc,
-      $locale$: containerState.$envData$.locale,
+      $locale$: containerState.$serverData$.locale,
       $containerState$: containerState,
       $hostElements$: new Set(),
       $operations$: [],
@@ -101,6 +103,7 @@ export const createRenderContext = (
       $roots$: [],
       $addSlots$: [],
       $rmSlots$: [],
+      $visited$: [],
     },
     $cmpCtx$: null,
     $slotCtx$: null,
@@ -119,17 +122,30 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
-export const serializeClass = (
-  obj: string | { [className: string]: boolean } | (string | { [className: string]: boolean })[]
+export const serializeClassWithHost = (
+  obj: ClassList,
+  hostCtx: QContext | undefined | null
 ): string => {
-  if (!obj) return '';
-  if (isString(obj)) return obj.trim();
+  if (hostCtx && hostCtx.$scopeIds$) {
+    return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
+  }
+  return serializeClass(obj);
+};
 
-  if (isArray(obj))
+export const serializeClass = (obj: ClassList): string => {
+  if (!obj) {
+    return '';
+  }
+  if (isString(obj)) {
+    return obj.trim();
+  }
+
+  if (isArray(obj)) {
     return obj.reduce((result: string, o) => {
       const classList = serializeClass(o);
       return classList ? (result ? `${result} ${classList}` : classList) : result;
     }, '');
+  }
 
   return Object.entries(obj).reduce(
     (result, [key, value]) => (value ? (result ? `${result} ${key.trim()}` : key.trim()) : result),
@@ -137,12 +153,32 @@ export const serializeClass = (
   );
 };
 
-const parseClassListRegex = /\s/;
-export const parseClassList = (value: string | undefined | null): string[] =>
-  !value ? EMPTY_ARRAY : value.split(parseClassListRegex);
+// export const serializeClass = (obj: ClassList): string => {
+//   if (!obj) return '';
+//   if (isString(obj)) return obj.trim();
+
+//   let reduced = '';
+//   if (isArray(obj)) {
+//     for (const o of obj) {
+//       const classList = serializeClass(o);
+//       if (classList) {
+//         reduced += ' ' + classList.trim();
+//       }
+//     }
+//   } else {
+//     for (const key of Object.keys(obj)) {
+//       if (obj[key]) {
+//         reduced += ' ' + key;
+//       }
+//     }
+//   }
+//   return reduced.trim();
+// };
 
 export const stringifyStyle = (obj: any): string => {
-  if (obj == null) return '';
+  if (obj == null) {
+    return '';
+  }
   if (typeof obj == 'object') {
     if (isArray(obj)) {
       throw qError(QError_stringifyClassOrStyle, obj, 'style');
@@ -151,7 +187,7 @@ export const stringifyStyle = (obj: any): string => {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          if (value) {
+          if (value != null) {
             const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
             chunks.push(normalizedKey + ':' + value);
           }
@@ -176,10 +212,23 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
 
-export const jsxToString = (data: any) => {
+export const jsxToString = (data: any): string => {
+  if (isSignal(data)) {
+    return jsxToString(data.value);
+  }
   return data == null || typeof data === 'boolean' ? '' : String(data);
 };
 
 export function isAriaAttribute(prop: string): boolean {
   return prop.startsWith('aria-');
 }
+
+export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
+  if (node.key) {
+    return !isJSXNode(res) || (!isFunction(res.type) && res.key != node.key);
+  }
+  return false;
+};
+
+export const static_listeners = 1 << 0;
+export const static_subtree = 1 << 1;

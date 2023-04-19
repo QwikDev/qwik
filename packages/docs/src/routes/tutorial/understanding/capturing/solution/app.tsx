@@ -11,14 +11,14 @@ export default component$(() => {
       counter: { count: 1 },
       largeData: { data: 'PRETEND THIS IS LARGE DATASET' },
     },
-    { recursive: true }
+    { deep: true }
   );
   console.log('Render: <App/>');
   const counter = store.counter;
   return (
     <>
-      <tt>&lt;App&gt;</tt>
-      <tt>largeData</tt>: {JSON.stringify(store.largeData)}
+      <code>&lt;App&gt;</code>
+      <code>largeData</code>: {JSON.stringify(store.largeData)}
       <br />
       Click <button onClick$={() => counter.count++}>+1</button>
       <Child counter={counter} />
@@ -30,7 +30,7 @@ export const Child = component$((props: { counter: AppStore['counter'] }) => {
   console.log('Render: <Child/>');
   return (
     <>
-      <tt>&lt;Child&gt;</tt> {props.counter.count}
+      <code>&lt;Child&gt;</code> {props.counter.count}
     </>
   );
 });

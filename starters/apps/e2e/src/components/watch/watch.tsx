@@ -1,15 +1,16 @@
 /* eslint-disable */
 import {
   component$,
-  useServerMount$,
-  useWatch$,
+  useTask$,
   useStore,
   useSignal,
-  Signal,
-  createContext,
+  type Signal,
+  createContextId,
   useContext,
   useContextProvider,
+  $,
 } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 
 interface State {
   count: number;
@@ -29,25 +30,27 @@ export const Watch = component$(() => {
     server: '',
   });
 
-  useServerMount$(() => {
-    store.server = 'comes from server';
+  useTask$(() => {
+    if (isServer) {
+      store.server = 'comes from server';
+    }
   });
 
   // This watch should be treeshaken
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const path = track(() => nav.path);
     console.log(path);
   });
 
   // Double count watch
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const count = track(() => store.count);
     store.doubleCount = 2 * count;
   });
 
   // Debouncer watch
-  useWatch$(({ track }) => {
-    const doubleCount = track(store, 'doubleCount');
+  useTask$(({ track }) => {
+    const doubleCount = track(() => store.doubleCount);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
     }, 2000);
@@ -70,6 +73,7 @@ export const WatchShell = component$(({ store }: { nav: any; store: State }) => 
         +
       </button>
       <Issue1766Root />
+      <Issue2972 />
     </div>
   );
 });
@@ -91,7 +95,7 @@ export const GrandChild = component$((props: { state: State }) => {
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContext<{ value: string }>('link-path');
+export const LinkPath = createContextId<{ value: string }>('link-path');
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({
@@ -103,7 +107,7 @@ export const Issue1766Root = component$(() => {
   });
   useContextProvider(LinkPath, loc);
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const path = track(() => loc.value);
     final.value = path.toUpperCase();
   });
@@ -120,7 +124,7 @@ export const Issue1766 = component$(() => {
   const counter = useSignal(0);
   const second = useSignal('---');
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(counter);
     if (counter.value !== 0) {
       second.value = 'watch ran';
@@ -180,5 +184,22 @@ export const Link = component$((props: { href: string }) => {
     >
       Navigate
     </button>
+  );
+});
+
+export function foo(this: any) {
+  return this.value;
+}
+
+export const Issue2972 = component$(() => {
+  const message = useSignal('');
+  useTask$(async () => {
+    message.value = await $(foo).apply({ value: 'passed' });
+  });
+
+  return (
+    <>
+      <div id="issue-2972">{message.value}</div>
+    </>
   );
 });

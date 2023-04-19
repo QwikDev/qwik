@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const routesDir = tmpdir();
+const serverPluginsDir = tmpdir();
+
 const menuFilePath = join(routesDir, 'docs', 'menu.md');
 [
   {
@@ -69,14 +71,15 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
     const opts: NormalizedPluginOptions = {
       basePathname: '/',
       trailingSlash: !!t.trailingSlash,
-      routesDir: routesDir,
+      routesDir,
+      serverPluginsDir,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: '/',
+      platform: {},
     };
     equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);
   });

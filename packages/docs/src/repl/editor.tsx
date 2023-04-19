@@ -1,18 +1,18 @@
 import {
   component$,
-  NoSerialize,
-  PropFunction,
-  useClientEffect$,
+  type NoSerialize,
+  type PropFunction,
+  useVisibleTask$,
   useContext,
-  useRef,
+  useSignal,
   useStore,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 import type { IStandaloneCodeEditor } from './monaco';
 import {
   addQwikLibs,
   getEditorTheme,
-  ICodeEditorViewState,
+  type ICodeEditorViewState,
   initMonacoEditor,
   updateMonacoEditor,
 } from './monaco';
@@ -20,7 +20,7 @@ import type { ReplAppInput, ReplStore } from './types';
 import { GlobalStore } from '../context';
 
 export const Editor = component$((props: EditorProps) => {
-  const hostRef = useRef();
+  const hostRef = useSignal<Element>();
 
   const store = useStore<EditorStore>({
     editor: undefined,
@@ -31,9 +31,9 @@ export const Editor = component$((props: EditorProps) => {
 
   const globalStore = useContext(GlobalStore);
 
-  useClientEffect$(async () => {
+  useVisibleTask$(async () => {
     if (!store.editor) {
-      await initMonacoEditor(hostRef.current, props, store, props.store);
+      await initMonacoEditor(hostRef.value, props, store, props.store);
     }
     return () => {
       if (store.editor) {
@@ -42,8 +42,8 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
-  useClientEffect$(({ track }) => {
-    track(globalStore, 'theme');
+  useVisibleTask$(({ track }) => {
+    track(() => globalStore.theme);
     if (globalStore.theme !== 'auto') {
       store.editor?.updateOptions({
         theme: getEditorTheme(globalStore.theme === 'dark'),
@@ -51,7 +51,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(() => props.input.version);
     track(() => store.editor);
 
@@ -60,7 +60,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(() => store.editor);
     track(() => props.input.version);
     track(() => props.input.files);
@@ -71,7 +71,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  return <div ref={hostRef} className="editor-container" />;
+  return <div ref={hostRef} class="editor-container" />;
 });
 
 export interface EditorProps {

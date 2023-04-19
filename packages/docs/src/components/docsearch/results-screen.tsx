@@ -15,7 +15,7 @@ export const ResultsScreen = component$((props: { state: DocSearchState }) => {
 
         const title = removeHighlightTags(collection.items[0]);
         return (
-          <section class="DocSearch-Hits">
+          <section class="DocSearch-Hits" key={title}>
             <div class="DocSearch-Hit-source">{title}</div>
 
             <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">

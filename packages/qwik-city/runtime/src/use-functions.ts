@@ -1,31 +1,40 @@
-import { noSerialize, useContext, useEnvData } from '@builder.io/qwik';
+import { noSerialize, useContext, useServerData } from '@builder.io/qwik';
 import {
   ContentContext,
   DocumentHeadContext,
+  RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
 } from './contexts';
-import type { RouteLocation, ResolvedDocumentHead, RouteNavigate, QwikCityEnvData } from './types';
+import type {
+  RouteLocation,
+  ResolvedDocumentHead,
+  RouteNavigate,
+  QwikCityEnvData,
+  RouteAction,
+} from './types';
 
 /**
- * @alpha
+ * @public
  */
 export const useContent = () => useContext(ContentContext);
 
 /**
- * @alpha
+ * @public
  */
 export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
   useContext(DocumentHeadContext);
 
 /**
- * @alpha
+ * @public
  */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
 
 /**
- * @alpha
+ * @public
  */
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 
-export const useQwikCityEnv = () => noSerialize(useEnvData<QwikCityEnvData>('qwikcity'));
+export const useAction = (): RouteAction => useContext(RouteActionContext);
+
+export const useQwikCityEnv = () => noSerialize(useServerData<QwikCityEnvData>('qwikcity'));

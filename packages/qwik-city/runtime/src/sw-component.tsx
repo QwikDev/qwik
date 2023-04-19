@@ -2,6 +2,7 @@ import { jsx } from '@builder.io/qwik';
 import swRegister from '@qwik-city-sw-register';
 
 /**
- * @alpha
+ * @public
  */
-export const ServiceWorkerRegister = () => jsx('script', { dangerouslySetInnerHTML: swRegister });
+export const ServiceWorkerRegister = (props: { nonce?: string }) =>
+  jsx('script', { dangerouslySetInnerHTML: swRegister, nonce: props.nonce });

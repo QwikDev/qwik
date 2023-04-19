@@ -1,4 +1,4 @@
-import { component$, $, useStore, noSerialize, useSignal, Signal } from '@builder.io/qwik';
+import { component$, $, useStore, noSerialize, useSignal, type Signal } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);
@@ -35,7 +35,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
       stuff: 'foo',
     },
     {
-      recursive: true,
+      deep: true,
     }
   );
   Object.freeze(immutable);
@@ -48,6 +48,11 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const promise = Promise.resolve('from a promise');
   const rejected = Promise.reject(new Error('failed message'));
   rejected.catch(() => null);
+
+  const formData = new FormData();
+  formData.append('name', 'qwik');
+  formData.append('age', '1');
+  formData.append('age', '2');
 
   const specialStrings = [
     '\b: backspace',
@@ -93,6 +98,8 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const infinite = Infinity;
   const negativeInfinite = -Infinity;
   const nan = NaN;
+  const urlSearchParams = new URLSearchParams('mph=88');
+  const bigint = BigInt('200000000000000000');
 
   const onclick = $(async () => {
     // eslint-disable-next-line
@@ -131,6 +138,10 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           String(infinite),
           String(negativeInfinite),
           String(nan),
+          urlSearchParams.get('mph'),
+          formData.get('name'),
+          formData.getAll('age'),
+          String(bigint),
         ]);
         state.count++;
       });

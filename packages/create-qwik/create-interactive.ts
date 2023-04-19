@@ -1,26 +1,45 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
-import { relative } from 'node:path';
-import prompts from 'prompts';
-import color from 'kleur';
+import { join, relative } from 'node:path';
+import {
+  text,
+  select,
+  confirm,
+  intro,
+  outro,
+  cancel,
+  spinner,
+  isCancel,
+  log,
+} from '@clack/prompts';
+import { bgBlue, red } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
-import { getPackageManager } from '../qwik/src/cli/utils/utils';
+import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
-  checkNodeVersion();
-  console.log(``);
-  console.clear();
-  console.log(``);
+  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
-  console.log(
-    `🐰 ${color.cyan(`Let's create a`)} ${color.bold(color.magenta(`Qwik`))} ${color.cyan(
-      `app`
-    )} 🐇   ${color.dim(`v${(globalThis as any).QWIK_VERSION}`)}`
-  );
-  console.log(``);
+  await wait(500);
+
+  const defaultProjectName = './qwik-app';
+  const projectNameAnswer =
+    (await text({
+      message: 'Where would you like to create your new project?',
+      placeholder: defaultProjectName,
+      validate(value) {
+        if (value.trim() === '.' || value.trim() === './') {
+          return "Please don't use '.' or './' and let qwik create the directory for you.";
+        }
+      },
+    })) || defaultProjectName;
+
+  if (isCancel(projectNameAnswer)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
 
   const pkgManager = getPackageManager();
 
@@ -31,134 +50,116 @@ export async function runCreateInteractiveCli() {
 
   const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
-  const projectNameAnswer = await prompts(
-    {
-      type: 'text',
-      name: 'outDir',
-      message: 'Where would you like to create your new project?',
-      initial: './qwik-app',
-    },
-    {
-      onCancel: () => {
-        console.log('');
-        process.exit(1);
-      },
-    }
-  );
-  console.log(``);
-
-  const outDir: string = getOutDir(projectNameAnswer.outDir.trim());
+  const outDir: string = getOutDir(projectNameAnswer.trim());
 
   let removeExistingOutDirPromise: Promise<void> | null = null;
 
   if (fs.existsSync(outDir)) {
-    const existingOutDirAnswer = await prompts(
-      {
-        type: 'select',
-        name: 'outDirChoice',
-        message: `Directory "./${relative(
-          process.cwd(),
-          outDir
-        )}" already exists. What would you like to do?`,
-        choices: [
-          { title: 'Do not overwrite this directory and exit', value: 'exit' },
-          { title: 'Overwrite and replace this directory', value: 'replace' },
-        ],
-        hint: '(use ↓↑ arrows, hit enter)',
-      },
-      {
-        onCancel: async () => {
-          console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
-          await backgroundInstall.abort();
-          process.exit(1);
-        },
-      }
-    );
-    console.log(``);
-    if (existingOutDirAnswer.outDirChoice === 'replace') {
+    const existingOutDirAnswer = await select({
+      message: `Directory "./${relative(
+        process.cwd(),
+        outDir
+      )}" already exists. What would you like to do?`,
+      options: [
+        { value: 'exit', label: 'Do not overwrite this directory and exit' },
+        { value: 'replace', label: 'Overwrite and replace this directory' },
+      ],
+    });
+
+    if (isCancel(existingOutDirAnswer) || existingOutDirAnswer === 'exit') {
+      cancel('Operation cancelled.');
+      process.exit(0);
+    }
+
+    if (existingOutDirAnswer === 'replace') {
       removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
-    } else {
-      console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
-      await backgroundInstall.abort();
-      process.exit(1);
     }
   }
 
-  const starterIdAnswer = await prompts(
-    {
-      type: 'select',
-      name: 'starterId',
-      message: 'Select a starter',
-      choices: apps.map((s) => {
-        return { title: s.name, value: s.id, description: '└─' + s.pkgJson?.description };
-      }),
-      hint: '(use ↓↑ arrows, hit enter)',
-    },
-    {
-      onCancel: async () => {
-        console.log('');
-        await backgroundInstall.abort();
-        process.exit(1);
-      },
-    }
-  );
-  console.log(``);
-  const starterId = starterIdAnswer.starterId;
+  const starterIdAnswer = await select({
+    message: 'Select a starter',
+    options: apps.map((s) => {
+      return { label: s.name, value: s.id, hint: s.pkgJson?.description };
+    }),
+  });
 
-  const runInstallAnswer = await prompts(
-    {
-      type: 'confirm',
-      name: 'runInstall',
-      message: `Would you like to install ${pkgManager} dependencies?`,
-      initial: true,
-    },
-    {
-      onCancel: async () => {
-        console.log('');
-        await backgroundInstall.abort();
-        process.exit(1);
-      },
-    }
-  );
-  console.log(``);
+  if (isCancel(starterIdAnswer)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
+
+  const starterId = starterIdAnswer as string;
+
+  const runInstallAnswer = await confirm({
+    message: `Would you like to install ${pkgManager} dependencies?`,
+    initialValue: true,
+  });
+
+  if (isCancel(runInstallAnswer)) {
+    cancel('Operation cancelled.');
+    process.exit(0);
+  }
+
+  if (runInstallAnswer === false) {
+    backgroundInstall.abort();
+  }
+
+  const gitInitAnswer = await confirm({
+    message: `Initialize a new git repository?`,
+    initialValue: true,
+  });
 
   if (removeExistingOutDirPromise) {
     await removeExistingOutDirPromise;
   }
 
-  const runInstall: boolean = runInstallAnswer.runInstall;
+  const runInstall: boolean = runInstallAnswer;
 
   const opts: CreateAppOptions = {
     starterId,
     outDir,
   };
 
+  const s = spinner();
+
+  s.start('Creating App...');
   const result = await createApp(opts);
+  s.stop('Created App 🐰');
 
-  const successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
+  if (gitInitAnswer) {
+    if (fs.existsSync(join(outDir, '.git'))) {
+      log.info(`Git has already been initialized before. Skipping...`);
+    } else {
+      s.start('Git initializing...');
 
-  logCreateAppResult(pkgManager, result, successfulDepsInstall);
+      try {
+        const res = [];
+        res.push(await runCommand('git', ['init'], outDir).install);
+        res.push(await runCommand('git', ['add', '-A'], outDir).install);
+        res.push(await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install);
 
-  return result;
-}
+        if (res.some((r) => r === false)) {
+          throw '';
+        }
 
-function checkNodeVersion() {
-  const version = process.version;
-  const [majorVersion, minorVersion] = version.replace('v', '').split('.');
-  if (Number(majorVersion) < 16) {
-    console.error(
-      color.red(
-        `Qwik requires Node.js 16.8 or higher. You are currently running Node.js ${version}.`
-      )
-    );
-    process.exit(1);
-  } else if (Number(majorVersion) === 16) {
-    if (Number(minorVersion) < 8) {
-      console.warn(
-        color.yellow(
-          `Node.js 16.8 or higher is recommended. You are currently running Node.js ${version}.`
-        )
-      );
+        s.stop('Git initialized 🎲');
+      } catch (e) {
+        s.stop('Git failed to initialize');
+        log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
+      }
     }
   }
+
+  let successfulDepsInstall = false;
+  if (runInstall) {
+    s.start('Installing dependencies');
+    successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
+    s.stop(`${successfulDepsInstall ? 'Installed' : 'Failed to install'} dependencies 📋`);
+  }
+
+  note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
+
+  outro('Happy coding! 🐇');
+
+  return result;
 }

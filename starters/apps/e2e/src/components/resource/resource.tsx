@@ -4,12 +4,12 @@ import {
   useStore,
   useResource$,
   Resource,
-  useWatch$,
-  createContext,
+  useTask$,
+  createContextId,
   useContextProvider,
   useContext,
   useStyles$,
-  ResourceReturn,
+  type ResourceReturn,
 } from '@builder.io/qwik';
 
 export interface WeatherData {
@@ -28,7 +28,7 @@ interface LogsContext {
   content: string;
 }
 
-export const LOGS = createContext<LogsContext>('qwik.logs.resource');
+export const LOGS = createContextId<LogsContext>('qwik.logs.resource');
 
 export const ResourceApp = component$(() => {
   const logs = {
@@ -37,22 +37,21 @@ export const ResourceApp = component$(() => {
   useContextProvider(LOGS, logs);
 
   logs.content += '[RENDER] <ResourceApp>\n';
-
   const state = useStore({
     count: 10,
     countDouble: 0,
     countDoubleDouble: 0,
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     logs.content += '[WATCH] 1 before\n';
-    const count = track(state, 'count');
+    const count = track(() => state.count);
     await delay(100);
     state.countDouble = count * 2;
     logs.content += '[WATCH] 1 after\n';
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     logs.content += '[WATCH] 2 before\n';
     const city = track(() => state.countDouble);
     await delay(100);
@@ -81,7 +80,7 @@ export const ResourceApp = component$(() => {
 
   return (
     <div>
-      <button type="button" className="increment" onClick$={() => state.count++}>
+      <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
       <div id="outside-state">{resouceState}</div>
@@ -97,6 +96,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
     }`);
   const logs = useContext(LOGS);
   logs.content += '[RENDER] <Results>\n\n\n';
+  const logscontent = logs.content + '';
 
   const state = useStore({
     count: 0,
@@ -112,20 +112,23 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
         onResolved={(number) => {
           return (
             <>
-              <div className="resource1">resource 1 is {number}</div>
+              <div class="resource1">resource 1 is {number}</div>
               <button class="count" onClick$={() => state.count++}>
-                count is {state.count + 0}
+                count is {mutable(state.count + 0)}
               </button>
             </>
           );
         }}
       />
 
-      <div class="logs">{logs.content}</div>
+      <div class="logs">{logscontent}</div>
     </div>
   );
 });
 
+export function mutable(value: any) {
+  return value;
+}
 export function delay(nu: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, nu);

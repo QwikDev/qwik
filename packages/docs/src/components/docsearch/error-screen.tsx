@@ -6,22 +6,14 @@ export type ErrorScreenTranslations = Partial<{
   helpText: string;
 }>;
 
-type ErrorScreenProps = {
-  translations?: ErrorScreenTranslations;
-};
-
-export const ErrorScreen = component$(({ translations = {} }: ErrorScreenProps) => {
-  const {
-    titleText = 'Unable to fetch results',
-    helpText = 'You might want to check your network connection.',
-  } = translations;
+export const ErrorScreen = component$(() => {
   return (
-    <div className="DocSearch-ErrorScreen">
-      <div className="DocSearch-Screen-Icon">
+    <div class="DocSearch-ErrorScreen">
+      <div class="DocSearch-Screen-Icon">
         <ErrorIcon />
       </div>
-      <p className="DocSearch-Title">{titleText}</p>
-      <p className="DocSearch-Help">{helpText}</p>
+      <p class="DocSearch-Title">Unable to fetch results</p>
+      <p class="DocSearch-Help">You might want to check your network connection.</p>
     </div>
   );
 });

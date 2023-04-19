@@ -1,22 +1,34 @@
-import { Component, componentQrl, isQwikComponent } from '../component/component.public';
+import { type Component, componentQrl, isQwikComponent } from '../component/component.public';
 import { parseQRL, serializeQRL } from '../qrl/qrl';
-import { isQrl, QRLInternal } from '../qrl/qrl-class';
+import { isQrl, type QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import type { ContainerState, GetObject, MustGetObjID } from './container';
+import { intToStr, type ContainerState, type GetObject, type MustGetObjID } from './container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
-  parseWatch,
-  ResourceReturnInternal,
+  parseTask,
+  type ResourceReturnInternal,
   serializeWatch,
-  SubscriberEffect,
-} from '../use/use-watch';
+  type SubscriberEffect,
+} from '../use/use-task';
 import { isDocument } from '../util/element';
-import { SignalImpl, SignalWrapper } from '../state/signal';
-import { Collector, collectSubscriptions, collectValue } from './pause';
-import type { Subscriptions } from '../state/common';
+import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
+import { type Collector, collectSubscriptions, collectValue } from './pause';
+import {
+  fastWeakSerialize,
+  getProxyManager,
+  LocalSubscriptionManager,
+  type SubscriptionManager,
+  type Subscriptions,
+} from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
+import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
+import type { QwikElement } from '../render/dom/virtual-element';
+import { assertString } from '../error/assert';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Slot } from '../render/jsx/slot.public';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -43,13 +55,18 @@ export interface Serializer<T> {
    * Convert the object to a string.
    */
   serialize:
-    | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
+    | ((
+        obj: T,
+        getObjID: MustGetObjID,
+        collector: Collector,
+        containerState: ContainerState
+      ) => string)
     | undefined;
 
   /**
    * Return of
    */
-  collect?: (obj: T, collector: Collector, leaks: boolean) => void;
+  collect?: (obj: T, collector: Collector, leaks: boolean | QwikElement) => void;
 
   /**
    * Deserialize the object.
@@ -100,17 +117,17 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
   test: (v) => isSubscriberDescriptor(v),
   collect: (v, collector, leaks) => {
     collectValue(v.$qrl$, collector, leaks);
-    if (v.$resource$) {
-      collectValue(v.$resource$, collector, leaks);
+    if (v.$state$) {
+      collectValue(v.$state$, collector, leaks);
     }
   },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
-  prepare: (data) => parseWatch(data) as any,
+  prepare: (data) => parseTask(data) as any,
   fill: (watch, getObject) => {
     watch.$el$ = getObject(watch.$el$ as any);
     watch.$qrl$ = getObject(watch.$qrl$ as any);
-    if (watch.$resource$) {
-      watch.$resource$ = getObject(watch.$resource$ as any);
+    if (watch.$state$) {
+      watch.$state$ = getObject(watch.$state$ as any);
     }
   },
 };
@@ -119,7 +136,7 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
   collect: (obj, collector, leaks) => {
-    collectValue(obj.promise, collector, leaks);
+    collectValue(obj.value, collector, leaks);
     collectValue(obj._resolved, collector, leaks);
   },
   serialize: (obj, getObjId) => {
@@ -131,12 +148,12 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   fill: (resource, getObject) => {
     if (resource._state === 'resolved') {
       resource._resolved = getObject(resource._resolved);
-      resource.promise = Promise.resolve(resource._resolved);
+      resource.value = Promise.resolve(resource._resolved);
     } else if (resource._state === 'rejected') {
       const p = Promise.reject(resource._error);
       p.catch(() => null);
       resource._error = getObject(resource._error);
-      resource.promise = p;
+      resource.value = p;
     }
   },
 };
@@ -205,9 +222,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
     });
   },
   prepare: (data, containerState) => {
-    const optionsIndex = data.indexOf('{');
-    const qrlString = optionsIndex == -1 ? data : data.slice(0, optionsIndex);
-    const qrl: QRL<any> = parseQRL(qrlString, containerState.$containerEl$);
+    const qrl: QRL<any> = parseQRL(data, containerState.$containerEl$);
     return componentQrl(qrl);
   },
   fill: (component, getObject) => {
@@ -219,18 +234,37 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const PureFunctionSerializer: Serializer<Function> = {
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
   prefix: '\u0011',
-  test: (obj) => typeof obj === 'function' && obj.__qwik_serializable__ !== undefined,
-  serialize: (obj) => {
-    return obj.toString();
+  test: (obj) => obj instanceof SignalDerived,
+  collect: (obj, collector, leaks) => {
+    if (obj.$args$) {
+      for (const arg of obj.$args$) {
+        collectValue(arg, collector, leaks);
+      }
+    }
+  },
+  serialize: (signal, getObjID, collector) => {
+    const serialized = serializeDerivedSignalFunc(signal);
+    let index = collector.$inlinedFunctions$.indexOf(serialized);
+    if (index < 0) {
+      collector.$inlinedFunctions$.push(serialized);
+      index = collector.$inlinedFunctions$.length - 1;
+    }
+    const parts = signal.$args$.map(getObjID);
+    return parts.join(' ') + ' @' + intToStr(index);
   },
   prepare: (data) => {
-    const fn = new Function('return ' + data)();
-    fn.__qwik_serializable__ = true;
-    return fn;
+    const ids = data.split(' ');
+    const args = ids.slice(0, -1);
+    const fn = ids[ids.length - 1];
+    return new SignalDerived(fn as any, args, fn);
   },
-  fill: undefined,
+  fill: (fn, getObject) => {
+    assertString(fn.$func$, 'fn.$func$ should be a string');
+    fn.$func$ = getObject(fn.$func$);
+    fn.$args$ = fn.$args$.map(getObject);
+  },
 };
 
 const SignalSerializer: Serializer<SignalImpl<any>> = {
@@ -238,8 +272,8 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   test: (v) => v instanceof SignalImpl,
   collect: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
-    if (leaks) {
-      collectSubscriptions(obj[QObjectManagerSymbol], collector);
+    if (leaks === true) {
+      collectSubscriptions(obj[QObjectManagerSymbol], collector, leaks);
     }
     return obj;
   },
@@ -247,7 +281,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return getObjId(obj.untrackedValue);
   },
   prepare: (data, containerState) => {
-    return new SignalImpl(data, containerState.$subsManager$.$createManager$());
+    return new SignalImpl(data, containerState?.$subsManager$?.$createManager$(), 0);
   },
   subs: (signal, subs) => {
     signal[QObjectManagerSymbol].$addSubs$(subs);
@@ -262,6 +296,12 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   test: (v) => v instanceof SignalWrapper,
   collect(obj, collector, leaks) {
     collectValue(obj.ref, collector, leaks);
+    if (fastWeakSerialize(obj.ref)) {
+      const localManager = getProxyManager(obj.ref)!;
+      if (isTreeShakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
+        collectValue(obj.ref[obj.prop], collector, leaks);
+      }
+    }
     return obj;
   },
   serialize: (obj, getObjId) => {
@@ -287,20 +327,115 @@ const NoFiniteNumberSerializer: Serializer<number> = {
   },
   fill: undefined,
 };
+
+const URLSearchParamsSerializer: Serializer<URLSearchParams> = {
+  prefix: '\u0015',
+  test: (v) => v instanceof URLSearchParams,
+  serialize: (obj) => obj.toString(),
+  prepare: (data) => new URLSearchParams(data),
+  fill: undefined,
+};
+
+const FormDataSerializer: Serializer<FormData> = {
+  prefix: '\u0016',
+  test: (v) => typeof FormData !== 'undefined' && v instanceof globalThis.FormData,
+  serialize: (formData) => {
+    const array: [string, string][] = [];
+    formData.forEach((value, key) => {
+      if (typeof value === 'string') {
+        array.push([key, value]);
+      } else {
+        array.push([key, value.name]);
+      }
+    });
+    return JSON.stringify(array);
+  },
+  prepare: (data) => {
+    const array = JSON.parse(data);
+    const formData = new FormData();
+    for (const [key, value] of array) {
+      formData.append(key, value);
+    }
+    return formData;
+  },
+  fill: undefined,
+};
+
+const JSXNodeSerializer: Serializer<JSXNode> = {
+  prefix: '\u0017',
+  test: (v) => isJSXNode(v),
+  collect: (node, collector, leaks) => {
+    collectValue(node.children, collector, leaks);
+    collectValue(node.props, collector, leaks);
+    collectValue(node.immutableProps, collector, leaks);
+    let type = node.type;
+    if (type === Slot) {
+      type = ':slot';
+    } else if (type === Fragment) {
+      type = ':fragment';
+    }
+    collectValue(type, collector, leaks);
+  },
+  serialize: (node, getObjID) => {
+    let type = node.type;
+    if (type === Slot) {
+      type = ':slot';
+    } else if (type === Fragment) {
+      type = ':fragment';
+    }
+    return `${getObjID(type)} ${getObjID(node.props)} ${getObjID(node.immutableProps)} ${getObjID(
+      node.children
+    )} ${node.flags}`;
+  },
+  prepare: (data) => {
+    const [type, props, immutableProps, children, flags] = data.split(' ');
+    const node = new JSXNodeImpl(
+      type as string,
+      props as any,
+      immutableProps as any,
+      children,
+      parseInt(flags, 10)
+    );
+    return node;
+  },
+  fill: (node, getObject) => {
+    node.type = getResolveJSXType(getObject(node.type as string));
+    node.props = getObject(node.props as any as string);
+    node.immutableProps = getObject(node.immutableProps as any as string);
+    node.children = getObject(node.children);
+  },
+};
+
+const BigIntSerializer: Serializer<bigint> = {
+  prefix: '\u0018',
+  test: (v) => typeof v === 'bigint',
+  serialize: (v) => {
+    return v.toString();
+  },
+  prepare: (data) => {
+    return BigInt(data);
+  },
+  fill: undefined,
+};
+
 const serializers: Serializer<any>[] = [
-  QRLSerializer,
-  SignalSerializer,
-  SignalWrapperSerializer,
-  WatchSerializer,
-  ResourceSerializer,
-  URLSerializer,
-  DateSerializer,
-  RegexSerializer,
-  ErrorSerializer,
-  DocumentSerializer,
-  ComponentSerializer,
-  PureFunctionSerializer,
-  NoFiniteNumberSerializer,
+  QRLSerializer, ////////////// \u0002
+  SignalSerializer, /////////// \u0012
+  SignalWrapperSerializer, //// \u0013
+  WatchSerializer, //////////// \u0003
+  ResourceSerializer, ///////// \u0004
+  URLSerializer, ////////////// \u0005
+  DateSerializer, ///////////// \u0006
+  RegexSerializer, //////////// \u0007
+  ErrorSerializer, //////////// \u000E
+  DocumentSerializer, ///////// \u000F
+  ComponentSerializer, //////// \u0010
+  DerivedSignalSerializer, //// \u0011
+  NoFiniteNumberSerializer, /// \u0014
+  URLSearchParamsSerializer, // \u0015
+  FormDataSerializer, ///////// \u0016
+  JSXNodeSerializer, ////////// \u0017
+  BigIntSerializer, /////////// \u0018
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);
@@ -314,7 +449,7 @@ export const canSerialize = (obj: any): boolean => {
   return false;
 };
 
-export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectDeps = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
   for (const s of collectorSerializers) {
     if (s.test(obj)) {
       s.collect!(obj, collector, leaks);
@@ -327,13 +462,14 @@ export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
 export const serializeValue = (
   obj: any,
   getObjID: MustGetObjID,
+  collector: Collector,
   containerState: ContainerState
 ) => {
   for (const s of serializers) {
     if (s.test(obj)) {
       let value = s.prefix;
       if (s.serialize) {
-        value += s.serialize(obj, getObjID, containerState);
+        value += s.serialize(obj, getObjID, collector, containerState);
       }
       return value;
     }
@@ -399,3 +535,31 @@ export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: Contai
       return Promise.reject(obj);
     },
   };
+
+const isTreeShakeable = (
+  manager: SubscriptionManager,
+  target: LocalSubscriptionManager,
+  leaks: QwikElement | boolean
+) => {
+  if (typeof leaks === 'boolean') {
+    return leaks;
+  }
+  const localManager = manager.$groupToManagers$.get(leaks);
+  if (localManager && localManager.length > 0) {
+    if (localManager.length === 1) {
+      return localManager[0] !== target;
+    }
+    return true;
+  }
+  return false;
+};
+
+const getResolveJSXType = (type: any) => {
+  if (type === ':slot') {
+    return Slot;
+  }
+  if (type === ':fragment') {
+    return Fragment;
+  }
+  return type;
+};

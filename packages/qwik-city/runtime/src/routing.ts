@@ -7,9 +7,13 @@ import type {
   ModuleLoader,
   RouteData,
   RouteModule,
-  RouteParams,
+  PathParams,
 } from './types';
 
+export const CACHE = new Map<RouteData, Promise<any>>();
+/**
+ * loadRoute() runs in both client and server.
+ */
 export const loadRoute = async (
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,
@@ -21,7 +25,7 @@ export const loadRoute = async (
       const match = route[0].exec(pathname);
       if (match) {
         const loaders = route[1];
-        const params = getRouteParams(route[2], match);
+        const params = getPathParams(route[2], match);
         const routeBundleNames = route[4];
         const mods: RouteModule[] = new Array(loaders.length);
         const pendingLoads: Promise<any>[] = [];
@@ -95,14 +99,15 @@ export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) =
   }
 };
 
-export const getRouteParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
-  const params: RouteParams = {};
-
+export const getPathParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
+  const params: PathParams = {};
   if (paramNames) {
     for (let i = 0; i < paramNames.length; i++) {
-      params[paramNames[i]] = match ? match[i + 1] : '';
+      const param = match?.[i + 1] ?? '';
+      const v = param.endsWith('/') ? param.slice(0, -1) : param;
+      // `decodeURIComponent(...)` should not throw here
+      params[paramNames[i]] = decodeURIComponent(v);
     }
   }
-
   return params;
 };

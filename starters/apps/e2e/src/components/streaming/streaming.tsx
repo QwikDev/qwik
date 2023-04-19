@@ -51,7 +51,7 @@ export const Streaming = component$(() => {
 
       <ol>
         <SSRStream>
-          {async function (stream) {
+          {async function (stream: any) {
             for (let i = 0; i < 10; i++) {
               stream.write(`<li>raw: ${i}</li>`);
               await delay(100);
@@ -88,7 +88,7 @@ export const Cmp = component$((props: { text: string; delay: number }) => {
   }`);
 
   const resource = useResource$<string>(async ({ track }) => {
-    track(props, 'text');
+    track(() => props.text);
     await delay(props.delay);
     return props.text;
   });

@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
+import { type BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
 
 /**
  * Builds @builder.io/qwik/cli
@@ -27,6 +27,7 @@ export async function submoduleCli(config: BuildConfig) {
           build.onResolve({ filter: /^chalk$/ }, async (args) => {
             const result = await build.resolve('kleur', {
               resolveDir: args.resolveDir,
+              kind: 'import-statement',
             });
             if (result.errors.length > 0) {
               return { errors: result.errors };
@@ -45,7 +46,7 @@ export async function submoduleCli(config: BuildConfig) {
 
   await copyFile(join(config.srcDir, submodule, 'qwik.cjs'), join(config.distPkgDir, 'qwik.cjs'));
 
-  await copyStartersDir(config, config.distPkgDir, ['features', 'adaptors']);
+  await copyStartersDir(config, config.distPkgDir, ['features', 'adapters']);
 
   console.log('📠', submodule);
 }

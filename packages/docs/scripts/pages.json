@@ -1,24 +1,41 @@
 [
   {
+    "href": "https://wope.com/",
+    "tags": "sass"
+  },
+  {
     "href": "https://www.builder.io/",
     "tags": "saas"
   },
   {
-    "href": "https://cursos.codigoencasa.com/node",
-    "tags": "learning"
+    "href": "https://jose-aguilar.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://shaunchander.me",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://img-models.vercel.app/",
+    "tags": "ecommerce"
   },
   {
     "href": "https://qwik-storefront.vendure.io/",
     "tags": "ecommerce"
   },
   {
-    "href": "https://img-models.vercel.app/",
-    "size": "large",
-    "tags": "ecommerce"
+    "href": "https://qwind.pages.dev/",
+    "tags": "template",
+    "repo": "https://github.com/onwidget/qwind",
+    "size": "large"
   },
   {
     "href": "https://soundy.cloud/",
     "tags": "saas"
+  },
+  {
+    "href": "https://bot-whatsapp.netlify.app/",
+    "tags": "site"
   },
   {
     "href": "https://usaibis.com/",
@@ -50,12 +67,20 @@
     "tags": "portfolio"
   },
   {
+    "href": "https://cursos.codigoencasa.com/node",
+    "tags": "learning"
+  },
+  {
     "href": "https://reduced.to",
     "tags": "app"
   },
   {
     "href": "https://sanyamjainqwik.vercel.app/",
     "tags": "portfolio"
+  },
+  {
+    "href": "https://www.blackflag.dev/",
+    "tags": "site"
   },
   {
     "href": "https://qwik.builder.io",
@@ -69,5 +94,41 @@
   {
     "href": "https://www.stockideashq.com/",
     "tags": "investing"
+  },
+  {
+    "href": "https://promptle.art/",
+    "tags": "game"
+  },
+  {
+    "href": "https://abdhashem.com",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://amirhbeigi.ir",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://puzzledbycsharp.com/",
+    "tags": "site"
+  },
+  {
+    "href": "https://necatikcl.dev/",
+    "tags": "personal"
+  },
+  {
+    "href": "https://tatbiqit.com/",
+    "tags": "company"
+  },
+  {
+    "href": "https://keyboardz.co/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://travelcalc.pages.dev",
+    "tags": "app"
+  },
+  {
+    "href": "https://upester.com",
+    "tags": "app"
   }
 ]

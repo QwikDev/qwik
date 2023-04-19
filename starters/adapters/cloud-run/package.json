@@ -1,0 +1,24 @@
+{
+  "description": "Google Cloud Run server",
+  "scripts": {
+    "build.server": "vite build -c adapters/cloud-run/vite.config.ts",
+    "deploy": "gcloud run deploy my-cloud-run-app --source ."
+  },
+  "__qwik__": {
+    "priority": 20,
+    "displayName": "Adapter: Google Cloud Run server",
+    "docs": [
+      "https://qwik.builder.io/deployments/gcp-cloud-run/",
+      "https://cloud.google.com/run"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build and deploy to Google Cloud Run with:",
+        "",
+        "  - pnpm run build: production build for Cloud Run",
+        "  - pnpm run deploy: it will use the gcloud CLI to deploy your site"
+      ]
+    }
+  }
+}

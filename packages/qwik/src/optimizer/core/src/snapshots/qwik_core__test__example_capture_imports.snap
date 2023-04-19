@@ -19,10 +19,10 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,oBAAM,0FAGjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,wGAGjB\"}")
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
 import css1 from "./global.css";
@@ -55,8 +55,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(qrl(()=>import("./app_component_usestyles_t35nsa5uv7u"), "App_component_useStyles_t35nSa5UV7U"));
-    useStylesQrl(qrl(()=>import("./app_component_usestyles_1_xbk4w0zkwe8"), "App_component_useStyles_1_xBK4W0ZKWe8"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usestyles_t35nsa5uv7u"), "App_component_useStyles_t35nSa5UV7U"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usestyles_1_xbk4w0zkwe8"), "App_component_useStyles_1_xBK4W0ZKWe8"));
 };
 
 

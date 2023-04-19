@@ -229,12 +229,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
         ssr: {
-          noExternal: [
-            QWIK_CORE_ID,
-            QWIK_CORE_SERVER,
-            QWIK_BUILD_ID,
-            ...vendorIds,
-          ]
+          noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID, ...vendorIds],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {

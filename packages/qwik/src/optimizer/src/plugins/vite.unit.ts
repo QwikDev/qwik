@@ -25,12 +25,15 @@ function mockOptimizerOptions(): OptimizerOptions {
 const vite = suite('vite plugin');
 
 const includeDeps = undefined;
+const noExternal = ['@builder.io/qwik', '@builder.io/qwik/server', '@builder.io/qwik/build'];
+
 const excludeDeps = [
   '@vite/client',
   '@vite/env',
   'node-fetch',
   'undici',
   '@builder.io/qwik',
+  '@builder.io/qwik/server',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
@@ -67,7 +70,7 @@ vite('command: serve, mode: development', async () => {
 
   equal(c.esbuild, false);
   equal(c.ssr, {
-    noExternal: [],
+    noExternal,
   });
 });
 
@@ -102,7 +105,7 @@ vite('command: serve, mode: production', async () => {
   equal(c.optimizeDeps?.exclude, excludeDeps);
   equal(c.esbuild, false);
   equal(c.ssr, {
-    noExternal: [],
+    noExternal,
   });
 });
 
@@ -140,7 +143,7 @@ vite('command: build, mode: development', async () => {
     jsx: 'automatic',
   });
   equal(c.ssr, {
-    noExternal: [],
+    noExternal,
   });
 });
 
@@ -179,7 +182,7 @@ vite('command: build, mode: production', async () => {
     jsx: 'automatic',
   });
   equal(c.ssr, {
-    noExternal: [],
+    noExternal,
   });
 });
 

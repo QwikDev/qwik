@@ -105,11 +105,11 @@
     "remark-frontmatter": "4.0.1",
     "remark-gfm": "3.0.1",
     "tsm": "2.3.0",
-    "typescript": "5.0.3",
+    "typescript": "5.0.4",
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
-    "vite": "4.3.0-beta.3",
+    "vite": "4.2.2",
     "yaml": "2.2.1"
   },
   "peerDependencies": {

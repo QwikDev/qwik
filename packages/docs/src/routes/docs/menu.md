@@ -34,6 +34,8 @@
 ## Integrations
 
 - [Overview](integrations/index.mdx)
+- [Image Optimization](integrations/image-optimization/index.mdx)
+- [Internationalization](integrations/i18n/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
 - [PostCSS](integrations/postcss/index.mdx)
@@ -76,7 +78,6 @@
 - [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx)
 - [Prefetching](/docs/(qwik)/advanced/prefetching/index.mdx)
 - [Custom Build Directory](/docs/(qwik)/advanced/custom-build-dir/index.mdx)
-- [Internationalization](/docs/(qwik)/advanced/i18n/index.mdx)
 - [Vite](/docs/(qwik)/advanced/vite/index.mdx)
 - [Advanced Routing](/docs/(qwikcity)/advanced/routing/index.mdx)
 - [Speculative Module Fetching](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx)

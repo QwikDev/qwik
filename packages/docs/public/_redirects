@@ -64,3 +64,4 @@
 /qwikcity/* /docs/:splat 308
 /integrations/* /docs/integrations/:splat 308
 /deployments/* /docs/deployments/:splat 308
+/docs/advanced/i18n/ /docs/integrations/i18n/ 308

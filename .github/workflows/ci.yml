@@ -383,6 +383,14 @@ jobs:
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
+      - name: Build Create Qwik CLI
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --cli
+
+      - name: Print Create Qwik CLI Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/create-qwik/dist/
+
       - name: Commit Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
         env:

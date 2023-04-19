@@ -18,8 +18,13 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
     buildRepo: 'qwik-city-build',
     artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
   });
+  const finishCreateQwikCli = await prepare({
+    buildRepo: 'qwik-create-cli-build',
+    artifactsDir: join(root, 'packages', 'create-qwik', 'dist'),
+  });
   await finishQwik();
   await finishQwikCity();
+  await finishCreateQwikCli();
 })();
 
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {

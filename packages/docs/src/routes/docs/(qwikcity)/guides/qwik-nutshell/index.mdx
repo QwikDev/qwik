@@ -282,7 +282,6 @@ In practive, useSignal and useStore are very similar, but useSignal is prefered 
 
 - When you need reactivity in an array.
 - When you want a reactive object that you can easily add properties to.
-- When you want to use the `deep` option to make nested properties reactive.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -293,7 +292,6 @@ export const Counter = component$(() => {
     {
       array: [],
     },
-    { deep: true }
   );
 
   // todoList.array is a reactive array, so we can push to it and the component will re-render.

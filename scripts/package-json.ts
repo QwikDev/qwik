@@ -71,9 +71,16 @@ export async function generatePackageJson(config: BuildConfig) {
         },
       },
       './build': {
-        types: './build/index.d.ts',
-        import: './build/index.mjs',
-        require: './build/index.cjs',
+        import: {
+          development: './build/index.dev.mjs',
+          production: './build/index.prod.mjs',
+          default: './build/index.mjs',
+        },
+        require: {
+          development: './build/index.dev.cjs',
+          production: './build/index.prod.cjs',
+          default: './build/index.cjs',
+        },
       },
       './loader': {
         types: './loader/index.d.ts',

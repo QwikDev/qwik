@@ -49,4 +49,18 @@ export class AppCommand {
     }
     return this._rootPkgJson!;
   }
+
+  getArg(name: string): string | undefined {
+    const key = `--${name}`;
+    const matcher = new RegExp(`^${key}($|=)`);
+    const index = this.args.findIndex((arg) => matcher.test(arg));
+    if (index === -1) {
+      return;
+    }
+
+    if (this.args[index].includes('=')) {
+      return this.args[index].split('=')[1];
+    }
+    return this.args[index + 1];
+  }
 }

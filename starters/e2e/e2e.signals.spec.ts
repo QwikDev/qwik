@@ -415,6 +415,18 @@ test.describe('signals', () => {
       await button.click();
       await expect(result).toHaveText(['3', '3', '3']);
     });
+
+    test('issue 3440', async ({ page }) => {
+      const results = page.locator('.issue-3440-results');
+      const remove = page.locator('#issue-3440-remove');
+      await expect(results).toHaveText(['my first blog', 'my second blogs', 'my third blog']);
+      await remove.click();
+      await expect(results).toHaveText(['my first blog', 'my second blogs']);
+      await remove.click();
+      await expect(results).toHaveText(['my first blog']);
+      await remove.click();
+      await expect(results).toHaveText([]);
+    });
   }
 
   tests();

@@ -123,6 +123,7 @@ export const SignalsChildren = component$(() => {
       <BindSignal />
       <Issue3482 />
       <Issue3663 />
+      <Issue3440 />
     </div>
   );
 });
@@ -864,3 +865,38 @@ function Issue3663Cmp(props: { prop: number }) {
     </div>
   );
 }
+
+export const Issue3440 = component$(() => {
+  const name = useSignal('Demo');
+  const blogs = useStore([
+    {
+      id: 1,
+      title: 'my first blog',
+    },
+    {
+      id: 2,
+      title: 'my second blogs',
+    },
+    {
+      id: 3,
+      title: 'my third blog',
+    },
+  ]);
+  return (
+    <>
+      <div>
+        <div>
+          <h1>Name: {name.value}</h1>
+          {blogs.map((blog) => (
+            <div class="issue-3440-results" key={blog.id}>
+              {blog.title}
+            </div>
+          ))}
+          <button id="issue-3440-remove" onClick$={() => blogs.pop()}>
+            Remove Blog
+          </button>
+        </div>
+      </div>
+    </>
+  );
+});

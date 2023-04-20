@@ -11,6 +11,7 @@ import {
   useTask$,
   _getContextElement,
   _weakSerialize,
+  useStyles$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
@@ -43,7 +44,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { toPath } from './utils';
+import { isSameOriginDifferentPathname, toPath } from './utils';
 
 /**
  * @public
@@ -62,12 +63,24 @@ export interface QwikCityProps {
   //  * ```
   //  */
   // children?: [JSXNode, JSXNode];
+
+  /**
+   * Enable the ViewTransition API
+   *
+   * Default: `true`
+   *
+   * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
+   * @see https://caniuse.com/mdn-api_viewtransition
+   */
+  viewTransition?: boolean;
 }
 
 /**
  * @public
  */
-export const QwikCityProvider = component$<QwikCityProps>(() => {
+export const QwikCityProvider = component$<QwikCityProps>((props) => {
+  useStyles$(`:root{view-transition-name: none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);
@@ -219,6 +232,14 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
+          if (
+            (props.viewTransition ?? true) &&
+            isSameOriginDifferentPathname(window.location, url)
+          ) {
+            // mark next DOM render to use startViewTransition API
+            document.__q_view_transition__ = true;
+          }
+
           const loaders = clientPageData?.loaders;
           if (loaders) {
             Object.assign(loaderState, loaders);

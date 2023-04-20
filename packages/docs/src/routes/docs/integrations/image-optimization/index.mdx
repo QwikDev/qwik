@@ -1,0 +1,52 @@
+---
+title: Image Optimization
+keywords: 'third party image optimization, image optimization, image optimization tools, image optimization services, image optimization service, image optimization tool, image optimization api, im'
+contributors:
+  - mhevery
+---
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
+
+# Image Optimization
+
+Image optimization is the process of reducing the number of bytes that represent an image. The smaller the image size, the faster it will load on a page. The smaller the image size, the less bandwidth it consumes. The less bandwidth it consumes, the better the experience for your users especially on mobile networks.
+
+## `@unpic/qwik`
+
+- Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)
+- Installation: `npm install @unpic/qwik`
+
+Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
+
+> **Note:** Unpic is not a CDN and does not host your images. It works with existing image optimization CDNs. We suggest using some of the popular CDNs:
+> - Cloudinary
+> - Cloudflare
+> - Bunny.net
+> - Vercel / Next.js
+> - Imgix, including Unsplash, DatoCMS, Sanity and Prismic
+> - Shopify
+> - Kontent.ai
+> - Builder.io
+> - Contentful
+> - Storyblok
+> - WordPress.com and Jetpack Site Accelerator
+
+
+<CodeSandbox src="/src/routes/demo/integration/img/unpic/simple/index.tsx" style={{ height: '40em' }}>
+```tsx {6} /Slot/
+import { component$ } from '@builder.io/qwik';
+import { Image } from '@unpic/qwik';
+
+export default component$(() => {
+  return (
+    <Image
+      src="https://cdn.shopify.com/static/sample-images/bath_grande_crop_center.jpeg"
+      layout="constrained"
+      width={800}
+      height={600}
+      alt="A lovely bath"
+    />
+  );
+});
+```
+</CodeSandbox>

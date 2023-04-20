@@ -8,26 +8,14 @@ import {
   _IMMUTABLE,
   _jsxBranch,
   event$,
-  useTask$,
-  useSignal,
 } from '@builder.io/qwik';
 import type { ClientHistoryWindow } from './client-navigate';
 import { ContentInternalContext } from './contexts';
-import { isSameOriginDifferentPathname } from './utils';
-import { useLocation } from './use-functions';
-import { isBrowser } from '@builder.io/qwik/build';
 
 /**
  * @public
  */
-export interface RouterOutletProps {
-  enableViewTransition?: boolean;
-}
-
-/**
- * @public
- */
-export const RouterOutlet = component$<RouterOutletProps>((props) => {
+export const RouterOutlet = component$(() => {
   _jsxBranch();
 
   useOnDocument(
@@ -56,24 +44,6 @@ export const RouterOutlet = component$<RouterOutletProps>((props) => {
       }
     })
   );
-
-  const loc = useLocation();
-  const oldLocation = useSignal(loc.url);
-
-  useTask$(({ track }) => {
-    const newLocation = track(() => loc.url);
-
-    // mark next DOM render to use startViewTransition API
-    if (
-      isBrowser &&
-      props.enableViewTransition &&
-      isSameOriginDifferentPathname(newLocation, oldLocation.value)
-    ) {
-      document.__q_view_transition__ = true;
-    }
-
-    oldLocation.value = newLocation;
-  });
 
   const { value } = useContext(ContentInternalContext);
   if (value && value.length > 0) {

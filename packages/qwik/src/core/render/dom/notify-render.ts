@@ -106,20 +106,6 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
 };
 
-declare global {
-  interface ViewTransition {
-    ready: Promise<void>;
-    finished: Promise<void>;
-    updateCallbackDone: Promise<void>;
-    skipTransition: () => void;
-  }
-
-  interface Document {
-    startViewTransition?: (callback: () => void | Promise<void>) => ViewTransition;
-    __q_view_transition__?: true | undefined;
-  }
-}
-
 const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));

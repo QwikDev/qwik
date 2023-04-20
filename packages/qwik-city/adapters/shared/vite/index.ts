@@ -122,70 +122,64 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
           const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
           if (renderModulePath && qwikCityPlanModulePath && clientOutDir) {
-            if (Array.isArray(opts.ssg?.include) && opts.ssg!.include.length > 0) {
-              let ssgOrigin = opts.ssg?.origin || opts.origin;
-              if (!ssgOrigin) {
-                ssgOrigin = `https://yoursite.qwik.builder.io`;
-              }
-              if (
-                ssgOrigin.length > 0 &&
-                !ssgOrigin.startsWith('https://') &&
-                !ssgOrigin.startsWith('http://')
-              ) {
-                ssgOrigin = `https://${ssgOrigin}`;
-              }
-              try {
-                ssgOrigin = new URL(ssgOrigin).origin;
-              } catch (e) {
-                this.warn(
-                  `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.builder.io"`
-                );
-                ssgOrigin = `https://yoursite.qwik.builder.io`;
-              }
-
-              const staticGenerate = await import('../../../static');
-              const generateOpts: StaticGenerateOptions = {
-                maxWorkers: opts.maxWorkers,
-                basePathname,
-                outDir: clientOutDir,
-                rootDir,
-                ...opts.ssg,
-                origin: ssgOrigin,
-                renderModulePath,
-                qwikCityPlanModulePath,
-              };
-
-              const staticGenerateResult = await staticGenerate.generate(generateOpts);
-              if (staticGenerateResult.errors > 0) {
-                const err = new Error(
-                  `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
-                );
-                err.stack = undefined;
-                this.error(err);
-              }
-
-              staticPaths.push(...staticGenerateResult.staticPaths);
-
-              const { staticPathsCode, notFoundPathsCode } = await postBuild(
-                clientOutDir,
-                basePathname,
-                staticPaths,
-                format,
-                !!opts.cleanStaticGenerated
+            let ssgOrigin = opts.ssg?.origin ?? opts.origin;
+            if (!ssgOrigin) {
+              ssgOrigin = `https://yoursite.qwik.builder.io`;
+            }
+            if (
+              ssgOrigin.length > 0 &&
+              !ssgOrigin.startsWith('https://') &&
+              !ssgOrigin.startsWith('http://')
+            ) {
+              ssgOrigin = `https://${ssgOrigin}`;
+            }
+            try {
+              ssgOrigin = new URL(ssgOrigin).origin;
+            } catch (e) {
+              this.warn(
+                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.builder.io"`
               );
-
-              await Promise.all([
-                fs.promises.writeFile(
-                  join(serverOutDir, RESOLVED_STATIC_PATHS_ID),
-                  staticPathsCode
-                ),
-                fs.promises.writeFile(
-                  join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
-                  notFoundPathsCode
-                ),
-              ]);
+              ssgOrigin = `https://yoursite.qwik.builder.io`;
             }
 
+            const staticGenerate = await import('../../../static');
+            const generateOpts: StaticGenerateOptions = {
+              maxWorkers: opts.maxWorkers,
+              basePathname,
+              outDir: clientOutDir,
+              rootDir,
+              ...opts.ssg,
+              origin: ssgOrigin,
+              renderModulePath,
+              qwikCityPlanModulePath,
+            };
+
+            const staticGenerateResult = await staticGenerate.generate(generateOpts);
+            if (staticGenerateResult.errors > 0) {
+              const err = new Error(
+                `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
+              );
+              err.stack = undefined;
+              this.error(err);
+            }
+
+            staticPaths.push(...staticGenerateResult.staticPaths);
+
+            const { staticPathsCode, notFoundPathsCode } = await postBuild(
+              clientOutDir,
+              basePathname,
+              staticPaths,
+              format,
+              !!opts.cleanStaticGenerated
+            );
+
+            await Promise.all([
+              fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
+              fs.promises.writeFile(
+                join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
+                notFoundPathsCode
+              ),
+            ]);
             if (typeof opts.generate === 'function') {
               await opts.generate({
                 outputEntries,

@@ -2,7 +2,6 @@ import type { TransformModule } from '@builder.io/qwik/optimizer';
 import { CodeBlock } from '../components/code-block/code-block';
 
 export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
-  console.log(outputs);
   return (
     <div class="output-result output-modules">
       <div class="file-tree">

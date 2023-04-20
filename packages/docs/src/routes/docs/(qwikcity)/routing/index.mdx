@@ -103,9 +103,9 @@ export default component$(() => {
 A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending on if you only want to handle a specific request given its HTTP method.
 
 ```tsx title="src/routes/index.ts"
-import { component$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet = ({ json }) => {
+export const onGet: RequestHandler = ({ json }) => {
   json(200, { message: 'Hello World' });
 };
 ```
@@ -116,17 +116,18 @@ export const onGet = ({ json }) => {
 
 As you can see in Qwik City there is no clear separation between pages and endpoints, in both cases, it's a `index.tsx` file that exports a Qwik component or an `onRequest` method. However, it's possible to combine both approaches. For example, you can export a `onRequest` method that will handle the request, and then render a Qwik component.
 
-```tsx title="src/routes/index.ts"
+```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onRequest = ({ headers, query, json }) => {
+export const onRequest: RequestHandler = ({ headers, query, json }) => {
   headers.set('Cache-Control', 'private');
   if (query.get('format') === 'json') {
     json(200, { message: 'Hello World' });
   }
 };
 
-export default component$(async () => {
+export default component$(() => {
   return <h1>Hello World</h1>;
 });
 ```
@@ -193,14 +194,15 @@ The `Link` is usually the recommend way to navigate because it uses the HTML `<a
 However, if you need to navigate programmatically, you can use the `useNavigate()` hook.
 
 ```tsx
-import { component$, Link, useNavigate } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
+import { Link, useNavigate } from '@builder.io/qwik-city';
 
 export default component$(() => {
   const nav = useNavigate();
   return (
     <div>
       <Link href="/about">About (prefered)</Link>
-      <button onClick={() => nav('/about')}>About</button>
+      <button onClick$={() => nav('/about')}>About</button>
     </div>
   );
 });
@@ -210,13 +212,14 @@ export default component$(() => {
 
 You can use the `Link` with the `reload` prop to refresh the page.
 
-You can also  call the `nav()` function from the `useNavigate()` hook, without any arguments.
+You can also call the `nav()` function from the `useNavigate()` hook, without any arguments.
 
 ```tsx
-import { component$, Link, useNavigate } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
+import { Link, routeLoader$, useNavigate } from '@builder.io/qwik-city';
 
 export const useServerTime = routeLoader$(() => {
-  // This will re execute in the server when the page refreshes
+  // This will re-execute in the server when the page refreshes
   return Date.now();
 });
 
@@ -227,7 +230,7 @@ export default component$(() => {
   return (
     <div>
       <Link reload>Refresh (better accesibility)</Link>
-      <button onClick={() => nav()}>Refresh</button>
+      <button onClick$={() => nav()}>Refresh</button>
       <p>Server time: {serverTime.value}</p>
     </div>
   );

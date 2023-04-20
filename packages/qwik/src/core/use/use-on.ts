@@ -51,8 +51,10 @@ export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => voi
  * @public
  */
 // </docs>
-export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
-  _useOn(`document:on-${event}`, eventQrl);
+export const useOnDocument = (
+  event: string | string[],
+  eventQrl: QRL<(ev: Event) => void> | undefined
+) => _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -85,8 +87,10 @@ export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event
  * @public
  */
 // </docs>
-export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
-  _useOn(`window:on-${event}`, eventQrl);
+export const useOnWindow = (
+  event: string | string[],
+  eventQrl: QRL<(ev: Event) => void> | undefined
+) => _useOn(`window:on-${event}`, eventQrl);
 
 const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => {
   if (eventQrl) {

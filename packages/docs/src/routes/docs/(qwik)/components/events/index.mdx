@@ -27,7 +27,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {7} /onClick$/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -49,11 +49,11 @@ Notice that `onClick$` ends with [`$`](/docs/advanced/dollar/). This is a hint t
 
 ## Reusing event handlers
 
-If we want to reuse the same event handler for multiple elements or event, we must extract the event handler into a [`QRLs`](/docs/advanced/qrl/) and pass it to the event listener. In order to do so, we need to import `$` from `@builder.io/qwik` and wrap the event handler in it.
+If we want to reuse the same event handler for multiple elements or event, we need to import `$` from `@builder.io/qwik` and wrap the event handler in it.
 
-For instance, the above example could also be written in the following way:
+This way we must extract the event handler into a [`QRLs`](/docs/advanced/qrl/) and pass it to the event listener.
 
-<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a
 import { component$, useSignal, $ } from '@builder.io/qwik';
 
@@ -63,7 +63,7 @@ export default component$(() => {
   return (
     <>
       <button onClick$={increment}>Increment</button>
-      <div>Count: {count.value}</div>
+      <p>Count: {count.value}</p>
     </>
   );
 });
@@ -73,11 +73,36 @@ export default component$(() => {
 
 > **Note:** If you extract the event handler then you must manually wrap the event handler in the `$(...handler...)` so that it can be lazy attached.
 
+## Multiple event handlers
+
+If we want to register multiple event handlers for the same event, we can pass an array of event handlers to the `on{EventName}$` attribute.
+
+```tsx /onClick$/
+import { component$, useSignal, $ } from '@builder.io/qwik';
+
+export default component$(() => {
+  const count = useSignal(0);
+  const print = $((ev) => console.log('CLICKED!', ev));
+  const increment = $(() => count.value++);
+
+  // The button when clicked will print "CLICKED!" to the console, increment the count and send a event to Google Analytics.
+  return (
+    <button
+      onClick$={[print, increment, $(() => {
+        ga.send('click', { label: 'increment' });
+      })]}
+    >
+      Count: {count.value}
+    </button>
+  );
+});
+```
+
 ## Event object
 
 The first argument of the event handler is the `Event` object. This object contains information about the event that triggered the handler. For example, the `Event` object for a `click` event contains information about the mouse position and the element that was clicked. You can check out the [MDN docs to know more details about each DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
-<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" style={{ height: '6em' }}>
 ```tsx /event/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -88,9 +113,9 @@ export default component$(() => {
       onClick$={(event) => (position.value = { x: event.x, y: event.y })}
       style="height: 100vh"
     >
-      <div>
+      <p>
         Clicked at: ({position.value?.x}, {position.value?.y})
-      </div>
+      </p>
     </div>
   );
 });
@@ -108,7 +133,7 @@ Because of the async nature of Qwik, an event's handler execution might be delay
 
 Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
 
-<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
 import { component$ } from '@builder.io/qwik';
 
@@ -133,7 +158,7 @@ export default component$(() => {
 
 Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this Qwik handlers provide a `currentTarget` as a second argument.
 
-<CodeSandbox src="/src/routes/demo/events/target/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/target/index.tsx" style={{ height: '10em' }}>
 ```tsx /currentTarget/
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -142,19 +167,19 @@ export default component$(() => {
   const targetElm = useSignal<HTMLElement|null>(null);
 
   return (
-    <div onClick$={(event, currentTarget) => {
+    <section onClick$={(event, currentTarget) => {
       currentElm.value = currentTarget;
       targetElm.value = event.target as HTMLElement;
     }}>
       Click on any text <code>target</code> and <code>currentElm</code> of the event.
       <hr/>
-      <span>Hello <b>World</b>!</span>
+      <p>Hello <b>World</b>!</p>
       <hr/>
       <ul>
         <li>currentElm: {currentElm.value?.tagName}</li>
         <li>target: {targetElm.value?.tagName}</li>
       </ul>
-    </div>
+    </section>
   );
 });
 ```
@@ -168,7 +193,7 @@ In some cases, it is necessary to handle an event traditionally, because some AP
 
 To do this, we can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
 
-<CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" style={{ height: '10em' }}>
 ```tsx {7-20}
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
@@ -196,7 +221,7 @@ export default component$(() => {
       <div draggable ref={draggableRef}>
         Drag me!
       </div>
-      <div>{dragStatus.value}</div>
+      <p>{dragStatus.value}</p>
     </div>
   );
 });
@@ -215,7 +240,7 @@ When creating your components it is often useful to pass what looks like event h
 
 The above is not possible because `onClick` is a function that is not serializable. Instead, we need to tell Optimizer to convert our function into a QRL. This is done by naming the property with `$` suffix as in this example.
 
-<CodeSandbox src="/src/routes/demo/events/prop-function/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/prop-function/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { type PropFunction, component$, Slot } from '@builder.io/qwik';
 
@@ -226,9 +251,9 @@ export default component$(() => {
 export const CmpButton = component$<{
   // Important to tell TypeScript that this is async
   onClick$?: PropFunction<() => void>;
-}>(({ onClick$ }) => {
+}>((props) => {
   return (
-    <button onClick$={onClick$}>
+    <button onClick$={props.onClick$}>
       <Slot />
     </button>
   );
@@ -253,13 +278,13 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 
 `useOn[|window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
 
-<CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { $, component$, useOnDocument, useStore } from '@builder.io/qwik';
 
 // Assume reusable use method that does not have access to JSX
 // but needs to register event handlers.
-const useMousePosition = () => {
+function useMousePosition() {
   const position = useStore({ x: 0, y: 0 });
   useOnDocument(
     'mousemove',

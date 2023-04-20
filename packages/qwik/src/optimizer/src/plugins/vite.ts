@@ -24,6 +24,7 @@ import {
   CLIENT_OUT_DIR,
   QWIK_JSX_DEV_RUNTIME_ID,
   SSR_OUT_DIR,
+  QWIK_CORE_SERVER,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configureDevServer, configurePreviewServer, VITE_DEV_CLIENT_QS } from './vite-server';
@@ -228,8 +229,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
         ssr: {
-          noExternal: vendorIds,
+          noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID, ...vendorIds],
         },
+        envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
@@ -248,6 +250,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             'node-fetch',
             'undici',
             QWIK_CORE_ID,
+            QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,

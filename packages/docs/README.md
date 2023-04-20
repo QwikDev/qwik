@@ -79,14 +79,12 @@ To crawl localhost site for testing index settings for content hierarchy. use th
 touch .env
 # APPLICATION_ID=APPLICATION_ID
 # API_KEY=API_KEY
-
 docker run -it --rm --env-file=.env -e "CONFIG=$(cat ./packages/docs/algolia.json | jq -r tostring)" algolia/docsearch-scraper
 ```
 
 see guide of [DocSearch-legacy docker command](https://docsearch.algolia.com/docs/legacy/run-your-own#run-the-crawl-from-the-docker-image)
 
 > In mac machine, docker container can access host's network, workaround is to use `host.docker.internal`
-
 ## Cloudflare Pages
 
 Cloudflare's [wrangler](https://github.com/cloudflare/wrangler) CLI can be used to preview a production build locally. To start a local server, run:

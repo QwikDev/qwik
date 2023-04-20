@@ -32,18 +32,42 @@ Menus are contextual data declared with `menu.md` files. See [menus file definit
 
 ## `useDocumentHead()`
 
-Use the `useDocumentHead()` function to retrieve the document head metadata.
+Use the `useDocumentHead()` function to read the document [head metadata](/docs/(qwikcity)/pages/index.mdx#head-export).
 
-`useDocumentHead()` retrieves a `DocumentHead` object that will allow you to:
+`useDocumentHead()` retrieves a readonly `DocumentHead` object that includes:
 
-- update the `title` in `<head>`.
-- update the `meta` tags in `<head>`.
-- update the `link` tags in `<head>`.
-- update the `style` tags in `<head>`.
+```ts
+export interface DocumentHead {
+  /**
+   * Represents the `<title>` element of the document.
+   */
+  readonly title?: string;
+  /**
+   * Used to manually set meta tags in the head. Additionally, the `data`
+   * property could be used to set arbitrary data which the `<head>` component
+   * could later use to generate `<meta>` tags.
+   */
+  readonly meta?: readonly DocumentMeta[];
+  /**
+   * Used to manually append `<link>` elements to the `<head>`.
+   */
+  readonly links?: readonly DocumentLink[];
+  /**
+   * Used to manually append `<style>` elements to the `<head>`.
+   */
+  readonly styles?: readonly DocumentStyle[];
+  /**
+   * Arbitrary object containing custom data. When the document head is created from
+   * markdown files, the frontmatter attributes that are not recognized as a well-known
+   * meta names (such as title, description, author, etc...), are stored in this property.
+   */
+  readonly frontmatter?: Readonly<Record<string, any>>;
+}
+```
 
-The `useDocumentHead()` function can be used within a Qwik component, such as `<RouterHead>`, to create the inner elements within `document.head`.
+All starters include a `<RouterHead>` component that is responsible for generating the `<head>` element of the document. It uses the `useDocumentHead()` function to retrieve the current head metadata and render the appropriate `<meta>`, `<link>`, `<style>` and `<title>` elements.
 
-```tsx
+```tsx title="src/components/router-head/router-head.tsx"
 import { component$ } from '@builder.io/qwik';
 import { useDocumentHead } from '@builder.io/qwik-city';
 
@@ -80,15 +104,26 @@ export const RouterHead = component$(() => {
 
 Use the [`useLocation()`](/docs/(qwikcity)/api/index.mdx#uselocation) function to retrieve a `RouteLocation` object for the current location.
 
+`useLocation()` allows developers to know the current URL, params as well as if the app is currently navigating, which is useful for showing a loading indicator.
+
 ```tsx
 export interface RouteLocation {
-  readonly params: PathParams; // Readonly<Record<string, string>>
+  /**
+   * Route params extracted from the URL.
+   */
+  readonly params: Record<string, string>;
+  /**
+   * The current URL.
+   */
   readonly url: URL;
+  /**
+   * True if the app is currently navigating.
+   */
   readonly isNavigating: boolean;
 }
 ```
 
-The return value of [`useLocation()`](/docs/(qwikcity)/api/index.mdx#uselocation) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object.
+The return value of [`useLocation()`](/docs/(qwikcity)/api/index.mdx#uselocation) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object, and it's reactive so it can be tracked.
 
 ### Path Route Parameters
 
@@ -100,7 +135,7 @@ Assume you have:
 - User navigates to: `https://example.com/sku/1234`
 - Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
-```tsx title="src/routes/sku/[skuId]/index.tsx"
+```tsx /useLocation/ title="src/routes/sku/[skuId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -110,6 +145,7 @@ export default component$(() => {
   return (
     <>
       <h1>SKU</h1>
+      {loc.isNavigating && <p>Loading...</p>}
       <p>pathname: {loc.url.pathname}</p>
       <p>skuId: {loc.params.skuId}</p>
     </>
@@ -131,9 +167,11 @@ The above code would generate:
 
 The `useNavigate()` function allows to programatically navigate to the next page without involving a user click or causing a full-page reload. This is the API used by the `<Link>` component internally to support SPA navigation.
 
-This function returns a `goto()` function that can be used to navigate to a new path.
+This function returns a `nav()` function that can be used to "push" to a new path.
 
-```tsx
+Also, `useNavigate` can be used to SPA refresh the current page, by calling the `nav()` function without arguments.
+
+```tsx {12,21} /useNavigate/
 import { component$ } from '@builder.io/qwik';
 import { useNavigate } from '@builder.io/qwik-city';
 
@@ -143,18 +181,18 @@ export default component$(() => {
   return (
     <>
       <button
-        onClick$={() => {
-          // this assigment causes SPA navigation
-          nav('/dashboard');
+        onClick$={async () => {
+          // SPA navigate to /dashboard
+          await nav('/dashboard');
         }}
       >
         Go to dashboard
       </button>
 
       <button
-        onClick$={() => {
-          // call without arguments to refresh the current page
-          nav();
+        onClick$={async() => {
+          // refresh page: call without arguments
+          await nav();
         }}
       >
         Refresh page
@@ -170,14 +208,13 @@ This component will have a button then when clicked, Qwik City will navigate to 
 
 ## `routeLoader$()`
 
-÷
 The `routeLoader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useGetTime = routeLoader$(() => {
+export const useGetTime = routeLoader$(async () => {
   return { time: new Date() }
 });
 export default component$(() => {
@@ -234,12 +271,12 @@ The `Form` component is a wrapper around the native `<form>` element, and it's d
 
 Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled, in addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like a SPA (Single Page Navigation) instead of a full page reload.
 
-```tsx
+```tsx title="src/routes/login/index.tsx"
 import { component$ } from '@builder.io/qwik';
-import { Form, action$ } from '@builder.io/qwik-city';
+import { Form, routeAction$ } from '@builder.io/qwik-city';
 
 // this action will be called when the form is submitted
-export const useLoginAction = action$((data, { cookies, redirect }) => {
+export const useLoginAction = routeAction$((data, { cookies, redirect }) => {
   if (validate(data.username, data.password)) {
     cookies.set('auth', getAuthToken(data.username));
     throw redirect(302, '/dashboard');

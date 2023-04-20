@@ -108,10 +108,10 @@ export interface TaskCtx {
  * @public
  */
 export interface ResourceCtx<T> {
-  track: Tracker;
+  readonly track: Tracker;
   cleanup(callback: () => void): void;
   cache(policyOrMilliseconds: number | 'immutable'): void;
-  previous: T | undefined;
+  readonly previous: T | undefined;
 }
 
 /**
@@ -127,7 +127,7 @@ export type ComputedFn<T> = () => T;
 /**
  * @public
  */
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
 
 /**
  * @public
@@ -532,10 +532,10 @@ export const runResource = <T>(
   cleanupWatch(watch);
 
   const el = watch.$el$;
-  const invocationContext = newInvokeContext(rCtx.$static$.$locale$, el, undefined, 'WatchEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-
-  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
+  iCtx.$renderCtx$ = rCtx;
+  const watchFn = watch.$qrl$.getFn(iCtx, () => {
     subsManager.$clearSub$(watch);
   });
 
@@ -550,6 +550,7 @@ export const runResource = <T>(
   const track: Tracker = (obj: any, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
+      ctx.$renderCtx$ = rCtx;
       ctx.$subscriber$ = [0, watch];
       return invoke(ctx, obj);
     }
@@ -613,7 +614,7 @@ export const runResource = <T>(
   };
 
   // Execute mutation inside empty invocation
-  invoke(invocationContext, () => {
+  invoke(iCtx, () => {
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
     resource.value = new Promise((r, re) => {
@@ -660,14 +661,10 @@ export const runWatch = (
 
   cleanupWatch(watch);
   const hostElement = watch.$el$;
-  const invocationContext = newInvokeContext(
-    rCtx.$static$.$locale$,
-    hostElement,
-    undefined,
-    'WatchEvent'
-  );
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'WatchEvent');
+  iCtx.$renderCtx$ = rCtx;
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
+  const watchFn = watch.$qrl$.getFn(iCtx, () => {
     subsManager.$clearSub$(watch);
   }) as TaskFn;
   const track: Tracker = (obj: any, prop?: string) => {
@@ -723,6 +720,7 @@ export const runComputed = (
   const hostElement = watch.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'ComputedEvent');
   iCtx.$subscriber$ = [0, watch];
+  iCtx.$renderCtx$ = rCtx;
 
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.getFn(iCtx, () => {

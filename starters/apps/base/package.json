@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "latest",
-    "@builder.io/qwik-city": "~0.101.0",
+    "@builder.io/qwik-city": "~0.102.0",
     "@types/eslint": "latest",
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
@@ -28,7 +28,7 @@
     "prettier": "latest",
     "typescript": "latest",
     "vite": "latest",
-    "vite-tsconfig-paths": "3.5.0"
+    "vite-tsconfig-paths": "4.2.0"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

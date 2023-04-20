@@ -2,13 +2,13 @@ import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <div>
+    <main>
       <Greeter />
-    </div>
+    </main>
   );
 });
 
 interface GreeterProps {}
 export const Greeter = component$((props: GreeterProps) => {
-  return <div>Bind props here</div>;
+  return <p>Bind props here</p>;
 });

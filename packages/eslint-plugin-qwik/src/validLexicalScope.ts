@@ -163,21 +163,44 @@ export const validLexicalScope = createRule({
               const type = typeChecker.getTypeAtLocation(tsNode);
 
               if (!isTypeQRL(type)) {
-                const symbolName = type.symbol.name;
-                if (symbolName === 'PropFnInterface') {
-                  return;
+                if (type.isUnionOrIntersection()) {
+                  if (
+                    !type.types.every((t) => {
+                      if (t.symbol) {
+                        return t.symbol.name === 'PropFnInterface';
+                      }
+                      if (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+                        return true;
+                      }
+                      return false;
+                    })
+                  ) {
+                    context.report({
+                      messageId: 'invalidJsxDollar',
+                      node: firstArg.expression,
+                      data: {
+                        varName: firstArg.expression.name,
+                        solution: `Fix the type of ${firstArg.expression.name} to be PropFunction`,
+                      },
+                    });
+                  }
+                } else {
+                  const symbolName = type.symbol.name;
+                  if (symbolName === 'PropFnInterface') {
+                    return;
+                  }
+                  context.report({
+                    messageId: 'invalidJsxDollar',
+                    node: firstArg.expression,
+                    data: {
+                      varName: firstArg.expression.name,
+                      solution: `const ${firstArg.expression.name} = $(\n${getContent(
+                        type.symbol,
+                        context.getSourceCode().text
+                      )}\n);\n`,
+                    },
+                  });
                 }
-                context.report({
-                  messageId: 'invalidJsxDollar',
-                  node: firstArg.expression,
-                  data: {
-                    varName: firstArg.expression.name,
-                    solution: `const ${firstArg.expression.name} = $(\n${getContent(
-                      type.symbol,
-                      context.getSourceCode().text
-                    )}\n);\n`,
-                  },
-                });
               }
             }
           }
@@ -286,14 +309,6 @@ function _isTypeCapturable(
       reason: 'is any, which is not serializable',
     };
   }
-  const isBigInt = type.flags & ts.TypeFlags.BigIntLike;
-  if (isBigInt) {
-    return {
-      type,
-      typeStr: checker.typeToString(type),
-      reason: 'is BigInt and it is not supported yet, use a number instead',
-    };
-  }
   const isSymbol = type.flags & ts.TypeFlags.ESSymbolLike;
   if (isSymbol) {
     return {
@@ -302,7 +317,7 @@ function _isTypeCapturable(
       reason: 'is Symbol, which is not serializable',
     };
   }
-  const isEnum = type.flags & ts.TypeFlags.EnumLike;
+  const isEnum = type.flags & ts.TypeFlags.Enum;
   if (isEnum) {
     return {
       type,

@@ -50,23 +50,25 @@ function findCodeSandboxes(
   for (let lineNo = 0; lineNo < lines.length; lineNo++) {
     const line = lines[lineNo];
     newLines.push(line);
-    const match = line.match(/(.*)<CodeSandbox src=["']([^"']*)["'](.*[^/])>$/);
+    const match = line.match(/(.*)<(CodeSandbox|CodeFile) src=["']([^"']*)["'][^/]*>$/);
     if (match) {
-      const [, prefix, srcPath] = match;
+      const [, prefix, tag, srcPath] = match;
       const content: string[] = [];
       let contentEndLine: string = '';
       do {
         if (lineNo > lines.length) {
-          throw new Error('CodeSandbox not closed');
+          throw new Error(tag + ' not closed');
         }
         const contentLine = lines[++lineNo];
-        if (contentLine.match(/<\/CodeSandbox>$/)) {
+        if (contentLine.match(new RegExp('</' + tag + '>$'))) {
           contentEndLine = contentLine;
         } else if (contentLine.startsWith(prefix)) {
           content.push(contentLine.slice(prefix.length));
         } else {
           throw new Error(
-            'Expecting content of `<CodeSandbox>` to be indented with: ' +
+            'Expecting content of `<' +
+              tag +
+              '>` to be indented with: ' +
               JSON.stringify(prefix) +
               ' Was: ' +
               JSON.stringify(contentLine) +

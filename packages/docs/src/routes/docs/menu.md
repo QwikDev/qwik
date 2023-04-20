@@ -14,7 +14,6 @@
 - [Events](/docs/(qwik)/components/events/index.mdx)
 - [Tasks & Lifecycle](/docs/(qwik)/components/tasks/index.mdx)
 - [Context](/docs/(qwik)/components/context/index.mdx)
-- [Resource](/docs/(qwik)/components/resource/index.mdx)
 - [Slots](/docs/(qwik)/components/slots/index.mdx)
 - [Rendering](/docs/(qwik)/components/rendering/index.mdx)
 - [Styling](/docs/(qwik)/components/styles/index.mdx)
@@ -29,14 +28,38 @@
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
+- [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
+
+## Integrations
+
+- [Overview](integrations/index.mdx)
+- [Image Optimization](integrations/image-optimization/index.mdx)
+- [Internationalization](integrations/i18n/index.mdx)
+- [Partytown](integrations/partytown/index.mdx)
+- [Playwright](integrations/playwright/index.mdx)
+- [PostCSS](integrations/postcss/index.mdx)
+- [React](integrations/react/index.mdx)
+- [Styled Vanilla Extract](integrations/styled-vanilla-extract/index.mdx)
+- [Tailwind](integrations/tailwind/index.mdx)
+- [Vitest](integrations/vitest/index.mdx)
+
+## Deployments
+
+- [Overview](deployments/index.mdx)
+- [Azure SWA](deployments/azure-swa/index.mdx)
+- [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
+- [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
+- [Netlify Edge](deployments/netlify-edge/index.mdx)
+- [Node](deployments/node/index.mdx)
+- [Vercel Edge](deployments/vercel-edge/index.mdx)
 
 ## Guides
 
 - [Qwik in a nutshell](/docs/(qwikcity)/guides/qwik-nutshell/index.mdx)
 - [Markdown & MDX](/docs/(qwikcity)/guides/mdx/index.mdx)
 - [SSG](/docs/(qwikcity)/guides/static-site-generation/index.mdx)
-- [React Cheat Sheet](/docs/(qwikcity)/guides/qwik-react/index.mdx)
+- [React Cheat Sheet](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx)
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
 
 ## Concepts
@@ -55,7 +78,6 @@
 - [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx)
 - [Prefetching](/docs/(qwik)/advanced/prefetching/index.mdx)
 - [Custom Build Directory](/docs/(qwik)/advanced/custom-build-dir/index.mdx)
-- [Internationalization](/docs/(qwik)/advanced/i18n/index.mdx)
 - [Vite](/docs/(qwik)/advanced/vite/index.mdx)
 - [Advanced Routing](/docs/(qwikcity)/advanced/routing/index.mdx)
 - [Speculative Module Fetching](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx)
@@ -67,3 +89,5 @@
 - [GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.builder.io/chat)
+- [Community Projects](/community/projects/index.mdx)
+- [Values](/community/values/index.mdx)

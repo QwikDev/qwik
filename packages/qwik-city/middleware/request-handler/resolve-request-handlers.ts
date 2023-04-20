@@ -263,24 +263,29 @@ async function pureServerFunction(ev: RequestEvent) {
     if (Array.isArray(data)) {
       const [qrl, ...args] = data;
       if (isQrl(qrl) && qrl.getHash() === fn) {
-        const result = await qrl.apply(ev, args);
+        let result: unknown;
+        try {
+          result = await qrl.apply(ev, args);
+        } catch (err) {
+          ev.headers.set('Content-Type', 'application/qwik-json');
+          ev.send(500, await qwikSerializer._serializeData(err, true));
+          return;
+        }
         if (isAsyncIterator(result)) {
           ev.headers.set('Content-Type', 'text/event-stream');
           const stream = ev.getWritableStream().getWriter();
-          try {
-            for await (const item of result) {
-              verifySerializable(qwikSerializer, item, qrl);
-              ev.headers.set('Content-Type', 'application/qwik-json');
-              const message = await qwikSerializer._serializeData(item, true);
-              verifySerializable(qwikSerializer, result, qrl);
-              stream.write(encoder.encode(`event: qwik\ndata: ${message}\n\n`));
-            }
-          } finally {
-            stream.close();
+          for await (const item of result) {
+            verifySerializable(qwikSerializer, item, qrl);
+            ev.headers.set('Content-Type', 'application/qwik-json');
+            const message = await qwikSerializer._serializeData(item, true);
+            stream.write(encoder.encode(`event: qwik\ndata: ${message}\n\n`));
           }
+          stream.close();
         } else {
+          verifySerializable(qwikSerializer, result, qrl);
           ev.headers.set('Content-Type', 'application/qwik-json');
-          ev.send(200, await qwikSerializer._serializeData(result, true));
+          const message = await qwikSerializer._serializeData(result, true);
+          ev.send(200, message);
         }
         return;
       }
@@ -339,7 +344,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
   return url.pathname;
 }
 
-export const encoder = /*@__PURE__*/ new TextEncoder();
+export const encoder = /*#__PURE__*/ new TextEncoder();
 
 export function securityMiddleware({ url, request, error }: RequestEvent) {
   let inputOrigin = request.headers.get('origin');

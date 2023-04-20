@@ -6,7 +6,7 @@ export default component$(() => {
   return (
     <div
       style={{ height: '200vh' }}
-      window:onScroll$={(e) => (scroll.value = window.scrollY)}
+      window:onScroll$={() => (scroll.value = window.scrollY)}
       document:onMouseMove$={(e) => (mouse.value = { x: e.x, y: e.y })}
     >
       <div style={{ position: 'sticky', top: 0 }}>

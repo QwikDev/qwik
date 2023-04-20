@@ -652,6 +652,74 @@ export const AtomStatus = component$(({ctx,atom})=>{
 }
 
 #[test]
+fn example_optimization_issue_3795() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3795 = component$(() => {
+    let base = "foo";
+    const firstAssignment = base;
+    base += "bar";
+    const secondAssignment = base;
+    return (
+      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_drop_side_effects() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { clientSupabase } from 'supabase';
+import { Client } from 'openai';
+import { secret } from './secret';
+import { sideEffect } from './secret';
+
+const supabase = clientSupabase();
+const dfd = new Client(secret);
+
+(function() {
+    console.log('run');
+  })();
+  (() => {
+    console.log('run');
+  })();
+
+sideEffect();
+
+export const api = server$(() => {
+    supabase.from('ffg').do(dfd);
+});
+
+export default component$(() => {
+    return (
+      <button onClick$={() => await api()}></button>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        strip_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_reg_ctx_name_hooks() {
     test_input!(TestInput {
         code: r#"
@@ -2756,6 +2824,33 @@ export const App = component$(() => {
     });
 }
 
+#[test]
+fn example_issue_33443() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const Issue3742 = component$(({description = '', other}: any) => {
+    const counter = useSignal(0);
+    return (
+      <div
+        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+      >
+        Issue3742
+        <button onClick$={() => counter.value++}>
+          Increment
+        </button>
+      </div>
+    )
+  });
+  "#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_getter_generation() {
     test_input!(TestInput {

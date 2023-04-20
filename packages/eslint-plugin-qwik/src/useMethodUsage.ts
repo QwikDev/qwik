@@ -56,7 +56,9 @@ export const useMethodUsage: Rule.RuleModule = {
             case 'MemberExpression':
             case 'BinaryExpression':
             case 'UnaryExpression':
+            case 'ReturnStatement':
             case 'BlockStatement':
+            case 'ChainExpression':
               break;
             case 'ArrowFunctionExpression':
             case 'FunctionExpression':
@@ -87,9 +89,8 @@ export const useMethodUsage: Rule.RuleModule = {
                   node,
                   messageId: 'use-wrong-function',
                 });
-                return;
               }
-              break;
+              return;
             default:
               context.report({
                 node,

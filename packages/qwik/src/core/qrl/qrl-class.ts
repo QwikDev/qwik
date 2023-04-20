@@ -10,7 +10,7 @@ import {
   newInvokeContextFromTuple,
 } from '../use/use-core';
 import { then } from '../util/promises';
-import { qDev, qTest, seal } from '../util/qdev';
+import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
@@ -55,7 +55,7 @@ export const createQRL = <TYPE>(
   captureRef: any[] | null,
   refSymbol: string | null
 ): QRLInternal<TYPE> => {
-  if (qDev) {
+  if (qDev && qSerialize) {
     if (captureRef) {
       for (const item of captureRef) {
         verifySerializable(item, 'Captured variable in the closure can not be serialized');
@@ -184,7 +184,7 @@ export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
   }
 }
 
-const EMITTED = /*@__PURE__*/ new Set();
+const EMITTED = /*#__PURE__*/ new Set();
 
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
   if (!EMITTED.has(symbol)) {

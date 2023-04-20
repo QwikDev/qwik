@@ -1,5 +1,5 @@
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
+import { executeContextWithTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
@@ -127,6 +127,7 @@ export const _hW = () => {
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
   const doc = getDocument(containerState.$containerEl$);
+
   try {
     const rCtx = createRenderContext(doc, containerState);
     const staticCtx = rCtx.$static$;
@@ -180,7 +181,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     // await getPlatform().raf(() => {
     // });
-    executeContextWithSlots(rCtx);
+    await executeContextWithTransition(staticCtx);
     printRenderStats(staticCtx);
     return postRendering(containerState, rCtx);
   } catch (err) {

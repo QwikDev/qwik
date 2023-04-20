@@ -37,7 +37,7 @@ export const findLocation = (e: Error): Loc | undefined => {
   if (typeof stack === 'string') {
     const lines = stack
       .split('\n')
-      .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'));
+      .filter((l) => !l.includes('/node_modules/') && !l.includes('(node:'));
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].replace('file:///', '/');

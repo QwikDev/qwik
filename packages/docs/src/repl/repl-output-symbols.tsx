@@ -2,6 +2,7 @@ import type { TransformModule } from '@builder.io/qwik/optimizer';
 import { CodeBlock } from '../components/code-block/code-block';
 
 export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
+  console.log(outputs);
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
@@ -25,7 +26,7 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
         </div>
       </div>
       <div class="file-modules">
-        {outputs.map((o, i) => (
+        {outputs.filter((o) => !!o.hook).map((o, i) => (
           <div class="file-item" data-file-item={i} key={o.path}>
             <div class="file-info">
               <span>{o.hook?.canonicalFilename}</span>

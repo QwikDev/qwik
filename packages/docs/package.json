@@ -53,6 +53,7 @@
     "undici": "5.21.2",
     "uvu": "0.5.6",
     "vite": "4.3.0",
+    "vite-plugin-inspect": "^0.7.23",
     "wrangler": "^2.16.0"
   },
   "author": "Builder.io Team",

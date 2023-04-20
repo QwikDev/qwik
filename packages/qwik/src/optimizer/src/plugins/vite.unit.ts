@@ -90,7 +90,7 @@ vite('command: serve, mode: production', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, false);
-  equal(opts.resolveQwikBuild, false);
+  equal(opts.resolveQwikBuild, true);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(build.emptyOutDir, undefined);
@@ -274,7 +274,7 @@ vite('command: serve, --mode ssr', async () => {
   equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
   equal(build.emptyOutDir, undefined);
   equal(c.publicDir, undefined);
-  equal(opts.resolveQwikBuild, false);
+  equal(opts.resolveQwikBuild, true);
 });
 
 vite('command: build, --mode lib', async () => {

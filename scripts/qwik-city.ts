@@ -187,8 +187,6 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'node-fetch',
     'undici',
     'typescript',
-    '@builder.io/qwik',
-    '@builder.io/qwik/optimizer',
   ];
 
   const swRegisterPath = join(inputDir, 'runtime', 'src', 'sw-register.ts');
@@ -208,6 +206,10 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     target: nodeTarget,
     format: 'esm',
     external,
+    alias: {
+      '@builder.io/qwik': 'noop',
+      '@builder.io/qwik/optimizer': 'noop',
+    },
     watch: watcher(config),
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });

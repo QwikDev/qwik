@@ -20,7 +20,17 @@ function getOrigin(req: IncomingMessage) {
 
 export function getUrl(req: IncomingMessage) {
   const origin = ORIGIN ?? getOrigin(req);
-  return new URL((req as any).originalUrl || req.url || '/', origin);
+  return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
+}
+
+const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
+
+export function normalizeUrl(url: string, base: string) {
+  // do not allow the url to have a relative protocol url
+  // which could bypass of CSRF protections
+  // for example: new URL("//attacker.com", "https://qwik.build.io")
+  // would return "https://attacker.com" when it should be "https://qwik.build.io/attacker.com"
+  return new URL(url.replace(DOUBLE_SLASH_REG, '/'), base);
 }
 
 export async function fromNodeHttp(

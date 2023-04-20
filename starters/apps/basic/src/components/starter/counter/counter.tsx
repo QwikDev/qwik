@@ -13,7 +13,7 @@ export default component$(() => {
   });
 
   return (
-    <div class={`${styles['counter-wrapper']}`}>
+    <div class={styles['counter-wrapper']}>
       <button class="button-dark button-small" onClick$={() => setCount(count.value - 1)}>
         -
       </button>

@@ -122,6 +122,69 @@ export default component$(() => {
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
+## Actions with Event Handlers
+
+We can use the `onSubmitCompleted$` event handler after an action is executed successfully and returns some data. It is particularly useful when you need to perform additional tasks, such as resetting UI elements or updating the application state, once an action has been completed successfully.
+
+Here's an example of the `onSubmitCompleted$` handler used to edit an item in a EditForm component of a todo app.
+
+```tsx title="src/components/EditForm.tsx"
+import { component$, type Signal, useSignal } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+import styles from './editform.module.css';
+import { Check, X } from 'example-icons';
+import type { listItem } from '../../routes/index';
+import { useEditFromListAction } from '../../routes/index';
+
+export interface EditFormProps {
+  item: listItem;
+  editingIdSignal: Signal<string>;
+}
+
+export const EditForm = component$(
+  ({ item, editingIdSignal }: EditFormProps) => {
+    const editAction = useEditFromListAction();
+
+    return (
+      <div class={styles.wrapper}>
+        <Form
+          action={editAction}
+          class={styles.form}
+          onSubmitCompleted$={() => {
+            editingIdSignal.value = '';
+          }}
+          spaReset
+        >
+          <input
+            ref={inputRef}
+            class={styles.edit}
+            type="text"
+            value={item.text}
+            name="text"
+            id={`edit-${item.id}`}
+          />
+          {/* Include the hidden input field for the "id" attribute */}
+          <input type="hidden" name="id" value={item.id} />
+          <button class={styles.done} type="submit">
+            <Check />
+          </button>
+        </Form>
+
+        <div class={styles.remove}>
+          <button onClick$={() => (editingIdSignal.value = '')}>
+            <X />
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
+
+export default EditForm;
+```
+
+In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value to an empty string once the form submission is completed successfully. This allows the application to update its state and return to the default view.
+
 ## Validation and type safety
 
 Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.

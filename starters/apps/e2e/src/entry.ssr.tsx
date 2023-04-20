@@ -30,6 +30,7 @@ import { NoResume } from './components/no-resume/no-resume';
 import { Resuming1 } from './components/resuming/resuming';
 import { ResourceFn } from './components/resource/resource-fn';
 import { ComputedRoot } from './components/computed/computed';
+import { BuildVariables } from './components/build-variables/build';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -68,6 +69,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/no-resume': () => <NoResume />,
     '/e2e/resuming': () => <Resuming1 />,
     '/e2e/computed': () => <ComputedRoot />,
+    '/e2e/build-variables': () => <BuildVariables />,
   };
 
   const url = new URL(opts.serverData!.url);

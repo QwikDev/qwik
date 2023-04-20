@@ -119,7 +119,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         entryStrategy: qwikViteOpts.entryStrategy,
         srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
-        resolveQwikBuild: viteCommand === 'build',
+        resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],

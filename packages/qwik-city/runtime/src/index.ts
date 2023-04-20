@@ -43,7 +43,7 @@ export type {
 } from './types';
 
 export { RouterOutlet } from './router-outlet-component';
-export { QwikCityProvider, QwikCityMockProvider } from './qwik-city-component';
+export { QwikCityProvider, QwikCityMockProvider, type QwikCityProps } from './qwik-city-component';
 export { Link } from './link-component';
 export type { LinkProps } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';

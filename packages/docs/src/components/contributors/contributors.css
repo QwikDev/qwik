@@ -1,0 +1,27 @@
+.wrapper {
+  margin: 50px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: left;
+  gap: 8px;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.contributor {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+.avatar {
+  border-radius: 50%;
+  width: 40px;
+  height: auto;
+}

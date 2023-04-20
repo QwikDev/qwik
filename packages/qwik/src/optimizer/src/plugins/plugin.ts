@@ -470,7 +470,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
-    debugger;
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {

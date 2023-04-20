@@ -179,8 +179,6 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       return;
     }
 
-    // await getPlatform().raf(() => {
-    // });
     await executeContextWithTransition(staticCtx);
     printRenderStats(staticCtx);
     return postRendering(containerState, rCtx);

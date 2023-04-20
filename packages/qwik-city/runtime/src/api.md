@@ -306,7 +306,7 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
-    enableViewTransitionAPI?: boolean;
+    viewTransition?: boolean;
 }
 
 // @public (undocumented)

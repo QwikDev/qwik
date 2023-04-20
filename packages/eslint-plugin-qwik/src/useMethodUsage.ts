@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
+
 export const useMethodUsage: Rule.RuleModule = {
   meta: {
     type: 'problem',

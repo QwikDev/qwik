@@ -18,7 +18,7 @@ import { useInvokeContext } from './use-core';
  * @public
  */
 // </docs>
-export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
+export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
   _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -51,7 +51,7 @@ export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => voi
  * @public
  */
 // </docs>
-export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
+export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
   _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -85,20 +85,22 @@ export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event
  * @public
  */
 // </docs>
-export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
+export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
   _useOn(`window:on-${event}`, eventQrl);
 
-const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
-  const invokeCtx = useInvokeContext();
-  const elCtx = getContext(
-    invokeCtx.$hostElement$,
-    invokeCtx.$renderCtx$.$static$.$containerState$
-  );
-  assertQrl(eventQrl);
-  if (typeof eventName === 'string') {
-    elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
-  } else {
-    elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => {
+  if (eventQrl) {
+    const invokeCtx = useInvokeContext();
+    const elCtx = getContext(
+      invokeCtx.$hostElement$,
+      invokeCtx.$renderCtx$.$static$.$containerState$
+    );
+    assertQrl(eventQrl);
+    if (typeof eventName === 'string') {
+      elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
+    } else {
+      elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+    }
+    elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
   }
-  elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
 };

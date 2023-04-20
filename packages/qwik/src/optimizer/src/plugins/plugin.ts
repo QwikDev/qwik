@@ -73,7 +73,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
     outDir: null as any,
-    resolveQwikBuild: false,
+    resolveQwikBuild: true,
     forceFullBuild: false,
     entryStrategy: null as any,
     srcDir: null as any,
@@ -470,6 +470,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
+    debugger;
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
@@ -743,7 +744,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
-    const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
+    const isServer = !!loadOpts.ssr;
     const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};

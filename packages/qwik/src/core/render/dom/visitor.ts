@@ -1084,7 +1084,16 @@ export const cleanupTree = (
   }
 };
 
-export const executeContextWithSlots = ({ $static$: ctx }: RenderContext) => {
+export const executeContextWithTransition = async (ctx: RenderStaticContext) => {
+  // try to use `document.startViewTransition`
+  if (typeof document !== 'undefined' && document.__q_view_transition__) {
+    document.__q_view_transition__ = undefined;
+    if (typeof document.startViewTransition === 'function') {
+      await document.startViewTransition(() => executeDOMRender(ctx)).updateCallbackDone;
+      return;
+    }
+  }
+  // fallback
   executeDOMRender(ctx);
 };
 

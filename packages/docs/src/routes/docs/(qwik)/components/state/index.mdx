@@ -61,11 +61,9 @@ This example above shows how `useSignal()` can be used in a counter component to
 
 ## `useStore()`
 
-Works very similarly to `useSignal()`, but it takes an object as its initial value. One can think of a store as a multiple-value signal or an object made of several signals.
+Works very similarly to `useSignal()`, but it takes an object as its initial value and the reactivity extends to nested objects and arrays by default. One can think of a store as a multiple-value signal or an object made of several signals.
 
 Use `useStore(initialStateObject)` hook to create a reactive object. It takes an initial object (or a factory function) and returns a reactive object.
-
-> **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" style={{ height: '6em' }} >
 ```tsx {4} /state/ /count/#a
@@ -84,44 +82,9 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-This example above shows how `useStore()` can be used in a counter component to keep track of the count.
+> **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
 
-### Recursive values
-
-By default, [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) only tracks the top-level properties in your store, which means that for an update to be registered, you have to update values at the top level property.
-
-<CodeSandbox src="/src/routes/demo/state/counter-store-no-track/index.tsx" style={{ height: '10em' }}>
-```tsx
-import { component$, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const store = useStore({
-    nested: { fields: { are: 'not tracked' } },
-  });
-
-  return (
-    <>
-      <p>{store.nested.fields.are}</p>
-      <button onClick$={() => (store.nested.fields.are = 'tracked')}>
-        Clicking me does not work
-      </button>
-      <br />
-      <button onClick$={() => (store.nested = { fields: { are: 'tracked' } })}>
-        Click me works
-      </button>
-    </>
-  );
-});
-```
-</CodeSandbox>
-
-For the updates to be registered with the default tracking strategy, we would have to update the top-level `nested` field like so:
-
-```ts
-store.nested = { fields: { are: 'tracked' } };
-```
-
-To make the first example work, we can pass a second argument to `useStore()`, and tell it to use recursion to track all the values in our store, no matter how deep.
+Because [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) tracks deep reactivity, that means that Arrays and Objects inside the store will also be reactive.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -130,28 +93,51 @@ import { component$, useStore } from '@builder.io/qwik';
 export default component$(() => {
   const store = useStore(
     {
-      nested: { fields: { are: 'not tracked' } },
+      nested: {
+        fields: { are: 'also tracked' }
+      },
+      list: [],
     },
-    { deep: true }
   );
 
   return (
     <>
       <p>{store.nested.fields.are}</p>
-      <button onClick$={() => (store.nested.fields.are = 'tracked')}>
+      <button onClick$={() => {
+        // Even though we are mutating a nested object, this will trigger a re-render
+        store.nested.fields.are = 'tracked'
+      }}>
         Clicking me works because store is deep watched
       </button>
       <br />
-      <button onClick$={() => (store.nested = { fields: { are: 'tracked' } })}>
-        Click me still works
+      <button onClick$={() => {
+        // Because store is deep watched, this will trigger a re-render
+        store.list.push(`Item ${store.list.length}`);
+      }}>
+        Add to list
       </button>
+      <ul>
+        {store.list.map((item) => <li>{item}</li>)}
+      </ul>
     </>
   );
 });
 ```
 </CodeSandbox>
 
-Now, the component will update as expected. This will also track individual values inside of arrays!
+Notice that for `useStore()` to track all nested properties, it needs to allocate a lot of Proxy objects. This can be a performance issue if you have a lot of nested properties. In that case, you can use the `deep: false` option to only track the top-level properties.
+
+```tsx
+const shallowStore = useStore(
+  {
+    nested: {
+      fields: { are: 'also tracked' }
+    },
+    list: [],
+  },
+  { deep: false}
+);
+```
 
 ## Computed state
 

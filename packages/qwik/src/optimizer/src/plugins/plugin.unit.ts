@@ -32,7 +32,7 @@ test('defaults (buildMode: production)', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.forceFullBuild, true);
-  equal(opts.resolveQwikBuild, false);
+  equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
@@ -51,7 +51,7 @@ test('defaults (target: ssr)', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, false);
-  equal(opts.resolveQwikBuild, false);
+  equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
@@ -69,7 +69,7 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, false);
-  equal(opts.resolveQwikBuild, false);
+  equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);

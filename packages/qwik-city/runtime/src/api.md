@@ -304,8 +304,11 @@ export interface QwikCityPlan {
     readonly trailingSlash?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface QwikCityProps {
+    enableViewTransitionAPI?: boolean;
+}
+
 // @public (undocumented)
 export const QwikCityProvider: Component<QwikCityProps>;
 

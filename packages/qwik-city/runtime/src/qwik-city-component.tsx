@@ -222,6 +222,14 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
+          if (
+            props.enableViewTransitionAPI &&
+            isSameOriginDifferentPathname(window.location, url)
+          ) {
+            // mark next DOM render to use startViewTransition API
+            document.__q_view_transition__ = true;
+          }
+
           const loaders = clientPageData?.loaders;
           if (loaders) {
             Object.assign(loaderState, loaders);
@@ -239,23 +247,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     } else {
       return;
     }
-  });
-
-  const oldLocation = useSignal(routeLocation.url);
-
-  useTask$(({ track }) => {
-    const newLocation = track(() => routeLocation.url);
-
-    // mark next DOM render to use startViewTransition API
-    if (
-      isBrowser &&
-      props.enableViewTransitionAPI &&
-      isSameOriginDifferentPathname(newLocation, oldLocation.value)
-    ) {
-      document.__q_view_transition__ = true;
-    }
-
-    oldLocation.value = newLocation;
   });
 
   return <Slot />;

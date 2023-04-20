@@ -7,6 +7,7 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import rehypePrettyCode from 'rehype-pretty-code';
 import { qwikReact } from '@builder.io/qwik-react/vite';
+import Inspect from 'vite-plugin-inspect';
 
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
@@ -93,6 +94,7 @@ export default defineConfig(() => {
       tutorialData(routesDir),
       sourceResolver(resolve('.')),
       qwikReact(),
+      Inspect(),
     ],
     clearScreen: false,
     server: {

@@ -19,12 +19,12 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@types/react": "18.0.31",
+    "@types/react": "18.0.37",
     "@types/react-dom": "18.0.11",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "5.0.4",
-    "vite": "4.2.2"
+    "vite": "4.3.0"
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.22.0",

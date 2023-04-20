@@ -85,13 +85,13 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@azure/functions": "^3.5.0",
+    "@azure/functions": "^3.5.1",
     "@builder.io/qwik": "workspace:*",
     "@microsoft/api-extractor": "7.34.4",
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.0.8",
     "@types/mdast": "^3.0.11",
-    "@types/node": "^18.15.9",
+    "@types/node": "^18.15.12",
     "@types/refractor": "3.0.2",
     "estree-util-value-to-estree": "2.1.0",
     "github-slugger": "2.0.0",
@@ -109,7 +109,7 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
-    "vite": "4.2.2",
+    "vite": "4.3.0",
     "yaml": "2.2.1"
   },
   "peerDependencies": {

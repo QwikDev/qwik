@@ -17,6 +17,7 @@
     "/docs/components/resource/",
     "/qwikcity/*",
     "/integrations/*",
-    "/deployments/*"
+    "/deployments/*",
+    "/repl/*"
   ]
 }

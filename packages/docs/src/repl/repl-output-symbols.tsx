@@ -26,16 +26,18 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
         </div>
       </div>
       <div class="file-modules">
-        {outputs.filter((o) => !!o.hook).map((o, i) => (
-          <div class="file-item" data-file-item={i} key={o.path}>
-            <div class="file-info">
-              <span>{o.hook?.canonicalFilename}</span>
+        {outputs
+          .filter((o) => !!o.hook)
+          .map((o, i) => (
+            <div class="file-item" data-file-item={i} key={o.path}>
+              <div class="file-info">
+                <span>{o.hook?.canonicalFilename}</span>
+              </div>
+              <div class="file-text">
+                <CodeBlock path={o.path} code={o.code} />
+              </div>
             </div>
-            <div class="file-text">
-              <CodeBlock path={o.path} code={o.code} />
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

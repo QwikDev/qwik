@@ -35,6 +35,8 @@ In the example above, the `404.tsx` page will also use the `layout.tsx` layout, 
 
 Additionally, using Qwik City's directory-based routing allows for custom 404 pages to be created at different paths. For example, if `src/routes/account/404.tsx` was also added to the structure, then the custom account 404 page would only be applied to the `/account/*` routes, while all other 404s would use the root `404.tsx` page.
 
+> Note: During development and in preview mode, the custom 404 pages will be not render, but instead the default Qwik City 404 page will show. However, when building the app for production, the custom 404 page will be statically generated as a static `404.html` file.
+
 ```bash
 src/
 └── routes/

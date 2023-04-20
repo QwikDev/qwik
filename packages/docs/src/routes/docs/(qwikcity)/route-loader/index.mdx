@@ -78,16 +78,16 @@ The above example shows using `useProductData()` in two different components acr
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
-export const useLoginStatus = routeLoader$(async ({cookie}) => {
+export const useLoginStatus = routeLoader$(async ({ cookie }) => {
   return {
-    isUserLoggedIn: checkCookie(cookie);
-  }
+    isUserLoggedIn: checkCookie(cookie),
+  };
 });
 
-export const useCurrentUser = routeLoader$(async ({cookie}) => {
+export const useCurrentUser = routeLoader$(async ({ cookie }) => {
   return {
-    user: currentUserFromCookie(cookie);
-  }
+    user: currentUserFromCookie(cookie),
+  };
 });
 
 export default component$(() => {
@@ -134,7 +134,7 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
 
 ## Access the `routeLoader$` data within another `routeLoader$`
 
-You can to access the data from one `routeLoader$` inside another `routeLoader$` using the `requestEvent.resolveValue` method.
+You can access the data from one `routeLoader$` inside another `routeLoader$` using the `requestEvent.resolveValue` method.
 
 ```tsx /requestEvent/ title="src/routes/product/[productId]/index.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
@@ -168,6 +168,7 @@ In addition, the `fail` function allows `routeLoader$` to override the HTTP stat
 This is useful when the loader needs to return a "error" value that is not `undefined`, but it also needs to indicate that the data failed to load.
 
 ```tsx /requestEvent.fail/ /errorMessage/#a title="src/routes/product/[productId]/index.tsx"
+import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useProductDetails = routeLoader$(async (requestEvent) => {

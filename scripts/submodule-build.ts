@@ -10,9 +10,34 @@ export async function submoduleBuild(config: BuildConfig) {
 
   ensureDir(buildDestDir);
 
+  bundleIndex(config, 'index');
+  bundleIndex(config, 'index.dev');
+  bundleIndex(config, 'index.prod');
+
+  console.log('🐨', submodule);
+
+  await copyFile(join(buildSrcDtsDir, 'index.d.ts'), join(buildDestDir, 'index.d.ts'));
+
+  const loaderPkg: PackageJSON = {
+    name: `@builder.io/qwik/build`,
+    version: config.distVersion,
+    main: `index.mjs`,
+    types: `index.d.ts`,
+    private: true,
+    type: 'module',
+  };
+  await writePackageJson(buildDestDir, loaderPkg);
+}
+
+export async function bundleIndex(config: BuildConfig, entryName: string) {
+  const submodule = 'build';
+  const buildDestDir = join(config.distPkgDir, submodule);
+
+  ensureDir(buildDestDir);
+
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, 'build', 'index.ts')],
-    entryNames: 'index',
+    entryPoints: [join(config.srcDir, 'build', `${entryName}.ts`)],
+    entryNames: entryName,
     outdir: buildDestDir,
     bundle: true,
     sourcemap: true,
@@ -41,18 +66,4 @@ export async function submoduleBuild(config: BuildConfig) {
   });
 
   await Promise.all([esm, cjs]);
-
-  console.log('🐨', submodule);
-
-  await copyFile(join(buildSrcDtsDir, 'index.d.ts'), join(buildDestDir, 'index.d.ts'));
-
-  const loaderPkg: PackageJSON = {
-    name: `@builder.io/qwik/build`,
-    version: config.distVersion,
-    main: `index.mjs`,
-    types: `index.d.ts`,
-    private: true,
-    type: 'module',
-  };
-  await writePackageJson(buildDestDir, loaderPkg);
 }

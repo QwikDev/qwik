@@ -56,16 +56,39 @@ export default component$(() => {
 
   useVisibleTask$(
     async () => {
-      const resp = await fetch(
-        `https://api.github.com/repos/builderio/qwik/contributors?path=packages/docs/src/routes/${makeEditPageUrl(
-          url.pathname
-        )}/index.mdx`
-      );
-      const data = await resp.json();
-      contributors.list = data;
+      try {
+        const resp = await fetch(
+          `https://api.github.com/repos/builderio/qwik/commits?path=packages/docs/src/routes/${makeEditPageUrl(
+            url.pathname
+          )}/index.mdx`
+        );
+
+        const data = await resp.json();
+
+        if (!data) {
+          return;
+        }
+
+        contributors.list = data
+          .map((item) => ({
+            id: item.author.id,
+            username: item.author.login,
+            link: item.author.html_url,
+            avatar: item.author.avatar_url,
+          }))
+          .filter((item, index, self) => self.findIndex((t) => t.id === item.id) === index);
+      } catch (e) {
+        // mute api errors
+      }
     },
     { strategy: 'document-ready' }
   );
+
+  if (!contributors.list.length) {
+    return null;
+  }
+
+  console.log('xxx', contributors);
 
   return (
     <div class="wrapper card">
@@ -76,8 +99,8 @@ export default component$(() => {
       <ul class="list">
         {contributors.list.map((contributor: any) => (
           <li key={contributor.id} class="contributor">
-            <a href={contributor.html_url} target="_blank" rel="noreferrer">
-              <img src={contributor.avatar_url} alt={contributor.login} class="avatar" />
+            <a href={contributor.link} target="_blank" rel="noreferrer">
+              <img src={contributor.avatar} alt={contributor.username} class="avatar" />
             </a>
           </li>
         ))}

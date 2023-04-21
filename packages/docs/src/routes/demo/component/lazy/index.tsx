@@ -11,3 +11,5 @@ export const Parent = component$(() => {
     </section>
   );
 });
+
+export default Parent;

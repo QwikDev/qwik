@@ -3,6 +3,7 @@ title: Lazy Loading Closures
 contributors:
   - manucorporat
   - adamdbradley
+  - wmertens
 ---
 
 A closure can be converted into a lazy-loaded reference using the `$()` function. This generates a `QRL<Function>` type. A QRL is a lazy-loadable reference of the closure. In our case, we have extracted the closure associated with the `onInput` event into the component body. Because it is no longer inlined we need to change how the JSX refers to it from `onInput$` to `onInputQrl`.

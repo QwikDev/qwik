@@ -28,6 +28,8 @@ async function updateDocsDir(dir: string) {
 }
 
 async function updateGithubCommits(filePath: string) {
+  console.log('update:', filePath);
+
   const gm = matter.read(filePath);
 
   const repoPath = path.relative(rootDir, filePath).replace(/\\/g, '/');
@@ -86,7 +88,7 @@ async function updateGithubCommits(filePath: string) {
 
   console.log(repoPath, contributors.length);
 
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 updateContributors();

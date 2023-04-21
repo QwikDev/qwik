@@ -19,7 +19,7 @@ import { server$ } from '@builder.io/qwik-city';
 
 // By wrapping a function with `server$()` we mark it to always
 // execute on the server. This is a form of RPC mechanism.
-const serverGreeter = server$((firstName, lastName) => {
+const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = `Hello ${firstName} ${lastName}`;
   console.log('Prints in the server', greeting);
   return greeting;
@@ -31,9 +31,9 @@ export default component$(() => {
 
   return (
     <section>
-      <label>First name: <input bind:value={name} /></label>
-      <label>Last name: <input bind:value={name} /></label>
-      
+      <label>First name: <input bind:value={firstName} /></label>
+      <label>Last name: <input bind:value={lastName} /></label>
+
       <button
         onClick$={async () => {
           const greeting = await serverGreeter(firstName.value, lastName.value);
@@ -82,10 +82,10 @@ const addUser = server$(async function(id: number, fullName: string, address: Ad
 import { component$, useSignal } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
 
-const stream = server$(async function() {
+const stream = server$(async function* () {
   for (let i = 0; i < 10; i++) {
     yield i;
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 });
 
@@ -95,7 +95,8 @@ export default component$(() => {
     <div>
       <button
         onClick$={async () => {
-          for await (const i of stream()) {
+          const response = await stream();
+          for await (const i of response) {
             message.value += ` ${i}`;
           }
         }}

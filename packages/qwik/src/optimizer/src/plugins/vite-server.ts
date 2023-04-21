@@ -495,9 +495,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
 
 })();
 </script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(
-    ' + '
-  )}</p></div>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(' + ')}</div>
 `;
 };
 

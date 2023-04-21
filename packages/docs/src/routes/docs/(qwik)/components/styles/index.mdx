@@ -49,20 +49,15 @@ import { component$ } from '@builder.io/qwik';
 import styles from './MyComponent.module.css';
 
 export default component$((props) => {
+  // Array syntax example
   return <div class={[
     styles.container, 
     'p-8', 
     props.isHighAttention ? 'text-green-500' : 'text-slate-500',
     { active: true}
   ]}>Hello world</div>;
-});
-```
 
-```tsx title="src/components/MyComponent/MyComponent.tsx"
-import { component$ } from '@builder.io/qwik';
-import styles from './MyComponent.module.css';
-
-export default component$((props) => {
+  // Object syntax example
   return <div class={{  
     'text-green-500': props.isHighAttention,
     'p-4': true

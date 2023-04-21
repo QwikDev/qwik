@@ -92,13 +92,16 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   }
 
   const url = new URL(urlEnv);
-  const routeLocation = useStore<MutableRouteLocation>({
-    url,
-    params: env.params,
-    isNavigating: false,
-  });
+  const routeLocation = useStore<MutableRouteLocation>(
+    {
+      url,
+      params: env.params,
+      isNavigating: false,
+    },
+    { deep: false }
+  );
 
-  const loaderState = _weakSerialize(useStore(env.response.loaders));
+  const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
   const navPath = useSignal(toPath(url));
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
@@ -276,11 +279,14 @@ export interface QwikCityMockProps {
 export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
-  const routeLocation = useStore<MutableRouteLocation>({
-    url,
-    params: props.params ?? {},
-    isNavigating: false,
-  });
+  const routeLocation = useStore<MutableRouteLocation>(
+    {
+      url,
+      params: props.params ?? {},
+      isNavigating: false,
+    },
+    { deep: false }
+  );
 
   const loaderState = useSignal({});
 
@@ -288,12 +294,15 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     throw new Error('Not implemented');
   });
 
-  const documentHead = useStore(createDocumentHead);
+  const documentHead = useStore(createDocumentHead, { deep: false });
 
-  const content = useStore<ContentState>({
-    headings: undefined,
-    menu: undefined,
-  });
+  const content = useStore<ContentState>(
+    {
+      headings: undefined,
+      menu: undefined,
+    },
+    { deep: false }
+  );
 
   const contentInternal = useSignal<ContentStateInternal>();
 

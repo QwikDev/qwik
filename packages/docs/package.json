@@ -22,7 +22,7 @@
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.8.0",
-    "@builder.io/qwik": "0.103.0",
+    "@builder.io/qwik": "0.103.0-dev20230420165851",
     "@builder.io/qwik-city": "0.103.0",
     "@builder.io/qwik-react": "0.5.0",
     "@builder.io/sdk-qwik": "^0.2.1",

@@ -131,8 +131,8 @@ importers:
       '@algolia/autocomplete-core': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.8.0
-      '@builder.io/qwik': 0.103.0-dev20230420165851
-      '@builder.io/qwik-city': 0.103.0
+      '@builder.io/qwik': 0.103.0-dev20230421164933
+      '@builder.io/qwik-city': 0.103.0-dev20230421164933
       '@builder.io/qwik-react': 0.5.0
       '@builder.io/sdk-qwik': ^0.2.1
       '@docsearch/css': 3.3.3
@@ -179,10 +179,10 @@ importers:
       '@algolia/autocomplete-core': 1.7.4
       '@algolia/client-search': 4.14.3
       '@builder.io/partytown': 0.8.0
-      '@builder.io/qwik': 0.103.0-dev20230420165851_undici@5.21.2
-      '@builder.io/qwik-city': 0.103.0_cvhphluutgoq5uek3y4fusgona
-      '@builder.io/qwik-react': 0.5.0_wfgmdq2ackpzase36n52oxe6aq
-      '@builder.io/sdk-qwik': 0.2.1_cvhphluutgoq5uek3y4fusgona
+      '@builder.io/qwik': 0.103.0-dev20230421164933_undici@5.21.2
+      '@builder.io/qwik-city': 0.103.0-dev20230421164933_3tnmcl72giedwcnjiwzbbvx4r4
+      '@builder.io/qwik-react': 0.5.0_2lduo4pqgjhfkxt7kabczblvq4
+      '@builder.io/sdk-qwik': 0.2.1_3tnmcl72giedwcnjiwzbbvx4r4
       '@docsearch/css': 3.3.3
       '@emotion/react': 11.10.6_24ukasupqqblpyncii3ycicuiu
       '@emotion/styled': 11.10.6_ymduhmyhfisotm3njv6u3c3lva
@@ -562,13 +562,13 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-city/0.103.0_cvhphluutgoq5uek3y4fusgona:
-    resolution: {integrity: sha512-lryB9UrUR+/uOdYqXBIpBmInbK+rDRTzkRdfterNgZlBKR+enWnL4C/C50p4w1zjtl3RRx64hedf6dyn0setmg==}
+  /@builder.io/qwik-city/0.103.0-dev20230421164933_3tnmcl72giedwcnjiwzbbvx4r4:
+    resolution: {integrity: sha512-9ksd4W/C0p5f1MBwZm4d6WnZX2HPj6N5GBcakXHM+J2hoSJfvv+JspT2OOOpNJyWQnO1mNstDoSCq5p7qD/GOw==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     peerDependencies:
       '@builder.io/qwik': '>=0.22.0'
     dependencies:
-      '@builder.io/qwik': 0.103.0-dev20230420165851_undici@5.21.2
+      '@builder.io/qwik': 0.103.0-dev20230421164933_undici@5.21.2
       '@mdx-js/mdx': 2.3.0
       '@types/mdx': 2.0.4
       source-map: 0.7.4
@@ -578,7 +578,7 @@ packages:
       - supports-color
     dev: true
 
-  /@builder.io/qwik-react/0.5.0_wfgmdq2ackpzase36n52oxe6aq:
+  /@builder.io/qwik-react/0.5.0_2lduo4pqgjhfkxt7kabczblvq4:
     resolution: {integrity: sha512-JdJWQWOJGv7ddQqEZwzR8wPh0IoCQZwD9qo75+reiQaLp6eH+Pjsm/kn1LaMQt6u72pCCNjnj5kEn/bnbfnIjQ==}
     engines: {node: '>=16'}
     peerDependencies:
@@ -588,15 +588,15 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': 0.103.0-dev20230420165851_undici@5.21.2
+      '@builder.io/qwik': 0.103.0-dev20230421164933_undici@5.21.2
       '@types/react': 18.0.37
       '@types/react-dom': 18.0.11
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: true
 
-  /@builder.io/qwik/0.103.0-dev20230420165851_undici@5.21.2:
-    resolution: {integrity: sha512-kYlXkrv4uvyybbYiXCMC5WQ3Eu66O+BARoudoLiXjCexnyChMbSYmo/q74QtQBuh5hO05EJ9pr4jj3Oj793Vlg==}
+  /@builder.io/qwik/0.103.0-dev20230421164933_undici@5.21.2:
+    resolution: {integrity: sha512-IgBD7YElb9Dd424jv270OigtQFtABS3cAKOXjDvYo76fAOfwwYdVDBb5euJSfnO+JogYhFlTHT8molbn9uQaRg==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     hasBin: true
     peerDependencies:
@@ -605,12 +605,12 @@ packages:
       undici: 5.21.2
     dev: true
 
-  /@builder.io/sdk-qwik/0.2.1_cvhphluutgoq5uek3y4fusgona:
+  /@builder.io/sdk-qwik/0.2.1_3tnmcl72giedwcnjiwzbbvx4r4:
     resolution: {integrity: sha512-pDR7A1V8EOybWWd/oLmFPhEaxhKTaG2tr10vD1DqgSsLcIqeK2AMbllxNe/oLcwgKwBFI7zA9gCU/+u0TuV3iA==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.103.0-dev20230420165851_undici@5.21.2
+      '@builder.io/qwik': 0.103.0-dev20230421164933_undici@5.21.2
     dev: true
 
   /@clack/core/0.3.2:

@@ -54,6 +54,56 @@ export function Button() {
 }
 ```
 
+## Using Props 
+
+### ⚡️ Qwik
+
+```tsx
+export const Parent = component$(() => {
+  const userData = useStore({ count: 0 });
+  return <Child userData={userData} />;
+});
+ 
+interface ChildProps {
+  userData: { count: number };
+}
+export const Child = component$<ChildProps>(({ userData }) => {
+  return (
+    <>
+      <button onClick$={() => userData.count++}>Increment</button>
+      <p>Count: {userData.count}</p>
+    </>
+  );
+});
+```
+
+### ⚛️ React
+
+```tsx
+export const Parent = (() => {
+  const [ count, setCount ] = useState(0);
+  
+  const increment = (() => {
+    setCount(count + 1)
+  })
+  return <Child count={count} increment={increment} />;
+})
+
+interface ChildProps {
+  count: number;
+  increment: () => void;
+}
+
+export const Child = ((props: ChildProps) => {
+  return (
+    <>
+      <button onClick={() => props.increment}>Increment</button>
+      <p>Count: {props.count}</p>
+    </>
+  );
+})
+```
+
 ## Declare local state
 
 ### ⚡️ Qwik

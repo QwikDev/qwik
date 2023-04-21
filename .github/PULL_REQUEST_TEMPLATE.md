@@ -10,7 +10,7 @@ If your functionality can be delivered as a 3rd-Party Community Add-On, we encou
 
 If you feel your functionality is of high value to everybody in the Qwik Community, we encourage socializing it in the Qwik Discord channels as the core team may take this up for inclusion in the core.
 
-*— Build primitives is our mantra*
+_— Build primitives is our mantra_
 
 # What is it?
 

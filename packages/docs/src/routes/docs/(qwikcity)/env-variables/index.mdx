@@ -28,12 +28,12 @@ PUBLIC_API_URL=https://api.example.com
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  // `import.meta.env.VITE_*` variables can be read anywhere, including browser
+  // `import.meta.env.PUBLIC_*` variables can be read anywhere, including browser
   return <div>PUBLIC_API_URL: {import.meta.env.PUBLIC_API_URL}</div>
 })
 ```
 
-> `import.meta.url.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
+> `import.meta.env.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
 
 ## Server-side variables
 
@@ -44,27 +44,32 @@ They are not known at build-time and are not available in the browser, so they c
 Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost, `onRequest, etc.
 
 ```tsx /DB_PRIVATE_KEY/ title="src/routes/index.tsx"
-import { routeLoader$, routeAction$, server$ } from '@builder.io/qwik-city';
+import {
+  routeLoader$,
+  routeAction$,
+  server$,
+  type RequestEvent,
+} from '@builder.io/qwik-city';
 
 export const onGet = (requestEvent: RequestEvent) => {
-  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
 };
 
 export const onPost = (requestEvent: RequestEvent) => {
-  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
 };
 
 export const useAction = routeAction$(async (_, requestEvent) => {
-  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
 });
 
 export const useLoader = routeLoader$(async (requestEvent) => {
-  console.log(requestEvent.get('DB_PRIVATE_KEY'))
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
 });
 
-export const serverFunction = server$(function() {
+export const serverFunction = server$(function () {
   // `this` is the `RequestEvent` object
-  console.log(this.get('DB_PRIVATE_KEY'))
+  console.log(this.env.get('DB_PRIVATE_KEY'));
 });
 ```
 

@@ -17,24 +17,24 @@ import type { RequestEvent } from '@builder.io/qwik-city';
 import { checkAuthorization } from '../auth'; // Your authorization code
 import type { DashboardData } from '../types'; // Your types
 
-export const onGet = async ({ cookie, redirect }: RequestEvent) => {
+export const onGet = async ({ cookie, response }: RequestEvent) => {
   const isAuthorized = checkAuthorization(cookie.get('cookie'));
 
   if (!isAuthorized) {
     // User is not authorized!
     // throw the redirect response to
     // relocate the user to the log-in page
-    throw redirect(302, '/login');
+    throw response.redirect('/login', 302);
   } else {
     // ...
   }
 };
 ```
 
-The `redirect()` function, which was destructured in the RequestHandler function arguments, takes a redirect status code and URL.
+The `redirect()` function, called on the response object which was destructured in the RequestHandler function arguments, takes a URL snf redirect status code.
 
 ```tsx
-throw redirect(302, '/login');
+throw redirect('/login', 302);
 ```
 
 [Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):

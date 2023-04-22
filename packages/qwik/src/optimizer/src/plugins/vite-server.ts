@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { bgMagenta, magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
@@ -200,6 +201,9 @@ export async function configureDevServer(
     }
     return next(err);
   });
+
+  console.log(`\n❗️ ${bgMagenta('Expect significant performance loss in development.')}\n`);
+  console.log(`\n❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}'`);
 }
 
 export async function configurePreviewServer(

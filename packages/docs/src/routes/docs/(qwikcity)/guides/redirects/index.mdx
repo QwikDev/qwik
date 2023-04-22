@@ -31,7 +31,7 @@ export const onGet = async ({ cookie, response }: RequestEvent) => {
 };
 ```
 
-The `redirect()` function, called on the response object which was destructured in the RequestHandler function arguments, takes a URL snf redirect status code.
+The `redirect()` function, called on the response object which was destructured in the RequestHandler function arguments, takes a URL and a redirect status code.
 
 ```tsx
 throw redirect('/login', 302);

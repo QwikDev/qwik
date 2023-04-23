@@ -54,6 +54,20 @@ test('add qwik vite plugin config', () => {
   match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
 });
 
+test('add qwik vite plugin config for object based vite config', () => {
+  const sourceText = `
+    export default defineConfig({
+      plugins: [
+        qwikVite(),
+      ],
+    });
+  `;
+  const outputText = updateViteConfig(ts, sourceText, {
+    qwikViteConfig: { ssr: `{ outDir: 'netlify/edge-functions/entry.netlify' }` },
+  })!;
+  match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
+});
+
 test('add vite plugin', () => {
   const sourceText = `
     export default defineConfig(() => {
@@ -62,6 +76,20 @@ test('add vite plugin', () => {
           qwikVite(),
         ],
       };
+    });
+  `;
+  const outputText = updateViteConfig(ts, sourceText, {
+    vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
+  })!;
+  match(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
+});
+
+test('add vite plugin to object based config', () => {
+  const sourceText = `
+    export default defineConfig({
+      plugins: [
+        qwikVite(),
+      ],
     });
   `;
   const outputText = updateViteConfig(ts, sourceText, {
@@ -79,6 +107,21 @@ test('update vite config', () => {
           qwikVite(),
         ],
       };
+    });
+  `;
+  const outputText = updateViteConfig(ts, sourceText, {
+    viteConfig: { ssr: `{ target: 'webworker', noExternal: true }` },
+  })!;
+  match(outputText, 'ssr: { target: "webworker", noExternal: true');
+});
+
+test('update object based vite config', () => {
+  const sourceText = `
+    export default defineConfig({
+      ssr: {},
+      plugins: [
+        qwikVite(),
+      ],
     });
   `;
   const outputText = updateViteConfig(ts, sourceText, {

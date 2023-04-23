@@ -311,6 +311,11 @@ function updateDefineConfig(ts: TypeScript, callExp: CallExpression, updates: Vi
         );
         continue;
       }
+
+      if (ts.isObjectLiteralExpression(exp)) {
+        args.push(updateVitConfigObj(ts, exp, updates));
+        continue;
+      }
     }
 
     args.push(exp);

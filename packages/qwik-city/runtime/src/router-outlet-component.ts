@@ -2,59 +2,82 @@ import {
   component$,
   jsx,
   type JSXNode,
-  SkipRender,
   useContext,
-  useOnDocument,
   _IMMUTABLE,
   _jsxBranch,
+  type PropFunction,
+  useSignal,
+  useOnWindow,
   event$,
+  useVisibleTask$,
+  jsxs,
+  Fragment,
+  noSerialize,
+  type NoSerialize,
 } from '@builder.io/qwik';
-import type { ClientHistoryWindow } from './client-navigate';
-import { ContentInternalContext } from './contexts';
+import { ContentInternalContext, RouteInternalContext } from './contexts';
+import type { RestoreScroll } from './types';
+import { toLastPositionOnPopState } from './scroll-restoration';
+import { useLocation, useNavigate } from './use-functions';
 
 /**
  * @public
  */
-export const RouterOutlet = component$(() => {
-  _jsxBranch();
+export interface RouterOutletProps {
+  restoreScroll$?: PropFunction<RestoreScroll>;
+}
 
-  useOnDocument(
-    'qinit',
-    event$(() => {
-      const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
-      const CLIENT_HISTORY_INITIALIZED = '_qCityHistory';
+/**
+ * @public
+ */
+export const RouterOutlet = component$<RouterOutletProps>(
+  ({ restoreScroll$ = toLastPositionOnPopState }) => {
+    _jsxBranch();
 
-      if (!(window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]) {
-        (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED] = () => {
-          if (!(window as ClientHistoryWindow)[CLIENT_HISTORY_INITIALIZED]) {
-            // possible for page reload then hit back button to
-            // navigate to a client route added with history.pushState()
-            // in this scenario we need to reload the page
-            location.reload();
+    const routeInternal = useContext(RouteInternalContext);
+    const routeLocation = useLocation();
+    const navigate = useNavigate();
+    const settle = useSignal<NoSerialize<(toUrl: URL) => void>>();
+
+    useOnWindow(
+      'popstate',
+      event$(() => {
+        navigate(location.href, { type: 'popstate' });
+      })
+    );
+
+    useVisibleTask$(
+      ({ track }) => {
+        const [isNavigating, url] = track(() => [routeLocation.isNavigating, routeLocation.url]);
+        if (isNavigating) {
+          // start scroll restoration with pending url settlement
+          const settled = new Promise<URL>((resolve) => (settle.value = noSerialize(resolve)));
+          restoreScroll$(routeInternal.value.type, url, settled);
+        } else {
+          const resolve = settle.value;
+          if (resolve) {
+            // resolve settled url to unblock scroll restoration
+            requestAnimationFrame(() => {
+              resolve(url);
+              settle.value = undefined;
+            });
           }
-        };
+        }
+      },
+      { strategy: 'document-ready' }
+    );
 
-        setTimeout(() => {
-          // this popstate listener will be removed when the client history is initialized
-          addEventListener(
-            'popstate',
-            (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]!
-          );
-        }, 0);
+    const { value } = useContext(ContentInternalContext);
+
+    let contentCmp: JSXNode | null = null;
+    if (value && value.length > 0) {
+      for (let i = value.length - 1; i >= 0; i--) {
+        contentCmp = jsx(value[i].default, { children: contentCmp });
       }
-    })
-  );
-
-  const { value } = useContext(ContentInternalContext);
-  if (value && value.length > 0) {
-    const contentsLen = value.length;
-    let cmp: JSXNode | null = null;
-    for (let i = contentsLen - 1; i >= 0; i--) {
-      cmp = jsx(value[i].default, {
-        children: cmp,
-      });
     }
-    return cmp;
+
+    return jsxs(Fragment, { children: [contentCmp, hostElement] });
   }
-  return SkipRender;
-});
+);
+
+const hostElement = jsx('script', {});

@@ -15,13 +15,13 @@ import {
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
-import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
   DocumentHeadContext,
   RouteActionContext,
+  RouteInternalContext,
   RouteLocationContext,
   RouteNavigateContext,
   RouteStateContext,
@@ -41,10 +41,12 @@ import type {
   ResolvedDocumentHead,
   RouteActionValue,
   RouteNavigate,
+  RouteStateInternal,
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { isSameOriginDifferentPathname, toPath } from './utils';
+import { isSameOriginDifferentPathname, isSamePathname, toUrl } from './utils';
+import { clientNavigate } from './client-navigate';
 
 /**
  * @public
@@ -102,7 +104,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   );
 
   const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
-  const navPath = useSignal(toPath(url));
+  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
@@ -126,22 +128,19 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       : undefined
   );
 
-  const goto: RouteNavigate = $(async (path, forceReload) => {
-    if (path === undefined) {
-      path = navPath.value;
-      navPath.value = '';
-    } else if (forceReload) {
-      navPath.value = '';
-    }
-    const resolvedURL = new URL(path, routeLocation.url);
-    path = toPath(resolvedURL);
-    if (!forceReload && navPath.value === path) {
+  const goto: RouteNavigate = $(async (path, opt) => {
+    const { type = 'link', forceReload = false } =
+      typeof opt === 'object' ? opt : { forceReload: opt };
+    const lastDest = routeInternal.value.dest;
+    const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+    if (!forceReload && dest.href === lastDest.href) {
       return;
     }
-    navPath.value = path;
+    routeInternal.value = { type, dest };
+
     if (isBrowser) {
-      loadClientData(resolvedURL, _getContextElement());
-      loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, resolvedURL.pathname);
+      loadClientData(dest, _getContextElement());
+      loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, dest.pathname);
     }
 
     actionState.value = undefined;
@@ -155,23 +154,26 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
+  useContextProvider(RouteInternalContext, routeInternal);
 
   useTask$(({ track }) => {
     async function run() {
-      const [path, action] = track(() => [navPath.value, actionState.value]);
+      const [navigation, action] = track(() => [routeInternal.value, actionState.value]);
       const locale = getLocale('');
+      const prevUrl = routeLocation.url;
+      const navType = action ? 'form' : navigation.type;
       let trackUrl: URL;
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
 
       if (isServer) {
         // server
-        trackUrl = new URL(path, routeLocation.url);
+        trackUrl = new URL(navigation.dest, routeLocation.url);
         loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
         // client
-        trackUrl = new URL(path, location as any as URL);
+        trackUrl = new URL(navigation.dest, location as any as URL);
 
         // ensure correct trailing slash
         if (trackUrl.pathname.endsWith('/')) {
@@ -191,12 +193,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const pageData = (clientPageData = await loadClientData(trackUrl, element, true, action));
         if (!pageData) {
           // Reset the path to the current path
-          (navPath as any).untrackedValue = toPath(trackUrl);
+          (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
           return;
         }
         const newHref = pageData.href;
-        const newURL = new URL(newHref, trackUrl.href);
-        if (newURL.pathname !== trackUrl.pathname) {
+        const newURL = new URL(newHref, trackUrl);
+        if (!isSamePathname(newURL, trackUrl)) {
           trackUrl = newURL;
           loadRoutePromise = loadRoute(
             qwikCity.routes,
@@ -217,7 +219,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         routeLocation.url = trackUrl;
         routeLocation.params = { ...params };
 
-        (navPath as any).untrackedValue = toPath(trackUrl);
+        (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
         // Needs to be done after routeLocation is updated
         const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
@@ -249,7 +251,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
           CLIENT_DATA_CACHE.clear();
 
-          clientNavigate(window, trackUrl, navPath);
+          clientNavigate(window, navType, prevUrl, trackUrl);
           routeLocation.isNavigating = false;
         }
       }
@@ -289,6 +291,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   );
 
   const loaderState = useSignal({});
+  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate = $(async (path) => {
     throw new Error('Not implemented');
@@ -306,11 +309,16 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
+  const actionState = useSignal<RouteActionValue>();
+
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
+  useContextProvider(RouteActionContext, actionState);
+  useContextProvider(RouteInternalContext, routeInternal);
+
   return <Slot />;
 });

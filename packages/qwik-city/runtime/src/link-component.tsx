@@ -24,7 +24,7 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={(_, elm) => {
         if (elm.href) {
-          nav(elm.href, reload);
+          nav(elm.href, { forceReload: reload });
         }
       }}
       data-prefetch={prefetchDataset}

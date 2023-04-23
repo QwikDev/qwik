@@ -10,6 +10,7 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
+import { PropFunction } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -218,6 +219,9 @@ export interface FormSubmitSuccessDetail<T> {
     value: T;
 }
 
+// @alpha (undocumented)
+export const getHistoryId: () => string;
+
 // @public (undocumented)
 export const globalAction$: ActionConstructor;
 
@@ -264,6 +268,9 @@ export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly
 // @public (undocumented)
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
+// @public (undocumented)
+export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
+
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -283,8 +290,14 @@ export interface PageModule extends RouteModule {
 // @public (undocumented)
 export type PathParams = Record<string, string>;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityMockProps" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface QwikCityMockProps {
+    // (undocumented)
+    params?: Record<string, string>;
+    // (undocumented)
+    url?: string;
+}
+
 // @public (undocumented)
 export const QwikCityMockProvider: Component<QwikCityMockProps>;
 
@@ -327,6 +340,9 @@ export { RequestHandler }
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
+// @alpha (undocumented)
+export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: Promise<URL>) => void | Promise<void>;
+
 // @public (undocumented)
 export const routeAction$: ActionConstructor;
 
@@ -365,10 +381,21 @@ export interface RouteLocation {
 }
 
 // @public (undocumented)
-export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+export type RouteNavigate = QRL<(path?: string, options?: {
+    type?: Exclude<NavigationType, 'initial'>;
+    forceReload?: boolean;
+} | boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<    {}>;
+export const RouterOutlet: Component<RouterOutletProps>;
+
+// @public (undocumented)
+export interface RouterOutletProps {
+    // Warning: (ae-incompatible-release-tags) The symbol "restoreScroll$" is marked as @public, but its signature references "RestoreScroll" which is marked as @alpha
+    //
+    // (undocumented)
+    restoreScroll$?: PropFunction<RestoreScroll>;
+}
 
 // Warning: (ae-forgotten-export) The symbol "ServerFunction" needs to be exported by the entry point index.d.ts
 //
@@ -393,6 +420,12 @@ export interface StaticGenerate {
 
 // @public (undocumented)
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+
+// @alpha (undocumented)
+export const toLastPositionOnPopState: QRL<RestoreScroll>;
+
+// @alpha (undocumented)
+export const toTopAlways: QRL<RestoreScroll>;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

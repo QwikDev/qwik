@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { assertPage, linkNavigate, load } from './util.js';
+import {
+  assertPage,
+  getScrollHeight,
+  getWindowScrollXY,
+  linkNavigate,
+  load,
+  scrollDetector,
+  scrollTo,
+} from './util.js';
 
 test.describe('actions', () => {
   test.describe('mpa', () => {
@@ -10,7 +18,99 @@ test.describe('actions', () => {
   test.describe('spa', () => {
     test.use({ javaScriptEnabled: true });
     tests();
+    spaOnlyTests();
   });
+
+  function spaOnlyTests() {
+    test.describe('scroll-restoration', () => {
+      test('should not refresh again on popstate after manual refresh', async ({ page }) => {
+        await page.goto('/qwikcity-test/scroll-restoration/page-long/');
+        const link = page.locator('#to-page-short');
+        await link.click();
+
+        await expect(page.locator('h1')).toHaveText('Page Short');
+
+        await page.reload();
+        await expect(page.locator('h1')).toHaveText('Page Short');
+
+        page.addListener('domcontentloaded', () => {
+          throw new Error('Full-page refresh should not happen on popstate');
+        });
+        await page.goBack();
+
+        await expect(page.locator('h1')).toHaveText('Page Long');
+      });
+      test('should scroll on hash change', async ({ page }) => {
+        await page.goto('/qwikcity-test/scroll-restoration/hash/');
+
+        const link = page.locator('#hash-1');
+        await link.click();
+
+        await page.waitForTimeout(50);
+        expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/hash/#hash-2');
+        await page.waitForTimeout(50);
+        const scrollY1 = (await getWindowScrollXY(page))[1];
+        expect(scrollY1).toBeGreaterThan(1090);
+        expect(scrollY1).toBeLessThan(1110);
+
+        const link2 = page.locator('#hash-2');
+        await scrollTo(page, 0, 1000);
+        await link2.click();
+
+        await page.waitForTimeout(50);
+        expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/hash/#hash-1');
+        await page.waitForTimeout(50);
+        const scrollY2 = (await getWindowScrollXY(page))[1];
+        expect(scrollY2).toBeGreaterThan(70);
+        expect(scrollY2).toBeLessThan(90);
+
+        const link3 = page.locator('#no-hash');
+        await scrollTo(page, 0, 2000);
+        await link3.click();
+
+        await page.waitForTimeout(50);
+        expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/hash/');
+        await page.waitForTimeout(50);
+        expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
+      });
+      test('should restore scroll on back and forward navigations', async ({ page }) => {
+        await page.goto('/qwikcity-test/scroll-restoration/page-long/');
+
+        const link = page.locator('#to-page-short');
+        const scrollHeightLong = await getScrollHeight(page);
+        await scrollTo(page, 0, scrollHeightLong);
+        const scrollDetector1 = scrollDetector(page);
+        await link.click();
+
+        await scrollDetector1;
+        await expect(page.locator('h1')).toHaveText('Page Short');
+        await page.waitForTimeout(50);
+        expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/page-short/');
+        expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
+
+        const scrollHeightShort = await getScrollHeight(page);
+        await scrollTo(page, 0, scrollHeightShort);
+
+        const scrollDetector2 = scrollDetector(page);
+        await page.goBack();
+
+        await scrollDetector2;
+        await expect(page.locator('h1')).toHaveText('Page Long');
+        await page.waitForTimeout(50);
+        expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/page-long/');
+        expect(await getWindowScrollXY(page)).toStrictEqual([0, scrollHeightLong]);
+
+        const scrollDetector3 = scrollDetector(page);
+        await page.goForward();
+
+        await scrollDetector3;
+        await expect(page.locator('h1')).toHaveText('Page Short');
+        await page.waitForTimeout(50);
+        expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/page-short/');
+        expect(await getWindowScrollXY(page)).toStrictEqual([0, scrollHeightShort]);
+      });
+    });
+  }
 
   function tests() {
     test.describe('issue2829', () => {

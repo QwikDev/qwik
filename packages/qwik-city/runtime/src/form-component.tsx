@@ -105,7 +105,7 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
               params.append(key, value);
             }
           });
-          nav('?' + params.toString(), true).then(() => {
+          nav('?' + params.toString(), { type: 'form', forceReload: true }).then(() => {
             if (form.getAttribute('data-spa-reset') === 'true') {
               form.reset();
             }

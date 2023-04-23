@@ -36,16 +36,24 @@ export type {
   ZodConstructor,
   StaticGenerate,
   RouteNavigate,
+  NavigationType,
+  RestoreScroll,
   DeferReturn,
   RequestEventBase,
   JSONObject,
   JSONValue,
 } from './types';
 
-export { RouterOutlet } from './router-outlet-component';
-export { QwikCityProvider, QwikCityMockProvider, type QwikCityProps } from './qwik-city-component';
-export { Link } from './link-component';
-export type { LinkProps } from './link-component';
+export { RouterOutlet, type RouterOutletProps } from './router-outlet-component';
+export {
+  type QwikCityProps,
+  QwikCityProvider,
+  type QwikCityMockProps,
+  QwikCityMockProvider,
+} from './qwik-city-component';
+export { type LinkProps, Link } from './link-component';
+export { toTopAlways, toLastPositionOnPopState } from './scroll-restoration';
+export { getHistoryId } from './client-navigate';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { routeAction$, routeActionQrl } from './server-functions';

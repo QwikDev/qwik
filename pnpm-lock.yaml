@@ -196,6 +196,9 @@ importers:
       openai:
         specifier: ^3.2.1
         version: 3.2.1
+      qwik-image:
+        specifier: ^0.0.2
+        version: 0.0.2
       snarkdown:
         specifier: ^2.0.0
         version: 2.0.0
@@ -7496,6 +7499,10 @@ packages:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
     engines: {node: '>=10'}
     dev: true
+
+  /qwik-image@0.0.2:
+    resolution: {integrity: sha512-55Qd1WIrT6rpQ8cWBZ/PA/r0Hh1kQckgAA7p/xfiE5hJORXvJ7hiTV+UeAdGVTS3hmMPB6WYZJAe6Hx2BUP9ow==}
+    dev: false
 
   /range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}

@@ -34,6 +34,7 @@
 ## Integrations
 
 - [Overview](integrations/index.mdx)
+- [Auth.js](integrations/authjs/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)

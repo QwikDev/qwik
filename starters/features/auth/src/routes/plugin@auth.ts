@@ -4,12 +4,12 @@ import type { Provider } from '@auth/core/providers';
 
 export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } = serverAuth$(
   ({ env }) => ({
-    secret: env.get('AUTH_SECRET'),
+    secret: env.get('VITE_AUTH_SECRET'),
     trustHost: true,
     providers: [
       GitHub({
-        clientId: env.get('GITHUB_ID')!,
-        clientSecret: env.get('GITHUB_SECRET')!,
+        clientId: env.get('VITE_GITHUB_ID')!,
+        clientSecret: env.get('VITE_GITHUB_SECRET')!,
       }),
     ] as Provider[],
   })

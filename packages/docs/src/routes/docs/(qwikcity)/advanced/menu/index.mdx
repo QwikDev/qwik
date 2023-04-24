@@ -9,6 +9,7 @@ contributors:
   - nnelgxorz
   - jakovljevic-mladen
   - cunzaizhuyi
+  - AnthonyPAlicea
 ---
 
 # Menu
@@ -101,7 +102,7 @@ export default component$(() => {
   const { url } = useLocation();
 
   return (
-    <div class="menu">
+    <nav class="menu">
       {menu
         ? menu.items?.map((item) => (
             <>
@@ -123,7 +124,7 @@ export default component$(() => {
             </>
           ))
         : null}
-    </div>
+    </nav>
   );
 });
 ```

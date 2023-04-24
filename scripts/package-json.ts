@@ -31,12 +31,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './cli': {
@@ -48,12 +48,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './jsx-dev-runtime': {
@@ -71,9 +71,16 @@ export async function generatePackageJson(config: BuildConfig) {
         },
       },
       './build': {
-        types: './build/index.d.ts',
-        import: './build/index.mjs',
-        require: './build/index.cjs',
+        import: {
+          development: './build/index.dev.mjs',
+          production: './build/index.prod.mjs',
+          default: './build/index.mjs',
+        },
+        require: {
+          development: './build/index.dev.cjs',
+          production: './build/index.prod.cjs',
+          default: './build/index.cjs',
+        },
       },
       './loader': {
         types: './loader/index.d.ts',

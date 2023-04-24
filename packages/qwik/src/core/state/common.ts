@@ -235,13 +235,20 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
     if (sub[2]) {
       base += ' ' + encodeURI(sub[2]);
     }
-  } else if (type <= 2) {
-    base += ` ${must(getObjId(sub[2]))} ${must(getObjId(sub[3]))} ${sub[4]}`;
-  } else if (type <= 4) {
-    const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
-    base += ` ${must(getObjId(sub[2]))} ${nodeID}`;
+  } else {
+    const signalID = getObjId(sub[2]);
+    if (!signalID) {
+      return undefined;
+    }
+    if (type <= 2) {
+      base += ` ${signalID} ${must(getObjId(sub[3]))} ${sub[4]}`;
+    } else if (type <= 4) {
+      const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
+      base += ` ${signalID} ${nodeID}`;
+    } else {
+      assertTrue(true, 'Should not get here');
+    }
   }
-
   return base;
 };
 

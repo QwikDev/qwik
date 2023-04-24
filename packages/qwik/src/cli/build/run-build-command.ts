@@ -31,6 +31,7 @@ export async function runBuildCommand(app: AppCommand) {
   const runSsgScript = getScript('ssg');
   const buildTypes = getScript('build.types');
   const lint = getScript('lint');
+  const mode = app.getArg('mode');
 
   const scripts = [
     buildTypes,
@@ -84,7 +85,8 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildClientScript) {
-    await execaCommand(buildClientScript, {
+    const script = attachArg(buildClientScript, 'mode', mode);
+    await execaCommand(script, {
       stdio: 'inherit',
       cwd: app.rootDir,
     }).catch(() => {
@@ -98,7 +100,8 @@ export async function runBuildCommand(app: AppCommand) {
   const step2: Promise<Step>[] = [];
 
   if (buildLibScript) {
-    const libBuild = execaCommand(buildLibScript, {
+    const script = attachArg(buildLibScript, 'mode', mode);
+    const libBuild = execaCommand(script, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -122,7 +125,8 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildPreviewScript) {
-    const previewBuild = execaCommand(buildPreviewScript, {
+    const script = attachArg(buildPreviewScript, 'mode', mode);
+    const previewBuild = execaCommand(script, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -146,7 +150,8 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildServerScript) {
-    const serverBuild = execaCommand(buildServerScript, {
+    const script = attachArg(buildServerScript, 'mode', mode);
+    const serverBuild = execaCommand(script, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -260,5 +265,12 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   console.log(``);
+}
+
+function attachArg(command: string, key: string, value?: string): string {
+  if (value !== undefined) {
+    return `${command} --${key} ${value}`;
+  }
+  return command
 }
 

@@ -30,6 +30,18 @@ export const useDependencyLoader = routeLoader$(
   }
 );
 
+const useLoader = routeLoader$(() => {
+  return [
+    {
+      id: 1,
+      product: {
+        name: 'test',
+        options: [{ name: 'first' }, { name: 'second' }],
+      },
+    },
+  ];
+});
+
 export const useAsyncLoader = routeLoader$(async ({ resolveValue }) => {
   const p1 = resolveValue(useDateLoader);
   const p2 = resolveValue(useDependencyLoader);
@@ -75,6 +87,15 @@ export default component$(() => {
   const slow = useSlowLoader();
   const signal = useAsyncLoader();
   const action = useForm();
+  const items = useLoader().value;
+  const items3 = items.map((item) => {
+    return {
+      ...item,
+      reversed: item.product.options.reverse(),
+    };
+  });
+  console.warn('items3', items3);
+
   return (
     <div class="loaders">
       <h1>Loaders</h1>

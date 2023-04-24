@@ -7,6 +7,7 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import rehypePrettyCode from 'rehype-pretty-code';
 import { qwikReact } from '@builder.io/qwik-react/vite';
+import Inspect from 'vite-plugin-inspect';
 
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
@@ -15,13 +16,13 @@ export default defineConfig(() => {
       noExternal: [
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
-        '@algolia/autocomplete-shared',
         'algoliasearch/lite',
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
       ],
     },
+
     plugins: [
       qwikCity({
         mdxPlugins: {
@@ -93,11 +94,9 @@ export default defineConfig(() => {
       tutorialData(routesDir),
       sourceResolver(resolve('.')),
       qwikReact(),
+      Inspect(),
     ],
     clearScreen: false,
-    optimizeDeps: {
-      force: true,
-    },
     server: {
       port: 3000,
     },

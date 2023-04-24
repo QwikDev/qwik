@@ -735,13 +735,13 @@ export interface ResourceCtx<T> {
     // (undocumented)
     cleanup(callback: () => void): void;
     // (undocumented)
-    previous: T | undefined;
+    readonly previous: T | undefined;
     // (undocumented)
-    track: Tracker;
+    readonly track: Tracker;
 }
 
 // @public (undocumented)
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
 
 // @public
 export interface ResourceOptions {
@@ -953,13 +953,13 @@ export const useId: () => string;
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
 // @public
-export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;

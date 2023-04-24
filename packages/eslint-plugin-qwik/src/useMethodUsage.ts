@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
+
 export const useMethodUsage: Rule.RuleModule = {
   meta: {
     type: 'problem',
@@ -56,7 +57,12 @@ export const useMethodUsage: Rule.RuleModule = {
             case 'MemberExpression':
             case 'BinaryExpression':
             case 'UnaryExpression':
+            case 'ReturnStatement':
             case 'BlockStatement':
+            case 'ChainExpression':
+            case 'Property':
+            case 'ObjectExpression':
+            case 'CallExpression':
               break;
             case 'ArrowFunctionExpression':
             case 'FunctionExpression':
@@ -87,9 +93,8 @@ export const useMethodUsage: Rule.RuleModule = {
                   node,
                   messageId: 'use-wrong-function',
                 });
-                return;
               }
-              break;
+              return;
             default:
               context.report({
                 node,

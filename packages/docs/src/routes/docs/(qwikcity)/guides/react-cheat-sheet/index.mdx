@@ -10,13 +10,17 @@ contributors:
   - jweb89
   - avivr
   - adamdbradley
+  - AnthonyPAlicea
+  - mhevery
 ---
 
-# Cheat sheet
+# React Vs Qwik
 
-### Hello world component
+Several examples comparing React and Qwik.
 
-#### ⚡️ Qwik
+## Hello world component
+
+### ⚡️ Qwik
 
 ```tsx
 export const HelloWorld = component$(() => {
@@ -24,7 +28,7 @@ export const HelloWorld = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function HelloWorld() {
@@ -32,9 +36,9 @@ export function HelloWorld() {
 }
 ```
 
-### Button with a click handler
+## Button with a click handler
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Button = component$(() => {
@@ -42,7 +46,7 @@ export const Button = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Button() {
@@ -50,20 +54,68 @@ export function Button() {
 }
 ```
 
-### Declare local state
+## Using Props 
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
+
+```tsx
+export const Parent = component$(() => {
+  const userData = useStore({ count: 0 });
+  return <Child userData={userData} />;
+});
+ 
+interface ChildProps {
+  userData: { count: number };
+}
+export const Child = component$<ChildProps>(({ userData }) => {
+  return (
+    <>
+      <button onClick$={() => userData.count++}>Increment</button>
+      <p>Count: {userData.count}</p>
+    </>
+  );
+});
+```
+
+### ⚛️ React
+
+```tsx
+export const Parent = (() => {
+  const [ count, setCount ] = useState(0);
+  
+  const increment = (() => {
+    setCount(count + 1)
+  })
+  return <Child count={count} increment={increment} />;
+})
+
+interface ChildProps {
+  count: number;
+  increment: () => void;
+}
+
+export const Child = ((props: ChildProps) => {
+  return (
+    <>
+      <button onClick={() => props.increment}>Increment</button>
+      <p>Count: {props.count}</p>
+    </>
+  );
+})
+```
+
+## Declare local state
+
+### ⚡️ Qwik
 
 ```tsx
 export const LocalStateExample = component$(() => {
-  const state = useStore({
-    value: 0,
-  });
+  const count = useSignal(0);
   return <div>Value is: {state.value}</div>;
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function UseStateExample() {
@@ -72,39 +124,39 @@ export function UseStateExample() {
 }
 ```
 
-### Create a counter component
+## Create a counter component
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Counter = component$(() => {
   const count = useSignal(0);
   return (
     <>
-      <div>Value is: {count.value}</div>
+      <p>Value is: {count.value}</p>
       <button onClick$={() => count.value++}>Increment</button>
     </>
   );
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Counter() {
   const [count, setCount] = useState(0);
   return (
     <>
-      <div>Value is: {count}</div>
+      <p>Value is: {count}</p>
       <button onClick={() => setCount(count + 1)}>Increment</button>
     </>
   );
 }
 ```
 
-### Create a clock that increments every second
+## Create a clock that increments every second
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Clock = component$(() => {
@@ -116,11 +168,11 @@ export const Clock = component$(() => {
     cleanup(() => clearInterval(interval));
   });
 
-  return <div>Seconds: {seconds.value}</div>;
+  return <p>Seconds: {seconds.value}</p>;
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Clock() {
@@ -131,13 +183,13 @@ export function Clock() {
     }, 1000);
     return () => clearInterval(interval);
   });
-  return <div>Seconds: {seconds}</div>;
+  return <p>Seconds: {seconds}</p>;
 }
 ```
 
-### Perform a fetch request every time the state changes
+## Perform a fetch request every time the state changes
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Fetch = component$(() => {
@@ -153,14 +205,14 @@ export const Fetch = component$(() => {
 
   return (
     <>
-      <div>{responseJson.value?.name} has {responseJson.value?.stargazers_count} ✨'s</div>
+      <p>{responseJson.value?.name} has {responseJson.value?.stargazers_count} ✨'s</p>
       <input name="url" bind:value={url} />
     </>
   );
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Fetch() {
@@ -173,16 +225,16 @@ export function Fetch() {
   }, [url]);
   return (
     <>
-      <div>{responseJson?.name}</div>
+      <p>{responseJson?.name}</p>
       <input name="url" onInput={(ev) => setUrl((ev.target as HTMLInputElement).value))} />
     </>
   );
 }
 ```
 
-### Declare some context and consume it
+## Declare some context and consume it
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const MyContext = createContextId('my-context');
@@ -199,11 +251,11 @@ export const Parent = component$(() => {
 
 export const Child = component$(() => {
   const message = useContext(MyContext);
-  return <span>{message.value}</span>;
+  return <p>{message.value}</p>;
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export const MyContext = createContext({ message: 'some example value' });
@@ -218,13 +270,13 @@ export default function Parent() {
 
 export const Child = () => {
   const value = useContext(MyContext);
-  return <span>{value.message}</span>;
+  return <p>{value.message}</p>;
 };
 ```
 
-### Create a debounced input
+## Create a debounced input
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const DebouncedInput = component$(() => {
@@ -237,20 +289,20 @@ export const DebouncedInput = component$(() => {
     const debounced = setTimeout(() => {
       debouncedValue.value = inputText.value;
     }, 1000);
-    
+
     cleanup(() => clearTimeout(debounced));
   });
 
   return (
     <>
       <input bind:value={inputText} />
-      <span>{debouncedValue.value}</span>
+      <p>{debouncedValue.value}</p>
     </>
   );
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export const DebouncedInput = () => {
@@ -268,15 +320,15 @@ export const DebouncedInput = () => {
   return (
     <>
       <input value={value} onChange={(ev) => setValue((ev.target as HTMLInputElement).value))} />
-      <span>{debouncedValue}</span>
+      <p>{debouncedValue}</p>
     </>
   );
 };
 ```
 
-### Change background color randomly every button click
+## Change background color randomly every button click
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const DynamicBackground = component$(() => {
@@ -304,7 +356,7 @@ export const DynamicBackground = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function DynamicBackground() {
@@ -331,9 +383,9 @@ export function DynamicBackground() {
 }
 ```
 
-### Create a component that renders a list of the presidents
+## Create a component that renders a list of the presidents
 
-#### ⚡️ Qwik
+### ⚡️ Qwik
 
 ```tsx
 export const Presidents = component$(() => {
@@ -373,7 +425,7 @@ export const Presidents = component$(() => {
 });
 ```
 
-#### ⚛️ React
+### ⚛️ React
 
 ```tsx
 export function Presidents() {

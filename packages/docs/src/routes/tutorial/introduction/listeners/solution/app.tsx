@@ -9,11 +9,13 @@ export default component$(() => {
   return (
     <main>
       <p>
-        GitHub username:
-        <input
-          value={github.org}
-          onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
-        />
+        <label>
+          GitHub username:
+          <input
+            value={github.org}
+            onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
+          />
+        </label>
       </p>
       <section>
         {github.repos ? (

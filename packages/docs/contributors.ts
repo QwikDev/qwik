@@ -28,6 +28,8 @@ async function updateDocsDir(dir: string) {
 }
 
 async function updateGithubCommits(filePath: string) {
+  console.log('update:', filePath);
+
   const gm = matter.read(filePath);
 
   const repoPath = path.relative(rootDir, filePath).replace(/\\/g, '/');
@@ -36,7 +38,18 @@ async function updateGithubCommits(filePath: string) {
   url.searchParams.set('path', repoPath);
 
   const response = await fetch(url.href);
+  if (response.status !== 200) {
+    console.log('error', response.status, response.statusText, await response.text());
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    return;
+  }
+
   const commits: any = await response.json();
+  if (!Array.isArray(commits)) {
+    console.log('error', JSON.stringify(commits));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    return;
+  }
 
   const contributors: { author: string; count: number }[] = [];
 
@@ -74,6 +87,8 @@ async function updateGithubCommits(filePath: string) {
   fs.writeFileSync(filePath, md);
 
   console.log(repoPath, contributors.length);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 updateContributors();

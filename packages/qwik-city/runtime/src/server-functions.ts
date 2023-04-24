@@ -38,7 +38,7 @@ import type {
   ValidatorConstructorQRL,
   ServerConstructorQRL,
 } from './types';
-import { useAction, useLocation } from './use-functions';
+import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
@@ -142,7 +142,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
   action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
-  action.use = action;
   Object.freeze(action);
 
   return action satisfies ActionInternal;
@@ -201,7 +200,6 @@ export const routeLoaderQrl = ((
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
   loader.__id = id;
-  loader.use = loader;
   Object.freeze(loader);
 
   return loader;
@@ -293,7 +291,8 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
   function stuff() {
     return $(async (...args: any[]) => {
       if (isServer) {
-        return qrl(...(args as any));
+        const requestEvent = useQwikCityEnv()?.ev;
+        return qrl.apply(requestEvent, args);
       } else {
         const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
@@ -317,16 +316,18 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
           },
           body,
         });
-        if (!res.ok) {
-          throw new Error(`Server function failed: ${res.statusText}`);
-        }
-        if (res.headers.get('Content-Type') === 'text/event-stream') {
+
+        const contentType = res.headers.get('Content-Type');
+        if (res.ok && contentType === 'text/event-stream') {
           const { writable, readable } = getSSETransformer();
           res.body?.pipeTo(writable);
           return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
-        } else {
+        } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          if (res.status === 500) {
+            throw obj;
+          }
           return obj;
         }
       }

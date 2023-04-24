@@ -18,13 +18,17 @@ contributors:
   - estherbrunner
   - kumarasinghe
   - mhevery
+  - AnthonyPAlicea
+  - khalilou88
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 # Components
 
-Components are the basic building blocks of Qwik Applications. Qwik components are unique in that:
+Components are the basic building blocks of Qwik Applications. They are reusable piece of code that can be used to build a UI.
+
+Qwik components are unique in that:
 
 - Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../../advanced/optimizer/index.mdx).
 - They are [resumable](../../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
@@ -32,16 +36,14 @@ Components are the basic building blocks of Qwik Applications. Qwik components a
 
 ## `component$()`
 
-A component is a small, reusable piece of code that can be used to build a UI.
-
-In Qwik, they are declared using the `component$` method:
+A Qwik component is a function that returns JSX wrapped in a `component$` call.
 
 <CodeSandbox src="/src/routes/demo/component/simple/index.tsx" style={{ height: '3em' }}>
 ```tsx /component$/
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <span>Hello World!</span>;
+  return <div>Hello World!</div>;
 });
 ```
 </CodeSandbox>
@@ -52,6 +54,7 @@ export default component$(() => {
 
 Components can be composed together to create more complex components.
 
+
 <CodeSandbox src="/src/routes/demo/component/child/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
 import { component$ } from '@builder.io/qwik';
@@ -59,17 +62,19 @@ import { component$ } from '@builder.io/qwik';
 export default component$(() => {
   return (
     <>
-      <div>Parent Text</div>
+      <p>Parent Text</p>
       <Child />
     </>
   );
 });
 
 const Child = component$(() => {
-  return <div>Child Text</div>;
+  return <p>Child Text</p>;
 });
 ```
 </CodeSandbox>
+
+> Notice that Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.
 
 ### Counter Example
 
@@ -84,7 +89,7 @@ export default component$(() => {
 
   return (
     <>
-      <div>Count: {count.value}</div>
+      <p>Count: {count.value}</p>
       <button onClick$={() => count.value++}>Increment</button>
     </>
   );
@@ -133,6 +138,24 @@ export default component$(() => {
 
 > In the example above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
 
+### Default props
+
+You can use the destructuring pattern with props to provide default values.
+
+```tsx
+interface Props {
+  enabled?: boolean;
+  placeholder?: string;
+}
+
+// We can use JS's destructuring of props to provide a default value.
+export default component$<Props>(({enabled = true, placeholder = ''}) => {
+  return (
+    <input disabled={!enabled} placeholder={placeholder} />
+  );
+});
+```
+
 ## Rendering on Reactivity
 
 Qwik components are reactive. This means that they automatically update on a state change. There are two kinds of updates:
@@ -147,6 +170,8 @@ A state change causes the component to get invalidated. When components get inva
 ## Getting hold of DOM element
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
+
+> Getting a reference to DOM elements can be useful to calculate the element size (`getBoundingClientRect`), computed styles, initializing a WebGL canvas, or even wire-up some third-party library that interacts with DOM elements directly.
 
 <CodeSandbox src="/src/routes/demo/component/ref/index.tsx" style={{ height: '10em' }}>
 ```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
@@ -166,15 +191,18 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+    <section>
+      <article
+        ref={outputRef}
+        style={{ border: '1px solid red', width: '100px' }}
+      >
         Change text value here to stretch the box.
-      </div>
-      <div>
+      </article>
+      <p>
         The above red box is {height.value} pixels high and {width.value}{' '}
         pixels wide.
-      </div>
-    </div>
+      </p>
+    </section>
   );
 });
 ```
@@ -198,12 +226,12 @@ In the above example, referring to the `Parent` component implies a transitive r
 
 To avoid the above problem we don't refer to components directly, instead, we refer to the lazy wrapper. This is created automatically by the `component$()` function.
 
-<CodeSandbox src="/src/routes/demo/component/lazy/index.tsx" style={{ height: '10em' }} sandbox={false}>
+<CodeSandbox src="/src/routes/demo/component/lazy/index.tsx" style={{ height: '4em' }} sandbox={false}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
-  return <span>child</span>;
+  return <p>child</p>;
 });
 
 export const Parent = component$(() => {
@@ -237,11 +265,11 @@ Notice that after the Optimizer transforms the code, the `Parent` no longer dire
 So what happens when the `Parent` component needs to render a `Child` component, but the `Child` component has not yet been downloaded? First, the `Parent` component renders its DOM like so.
 
 ```html
-<div>
+<main>
   <section>
     <!--qv--><!--/qv-->
   </section>
-</div>
+</main>
 ```
 
 As you can see in the above example, the `<!--qv-->` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
@@ -264,10 +292,10 @@ export const MyButton = (props: { text: string }) => {
 // Component: declared using `component$()`.
 export default component$(() => {
   return (
-    <div>
+    <p>
       Some text:
       <MyButton text="Click me" />
-    </div>
+    </p>
   );
 });
 ```

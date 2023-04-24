@@ -7,6 +7,7 @@ import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
+import Contributors from '../../components/contributors';
 
 export default component$(() => {
   const loc = useLocation();
@@ -55,6 +56,7 @@ export default component$(() => {
         <div class="docs-container">
           <article>
             <Slot />
+            <Contributors />
           </article>
           <ContentNav />
           <Footer />

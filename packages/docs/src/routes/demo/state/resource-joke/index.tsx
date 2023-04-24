@@ -32,15 +32,17 @@ export default component$(() => {
 
   return (
     <>
-      Query: <input bind:value={query} />
+      <label>
+        Query: <input bind:value={query} />
+      </label>
       <button>search</button>
       <Resource
         value={jokes}
         onPending={() => <>loading...</>}
         onResolved={(jokes) => (
           <ul>
-            {jokes.map((joke) => (
-              <li>{joke.value}</li>
+            {jokes.map((joke, i) => (
+              <li key={i}>{joke.value}</li>
             ))}
           </ul>
         )}

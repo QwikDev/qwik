@@ -336,6 +336,49 @@ test.describe('render', () => {
       await button.click();
       await expect(result).toHaveText('Changed');
     });
+
+    test('issue3731', async ({ page }) => {
+      const button = page.locator('#issue-3731-button');
+      const results = page.locator('.issue-3731-result');
+      await expect(results).toHaveText([
+        'think',
+        'containers',
+        'hydrating',
+        'usestylesscoped',
+        'slots',
+      ]);
+      await button.click();
+      await expect(results).toHaveText([
+        'think',
+        'containers',
+        'cleanup',
+        'usevisibletask',
+        'hydrating',
+      ]);
+      await button.click();
+      await expect(results).toHaveText([
+        'cleanup',
+        'usevisibletask',
+        'think',
+        'containers',
+        'slots',
+      ]);
+    });
+
+    test('issue3702', async ({ page }) => {
+      const button = page.locator('#issue-3702-button');
+      const result = page.locator('#issue-3702-result');
+      await expect(result).toHaveAttribute('data-title', 'Bye 0');
+      await button.click();
+      await expect(result).toHaveAttribute('data-title', 'Bye 1');
+      await button.click();
+      await expect(result).toHaveAttribute('data-title', 'Bye 2');
+    });
+
+    test('issue3795', async ({ page }) => {
+      const result = page.locator('#issue-3795-result');
+      await expect(result).toHaveText('foo foobar');
+    });
   }
 
   tests();

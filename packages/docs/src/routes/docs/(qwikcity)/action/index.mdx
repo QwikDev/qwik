@@ -6,6 +6,11 @@ contributors:
   - forresst
   - keuller
   - hamatoyogi
+  - AnthonyPAlicea
+  - the-r3aper7
+  - thejackshelton
+  - adnanebrahimi
+  - mhevery
 ---
 
 # `routeAction$()`
@@ -20,7 +25,7 @@ Actions can be declared using the `routeAction$()` or `globalAction$()` exported
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$(async (data) => {
+export const useAddUser = routeAction$(async (data, requestEvent) => {
   // This will only run on the server when the user submits the form (or when the action is called programatically)
   const userID = await db.users.add({
     firstName: data.firstName,
@@ -44,7 +49,7 @@ export default component$(() => {
       </Form>
       {action.value?.success && (
         // When the action is done successfully, the `action.value` property will contain the return value of the action
-        <div>User {action.value.userID} added successfully</div>
+        <p>User {action.value.userID} added successfully</p>
       )}
     </>
   );
@@ -76,7 +81,7 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.success && <div>User added successfully</div>}
+      {action.value?.success && <p>User added successfully</p>}
     </Form>
   );
 });
@@ -105,7 +110,7 @@ export const useAddUser = routeAction$(async (user) => {
 export default component$(() => {
   const action = useAddUser();
   return (
-    <div>
+    <section>
       <button
         onClick={async () => {
           const { value } = await action.submit({ name: 'John' });
@@ -114,8 +119,8 @@ export default component$(() => {
       >
         Add user
       </button>
-      {action.value?.success && <div>User added successfully</div>}
-    </div>
+      {action.value?.success && <p>User added successfully</p>}
+    </section>
   );
 });
 ```
@@ -158,11 +163,11 @@ export default component$(() => {
         <input name="firstName" />
         <input name="lastName" />
 
-        {action.value?.failed && <div>{action.value.fieldErrors?.firstName}</div>}
+        {action.value?.failed && <p>{action.value.fieldErrors?.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
       {action.value?.success && (
-        <div>User {action.value.userID} added successfully</div>
+        <p>User {action.value.userID} added successfully</p>
       )}
     </>
   );
@@ -172,6 +177,25 @@ export default component$(() => {
 When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
+
+## HTTP request and response
+
+`routeAction$` and `globalAction$` have access to the `RequestEvent` object which includes information about the current HTTP request and response.
+
+This allows actions to access the request headers, cookies, url and environment variables within the `routeAction$` function.
+
+```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
+import { routeAction$ } from '@builder.io/qwik-city';
+
+// The second argument of the action is the `RequestEvent` object
+export const useProductRecommendations = routeAction$(async (_data, requestEvent) => {
+  console.log('Request headers:', requestEvent.headers);
+  console.log('Request cookies:', requestEvent.cookie);
+  console.log('Request url:', requestEvent.url);
+  console.log('Request params:', requestEvent.params);
+  console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR')));
+});
+```
 
 ## Action Failures
 
@@ -211,8 +235,8 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <div>{action.value.fieldErrors.name}</div>}
-      {action.value?.userID && <div>User added successfully</div>}
+      {action.value?.failed && <p>{action.value.fieldErrors.name}</p>}
+      {action.value?.userID && <p>User added successfully</p>}
     </Form>
   );
 });

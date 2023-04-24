@@ -24,6 +24,9 @@ contributors:
   - reemardelarosa
   - ETN-Tech
   - spicyzboss
+  - mhevery
+  - wtlin1228
+  - ilteoood
 ---
 
 # FAQ
@@ -69,7 +72,7 @@ import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   console.log('render');
-  return <p onClick$={() => console.log('hello')}>Hello Qwik</p>;
+  return <button onClick$={() => console.log('hello')}>Hello Qwik</button>;
 });
 ```
 
@@ -193,6 +196,10 @@ For this to work, developers need to manually define the islands, and then manua
 Instead, Qwik components do not hydrate at all. Qwik achieves this through a powerful serialization system that serializes only the necessary state in the reactivity graph. This way, the app can resume without eagerly running any JS.
 
 We think resumability scales without the negative trade-offs of partial hydration.
+
+## In which languages is written Qwik?
+
+Most of Qwik is written in TypeScript, a superset of JavaScript that adds optional static typing and other features. However, the qwik compiler (or optimizer) is written in Rust, a language that is very fast and memory efficient.
 
 ## Does Qwik have community?
 

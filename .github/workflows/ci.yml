@@ -30,6 +30,11 @@ jobs:
       fullbuild: ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+        if: github.event_name == 'pull_request'
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Branch
         run: echo "${{ github.ref }}"
       - name: NPM Dist Tag
@@ -382,6 +387,14 @@ jobs:
           name: builderio-qwikcity-distribution
           path: packages/qwik-city/lib/
           if-no-files-found: error
+
+      - name: Build Create Qwik CLI
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --cli
+
+      - name: Print Create Qwik CLI Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/create-qwik/dist/
 
       - name: Commit Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}

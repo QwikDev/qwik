@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
@@ -200,6 +201,11 @@ export async function configureDevServer(
     }
     return next(err);
   });
+
+  setTimeout(() => {
+    console.log(`\n  ❗️ ${magenta('Expect significant performance loss in development.')}`);
+    console.log(`  ❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}`);
+  }, 1000);
 }
 
 export async function configurePreviewServer(
@@ -495,9 +501,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
 
 })();
 </script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(
-    ' + '
-  )}</p></div>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(' + ')}</div>
 `;
 };
 

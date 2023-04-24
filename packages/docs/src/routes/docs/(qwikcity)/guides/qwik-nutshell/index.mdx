@@ -1,3 +1,9 @@
+---
+contributors:
+  - manucorporat
+  - AnthonyPAlicea
+  - the-r3aper7
+---
 # Qwik in a nutshell
 
 ## Components
@@ -282,7 +288,6 @@ In practive, useSignal and useStore are very similar, but useSignal is prefered 
 
 - When you need reactivity in an array.
 - When you want a reactive object that you can easily add properties to.
-- When you want to use the `deep` option to make nested properties reactive.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -293,7 +298,6 @@ export const Counter = component$(() => {
     {
       array: [],
     },
-    { deep: true }
   );
 
   // todoList.array is a reactive array, so we can push to it and the component will re-render.
@@ -441,9 +445,9 @@ export default component$(() => {
   const loc = useLocation();
   return (
     <main>
-      {loc.isNavigating && <div>Loading...</div>}
+      {loc.isNavigating && <p>Loading...</p>}
       <h1>User: {loc.params.userID}</h1>
-      <div>Current URL: {loc.url.href}</div>
+      <p>Current URL: {loc.url.href}</p>
     </main>
   );
 });
@@ -496,7 +500,8 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 export const useUserData = routeLoader$(async (requestContext) => {
   const user = await db.table('users').get(requestContext.params.userID);
   return {
-    user,
+    name: user.name,
+    email: user.email,
   };
 });
 
@@ -506,11 +511,26 @@ export default component$(() => {
   return (
     <main>
       <h1>User data</h1>
-      <div>User name: {userData.value.user.name}</div>
-      <div>User email: {userData.value.user.email}</div>
+      <p>User name: {userData.value.name}</p>
+      <p>User email: {userData.value.email}</p>
     </main>
   );
 });
+
+// Exported `head` function is used to set the document head for the route.
+export const head: DocumentHead = ({resolveValue}) => {
+  // It can use the `resolveValue()` method to resolve the value from `routeLoader$()`.
+  const user = resolveValue(useUserData);
+  return {
+    title: `User: "${user.name}"`,
+    meta: [
+      {
+        name: 'description',
+        content: 'User page',
+      },
+    ],
+  };
+};
 ```
 
 The `routeLoader$()` function takes a function that returns a promise. The promise is resolved on the server, and the resolved value is passed to the `useCustomLoader$()` hook. The `useCustomLoader$()` hook is a custom hook that is created by the `routeLoader$()` function. The `useCustomLoader$()` hook returns a `Signal` that contains the resolved value of the promise returned from the `routeLoader$()` function. The `useCustomLoader$()` hook will re-render the component whenever the route changes, and the `routeLoader$()` function is re-run.
@@ -552,10 +572,10 @@ export default component$(() => {
       <h1>User data</h1>
       <Form action={userData}>
         <div>
-          User name: <input name="name" defaultValue={userData.formData?.get('name')} />
+          <label>User name: <input name="name" defaultValue={userData.formData?.get('name')} /></label>
         </div>
         <div>
-          User email: <input name="email" defaultValue={userData.formData?.get('email')} />
+          <label>User email: <input name="email" defaultValue={userData.formData?.get('email')} /></label>
         </div>
         <button type="submit">Update</button>
       </form>
@@ -569,9 +589,9 @@ The `routeAction$()` is used on pair with the `Form` component exported from `@b
 
 ## Run code only on the browser
 
-Qwik executes the same code in the server and in the browser.
+Qwik executes the same code in the server and in the browser, you can not use `window` or other browser APIs in your code, because they don't exist when the code is executed in the server.
 
-Sometimes it's desired to execute code only in browser, because you need the DOM, or other browser API such as: `window`, `document`, `localStorage`, `sessionStorage`, `indexedDB`, `navigator`, `fetch`, `requestAnimationFrame`, `setInterval`, `setTimeout`, `WebSockets`, `WebGL`.
+If you want to access browser APIs, such as `window`, `document`, `localStorage`, `sessionStorage`, `webgl`, etc, you need to check if the code is running in the browser before accessing the browser APIs.
 
 ```tsx
 import { component$, useTask$, useVisibleTask$, useSignal } from '@builder.io/qwik';
@@ -580,8 +600,9 @@ import { isBrowser } from '@builder.io/qwik/build';
 export default component$(() => {
   const ref = useSignal<Element>();
 
-  // useVisibleTask$ will only run on the browser, so you don't need to check for `isBrowser` before accessing the DOM
+  // useVisibleTask$ will only run on the browser
   useVisibleTask$(() => {
+    // No need to check for `isBrowser` before accessing the DOM, because useVisibleTask$ will only run on the browser
     ref.value?.focus();
     document.title = 'Hello world';
   });
@@ -624,16 +645,26 @@ Qwik provides a `isBrowser` boolean exported from `@builder.io/qwik/build`. You 
 
 ## Run code only on the server
 
-Sometimes you need to run code only on the server, such as fetching data, or running analytics code. To solve this problem, Qwik provides a few APIs to run code only on the server.
+Sometimes you need to run code only on the server, such as fetching data or accessing a database. To solve this problem, Qwik provides a few APIs to run code only on the server.
 
 ```tsx
 import { component$, useTask$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik/qwik-city';
+import { server$, routeLoader$ } from '@builder.io/qwik/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 
-const sumInTheServer = server$((a: number, b: number) => {
+
+export const useGetProducts = routeLoader$((requestEvent) => {
   // This code will only run on the server
-  return a + b;
+  const db = await openDB(requestEvent.env.get('DB_PRIVATE_KEY'));
+  const product = await db.table('products').select();
+  return product;
+})
+
+const encryptInServer = server$(function(message: string) {
+  // `this` is the `requestEvent
+  const secretKey = this.env.get('SECRET_KEY');
+  const encryptedMessage = encrypt(message, secretKey);
+  return encryptedMessage;
 });
 
 export default component$(() => {
@@ -656,7 +687,8 @@ export default component$(() => {
       <button
         onClick$={() => {
           // This code will call the server function, and wait for the result
-          const sum = await sumInTheServer(1, 2);
+          const encrypted = await encryptInServer('Hello world');
+          console.log(encrypted);
         }}
       >
         Click me
@@ -665,6 +697,10 @@ export default component$(() => {
   );
 });
 ```
+
+### `routeAction$()`
+
+The `routeAction$()` is a special component that is only executed on the server. It's used handle form submissions, and other actions. For example, you can use it to add a user to a database, and then redirect to the user profile page.
 
 ### `routeLoader$()`
 

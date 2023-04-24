@@ -3,8 +3,8 @@ import { QCounter } from './react';
 
 export default component$(() => {
   return (
-    <div>
+    <main>
       <QCounter />
-    </div>
+    </main>
   );
 });

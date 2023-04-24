@@ -69,17 +69,20 @@ const parseCookieString = (cookieString: string | undefined | null) => {
 
 const REQ_COOKIE = Symbol('request-cookies');
 const RES_COOKIE = Symbol('response-cookies');
+const LIVE_COOKIE = Symbol('live-cookies');
 
 export class Cookie implements CookieInterface {
   private [REQ_COOKIE]: Record<string, string>;
   private [RES_COOKIE]: Record<string, string> = {};
+  private [LIVE_COOKIE]: Record<string, string | null> = {};
 
   constructor(cookieString?: string | undefined | null) {
     this[REQ_COOKIE] = parseCookieString(cookieString);
+    this[LIVE_COOKIE] = { ...this[REQ_COOKIE] };
   }
 
-  get(cookieName: string) {
-    const value = this[REQ_COOKIE][cookieName];
+  get(cookieName: string, live: boolean = true) {
+    const value = this[live ? LIVE_COOKIE : REQ_COOKIE][cookieName];
     if (!value) {
       return null;
     }
@@ -94,15 +97,15 @@ export class Cookie implements CookieInterface {
     };
   }
 
-  getAll() {
-    return Object.keys(this[REQ_COOKIE]).reduce((cookies, cookieName) => {
+  getAll(live: boolean = true) {
+    return Object.keys(this[live ? LIVE_COOKIE : REQ_COOKIE]).reduce((cookies, cookieName) => {
       cookies[cookieName] = this.get(cookieName)!;
       return cookies;
     }, {} as Record<string, CookieValue>);
   }
 
-  has(cookieName: string) {
-    return !!this[REQ_COOKIE][cookieName];
+  has(cookieName: string, live: boolean = true) {
+    return !!this[live ? LIVE_COOKIE : REQ_COOKIE][cookieName];
   }
 
   set(
@@ -110,6 +113,9 @@ export class Cookie implements CookieInterface {
     cookieValue: string | number | Record<string, any>,
     options: CookieOptions = {}
   ) {
+    this[LIVE_COOKIE][cookieName] =
+      typeof cookieValue === 'string' ? cookieValue : JSON.stringify(cookieValue);
+
     const resolvedValue =
       typeof cookieValue === 'string'
         ? cookieValue
@@ -119,6 +125,7 @@ export class Cookie implements CookieInterface {
 
   delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
     this.set(name, 'deleted', { ...options, maxAge: 0 });
+    this[LIVE_COOKIE][name] = null;
   }
 
   headers() {

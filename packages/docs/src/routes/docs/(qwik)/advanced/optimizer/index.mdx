@@ -4,6 +4,7 @@ contributors:
   - the-r3aper7
   - manucorporat
   - adamdbradley
+  - mhevery
 ---
 
 # Optimizer
@@ -37,8 +38,8 @@ export const Counter_onMount = () => {
 
 ```tsx title="chunk-b.js"
 const Counter_onClick = () => {
-  const [store] = useLexicalScope();
-  return store.count++;
+  const [count] = useLexicalScope();
+  return count.value++;
 };
 ```
 

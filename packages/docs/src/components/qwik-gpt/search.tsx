@@ -35,71 +35,18 @@ export const qwikGPT = server$(async function* (query: string) {
     yield entry.output;
     return;
   }
-  const docs = await supabase.rpc('match_docs_7', {
-    query_text: query,
+  const docs = await supabase.rpc('match_docs_10', {
+    query_text: normalizedQuery.replaceAll(' ', '|'),
     query_embedding: embeddings,
-    match_count: 5,
+    match_count: 6,
     similarity_threshold: 0.79,
   });
 
   // Download docs
-  const dataCloned = [];
   try {
-    for (const result of docs.data) {
-      dataCloned.push({
-        ...result,
-      });
-      const commit_hash = result.commit_hash;
-      const file_path = result.file;
-      const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
-      if (!files.has(url)) {
-        files.set(
-          url,
-          fetch(url).then((r) => r.text())
-        );
-      }
-      result.url = url;
-      result.content = await files.get(url);
-    }
-
-    // Parse docs
-    const docsRanges: Record<string, [number, number][]> = {};
-    for (const result of docs.data) {
-      const file = result.content;
-      let range = docsRanges[result.url];
-      if (!range) {
-        docsRanges[result.url] = range = [];
-      }
-      get_docs_ranges(range, file, result['line']);
-    }
-
-    const docsLines: string[] = [];
-
-    for (const [url, ranges] of Object.entries(docsRanges)) {
-      const file = await files.get(url)!;
-      const lines = file.split('\n').filter((_, index) => {
-        for (const [start, end] of ranges) {
-          if (index >= start && index < end) {
-            return true;
-          }
-        }
-        return false;
-      });
-      if (lines.length > 0) {
-        const parts = new URL(url).pathname
-          .split('/')
-          .slice(8, -1)
-          .filter((a) => !a.startsWith('('))
-          .join('/');
-        const docsURL = `https://qwik.builder.io/${parts}/`;
-        docsLines.push('FROM (' + docsURL + '):\n');
-        docsLines.push(...lines);
-        docsLines.push('');
-      }
-    }
-    const docsStr = gpt + '\n\n' + docsLines.filter((a) => !a.includes('CodeSandbox')).join('\n');
+    const docsStr = await resolveContext(docs.data);
     let model = 'gpt-4';
-    if (docsStr.length < 3500 * 3.5) {
+    if (docsStr.length < 3500 * 3 && Math.random() < 0.5) {
       model = 'gpt-3.5-turbo';
     }
     const insert = supabase
@@ -107,7 +54,7 @@ export const qwikGPT = server$(async function* (query: string) {
       .insert({
         query: query,
         embedding: embeddings,
-        results: dataCloned,
+        results: docs.data,
         model,
       })
       .select('id');
@@ -162,7 +109,7 @@ export const rateResponse = server$(async function (query_id: string, rate: numb
   });
 });
 
-function normalizeLine(line: string) {
+export function normalizeLine(line: string) {
   line = line.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
   line = line.toLowerCase();
   line = line.replaceAll('`', '');
@@ -172,10 +119,76 @@ function normalizeLine(line: string) {
   line = line.replaceAll('-', ' ');
   line = line.replaceAll('...', '.');
   line = line.replaceAll('>', '');
+  line = line.replaceAll('<', '');
   line = line.replaceAll('..', '.');
   line = line.replaceAll('  ', ' ');
   line = line.trim();
   return line;
+}
+
+export async function resolveContext(docsData: any) {
+  // Download docs
+  const dataCloned = [];
+  try {
+    for (const result of docsData) {
+      const commit_hash = result.commit_hash;
+      const file_path = result.file;
+      const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
+      if (!files.has(url)) {
+        files.set(
+          url,
+          fetch(url).then((r) => r.text())
+        );
+      }
+      const copied = {
+        ...result,
+        url: url,
+        content: await files.get(url),
+      };
+      dataCloned.push(copied);
+    }
+
+    // Parse docs
+    const docsRanges: Record<string, [number, number][]> = {};
+    for (const result of dataCloned) {
+      const file = result.content;
+      let range = docsRanges[result.url];
+      if (!range) {
+        docsRanges[result.url] = range = [];
+      }
+      get_docs_ranges(range, file, result['line']);
+    }
+
+    const docsLines: string[] = [];
+
+    for (const [url, ranges] of Object.entries(docsRanges)) {
+      const file = await files.get(url)!;
+      const lines = file.split('\n').filter((_, index) => {
+        for (const [start, end] of ranges) {
+          if (index >= start && index < end) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (lines.length > 0) {
+        const parts = new URL(url).pathname
+          .split('/')
+          .slice(8, -1)
+          .filter((a) => !a.startsWith('('))
+          .join('/');
+        const docsURL = `https://qwik.builder.io/${parts}/`;
+        docsLines.push('FROM (' + docsURL + '):\n');
+        docsLines.push(...lines);
+        docsLines.push('');
+      }
+    }
+    const docsStr = gpt + '\n\n' + docsLines.filter((a) => !a.includes('CodeSandbox')).join('\n');
+    return docsStr;
+  } catch (e) {
+    console.error(e);
+  }
+  return '';
 }
 
 function get_docs_ranges(ranges: [number, number][], fileContent: string, line: number) {
@@ -185,6 +198,8 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
   let current_level = 0;
   let top_header = 0;
   let bottom_header = lines.length - 1;
+  line = line - 1;
+
   for (let i = line - 1; i >= 0; i--) {
     const match = lines[i].match(/^(#+)\s/);
     if (match) {
@@ -194,7 +209,7 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
     }
   }
   // find bottom header
-  for (let i = line; i < lines.length; i++) {
+  for (let i = line + 1; i < lines.length; i++) {
     if (lines[i].startsWith('#')) {
       bottom_header = i;
       break;
@@ -208,9 +223,10 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
         for (let j = i + 1; j < top_header; j++) {
           if (lines[j].startsWith('#')) {
             ranges.push([i, j]);
-            break;
+            return;
           }
         }
+        return;
       }
     }
   }

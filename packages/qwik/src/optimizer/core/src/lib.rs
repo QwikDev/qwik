@@ -5,10 +5,12 @@
 #![feature(box_patterns)]
 #![allow(clippy::option_if_let_else)]
 #![allow(clippy::iter_with_drain)]
+#![feature(drain_filter)]
 #[cfg(test)]
 mod test;
 
 mod add_side_effect;
+mod clean_side_effects;
 mod code_move;
 mod collector;
 mod const_replace;

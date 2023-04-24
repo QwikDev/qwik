@@ -11,6 +11,7 @@ import {
   useTask$,
   _getContextElement,
   _weakSerialize,
+  useStyles$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
@@ -43,7 +44,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { toPath } from './utils';
+import { isSameOriginDifferentPathname, toPath } from './utils';
 
 /**
  * @public
@@ -62,12 +63,24 @@ export interface QwikCityProps {
   //  * ```
   //  */
   // children?: [JSXNode, JSXNode];
+
+  /**
+   * Enable the ViewTransition API
+   *
+   * Default: `true`
+   *
+   * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
+   * @see https://caniuse.com/mdn-api_viewtransition
+   */
+  viewTransition?: boolean;
 }
 
 /**
  * @public
  */
-export const QwikCityProvider = component$<QwikCityProps>(() => {
+export const QwikCityProvider = component$<QwikCityProps>((props) => {
+  useStyles$(`:root{view-transition-name: none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);
@@ -79,13 +92,16 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   }
 
   const url = new URL(urlEnv);
-  const routeLocation = useStore<MutableRouteLocation>({
-    url,
-    params: env.params,
-    isNavigating: false,
-  });
+  const routeLocation = useStore<MutableRouteLocation>(
+    {
+      url,
+      params: env.params,
+      isNavigating: false,
+    },
+    { deep: false }
+  );
 
-  const loaderState = _weakSerialize(useStore(env.response.loaders));
+  const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
   const navPath = useSignal(toPath(url));
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
@@ -144,43 +160,49 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     async function run() {
       const [path, action] = track(() => [navPath.value, actionState.value]);
       const locale = getLocale('');
-      let url = new URL(path, routeLocation.url);
+      let trackUrl: URL;
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
+
       if (isServer) {
+        // server
+        trackUrl = new URL(path, routeLocation.url);
         loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
+        // client
+        trackUrl = new URL(path, location as any as URL);
+
         // ensure correct trailing slash
-        if (url.pathname.endsWith('/')) {
+        if (trackUrl.pathname.endsWith('/')) {
           if (!qwikCity.trailingSlash) {
-            url.pathname = url.pathname.slice(0, -1);
+            trackUrl.pathname = trackUrl.pathname.slice(0, -1);
           }
         } else if (qwikCity.trailingSlash) {
-          url.pathname += '/';
+          trackUrl.pathname += '/';
         }
         let loadRoutePromise = loadRoute(
           qwikCity.routes,
           qwikCity.menus,
           qwikCity.cacheModules,
-          url.pathname
+          trackUrl.pathname
         );
         const element = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(url, element, true, action));
+        const pageData = (clientPageData = await loadClientData(trackUrl, element, true, action));
         if (!pageData) {
           // Reset the path to the current path
-          (navPath as any).untrackedValue = toPath(url);
+          (navPath as any).untrackedValue = toPath(trackUrl);
           return;
         }
         const newHref = pageData.href;
-        const newURL = new URL(newHref, url.href);
-        if (newURL.pathname !== url.pathname) {
-          url = newURL;
+        const newURL = new URL(newHref, trackUrl.href);
+        if (newURL.pathname !== trackUrl.pathname) {
+          trackUrl = newURL;
           loadRoutePromise = loadRoute(
             qwikCity.routes,
             qwikCity.menus,
             qwikCity.cacheModules,
-            url.pathname
+            trackUrl.pathname
           );
         }
         loadedRoute = await loadRoutePromise;
@@ -192,10 +214,10 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Update route location
-        routeLocation.url = url;
+        routeLocation.url = trackUrl;
         routeLocation.params = { ...params };
 
-        (navPath as any).untrackedValue = toPath(url);
+        (navPath as any).untrackedValue = toPath(trackUrl);
 
         // Needs to be done after routeLocation is updated
         const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
@@ -213,13 +235,21 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
+          if (
+            (props.viewTransition ?? true) &&
+            isSameOriginDifferentPathname(window.location, url)
+          ) {
+            // mark next DOM render to use startViewTransition API
+            document.__q_view_transition__ = true;
+          }
+
           const loaders = clientPageData?.loaders;
           if (loaders) {
             Object.assign(loaderState, loaders);
           }
           CLIENT_DATA_CACHE.clear();
 
-          clientNavigate(window, url, navPath);
+          clientNavigate(window, trackUrl, navPath);
           routeLocation.isNavigating = false;
         }
       }
@@ -249,11 +279,14 @@ export interface QwikCityMockProps {
 export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
-  const routeLocation = useStore<MutableRouteLocation>({
-    url,
-    params: props.params ?? {},
-    isNavigating: false,
-  });
+  const routeLocation = useStore<MutableRouteLocation>(
+    {
+      url,
+      params: props.params ?? {},
+      isNavigating: false,
+    },
+    { deep: false }
+  );
 
   const loaderState = useSignal({});
 
@@ -261,12 +294,15 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     throw new Error('Not implemented');
   });
 
-  const documentHead = useStore(createDocumentHead);
+  const documentHead = useStore(createDocumentHead, { deep: false });
 
-  const content = useStore<ContentState>({
-    headings: undefined,
-    menu: undefined,
-  });
+  const content = useStore<ContentState>(
+    {
+      headings: undefined,
+      menu: undefined,
+    },
+    { deep: false }
+  );
 
   const contentInternal = useSignal<ContentStateInternal>();
 

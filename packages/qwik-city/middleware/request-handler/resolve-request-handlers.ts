@@ -25,7 +25,6 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
-import { isDev } from '@builder.io/qwik/build';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -155,6 +154,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
+    const isDev = getRequestMode(requestEv) === 'dev';
     const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
@@ -183,7 +183,9 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
             loaders[selectedAction] = requestEv.fail(result.status ?? 500, result.error);
           } else {
             const actionResolved = await action.__qrl(result.data as JSONObject, requestEv);
-            verifySerializable(qwikSerializer, actionResolved, action.__qrl);
+            if (isDev) {
+              verifySerializable(qwikSerializer, actionResolved, action.__qrl);
+            }
             loaders[selectedAction] = actionResolved;
           }
         }
@@ -213,7 +215,9 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
               if (typeof loaderResolved === 'function') {
                 loaders[loaderId] = loaderResolved();
               } else {
-                verifySerializable(qwikSerializer, loaderResolved, loader.__qrl);
+                if (isDev) {
+                  verifySerializable(qwikSerializer, loaderResolved, loader.__qrl);
+                }
                 loaders[loaderId] = loaderResolved;
               }
               return loaderResolved;
@@ -258,26 +262,37 @@ async function pureServerFunction(ev: RequestEvent) {
     ev.request.headers.get('Content-Type') === 'application/qwik-json'
   ) {
     ev.exit();
+    const isDev = getRequestMode(ev) === 'dev';
     const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
     const data = await ev.parseBody();
     if (Array.isArray(data)) {
       const [qrl, ...args] = data;
       if (isQrl(qrl) && qrl.getHash() === fn) {
-        const result = await qrl.apply(ev, args);
+        let result: unknown;
+        try {
+          result = await qrl.apply(ev, args);
+        } catch (err) {
+          ev.headers.set('Content-Type', 'application/qwik-json');
+          ev.send(500, await qwikSerializer._serializeData(err, true));
+          return;
+        }
         if (isAsyncIterator(result)) {
           ev.headers.set('Content-Type', 'text/event-stream');
           const stream = ev.getWritableStream().getWriter();
           for await (const item of result) {
-            verifySerializable(qwikSerializer, item, qrl);
+            if (isDev) {
+              verifySerializable(qwikSerializer, item, qrl);
+            }
             ev.headers.set('Content-Type', 'application/qwik-json');
             const message = await qwikSerializer._serializeData(item, true);
-            verifySerializable(qwikSerializer, result, qrl);
             stream.write(encoder.encode(`event: qwik\ndata: ${message}\n\n`));
           }
           stream.close();
         } else {
+          verifySerializable(qwikSerializer, result, qrl);
           ev.headers.set('Content-Type', 'application/qwik-json');
-          ev.send(200, await qwikSerializer._serializeData(result, true));
+          const message = await qwikSerializer._serializeData(result, true);
+          ev.send(200, message);
         }
         return;
       }
@@ -308,15 +323,13 @@ function fixTrailingSlash(ev: RequestEvent) {
 }
 
 export function verifySerializable(qwikSerializer: QwikSerializer, data: any, qrl: QRL) {
-  if (isDev) {
-    try {
-      qwikSerializer._verifySerializable(data, undefined);
-    } catch (e: any) {
-      if (e instanceof Error && qrl.dev) {
-        (e as any).loc = qrl.dev;
-      }
-      throw e;
+  try {
+    qwikSerializer._verifySerializable(data, undefined);
+  } catch (e: any) {
+    if (e instanceof Error && qrl.dev) {
+      (e as any).loc = qrl.dev;
     }
+    throw e;
   }
 }
 
@@ -336,19 +349,23 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
   return url.pathname;
 }
 
-export const encoder = /*@__PURE__*/ new TextEncoder();
+export const encoder = /*#__PURE__*/ new TextEncoder();
 
-export function securityMiddleware({ url, request, error }: RequestEvent) {
-  let inputOrigin = request.headers.get('origin');
-  let origin = url.origin;
+export function securityMiddleware(requestEv: RequestEvent) {
+  const isDev = getRequestMode(requestEv) === 'dev';
+  let inputOrigin = requestEv.request.headers.get('origin');
+  let origin = requestEv.url.origin;
   if (isDev) {
     // In development, we compare the host instead of the origin.
     inputOrigin = inputOrigin ? new URL(inputOrigin).host : null;
-    origin = url.host;
+    origin = requestEv.url.host;
   }
   const forbidden = inputOrigin !== origin;
   if (forbidden) {
-    throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
+    throw requestEv.error(
+      403,
+      `Cross-site ${requestEv.request.method} form submissions are forbidden`
+    );
   }
 }
 export function renderQwikMiddleware(render: Render) {

@@ -12,7 +12,7 @@ import {
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
-export interface QwikAuthConfig extends AuthConfig {}
+export type QwikAuthConfig = AuthConfig;
 
 const actions: AuthAction[] = [
   'providers',

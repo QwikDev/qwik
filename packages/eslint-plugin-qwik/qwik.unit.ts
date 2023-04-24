@@ -71,7 +71,16 @@ export const useSession4 = () => useContext()?.value;
 export const useSession5 = () => useContext()?.value; + 10;
 
 `,
+      `
+export const HelloWorld = component$(async () => {
+  const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
+    loader: useFormLoader(),
+    action: useFormAction(),
+    validate: zodForm$(todoSchema),
+  });
 
+  });
+  `,
       `
       export const HelloWorld = component$(async () => {
           useMethod();

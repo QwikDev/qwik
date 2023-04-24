@@ -64,4 +64,4 @@ Qwik serializes the event listeners into the DOM in the form of [QRLs](../qrl/in
 </div>
 ```
 
-The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code location problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.
+The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.

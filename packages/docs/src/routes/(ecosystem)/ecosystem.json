@@ -88,6 +88,11 @@
       "title": "London",
       "href": "https://www.meetup.com/qwik-london/",
       "imgSrc": "/ecosystem/qwik-london.svg"
+    },
+    {
+      "title": "Amsterdam",
+      "href": "https://www.meetup.com/qwik-amsterdam-meetup-group/",
+      "imgSrc": "/ecosystem/qwik-amsterdam.svg"
     }
   ],
   "social": [

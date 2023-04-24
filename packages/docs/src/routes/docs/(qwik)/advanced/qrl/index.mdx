@@ -117,16 +117,16 @@ The main thing to note is the `on:click` attribute. This attribute gets read by 
 5. Qwikloader now retrieves the `Counter_onClick` reference from `http://localhost/build/chunk-c.js` and invokes it.
    ```tsx
    const Counter_onClick = () => {
-     const [store, props] = useLexicalScope();
-     return (store.count += props.step || 1);
+     const [count, props] = useLexicalScope();
+     return (count.value += props.step || 1);
    };
    ```
 6. At this point, the execution is handed off from Qwikloader to the lazy-loaded chunk. This is done so that the Qwikloader can be as small as possible as it is inlined into the HTML.
-7. `useLexicalScope` is imported from `@builder.io/qwik` and is responsible for retrieving the `store` and `props`.
-   `const [store, props] = useLexicalScope();`
+7. `useLexicalScope` is imported from `@builder.io/qwik` and is responsible for retrieving the `count` and `props`.
+   `const [count, props] = useLexicalScope();`
 8. Parse the `<script type="qwik/json">{...json...}</script>` JSON and distribute the deserialized objects per `q:obj` attribute. In our case
-   - `<div q:id="123" q:obj="456" q:host>` gets object with id `123`. This will be the `store` created in the `Counter_onMount` function.
-   - `<button q:obj="456, 123"` gets `store` as well as a reference to the `<div q:id="457">`
+   - `<div q:id="123" q:obj="456" q:host>` gets object with id `123`. This will be the `count` created in the `Counter_onMount` function.
+   - `<button q:obj="456, 123"` gets `count` as well as a reference to the `<div q:id="457">`
 9. Once the `qwik/json` is deserialized, `useLexicalScope` can use the QRL's `[0,1]` array to look into `q:obj="456, 123"` to retrieve object with id `456` and `123`, which are props of `<div q:id="123" q:obj="456" q:host>` as well as `store` from `Counter_onMount` function.
 
 > **NOTE:** For performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.

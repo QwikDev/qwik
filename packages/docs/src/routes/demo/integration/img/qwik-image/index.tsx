@@ -1,5 +1,6 @@
 import { $, component$ } from '@builder.io/qwik';
-import { Image, ImageTransformerProps, useImageProvider } from 'qwik-image';
+import { Image, useImageProvider } from 'qwik-image';
+import type { ImageTransformerProps } from 'qwik-image';
 
 export default component$(() => {
   const imageTransformer$ = $(

@@ -12,7 +12,7 @@ import {
   isCancel,
   log,
 } from '@clack/prompts';
-import { bgBlue, red, white } from 'kleur/colors';
+import { bgBlue, red } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
@@ -20,7 +20,7 @@ import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
-  intro(`Let's create a ${bgBlue(white(' Qwik App '))} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   await wait(500);
 
@@ -48,7 +48,7 @@ export async function runCreateInteractiveCli() {
 
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
-  log.info(`Creating new project in ${bgBlue(white(' ' + outDir + ' '))} 🐇`);
+  log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} 🐇`);
 
   let removeExistingOutDirPromise: Promise<void> | null = null;
 

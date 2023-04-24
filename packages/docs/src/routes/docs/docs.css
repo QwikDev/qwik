@@ -188,6 +188,12 @@ h6 a:hover .icon {
   margin: 20px 0;
 }
 
+[data-rehype-pretty-code-fragment] pre {
+  overflow: auto;
+  border-radius: 8px;
+  max-height: var(--pretty-code-fragment-max-height);
+}
+
 [data-rehype-pretty-code-title] {
   padding: 5px 15px;
   background: #4199d3;

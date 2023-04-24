@@ -190,9 +190,6 @@ importers:
       '@unpic/qwik':
         specifier: ^0.0.13
         version: 0.0.13(terser@5.17.1)
-      '@vespaiach/axios-fetch-adapter':
-        specifier: ^0.3.1
-        version: 0.3.1
       openai:
         specifier: ^3.2.1
         version: 3.2.1
@@ -2880,12 +2877,6 @@ packages:
       - supports-color
       - terser
       - webdriverio
-    dev: false
-
-  /@vespaiach/axios-fetch-adapter@0.3.1:
-    resolution: {integrity: sha512-+1F52VWXmQHSRFSv4/H0wtnxfvjRMPK5531e880MIjypPdUSX6QZuoDgEVeCE1vjhzDdxCVX7rOqkub7StEUwQ==}
-    peerDependencies:
-      axios: '>=0.26.0'
     dev: false
 
   /@vitest/expect@0.29.8:

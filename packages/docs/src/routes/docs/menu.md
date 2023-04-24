@@ -84,6 +84,7 @@
 - [Speculative Module Fetching](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx)
 - [Menus](/docs/(qwikcity)/advanced/menu/index.mdx)
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
+- [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 
 ## Community
 

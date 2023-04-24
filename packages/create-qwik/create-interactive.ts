@@ -12,7 +12,7 @@ import {
   isCancel,
   log,
 } from '@clack/prompts';
-import { bgBlue, red } from 'kleur/colors';
+import { bgBlue, red, white } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
@@ -20,7 +20,7 @@ import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
-  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${bgBlue(white(' Qwik App '))} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   await wait(500);
 
@@ -29,12 +29,8 @@ export async function runCreateInteractiveCli() {
     (await text({
       message: 'Where would you like to create your new project?',
       placeholder: defaultProjectName,
-      validate(value) {
-        if (value.trim() === '.' || value.trim() === './') {
-          return "Please don't use '.' or './' and let qwik create the directory for you.";
-        }
-      },
-    })) || defaultProjectName;
+      initialValue: defaultProjectName,
+    })) || '';
 
   if (isCancel(projectNameAnswer)) {
     cancel('Operation cancelled.');
@@ -52,14 +48,16 @@ export async function runCreateInteractiveCli() {
 
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
+  log.info(`Creating new project in ${bgBlue(white(' ' + outDir + ' '))} 🐇`);
+
   let removeExistingOutDirPromise: Promise<void> | null = null;
 
-  if (fs.existsSync(outDir)) {
+  if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const existingOutDirAnswer = await select({
       message: `Directory "./${relative(
         process.cwd(),
         outDir
-      )}" already exists. What would you like to do?`,
+      )}" already exists and is not empty. What would you like to do?`,
       options: [
         { value: 'exit', label: 'Do not overwrite this directory and exit' },
         { value: 'replace', label: 'Overwrite and replace this directory' },

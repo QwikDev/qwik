@@ -1,8 +1,9 @@
 ---
-title: Qwik City and AuthJs
+title: Qwik City and Auth.js
 keywords: 'authentication, auth, oauth'
 contributors:
   - the-r3aper7
+  - ulic75
 ---
 
 # Auth.js
@@ -31,12 +32,12 @@ import type { Provider } from '@auth/core/providers';
 
 export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } = serverAuth$(
   ({ env }) => ({
-    secret: env.get("VITE_AUTH_SECRET"),
+    secret: env.get("AUTH_SECRET"),
     trustHost: true,
     providers: [
       GitHub({
-        clientId: env.get("VITE_GITHUB_ID"),
-        clientSecret: env.get("VITE_GITHUB_SECRET"),
+        clientId: env.get("GITHUB_ID"),
+        clientSecret: env.get("GITHUB_SECRET"),
       }),
     ] as Provider[],
   })
@@ -47,9 +48,9 @@ Since, `Qwik` uses `Vite` therefore we will follow [Vite Env variables & modes](
 Now, let's create `.env.local` file to store secrets
 
 ```bash title=".env.local"
-VITE_GITHUB_ID=
-VITE_GITHUB_SECRET=
-VITE_AUTH_SECRET=
+GITHUB_ID=
+GITHUB_SECRET=
+AUTH_SECRET=
 ```
 Follow the [GitHub OAuth Guide](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) to get your `GitHub Client ID`, `GitHub Client Secrets` and generate `AUTH_SECRET` using `openssl rand -base64 32` or [Secret Generator](https://generate-secret.vercel.app/32).
 

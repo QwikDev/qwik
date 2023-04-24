@@ -1,7 +1,13 @@
 import { updateViteConfig } from './code-mod';
 import { test } from 'uvu';
-import { match } from 'uvu/assert';
+import { match, equal } from 'uvu/assert';
 import ts from 'typescript';
+
+const prepareOutput = (str: string) =>
+  str
+    .split('\n')
+    .map((part) => part.trim())
+    .join('\n');
 
 test('update existing qwik vite plugin config prop', () => {
   const sourceText = `
@@ -96,6 +102,33 @@ test('add vite plugin to object based config', () => {
     vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
   })!;
   match(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
+});
+
+test('should not add vite plugin if it is already defined', () => {
+  const sourceText = `
+  export default defineConfig(() => {
+    return {
+      plugins: [
+        qwikVite(),
+        netlifyEdge()
+      ],
+    };
+  });
+`;
+  const outputText = updateViteConfig(ts, sourceText, {
+    vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
+  })!;
+
+  const expected = `export default defineConfig(() => {
+        return {
+          plugins: [
+            qwikVite(),
+            netlifyEdge()
+          ]
+        };
+      });
+    `;
+  equal(prepareOutput(outputText), prepareOutput(expected));
 });
 
 test('update vite config', () => {

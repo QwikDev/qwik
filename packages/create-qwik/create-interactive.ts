@@ -48,7 +48,7 @@ export async function runCreateInteractiveCli() {
 
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
-  log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} 🐇`);
+  log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
   let removeExistingOutDirPromise: Promise<void> | null = null;
 

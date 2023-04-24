@@ -194,7 +194,7 @@ In this case, the layouts will nest each other with the page within each of them
 ```
 
 ```tsx title="src/routes/layout.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$, Slot } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
@@ -206,7 +206,7 @@ export default component$(() => {
 ```
 
 ```tsx title="src/routes/about/layout.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$, Slot } from '@builder.io/qwik';
 
 export default component$(() => {
   return (

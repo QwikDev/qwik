@@ -3,6 +3,12 @@
   @apply text-sm;
 }
 
+@media screen and (min-width: 1280px) {
+  .on-this-page {
+    top: 162px;
+  }
+}
+
 .on-this-page h6 {
   @apply font-semibold pb-3 uppercase;
 }

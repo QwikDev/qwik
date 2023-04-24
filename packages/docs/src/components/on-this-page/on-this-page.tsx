@@ -65,7 +65,7 @@ export const OnThisPage = component$(() => {
   const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   return (
-    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem] xl:top-[14rem]">
+    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem]">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>

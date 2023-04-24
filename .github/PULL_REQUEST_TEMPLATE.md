@@ -16,7 +16,7 @@ _— Build primitives is our mantra_
 
 - [ ] Feature / enhancement
 - [ ] Bug
-- [ ] Docs / tests
+- [ ] Docs / tests / types / typos
 
 # Description
 

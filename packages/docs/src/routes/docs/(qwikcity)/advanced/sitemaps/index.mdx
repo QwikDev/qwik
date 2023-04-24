@@ -1,0 +1,42 @@
+---
+title: Generating Sitemaps
+contributors:
+  - adamdbradley
+---
+
+# Generating Sitemaps
+
+By default, when Static Site Generated (SSG) pages are built, a [sitemap](https://en.wikipedia.org/wiki/Sitemaps) is generated for the site. The `sitemap.xml` is automatically generated based on the pages that were built. This means that if you have a page that is not built, it will not be included in the sitemap.
+
+## Configuration
+
+The sitemap can be configured using the adapter's vite config file. The example below is configuring the Cloudflare adapter. The default sitemap file path is `sitemap.xml`, but you can use the `sitemapOutFile` option to change the file path. 
+
+```ts
+  plugins: [
+    cloudflarePagesAdapter({
+      ssg: {
+        include: ['/*'],
+        origin: 'https://qwik.builder.io',
+        sitemapOutFile: 'sitemap.xml',
+      },
+    }),
+  ]
+```
+
+The `include` option is used to specify which pages should are built, which also adds them to the sitemap. Any pages added to the `exclude` option will also exclude them from the sitemap. 
+
+The `origin` option is used to specify the origin of the site and is used to generate the absolute URLs for the sitemap.
+
+## robots.txt
+
+Depending on your site setup, you'll probably want to add a [robots.txt](https://en.wikipedia.org/wiki/Robots.txt) file to your site. This can be done by adding a `robots.txt` file to the `public` directory. Any file in the `public` directory is treated as a static file and deploy along side the build. The following is an example of a `public/robots.txt` file:
+
+```bash
+User-agent: *
+Allow: /
+
+Sitemap: https://<YOUR_HOSTNAME>/sitemap.xml
+```
+
+Note the added `Sitemap` directive to the `robots.txt` file which tells search engines where to find the sitemap for your site. Be sure to replace `<YOUR_HOSTNAME>` with the hostname of your site.

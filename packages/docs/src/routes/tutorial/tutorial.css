@@ -129,7 +129,7 @@
   border-radius: 3px;
   background-color: var(--tutorial-nav-button-bg-color);
   color: var(--tutorial-nav-button-text-color);
-  border: 1px solid var(--tutorial-nav-button-text-color);
+  border: 1px solid var(--tutorial-nav-button-bg-color);
 }
 
 .nav-link:hover,

@@ -22,8 +22,10 @@
   font-size: 12px;
 }
 
+.panel-toggle button.active,
 .panel-toggle button:hover {
   background-color: var(--tutorial-nav-button-hover-bg-color);
+  color: var(--qwik-blue);
 }
 
 @media (min-width: 380px) {

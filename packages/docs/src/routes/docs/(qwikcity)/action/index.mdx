@@ -64,8 +64,8 @@ export default component$(() => {
 The best way to call an action is using the `<Form/>` component exported in `@builder.io/qwik-city`.
 
 ```tsx title="src/routes/index.tsx"
-import { routeAction$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
+import { routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(async (user) => {
   const userID = await db.users.add(user);
@@ -96,8 +96,8 @@ When JS is enabled, the `<Form/>` component will intercept the form submission a
 Actions can also be triggered programatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx {18} title="src/routes/index.tsx"
-import { routeAction$ } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
+import { routeAction$ } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(async (user) => {
   const userID = await db.users.add(user);
@@ -112,7 +112,7 @@ export default component$(() => {
   return (
     <section>
       <button
-        onClick={async () => {
+        onClick$={async () => {
           const { value } = await action.submit({ name: 'John' });
           console.log(value);
         }}
@@ -133,8 +133,9 @@ Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first
 
 Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
 
-```tsx {15-18} /firstName/#a /lastName/#b /email/#c title="src/routes/index.tsx"
-import { routeAction$, zod$, z } from '@builder.io/qwik-city';
+```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
+import { component$ } from '@builder.io/qwik';
+import { routeAction$, zod$, z, Form } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -188,13 +189,16 @@ This allows actions to access the request headers, cookies, url and environment 
 import { routeAction$ } from '@builder.io/qwik-city';
 
 // The second argument of the action is the `RequestEvent` object
-export const useProductRecommendations = routeAction$(async (_data, requestEvent) => {
-  console.log('Request headers:', requestEvent.headers);
-  console.log('Request cookies:', requestEvent.cookie);
-  console.log('Request url:', requestEvent.url);
-  console.log('Request params:', requestEvent.params);
-  console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR')));
-});
+export const useProductRecommendations = routeAction$(
+  async (_data, requestEvent) => {
+    console.log('Request headers:', requestEvent.headers);
+    console.log('Request cookies:', requestEvent.cookie);
+    console.log('Request url:', requestEvent.url);
+    console.log('Request params:', requestEvent.params);
+    console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR'));
+  }
+);
+
 ```
 
 ## Action Failures
@@ -277,7 +281,7 @@ We recommend starting with `routeAction$()` and only use `globalAction$()` when 
 
 ### `routeAction$()`
 
-`globalAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
+`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';

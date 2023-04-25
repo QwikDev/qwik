@@ -17,8 +17,12 @@
   contain: strict;
 }
 
+h1 {
+  margin-bottom: 60px;
+}
+
 .input {
-  width: 100%;
+  width: 60%;
 }
 
 .square {

@@ -1,10 +1,26 @@
-import { component$, Slot } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
-/**
- * create a new `index.tsx` file in the `src/routes` folder
- * to start building your own app 🚀
- */
+import Header from '~/components/starter/header/header';
+import Footer from '~/components/starter/footer/footer';
+
+import styles from './styles.css?inline';
+
+export const useServerTimeLoader = routeLoader$(() => {
+  return {
+    date: new Date().toISOString(),
+  };
+});
 
 export default component$(() => {
-  return <Slot />;
+  useStyles$(styles);
+  return (
+    <>
+      <Header />
+      <main>
+        <Slot />
+      </main>
+      <Footer />
+    </>
+  );
 });

@@ -36,6 +36,7 @@
 - [Overview](integrations/index.mdx)
 - [Auth.js](integrations/authjs/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
+- [Icons](integrations/icons/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
@@ -44,6 +45,9 @@
 - [Styled Vanilla Extract](integrations/styled-vanilla-extract/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
+- [Supabase](integrations/supabase/index.mdx)
+- [Prisma](integrations/prisma/index.mdx)
+
 
 ## Deployments
 

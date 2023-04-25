@@ -69,7 +69,6 @@
     "@supabase/supabase-js": "^2.21.0",
     "qwik-image": "^0.0.2",
     "@unpic/qwik": "^0.0.13",
-    "@vespaiach/axios-fetch-adapter": "^0.3.1",
     "openai": "^3.2.1",
     "snarkdown": "^2.0.0"
   }

@@ -1,0 +1,27 @@
+{
+  "description": "Next-generation TypeScript ORM",
+  "devDependencies": {
+    "prisma": "^4.13.0",
+    "@prisma/client": "4.13.0"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Prisma (Database ORM)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/prisma/",
+      "https://www.prisma.io/docs/concepts/overview/what-is-prisma"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Prisma was installed with a default DB schema and some demo routes, you need to add a database now.",
+        "",
+        " To use sqlite, you can run the following commands (good for testing):",
+        "   npx prisma init --datasource-provider sqlite",
+        "",
+        " Check out the Prisma docs for more info: https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases/connect-your-database-typescript-postgres"
+      ]
+    }
+  }
+}

@@ -31,6 +31,11 @@
       "imgSrc": "/ecosystem/tailwind.svg"
     },
     {
+      "title": "Supabase",
+      "href": "/docs/integrations/supabase/",
+      "imgSrc": "/ecosystem/supabase.svg"
+    },
+    {
       "title": "Vitest",
       "href": "/docs/integrations/vitest/",
       "imgSrc": "/ecosystem/vitest.svg"

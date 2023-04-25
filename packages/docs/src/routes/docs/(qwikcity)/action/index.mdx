@@ -20,7 +20,7 @@ Actions can be declared using the `routeAction$()` or `globalAction$()` exported
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
-export const useAddUser = routeAction$(async (data) => {
+export const useAddUser = routeAction$(async (data, requestEvent) => {
   // This will only run on the server when the user submits the form (or when the action is called programatically)
   const userID = await db.users.add({
     firstName: data.firstName,
@@ -107,7 +107,7 @@ export default component$(() => {
   return (
     <section>
       <button
-        onClick$={() => {
+        onClick$={async () => {
           const { value } = await action.submit({ name: 'John' });
           console.log(value);
         }}

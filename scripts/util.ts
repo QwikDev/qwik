@@ -49,6 +49,7 @@ export interface BuildConfig {
   qwikcity?: boolean;
   qwikreact?: boolean;
   qwikauth?: boolean;
+  supabaseauthhelpers?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;

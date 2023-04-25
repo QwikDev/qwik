@@ -40,8 +40,9 @@ const createSetCookieValue = (cookieName: string, cookieValue: string, options: 
     c.push(`Path=${options.path}`);
   }
 
-  if (options.sameSite && SAMESITE[options.sameSite]) {
-    c.push(`SameSite=${SAMESITE[options.sameSite]}`);
+  const sameSite = resolveSameSite(options.sameSite);
+  if (sameSite) {
+    c.push(`SameSite=${sameSite}`);
   }
 
   if (options.secure) {
@@ -66,6 +67,19 @@ const parseCookieString = (cookieString: string | undefined | null) => {
   }
   return cookie;
 };
+
+function resolveSameSite(sameSite: boolean | 'strict' | 'lax' | 'none' | undefined) {
+  if (sameSite === true) {
+    return 'Strict';
+  }
+  if (sameSite === false) {
+    return 'None';
+  }
+  if (sameSite) {
+    return SAMESITE[sameSite];
+  }
+  return undefined;
+}
 
 const REQ_COOKIE = Symbol('request-cookies');
 const RES_COOKIE = Symbol('response-cookies');

@@ -234,3 +234,12 @@ The above example would render the html:
   </section>
 </main>
 ```
+
+## `plugin.ts`
+
+`plugin.ts` and `plugin@<name>.ts` files can be created in the root of the `src/routes` directory to handle any incoming request before even the root layout executes.
+
+You can have multiple `plugin.ts` files, each with a different name. For example, `plugin@auth.ts` and `plugin@security.ts`. The `@<name>` is optional and and it's only used for developers to help identify the plugin.
+
+Requests handlers like `onRequest`, `onGet`, `onPost`, etc. are called before `server$` functions are executed.
+

@@ -12,15 +12,17 @@
       "https://qwik.builder.io/integrations/integration/prisma/",
       "https://www.prisma.io/docs/concepts/overview/what-is-prisma"
     ],
+    "postInstall": "prisma migrate dev && prisma generate",
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Prisma was installed with a default DB schema and some demo routes, you need to add a database now.",
+        " Prisma was installed with a default DB schema and some demo routes,",
         "",
-        " To use sqlite, you can run the following commands (good for testing):",
-        "   npx prisma init --datasource-provider sqlite",
+        " Sqlite was configured by default, but in production",
+        " you'll want to use Postgres or MongoDB.",
         "",
-        " Check out the Prisma docs for more info: https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases/connect-your-database-typescript-postgres"
+        " Check out the Prisma docs for more info:",
+        "   - https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases/connect-your-database-typescript-postgres"
       ]
     }
   }

@@ -1,21 +1,33 @@
 .hero {
-  color: white;
   display: flex;
   vertical-align: middle;
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: center;
-  height: 200px;
+  height: 450px;
   justify-content: center;
-  gap: 30px;
+  gap: 40px;
 }
 
-.hero button {
-  padding: 10px 40px;
+.hero p {
+  color: white;
+  margin: 0;
+  font-size: 1rem;
 }
 
-@media screen (min-width: 768px) {
+.button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+}
+
+@media screen and (min-width: 768px) {
   .hero {
-    height: 300px;
+    gap: 60px;
+    height: 500px;
+  }
+
+  .hero p {
+    font-size: 1.3rem;
   }
 }

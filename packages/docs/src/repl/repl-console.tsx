@@ -41,23 +41,23 @@ export function ReplLog({ log }: { log: ReplEvent }) {
     case 'console-error':
     case 'console-warn':
       return (
-        <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}`}>{log.scope}</div>
+        <div class={['log', log.kind]}>
+          <div class={['platform', log.scope]}>{log.scope}</div>
           <div class="content">{renderConsoleMessage(log.message)}</div>
           {elapsed ? <div class="elapsed">{elapsed}</div> : null}
         </div>
       );
     case 'prefetch':
       return (
-        <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}`}>{log.scope}</div>
+        <div class={['log', log.kind]}>
+          <div class={['platform', log.scope]}>{log.scope}</div>
           <div class="content">{log.message}</div>
         </div>
       );
     case 'client-module':
       return (
-        <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}`}>{log.scope}</div>
+        <div class={['log', log.kind]}>
+          <div class={['platform', log.scope]}>{log.scope}</div>
           <div class="content">{basename(log.message.join(' '))}</div>
         </div>
       );

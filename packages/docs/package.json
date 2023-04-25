@@ -67,9 +67,10 @@
   "private": true,
   "dependencies": {
     "@supabase/supabase-js": "^2.21.0",
-    "qwik-image": "^0.0.2",
+    "@unpic/core": "^0.0.21",
     "@unpic/qwik": "^0.0.13",
     "openai": "^3.2.1",
+    "qwik-image": "^0.0.2",
     "snarkdown": "^2.0.0"
   }
 }

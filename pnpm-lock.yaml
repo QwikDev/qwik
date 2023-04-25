@@ -187,6 +187,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.21.0
         version: 2.21.0
+      '@unpic/core':
+        specifier: ^0.0.21
+        version: 0.0.21
       '@unpic/qwik':
         specifier: ^0.0.13
         version: 0.0.13(terser@5.17.1)
@@ -2872,7 +2875,7 @@ packages:
   /@unpic/core@0.0.18(terser@5.17.1):
     resolution: {integrity: sha512-fylpiS/KgW1DR8TMN5s9YyAOYjx3iJwsV4LM6Bukc1GSiTdEJS0mIUvWgNcGemm/8zhv4U6hu/npowJifYqkdQ==}
     dependencies:
-      unpic: 3.2.0
+      unpic: 3.4.1
       vitest: 0.29.8(terser@5.17.1)
     transitivePeerDependencies:
       - '@edge-runtime/vm'
@@ -2889,6 +2892,12 @@ packages:
       - supports-color
       - terser
       - webdriverio
+    dev: false
+
+  /@unpic/core@0.0.21:
+    resolution: {integrity: sha512-78Lmq68Ctk81f2EVKOysJNlOBBKeUgbPWplXwDTTWpzzFm0zTUzXbUrHRxyB1p2utdoifKpmyYFxtA/WtSUefg==}
+    dependencies:
+      unpic: 3.4.1
     dev: false
 
   /@unpic/qwik@0.0.13(terser@5.17.1):
@@ -8681,8 +8690,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unpic@3.2.0:
-    resolution: {integrity: sha512-SpL+337Ne8wMyLKsSkzpPCUmtPzubom1dDuOnLVcKXfhXpZ3FQlbZ9dIhUjSuK5pBoqjZfcp8IgZNx7Za95/1A==}
+  /unpic@3.4.1:
+    resolution: {integrity: sha512-GVVSOG4QhRsoMb8x4yxcQeqP0I+LurWtPVeWcQFK6sv5ymPc+riZFH1hc1vjo/F1dUAM+Fn7Q2fSgb7ps3nR6g==}
     dev: false
 
   /unpipe@1.0.0:

@@ -1,6 +1,11 @@
 {
   "integrations": [
     {
+      "title": "Auth.js",
+      "href": "/docs/integrations/authjs/",
+      "imgSrc": "/ecosystem/authjs.png"
+    },
+    {
       "title": "Qwik/React",
       "href": "/docs/integrations/react/",
       "imgSrc": "/ecosystem/react.svg"

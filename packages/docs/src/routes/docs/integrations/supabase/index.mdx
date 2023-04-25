@@ -12,7 +12,7 @@ Using `supabase` with Qwik is super simple. Supabase JS library plays nicely wit
 First, install supabase in your Qwik project:
 
 ```bash
-npm install @supabase/supabase-js @supabase/auth-helpers-qwik
+npm install @supabase/supabase-js supabase-auth-helpers-qwik
 ```
 
 The second step would be to add configure the `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` as environment variables to `.env` file, the "anon" key is safe to be exposed in the client-side.
@@ -30,7 +30,7 @@ The Supabase client can now be used server-side - in `routeLoader`s and `routeAc
 
 ```tsx
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { createServerClient } from '@supabase/auth-helpers-remix';
+import { createServerClient } from 'supabase-auth-helpers-qwik';
 
 export const useDBTest = routeLoader$(async (requestEv) => {
   const supabaseClient = createServerClient(

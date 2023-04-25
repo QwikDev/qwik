@@ -45,6 +45,9 @@
 - [Styled Vanilla Extract](integrations/styled-vanilla-extract/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
+- [Supabase](integrations/supabase/index.mdx)
+- [Prisma](integrations/prisma/index.mdx)
+
 
 ## Deployments
 

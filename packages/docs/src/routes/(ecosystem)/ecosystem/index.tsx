@@ -11,6 +11,7 @@ import { QwikPlusLogo } from './qwik-plus-logo';
 export default component$(() => {
   useStyles$(styles);
 
+  const courses = MEDIA.courses.slice(0, 6);
   const videos = MEDIA.videos.slice(0, 6);
   const podcasts = MEDIA.podcasts.slice(0, 6);
   const presentations = MEDIA.presentations.slice(0, 6);
@@ -61,6 +62,31 @@ export default component$(() => {
                   title={item.title}
                   href={item.href}
                   imgSrc={item.imgSrc}
+                  key={i}
+                  thumbnailBg={true}
+                />
+              ))}
+            </ul>
+          </section>
+
+          <section id="courses">
+            <h2>
+              <span>
+                <Link href="/media/#courses">Courses</Link>
+              </span>
+              <span>
+                <Link href="/media/#courses" class="text-sm">
+                  See All
+                </Link>
+              </span>
+            </h2>
+            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+              {courses.map((item, i) => (
+                <GridItem
+                  title={item.title}
+                  href={item.href}
+                  imgSrc={item.imgSrc}
+                  imgCover={true}
                   key={i}
                   thumbnailBg={true}
                 />

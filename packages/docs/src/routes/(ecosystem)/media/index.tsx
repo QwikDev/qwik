@@ -3,12 +3,19 @@ import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
 // A helper for defining YouTube Media Entries
-export const youtube = (title: string, id: string, start_time?: number): MediaEntry => {
+export const youtube = (
+  title: string,
+  id: string,
+  { startTime, playlist }: { startTime?: number; playlist?: string } = {}
+): MediaEntry => {
   const url = new URL('https://www.youtube.com/watch');
   url.searchParams.append('v', id);
   // if there's a start_time and it's not 0
-  if (start_time) {
-    url.searchParams.append('t', start_time.toString());
+  if (startTime) {
+    url.searchParams.append('t', startTime.toString());
+  }
+  if (playlist) {
+    url.searchParams.append('list', playlist);
   }
   return {
     href: url.href,
@@ -18,6 +25,17 @@ export const youtube = (title: string, id: string, start_time?: number): MediaEn
 };
 
 export const MEDIA = mediaObj({
+  courses: [
+    youtube('The Net Ninja', 'W0xjcx4mrkE', { playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw' }),
+    youtube('Qwik JS - Crash Introduction to Building a Super Fast Application', 'zLHYDY9dAbs', {
+      playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
+    }),
+    {
+      href: 'https://frontendmasters.com/courses/qwik/',
+      imgSrc: 'https://static.frontendmasters.com/assets/courses/2023-02-28-qwik/posterframe.webp',
+      title: 'FrontendMasters: Qwik for Instant-Loading Websites & Apps',
+    },
+  ],
   videos: [
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
     youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
@@ -90,7 +108,7 @@ export const MEDIA = mediaObj({
     },
   ],
   presentations: [
-    youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
+    youtube('Qwik framework overview', 'Jf_E1_19aB4', { startTime: 629 }),
     youtube(
       'Mindblowing Google PageSpeed Scores with Qwik | Misko Hevery | Reliable Web Summit 2021',
       'sCPLWf2cEY0'
@@ -98,7 +116,7 @@ export const MEDIA = mediaObj({
     youtube(
       'WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread',
       '0dC11DMR3fU',
-      154
+      { startTime: 154 }
     ),
     youtube(
       'Qwik: A holly grail of progressive hydration for ultimate speed by Miško Hevery',
@@ -293,7 +311,9 @@ export default component$(() => {
   useStyles$(styles);
   return (
     <article class="media">
-      <h1>Qwik Presentations, Talks, Videos and Podcasts</h1>
+      <h1>Qwik Courses, Presentations, Talks, Videos and Podcasts</h1>
+
+      <Section id="courses" listStyle="thumbnails" imgLoading="eager" />
 
       <Section id="videos" listStyle="thumbnails" imgLoading="eager" />
 

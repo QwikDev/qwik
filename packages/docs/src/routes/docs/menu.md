@@ -81,6 +81,7 @@
 - [The $ dollar sign](/docs/(qwik)/advanced/dollar/index.mdx)
 - [Containers](/docs/(qwik)/advanced/containers/index.mdx)
 - [QRL](/docs/(qwik)/advanced/qrl/index.mdx)
+- [Library](/docs/(qwik)/advanced/library/index.mdx)
 - [Qwikloader](/docs/(qwik)/advanced/qwikloader/index.mdx)
 - [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx)
 - [Prefetching](/docs/(qwik)/advanced/prefetching/index.mdx)

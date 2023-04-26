@@ -35,7 +35,7 @@ export default component$(() => {
 });
 ```
 
-Route Loaders are perfect to fetch data from a database or an API. For example you can use them to fetch data from a CMS, a weather API, of a list of users from your database.
+Route Loaders are perfect to fetch data from a database or an API. For example you can use them to fetch data from a CMS, a weather API, or a list of users from your database.
 
 > You should not use a `routeLoader$` to create a REST API, for that you’d be better off using an [Endpoint](/docs/(qwikcity)/endpoints/index.mdx), which allows you to have tight control over the response headers and body.
 
@@ -172,7 +172,7 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
 
 In addition, the `fail` function allows `routeLoader$` to override the HTTP status code, for example retuning 404.
 
-This is useful when the loader needs to return a "error" value that is not `undefined`, but it also needs to indicate that the data failed to load.
+This is useful when the loader needs to return an "error" value that is not `undefined`, but it also needs to indicate that the data failed to load.
 
 ```tsx /requestEvent.fail/ /errorMessage/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -205,8 +205,8 @@ export default component$(() => {
 
 ## Performance considerations
 
-Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in SPA or MPA, and they are executed even if the user is navigating to the same page.
+Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in a SPA or MPA, and they are executed even if the user is navigating to the same page.
 
-Loaders execute after the Qwik Middlewares handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered, this allows to start fetching data as soon as possible, reducing latency.
+Loaders execute after the Qwik Middlewares handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered. This allows the loaders to start fetching data as soon as possible, reducing latency.
 
 

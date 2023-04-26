@@ -516,15 +516,17 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
     target: EventTarget & T;
 }
 
-// Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IntrinsicElements" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
+export interface QwikIntrinsicElements extends IntrinsicElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "QwikCustomSVGAttributes" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "QwikCustomSVGElement" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
+    [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement> | QwikCustomSVGAttributes<QwikCustomSVGElement>;
     // Warning: (ae-forgotten-export) The symbol "QwikScriptHTMLAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

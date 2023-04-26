@@ -24,7 +24,10 @@ const makeEditPageUrl = (url: string): string => {
     'routing',
     'speculative-module-fetching',
     'static-assets',
+    'sitemaps',
   ];
+
+  const nonGroupedDirectories = ['integrations', 'deployments'];
 
   const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
 
@@ -34,6 +37,10 @@ const makeEditPageUrl = (url: string): string => {
   }
 
   const qwikDocsPathname = urlPathnames.at(1) as string;
+
+  if (nonGroupedDirectories.includes(qwikDocsPathname)) {
+    return urlPathnames.join('/');
+  }
 
   if (qwikDocsPathname.includes('advanced')) {
     // since we advanced named folder in (qwik) and (qwikcity) this will ensure both are not conflicting.

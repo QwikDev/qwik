@@ -105,3 +105,20 @@ The library starter is also a standalone Qwik app (without routing, nor Qwik Cit
 
 Do not worry about them, they won't be part of the final library, but they are useful during development and testing, so you can test your components in a real Qwik app.
 
+## Build and publish
+
+In order to publish your library, you have to first build it in `lib` mode and then publish to npm.
+
+```bash
+npm run build
+```
+
+This will create a `lib` folder with the following structure. Then you can publish it to npm.
+
+```bash {2,11,14}
+npm publish
+```
+
+> Notice that before first publishing, you might want to update the `package.json` fields, like `name`, `version`, `description`, etc.
+
+> For any other subsequent publish, you will need to update the `version` field.

@@ -134,7 +134,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   if (installDepNames) {
     log.message(
       [
-        `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
+        `📜 ${cyan(`New ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
         ...installDepNames.map(
           (depName) => `   - ${depName} ${result.updates.installedDeps[depName]}`
         ),

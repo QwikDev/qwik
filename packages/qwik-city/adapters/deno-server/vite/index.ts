@@ -23,6 +23,7 @@ export function denoServerAdapter(opts: DenoServerAdapterOptions = {}): any {
         },
         build: {
           ssr: true,
+          target: 'esnext',
           rollupOptions: {
             output: {
               format: 'es',

@@ -8,15 +8,20 @@ contributors:
 
 # Prisma
 
-Prima ORM can be used in Qwik using `routeLoader$`, `routeAction$` and `server$` functions. These are APIs to allow code to execute only on the server-side, which is what Prisma needs.
+[Prisma](https://www.prisma.io/) allows to interact with [MongoDB](https://www.prisma.io/docs/concepts/database-connectors/mongodb) or [SQL databases](https://www.prisma.io/docs/concepts/database-connectors/postgresql) in a fully type safety manner.
+
+With Prisma you define your DB schema in `.prisma` files, and their CLI automatically generates the DB migrations, as well, as the Typescript types.
+
+Prima ORM can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
 
 The easiest way to add Prisma to Qwik is using the `pnpm qwik add prisma` command. This will install the required dependencies and create a `prisma` folder with the Prisma schema and the migrations.
-
-Prisma makes it easy to use different databases such as Postgres, MySQL, SQLite and MongoDB.
 
 ```bash
 npm run qwik add prisma
 ```
+
+> Prisma makes it easy to use different databases such as Postgres, MySQL, SQLite and MongoDB.
+
 
 ## Listing all the users
 
@@ -133,4 +138,15 @@ export default component$(() => {
 });
 ```
 
+## Limitations
+
+### Big WASM binary
+
+Prima Client needs a 14MB WASM binary that might be too big if you plan to deploy your app to a serverless environment. We recommend using Prisma only if you deploy to a Node.js environment, such as Google Cloud Run, Express, or Azure.
+
+Check out [this blog post for more details](https://dev.to/nexxeln/typesafe-database-queries-on-the-edge-5bbn)
+
+### Prisma Client might not work great with `pnpm`
+
+The way Prisma generates the client types abuses how `npm` node_modules work, which is different from how `pnpm` works. We recommend using `npm` is you plan to use Prisma.
 

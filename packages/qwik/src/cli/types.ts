@@ -29,6 +29,7 @@ export interface FsUpdates {
     type: 'create' | 'overwrite' | 'modify';
   }[];
   installedDeps: { [dep: string]: string };
+  installedScripts: string[];
 }
 
 export interface IntegrationData {

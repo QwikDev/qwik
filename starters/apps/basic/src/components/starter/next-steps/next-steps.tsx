@@ -11,12 +11,12 @@ export const GETTING_STARTED_STEPS = [
   },
   {
     message:
-      '<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes/(starter)/layout.tsx</code> file',
+      '<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes//layout.tsx</code> file',
     hint: 'Instead of returning the current date, you could return any possible string.<br />The output is displayed in the footer.',
   },
   {
     message: 'Create a <b>new Route</b> called <code>/me</code>',
-    hint: 'Create a new directory called <code>me</code> in <code>src/routes</code>. Within this directory create a <code>index.tsx</code> file or copy the <code>src/routes/(starter)/index.tsx</code> file. Your new route is now accessible <a href="/me" target="_blank">here</a> ✨',
+    hint: 'Create a new directory called <code>me</code> in <code>src/routes</code>. Within this directory create a <code>index.tsx</code> file or copy the <code>src/routes/index.tsx</code> file. Your new route is now accessible <a href="/me" target="_blank">here</a> ✨',
   },
   {
     message: 'Time to have a look at <b>Forms</b>',

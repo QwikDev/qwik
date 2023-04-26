@@ -18,7 +18,7 @@
       "https://qwik.builder.io/integrations/integration/prisma/",
       "https://www.prisma.io/docs/concepts/overview/what-is-prisma"
     ],
-    "postInstall": "prisma migrate dev && prisma generate",
+    "postInstall": "prisma migrate dev --name initial",
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
@@ -28,7 +28,7 @@
         " you'll want to use Postgres or MongoDB.",
         "",
         " Check out the Prisma docs for more info:",
-        "   - https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases/connect-your-database-typescript-postgres"
+        "   - https://www.prisma.io/docs/getting-started"
       ]
     }
   }

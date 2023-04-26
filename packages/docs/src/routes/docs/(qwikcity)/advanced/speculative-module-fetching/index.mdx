@@ -48,7 +48,7 @@ By pre-populating the cache from within a service worker (which is a worker), we
 
 ### Interactively Pre-populating the Cache
 
-Qwik itself should be to use the [prefetchEvent](../../../(qwik)/advanced/prefetching/index.mdx#prefetching-implementation) implementation (which is also Qwik's default). When Qwik emits the event, the service worker registration actively forwards the event data to the installed and active service worker.
+Qwik itself should be configured to use the [prefetchEvent](../../../(qwik)/advanced/prefetching/index.mdx#prefetching-implementation) implementation (which is also Qwik's default). When Qwik emits the event, the service worker registration actively forwards the event data to the installed and active service worker.
 
 The service worker (which runs in a background thread) then fetches the modules and adds them to the browser's cache. “The main thread only needs to emit data about the required bundles, while the service worker’s sole focus is to cache those bundles. To achieve this, the service worker pre-populates the browser’s [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
 

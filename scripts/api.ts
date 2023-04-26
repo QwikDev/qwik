@@ -84,6 +84,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adapters', 'deno-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'deno-server', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'adapters', 'node-server', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'node-server', 'vite', 'index.d.ts')
   );
@@ -116,6 +121,11 @@ export function apiExtractor(config: BuildConfig) {
     config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'deno'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'deno', 'index.d.ts')
   );
   createTypesApi(
     config,

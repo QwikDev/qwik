@@ -27,7 +27,7 @@ const makeEditPageUrl = (url: string): string => {
     'sitemaps',
   ];
 
-  const nonGroupedDirectories = ['integrations', 'deployments'];
+  const whitelistedDirectories = ['integrations', 'deployments', 'community'];
 
   const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
 
@@ -38,7 +38,10 @@ const makeEditPageUrl = (url: string): string => {
 
   const qwikDocsPathname = urlPathnames.at(1) as string;
 
-  if (nonGroupedDirectories.includes(qwikDocsPathname)) {
+  if (
+    whitelistedDirectories.includes(urlPathnames.at(0) as string) ||
+    whitelistedDirectories.includes(qwikDocsPathname)
+  ) {
     return urlPathnames.join('/');
   }
 

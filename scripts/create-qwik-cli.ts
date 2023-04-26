@@ -134,12 +134,14 @@ export async function copyStartersDir(
 
       const distStartersDirs = await readdir(distDir);
       await Promise.all(
-        distStartersDirs.map(async (distStartersDir) => {
-          const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
-          if (!existsSync(pkgJsonPath)) {
-            throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
-          }
-        })
+        distStartersDirs
+          .filter((a) => a !== '.DS_Store')
+          .map(async (distStartersDir) => {
+            const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
+            if (!existsSync(pkgJsonPath)) {
+              throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
+            }
+          })
       );
     })
   );

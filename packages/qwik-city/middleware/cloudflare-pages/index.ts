@@ -26,8 +26,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
-  async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
+  async function onCloudflarePagesRequest(ctx: EventPluginContext) {
     try {
+      const { request, env, waitUntil, next } = ctx;
       const url = new URL(request.url);
 
       if (isStaticPath(request.method, url)) {
@@ -69,7 +70,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           resolve(response);
           return writable;
         },
-        platform: env,
+        platform: ctx,
       };
 
       // send request to qwik city request handler
@@ -130,7 +131,9 @@ export interface EventPluginContext {
  * @public
  */
 export interface PlatformCloudflarePages {
-  env?: EventPluginContext['env'];
+  request: EventPluginContext['env'];
+  waitUntil: EventPluginContext['waitUntil'];
+  env: EventPluginContext['env'];
 }
 
 const resolved = Promise.resolve();

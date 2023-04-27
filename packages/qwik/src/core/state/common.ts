@@ -1,4 +1,4 @@
-import { assertTrue } from '../error/assert';
+import { assertFail, assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
 import { isNode } from '../util/element';
 import { seal } from '../util/qdev';
@@ -246,7 +246,7 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
       const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
       base += ` ${signalID} ${nodeID}`;
     } else {
-      assertTrue(true, 'Should not get here');
+      assertFail('Should not get here');
     }
   }
   return base;

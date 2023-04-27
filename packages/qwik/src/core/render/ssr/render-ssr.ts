@@ -305,7 +305,7 @@ const CLOSE_VIRTUAL = `<!--/qv-->`;
 
 const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
-  for (const prop of Object.keys(attributes)) {
+  for (const prop in attributes) {
     if (prop === 'dangerouslySetInnerHTML') {
       continue;
     }
@@ -319,7 +319,7 @@ const renderAttributes = (attributes: Record<string, string>): string => {
 
 const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
-  for (const prop of Object.keys(attributes)) {
+  for (const prop in attributes) {
     if (prop === 'children') {
       continue;
     }
@@ -514,7 +514,7 @@ const renderNode = (
       throw new TypeError('Can only have one of class or className');
     }
     if (immutable) {
-      for (const prop of Object.keys(immutable)) {
+      for (const prop in immutable) {
         let value = immutable[prop];
         if (isOnProp(prop)) {
           setEvent(elCtx.li, prop, value, undefined);
@@ -550,7 +550,7 @@ const renderNode = (
         }
       }
     }
-    for (const prop of Object.keys(props)) {
+    for (const prop in props) {
       let value = props[prop];
       if (prop === 'ref') {
         setRef(value, elm);

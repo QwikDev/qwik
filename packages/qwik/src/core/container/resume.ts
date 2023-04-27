@@ -2,13 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import {
-  ELEMENT_ID,
-  ELEMENT_ID_PREFIX,
-  INLINE_FN_PREFIX,
-  QContainerAttr,
-  QStyle,
-} from '../util/markers';
+import { ELEMENT_ID, QContainerAttr, QStyle } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -184,8 +178,8 @@ export const resumeContainer = (containerEl: Element) => {
 
   const computeObject: GetObject = (id) => {
     // Handle elements
-    if (id.startsWith(ELEMENT_ID_PREFIX)) {
-      const elementId = id.slice(ELEMENT_ID_PREFIX.length);
+    if (id.startsWith('#')) {
+      const elementId = id.slice(1);
       const index = strToInt(elementId);
       assertTrue(elements.has(index), `missing element for id:`, elementId);
       const rawElement = elements.get(index);
@@ -207,8 +201,8 @@ export const resumeContainer = (containerEl: Element) => {
       }
       finalized.set(id, rawElement);
       return rawElement;
-    } else if (id.startsWith(INLINE_FN_PREFIX)) {
-      const funcId = id.slice(INLINE_FN_PREFIX.length);
+    } else if (id.startsWith('@')) {
+      const funcId = id.slice(1);
       const index = strToInt(funcId);
       const func = inlinedFunctions[index];
       assertDefined(func, `missing inlined function for id:`, funcId);
@@ -299,7 +293,7 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
         obj[i] = getObject(obj[i]);
       }
     } else if (isSerializableObject(obj)) {
-      for (const key of Object.keys(obj)) {
+      for (const key in obj) {
         obj[key] = getObject(obj[key]);
       }
     }

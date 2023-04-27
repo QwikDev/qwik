@@ -49,7 +49,7 @@ export const renderComponent = (
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
-      return then(smartUpdateChildren(newCtx, oldVdom, newVdom, 'root', flags), () => {
+      return then(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
         // setVdom(hostElement, newVdom);
         elCtx.$vdom$ = newVdom;
       });

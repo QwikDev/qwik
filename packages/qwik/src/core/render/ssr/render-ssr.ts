@@ -27,10 +27,10 @@ import {
 } from '../../state/listeners';
 import { version } from '../../version';
 import {
-  addQwikEvent,
   type ContainerState,
   createContainerState,
   setRef,
+  getEventName,
 } from '../../container/container';
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../error/assert';
@@ -429,7 +429,7 @@ const renderSSRComponent = (
           for (const listener of groups) {
             const eventName = normalizeInvisibleEvents(listener[0]);
             attributes[eventName] = serializeQRLs(listener[1], placeholderCtx);
-            addQwikEvent(eventName, rCtx.$static$.$containerState$);
+            registerQwikEvent(eventName, rCtx.$static$.$containerState$);
           }
           renderNodeElementSync('script', attributes, stream);
         }
@@ -531,7 +531,7 @@ const renderNode = (
           continue;
         }
         if (prop.startsWith(PREVENT_DEFAULT)) {
-          addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+          registerQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
         }
         const attrValue = processPropValue(attrName, value);
         if (attrValue != null) {
@@ -572,7 +572,7 @@ const renderNode = (
         continue;
       }
       if (prop.startsWith(PREVENT_DEFAULT)) {
-        addQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+        registerQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
       }
       const attrValue = processPropValue(attrName, value);
       if (attrValue != null) {
@@ -696,7 +696,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       for (const listener of groups) {
         const eventName = isInvisible ? normalizeInvisibleEvents(listener[0]) : listener[0];
         openingElement += ' ' + eventName + '="' + serializeQRLs(listener[1], elCtx) + '"';
-        addQwikEvent(eventName, rCtx.$static$.$containerState$);
+        registerQwikEvent(eventName, rCtx.$static$.$containerState$);
       }
     }
     if (key != null) {
@@ -1139,6 +1139,10 @@ export interface ServerDocument {
 
 const ESCAPE_HTML = /[&<>]/g;
 const ESCAPE_ATTRIBUTES = /[&"]/g;
+
+export const registerQwikEvent = (prop: string, containerState: ContainerState) => {
+  containerState.$events$.add(getEventName(prop));
+};
 
 const escapeHtml = (s: string) => {
   return s.replace(ESCAPE_HTML, (c) => {

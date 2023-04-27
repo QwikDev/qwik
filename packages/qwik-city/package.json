@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "2.3.0",
-    "@types/mdx": "2.0.4",
+    "@types/mdx": "2.0.5",
     "source-map": "0.7.4",
     "vfile": "5.3.7",
     "zod": "^3.21.4"
@@ -91,7 +91,7 @@
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.0.8",
     "@types/mdast": "^3.0.11",
-    "@types/node": "^18.16.0",
+    "@types/node": "^18.16.1",
     "@types/refractor": "3.0.2",
     "estree-util-value-to-estree": "3.0.1",
     "github-slugger": "2.0.0",
@@ -109,8 +109,8 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
-    "vite": "4.3.2",
-    "yaml": "2.2.1"
+    "vite": "4.3.3",
+    "yaml": "2.2.2"
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.22.0"

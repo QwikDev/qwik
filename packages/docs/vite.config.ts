@@ -104,7 +104,7 @@ export default defineConfig(() => {
 });
 
 const page = {
-  xEi06O8vOjU: 'page',
+  KnNE9eL0qfc: 'page',
   '9t1uPE4yoLA': 'page',
 };
 

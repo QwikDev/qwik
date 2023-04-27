@@ -3105,8 +3105,8 @@ export { qwikify$, qwikifyQrl, renderToString };
 fn example_qwik_sdk_inline() {
     test_input!(TestInput {
         code: include_str!("fixtures/index.qwik.mjs").to_string(),
-        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
-        entry_strategy: EntryStrategy::Component,
+        filename: "../node_modules/@builder.io/qwik-city/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Smart,
         explicit_extensions: true,
         mode: EmitMode::Prod,
         ..TestInput::default()

@@ -1,6 +1,6 @@
-use crate::parse::PathData;
 use crate::transform::HookData;
 use crate::words::*;
+use crate::{parse::PathData, transform::HookKind};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -143,6 +143,11 @@ impl EntryPolicy for SmartStrategy {
         context: &[String],
         hook_data: &HookData,
     ) -> Option<JsWord> {
+        if hook_data.scoped_idents.is_empty()
+            && (hook_data.ctx_kind != HookKind::Function || &hook_data.ctx_name == "event$")
+        {
+            return None;
+        }
         if hook_data.ctx_name == *USE_SERVER_MOUNT {
             return Some(ENTRY_SERVER.clone());
         }

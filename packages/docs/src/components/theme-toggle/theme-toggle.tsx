@@ -1,4 +1,4 @@
-import { $, component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, event$, useContext, useStyles$ } from '@builder.io/qwik';
 import { SunAndMoon } from './sun-and-moon';
 import { themeStorageKey } from '../router-head/theme-script';
 import themeToggle from './theme-toggle.css?inline';
@@ -39,7 +39,7 @@ export const ThemeToggle = component$(() => {
   useStyles$(themeToggle);
   const state = useContext(GlobalStore);
 
-  const onClick$ = $(() => {
+  const onClick$ = event$(() => {
     state.theme = state.theme === 'light' ? 'dark' : 'light';
     setPreference(state.theme);
   });

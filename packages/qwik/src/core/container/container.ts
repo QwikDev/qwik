@@ -1,8 +1,6 @@
 import { qError, QError_invalidRefValue } from '../error/error';
-import { isServerPlatform } from '../platform/platform';
 import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
-import { logWarn } from '../util/log';
-import { qSerialize, qTest, seal } from '../util/qdev';
+import { seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
@@ -167,21 +165,6 @@ export const setRef = (value: any, elm: Element) => {
     }
   }
   throw qError(QError_invalidRefValue, value);
-};
-
-export const addQwikEvent = (prop: string, containerState: ContainerState) => {
-  const eventName = getEventName(prop);
-  if (!qTest && !isServerPlatform()) {
-    try {
-      const qwikevents = ((globalThis as any).qwikevents ||= []);
-      qwikevents.push(eventName);
-    } catch (err) {
-      logWarn(err);
-    }
-  }
-  if (qSerialize) {
-    containerState.$events$.add(eventName);
-  }
 };
 
 export const SHOW_ELEMENT = 1;

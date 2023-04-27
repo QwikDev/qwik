@@ -34,7 +34,7 @@ import {
   static_subtree,
   stringifyStyle,
 } from '../execute-component';
-import { addQwikEvent, type ContainerState, setRef } from '../../container/container';
+import { type ContainerState, setRef, getEventName } from '../../container/container';
 import {
   getRootNode,
   newVirtualElement,
@@ -367,6 +367,7 @@ export const diffVnode = (
   const elm = oldVnode.$elm$;
   const tag = newVnode.$type$;
   const staticCtx = rCtx.$static$;
+  const containerState = staticCtx.$containerState$;
   const currentComponent = rCtx.$cmpCtx$;
   assertDefined(elm, 'while patching element must be defined');
   assertDefined(currentComponent, 'while patching current component must be defined');
@@ -375,7 +376,7 @@ export const diffVnode = (
 
   // Render text nodes
   if (tag === '#text') {
-    rCtx.$static$.$visited$.push(elm);
+    staticCtx.$visited$.push(elm);
     const signal = newVnode.$signal$;
     if (signal) {
       newVnode.$text$ = jsxToString(
@@ -389,7 +390,7 @@ export const diffVnode = (
 
   const props = newVnode.$props$;
   const vnodeFlags = newVnode.$flags$;
-  const elCtx = getContext(elm, rCtx.$static$.$containerState$);
+  const elCtx = getContext(elm, containerState);
 
   if (tag !== VIRTUAL) {
     // Track SVG state
@@ -415,7 +416,8 @@ export const diffVnode = (
         }
 
         if (isOnProp(prop)) {
-          browserSetEvent(staticCtx, elCtx, prop, newValue);
+          const normalized = setEvent(elCtx.li, prop, newValue, containerState.$containerEl$);
+          addQwikEvent(staticCtx, elm, normalized);
           continue;
         }
 
@@ -454,7 +456,7 @@ export const diffVnode = (
     return smartUpdateChildren(rCtx, oldVnode, newVnode, flags);
   } else if (OnRenderProp in props) {
     const cmpProps = props.props;
-    setComponentProps(elCtx, rCtx, cmpProps);
+    setComponentProps(containerState, elCtx, cmpProps);
     let needsRender = !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
     // TODO: review this corner case
     if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
@@ -649,6 +651,7 @@ const createElm = (
   const isVirtual = tag === VIRTUAL;
   const props = vnode.$props$;
   const staticCtx = rCtx.$static$;
+  const containerState = staticCtx.$containerState$;
   if (isVirtual) {
     elm = newVirtualElement(doc);
   } else if (tag === 'head') {
@@ -700,6 +703,9 @@ const createElm = (
         currentComponent.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
       }
     }
+    for (const listener of elCtx.li) {
+      addQwikEvent(staticCtx, elm, listener[0]);
+    }
     const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
     if (setsInnerHTML) {
       if (qDev && vnode.$children$.length > 0) {
@@ -714,7 +720,6 @@ const createElm = (
   } else if (OnRenderProp in props) {
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
-    const containerState = rCtx.$static$.$containerState$;
     const target = createPropsState();
     const manager = containerState.$subsManager$.$createManager$();
     const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager));
@@ -937,7 +942,7 @@ export const smartSetProperty = (
   }
 
   if (prop.startsWith(PREVENT_DEFAULT)) {
-    addQwikEvent(prop.slice(PREVENT_DEFAULT.length), staticCtx.$containerState$);
+    registerQwikEvent(prop.slice(PREVENT_DEFAULT.length));
   }
 
   // Fallback to render attribute
@@ -989,7 +994,7 @@ export const setProperties = (
     }
 
     if (isOnProp(prop)) {
-      browserSetEvent(staticCtx, elCtx, prop, newValue);
+      setEvent(elCtx.li, prop, newValue, staticCtx.$containerState$.$containerEl$);
       continue;
     }
 
@@ -1021,13 +1026,13 @@ export const setProperties = (
 };
 
 export const setComponentProps = (
+  containerState: ContainerState,
   elCtx: QContext,
-  rCtx: RenderContext,
   expectProps: Record<string, any>
 ) => {
   let props = elCtx.$props$;
   if (!props) {
-    elCtx.$props$ = props = createProxy(createPropsState(), rCtx.$static$.$containerState$);
+    elCtx.$props$ = props = createProxy(createPropsState(), containerState);
   }
   if (expectProps === EMPTY_OBJ) {
     return;
@@ -1151,16 +1156,21 @@ const createKeyToOldIdx = (
   return map;
 };
 
-const browserSetEvent = (
-  staticCtx: RenderStaticContext,
-  elCtx: QContext,
-  prop: string,
-  input: any
-) => {
-  const containerState = staticCtx.$containerState$;
-  const normalized = setEvent(elCtx.li, prop, input, containerState.$containerEl$);
-  if (!prop.startsWith('on')) {
-    setAttribute(staticCtx, elCtx.$element$, normalized, '');
+export const addQwikEvent = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
+  if (!prop.startsWith('on:')) {
+    setAttribute(staticCtx, elm, prop, '');
   }
-  addQwikEvent(normalized, containerState);
+  registerQwikEvent(prop);
+};
+
+export const registerQwikEvent = (prop: string) => {
+  if (!qTest) {
+    const eventName = getEventName(prop);
+    try {
+      const qwikevents = ((globalThis as any).qwikevents ||= []);
+      qwikevents.push(eventName);
+    } catch (err) {
+      logWarn(err);
+    }
+  }
 };

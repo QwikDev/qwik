@@ -7,10 +7,18 @@
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public (undocumented)
-export function createQwikCity(opts: QwikCityDenoOptions): (request: Request) => Promise<Response>;
+export function createQwikCity(opts: QwikCityDenoOptions): {
+    router: (request: Request) => Promise<Response>;
+    notFound: (request: Request) => Promise<Response>;
+    staticFile: (request: Request) => Promise<Response | null>;
+};
 
 // @public (undocumented)
 export interface QwikCityDenoOptions extends ServerRenderOptions {
+    static?: {
+        root?: string;
+        cacheControl?: string;
+    };
 }
 
 // (No @packageDocumentation comment for this package)

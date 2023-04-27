@@ -97,15 +97,30 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     }
   };
 
+  const readStaticFile = async (url: URL) => {
+    const parts = url.pathname.split('/');
+    const fileName = parts[parts.length - 1];
+    let filePath: string;
+    if (fileName.includes('.')) {
+      filePath = join(staticFolder, url.pathname);
+    } else if (opts.qwikCityPlan.trailingSlash) {
+      filePath = join(staticFolder, url.pathname + 'index.html');
+    } else {
+      filePath = join(staticFolder, url.pathname, 'index.html');
+    }
+    return {
+      filePath,
+      content: await Deno.readTextFile(filePath),
+    };
+  };
+
   const staticFile = async (request: Request) => {
     try {
       const url = new URL(request.url);
 
       if (isStaticPath(request.method || 'GET', url)) {
-        const filePath = join(staticFolder, url.pathname);
-        const ext = extname(url.pathname).replace(/^\./, '');
-
-        const content = await Deno.readTextFile(filePath);
+        const { filePath, content } = await readStaticFile(url);
+        const ext = extname(filePath).replace(/^\./, '');
 
         return new Response(content, {
           status: 200,

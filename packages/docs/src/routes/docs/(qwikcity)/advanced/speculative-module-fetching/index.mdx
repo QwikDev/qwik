@@ -61,7 +61,7 @@ Additionally, the service worker ensures that multiple requests for the same bun
 
 ## Caching Request and Response Pairs
 
-In many traditional frameworks, the preferred strategy is to use `<link>` with a `rel` attribute of `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](../../../(qwik)/advanced/prefetching/index.mdx#link-rel) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../(qwik)/advanced/prefetching/index.mdx).
+In many traditional frameworks, the preferred strategy is to use `<link>` with a `rel` attribute of `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](../../../(qwik)/advanced/prefetching/index.mdx#link-rel) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../(qwik)/advanced/prefetching/index.mdx)).
 
 Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](../../../(qwik)/advanced/prefetching/index.mdx#link-rel).
 
@@ -83,7 +83,7 @@ const module = await import('/build/q-abc.js');
 
 What's important here is that Qwik itself has no knowledge of a prefetching or caching strategy. It's simply making a request for a URL. However, because we've installed a service worker, and the service worker is intercepting requests, it's able to inspect the URL and say, "look, this is a request for `/build/q-abc.js`! This is one of our bundles! Let's first check to see if we already have this in the cache before we do an actual network request."
 
-This is where the power of the service worker and cache API comes in! Qwik first pre-populates the cache for modules the user may soon request within another thread. And better yet, if it's already cached, then there's no need for the browser to do anything.
+This is where the power of the service worker and Cache API comes in! Qwik first pre-populates the cache for modules the user may soon request within another thread. And better yet, if it's already cached, then there's no need for the browser to do anything.
 
 Other benefits include [Parallelizing Network Requests](#parallelizing-network-requests).
 
@@ -163,7 +163,7 @@ So while Qwik City does provide a way to help prefetch and cache bundles, it doe
 
 ## Disabled During Development and Preview
 
-One gotcha is that during development, and using Vite's preview mode, is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the latest development code is always being used, rather than previous code. 
+One gotcha during development and using Vite's preview mode is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the latest development code is being used, rather than previous code. 
 
 Speculative module fetching only kicks on a production build. To see speculative module fetching in action you'll need to run the production build on a server other than development or preview.
 

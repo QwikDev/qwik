@@ -157,8 +157,8 @@ export const RenderOnce: FunctionComponent<{
 };
 
 const validateJSXNode = (node: JSXNode) => {
-  const { type, props, immutableProps, children } = node;
   if (qDev) {
+    const { type, props, immutableProps, children } = node;
     invoke(undefined, () => {
       const isQwikC = isQwikComponent(type);
       if (!isString(type) && !isFunction(type)) {

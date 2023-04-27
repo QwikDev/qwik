@@ -102,7 +102,7 @@ const renderRoot = async (
     const processedNodes = await processData(jsxNode);
     // const rootJsx = getVdom(parent);
     const rootJsx = domToVnode(parent);
-    await smartUpdateChildren(rCtx, rootJsx, wrapJSX(parent, processedNodes), 'root', 0);
+    await smartUpdateChildren(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
   } catch (err) {
     logError(err);
   }

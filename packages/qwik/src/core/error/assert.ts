@@ -28,6 +28,12 @@ export function assertEqual(
   }
 }
 
+export function assertFail(text: string, ...parts: any[]): never;
+export function assertFail(text: string, ...parts: any[]) {
+  if (qDev) {
+    throw logErrorAndStop(text, ...parts);
+  }
+}
 export function assertTrue(value1: any, text: string, ...parts: any[]): asserts value1 is true {
   if (qDev) {
     if (value1 === true) {

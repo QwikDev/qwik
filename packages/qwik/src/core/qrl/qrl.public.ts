@@ -162,7 +162,9 @@ let runtimeSymbolId = 0;
 /**
  * @public
  */
-export type PropFunction<T extends Function = ((...args: any[]) => any)> = T extends (...args: infer ARGS) => infer RET
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
+  ...args: infer ARGS
+) => infer RET
   ? PropFnInterface<ARGS, RET>
   : never;
 

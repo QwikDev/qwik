@@ -2,11 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import {
-  ELEMENT_ID,
-  QContainerAttr,
-  QStyle,
-} from '../util/markers';
+import { ELEMENT_ID, QContainerAttr, QStyle } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 

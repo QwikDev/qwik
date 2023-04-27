@@ -1,5 +1,11 @@
 import { assertEqual, assertFail, assertTrue } from '../../error/assert';
-import { isComment, isElement, isNodeElement, isQwikElement, isVirtualElement } from '../../util/element';
+import {
+  isComment,
+  isElement,
+  isNodeElement,
+  isQwikElement,
+  isVirtualElement,
+} from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { createElement } from './operations';
@@ -350,7 +356,7 @@ export const findClose = (open: Comment): Comment => {
     }
     node = node.nextSibling;
   }
-  assertFail('close not found')
+  assertFail('close not found');
 };
 
 export const getRootNode = (node: Node | VirtualElement | null): Node => {

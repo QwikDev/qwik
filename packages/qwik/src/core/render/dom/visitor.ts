@@ -90,7 +90,7 @@ type PropHandler = (
   staticCtx: RenderStaticContext,
   el: HTMLElement,
   newValue: any,
-  ProcessedJSXNodeImpl: string,
+  ProcessedJSXNodeImpl: string
 ) => boolean;
 
 export type ChildrenMode = 'root' | 'head' | 'elements';
@@ -128,7 +128,10 @@ export const smartUpdateChildren = (
   }
 };
 
-export const getVnodeChildren = (oldVnode: ProcessedJSXNode, filter: (el: Node | VirtualElement) => boolean) => {
+export const getVnodeChildren = (
+  oldVnode: ProcessedJSXNode,
+  filter: (el: Node | VirtualElement) => boolean
+) => {
   const oldCh = oldVnode.$children$;
   const elm = oldVnode.$elm$ as Element;
   if (oldCh === CHILDREN_PLACEHOLDER) {
@@ -261,7 +264,6 @@ export const getChildren = (elm: QwikElement, filter: (el: Node | VirtualElement
 //       return getCh(elm, isNodeElement);
 //   }
 // };
-
 
 const getChildrenVnodes = (elm: QwikElement, filter: (el: Node | VirtualElement) => boolean) => {
   return getChildren(elm, filter).map(getVnodeFromEl);

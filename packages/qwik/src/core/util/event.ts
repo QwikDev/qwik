@@ -1,4 +1,4 @@
-import { isBrowser } from "@builder.io/qwik/build";
+import { isBrowser } from '@builder.io/qwik/build';
 
 export const emitEvent = (
   el: Element | undefined,

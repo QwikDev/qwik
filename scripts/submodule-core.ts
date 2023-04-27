@@ -194,7 +194,6 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       keep_fargs: false,
       join_vars: false,
 
-
       global_defs: {
         'globalThis.qDev': false,
         'globalThis.qInspector': false,

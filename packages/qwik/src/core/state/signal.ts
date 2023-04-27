@@ -25,9 +25,7 @@ export interface Signal<T = any> {
 /**
  * @public
  */
-export interface ReadonlySignal<T = any> {
-  readonly value: T;
-}
+export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
 
 /**
  * @public

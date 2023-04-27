@@ -1157,7 +1157,7 @@ const createKeyToOldIdx = (
 };
 
 export const addQwikEvent = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
-  if (prop.includes(':')) {
+  if (!prop.startsWith('on:')) {
     setAttribute(staticCtx, elm, prop, '');
   }
   registerQwikEvent(prop);

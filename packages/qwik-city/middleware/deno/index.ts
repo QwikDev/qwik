@@ -11,7 +11,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
-import { extname, join } from 'https://deno.land/std/path/mod.ts';
+import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 // @builder.io/qwik-city/middleware/deno
 
@@ -28,7 +28,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     setServerPlatform(opts.manifest);
   }
 
-  const staticFolder = opts.static?.root ?? join(import.meta.url, '..', '..', 'dist');
+  const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), '..', '..', 'dist');
 
   async function router(request: Request) {
     try {

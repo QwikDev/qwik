@@ -2,7 +2,7 @@ import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';
-import { isElement, isNode } from '../../util/element';
+import { isElement, isNode, isQwikElement } from '../../util/element';
 import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
@@ -16,6 +16,7 @@ import {
   directInsertBefore,
   directRemoveChild,
   getChildren,
+  isChildComponent,
   isSlotTemplate,
   SVG_NS,
 } from './visitor';
@@ -172,7 +173,7 @@ export const directPrepend = (parent: QwikElement, newChild: Node) => {
 };
 
 export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
-  if (el.nodeType === 1 || el.nodeType === 111) {
+  if (isQwikElement(el)) {
     const subsManager = staticCtx.$containerState$.$subsManager$;
     cleanupTree(el as Element, staticCtx, subsManager, true);
   }
@@ -224,7 +225,7 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const slotChildren = getChildren(slotEl, 'root');
+    const slotChildren = getChildren(slotEl, isChildComponent);
     if (slotChildren.length > 0) {
       const sref = slotEl.getAttribute(QSlotRef);
       const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
@@ -264,7 +265,7 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       return isSlotTemplate(node) && node.getAttribute(QSlot) === key;
     }) as Element | undefined;
     if (template) {
-      const children = getChildren(template, 'root');
+      const children = getChildren(template, isChildComponent);
       children.forEach((child) => {
         directAppendChild(slotEl, child);
       });

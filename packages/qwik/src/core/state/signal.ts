@@ -75,7 +75,9 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
 
   // prevent accidental use as value
   valueOf() {
-    throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+    if (qDev) {
+      throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+    }
   }
   toString() {
     return `[Signal ${String(this.value)}]`;
@@ -171,11 +173,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (!isObject(obj)) {
     return obj[prop];
   }
-  if (obj instanceof SignalImpl) {
-    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    return obj;
-  }
-  if (obj instanceof SignalWrapper) {
+  if (obj instanceof SignalBase) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
   }

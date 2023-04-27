@@ -6,7 +6,7 @@ export const isNode = (value: any): value is Node => {
 };
 
 export const isDocument = (value: Node): value is Document => {
-  return value && value.nodeType === 9;
+  return value.nodeType === 9;
 };
 
 export const isElement = (value: Node | VirtualElement): value is Element => {
@@ -14,7 +14,8 @@ export const isElement = (value: Node | VirtualElement): value is Element => {
 };
 
 export const isQwikElement = (value: Node | VirtualElement): value is QwikElement => {
-  return value.nodeType === 1 || value.nodeType === 111;
+  const nodeType = value.nodeType;
+  return nodeType === 1 || nodeType === 111;
 };
 
 export const isNodeElement = (value: any): value is QwikElement => {
@@ -29,6 +30,7 @@ export const isVirtualElement = (value: Node | VirtualElement): value is Virtual
 export const isText = (value: Node): value is Text => {
   return value.nodeType === 3;
 };
+
 export const isComment = (value: Node): value is Comment => {
   return value.nodeType === 8;
 };

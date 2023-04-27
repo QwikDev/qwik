@@ -1,5 +1,11 @@
-import { assertEqual, assertTrue } from '../../error/assert';
-import { isComment, isElement, isQwikElement, isVirtualElement } from '../../util/element';
+import { assertEqual, assertFail, assertTrue } from '../../error/assert';
+import {
+  isComment,
+  isElement,
+  isNodeElement,
+  isQwikElement,
+  isVirtualElement,
+} from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { createElement } from './operations';
@@ -127,13 +133,13 @@ export class VirtualElementImpl implements VirtualElement {
   readonly nodeType = 111 as const;
   readonly localName = VIRTUAL;
   readonly nodeName = VIRTUAL;
-  private attributes: Map<string, string>;
-  private template: HTMLTemplateElement;
+  private $attributes$: Map<string, string>;
+  private $template$: HTMLTemplateElement;
 
   constructor(public open: Comment, public close: Comment) {
     const doc = (this.ownerDocument = open.ownerDocument);
-    this.template = createElement(doc, 'template', false) as HTMLTemplateElement;
-    this.attributes = parseVirtualAttributes(open.data.slice(3));
+    this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
+    this.$attributes$ = parseVirtualAttributes(open.data.slice(3));
     assertTrue(open.data.startsWith('qv '), 'comment is not a qv');
     (open as any)[VIRTUAL_SYMBOL] = this;
     seal(this);
@@ -145,7 +151,7 @@ export class VirtualElementImpl implements VirtualElement {
       const ref2 = ref ? ref : this.close;
       parent.insertBefore(node, ref2);
     } else {
-      this.template.insertBefore(node, ref);
+      this.$template$.insertBefore(node, ref);
     }
     return node;
   }
@@ -155,9 +161,9 @@ export class VirtualElementImpl implements VirtualElement {
     if (parent) {
       // const ch = this.childNodes;
       const ch = Array.from(this.childNodes);
-      assertEqual(this.template.childElementCount, 0, 'children should be empty');
+      assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
-      this.template.append(...ch);
+      this.$template$.append(...ch);
       parent.removeChild(this.close);
     }
   }
@@ -178,7 +184,7 @@ export class VirtualElementImpl implements VirtualElement {
       newParent.insertBefore(c, child);
     }
     newParent.insertBefore(this.close, child);
-    assertEqual(this.template.childElementCount, 0, 'children should be empty');
+    assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
   }
 
   appendTo(newParent: QwikElement) {
@@ -193,29 +199,29 @@ export class VirtualElementImpl implements VirtualElement {
     if (this.parentElement) {
       this.parentElement.removeChild(child);
     } else {
-      this.template.removeChild(child);
+      this.$template$.removeChild(child);
     }
   }
 
   getAttribute(prop: string) {
-    return this.attributes.get(prop) ?? null;
+    return this.$attributes$.get(prop) ?? null;
   }
 
   hasAttribute(prop: string) {
-    return this.attributes.has(prop);
+    return this.$attributes$.has(prop);
   }
 
   setAttribute(prop: string, value: string) {
-    this.attributes.set(prop, value);
+    this.$attributes$.set(prop, value);
     if (qSerialize) {
-      this.open.data = updateComment(this.attributes);
+      this.open.data = updateComment(this.$attributes$);
     }
   }
 
   removeAttribute(prop: string) {
-    this.attributes.delete(prop);
+    this.$attributes$.delete(prop);
     if (qSerialize) {
-      this.open.data = updateComment(this.attributes);
+      this.open.data = updateComment(this.$attributes$);
     }
   }
 
@@ -237,7 +243,7 @@ export class VirtualElementImpl implements VirtualElement {
 
   querySelectorAll(query: string) {
     const result: QwikElement[] = [];
-    const ch = getChildren(this, 'elements');
+    const ch = getChildren(this, isNodeElement);
     ch.forEach((el) => {
       if (isQwikElement(el)) {
         if (el.matches(query)) {
@@ -272,7 +278,7 @@ export class VirtualElementImpl implements VirtualElement {
       }
       return first;
     } else {
-      return this.template.firstChild;
+      return this.$template$.firstChild;
     }
   }
   get nextSibling() {
@@ -283,7 +289,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
   get childNodes(): Node[] {
     if (!this.parentElement) {
-      return this.template.childNodes as any;
+      return this.$template$.childNodes as any;
     }
     const nodes: Node[] = [];
     let node: Node | null = this.open;
@@ -350,7 +356,7 @@ export const findClose = (open: Comment): Comment => {
     }
     node = node.nextSibling;
   }
-  throw new Error('close not found');
+  assertFail('close not found');
 };
 
 export const getRootNode = (node: Node | VirtualElement | null): Node => {

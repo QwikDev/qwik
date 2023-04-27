@@ -192,7 +192,7 @@ importers:
         version: 0.0.22
       '@unpic/qwik':
         specifier: ^0.0.17
-        version: 0.0.17(@builder.io/qwik@0.103.0)
+        version: 0.0.17(@builder.io/qwik@0.104.0)
       openai:
         specifier: ^3.2.1
         version: 3.2.1
@@ -213,17 +213,17 @@ importers:
         specifier: 0.8.0
         version: 0.8.0
       '@builder.io/qwik':
-        specifier: 0.103.0
-        version: 0.103.0(undici@5.22.0)
+        specifier: 0.104.0
+        version: 0.104.0(undici@5.22.0)
       '@builder.io/qwik-city':
-        specifier: 0.103.0
-        version: 0.103.0(@builder.io/qwik@0.103.0)
+        specifier: 0.104.0
+        version: 0.104.0(@builder.io/qwik@0.104.0)
       '@builder.io/qwik-react':
         specifier: 0.5.0
-        version: 0.5.0(@builder.io/qwik@0.103.0)(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0)(react@18.2.0)
+        version: 0.5.0(@builder.io/qwik@0.104.0)(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0)(react@18.2.0)
       '@builder.io/sdk-qwik':
         specifier: ^0.2.1
-        version: 0.2.1(@builder.io/qwik@0.103.0)
+        version: 0.2.1(@builder.io/qwik@0.104.0)
       '@docsearch/css':
         specifier: 3.3.3
         version: 3.3.3
@@ -736,7 +736,23 @@ packages:
       - supports-color
     dev: true
 
-  /@builder.io/qwik-react@0.5.0(@builder.io/qwik@0.103.0)(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0)(react@18.2.0):
+  /@builder.io/qwik-city@0.104.0(@builder.io/qwik@0.104.0):
+    resolution: {integrity: sha512-5I3+c1KwmYZf+cAqvdjpydypMqpe6Gd68OCUr969F0bZOGSdZ5iCGKAgWyk2BXiaUdkMawPlTHbsNAzg62pDoA==}
+    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
+    peerDependencies:
+      '@builder.io/qwik': '>=0.22.0'
+    dependencies:
+      '@builder.io/qwik': 0.104.0(undici@5.22.0)
+      '@mdx-js/mdx': 2.3.0
+      '@types/mdx': 2.0.4
+      source-map: 0.7.4
+      vfile: 5.3.7
+      zod: 3.21.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@builder.io/qwik-react@0.5.0(@builder.io/qwik@0.104.0)(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-JdJWQWOJGv7ddQqEZwzR8wPh0IoCQZwD9qo75+reiQaLp6eH+Pjsm/kn1LaMQt6u72pCCNjnj5kEn/bnbfnIjQ==}
     engines: {node: '>=16'}
     peerDependencies:
@@ -746,7 +762,7 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': 0.103.0(undici@5.22.0)
+      '@builder.io/qwik': 0.104.0(undici@5.22.0)
       '@types/react': 18.2.0
       '@types/react-dom': 18.2.0
       react: 18.2.0
@@ -761,13 +777,23 @@ packages:
       undici: ^5.14.0
     dependencies:
       undici: 5.22.0
+    dev: true
 
-  /@builder.io/sdk-qwik@0.2.1(@builder.io/qwik@0.103.0):
+  /@builder.io/qwik@0.104.0(undici@5.22.0):
+    resolution: {integrity: sha512-A0+9xeYtACj3TAGfSlgsng7lIO1zHpUIsNHmAAUA3iB470pZ7+dli8McDYF2lP1+pgdIOSFgk20EEBcrLWeZcQ==}
+    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
+    hasBin: true
+    peerDependencies:
+      undici: ^5.14.0
+    dependencies:
+      undici: 5.22.0
+
+  /@builder.io/sdk-qwik@0.2.1(@builder.io/qwik@0.104.0):
     resolution: {integrity: sha512-pDR7A1V8EOybWWd/oLmFPhEaxhKTaG2tr10vD1DqgSsLcIqeK2AMbllxNe/oLcwgKwBFI7zA9gCU/+u0TuV3iA==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': 0.103.0(undici@5.22.0)
+      '@builder.io/qwik': 0.104.0(undici@5.22.0)
     dev: true
 
   /@clack/core@0.3.2:
@@ -2882,13 +2908,13 @@ packages:
       unpic: 3.5.0
     dev: false
 
-  /@unpic/qwik@0.0.17(@builder.io/qwik@0.103.0):
+  /@unpic/qwik@0.0.17(@builder.io/qwik@0.104.0):
     resolution: {integrity: sha512-+drj90EX+ZjPjVkAuO5taABDAXczVayn2sxjjbzgXcerIHUvOS74sKoMT05qKu8i+ef4Ccyf4xRuf5MrTafZvg==}
     engines: {node: '>=15.0.0'}
     peerDependencies:
       '@builder.io/qwik': '*'
     dependencies:
-      '@builder.io/qwik': 0.103.0(undici@5.22.0)
+      '@builder.io/qwik': 0.104.0(undici@5.22.0)
       '@unpic/core': 0.0.22
     dev: false
 
@@ -5806,7 +5832,7 @@ packages:
   /jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
     dev: true
 
   /jsonfile@6.1.0:
@@ -5814,7 +5840,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
     dev: true
 
   /jsx-ast-utils@3.3.3:

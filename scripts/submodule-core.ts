@@ -78,18 +78,27 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
 
+  const inputCore = join(config.distPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
-    input: join(config.distPkgDir, 'core.mjs'),
+    input: '@index.min',
     onwarn: rollupOnWarn,
     plugins: [
       {
         name: 'build',
         resolveId(id) {
+          if (id === '@index.min') {
+            return id;
+          }
           if (id === '@builder.io/qwik/build') {
             return id;
           }
         },
         load(id) {
+          if (id === '@index.min') {
+            return `
+            export { $, Fragment, RenderOnce, Resource, SSRComment, SSRHint, SSRRaw, SSRStream, SSRStreamBlock, SkipRender, Slot, _IMMUTABLE, _deserializeData, _fnSignal, _getContextElement, _hW, _jsxBranch, _jsxC, _jsxQ, _jsxS, _noopQrl, _regSymbol, _restProps, _serializeData, _weakSerialize, _wrapProp, _wrapSignal, component$, componentQrl, createContextId, h as createElement, event$, eventQrl, getLocale, getPlatform, h, implicit$FirstArg, inlinedQrl, jsx, jsx as jsxs, noSerialize, qrl, render, setPlatform, untrack, useComputed$, useComputedQrl, useContext, useContextProvider, useErrorBoundary, useId, useLexicalScope, useOn, useOnDocument, useOnWindow, useResource$, useResourceQrl, useServerData, useSignal, useStore, useStyles$, useStylesQrl, useStylesScoped$, useStylesScopedQrl, useTask$, useTaskQrl, useVisibleTask$, useVisibleTaskQrl, version, withLocale } from '${inputCore}';
+          `;
+          }
           if (id === '@builder.io/qwik/build') {
             return `
               export const isServer = false;
@@ -112,7 +121,10 @@ async function submoduleCoreProd(config: BuildConfig) {
         async renderChunk(code) {
           const esmMinifyResult = await minify(code, {
             module: true,
+            toplevel: true,
             compress: {
+              module: true,
+              toplevel: true,
               global_defs: {
                 // special global that when set to false will remove all dev code entirely
                 // developer production builds could use core.min.js directly, or setup
@@ -127,9 +139,13 @@ async function submoduleCoreProd(config: BuildConfig) {
               },
               ecma: 2020,
               passes: 3,
+              pure_getters: true,
+              unsafe_symbols: true,
+              keep_fargs: false,
             },
             mangle: {
               toplevel: true,
+              module: true,
               properties: {
                 regex: '^\\$.+\\$$',
               },
@@ -137,7 +153,6 @@ async function submoduleCoreProd(config: BuildConfig) {
             format: {
               comments: /__PURE__/,
               preserve_annotations: true,
-              preamble: getBanner('@builder.io/qwik', config.distVersion),
               ecma: 2020,
             },
           });
@@ -174,16 +189,11 @@ async function submoduleCoreProd(config: BuildConfig) {
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
   const result = await minify(code, {
     compress: {
-      booleans: false,
-      collapse_vars: true,
-      dead_code: true,
-      inline: true,
+      pure_getters: true,
+      unsafe_symbols: true,
+      keep_fargs: false,
       join_vars: false,
-      passes: 3,
-      reduce_vars: true,
-      side_effects: true,
-      toplevel: true,
-      unused: true,
+
       global_defs: {
         'globalThis.qDev': false,
         'globalThis.qInspector': false,

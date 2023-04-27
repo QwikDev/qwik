@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { qRuntimeQrl } from '../util/qdev';
+import { qDev, qRuntimeQrl } from '../util/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 
@@ -162,7 +162,9 @@ let runtimeSymbolId = 0;
 /**
  * @public
  */
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
+  ...args: infer ARGS
+) => infer RET
   ? PropFnInterface<ARGS, RET>
   : never;
 
@@ -244,7 +246,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  */
 // </docs>
 export const $ = <T>(expression: T): QRL<T> => {
-  if (!qRuntimeQrl) {
+  if (!qRuntimeQrl && qDev) {
     throw new Error(
       'Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.'
     );

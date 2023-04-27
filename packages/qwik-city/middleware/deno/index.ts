@@ -70,12 +70,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       }
 
       // qwik city did not have a route for this request
-      // response with 404 for this pathname
-      const notFoundHtml = getNotFound(url.pathname);
-      return new Response(notFoundHtml, {
-        status: 404,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
-      });
+      return null;
     } catch (e: any) {
       console.error(e);
       return new Response(String(e || 'Error'), {

@@ -8,7 +8,7 @@ import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/reque
 
 // @public (undocumented)
 export function createQwikCity(opts: QwikCityDenoOptions): {
-    router: (request: Request) => Promise<Response>;
+    router: (request: Request) => Promise<Response | null>;
     notFound: (request: Request) => Promise<Response>;
     staticFile: (request: Request) => Promise<Response | null>;
 };

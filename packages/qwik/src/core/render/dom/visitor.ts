@@ -1082,7 +1082,7 @@ export const cleanupTree = (
 
 export const executeContextWithTransition = async (ctx: RenderStaticContext) => {
   // try to use `document.startViewTransition`
-  if (isBrowser) {
+  if (isBrowser && !qTest) {
     if (document.__q_view_transition__) {
       document.__q_view_transition__ = undefined;
       if (document.startViewTransition) {

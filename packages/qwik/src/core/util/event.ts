@@ -1,4 +1,5 @@
 import { isBrowser } from '@builder.io/qwik/build';
+import { qTest } from './qdev';
 
 export const emitEvent = (
   el: Element | undefined,
@@ -6,7 +7,7 @@ export const emitEvent = (
   detail: any,
   bubbles: boolean
 ) => {
-  if (isBrowser || typeof CustomEvent === 'function') {
+  if (!qTest && (isBrowser || typeof CustomEvent === 'function')) {
     if (el) {
       el.dispatchEvent(
         new CustomEvent(eventName, {

@@ -22,6 +22,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildAdapterAzureSwaVite(config, inputDir, outputDir),
     buildAdapterCloudflarePagesVite(config, inputDir, outputDir),
     buildAdapterCloudRunVite(config, inputDir, outputDir),
+    buildAdapterDenoVite(config, inputDir, outputDir),
     buildAdapterNodeServerVite(config, inputDir, outputDir),
     buildAdapterNetlifyEdgeVite(config, inputDir, outputDir),
     buildAdapterSharedVite(config, inputDir, outputDir),
@@ -30,6 +31,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildMiddlewareCloudflarePages(config, inputDir, outputDir),
     buildMiddlewareNetlifyEdge(config, inputDir, outputDir),
     buildMiddlewareAzureSwa(config, inputDir, outputDir),
+    buildMiddlewareDeno(config, inputDir, outputDir),
     buildMiddlewareNode(config, inputDir, outputDir),
     buildMiddlewareRequestHandler(config, inputDir, outputDir),
     buildMiddlewareVercelEdge(config, inputDir, outputDir),
@@ -67,6 +69,11 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adapters/cloud-run/vite/index.mjs',
         require: './adapters/cloud-run/vite/index.cjs',
       },
+      './adapters/deno-server/vite': {
+        types: './adapters/deno-server/vite/index.d.ts',
+        import: './adapters/deno-server/vite/index.mjs',
+        require: './adapters/deno-server/vite/index.cjs',
+      },
       './adapters/node-server/vite': {
         types: './adapters/node-server/vite/index.d.ts',
         import: './adapters/node-server/vite/index.mjs',
@@ -99,6 +106,10 @@ export async function buildQwikCity(config: BuildConfig) {
       './middleware/cloudflare-pages': {
         types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
+      },
+      './middleware/deno': {
+        types: './middleware/deno/index.d.ts',
+        import: './middleware/deno/index.mjs',
       },
       './middleware/netlify-edge': {
         types: './middleware/netlify-edge/index.d.ts',
@@ -360,6 +371,37 @@ async function buildAdapterCloudRunVite(config: BuildConfig, inputDir: string, o
   });
 }
 
+async function buildAdapterDenoVite(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'adapters', 'deno-server', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adapters', 'deno-server', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adapters', 'deno-server', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [
+      resolveAdapterShared('../../shared/vite/index.cjs'),
+      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
+    ],
+  });
+}
+
 async function buildAdapterNodeServerVite(
   config: BuildConfig,
   inputDir: string,
@@ -547,6 +589,22 @@ async function buildMiddlewareCloudflarePages(
   await build({
     entryPoints,
     outfile: join(outputDir, 'middleware', 'cloudflare-pages', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: MIDDLEWARE_EXTERNALS,
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
+async function buildMiddlewareDeno(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'middleware', 'deno', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'middleware', 'deno', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

@@ -546,7 +546,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isNEW) {
         return plugin;
       } else {
-        plugin();
+        return plugin();
       }
     },
 

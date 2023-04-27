@@ -42,7 +42,14 @@ const SERVER_STRIP_CTX_NAME = [
   'validator$',
   'globalAction$',
 ];
-const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'];
+const CLIENT_STRIP_CTX_NAME = [
+  'useClient',
+  'useBrowser',
+  'useVisibleTask',
+  'client',
+  'browser',
+  'event$',
+];
 export interface QwikPackages {
   id: string;
   path: string;

@@ -52,7 +52,6 @@ header .mobile-menu {
 
 header .menu-toolkit {
   @apply hidden lg:flex;
-  @apply pt-0 pb-6 lg:pt-0;
   height: 100%;
   align-items: center;
 }

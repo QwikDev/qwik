@@ -1,0 +1,45 @@
+---
+title: Qwik City - Deno Middleware
+contributors:
+  - adamdbradley
+---
+
+# Deno Middleware
+
+Qwik City Deno middleware allows you to hook up Qwik City to a Deno server which uses the standard Request/Response that's well supported by Deno. Some Deno server implementations include:
+
+- [Deno's integrated HTTP server](https://deno.com/manual/examples/http_server)
+- [Oak](https://oakserver.github.io/oak/)
+
+## Installation
+
+To integrate the `deno` adapter, use the `add` command:
+
+- For the [integrated HTTP server](https://deno.com/manual/examples/http_server):
+
+```shell
+npm run qwik add deno
+```
+
+## Production build
+
+To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
+
+```shell
+npm run build
+```
+
+## Serve
+
+To start the Deno server after a build:
+
+```shell
+npm run serve
+```
+
+## Production deploy
+
+Since you are choosing Deno, here you are in your own, after running `npm run build`:
+
+- The `dist` folder will be created including all the static files.
+- The `server` folder will be created including all node server files.

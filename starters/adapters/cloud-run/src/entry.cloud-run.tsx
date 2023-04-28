@@ -1,10 +1,10 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the  entry point for the express server when building for production.
+ * It's the entry point for the Google Cloud Run middleware when building for production.
  *
- * Learn more about the cloudflare integration here:
- * - https://qwik.builder.io/deployments/node/
+ * Learn more about the Cloud Run integration here:
+ * - https://qwik.builder.io/docs/deployments/gcp-cloud-run/
  *
  */
 import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';

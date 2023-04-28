@@ -22,7 +22,7 @@
       "lines": [
         " Now you can build a production-ready Express app:",
         "",
-        "  - pnpm run build: production build for Vercel",
+        "  - pnpm run build: production build",
         "  - pnpm run serve: runs the production server locally"
       ]
     }

@@ -1,9 +1,9 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the entry point for the express server when building for production.
+ * It's the entry point for the Express HTTP server when building for production.
  *
- * Learn more about the cloudflare integration here:
+ * Learn more about Node.js server integrations here:
  * - https://qwik.builder.io/deployments/node/
  *
  */
@@ -28,7 +28,7 @@ const buildDir = join(distDir, 'build');
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
 
-// Create the Qwik City express middleware
+// Create the Qwik City Node middleware
 const { router, notFound } = createQwikCity({ render, qwikCityPlan, manifest });
 
 // Create the express server
@@ -52,5 +52,5 @@ app.use(notFound);
 // Start the express server
 app.listen(PORT, () => {
   /* eslint-disable */
-  console.log(`Server starter: http://localhost:${PORT}/`);
+  console.log(`Server started: http://localhost:${PORT}/`);
 });

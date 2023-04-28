@@ -48,8 +48,6 @@
     "set-cookie-parser": "^2.6.0"
   },
   "peerDependencies": {
-    "@auth/core": ">=0.4.0",
-    "@builder.io/qwik": ">=0.100.0",
-    "@builder.io/qwik-city": ">=0.6.0"
+    "@auth/core": ">=0.4.0"
   }
 }

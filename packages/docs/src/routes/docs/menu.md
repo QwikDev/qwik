@@ -61,6 +61,7 @@
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
+- [Deno Deploy](deployments/deno/index.mdx)
 
 ## Guides
 

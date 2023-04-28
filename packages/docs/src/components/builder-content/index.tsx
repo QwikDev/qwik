@@ -11,11 +11,15 @@ export default component$<{
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
     const query = location.url.searchParams;
-    const render =
-      typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
-    const contentId =
-      props.model === QWIK_MODEL ? render?.match(/^([\w\d]{32})$/)?.pop() : undefined;
-    const isSDK = render === 'sdk' || !!contentId;
+    // This helper function is needed because CF Workers don't support URLSearchParams.get
+    const queryGet = (name: string) =>
+      typeof query.get === 'function'
+        ? query.get(name)
+        : (query as unknown as Record<string, string>)[name];
+
+    const render = queryGet('render');
+    const contentId = props.model === QWIK_MODEL ? queryGet('content') : undefined;
+    const isSDK = render === 'sdk';
     cache('immutable');
     if (isSDK) {
       return getCachedValue(
@@ -41,6 +45,7 @@ export default component$<{
           apiKey: props.apiKey,
           model: props.model,
           urlPath: location.url.pathname,
+          contentId: contentId,
         },
         getBuilderContent
       );
@@ -95,14 +100,18 @@ export async function getBuilderContent({
   apiKey,
   model,
   urlPath,
+  contentId,
   cacheBust = false,
 }: {
   apiKey: string;
   model: string;
   urlPath: string;
+  contentId?: string | null;
   cacheBust?: boolean;
 }): Promise<BuilderContent> {
-  const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/' + model);
+  const qwikUrl = new URL(
+    'https://cdn.builder.io/api/v1/qwik/' + model + (contentId ? '/' + contentId : '')
+  );
   qwikUrl.searchParams.set('apiKey', apiKey);
   qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
   qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');

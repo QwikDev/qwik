@@ -39,6 +39,7 @@
 - [Image Optimization](integrations/image-optimization/index.mdx)
 - [Icons](integrations/icons/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
+- [Modular Forms](integrations/modular-forms/index.mdx)
 - [NX Monorepos](integrations/nx/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
@@ -50,7 +51,6 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
-
 
 ## Deployments
 

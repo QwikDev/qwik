@@ -58,6 +58,11 @@
       "imgSrc": "/ecosystem/cloudflare.svg"
     },
     {
+      "title": "Deno",
+      "href": "/docs/deployments/deno/",
+      "imgSrc": "/ecosystem/deno.svg"
+    },
+    {
       "title": "Google Cloud Run",
       "href": "/docs/deployments/gcp-cloud-run/",
       "imgSrc": "/ecosystem/google-cloud.svg"

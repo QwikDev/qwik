@@ -1,9 +1,9 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the  entry point for cloudflare-pages when building for production.
+ * It's the entry point for Cloudflare Pages when building for production.
  *
- * Learn more about the cloudflare integration here:
+ * Learn more about the Cloudflare integration here:
  * - https://qwik.builder.io/deployments/cloudflare-pages/
  *
  */

@@ -38,6 +38,7 @@
 - [Image Optimization](integrations/image-optimization/index.mdx)
 - [Icons](integrations/icons/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
+- [Cypress](integrations/cypress/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
 - [PostCSS](integrations/postcss/index.mdx)

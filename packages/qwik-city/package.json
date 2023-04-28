@@ -119,9 +119,6 @@
     "vite": "4.3.3",
     "yaml": "2.2.2"
   },
-  "peerDependencies": {
-    "@builder.io/qwik": ">=0.22.0"
-  },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",
   "repository": {

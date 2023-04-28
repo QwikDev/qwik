@@ -49,8 +49,7 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Prisma](integrations/prisma/index.mdx)
 - [Storybook](integrations/storybook/index.mdx)
-
-
+- [Modular Forms](integrations/modular-forms/index.mdx)
 
 ## Deployments
 

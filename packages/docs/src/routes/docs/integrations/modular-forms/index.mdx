@@ -1,0 +1,163 @@
+---
+title: Modular Forms
+keywords: 'form, library, validation, type-safe'
+contributors:
+  - fabian-hiller
+---
+
+# Modular Forms
+
+[Modular Forms](https://modularforms.dev/) is a type-safe form library built natively on Qwik. The headless design gives you full control over the visual appearance of your form. The library takes care of state management and input validation.
+
+To get started, install the npm package:
+
+```bash
+npm install @modular-forms/qwik
+```
+
+## Define your form
+
+Before you start creating a form, you define the structure and data types of the fields. Besides strings, Modular Forms can also handle booleans, numbers, files, dates, objects and arrays.
+
+```ts
+type LoginForm = {
+  email: string;
+  password: string;
+};
+```
+
+Since Modular Forms supports Zod for input validation, you can optionally derive the type definition from a schema.
+
+```ts
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Please enter your email.')
+    .email('The email address is badly formatted.'),
+  password: z
+    .string()
+    .min(1, 'Please enter your password.')
+    .min(8, 'You password must have 8 characters or more.'),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+```
+
+## Set initial values
+
+After you have created the type definition, continue with the initial values of your form. To do this, create a [`routeLoader$`](../../route-loader/) and use as generic your previously created type.
+
+```ts
+export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
+  email: '',
+  password: '',
+}));
+```
+
+Instead of empty strings, in `routeLoader$` you can also query and pass values from your database. Based on the passed object, the store of your form will be initialized to enable Qwik to reliably pre-render your website on the server. The initial values are also used later to check if the value of a field has changed after user input.
+
+## Create a form
+
+To create a form, you use the [`useForm`](https://modularforms.dev/qwik/api/useForm) hook. It returns the store of your form and an object with a `Form`, `Field` and `FieldArray` component. As a parameter you pass an object to `useForm`, with the previously created loader.
+
+```ts
+export default component$(() => {
+  const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+  });
+});
+```
+
+You can use the `loginForm` object to access the current state of your form. Furthermore, you can pass it to various methods provided by the library, such as [`reset`](https://modularforms.dev/qwik/api/reset) or [`setValue`](https://modularforms.dev/qwik/api/setValue), to make manual changes to the state.
+
+In the JSX part of your component you continue with the [`Form`](https://modularforms.dev/qwik/api/Form) component. It encloses the fields of your form and through its properties you can define what happens when the form is submitted.
+
+```tsx
+export default component$(() => {
+  const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+  });
+
+  return <Form>…</Form>;
+});
+```
+
+## Add form fields
+
+Now you can proceed with the fields of your form. With the [`Field`](https://modularforms.dev/qwik/api/Field) and [`FieldArray`](https://modularforms.dev/qwik/api/FieldArray) component you register a field or field array. Both components are headless and provide you direct access to their current state. The second parameter of the render prop must be passed to an `<input />`, `<select />` or `<textarea />` element to connect it to your form.
+
+```tsx
+<Form>
+  <Field name="email">
+    {(field, props) => (
+      <input {...props} type="email" value={field.value} />
+    )}
+  </Field>
+  <Field name="password">
+    {(field, props) => (
+      <input {...props} type="password" value={field.value} />
+    )}
+  </Field>
+  <input type="submit" />
+</Form>
+```
+
+This API design results in a fully type-safe form. Furthermore, it gives you full control over the user interface. You can develop your own [`TextInput`](https://modularforms.dev/qwik/guides/input-components) component or connect a pre-build component library.
+
+## Input validation
+
+One of the core functionalities of Modular Forms is input validation. You can use a Zod schema for this or our internal validation functions. To keep this guide simple, we use the Zod schema we created earlier and pass it to the `useForm` hook.
+
+```ts
+const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
+  loader: useFormLoader(),
+  validate: zodForm$(loginSchema),
+});
+```
+
+Now you only need to display the error messages of your fields in case of an error.
+
+```tsx
+<Field name="email">
+  {(field, props) => (
+    <div>
+      <input {...props} type="email" value={field.value} />
+      {field.error && <div>{field.error}</div>}
+    </div>
+  )}
+</Field>
+```
+
+## Handle submission
+
+In the last step you only have to access the values via a function when submitting the form to process and use them further. You can use [`formAction$`](https://modularforms.dev/qwik/api/formAction$) for this or the `onSubmit$` property of the `Form` component.
+
+```tsx
+export const useFormAction = formAction$<LoginForm>((values) => {
+  // Runs on server
+}, zodForm$(loginSchema));
+
+export default component$(() => {
+  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+    action: useFormAction(),
+    validate: zodForm$(loginSchema),
+  });
+
+  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
+    // Runs on client
+  });
+
+  return (
+    <Form onSubmit$={handleSubmit}>
+      …
+    </Form>
+  );
+});
+```
+
+## Summary
+
+You have learned the basics of Modular Forms and are ready to create your first simple form. For more info and details you can find more guides and the API reference on our website: [modularforms.dev](https://modularforms.dev/)
+
+> Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!

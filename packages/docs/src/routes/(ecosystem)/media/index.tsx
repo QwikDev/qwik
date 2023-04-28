@@ -27,6 +27,12 @@ export const youtube = (
 export const MEDIA = mediaObj({
   courses: [
     youtube('The Net Ninja', 'W0xjcx4mrkE', { playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw' }),
+    {
+      href: 'https://qwikschool.com/',
+      imgSrc:
+        'https://user-images.githubusercontent.com/1430726/234708569-7a51fe77-3a65-4a28-9617-73ad159aa551.png',
+      title: 'QwikSchool.com',
+    },
     youtube('Qwik JS - Crash Introduction to Building a Super Fast Application', 'zLHYDY9dAbs', {
       playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
     }),

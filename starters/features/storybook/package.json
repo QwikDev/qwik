@@ -15,7 +15,7 @@
     "build-storybook": "storybook build"
   },
   "__qwik__": {
-    "displayName": "Testing: Storybook",
+    "displayName": "Integration: Storybook",
     "priority": -1,
     "docs": [
       "https://qwik.builder.io/integrations/integration/storybook/",

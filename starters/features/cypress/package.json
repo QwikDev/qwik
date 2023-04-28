@@ -10,7 +10,7 @@
     "cypress.ct": "cypress open --component"
   },
   "__qwik__": {
-    "displayName": "Testing: Cypress",
+    "displayName": "Integration: Cypress",
     "priority": -1,
     "docs": [
       "https://qwik.builder.io/integrations/integration/cypress/",

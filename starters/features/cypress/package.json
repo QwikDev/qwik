@@ -1,0 +1,22 @@
+{
+  "description": "Add Cypress component testing",
+  "devDependencies": {
+    "cypress": "~12.11.0",
+    "cypress-ct-qwik": "~0.3.0"
+  },
+  "scripts": {
+    "cypress.run": "cypress run",
+    "cypress.watch": "cypress open",
+    "cypress.ct": "cypress open --component"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Cypress",
+    "priority": -1,
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/cypress/",
+      "https://docs.cypress.io/guides/getting-started/installing-cypress",
+      "https://docs.cypress.io/guides/component-testing/overview",
+      "https://github.com/qwikifiers/cypress-qwik"
+    ]
+  }
+}

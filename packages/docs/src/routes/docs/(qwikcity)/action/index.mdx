@@ -131,48 +131,42 @@ Here's an example of the `onSubmitCompleted$` handler used to edit an item in a 
 ```tsx title="src/components/EditForm.tsx"
 import { component$, type Signal, useSignal } from '@builder.io/qwik';
 import { Form } from '@builder.io/qwik-city';
-import styles from './editform.module.css';
-import { Check, X } from 'example-icons';
-import type { listItem } from '../../routes/index';
-import { useEditFromListAction } from '../../routes/index';
+import { type ListItem, useEditFromListAction } from '../../routes/index';
 
 export interface EditFormProps {
   item: listItem;
   editingIdSignal: Signal<string>;
 }
 
-export const EditForm = component$(
+const EditForm = component$(
   ({ item, editingIdSignal }: EditFormProps) => {
     const editAction = useEditFromListAction();
 
     return (
-      <div class={styles.wrapper}>
+      <div>
         <Form
           action={editAction}
-          class={styles.form}
           onSubmitCompleted$={() => {
             editingIdSignal.value = '';
           }}
           spaReset
         >
           <input
-            ref={inputRef}
-            class={styles.edit}
             type="text"
             value={item.text}
             name="text"
             id={`edit-${item.id}`}
           />
-          {/* Include the hidden input field for the "id" attribute */}
+          {/* Sends item.id with form data on submission. */}
           <input type="hidden" name="id" value={item.id} />
-          <button class={styles.done} type="submit">
-            <Check />
+          <button type="submit">
+            Submit
           </button>
         </Form>
 
-        <div class={styles.remove}>
+        <div>
           <button onClick$={() => (editingIdSignal.value = '')}>
-            <X />
+            Cancel
           </button>
         </div>
       </div>

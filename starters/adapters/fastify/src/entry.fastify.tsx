@@ -1,10 +1,10 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the entry point for the fastify server when building for production.
+ * It's the entry point for the Fastify server when building for production.
  *
  * Learn more about Node.js server integrations here:
- * - https://qwik.builder.io/integrations/deployments/node/
+ * - https://qwik.builder.io/docs/deployments/node/
  *
  */
 import { type PlatformNode } from '@builder.io/qwik-city/middleware/node';

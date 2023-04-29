@@ -4,7 +4,7 @@
  * It's the entry point for the Deno HTTP server when building for production.
  *
  * Learn more about the Deno integration here:
- * - https://qwik.builder.io/deployments/deno/
+ * - https://qwik.builder.io/docs/deployments/deno/
  * - https://deno.com/manual/examples/http_server
  *
  */

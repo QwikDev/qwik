@@ -1,3 +1,12 @@
+/*
+ * WHAT IS THIS FILE?
+ *
+ * It's the entry point for the Azure Static Web Apps middleware when building for production.
+ *
+ * Learn more about the Azure Static Web Apps integration here:
+ * - https://qwik.builder.io/docs/deployments/azure-swa/
+ *
+ */
 import { createQwikCity, type PlatformAzure } from '@builder.io/qwik-city/middleware/azure-swa';
 import qwikCityPlan from '@qwik-city-plan';
 import { manifest } from '@qwik-client-manifest';

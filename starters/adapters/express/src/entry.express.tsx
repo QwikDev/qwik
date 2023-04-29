@@ -4,7 +4,7 @@
  * It's the entry point for the Express HTTP server when building for production.
  *
  * Learn more about Node.js server integrations here:
- * - https://qwik.builder.io/deployments/node/
+ * - https://qwik.builder.io/docs/deployments/node/
  *
  */
 import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';

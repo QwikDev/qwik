@@ -85,7 +85,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Packages
-        run: pnpm tsm scripts/index.ts --tsc --build --qwikcity --cli --api --set-dist-tag="${{ github.event.inputs.disttag }} --validate"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }} --validate"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
@@ -95,16 +95,6 @@ jobs:
         with:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
-          if-no-files-found: error
-
-      - name: Print QwikCity Lib Build
-        run: tree packages/qwik-city/lib/
-
-      - name: Upload Qwik City Build Artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: dist-dev-builder-io-qwik-city
-          path: packages/qwik-city/lib/
           if-no-files-found: error
 
       - name: Print Create Qwik CLI Dist Build
@@ -341,6 +331,10 @@ jobs:
       - run: corepack enable
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
+      - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm install --frozen-lockfile
+
       - name: Create packages/qwik/dist/ directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
@@ -376,6 +370,22 @@ jobs:
         with:
           name: builderio-qwik-distribution
           path: packages/qwik/dist/*
+          if-no-files-found: error
+
+      - name: Build QwikCity
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --api
+
+      - name: Print QwikCity Lib Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/qwik-city/lib/
+
+      - name: Upload QwikCity Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builderio-qwikcity-distribution
+          path: packages/qwik-city/lib/
           if-no-files-found: error
 
   ############ RELEASE ############

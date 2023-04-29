@@ -408,7 +408,7 @@ export interface ActionConstructor {
       options: ActionOptions
     ) => ValueOrPromise<O>,
     options?: ActionOptions
-  ): Action<O>;
+  ): Action<StrictUnion<O>>;
 
   // Without validation
   <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
@@ -452,7 +452,7 @@ export interface ActionConstructorQRL {
       (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>
     >,
     options?: ActionOptions
-  ): Action<O>;
+  ): Action<StrictUnion<O>>;
 
   // Without validation
   <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
@@ -476,7 +476,7 @@ export interface LoaderConstructor {
   <O>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
     options?: LoaderOptions
-  ): Loader<O>;
+  ): Loader<StrictUnion<O>>;
 
   // With validation
   <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
@@ -493,7 +493,7 @@ export interface LoaderConstructorQRL {
   <O>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
     options?: LoaderOptions
-  ): Loader<O>;
+  ): Loader<StrictUnion<O>>;
 
   // With validation
   <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(

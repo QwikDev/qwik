@@ -1,4 +1,4 @@
-import { type BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
+import { type BuildConfig, rollupOnWarn } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
@@ -50,15 +50,6 @@ async function submoduleCoreProd(config: BuildConfig) {
     banner: getBanner('@builder.io/qwik', config.distVersion),
   };
 
-  const cjsIntro = [
-    ,
-    /**
-     * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
-     * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
-     */
-    injectGlobalThisPoly(),
-  ].join('');
-
   const cjsOutput: OutputOptions = {
     dir: join(config.distPkgDir),
     format: 'umd',
@@ -69,7 +60,6 @@ async function submoduleCoreProd(config: BuildConfig) {
       '@builder.io/qwik/build': 'qwikBuild',
     },
     banner: getBanner('@builder.io/qwik', config.distVersion),
-    intro: cjsIntro,
   };
 
   const build = await rollup(input);
@@ -80,7 +70,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const inputCore = join(config.distPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
-    input: '@index.min',
+    input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
       {
@@ -94,11 +84,6 @@ async function submoduleCoreProd(config: BuildConfig) {
           }
         },
         load(id) {
-          if (id === '@index.min') {
-            return `
-            export { $, Fragment, RenderOnce, Resource, SSRComment, SSRHint, SSRRaw, SSRStream, SSRStreamBlock, SkipRender, Slot, _IMMUTABLE, _deserializeData, _fnSignal, _getContextElement, _hW, _jsxBranch, _jsxC, _jsxQ, _jsxS, _noopQrl, _regSymbol, _restProps, _serializeData, _weakSerialize, _wrapProp, _wrapSignal, component$, componentQrl, createContextId, h as createElement, event$, eventQrl, getLocale, getPlatform, h, implicit$FirstArg, inlinedQrl, jsx, jsx as jsxs, noSerialize, qrl, render, setPlatform, untrack, useComputed$, useComputedQrl, useContext, useContextProvider, useErrorBoundary, useId, useLexicalScope, useOn, useOnDocument, useOnWindow, useResource$, useResourceQrl, useServerData, useSignal, useStore, useStyles$, useStylesQrl, useStylesScoped$, useStylesScopedQrl, useTask$, useTaskQrl, useVisibleTask$, useVisibleTaskQrl, version, withLocale } from '${inputCore}';
-          `;
-          }
           if (id === '@builder.io/qwik/build') {
             return `
               export const isServer = false;
@@ -205,9 +190,11 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       },
     },
     format: {
-      comments: false,
       beautify: true,
       braces: true,
+      comments: /__PURE__/,
+      preserve_annotations: true,
+      ecma: 2020,
       preamble: getBanner('@builder.io/qwik', config.distVersion),
     },
     mangle: false,
@@ -246,7 +233,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
     banner: {
-      js: `${injectGlobalThisPoly()}\nglobalThis.qwikCore = (function (module) {`,
+      js: `globalThis.qwikCore = (function (module) {`,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,

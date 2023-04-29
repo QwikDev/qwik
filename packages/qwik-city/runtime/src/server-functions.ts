@@ -289,9 +289,9 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
   }
 
   function stuff() {
-    return $(async (...args: any[]) => {
+    return $(async function (this: any, ...args: any[]) {
       if (isServer) {
-        const requestEvent = useQwikCityEnv()?.ev;
+        const requestEvent = useQwikCityEnv()?.ev ?? this;
         return qrl.apply(requestEvent, args);
       } else {
         const ctxElm = _getContextElement();

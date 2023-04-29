@@ -321,9 +321,13 @@ type StrictUnionHelper<T, TAll> = T extends any
 
 type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
-type Prettify<T> = {} & {
-  [K in keyof T]?: T[K];
-};
+type Prettify<T> = T extends { failed: true }
+  ? {} & {
+      [K in keyof T]?: T[K];
+    }
+  : {} & {
+      [K in keyof T]: T[K];
+    };
 
 /**
  * @public
@@ -401,6 +405,22 @@ export interface ActionConstructor {
   >;
 
   // Without validation
+  <O extends Function>(
+    actionQrl: (
+      form: JSONObject,
+      event: RequestEventAction,
+      options: ActionOptions
+    ) => ValueOrPromise<O>,
+    options?: ActionOptions
+  ): Action<
+    O extends () => Promise<infer R>
+      ? StrictUnion<R>
+      : O extends () => infer S
+      ? StrictUnion<S>
+      : never
+  >;
+
+  // Without validation
   <O>(
     actionQrl: (
       form: JSONObject,
@@ -408,7 +428,7 @@ export interface ActionConstructor {
       options: ActionOptions
     ) => ValueOrPromise<O>,
     options?: ActionOptions
-  ): Action<StrictUnion<O> extends { failed?: true } ? StrictUnion<O> : O>;
+  ): Action<StrictUnion<O>>;
 
   // Without validation
   <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
@@ -447,12 +467,26 @@ export interface ActionConstructorQRL {
   >;
 
   // Without validation
+  <O extends Function>(
+    actionQrl: QRL<
+      (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>
+    >,
+    options?: ActionOptions
+  ): Action<
+    O extends () => Promise<infer R>
+      ? StrictUnion<R>
+      : O extends () => infer S
+      ? StrictUnion<S>
+      : never
+  >;
+
+  // Without validation
   <O>(
     actionQrl: QRL<
       (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>
     >,
     options?: ActionOptions
-  ): Action<StrictUnion<O> extends { failed?: true } ? StrictUnion<O> : O>;
+  ): Action<StrictUnion<O>>;
 
   // Without validation
   <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
@@ -473,10 +507,21 @@ export interface LoaderOptions {
  */
 export interface LoaderConstructor {
   // Without validation
-  <O>(
+  <O extends Function>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
     options?: LoaderOptions
-  ): Loader<StrictUnion<O> extends { failed?: true } ? StrictUnion<O> : O>;
+  ): Loader<
+    O extends () => Promise<infer R>
+      ? StrictUnion<R>
+      : O extends () => infer S
+      ? StrictUnion<S>
+      : never
+  >;
+
+  // Without validation
+  <O>(loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>, options?: LoaderOptions): Loader<
+    StrictUnion<O>
+  >;
 
   // With validation
   <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
@@ -490,10 +535,22 @@ export interface LoaderConstructor {
  */
 export interface LoaderConstructorQRL {
   // Without validation
+  <O extends Function>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+    options?: LoaderOptions
+  ): Loader<
+    O extends () => Promise<infer R>
+      ? StrictUnion<R>
+      : O extends () => infer S
+      ? StrictUnion<S>
+      : never
+  >;
+
+  // Without validation
   <O>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
     options?: LoaderOptions
-  ): Loader<StrictUnion<O> extends { failed?: true } ? StrictUnion<O> : O>;
+  ): Loader<StrictUnion<O>>;
 
   // With validation
   <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(

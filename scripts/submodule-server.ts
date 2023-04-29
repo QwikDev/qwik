@@ -1,15 +1,6 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import {
-  type BuildConfig,
-  getBanner,
-  importPath,
-  injectGlobalThisPoly,
-  injectGlobalPoly,
-  nodeTarget,
-  target,
-  watcher,
-} from './util';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target, watcher } from './util';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson } from './package-json';
 
@@ -41,7 +32,7 @@ export async function submoduleServer(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) + injectGlobalPoly() },
+    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     watch: watcher(config, submodule),
@@ -56,8 +47,6 @@ export async function submoduleServer(config: BuildConfig) {
 
   const cjsBanner = [
     getBanner('@builder.io/qwik/server', config.distVersion),
-    injectGlobalThisPoly(),
-    injectGlobalPoly(),
     `globalThis.qwikServer = (function (module) {`,
     browserCjsRequireShim,
   ].join('\n');

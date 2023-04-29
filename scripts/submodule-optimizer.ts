@@ -3,7 +3,6 @@ import {
   access,
   type BuildConfig,
   getBanner,
-  injectGlobalThisPoly,
   nodeTarget,
   readFile,
   target,
@@ -57,10 +56,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       watch: watcher(config, submodule),
     });
 
-    const cjsBanner = [
-      injectGlobalThisPoly(),
-      `globalThis.qwikOptimizer = (function (module) {`,
-    ].join('\n');
+    const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');
 
     const cjsBuild = build({
       ...opts,

@@ -1,6 +1,6 @@
 import { getBanner, importPath, nodeTarget, target, watcher } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, injectGlobalThisPoly, type PackageJSON } from './util';
+import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
@@ -44,7 +44,7 @@ export async function submoduleTesting(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     banner: {
-      js: getBanner('@builder.io/qwik/testing', config.distVersion) + injectGlobalThisPoly(),
+      js: getBanner('@builder.io/qwik/testing', config.distVersion),
     },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),

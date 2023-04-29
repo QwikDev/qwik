@@ -183,7 +183,7 @@ export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
 
   await Promise.all(
     variableToFileMap.map(async (varToFile) => {
-      const varName = `global.${varToFile[0]}`;
+      const varName = `globalThis.${varToFile[0]}`;
       const filePath = join(config.distPkgDir, varToFile[1]);
       const content = await readFile(filePath, 'utf-8');
       define[varName] = JSON.stringify(content.trim());

@@ -186,24 +186,6 @@ export const nodeBuiltIns = [
   'util',
 ];
 
-export function injectGlobalThisPoly() {
-  return `
-if (typeof globalThis == 'undefined') {
-  const g = 'undefined' != typeof global ? global : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.globalThis = g;
-}
-`;
-}
-
-export function injectGlobalPoly() {
-  return `
-if (typeof global == 'undefined') {
-  const g = 'undefined' != typeof globalThis ? globalThis : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.global = g;
-}
-`;
-}
-
 /**
  * Utility just to ignore certain rollup warns we already know aren't issues.
  */

@@ -84,7 +84,7 @@ jobs:
       - name: Install NPM Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Package
+      - name: Build Packages
         run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
@@ -388,20 +388,6 @@ jobs:
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
-      - name: Build Create Qwik CLI
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --cli
-
-      - name: Print Create Qwik CLI Dist Build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree packages/create-qwik/dist/
-
-      - name: Commit Build Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
-        env:
-          QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-        run: pnpm run qwik-save-artifacts
-
   ############ RELEASE ############
   release:
     name: Release
@@ -451,36 +437,25 @@ jobs:
       - name: Install NPM Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Commit Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
+        env:
+          QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+        run: pnpm run qwik-save-artifacts
+
       - name: Dry-Run Publish @builder.io/qwik
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
+        run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
+        run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  ############ TRIGGER QWIKCITY E2E Test ############
-  trigger-qwikcity-e2e:
-    name: Trigger Qwik City E2E
-    runs-on: ubuntu-latest
-
-    needs:
-      - release
-
-    if: ${{ needs.changes.outputs.fullbuild == 'true' && github.ref_name == 'main' }}
-    steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-          repository: builderIO/qwik-city-e2e
-          event-type: main-updated
 
   ############ E2E TEST ############
   test-e2e:
@@ -675,3 +650,20 @@ jobs:
       - name: ESLint Check
         if: ${{ always() }}
         run: pnpm run lint.eslint
+
+  ############ TRIGGER QWIKCITY E2E Test ############
+  trigger-qwikcity-e2e:
+    name: Trigger Qwik City E2E
+    runs-on: ubuntu-latest
+
+    needs:
+      - release
+
+    if: ${{ needs.changes.outputs.fullbuild == 'true' && github.ref_name == 'main' }}
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+          repository: builderIO/qwik-city-e2e
+          event-type: main-updated

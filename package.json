@@ -11,7 +11,7 @@
     "build.platform.copy": "tsm scripts/index.ts --platform-binding-wasm-copy",
     "build.only_javascript": "tsm scripts/index.ts --tsc --build --api",
     "build.wasm": "tsm scripts/index.ts --wasm",
-    "build.validate": "tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --validate",
+    "build.validate": "tsm scripts/index.ts --tsc --build --api --eslint --qwikcity --platform-binding --wasm --validate",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",

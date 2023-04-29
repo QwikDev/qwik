@@ -25,6 +25,7 @@ contributors:
   - wtlin1228
   - AnthonyPAlicea
   - sreeisalso
+  - mori5321
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -114,8 +115,7 @@ export default component$(() => {
       </button>
       <br />
       <button onClick$={() => {
-        // Because store is deep watched, this will trigger a re-render
-        store.list.push(`Item ${store.list.length}`);
+        store.list = [...store.list, `Item ${store.list.length}`]
       }}>
         Add to list
       </button>

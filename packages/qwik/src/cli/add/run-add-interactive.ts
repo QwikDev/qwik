@@ -134,7 +134,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   if (installDepNames) {
     log.message(
       [
-        `📜 ${cyan(`New ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
+        `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
         ...installDepNames.map(
           (depName) => `   - ${depName} ${result.updates.installedDeps[depName]}`
         ),
@@ -146,7 +146,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     const prefix = pkgManager === 'npm' ? 'npm run' : pkgManager;
     log.message(
       [
-        `💾 ${cyan(`Install ${pkgManager} script${installDepNames.length > 1 ? 's' : ''}:`)}`,
+        `📜 ${cyan(`New ${pkgManager} script${installDepNames.length > 1 ? 's' : ''}:`)}`,
         ...installScripts.map((script) => `   - ${prefix} ${script}`),
       ].join('\n')
     );
@@ -176,7 +176,8 @@ function logUpdateAppCommitResult(result: UpdateAppResult, pkgManager: string) {
 
   const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
   if (nextSteps) {
-    note(logNextStep(nextSteps, pkgManager), 'Note');
+    const noteMessage = `🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`;
+    note(logNextStep(nextSteps, pkgManager), noteMessage);
   }
 
   outro(`🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`);

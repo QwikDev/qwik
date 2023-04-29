@@ -5,9 +5,8 @@
     "cypress-ct-qwik": "~0.3.0"
   },
   "scripts": {
-    "cypress.run": "cypress run",
-    "cypress.watch": "cypress open",
-    "cypress.ct": "cypress open --component"
+    "cypress.open": "cypress open --component",
+    "cypress.run": "cypress run --component"
   },
   "__qwik__": {
     "displayName": "Integration: Cypress",
@@ -17,6 +16,13 @@
       "https://docs.cypress.io/guides/getting-started/installing-cypress",
       "https://docs.cypress.io/guides/component-testing/overview",
       "https://github.com/qwikifiers/cypress-qwik"
-    ]
+    ],
+    "nextSteps": {
+      "title": "New example component",
+      "lines": [
+        " We created an example componenet in 'src/components/example'",
+        " There you will see a '.cy.tsx' file which is the component test"
+      ]
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { cyan, bgMagenta } from 'kleur/colors';
+import { cyan } from 'kleur/colors';
 import type { NextSteps } from '../types';
 
 export function logSuccessFooter(docs: string[]) {
@@ -23,10 +23,8 @@ export function logSuccessFooter(docs: string[]) {
  * Log the next STEPS *ACTION REQUIRED*
  */
 export function logNextStep(nextSteps: NextSteps | undefined, packageManager: string) {
-  const outString = [];
+  const outString: string[] = [];
   if (nextSteps) {
-    outString.push(`🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`);
-    outString.push(``);
     nextSteps.lines.forEach((step) =>
       outString.push(`   ${step.replace(/\bpnpm\b/g, packageManager)}`)
     );

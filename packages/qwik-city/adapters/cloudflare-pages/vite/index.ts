@@ -48,6 +48,15 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         };
         await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
       }
+      // https://developers.cloudflare.com/pages/platform/functions/advanced-mode/
+      const workerJsPath = join(clientOutDir, '_worker.js');
+      const hasWorkerJs = fs.existsSync(workerJsPath);
+      if (!hasWorkerJs) {
+        await fs.promises.writeFile(
+          workerJsPath,
+          'import { fetch } from "../server/entry.cloudflare-pages"; export default { fetch };'
+        );
+      }
     },
   });
 }

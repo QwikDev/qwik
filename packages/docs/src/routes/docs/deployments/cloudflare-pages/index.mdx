@@ -45,11 +45,11 @@ npm run build
 
 ## Deploy to Cloudflare Pages
 
-After installing the integration using `npm run qwik add cloudflare-pages`, the project is ready to be deployed to Cloudflare Pages. However, you will need to create a git repository and push the code to it.
+After installing the integration using `npm run qwik add cloudflare-pages`, the project is ready to be deployed to Cloudflare Pages.
 
 Please refer to the [Cloudflare Pages docs](https://developers.cloudflare.com/pages/framework-guides/deploy-a-qwik-site/) for more information on how to deploy your site.
 
-Notice that you might need a [Cloudflare account](https://dash.cloudflare.com/sign-up?lang=en-US) in order to complete this step!
+Note that you will need a [Cloudflare account](https://dash.cloudflare.com/sign-up?lang=en-US) in order to complete this step.
 
 ## Advanced
 
@@ -58,26 +58,29 @@ Notice that you might need a [Cloudflare account](https://dash.cloudflare.com/si
 When the `cloudflare-pages` adapter is added, a new entry file will be created at `src/entry.cloudflare-pages.tsx`. Below is an example of using the built-in middleware within the entry file.
 
 ```tsx title="src/entry.cloudflare-pages.tsx"
-import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import {
+  createQwikCity,
+  type PlatformCloudflarePages,
+} from '@builder.io/qwik-city/middleware/cloudflare-pages';
 import qwikCityPlan from '@qwik-city-plan';
+import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
 
-const onRequest = createQwikCity({ render, qwikCityPlan });
+const fetch = createQwikCity({ render, qwikCityPlan, manifest });
 
-export { onRequest };
+export { fetch };
 ```
 
-The compiled middleware will be built in the `server/` directory and can then be used anywhere in the cloudflare pages `/functions` directory.
+The compiled middleware will be built in the `server/` directory. Such directory also contains an `_worker.js` file which implements the application's request handling as per the [Cloudflare Pages Advanced Mode](https://developers.cloudflare.com/pages/platform/functions/advanced-mode/#advanced-mode).
+The file simple re-exports the produced `fetch` handler as shown below.
 
-```tsx title="/functions/[[path]].ts"
-// export the compiled middleware where cloudflare pages can find it.
-// for example use /functions/[[path]].ts or /functions/_middleware.ts
-// to have qwik city handle all requests.
-export { onRequest } from '../server/entry.cloudflare-pages';
+```tsx title="/dist/_worker.js"
+import { fetch } from "../server/entry.cloudflare-pages";
+export default { fetch };
 ```
 
 - [Cloudflare Pages Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
-- [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)
+- [Cloudflare Pages Advanced Mode](https://developers.cloudflare.com/pages/platform/functions/advanced-mode/)
 - [Function Invocation Route Config](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)
 
 ### Cloudflare Pages Function Invocation Routes
@@ -114,7 +117,7 @@ You may access Cloudflare Page's environment variables in the endpoint method's 
 
 ```ts
 export const onRequest = async ({ platform }) => {
-  const secret = platform['SUPER_SECRET_TOKEN'];
+  const secret = platform.env['SUPER_SECRET_TOKEN'];
 };
 ```
 

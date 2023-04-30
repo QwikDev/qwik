@@ -26,14 +26,17 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
-  async function onCloudflarePagesRequest(eventPluginContext: EventPluginContext) {
+  async function onCloudflarePagesFetch(
+    request: PlatformCloudflarePages['request'],
+    env: PlatformCloudflarePages['env'] & { ASSETS: { fetch: (req: Request) => Response } },
+    ctx: PlatformCloudflarePages['ctx']
+  ) {
     try {
-      const { request, env, waitUntil, next } = eventPluginContext;
       const url = new URL(request.url);
 
       if (isStaticPath(request.method, url)) {
         // known static path, let cloudflare handle it
-        return next();
+        return env.ASSETS.fetch(request);
       }
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
@@ -73,8 +76,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         platform: {
           request,
           env,
-          ctx: { waitUntil },
-          next,
+          ctx,
         },
       };
 
@@ -92,7 +94,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
-            waitUntil(cache.put(cacheKey, response.clone()));
+            ctx.waitUntil(cache.put(cacheKey, response.clone()));
           }
           return response;
         }
@@ -114,7 +116,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     }
   }
 
-  return onCloudflarePagesRequest;
+  return onCloudflarePagesFetch;
 }
 
 /**
@@ -125,22 +127,10 @@ export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 /**
  * @public
  */
-export interface EventPluginContext {
-  request: Request;
-  waitUntil: (promise: Promise<any>) => void;
-  next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-  env: Record<string, any>;
-}
-
-/**
- * @public
- */
 export interface PlatformCloudflarePages {
-  request: EventPluginContext['request'];
-  ctx: {
-    waitUntil: EventPluginContext['waitUntil'];
-  };
-  env: EventPluginContext['env'];
+  request: Request;
+  env: Record<string, any>;
+  ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 
 const resolved = Promise.resolve();

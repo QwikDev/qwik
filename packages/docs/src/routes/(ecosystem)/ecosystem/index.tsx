@@ -69,6 +69,32 @@ export default component$(() => {
             </ul>
           </section>
 
+          <section>
+            <h2>Newsletter</h2>
+            <a href="https://qwiknewsletter.com" target="_blank">
+              <div class="flex flex-col items-center gap-8">
+                <div
+                  class="flex justify-center p-4 w-full bg-[--qwik-dark-purple] 
+        bg-gradient-to-r from-[--qwik-dark-purple-bg] via-purple-500 to-[--qwik-dark-purple-bg]"
+                >
+                  <img
+                    src="/ecosystem/qwik-newsletter.svg"
+                    alt="Qwikly Newsletter - Weekly news about Qwik"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="text-2xl font-bold">Qwikly Newsletter - Weekly news about Qwik</div>
+              </div>
+            </a>
+
+            {/* <div class="">
+            <a class="" href="https://qwiknewsletter.com">
+              <p class="icon"><img src="/ecosystem/qwik-newsletter.svg" /></p>
+              
+            </a>
+          </div> */}
+          </section>
+
           <section id="courses">
             <h2>
               <span>
@@ -209,6 +235,20 @@ export default component$(() => {
                 />
               ))}
             </ul>
+
+            <aside class="mt-6 text-center">
+              <p>Interested in starting a local Qwik community as well?</p>
+              <p>
+                <a
+                  class="text-blue-600 font-bold"
+                  href="https://forms.gle/S1rxiKiVdhZqkk8RA"
+                  target="_blank"
+                >
+                  Please apply here
+                </a>{' '}
+                for the Qwik Community Leaders program
+              </p>
+            </aside>
           </section>
 
           <section id="social">

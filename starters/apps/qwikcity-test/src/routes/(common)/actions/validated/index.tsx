@@ -38,18 +38,16 @@ export const useAction2 = routeAction$(
   queryContainsSecret
 );
 
-export const useAction3 = routeAction$(
-  (input, {fail}) => {
-    if (Math.random() > 1.0) {
-      return fail(500, {
-        error: 'Random error'
-      })
-    }
-    return {
-      success: input.name as string
-    }
+export const useAction3 = routeAction$((input, { fail }) => {
+  if (Math.random() > 1.0) {
+    return fail(500, {
+      error: 'Random error',
+    });
   }
-);
+  return {
+    success: input.name as string,
+  };
+});
 
 // export const useAction3 = routeAction$((input) => {
 

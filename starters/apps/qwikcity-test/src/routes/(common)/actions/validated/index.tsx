@@ -38,6 +38,17 @@ export const useAction2 = routeAction$(
   queryContainsSecret
 );
 
+export const useAction3 = routeAction$((input, { fail }) => {
+  if (Math.random() > 1.0) {
+    return fail(500, {
+      error: 'Random error',
+    });
+  }
+  return {
+    success: input.name as string,
+  };
+});
+
 // export const useAction3 = routeAction$((input) => {
 
 //   return input satisfies {
@@ -53,6 +64,8 @@ export const useAction2 = routeAction$(
 
 export default component$(() => {
   const loader = useLoader();
+  const action = useAction3();
+
   return (
     <div>
       <h1>Validated</h1>
@@ -67,6 +80,10 @@ export default component$(() => {
           <p>{loader.value.stuff}</p>
         </div>
       )}
+      <div>
+        {action.value?.success}
+        {action.value?.error}
+      </div>
     </div>
   );
 });

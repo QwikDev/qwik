@@ -1,4 +1,4 @@
-import type { RequestEvent } from '@builder.io/qwik-city';
+import type { RequestEventBase } from '@builder.io/qwik-city';
 import {
   type CookieOptions,
   createServerSupabaseClient,
@@ -121,7 +121,7 @@ export function createServerClient<
 >(
   supabaseUrl: string,
   supabaseKey: string,
-  requestEv: RequestEvent,
+  requestEv: RequestEventBase,
   opts?: {
     supabaseUrl?: string;
     supabaseKey?: string;

@@ -1,6 +1,6 @@
 {
   "name": "supabase-auth-helpers-qwik",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A collection of framework specific Auth utilities for working with Supabase.",
   "publishConfig": {
     "access": "public"

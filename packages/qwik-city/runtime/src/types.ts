@@ -408,7 +408,7 @@ export interface ActionConstructor {
       options: ActionOptions
     ) => ValueOrPromise<O>,
     options?: ActionOptions
-  ): Action<O>;
+  ): Action<StrictUnion<O>>;
 
   // Without validation
   <O extends Record<string, any> | void | null, REST extends DataValidator[]>(

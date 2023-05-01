@@ -70,6 +70,7 @@ async function captureMultipleScreenshots() {
           .replace('.', '_')
           .toLowerCase();
 
+        await wait(5000);
         const path = `public/showcases/${filename}.webp`;
         const [pagespeedOutput, _] = await Promise.all([
           getPagespeedData(href),
@@ -148,3 +149,7 @@ async function getPagespeedData(url) {
   });
 }
 captureMultipleScreenshots();
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

@@ -1,5 +1,21 @@
 [
   {
+    "title": "Wope: The New Era Of Rank Tracking",
+    "imgSrc": "/showcases/wope_com_.webp",
+    "perf": {
+      "score": 0.81,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "2.3 s",
+      "lcpScore": 0.93,
+      "ttiDisplay": "8.5 s",
+      "ttiScore": 0.38,
+      "ttiTime": 8514.950938924118
+    },
+    "href": "https://wope.com/",
+    "tags": "sass"
+  },
+  {
     "title": "Builder.io - Drag and drop Visual CMS",
     "imgSrc": "/showcases/www_builder_io_.webp",
     "perf": {
@@ -46,6 +62,22 @@
     },
     "href": "https://shaunchander.me",
     "tags": "portfolio"
+  },
+  {
+    "title": "Reflect",
+    "imgSrc": "/showcases/reflect_app_.webp",
+    "perf": {
+      "score": 0.91,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "5.2 s",
+      "ttiScore": 0.75,
+      "ttiTime": 5150.5
+    },
+    "href": "https://reflect.app/",
+    "tags": "saas"
   },
   {
     "title": "IMG Models",
@@ -195,18 +227,18 @@
   },
   {
     "title": "Guillermo Peralta Scura",
-    "href": "https://goshi.dev/",
     "imgSrc": "/showcases/goshi_dev_.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.5 s",
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "0.9 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.3 s",
+      "ttiDisplay": "0.9 s",
       "ttiScore": 1,
-      "ttiTime": 1305
+      "ttiTime": 930
     },
+    "href": "https://goshi.dev/",
     "tags": "portfolio"
   },
   {
@@ -291,6 +323,22 @@
     "tags": "portfolio"
   },
   {
+    "title": "Blackflag Labs",
+    "imgSrc": "/showcases/www_blackflag_dev_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "0.8 s",
+      "fcpScore": 1,
+      "lcpDisplay": "0.9 s",
+      "lcpScore": 1,
+      "ttiDisplay": "0.8 s",
+      "ttiScore": 1,
+      "ttiTime": 811
+    },
+    "href": "https://www.blackflag.dev/",
+    "tags": "site"
+  },
+  {
     "title": "Framework reimagined for the edge! - Qwik",
     "href": "https://qwik.builder.io",
     "imgSrc": "/showcases/qwik_builder_io.webp",
@@ -360,13 +408,13 @@
     "imgSrc": "/showcases/abdhashem_com.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "0.9 s",
+      "fcpDisplay": "1.0 s",
       "fcpScore": 1,
       "lcpDisplay": "1.0 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.1 s",
+      "ttiDisplay": "1.2 s",
       "ttiScore": 1,
-      "ttiTime": 1078.4330251112688
+      "ttiTime": 1243.5
     },
     "href": "https://abdhashem.com",
     "tags": "portfolio"
@@ -417,7 +465,8 @@
       "ttiTime": 811.244
     },
     "href": "https://necatikcl.dev/",
-    "tags": "personal"
+    "tags": "personal",
+    "size": "large"
   },
   {
     "title": "TatbiqIT, the unique software company in Kuwait",
@@ -465,6 +514,22 @@
       "ttiTime": 1042.1924936849105
     },
     "href": "https://travelcalc.pages.dev",
+    "tags": "app"
+  },
+  {
+    "title": "upester",
+    "imgSrc": "/showcases/upester_com.webp",
+    "perf": {
+      "score": 0.81,
+      "fcpDisplay": "2.8 s",
+      "fcpScore": 0.57,
+      "lcpDisplay": "2.8 s",
+      "lcpScore": 0.84,
+      "ttiDisplay": "6.0 s",
+      "ttiScore": 0.65,
+      "ttiTime": 5964.09901789313
+    },
+    "href": "https://upester.com",
     "tags": "app"
   }
 ]

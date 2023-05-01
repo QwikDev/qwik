@@ -19,7 +19,14 @@ export default component$(() => {
         {contributors.map((contributor: string) => (
           <li key={`contributor-${contributor}`} class="contributor">
             <a href={`https://github.com/${contributor}`} target="_blank" rel="noreferrer">
-              <img src={`https://github.com/${contributor}.png`} alt={contributor} class="avatar" />
+              <img
+                loading="lazy"
+                src={`https://github.com/${contributor}.png`}
+                width="40"
+                height="40"
+                alt={contributor}
+                class="avatar"
+              />
             </a>
           </li>
         ))}

@@ -85,24 +85,24 @@ The simplest way to think about serialization is through `JSON.stringify`. Howev
 
 Limitations of JSON which Qwik solves:
 
-- JSON produces DAG. DAG stands for Directed Acyclic Graph, which means that the object which is being serialized can't have circular references. This is a big limitation because the application state is often circular. Qwik ensures that when the graph of objects gets serialized, the circular references get properly saved and then restored.
-- JSON can't serialize some object types. For example, DOM references, Dates, etc... Qwik serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
+- JSON produces a DAG. DAG stands for Directed Acyclic Graph, which means that the object which is being serialized can't have circular references. This is a big limitation because the application state is often circular. Qwik ensures that when the graph of objects gets serialized, the circular references get properly saved and then restored.
+- JSON can't serialize some object types. For example, DOM references, or Dates. Qwik's serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
   - DOM references
   - Promises (See [resources](../../components/resource/))
   - Function closures (if wrapped in QRL)
   - Dates
   - `URL` objects
-  - `Map` and `Set` instances
+  - `Map` and `Set` instances.
 
 Limitations of JSON that Qwik does not solve:
 
 - Serialization of classes (`instanceof` and prototype)
   - Although some built-in classes, such as [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date), [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL), [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map), [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) are supported.
-- Serialization of Streams, etc...
+- Serialization of Streams.
 
 ### Writing applications with serializability in mind
 
-The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Components and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
+The resumability capability of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express *components* and *entities* of the application in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that the application is written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in a DOM-centric way. This will require a change of behavior and retooling of web developers' skills. Frameworks need to provide guidance and APIs to make it easy for developers to write the applications in this way.
 

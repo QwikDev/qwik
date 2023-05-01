@@ -102,7 +102,7 @@ function examplePath(
     .replace('/(qwik)/', '/')
     .replace('/(qwikcity)/', '/')
     .replace('/src/routes/demo', '/demo')
-    .replace(/\/[\w\d]+.tsx?/, '/');
+    .replace(/\/[\w\d]+\.tsx?$/, '/');
 
   if (!includeTheme) {
     return newPath;

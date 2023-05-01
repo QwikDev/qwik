@@ -22,9 +22,18 @@ export const qwikGPT = server$(async function* (query: string) {
   const data = await response.json();
   const embeddings = data.data[0].embedding;
 
-  const existingQuery = await supabase.rpc('match_query', {
+  const docs = await supabase.rpc('match_docs_10', {
+    query_text: normalizedQuery.replaceAll(' ', '|'),
+    query_embedding: embeddings,
+    match_count: 6,
+    similarity_threshold: 0.79,
+  });
+
+  const resultsHash = await getResultsHash(docs.data);
+  const existingQuery = await supabase.rpc('match_query_3', {
     query_embedding: embeddings,
     similarity_threshold: 0.95,
+    hash: resultsHash,
   });
   if (existingQuery.data.length === 1) {
     const entry = existingQuery.data[0];
@@ -35,12 +44,6 @@ export const qwikGPT = server$(async function* (query: string) {
     yield entry.output;
     return;
   }
-  const docs = await supabase.rpc('match_docs_10', {
-    query_text: normalizedQuery.replaceAll(' ', '|'),
-    query_embedding: embeddings,
-    match_count: 6,
-    similarity_threshold: 0.79,
-  });
 
   // Download docs
   try {
@@ -55,6 +58,7 @@ export const qwikGPT = server$(async function* (query: string) {
         query: query,
         embedding: embeddings,
         results: docs.data,
+        results_hash: resultsHash,
         model,
       })
       .select('id');
@@ -126,7 +130,14 @@ export function normalizeLine(line: string) {
   return line;
 }
 
-export async function resolveContext(docsData: any) {
+export async function getResultsHash(docsData: any[]) {
+  const key = docsData.map((result) => `${result.commit_hash}:${result.file}`).join(',');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+  const hash = new Uint32Array(digest);
+  return `${hash[0]}'${hash[1]}`;
+}
+
+export async function resolveContext(docsData: any[]) {
   // Download docs
   const dataCloned = [];
   try {

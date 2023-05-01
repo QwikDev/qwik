@@ -48,11 +48,12 @@ export const Header = component$(() => {
           />
         </div>
       )}
-      <header 
+      <header
         class={{
-          'header-container': true, 
-          'home-page-header': pathname === '/'
-        }}>
+          'header-container': true,
+          'home-page-header': pathname === '/',
+        }}
+      >
         <div class="header-inner">
           <div class="header-logo">
             <a href="/">

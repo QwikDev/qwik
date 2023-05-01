@@ -1091,7 +1091,7 @@ export const executeContextWithTransition = async (ctx: RenderStaticContext) => 
     if (document.__q_view_transition__) {
       document.__q_view_transition__ = undefined;
       if (document.startViewTransition) {
-        await document.startViewTransition(() => executeDOMRender(ctx)).updateCallbackDone;
+        await document.startViewTransition(() => executeDOMRender(ctx)).finished;
         return;
       }
     }

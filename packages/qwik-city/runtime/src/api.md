@@ -361,6 +361,8 @@ export interface RouteLocation {
     // (undocumented)
     readonly params: Readonly<Record<string, string>>;
     // (undocumented)
+    readonly prevUrl: URL | undefined;
+    // (undocumented)
     readonly url: URL;
 }
 

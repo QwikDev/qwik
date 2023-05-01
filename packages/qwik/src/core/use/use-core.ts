@@ -212,3 +212,15 @@ export const _jsxBranch = (input?: any) => {
   }
   return input;
 };
+
+/**
+ * @internal
+ */
+export const _waitUntilRendered = (elm: Element) => {
+  const containerEl = getWrappingContainer(elm);
+  if (!containerEl) {
+    return Promise.resolve();
+  }
+  const containerState = _getContainerState(containerEl);
+  return containerState.$renderPromise$ ?? Promise.resolve();
+};

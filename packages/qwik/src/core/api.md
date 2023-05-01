@@ -1041,6 +1041,9 @@ export const version: string;
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 // @internal (undocumented)
+export const _waitUntilRendered: (elm: Element) => Promise<void>;
+
+// @internal (undocumented)
 export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal

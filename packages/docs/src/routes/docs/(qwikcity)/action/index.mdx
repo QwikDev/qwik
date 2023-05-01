@@ -127,6 +127,63 @@ export default component$(() => {
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
+## Actions with Event Handlers
+
+We can use the `onSubmitCompleted$` event handler after an action is executed successfully and returns some data. It is particularly useful when you need to perform additional tasks, such as resetting UI elements or updating the application state, once an action has been completed successfully.
+
+Here's an example of the `onSubmitCompleted$` handler used to edit an item in a EditForm component of a todo app.
+
+```tsx title="src/components/EditForm.tsx"
+import { component$, type Signal, useSignal } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+import { type ListItem, useEditFromListAction } from '../../routes/index';
+
+export interface EditFormProps {
+  item: listItem;
+  editingIdSignal: Signal<string>;
+}
+
+const EditForm = component$(
+  ({ item, editingIdSignal }: EditFormProps) => {
+    const editAction = useEditFromListAction();
+
+    return (
+      <div>
+        <Form
+          action={editAction}
+          onSubmitCompleted$={() => {
+            editingIdSignal.value = '';
+          }}
+          spaReset
+        >
+          <input
+            type="text"
+            value={item.text}
+            name="text"
+            id={`edit-${item.id}`}
+          />
+          {/* Sends item.id with form data on submission. */}
+          <input type="hidden" name="id" value={item.id} />
+          <button type="submit">
+            Submit
+          </button>
+        </Form>
+
+        <div>
+          <button onClick$={() => (editingIdSignal.value = '')}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
+
+export default EditForm;
+```
+
+In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value to an empty string once the form submission is completed successfully. This allows the application to update its state and return to the default view.
+
 ## Validation and type safety
 
 Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.

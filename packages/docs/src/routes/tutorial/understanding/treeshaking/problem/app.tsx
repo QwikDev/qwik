@@ -34,10 +34,10 @@ export const Child = component$((props: { store: CountStore }) => {
 });
 
 export const GrandChild = component$((props: { store: CountStore }) => {
-  console.log('Render: <GroundChild/>');
+  console.log('Render: <GrandChild/>');
   return (
     <>
-      <code>&lt;GrandChild&lt;</code>
+      <code>&lt;GrandChild&gt;</code>
       This component is also dynamic because it is bound to <code>props.store.count</code>
       {props.store.count}
     </>

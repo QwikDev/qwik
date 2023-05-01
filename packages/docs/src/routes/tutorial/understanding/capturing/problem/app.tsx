@@ -9,7 +9,7 @@ export default component$(() => {
   const store = useStore<AppStore>(
     {
       counter: { count: 1 },
-      largeData: { data: 'PRETEND THIS IS LARGE DATASET' },
+      largeData: { data: 'PRETEND THIS IS A LARGE DATASET' },
     },
     { deep: true }
   );

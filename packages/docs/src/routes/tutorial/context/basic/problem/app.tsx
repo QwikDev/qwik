@@ -3,10 +3,10 @@ import { component$, createContextId, useContextProvider, useStore } from '@buil
 interface TodosStore {
   items: string[];
 }
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const todosContext = createContextId<TodosStore>('Todos');
 export default component$(() => {
   useContextProvider(
-    TodosContext,
+    todosContext,
     useStore<TodosStore>({
       items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
     })

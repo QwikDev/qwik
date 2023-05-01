@@ -9,10 +9,10 @@ import {
 interface TodosStore {
   items: string[];
 }
-export const TodosContext = createContextId<TodosStore>('Todos');
+export const todosContext = createContextId<TodosStore>('Todos');
 export default component$(() => {
   useContextProvider(
-    TodosContext,
+    todosContext,
     useStore<TodosStore>({
       items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
     })
@@ -22,7 +22,7 @@ export default component$(() => {
 });
 
 export const Items = component$(() => {
-  const todos = useContext(TodosContext);
+  const todos = useContext(todosContext);
   return (
     <ul>
       {todos.items.map((item) => (

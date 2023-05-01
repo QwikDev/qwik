@@ -238,7 +238,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target === 'client' && viteConfig.base
           ? path.join(opts.outDir, viteConfig.base)
           : opts.outDir;
-      console.log(buildOutputDir);
+
       const updatedViteConfig: UserConfig = {
         ssr: {
           noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID, ...vendorIds],

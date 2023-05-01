@@ -32,7 +32,7 @@ export default component$<{
       <div
         class="overflow-auto slot-container mb-4"
         style={{
-          maxHeight: maxHeight ? maxHeight + 'px' : 'none',
+          '--pretty-code-fragment-max-height': maxHeight ? maxHeight + 'px' : 'none',
         }}
       >
         <Slot name={tabs ? String(activeTab.value) : ''} />

@@ -1,5 +1,5 @@
 {
-  "description": "Add Cypress component testing",
+  "description": "Visual headless CMS",
   "devDependencies": {
     "@builder.io/sdk-qwik": "^0.2.3"
   },

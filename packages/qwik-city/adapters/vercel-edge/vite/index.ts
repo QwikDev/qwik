@@ -39,7 +39,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       };
     },
 
-    async generate({ clientOutDir, serverOutDir, basePathname, outputEntries }) {
+    async generate({ clientPublicOutDir, serverOutDir, basePathname, outputEntries }) {
       const vercelOutputDir = getParentDir(serverOutDir, 'output');
 
       if (opts.outputConfig !== false) {
@@ -96,7 +96,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       await fs.promises.mkdir(dirname(vercelStaticDir), { recursive: true });
 
       // move the dist directory to the vercel output static directory location
-      await fs.promises.rename(clientOutDir, vercelStaticDir);
+      await fs.promises.rename(clientPublicOutDir, vercelStaticDir);
     },
   });
 }

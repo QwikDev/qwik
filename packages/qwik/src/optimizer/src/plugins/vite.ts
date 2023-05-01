@@ -43,6 +43,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
+  let clientPublicOutDir: string | null = null;
+
   let ssrOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
@@ -53,6 +55,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getManifest: () => manifestInput,
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
+    getClientPublicOutDir: () => clientPublicOutDir,
   };
 
   const vitePlugin: VitePlugin = {
@@ -211,6 +214,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
       );
 
+      clientPublicOutDir = viteConfig.base
+        ? path.join(clientOutDir, viteConfig.base)
+        : clientOutDir;
+
       ssrOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
       );
@@ -227,6 +234,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       clientDevInput = qwikPlugin.normalizePath(clientDevInput);
 
       const vendorIds = vendorRoots.map((v) => v.id);
+      const buildOutputDir =
+        target === 'client' && viteConfig.base
+          ? path.join(opts.outDir, viteConfig.base)
+          : opts.outDir;
+
       const updatedViteConfig: UserConfig = {
         ssr: {
           noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID, ...vendorIds],
@@ -259,16 +271,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ],
         },
         build: {
-          outDir: opts.outDir,
+          outDir: buildOutputDir,
           cssCodeSplit: false,
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
-            output: normalizeRollupOutputOptions(
-              path,
-              opts,
-              viteConfig.build?.rollupOptions?.output
-            ),
+            output: {
+              ...normalizeRollupOutputOptions(path, opts, viteConfig.build?.rollupOptions?.output),
+              dir: buildOutputDir,
+            },
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -785,6 +796,7 @@ export interface QwikVitePluginApi {
   getManifest: () => QwikManifest | null;
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
+  getClientPublicOutDir: () => string | null;
 }
 
 /**

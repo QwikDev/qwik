@@ -291,6 +291,8 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientOutDir: () => string | null;
     // (undocumented)
+    getClientPublicOutDir: () => string | null;
+    // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;

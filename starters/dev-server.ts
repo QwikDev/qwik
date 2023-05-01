@@ -306,7 +306,7 @@ async function main() {
   app.use(`/~partytown`, express.static(partytownPath));
 
   appNames.forEach((appName) => {
-    const buildPath = join(startersAppsDir, appName, 'dist', 'build');
+    const buildPath = join(startersAppsDir, appName, 'dist', appName, 'build');
     app.use(`/${appName}/build`, express.static(buildPath));
 
     const publicPath = join(startersAppsDir, appName, 'public');

@@ -213,10 +213,6 @@ export function normalizeRollupOutputOptions(
     outputOpts.format = 'es';
   }
 
-  if (!outputOpts.dir) {
-    outputOpts.dir = opts.outDir;
-  }
-
   if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
     outputOpts.exports = 'auto';
   }

@@ -11,6 +11,25 @@
     background: var(--bg-header-color);
     backdrop-filter: blur(23px) saturate(4.5);
   }
+
+  /* TODO: remove this when styles are adjusted for sub sections */
+  .main .header-container {
+    background: #101010;
+    color: #e3e2e9;
+  }
+
+  .main .DocSearch.DocSearch-Button {
+    background: #101010;
+  }
+
+  .main .sun-and-moon:not(:hover) > :is(.moon, .sun, .sun-beams) {
+    fill: #e3e2e9 !important;
+    stroke: #e3e2e9 !important;
+  }
+  .main .sun-and-moon:is(:hover) > :is(.moon, .sun, .sun-beams) {
+    fill: #b9b8be !important;
+    stroke: #b9b8be !important;
+  }
 }
 
 .fixed-header .header-container {

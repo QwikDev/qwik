@@ -8,8 +8,9 @@ import { QWIK_MODEL, QWIK_PUBLIC_API_KEY } from '../constants';
 
 export default component$(() => {
   const showNewDesign = useLocation().url.searchParams.get('render') === 'v2';
+  const isHomePage = useLocation().url.pathname === '/';
   return (
-    <>
+    <div class={{ main: isHomePage }}>
       <Header />
       <main>
         {showNewDesign ? (
@@ -21,7 +22,7 @@ export default component$(() => {
       <div class="px-4">
         <Footer />
       </div>
-    </>
+    </div>
   );
 });
 

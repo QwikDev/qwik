@@ -131,7 +131,7 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     );
   }
 
-  if (installDepNames) {
+  if (installDepNames.length > 0) {
     log.message(
       [
         `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,

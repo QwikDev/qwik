@@ -69,12 +69,30 @@ export default component$(() => {
             </ul>
           </section>
 
+          <section id="libraries">
+            <h2>
+              <span>Libraries</span>
+            </h2>
+            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+              {data.libraries.map((item, i) => (
+                <LibraryGridItem
+                  title={item.title}
+                  href={item.github}
+                  imgSrc={item.imgSrc}
+                  description={item.description}
+                  key={i}
+                  thumbnailBg={true}
+                />
+              ))}
+            </ul>
+          </section>
+
           <section>
             <h2>Newsletter</h2>
             <a href="https://qwiknewsletter.com" target="_blank">
               <div class="flex flex-col items-center gap-8">
                 <div
-                  class="flex justify-center p-4 w-full bg-[--qwik-dark-purple] 
+                  class="flex justify-center p-4 w-full bg-[--qwik-dark-purple]
         bg-gradient-to-r from-[--qwik-dark-purple-bg] via-purple-500 to-[--qwik-dark-purple-bg]"
                 >
                   <img
@@ -90,7 +108,7 @@ export default component$(() => {
             {/* <div class="">
             <a class="" href="https://qwiknewsletter.com">
               <p class="icon"><img src="/ecosystem/qwik-newsletter.svg" /></p>
-              
+
             </a>
           </div> */}
           </section>
@@ -290,9 +308,32 @@ export const GridItem: FunctionComponent<GridItemProps> = (props) => {
   );
 };
 
+export const LibraryGridItem: FunctionComponent<LibraryGridItemProps> = (props) => {
+  return (
+    <li class="grid-item">
+      <Link href={props.href}>
+        <div class={{ thumbnail: props.thumbnailBg, cover: props.imgCover }}>
+          <img src={props.imgSrc} alt={props.title} loading="lazy" />
+        </div>
+        <div class="text">{props.title}</div>
+        <div class="description">{props.description}</div>
+      </Link>
+    </li>
+  );
+};
+
 interface GridItemProps {
   title: string;
   href: string;
+  imgSrc?: string;
+  imgCover?: boolean;
+  thumbnailBg: boolean;
+}
+
+interface LibraryGridItemProps {
+  title: string;
+  href: string;
+  description: string;
   imgSrc?: string;
   imgCover?: boolean;
   thumbnailBg: boolean;

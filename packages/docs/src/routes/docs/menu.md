@@ -40,7 +40,7 @@
 - [Icons](integrations/icons/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
-- [NX Monorepos](integrations/nx/index.mdx)
+- [Nx Monorepos](integrations/nx/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
 - [PostCSS](integrations/postcss/index.mdx)

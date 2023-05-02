@@ -269,7 +269,7 @@ export const useSignal: <T>(value?: T | (() => T)): Signal<T>;
 
 ### `useStore(initialValue?)`
 
-`useStore(initialValue?)` is similar to `useSignal` except that it creates a reactive javascript object, where making every property of the object becomes reactive, just the `value` of a signal. Under the hood, `useStore` is implemented using a `Proxy` object, that intercepts all property access making them reactive.
+`useStore(initialValue?)` is similar to `useSignal` except that it creates a reactive javascript object, making every property of the object reactive, just like the `value` of a signal. Under the hood, `useStore` is implemented using a `Proxy` object that intercepts all property access, making the property reactive.
 
 ```ts
 // Typescript definition `useStore<T>`
@@ -284,7 +284,7 @@ export interface StoreOptions {
 export const useStore: <T>(value?: T | (() => T), options?: StoreOptions): Reactive<T>;
 ```
 
-In practive, useSignal and useStore are very similar, but useSignal is prefered most of the times. `useSignal(0) === useStore({ value: 0 })`, some use cases to use `useStore` are:
+In practice, `useSignal` and `useStore` are very similar -- `useSignal(0) === useStore({ value: 0 })` -- but `useSignal` is preferable most of the time.  Some use cases for `useStore` are:
 
 - When you need reactivity in an array.
 - When you want a reactive object that you can easily add properties to.
@@ -298,6 +298,7 @@ export const Counter = component$(() => {
     {
       array: [],
     },
+    { deep: true }
   );
 
   // todoList.array is a reactive array, so we can push to it and the component will re-render.
@@ -329,7 +330,7 @@ export const Counter = component$(() => {
 
 ### `useTask$(() => { ... })`
 
-`useTask$` is used to create a async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` execute before the first render, and then whenever a tracked signal or store changes, the task is re-executed.
+`useTask$` is used to create an async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` tasks are executed before the first render, and susequently whenever a tracked signal or store changes, the task is re-executed.
 
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
@@ -346,7 +347,8 @@ export const Counter = component$(() => {
 
   // You can create multiple tasks, and they can be async.
   useTask$(async (taskContext) => {
-    // Since we want to re-run the task whenever the `page` changes, we need to track it.
+    // Since we want to re-run the task whenever the `page` changes, 
+    // we need to track it.
     taskContext.track(() => page.value);
     console.log('Task executed before the first render AND when page changes');
     console.log('Current page:', page.value);
@@ -408,18 +410,18 @@ export const Clock = component$(() => {
 });
 ```
 
-Since Qwik does NOT execute any Javascript on the browser before user interaction. `useVisibleTask$()` is the only API that will run execute eagarly on the client, which is why it's a good place to do things like:
+Since Qwik does NOT execute any Javascript on the browser before user interaction, `useVisibleTask$()` is the only API that will run execute eagerly on the client, which is why it's a good place to do things like:
 
 - Access DOM APIs
 - Initialize browser-only libraries
 - Run analytics code
-- Start an animation, or a timer
+- Start an animation, or a timer.
 
-Notice that `useVisibleTask$()` should not be used to fetch data, because it will not run on the server. Instead, you should use `useTask$()` to fetch data, and then use `useVisibleTask$()` to do things like start an animation. Abusing `useVisibleTask$()` can lead to a bad performance.
+Note that `useVisibleTask$()` should not be used to fetch data, because it will not run on the server. Instead, you should use `useTask$()` to fetch data, and then use `useVisibleTask$()` to do things like start an animation. Abusing `useVisibleTask$()` can lead to poor performance.
 
 ## Routing
 
-Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
+Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in a folder under `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
 
 ```tsx title="src/routes/home/index.tsx"
 
@@ -434,7 +436,7 @@ It is very important to export the component as the default export, otherwise th
 
 ### Route Parameters
 
-You can create dynamic routes by adding a folder with like `[param]` in the route path. For example, `src/routes/user/[id]/index.tsx` will create a route at `/user/:id/`. In order to access the route parameter, you can use the `useLocation` hook exported from `@builder.io/qwik-city`.
+You can create dynamic routes by adding a folder with `[param]` in the route path. For example, `src/routes/user/[id]/index.tsx` will create a route at `/user/:id/`. In order to access the route parameter, you can use the `useLocation` hook exported from `@builder.io/qwik-city`.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
@@ -537,7 +539,7 @@ The `routeLoader$()` function takes a function that returns a promise. The promi
 
 ## Handle form submissions
 
-Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests in the server. `routeAction$()` is only executed in the server when the form is submitted.
+Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests on the server. `routeAction$()` is only executed on the server when the form is submitted.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
@@ -587,11 +589,11 @@ export default component$(() => {
 The `routeAction$()` is used on pair with the `Form` component exported from `@builder.io/qwik-city`. The `Form` component is a wrapper around the native HTML `<form>` element. The `Form` component takes an `ActionStore<T>` as the `action` property. The `ActionStore<T>` is the return value of the `routeAction$()` function.
 
 
-## Run code only on the browser
+## Run code only in the browser
 
-Qwik executes the same code in the server and in the browser, you can not use `window` or other browser APIs in your code, because they don't exist when the code is executed in the server.
+Since Qwik executes the same code on the server and in the browser, you cannot use `window` or other browser APIs in your code, because they don't exist when the code is executed on the server.
 
-If you want to access browser APIs, such as `window`, `document`, `localStorage`, `sessionStorage`, `webgl`, etc, you need to check if the code is running in the browser before accessing the browser APIs.
+If you want to access browser APIs, such as `window`, `document`, `localStorage`, `sessionStorage`, `webgl` etc, you need to check if the code is running in the browser before accessing the browser APIs.
 
 ```tsx
 import { component$, useTask$, useVisibleTask$, useSignal } from '@builder.io/qwik';
@@ -610,7 +612,7 @@ export default component$(() => {
   // useTask might run on the server, so you need to check for `isBrowser` before accessing the DOM
   useTask$(() => {
     if (isBrowser) {
-      // This code will only run on the browser only when the component is first rendered in the browser
+      // This code will only run in the browser only when the component is first rendered there
       ref.value?.focus();
       document.title = 'Hello world';
     }
@@ -620,7 +622,7 @@ export default component$(() => {
     <button
       ref={ref}
       onClick$={() => {
-        // All event handlers are only executed on the browser, so it's safe to access the DOM
+        // All event handlers are only executed in the browser, so it's safe to access the DOM
         ref.value?.focus();
         document.title = 'Hello world';
       }}

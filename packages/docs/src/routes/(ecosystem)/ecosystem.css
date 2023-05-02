@@ -121,6 +121,7 @@
   border-radius: 5px;
   border: 1px solid transparent;
   overflow: hidden;
+  color: white;
 }
 
 .grid-item .thumbnail::before {
@@ -180,4 +181,9 @@
 
 .grid-item a:hover .text {
   text-decoration: underline;
+}
+
+.grid-item .description {
+  text-align: center;
+  font-size: 0.9em;
 }

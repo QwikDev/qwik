@@ -1,0 +1,46 @@
+---
+title: Qwik and NX
+keywords: 'monorepo, nx, enterprise'
+contributors:
+  - shairez
+---
+
+# NX and enterprise scale monorepos
+
+[NX](https://nx.dev/) is a robust and extensible development platform designed to simplify the management 
+of large-scale monorepos containing multiple applications and libraries by offering powerful tools for code generation, 
+build orchestration, dependency management, and code sharing.
+
+Qwik integrates with nx beautifully by using the [qwik-nx](https://github.com/qwikifiers/qwik-nx) plugin.
+
+
+## Main features
+
+* Generate a new NX workspace using a "Qwik" preset
+* Generate Qwik applications and libraries.
+* Generate Qwik components and routes.
+* Generate Storybook, React Qwikify, Cloudflare configuration and much more
+* Run executors that are built specifically for building Qwik applications.
+
+
+## Usage
+
+You can generate a new workspace by running:
+
+```shell
+npx create-nx-workspace@latest org-workspace --preset=qwik-nx
+```
+
+Or add a new Qwik application to an existing workspace by running:
+
+```shell
+npm install -D qwik-nx
+```
+
+and then
+
+```shell
+nx generate qwik-nx:app
+```
+
+For further reference, please check the [qwik-nx documentation](https://github.com/qwikifiers/qwik-nx).

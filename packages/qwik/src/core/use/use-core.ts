@@ -173,7 +173,12 @@ export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
 
-const trackInvocation = newInvokeContext(undefined, undefined, undefined, RenderEvent);
+const trackInvocation = /*@__PURE__*/ newInvokeContext(
+  undefined,
+  undefined,
+  undefined,
+  RenderEvent
+);
 
 /**
  * @public
@@ -206,4 +211,16 @@ export const _jsxBranch = (input?: any) => {
     elCtx.$flags$ |= HOST_FLAG_DYNAMIC;
   }
   return input;
+};
+
+/**
+ * @internal
+ */
+export const _waitUntilRendered = (elm: Element) => {
+  const containerEl = getWrappingContainer(elm);
+  if (!containerEl) {
+    return Promise.resolve();
+  }
+  const containerState = _getContainerState(containerEl);
+  return containerState.$renderPromise$ ?? Promise.resolve();
 };

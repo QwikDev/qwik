@@ -13,6 +13,21 @@
   }
 }
 
+.header-container.home-page-header {
+  background: transparent !important;
+  color: white;
+}
+
+.home-page-header .sun-and-moon:not(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #e3e2e9 !important;
+  stroke: #e3e2e9 !important;
+}
+
+.home-page-header.sun-and-moon:is(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #b9b8be !important;
+  stroke: #b9b8be !important;
+}
+
 .fixed-header .header-container {
   width: 100%;
   z-index: 40;
@@ -52,7 +67,7 @@ header .mobile-menu {
 
 header .menu-toolkit {
   @apply hidden lg:flex;
-  @apply pt-0 pb-6 lg:pt-0;
+  @apply pt-0 lg:pt-0 pb-0;
   height: 100%;
   align-items: center;
 }

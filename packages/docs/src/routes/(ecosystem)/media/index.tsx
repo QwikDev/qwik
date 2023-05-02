@@ -27,6 +27,12 @@ export const youtube = (
 export const MEDIA = mediaObj({
   courses: [
     youtube('The Net Ninja', 'W0xjcx4mrkE', { playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw' }),
+    {
+      href: 'https://qwikschool.com/',
+      imgSrc:
+        'https://user-images.githubusercontent.com/1430726/234708569-7a51fe77-3a65-4a28-9617-73ad159aa551.png',
+      title: 'QwikSchool.com',
+    },
     youtube('Qwik JS - Crash Introduction to Building a Super Fast Application', 'zLHYDY9dAbs', {
       playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
     }),
@@ -35,6 +41,7 @@ export const MEDIA = mediaObj({
       imgSrc: 'https://static.frontendmasters.com/assets/courses/2023-02-28-qwik/posterframe.webp',
       title: 'FrontendMasters: Qwik for Instant-Loading Websites & Apps',
     },
+    youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag'),
   ],
   videos: [
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
@@ -55,7 +62,6 @@ export const MEDIA = mediaObj({
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
     youtube('🇪🇸 Hablemos de Qwik', 'XMLMS2NVC1g'),
     youtube('🇪🇸 Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw'),
-    youtube('🇪🇸 Qwik en solo 2 Horas, Curso Rápido y Efectivo', 'FF3D4tppyag'),
     youtube('🇪🇸 Introducción a QwikJS', 'fX7bM4iuuUQ'),
     youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
     youtube('Introduction to Qwik for JS Developers ft. Miško Hevery | JS Drops', 'DxJgXw91cCQ'),

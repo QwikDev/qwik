@@ -1,8 +1,7 @@
-import { component$, Slot, type QwikIntrinsicElements, untrack } from '@builder.io/qwik';
+import { component$, Slot, type QwikIntrinsicElements, untrack, event$ } from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
-import { event$ } from '../../../qwik/src/core';
 
 /**
  * @public
@@ -11,27 +10,32 @@ export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;
-  const linkProps = { ...props };
+  const { onClick$, reload, ...linkProps } = (() => props)();
   const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
   const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
-  const reload = !!linkProps.reload;
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
-  const event = event$((ev: any, elm: HTMLAnchorElement) =>
-    prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
-  );
+  const onPrefetch =
+    prefetchDataset != null
+      ? event$((ev: any, elm: HTMLAnchorElement) =>
+          prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
+        )
+      : undefined;
+  const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
+    if (elm.href) {
+      elm.setAttribute('aria-pressed', 'true');
+      await nav(elm.href, reload);
+      elm.removeAttribute('aria-pressed');
+    }
+  });
   return (
     <a
       {...linkProps}
-      onClick$={(_, elm) => {
-        if (elm.href) {
-          nav(elm.href, reload);
-        }
-      }}
+      onClick$={[onClick$, handleClick]}
       data-prefetch={prefetchDataset}
-      onMouseOver$={event}
-      onFocus$={event}
-      onQVisible$={event}
+      onMouseOver$={onPrefetch}
+      onFocus$={onPrefetch}
+      onQVisible$={onPrefetch}
     >
       <Slot />
     </a>

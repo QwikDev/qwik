@@ -175,6 +175,7 @@ html {
     Segoe UI Symbol, 'Noto Color Emoji';
   background-color: var(--bg-color);
   color: var(--text-color);
+  overflow: auto;
 }
 
 a,

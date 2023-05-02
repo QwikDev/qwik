@@ -78,6 +78,7 @@ export const MEDIA = mediaObj({
       `Interview and Q&A with JSNation Speaker: Miško Hevery | Intro and Overview of Qwik`,
       'mLbReseU_I0'
     ),
+    youtube('Resumability | Explained Briefly', 'vQ365FjT-yI'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

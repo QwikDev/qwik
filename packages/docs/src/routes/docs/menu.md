@@ -51,6 +51,7 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
+- [Builder.io](integrations/builderio/index.mdx)
 
 ## Deployments
 

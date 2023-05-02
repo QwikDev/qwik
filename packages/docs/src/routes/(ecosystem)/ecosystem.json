@@ -44,6 +44,31 @@
       "title": "Vitest",
       "href": "/docs/integrations/vitest/",
       "imgSrc": "/ecosystem/vitest.svg"
+    },
+    {
+      "title": "Cypress",
+      "href": "/docs/integrations/cypress/",
+      "imgSrc": "/ecosystem/cypress.svg"
+    },
+    {
+      "title": "Prisma",
+      "href": "/docs/integrations/prisma/",
+      "imgSrc": "/ecosystem/prisma.svg"
+    },
+    {
+      "title": "Nx",
+      "href": "/docs/integrations/nx/",
+      "imgSrc": "/ecosystem/nx.svg"
+    },
+    {
+      "title": "Storybook",
+      "href": "/docs/integrations/storybook/",
+      "imgSrc": "/ecosystem/storybook.svg"
+    },
+    {
+      "title": "Builder.io CMS",
+      "href": "/docs/integrations/builderio/",
+      "imgSrc": "/ecosystem/builderio.svg"
     }
   ],
   "deployments": [
@@ -81,6 +106,56 @@
       "title": "Vercel",
       "href": "/docs/deployments/vercel-edge/",
       "imgSrc": "/ecosystem/vercel.svg"
+    }
+  ],
+  "libraries": [
+    {
+      "title": "@modular-forms/qwik",
+      "github": "https://modularforms.dev/qwik/guides/introduction",
+      "imgSrc": "/ecosystem/modular-forms.svg",
+      "description": "The modular and type-safe form library"
+    },
+    {
+      "title": "@qwikest/icons",
+      "github": "https://github.com/qwikest/icons",
+      "imgSrc": "/ecosystem/rocket.svg",
+      "description": "Thousand of Open Source icons"
+    },
+    {
+      "title": "qwik-speak",
+      "github": "https://github.com/robisim74/qwik-speak",
+      "imgSrc": "/ecosystem/speak.svg",
+      "description": "Easy i18n"
+    },
+    {
+      "title": "qwik-rive",
+      "github": "https://github.com/qwikverse/qwik-rive",
+      "imgSrc": "/ecosystem/rive.png",
+      "description": "Rive animations"
+    },
+    {
+      "title": "qwik-lottie",
+      "github": "https://github.com/qwikverse/qwik-lottie",
+      "imgSrc": "/ecosystem/lottie.png",
+      "description": "Lottie animations"
+    },
+    {
+      "title": "@papanasi/qwik",
+      "github": "https://github.com/CKGrafico/papanasi",
+      "imgSrc": "/ecosystem/papanasi.svg",
+      "description": "Cross platform UI library"
+    },
+    {
+      "title": "qwik-wrap-balancer",
+      "github": "https://github.com/harshmangalam/qwik-wrap-balancer",
+      "imgSrc": "/ecosystem/balance.svg",
+      "description": "Good looking balanced paragraphs"
+    },
+    {
+      "title": "@qwik-ui/headless",
+      "github": "https://github.com/qwikifiers/qwik-ui",
+      "imgSrc": "/ecosystem/qwik-ui.png",
+      "description": "Headless UI library"
     }
   ],
   "communities": [

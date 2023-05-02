@@ -1,15 +1,1 @@
-<svg width="109" height="113" viewBox="0 0 109 113" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z" fill="url(#paint0_linear)"/>
-<path d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z" fill="url(#paint1_linear)" fill-opacity="0.2"/>
-<path d="M45.317 2.07103C48.1765 -1.53037 53.9745 0.442937 54.0434 5.041L54.4849 72.2922H9.83113C1.64038 72.2922 -2.92775 62.8321 2.1655 56.4175L45.317 2.07103Z" fill="#3ECF8E"/>
-<defs>
-<linearGradient id="paint0_linear" x1="53.9738" y1="54.974" x2="94.1635" y2="71.8295" gradientUnits="userSpaceOnUse">
-<stop stop-color="#249361"/>
-<stop offset="1" stop-color="#3ECF8E"/>
-</linearGradient>
-<linearGradient id="paint1_linear" x1="36.1558" y1="30.578" x2="54.4844" y2="65.0806" gradientUnits="userSpaceOnUse">
-<stop/>
-<stop offset="1" stop-opacity="0"/>
-</linearGradient>
-</defs>
-</svg>
+<svg fill="none" height="113" viewBox="0 0 109 113" width="109" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="53.9738" x2="94.1635" y1="54.974" y2="71.8295"><stop offset="0" stop-color="#249361"/><stop offset="1" stop-color="#3ecf8e"/></linearGradient><linearGradient id="b" gradientUnits="userSpaceOnUse" x1="36.1558" x2="54.4844" y1="30.578" y2="65.0806"><stop offset="0"/><stop offset="1" stop-opacity="0"/></linearGradient><path d="m63.7076 110.284c-2.8595 3.601-8.6574 1.628-8.7263-2.97l-1.0075-67.2513h45.2197c8.1905 0 12.7585 9.4601 7.6655 15.8747z" fill="url(#a)"/><path d="m63.7076 110.284c-2.8595 3.601-8.6574 1.628-8.7263-2.97l-1.0075-67.2513h45.2197c8.1905 0 12.7585 9.4601 7.6655 15.8747z" fill="url(#b)" fill-opacity=".2"/><path d="m45.317 2.07103c2.8595-3.6014 8.6575-1.628093 8.7264 2.96997l.4415 67.2512h-44.65377c-8.19075 0-12.75888-9.4601-7.66563-15.8747z" fill="#3ecf8e"/></svg>

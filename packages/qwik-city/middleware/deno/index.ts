@@ -51,7 +51,6 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         },
         platform: {
           ssr: true,
-          deno: Deno.version.deno,
         },
       };
 

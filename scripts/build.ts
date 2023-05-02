@@ -28,6 +28,7 @@ import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
 import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
+import { buildQwikWorker } from './qwik-worker';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -108,6 +109,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikauth) {
       await buildQwikAuth(config);
+    }
+
+    if (config.qwikworker) {
+      await buildQwikWorker(config);
     }
 
     if (config.supabaseauthhelpers) {

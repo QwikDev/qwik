@@ -18,6 +18,10 @@
   color: white;
 }
 
+.header-open .header-container.home-page-header .menu-toolkit {
+  background: #101010 !important;
+}
+
 .home-page-header .sun-and-moon:not(:hover) > :is(.moon, .sun, .sun-beams) {
   fill: #e3e2e9 !important;
   stroke: #e3e2e9 !important;

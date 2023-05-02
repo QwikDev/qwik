@@ -177,11 +177,11 @@ export default component$(() => {
     <form>
       <input type="text"
         value={firstName.value}
-        onInput$={(_, el) => firstName.value = firstName.value }
+        onInput$={(_, el) => firstName.value = el.value }
       />
       <input type="checkbox"
         checked={acceptConditions.value}
-        onChange$={(_, el) => acceptConditions.value = firstName.checked }
+        onChange$={(_, el) => acceptConditions.value = el.checked }
       />
       <div>First name: {firstName.value}</div>
     </form>

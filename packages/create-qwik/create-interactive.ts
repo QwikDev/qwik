@@ -28,7 +28,7 @@ export async function runCreateInteractiveCli() {
   const projectNameAnswer =
     (await text({
       message: `Where would you like to create your new project? ${gray(
-        `(Use '.' or './' for current directory.)`
+        `(Use '.' or './' for current directory)`
       )}`,
       placeholder: defaultProjectName,
     })) || defaultProjectName;

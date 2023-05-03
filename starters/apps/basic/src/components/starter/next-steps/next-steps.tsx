@@ -3,7 +3,7 @@ import styles from './next-steps.module.css';
 
 export const GETTING_STARTED_STEPS = [
   {
-    message: "Press and hold the <b>ALT</b> key to active 'Click-to-Source' mode",
+    message: "Press and hold the <b>ALT</b> key to activate 'Click-to-Source' mode",
   },
   {
     message: 'Select the title of this page while keeping the <b>ALT</b> key pressed',

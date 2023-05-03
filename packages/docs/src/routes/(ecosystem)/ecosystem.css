@@ -121,7 +121,7 @@
   border-radius: 5px;
   border: 1px solid transparent;
   overflow: hidden;
-  color: white;
+  color: currentColor;
 }
 
 .grid-item .thumbnail::before {
@@ -186,4 +186,21 @@
 .grid-item .description {
   text-align: center;
   font-size: 0.9em;
+}
+
+.add-integration .thumbnail {
+  opacity: 0.4;
+  border: 2px dotted currentColor;
+}
+.add-integration .thumbnail,
+.add-integration .thumbnail::before {
+  background: transparent;
+}
+
+.add-integration a:hover .thumbnail {
+  opacity: 0.8;
+}
+
+.add-integration svg {
+  margin: auto;
 }

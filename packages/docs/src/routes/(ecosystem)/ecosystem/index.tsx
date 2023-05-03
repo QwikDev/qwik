@@ -42,6 +42,11 @@ export default component$(() => {
                   thumbnailBg={true}
                 />
               ))}
+              <AddIntegrationItem
+                title="Add A Deployment"
+                href="/docs/deployments/#add-a-new-deployment"
+                imgSrc="/ecosystem/add-integration.svg"
+              />
             </ul>
           </section>
 
@@ -66,12 +71,18 @@ export default component$(() => {
                   thumbnailBg={true}
                 />
               ))}
+              <AddIntegrationItem
+                title="Add An Integration"
+                href="/docs/integrations/#add-a-new-integration"
+                imgSrc="/ecosystem/add-integration.svg"
+              />
             </ul>
           </section>
 
           <section id="libraries">
             <h2>
               <span>Libraries</span>
+              <span></span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {data.libraries.map((item, i) => (
@@ -84,6 +95,11 @@ export default component$(() => {
                   thumbnailBg={true}
                 />
               ))}
+              <AddIntegrationItem
+                title="Add A Library"
+                href="/docs/advanced/library/"
+                imgSrc="/ecosystem/add-integration.svg"
+              />
             </ul>
           </section>
 
@@ -104,13 +120,6 @@ export default component$(() => {
                 <div class="text-2xl font-bold">Qwikly Newsletter - Weekly news about Qwik</div>
               </div>
             </a>
-
-            {/* <div class="">
-            <a class="" href="https://qwiknewsletter.com">
-              <p class="icon"><img src="/ecosystem/qwik-newsletter.svg" /></p>
-
-            </a>
-          </div> */}
           </section>
 
           <section id="courses">
@@ -244,13 +253,7 @@ export default component$(() => {
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-4">
               {data.communities.map((item, i) => (
-                <GridItem
-                  title={item.title}
-                  href={item.href}
-                  imgSrc={item.imgSrc}
-                  key={i}
-                  thumbnailBg={false}
-                />
+                <GridItem title={item.title} href={item.href} imgSrc={item.imgSrc} key={i} />
               ))}
             </ul>
 
@@ -275,13 +278,7 @@ export default component$(() => {
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {data.social.map((item, i) => (
-                <GridItem
-                  title={item.title}
-                  href={item.href}
-                  imgSrc={item.imgSrc}
-                  key={i}
-                  thumbnailBg={false}
-                />
+                <GridItem title={item.title} href={item.href} imgSrc={item.imgSrc} key={i} />
               ))}
             </ul>
           </section>
@@ -322,12 +319,27 @@ export const LibraryGridItem: FunctionComponent<LibraryGridItemProps> = (props) 
   );
 };
 
+export const AddIntegrationItem: FunctionComponent<GridItemProps> = (props) => {
+  return (
+    <li class="grid-item add-integration">
+      <Link href={props.href}>
+        <div class="thumbnail">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64">
+            <path fill="currentColor" d="M38 26V2H26v24H2v12h24v24h12V38h24V26z" />
+          </svg>
+        </div>
+        <div class="text">{props.title}</div>
+      </Link>
+    </li>
+  );
+};
+
 interface GridItemProps {
   title: string;
   href: string;
   imgSrc?: string;
   imgCover?: boolean;
-  thumbnailBg: boolean;
+  thumbnailBg?: boolean;
 }
 
 interface LibraryGridItemProps {

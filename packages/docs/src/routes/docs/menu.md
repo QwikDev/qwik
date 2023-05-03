@@ -35,6 +35,7 @@
 
 - [Overview](integrations/index.mdx)
 - [Auth.js](integrations/authjs/index.mdx)
+- [Builder.io](integrations/builderio/index.mdx)
 - [Cypress](integrations/cypress/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
 - [Icons](integrations/icons/index.mdx)
@@ -51,7 +52,6 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
-- [Builder.io](integrations/builderio/index.mdx)
 
 ## Deployments
 

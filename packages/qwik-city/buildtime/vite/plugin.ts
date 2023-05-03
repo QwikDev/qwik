@@ -252,11 +252,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
           // ssr build
           const manifest = qwikPlugin!.api.getManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
-
+          
           if (manifest && clientOutDir) {
+            const clientOutBaseDir = join(clientOutDir, api.getBasePathname().replace(/^\/|\/$/, ''));
+
             for (const swEntry of ctx.serviceWorkers) {
               try {
-                const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
+                const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
                 const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
                 try {
                   const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);

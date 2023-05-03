@@ -12,7 +12,7 @@ import {
   isCancel,
   log,
 } from '@clack/prompts';
-import { bgBlue, red } from 'kleur/colors';
+import { bgBlue, red, gray } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
@@ -27,10 +27,11 @@ export async function runCreateInteractiveCli() {
   const defaultProjectName = './qwik-app';
   const projectNameAnswer =
     (await text({
-      message: 'Where would you like to create your new project?',
+      message: `Where would you like to create your new project? ${gray(
+        `(Use '.' or './' for current directory)`
+      )}`,
       placeholder: defaultProjectName,
-      initialValue: defaultProjectName,
-    })) || '';
+    })) || defaultProjectName;
 
   if (isCancel(projectNameAnswer)) {
     cancel('Operation cancelled.');

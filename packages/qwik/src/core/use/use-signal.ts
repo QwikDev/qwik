@@ -1,3 +1,4 @@
+import { isQwikComponent } from '../component/component.public';
 import { _createSignal, type Signal } from '../state/signal';
 import { isFunction } from '../util/types';
 import { invoke } from './use-core';
@@ -21,7 +22,10 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
   }
 
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const value = isFunction(initialState) ? invoke(undefined, initialState as any) : initialState;
+  const value =
+    isFunction(initialState) && !isQwikComponent(initialState)
+      ? invoke(undefined, initialState as any)
+      : initialState;
   const signal = _createSignal(value, containerState, 0, undefined) as Signal<STATE>;
   return set(signal);
 };

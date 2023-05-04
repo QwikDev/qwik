@@ -10,10 +10,9 @@ import {
 } from '../error/error';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
-import { assertDefined, assertTrue } from '../error/assert';
+import { assertDefined, assertTrue, assertElement } from '../error/assert';
 import type { MustGetObjID } from '../container/container';
 import type { QContext } from '../state/context';
-import { assertElement } from '../util/element';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;

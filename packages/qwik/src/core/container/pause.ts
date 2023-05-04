@@ -1,7 +1,6 @@
-import { assertDefined, assertEqual } from '../error/assert';
+import { assertDefined, assertElement, assertEqual } from '../error/assert';
 import { getDocument } from '../util/dom';
 import {
-  assertElement,
   isComment,
   isDocument,
   isElement,

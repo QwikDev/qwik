@@ -11,8 +11,7 @@ import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
-import { assertQwikElement } from '../util/element';
-import { assertTrue } from '../error/assert';
+import { assertQwikElement, assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy } from './store';
 

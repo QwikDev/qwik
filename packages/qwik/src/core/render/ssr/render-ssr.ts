@@ -33,14 +33,13 @@ import {
   getEventName,
 } from '../../container/container';
 import type { RenderContext } from '../types';
-import { assertDefined } from '../../error/assert';
+import { assertDefined, assertElement } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { isSignal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
-import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   createContext,

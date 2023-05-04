@@ -85,6 +85,7 @@ export const RenderChildren = component$(() => {
       <Issue3731 />
       <Issue3702 />
       <Issue3795 />
+      <Issue4029 />
     </>
   );
 });
@@ -727,3 +728,18 @@ export const Issue3795 = component$(() => {
     </div>
   );
 });
+
+export const Issue4029 = component$(() => {
+  const Comp = useSignal<any>(CompA);
+  return (
+    <>
+      <button id="issue-4029-toggle" onClick$={() => (Comp.value = CompB)}>
+        toggle
+      </button>
+      <Comp.value />
+    </>
+  );
+});
+
+export const CompA = component$(() => <div id="issue-4029-result">CompA</div>);
+export const CompB = component$(() => <div id="issue-4029-result">CompB</div>);

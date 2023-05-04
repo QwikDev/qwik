@@ -379,6 +379,14 @@ test.describe('render', () => {
       const result = page.locator('#issue-3795-result');
       await expect(result).toHaveText('foo foobar');
     });
+
+    test('issue4029', async ({ page }) => {
+      const toggle = page.locator('#issue-4029-toggle');
+      const result = page.locator('#issue-4029-result');
+      await expect(result).toHaveText('CompA');
+      await toggle.click();
+      await expect(result).toHaveText('CompB');
+    });
   }
 
   tests();

@@ -1,0 +1,3 @@
+(function(){
+  const t="_qCityPopstateFallback",o="_qCityHistory";window[t]||(window[t]=()=>{window[o]||location.reload()},setTimeout(()=>{addEventListener("popstate",window[t])},0))
+})();

@@ -11,6 +11,7 @@ contributors:
   - reemardelarosa
   - un33k
   - egmaleta
+  - mugan86
 ---
 
 # Best Practices
@@ -23,12 +24,12 @@ Qwik optimizer can better optimize the reactivity of the application if the oper
 // Don't do this!
 export default component$(() => {
   const signal = useSignal(0);
-  const isBiggerThanZero = signal > 0 ? 'Bigger than zero' : 'Smaller than zero';
+  const isBiggerThanZero = signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero';
   return (
     <div>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-      <div>{isBiggerThanZero}</div>
+      <button onClick$={() => signal.value++}>+</button>
+      <button onClick$={() => signal.value--}>-</button>
+      <div>{isBiggerThanZero} - Current value: { signal.value }</div>
     </div>
   );
 });
@@ -41,9 +42,12 @@ export default component$(() => {
   const signal = useSignal(0);
   return (
     <div>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-      <div>{signal > 0 ? 'Bigger than zero' : 'Smaller than zero'}</div>
+      <button onClick$={() => signal.value++}>+</button>
+        <button onClick$={() => signal.value--}>-</button>
+        <div>
+          {signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero'} - Current
+          value: {signal.value}
+        </div>
     </div>
   );
 });

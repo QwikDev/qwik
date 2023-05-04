@@ -2,6 +2,7 @@ import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
+import { normalizePathSlash } from '../../../utils/fs';
 
 /**
  * @public
@@ -55,7 +56,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         const importPath = relative(clientOutDir, join(serverOutDir, 'entry.cloudflare-pages'));
         await fs.promises.writeFile(
           workerJsPath,
-          `import { fetch } from "${importPath}"; export default { fetch };`
+          `import { fetch } from "${normalizePathSlash(importPath)}"; export default { fetch };`
         );
       }
     },

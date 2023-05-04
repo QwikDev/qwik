@@ -67,8 +67,10 @@ export function removeExtension(fileName: string) {
 }
 
 export function normalizePath(path: string) {
-  path = normalize(path);
+  return normalizePathSlash(normalize(path));
+}
 
+export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
   const isExtendedLengthPath = /^\\\\\?\\/.test(path);

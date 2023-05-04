@@ -141,13 +141,13 @@ export const Cmp = component$(() => {
 
 ## Scoped CSS
 
-To use scoped CSS, you can use the `useStyleScoped$()` hook exported from `@builder.io/qwik`.
+To use scoped CSS, you can use the `useStylesScoped$()` hook exported from `@builder.io/qwik`.
 
 ```tsx {4-8} title="src/components/MyComponent/MyComponent.tsx"
-import { component$, useStyleScoped$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  useStyleScoped$(`
+  useStylesScoped$(`
     .container {
       background-color: red;
     }
@@ -165,12 +165,12 @@ You can also import an external CSS file. For that you need to add the `?inline`
 ```
 
 ```tsx {3,6} title="src/components/MyComponent/MyComponent.tsx"
-import { component$, useStyleScoped$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
 
 import styles from './MyComponent.css?inline';
 
 export default component$(() => {
-  useStyleScoped$(styles);
+  useStylesScoped$(styles);
   return <div class="container">Hello world</div>;
 });
 ```

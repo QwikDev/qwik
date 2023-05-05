@@ -8,6 +8,7 @@ contributors:
   - nnelgxorz
   - cunzaizhuyi
   - the-r3aper7
+  - zanettin
 ---
 
 # MDX
@@ -146,4 +147,43 @@ The above example will generate the following HTML code.
 <meta property="og:image:alt" content="A shiny red apple with a bite taken out" />
 
 <meta property="og:image" content="https://example.com/rock2.jpg" />
+```
+
+## Reading frontmatter data
+Frontmatter keys are accessible by leveraging the `useDocumentHead()` hook.
+
+```Markdown title="src/routes/some/path/index.mdx"
+---
+title: Hello World Title
+tags:
+  - super
+  - exiting
+  - docs
+---
+import { Tags } from "../../../components/tags/tags";
+
+This is a simple hello world component.
+
+<Tags />
+```
+
+```tsx title="src/components/tags/tags.tsx"
+import { component$, useSignal } from '@builder.io/qwik';
+import { useDocumentHead } from '@builder.io/qwik-city';
+
+export const Tags = component$(() => {
+  const { frontmatter } = useDocumentHead();
+  
+  if (frontmatter.tags.length) {
+    return;
+  }
+  
+  return (
+    <ul>
+      {frontmatter.tags.map((tag: string) => (
+        <li key={`tag-${tag}`}>{tag}</li>
+      )}
+    </ul>
+  );
+});
 ```

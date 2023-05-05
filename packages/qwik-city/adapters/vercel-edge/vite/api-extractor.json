@@ -11,5 +11,9 @@
   "dtsRollup": {
     "enabled": true,
     "untrimmedFilePath": "<projectFolder>/packages/qwik-city/lib/adapters/vercel-edge/vite/index.d.ts"
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/vite/vercel/docs.api.json"
   }
 }

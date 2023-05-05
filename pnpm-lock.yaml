@@ -10,6 +10,9 @@ importers:
       '@clack/prompts':
         specifier: ^0.6.3
         version: 0.6.3
+      '@microsoft/api-documenter':
+        specifier: ^7.21.6
+        version: 7.21.6(@types/node@18.16.1)
       '@microsoft/api-extractor':
         specifier: 7.34.4
         version: 7.34.4(@types/node@18.16.1)
@@ -1811,6 +1814,21 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
+  /@microsoft/api-documenter@7.21.6(@types/node@18.16.1):
+    resolution: {integrity: sha512-Z7orii4J9nsPfiehngONhKHQJwqfHaqwr8CvhHkgeK1jf1stECBMaej/+iKw/+KzXpP9eDdJDEGCnMprxU0kjg==}
+    hasBin: true
+    dependencies:
+      '@microsoft/api-extractor-model': 7.26.4(@types/node@18.16.1)
+      '@microsoft/tsdoc': 0.14.2
+      '@rushstack/node-core-library': 3.55.2(@types/node@18.16.1)
+      '@rushstack/ts-command-line': 4.13.2
+      colors: 1.2.5
+      js-yaml: 3.13.1
+      resolve: 1.22.2
+    transitivePeerDependencies:
+      - '@types/node'
+    dev: true
+
   /@microsoft/api-extractor-model@7.26.4(@types/node@18.16.1):
     resolution: {integrity: sha512-PDCgCzXDo+SLY5bsfl4bS7hxaeEtnXj7XtuzEE+BtALp7B5mK/NrS2kHWU69pohgsRmEALycQdaQPXoyT2i5MQ==}
     dependencies:
@@ -2446,7 +2464,7 @@ packages:
       fs-extra: 7.0.1
       import-lazy: 4.0.0
       jju: 1.4.0
-      resolve: 1.22.1
+      resolve: 1.22.2
       semver: 7.3.8
       z-schema: 5.0.5
     dev: true
@@ -5802,6 +5820,14 @@ packages:
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
+    dev: true
+
+  /js-yaml@3.13.1:
+    resolution: {integrity: sha512-YfbcO7jXDdyj0DGxYVSlSeQNHbD7XPWvrVWeVUujrQEoZzWJIRrCPoyk6kL6IAjAG2IolMK4T0hNUe0HOUs5Jw==}
+    hasBin: true
+    dependencies:
+      argparse: 1.0.10
+      esprima: 4.0.1
     dev: true
 
   /js-yaml@3.14.1:

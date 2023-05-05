@@ -1,0 +1,219 @@
+.docs.api h1:not(.overview) {
+  font-size: 2rem;
+}
+
+.docs.api h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+  width: 100%;
+}
+
+/* styling for sections on detail view */
+.docs.api h2:not(:not([id])) {
+  margin-top: 50px;
+  position: relative;
+  width: 100%;
+}
+.docs.api h2:not(:not([id])):not(:nth-of-type(1)) {
+  border-top: 1px solid #eee;
+  padding-top: 50px;
+}
+[data-theme="dark"] .docs.api h2:not(:not([id])):not(:nth-of-type(1)) {
+  border-top: 1px solid #373737;
+}
+
+.docs.api article a[href*="github.com"] {
+  display: inline-block;
+  position: relative;
+  left: calc(100% - 115px);
+  border-radius: 4px;
+  background: #eee;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+[data-theme="dark"] .docs.api article a[href*="github.com"] {
+  background: #373737;
+}
+
+.docs.api table {
+  font-size: 0.8rem;
+  border-radius: 8px;
+  box-shadow: 0 0 30px 0 rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+  width: 100%;
+}
+[data-theme="dark"] .docs.api table {
+  box-shadow: 0 0 30px 0 rgba(80,80,80,0.1);
+}
+.docs.api thead tr {
+  background: rgb(1 31 51);
+  color: white;
+  text-align: left;
+}
+.docs.api thead th,
+.docs.api tbody tr td {
+  padding: 12px 24px;
+}
+.docs.api tbody tr:hover,
+.docs.api tbody tr:nth-child(even) {
+  background: #f6f6f6;
+}
+[data-theme="dark"] .docs.api tbody tr:hover,
+[data-theme="dark"] .docs.api tbody tr:nth-child(even) {
+  background: black;
+}
+
+.docs.api .docs-container {
+  margin: 10px auto;
+  padding: 80px 30px 0;
+  max-width: 1060px;
+}
+
+.docs.api .section-title {
+  display: flex;
+  background: #eee;
+  font-weight: 100;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  position: relative;
+  margin-top: 0;
+  width: 100%;
+}
+[data-theme="dark"] .docs.api .section-title {
+  background: #373737;
+}
+@media screen and (min-width: 768px) {
+  .docs.api .section-title {
+    font-size: 1rem;
+  }
+}
+.docs.api .section-title:before {
+  content: attr(data-icon);
+  display: inline-grid;
+  justify-content: center;
+  align-content: center;
+  background: var(--qwik-blue);
+  border-radius: 4px 0 0 4px;
+  padding: 8px 0;
+  color: white;
+  min-width: 40px;
+  font-weight: 400;
+}
+.docs.api .section-title span {
+  padding: 8px;
+  display: inline-block;
+}
+@media screen and (min-width: 768px) {
+  .docs.api .section-title span {
+    padding: 8px 16px;
+  }
+}
+
+.docs.api h3 {
+  font-size: 1rem;
+  margin-top: 0;
+}
+
+.docs.api a {
+    display: inline-block;
+    color: black;
+    text-decoration: none;
+}
+[data-theme="dark"] .docs.api a {
+    color: inherit;
+}
+
+.docs.api ul {
+  margin: 0;
+}
+
+.docs.api ul li.api-item {
+  padding: 0;
+}
+
+.api-detail-section {
+  padding: 50px 0;
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+[data-theme="dark"] .api-detail-section {
+  border-bottom: 1px solid #373737;
+}
+
+.docs.api .api-edit {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  margin: 0px;
+}
+.docs.api .api-edit a {
+  font-size: 0.8rem;
+  background: #eee;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+[data-theme="dark"] .docs.api .api-edit a {
+  background: #373737;
+}
+
+.docs.api .filter-item {
+  background: #eee;
+  line-height: 2;
+}
+[data-theme="dark"] .docs.api .filter-item {
+  background: #373737;
+}
+@media screen and (min-width: 768px) {
+  .docs.api .filter-item {
+    line-height: 1.5;
+  }
+}
+.docs.api .filter-item[data-kind-label]:before {
+  border-radius: 4px 0 0 4px;
+}
+.docs.api .filter-item[data-kind-label]:not(.active):before {
+  background: #bbb;
+  color: #444;
+}
+
+.docs.api [data-kind-label]:before {
+  border-radius: 4px;
+  color: white;
+  display: inline-block;
+  margin-right: 8px;
+  text-align: center;
+  min-width: 32px; /* ensure the label is always the same width on the overview */
+  padding: 2px 10px;
+}
+
+.docs.api [data-kind-label="V"]:before {
+  content: 'V';
+  background: var(--qwik-purple);
+}
+.docs.api [data-kind-label="P"]:before {
+  content: 'P';
+  background: var(--qwik-blue);
+}
+.docs.api [data-kind-label="I"]:before {
+    content: 'I';
+    background: var(--qwik-dark-blue);
+}
+.docs.api [data-kind-label="T"]:before {
+    content: 'T';
+    background: var(--qwik-dark-purple);
+}
+.docs.api [data-kind-label="M"]:before {
+    content: 'M';
+    background: #c3ba4c;
+}
+.docs.api [data-kind-label="F"]:before {
+    content: 'F';
+    background: #5bc0de;
+}
+.docs.api [data-kind-label="N"]:before {
+    content: 'N';
+    background: #5cb85c;
+}

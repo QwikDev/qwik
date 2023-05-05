@@ -1,0 +1,34 @@
+{
+  "id": "qwik-city-vite-cloud-run",
+  "package": "@builder.io/qwik-city/vite/cloud-run",
+  "members": [
+    {
+      "name": "cloudRunAdapter",
+      "id": "cloudrunadapter",
+      "hierarchy": [
+        {
+          "name": "cloudRunAdapter",
+          "id": "cloudrunadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function cloudRunAdapter(opts?: CloudRunAdapterOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [CloudRunAdapterOptions](#cloudrunadapteroptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloud-run/vite/index.ts",
+      "mdFile": "qwik-city.cloudrunadapter.md"
+    },
+    {
+      "name": "CloudRunAdapterOptions",
+      "id": "cloudrunadapteroptions",
+      "hierarchy": [
+        {
+          "name": "CloudRunAdapterOptions",
+          "id": "cloudrunadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface CloudRunAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloud-run/vite/index.ts",
+      "mdFile": "qwik-city.cloudrunadapteroptions.md"
+    }
+  ]
+}

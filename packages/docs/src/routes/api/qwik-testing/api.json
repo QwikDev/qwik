@@ -1,0 +1,20 @@
+{
+  "id": "qwik-testing",
+  "package": "@builder.io/qwik/testing",
+  "members": [
+    {
+      "name": "createDOM",
+      "id": "createdom",
+      "hierarchy": [
+        {
+          "name": "createDOM",
+          "id": "createdom"
+        }
+      ],
+      "kind": "Variable",
+      "content": "CreatePlatform and CreateDocument\n\n\n```typescript\ncreateDOM: () => Promise<{\n    render: (jsxElement: JSXNode) => Promise<import(\"@builder.io/qwik\").RenderResult>;\n    screen: HTMLElement;\n    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string, eventPayload?: any) => Promise<void>;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/testing/library.ts",
+      "mdFile": "qwik.createdom.md"
+    }
+  ]
+}

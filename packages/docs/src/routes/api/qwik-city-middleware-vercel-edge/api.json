@@ -1,0 +1,48 @@
+{
+  "id": "qwik-city-middleware-vercel-edge",
+  "package": "@builder.io/qwik-city/middleware/vercel-edge",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityVercelEdgeOptions](#qwikcityverceledgeoptions) |  |\n\n**Returns:**\n\n(request: Request) =&gt; Promise&lt;Response&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts",
+      "mdFile": "qwik-city.createqwikcity.md"
+    },
+    {
+      "name": "PlatformVercel",
+      "id": "platformvercel",
+      "hierarchy": [
+        {
+          "name": "PlatformVercel",
+          "id": "platformvercel"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformVercel \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts",
+      "mdFile": "qwik-city.platformvercel.md"
+    },
+    {
+      "name": "QwikCityVercelEdgeOptions",
+      "id": "qwikcityverceledgeoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityVercelEdgeOptions",
+          "id": "qwikcityverceledgeoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityVercelEdgeOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts",
+      "mdFile": "qwik-city.qwikcityverceledgeoptions.md"
+    }
+  ]
+}

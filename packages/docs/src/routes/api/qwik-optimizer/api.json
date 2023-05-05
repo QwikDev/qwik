@@ -1,0 +1,818 @@
+{
+  "id": "qwik-optimizer",
+  "package": "@builder.io/qwik/optimizer",
+  "members": [
+    {
+      "name": "basename",
+      "id": "path-basename",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-basename"
+        },
+        {
+          "name": "basename",
+          "id": "path-basename"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nbasename(path: string, ext?: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n|  ext | string | _(Optional)_ |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.basename.md"
+    },
+    {
+      "name": "ComponentEntryStrategy",
+      "id": "componententrystrategy",
+      "hierarchy": [
+        {
+          "name": "ComponentEntryStrategy",
+          "id": "componententrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ComponentEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual?](#) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [type](#) |  | 'component' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.componententrystrategy.md"
+    },
+    {
+      "name": "createOptimizer",
+      "id": "createoptimizer",
+      "hierarchy": [
+        {
+          "name": "createOptimizer",
+          "id": "createoptimizer"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts",
+      "mdFile": "qwik.createoptimizer.md"
+    },
+    {
+      "name": "Diagnostic",
+      "id": "diagnostic",
+      "hierarchy": [
+        {
+          "name": "Diagnostic",
+          "id": "diagnostic"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Diagnostic \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [category](#) |  | [DiagnosticCategory](#diagnosticcategory) |  |\n|  [code](#) |  | string \\| null |  |\n|  [file](#) |  | string |  |\n|  [highlights](#) |  | [SourceLocation](#sourcelocation)<!-- -->\\[\\] |  |\n|  [message](#) |  | string |  |\n|  [scope](#) |  | string |  |\n|  [suggestions](#) |  | string\\[\\] \\| null |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.diagnostic.md"
+    },
+    {
+      "name": "DiagnosticCategory",
+      "id": "diagnosticcategory",
+      "hierarchy": [
+        {
+          "name": "DiagnosticCategory",
+          "id": "diagnosticcategory"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DiagnosticCategory = 'error' | 'warning' | 'sourceError';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.diagnosticcategory.md"
+    },
+    {
+      "name": "dirname",
+      "id": "path-dirname",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-dirname"
+        },
+        {
+          "name": "dirname",
+          "id": "path-dirname"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\ndirname(path: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.dirname.md"
+    },
+    {
+      "name": "EntryStrategy",
+      "id": "entrystrategy",
+      "hierarchy": [
+        {
+          "name": "EntryStrategy",
+          "id": "entrystrategy"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;\n```\n**References:** [InlineEntryStrategy](#inlineentrystrategy)<!-- -->, [SingleEntryStrategy](#singleentrystrategy)<!-- -->, [HookEntryStrategy](#hookentrystrategy)<!-- -->, [ComponentEntryStrategy](#componententrystrategy)<!-- -->, [SmartEntryStrategy](#smartentrystrategy)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.entrystrategy.md"
+    },
+    {
+      "name": "extname",
+      "id": "path-extname",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-extname"
+        },
+        {
+          "name": "extname",
+          "id": "path-extname"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nextname(path: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.extname.md"
+    },
+    {
+      "name": "format",
+      "id": "path-format",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-format"
+        },
+        {
+          "name": "format",
+          "id": "path-format"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nformat(pathObject: {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    }): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  pathObject | { root: string; dir: string; base: string; ext: string; name: string; } |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.format.md"
+    },
+    {
+      "name": "GlobalInjections",
+      "id": "globalinjections",
+      "hierarchy": [
+        {
+          "name": "GlobalInjections",
+          "id": "globalinjections"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface GlobalInjections \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [attributes?](#) |  | { \\[key: string\\]: string; } | _(Optional)_ |\n|  [location](#) |  | 'head' \\| 'body' |  |\n|  [tag](#) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.globalinjections.md"
+    },
+    {
+      "name": "HookAnalysis",
+      "id": "hookanalysis",
+      "hierarchy": [
+        {
+          "name": "HookAnalysis",
+          "id": "hookanalysis"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HookAnalysis \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#) |  | string |  |\n|  [captures](#) |  | boolean |  |\n|  [ctxKind](#) |  | 'event' \\| 'function' |  |\n|  [ctxName](#) |  | string |  |\n|  [displayName](#) |  | string |  |\n|  [entry](#) |  | string \\| null |  |\n|  [extension](#) |  | string |  |\n|  [hash](#) |  | string |  |\n|  [name](#) |  | string |  |\n|  [origin](#) |  | string |  |\n|  [parent](#) |  | string \\| null |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.hookanalysis.md"
+    },
+    {
+      "name": "HookEntryStrategy",
+      "id": "hookentrystrategy",
+      "hierarchy": [
+        {
+          "name": "HookEntryStrategy",
+          "id": "hookentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HookEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [type](#) |  | 'hook' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.hookentrystrategy.md"
+    },
+    {
+      "name": "InlineEntryStrategy",
+      "id": "inlineentrystrategy",
+      "hierarchy": [
+        {
+          "name": "InlineEntryStrategy",
+          "id": "inlineentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface InlineEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [type](#) |  | 'inline' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.inlineentrystrategy.md"
+    },
+    {
+      "name": "isAbsolute",
+      "id": "path-isabsolute",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-isabsolute"
+        },
+        {
+          "name": "isAbsolute",
+          "id": "path-isabsolute"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nisAbsolute(path: string): boolean;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nboolean",
+      "mdFile": "qwik.path.isabsolute.md"
+    },
+    {
+      "name": "join",
+      "id": "path-join",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-join"
+        },
+        {
+          "name": "join",
+          "id": "path-join"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\njoin(...paths: string[]): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  paths | string\\[\\] |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.join.md"
+    },
+    {
+      "name": "MinifyMode",
+      "id": "minifymode",
+      "hierarchy": [
+        {
+          "name": "MinifyMode",
+          "id": "minifymode"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type MinifyMode = 'simplify' | 'none';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.minifymode.md"
+    },
+    {
+      "name": "normalize",
+      "id": "path-normalize",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-normalize"
+        },
+        {
+          "name": "normalize",
+          "id": "path-normalize"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nnormalize(path: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.normalize.md"
+    },
+    {
+      "name": "Optimizer",
+      "id": "optimizer",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Optimizer \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [sys](#) |  | [OptimizerSystem](#optimizersystem) | Optimizer system use. This can be updated with a custom file system. |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [transformFs(opts)](#optimizer-transformfs) | Transforms the directory from the file system. |\n|  [transformFsSync(opts)](#optimizer-transformfssync) | Transforms the directory from the file system. |\n|  [transformModules(opts)](#optimizer-transformmodules) | Transforms the input code string, does not access the file system. |\n|  [transformModulesSync(opts)](#optimizer-transformmodulessync) | Transforms the input code string, does not access the file system. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.optimizer.md"
+    },
+    {
+      "name": "OptimizerOptions",
+      "id": "optimizeroptions",
+      "hierarchy": [
+        {
+          "name": "OptimizerOptions",
+          "id": "optimizeroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface OptimizerOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [binding?](#) |  | any | _(Optional)_ |\n|  [sys?](#) |  | [OptimizerSystem](#optimizersystem) | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.optimizeroptions.md"
+    },
+    {
+      "name": "OptimizerSystem",
+      "id": "optimizersystem",
+      "hierarchy": [
+        {
+          "name": "OptimizerSystem",
+          "id": "optimizersystem"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface OptimizerSystem \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [cwd](#) |  | () =&gt; string |  |\n|  [dynamicImport](#) |  | (path: string) =&gt; Promise&lt;any&gt; |  |\n|  [env](#) |  | [SystemEnvironment](#systemenvironment) |  |\n|  [getInputFiles?](#) |  | (rootDir: string) =&gt; Promise&lt;[TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\]&gt; | _(Optional)_ |\n|  [os](#) |  | string |  |\n|  [path](#) |  | [Path](#path) |  |\n|  [strictDynamicImport](#) |  | (path: string) =&gt; Promise&lt;any&gt; |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.optimizersystem.md"
+    },
+    {
+      "name": "parse",
+      "id": "path-parse",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-parse"
+        },
+        {
+          "name": "parse",
+          "id": "path-parse"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nparse(path: string): {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    };\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  path | string |  |\n\n**Returns:**\n\n{ root: string; dir: string; base: string; ext: string; name: string; }",
+      "mdFile": "qwik.path.parse.md"
+    },
+    {
+      "name": "Path",
+      "id": "path",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Path \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [delimiter](#) | <code>readonly</code> | string |  |\n|  [posix](#) | <code>readonly</code> | [Path](#path) |  |\n|  [sep](#) | <code>readonly</code> | string |  |\n|  [win32](#) | <code>readonly</code> | null |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [basename(path, ext)](#path-basename) |  |\n|  [dirname(path)](#path-dirname) |  |\n|  [extname(path)](#path-extname) |  |\n|  [format(pathObject)](#path-format) |  |\n|  [isAbsolute(path)](#path-isabsolute) |  |\n|  [join(paths)](#path-join) |  |\n|  [normalize(path)](#path-normalize) |  |\n|  [parse(path)](#path-parse) |  |\n|  [relative(from, to)](#path-relative) |  |\n|  [resolve(paths)](#path-resolve) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.path.md"
+    },
+    {
+      "name": "QwikBuildMode",
+      "id": "qwikbuildmode",
+      "hierarchy": [
+        {
+          "name": "QwikBuildMode",
+          "id": "qwikbuildmode"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type QwikBuildMode = 'production' | 'development';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
+      "mdFile": "qwik.qwikbuildmode.md"
+    },
+    {
+      "name": "QwikBuildTarget",
+      "id": "qwikbuildtarget",
+      "hierarchy": [
+        {
+          "name": "QwikBuildTarget",
+          "id": "qwikbuildtarget"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
+      "mdFile": "qwik.qwikbuildtarget.md"
+    },
+    {
+      "name": "QwikBundle",
+      "id": "qwikbundle",
+      "hierarchy": [
+        {
+          "name": "QwikBundle",
+          "id": "qwikbundle"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikBundle \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [dynamicImports?](#) |  | string\\[\\] | _(Optional)_ |\n|  [imports?](#) |  | string\\[\\] | _(Optional)_ |\n|  [origins?](#) |  | string\\[\\] | _(Optional)_ |\n|  [size](#) |  | number |  |\n|  [symbols?](#) |  | string\\[\\] | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.qwikbundle.md"
+    },
+    {
+      "name": "QwikManifest",
+      "id": "qwikmanifest",
+      "hierarchy": [
+        {
+          "name": "QwikManifest",
+          "id": "qwikmanifest"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikManifest \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [bundles](#) |  | { \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; } |  |\n|  [injections?](#) |  | [GlobalInjections](#globalinjections)<!-- -->\\[\\] | _(Optional)_ |\n|  [mapping](#) |  | { \\[symbolName: string\\]: string; } |  |\n|  [options?](#) |  | { target?: string; buildMode?: string; forceFullBuild?: boolean; entryStrategy?: { \\[key: string\\]: any; }; } | _(Optional)_ |\n|  [platform?](#) |  | { \\[name: string\\]: string; } | _(Optional)_ |\n|  [symbols](#) |  | { \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; } |  |\n|  [version](#) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.qwikmanifest.md"
+    },
+    {
+      "name": "qwikRollup",
+      "id": "qwikrollup",
+      "hierarchy": [
+        {
+          "name": "qwikRollup",
+          "id": "qwikrollup"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  qwikRollupOpts | [QwikRollupPluginOptions](#qwikrolluppluginoptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts",
+      "mdFile": "qwik.qwikrollup.md"
+    },
+    {
+      "name": "QwikRollupPluginOptions",
+      "id": "qwikrolluppluginoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRollupPluginOptions",
+          "id": "qwikrolluppluginoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRollupPluginOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [buildMode?](#) |  | [QwikBuildMode](#qwikbuildmode) | _(Optional)_ Build <code>production</code> or <code>development</code>. Default <code>development</code> |\n|  [debug?](#) |  | boolean | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code> |\n|  [entryStrategy?](#) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>) |\n|  [forceFullBuild?](#) |  | boolean | _(Optional)_ |\n|  [manifestInput?](#) |  | [QwikManifest](#qwikmanifest) | _(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest. Default <code>undefined</code> |\n|  [manifestOutput?](#) |  | (manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void | _(Optional)_ The client build will create a manifest and this hook is called with the generated build data. Default <code>undefined</code> |\n|  [optimizerOptions?](#) |  | [OptimizerOptions](#optimizeroptions) | _(Optional)_ |\n|  [rootDir?](#) |  | string | _(Optional)_ The root of the application, which is commonly the same directory as <code>package.json</code> and <code>rollup.config.js</code>. Default <code>process.cwd()</code> |\n|  [srcDir?](#) |  | string | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |\n|  [srcInputs?](#) |  | [TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] \\| null | _(Optional)_ Alternative to <code>srcDir</code>, where <code>srcInputs</code> is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker. Default: <code>null</code> |\n|  [target?](#) |  | [QwikBuildTarget](#qwikbuildtarget) | _(Optional)_ Target <code>client</code> or <code>ssr</code>. Default <code>client</code> |\n|  [transformedModuleOutput?](#) |  | ((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts",
+      "mdFile": "qwik.qwikrolluppluginoptions.md"
+    },
+    {
+      "name": "QwikSymbol",
+      "id": "qwiksymbol",
+      "hierarchy": [
+        {
+          "name": "QwikSymbol",
+          "id": "qwiksymbol"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikSymbol \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#) |  | string |  |\n|  [captures](#) |  | boolean |  |\n|  [ctxKind](#) |  | 'function' \\| 'event' |  |\n|  [ctxName](#) |  | string |  |\n|  [displayName](#) |  | string |  |\n|  [hash](#) |  | string |  |\n|  [origin](#) |  | string |  |\n|  [parent](#) |  | string \\| null |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.qwiksymbol.md"
+    },
+    {
+      "name": "qwikVite",
+      "id": "qwikvite",
+      "hierarchy": [
+        {
+          "name": "qwikVite",
+          "id": "qwikvite"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  qwikViteOpts | [QwikVitePluginOptions](#qwikvitepluginoptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
+      "mdFile": "qwik.qwikvite.md"
+    },
+    {
+      "name": "QwikViteDevResponse",
+      "id": "qwikvitedevresponse",
+      "hierarchy": [
+        {
+          "name": "QwikViteDevResponse",
+          "id": "qwikvitedevresponse"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikViteDevResponse \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [\\_qwikEnvData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [\\_qwikRenderResolve?](#) |  | () =&gt; void | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
+      "mdFile": "qwik.qwikvitedevresponse.md"
+    },
+    {
+      "name": "QwikVitePlugin",
+      "id": "qwikviteplugin",
+      "hierarchy": [
+        {
+          "name": "QwikVitePlugin",
+          "id": "qwikviteplugin"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikVitePlugin \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [api](#) |  | [QwikVitePluginApi](#qwikvitepluginapi) |  |\n|  [name](#) |  | 'vite-plugin-qwik' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
+      "mdFile": "qwik.qwikviteplugin.md"
+    },
+    {
+      "name": "QwikVitePluginApi",
+      "id": "qwikvitepluginapi",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginApi",
+          "id": "qwikvitepluginapi"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getManifest](#) |  | () =&gt; [QwikManifest](#qwikmanifest) \\| null |  |\n|  [getOptimizer](#) |  | () =&gt; [Optimizer](#optimizer) \\| null |  |\n|  [getOptions](#) |  | () =&gt; NormalizedQwikPluginOptions |  |\n|  [getRootDir](#) |  | () =&gt; string \\| null |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
+      "mdFile": "qwik.qwikvitepluginapi.md"
+    },
+    {
+      "name": "QwikVitePluginOptions",
+      "id": "qwikvitepluginoptions",
+      "hierarchy": [
+        {
+          "name": "QwikVitePluginOptions",
+          "id": "qwikvitepluginoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikVitePluginOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [client?](#) |  | { input?: string\\[\\] \\| string; devInput?: string; outDir?: string; manifestOutput?: (manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void; } | _(Optional)_ |\n|  [debug?](#) |  | boolean | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code> |\n|  [devTools?](#) |  | { clickToSource: string\\[\\] \\| false; } | _(Optional)_ |\n|  [entryStrategy?](#) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>) |\n|  [optimizerOptions?](#) |  | [OptimizerOptions](#optimizeroptions) | _(Optional)_ Options for the Qwik optimizer. Default <code>undefined</code> |\n|  [srcDir?](#) |  | string | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |\n|  [ssr?](#) |  | { input?: string; outDir?: string; manifestInput?: [QwikManifest](#qwikmanifest)<!-- -->; } | _(Optional)_ |\n|  [transformedModuleOutput?](#) |  | ((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling. |\n|  [vendorRoots?](#) |  | string\\[\\] | _(Optional)_ List of directories to recursively search for Qwik components or Vendors. Default <code>[]</code> |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
+      "mdFile": "qwik.qwikvitepluginoptions.md"
+    },
+    {
+      "name": "relative",
+      "id": "path-relative",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-relative"
+        },
+        {
+          "name": "relative",
+          "id": "path-relative"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nrelative(from: string, to: string): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  from | string |  |\n|  to | string |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.relative.md"
+    },
+    {
+      "name": "resolve",
+      "id": "path-resolve",
+      "hierarchy": [
+        {
+          "name": "Path",
+          "id": "path-resolve"
+        },
+        {
+          "name": "resolve",
+          "id": "path-resolve"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nresolve(...paths: string[]): string;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  paths | string\\[\\] |  |\n\n**Returns:**\n\nstring",
+      "mdFile": "qwik.path.resolve.md"
+    },
+    {
+      "name": "SingleEntryStrategy",
+      "id": "singleentrystrategy",
+      "hierarchy": [
+        {
+          "name": "SingleEntryStrategy",
+          "id": "singleentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SingleEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual?](#) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [type](#) |  | 'single' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.singleentrystrategy.md"
+    },
+    {
+      "name": "SmartEntryStrategy",
+      "id": "smartentrystrategy",
+      "hierarchy": [
+        {
+          "name": "SmartEntryStrategy",
+          "id": "smartentrystrategy"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SmartEntryStrategy \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual?](#) |  | Record&lt;string, string&gt; | _(Optional)_ |\n|  [type](#) |  | 'smart' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.smartentrystrategy.md"
+    },
+    {
+      "name": "SourceLocation",
+      "id": "sourcelocation",
+      "hierarchy": [
+        {
+          "name": "SourceLocation",
+          "id": "sourcelocation"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SourceLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [endCol](#) |  | number |  |\n|  [endLine](#) |  | number |  |\n|  [hi](#) |  | number |  |\n|  [lo](#) |  | number |  |\n|  [startCol](#) |  | number |  |\n|  [startLine](#) |  | number |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.sourcelocation.md"
+    },
+    {
+      "name": "SourceMapsOption",
+      "id": "sourcemapsoption",
+      "hierarchy": [
+        {
+          "name": "SourceMapsOption",
+          "id": "sourcemapsoption"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SourceMapsOption = 'external' | 'inline' | undefined | null;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.sourcemapsoption.md"
+    },
+    {
+      "name": "SymbolMapper",
+      "id": "symbolmapper",
+      "hierarchy": [
+        {
+          "name": "SymbolMapper",
+          "id": "symbolmapper"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.symbolmapper.md"
+    },
+    {
+      "name": "SymbolMapperFn",
+      "id": "symbolmapperfn",
+      "hierarchy": [
+        {
+          "name": "SymbolMapperFn",
+          "id": "symbolmapperfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;\n```\n**References:** [SymbolMapper](#symbolmapper)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.symbolmapperfn.md"
+    },
+    {
+      "name": "SystemEnvironment",
+      "id": "systemenvironment",
+      "hierarchy": [
+        {
+          "name": "SystemEnvironment",
+          "id": "systemenvironment"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.systemenvironment.md"
+    },
+    {
+      "name": "transformFs",
+      "id": "optimizer-transformfs",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformfs"
+        },
+        {
+          "name": "transformFs",
+          "id": "optimizer-transformfs"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFs(opts: TransformFsOptions): Promise<TransformOutput>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformFsOptions](#transformfsoptions) |  |\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "mdFile": "qwik.optimizer.transformfs.md"
+    },
+    {
+      "name": "TransformFsOptions",
+      "id": "transformfsoptions",
+      "hierarchy": [
+        {
+          "name": "TransformFsOptions",
+          "id": "transformfsoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformFsOptions extends TransformOptions \n```\n**Extends:** [TransformOptions](#transformoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [vendorRoots](#) |  | string\\[\\] |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transformfsoptions.md"
+    },
+    {
+      "name": "transformFsSync",
+      "id": "optimizer-transformfssync",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformfssync"
+        },
+        {
+          "name": "transformFsSync",
+          "id": "optimizer-transformfssync"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFsSync(opts: TransformFsOptions): TransformOutput;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformFsOptions](#transformfsoptions) |  |\n\n**Returns:**\n\n[TransformOutput](#transformoutput)",
+      "mdFile": "qwik.optimizer.transformfssync.md"
+    },
+    {
+      "name": "TransformModule",
+      "id": "transformmodule",
+      "hierarchy": [
+        {
+          "name": "TransformModule",
+          "id": "transformmodule"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformModule \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [code](#) |  | string |  |\n|  [hook](#) |  | [HookAnalysis](#hookanalysis) \\| null |  |\n|  [isEntry](#) |  | boolean |  |\n|  [map](#) |  | string \\| null |  |\n|  [path](#) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transformmodule.md"
+    },
+    {
+      "name": "TransformModuleInput",
+      "id": "transformmoduleinput",
+      "hierarchy": [
+        {
+          "name": "TransformModuleInput",
+          "id": "transformmoduleinput"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformModuleInput \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [code](#) |  | string |  |\n|  [path](#) |  | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transformmoduleinput.md"
+    },
+    {
+      "name": "transformModules",
+      "id": "optimizer-transformmodules",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformmodules"
+        },
+        {
+          "name": "transformModules",
+          "id": "optimizer-transformmodules"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModules(opts: TransformModulesOptions): Promise<TransformOutput>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformModulesOptions](#transformmodulesoptions) |  |\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "mdFile": "qwik.optimizer.transformmodules.md"
+    },
+    {
+      "name": "TransformModulesOptions",
+      "id": "transformmodulesoptions",
+      "hierarchy": [
+        {
+          "name": "TransformModulesOptions",
+          "id": "transformmodulesoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformModulesOptions extends TransformOptions \n```\n**Extends:** [TransformOptions](#transformoptions)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [input](#) |  | [TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transformmodulesoptions.md"
+    },
+    {
+      "name": "transformModulesSync",
+      "id": "optimizer-transformmodulessync",
+      "hierarchy": [
+        {
+          "name": "Optimizer",
+          "id": "optimizer-transformmodulessync"
+        },
+        {
+          "name": "transformModulesSync",
+          "id": "optimizer-transformmodulessync"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModulesSync(opts: TransformModulesOptions): TransformOutput;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [TransformModulesOptions](#transformmodulesoptions) |  |\n\n**Returns:**\n\n[TransformOutput](#transformoutput)",
+      "mdFile": "qwik.optimizer.transformmodulessync.md"
+    },
+    {
+      "name": "TransformOptions",
+      "id": "transformoptions",
+      "hierarchy": [
+        {
+          "name": "TransformOptions",
+          "id": "transformoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [entryStrategy?](#) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ |\n|  [explicitExtensions?](#) |  | boolean | _(Optional)_ |\n|  [isServer?](#) |  | boolean | _(Optional)_ |\n|  [minify?](#) |  | [MinifyMode](#minifymode) | _(Optional)_ |\n|  [mode?](#) |  | EmitMode | _(Optional)_ |\n|  [preserveFilenames?](#) |  | boolean | _(Optional)_ |\n|  [regCtxName?](#) |  | string\\[\\] | _(Optional)_ |\n|  [rootDir?](#) |  | string | _(Optional)_ |\n|  [scope?](#) |  | string | _(Optional)_ |\n|  [sourceMaps?](#) |  | boolean | _(Optional)_ |\n|  [srcDir](#) |  | string |  |\n|  [stripCtxName?](#) |  | string\\[\\] | _(Optional)_ |\n|  [stripEventHandlers?](#) |  | boolean | _(Optional)_ |\n|  [stripExports?](#) |  | string\\[\\] | _(Optional)_ |\n|  [transpileJsx?](#) |  | boolean | _(Optional)_ |\n|  [transpileTs?](#) |  | boolean | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transformoptions.md"
+    },
+    {
+      "name": "TransformOutput",
+      "id": "transformoutput",
+      "hierarchy": [
+        {
+          "name": "TransformOutput",
+          "id": "transformoutput"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface TransformOutput \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [diagnostics](#) |  | [Diagnostic](#diagnostic)<!-- -->\\[\\] |  |\n|  [isJsx](#) |  | boolean |  |\n|  [isTypeScript](#) |  | boolean |  |\n|  [modules](#) |  | [TransformModule](#transformmodule)<!-- -->\\[\\] |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transformoutput.md"
+    },
+    {
+      "name": "TranspileOption",
+      "id": "transpileoption",
+      "hierarchy": [
+        {
+          "name": "TranspileOption",
+          "id": "transpileoption"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type TranspileOption = boolean | undefined | null;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.transpileoption.md"
+    },
+    {
+      "name": "versions",
+      "id": "versions",
+      "hierarchy": [
+        {
+          "name": "versions",
+          "id": "versions"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nversions: {\n    qwik: string;\n}\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts",
+      "mdFile": "qwik.versions.md"
+    }
+  ]
+}

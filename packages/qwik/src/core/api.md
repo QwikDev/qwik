@@ -222,7 +222,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     draggable?: boolean | undefined;
     // (undocumented)
-    hidden?: boolean | undefined;
+    hidden?: boolean | 'hidden' | 'until-found' | undefined;
     // (undocumented)
     id?: string | undefined;
     // (undocumented)

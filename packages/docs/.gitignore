@@ -4,6 +4,8 @@ dist
 server
 functions/**/*.js
 
+!src/routes/api/qwik/server/
+
 # Development
 node_modules
 

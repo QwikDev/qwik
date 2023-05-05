@@ -1,13 +1,17 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { generateApiMarkdownDocs } from './api-docs';
 import { type BuildConfig, panic } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure
  * the public API has not changed for a production build.
  */
-export function apiExtractor(config: BuildConfig) {
+export async function apiExtractor(config: BuildConfig) {
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
+  rmSync(apiJsonInputDir, { recursive: true, force: true });
+
   // core
   // Run the api extractor for each of the submodules
   createTypesApi(config, join(config.srcDir, 'core'), join(config.distPkgDir, 'core.d.ts'), '.');
@@ -153,6 +157,8 @@ export function apiExtractor(config: BuildConfig) {
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'vercel-edge', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);
+
+  await generateApiMarkdownDocs(config, apiJsonInputDir);
 
   console.log('🥶', 'submodule d.ts API files generated');
 }

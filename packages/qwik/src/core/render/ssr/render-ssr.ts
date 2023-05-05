@@ -75,7 +75,7 @@ export interface RenderSSROptions {
     contexts: QContext[],
     containerState: ContainerState,
     containsDynamic: boolean,
-    textNodes: Map<string, string>,
+    textNodes: Map<string, string>
   ) => Promise<JSXNode>;
 }
 

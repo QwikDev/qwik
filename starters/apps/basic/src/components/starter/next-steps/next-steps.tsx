@@ -3,7 +3,7 @@ import styles from './next-steps.module.css';
 
 export const GETTING_STARTED_STEPS = [
   {
-    message: '<b>Ready</b> to make some changes?<br />Press and hold the <b>ALT</b> key',
+    message: "Press and hold the <b>ALT</b> key to activate 'Click-to-Source' mode",
   },
   {
     message: 'Select the title of this page while keeping the <b>ALT</b> key pressed',
@@ -11,7 +11,7 @@ export const GETTING_STARTED_STEPS = [
   },
   {
     message:
-      '<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes/layout.tsx</code> file',
+      '<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes//layout.tsx</code> file',
     hint: 'Instead of returning the current date, you could return any possible string.<br />The output is displayed in the footer.',
   },
   {
@@ -41,23 +41,31 @@ export default component$(() => {
   );
 
   return (
-    <>
+    <div class="container container-purple container-center">
+      <h2>
+        Time for a quick
+        <br />
+        <span class="highlight">qwik intro</span>?
+      </h2>
       <div class={styles.gettingstarted}>
-        <div dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].message} />
+        <div
+          class={styles.intro}
+          dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].message}
+        />
         <span
           class={styles.hint}
           dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].hint}
         />
       </div>
       {gettingStartedStep.value + 1 < GETTING_STARTED_STEPS.length ? (
-        <button class="gray small" onClick$={() => gettingStartedStep.value++}>
+        <button class="button-dark" onClick$={() => gettingStartedStep.value++}>
           Continue with Step {gettingStartedStep.value + 2} of {GETTING_STARTED_STEPS.length}
         </button>
       ) : (
-        <button class="gray small" onClick$={() => (gettingStartedStep.value = 0)}>
+        <button class="button-dark" onClick$={() => (gettingStartedStep.value = 0)}>
           Re-Start
         </button>
       )}
-    </>
+    </div>
   );
 });

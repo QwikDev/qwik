@@ -1,7 +1,6 @@
-import { assertDefined, assertEqual } from '../error/assert';
+import { assertDefined, assertElement, assertEqual } from '../error/assert';
 import { getDocument } from '../util/dom';
 import {
-  assertElement,
   isComment,
   isDocument,
   isElement,
@@ -152,7 +151,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
       }
       if (isSerializableObject(obj)) {
         const output: Record<string, any> = {};
-        for (const key of Object.keys(obj)) {
+        for (const key in obj) {
           output[key] = mustGetObjId(obj[key]);
         }
         return output;
@@ -487,7 +486,7 @@ export const _pauseFromContexts = async (
       }
       if (isSerializableObject(obj)) {
         const output: Record<string, any> = {};
-        for (const key of Object.keys(obj)) {
+        for (const key in obj) {
           const id = getObjId(obj[key]);
           if (id !== null) {
             output[key] = id;
@@ -867,7 +866,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
               collectValue(input[i], collector, leaks);
             }
           } else if (isSerializableObject(obj)) {
-            for (const key of Object.keys(obj)) {
+            for (const key in obj) {
               collectValue(input[key], collector, leaks);
             }
           }

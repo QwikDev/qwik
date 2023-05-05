@@ -81,7 +81,19 @@ export async function validateBuild(config: BuildConfig) {
   }
 
   await validatePackageJson(config, pkg, errors);
-  await validateModuleTreeshake(config, join(config.distPkgDir, 'core.min.mjs'));
+  await Promise.all([
+    validateModuleTreeshake(config, join(config.distPkgDir, 'core.min.mjs')),
+    validateModuleTreeshake(config, join(config.distPkgDir, 'core.prod.mjs')),
+    validateModuleTreeshake(config, join(config.distPkgDir, 'core.mjs')),
+    validateModuleTreeshake(config, join(config.distPkgDir, 'server.mjs')),
+  ]);
+  if (config.qwikcity) {
+    await validateModuleTreeshake(
+      config,
+      join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
+      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod']
+    );
+  }
 
   const allFiles: string[] = [];
   function getFiles(dir: string) {
@@ -190,13 +202,16 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
 
 async function validateModuleTreeshake(
   config: BuildConfig,
-  entryModulePath: string
+  entryModulePath: string,
+  external: string[] = []
 ): Promise<void> {
   const virtualInputId = `@index`;
   const bundle = await rollup({
     input: virtualInputId,
-    treeshake: true,
-    external: ['@builder.io/qwik/build'],
+    treeshake: {
+      moduleSideEffects: 'no-external',
+    },
+    external: ['@builder.io/qwik/build', '@builder.io/qwik', ...external],
     plugins: [
       {
         name: 'resolver',
@@ -228,8 +243,8 @@ async function validateModuleTreeshake(
 
   if (outputCode !== '') {
     console.log(outputCode);
-    throw new Error(`🧨  Unable to treeshake everything!`);
+    throw new Error(`🧨  Unable to treeshake for ${entryModulePath}`);
   }
 
-  console.log(`🌳  validated treeshake`);
+  console.log(`🌳  validated treeshake for ${entryModulePath}`);
 }

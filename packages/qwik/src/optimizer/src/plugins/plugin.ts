@@ -42,7 +42,14 @@ const SERVER_STRIP_CTX_NAME = [
   'validator$',
   'globalAction$',
 ];
-const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'];
+const CLIENT_STRIP_CTX_NAME = [
+  'useClient',
+  'useBrowser',
+  'useVisibleTask',
+  'client',
+  'browser',
+  'event$',
+];
 export interface QwikPackages {
   id: string;
   path: string;
@@ -474,7 +481,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: getQwikBuildModule(loadOpts),
+        code: getQwikBuildModule(loadOpts, opts.target),
       };
     }
 
@@ -742,8 +749,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return id;
   };
 
-  function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
-    const isServer = !!loadOpts.ssr;
+  function getQwikBuildModule(loadOpts: { ssr?: boolean }, target: QwikBuildTarget) {
+    const isServer = !!loadOpts.ssr || target === 'test';
     const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};

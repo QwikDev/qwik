@@ -7,12 +7,12 @@ contributors:
   - shairez
 ---
 
-Use context to pass data to child components without explicitly passing it through components (known as prop drilling). Context is useful to share data that is needed throughout the application components. For example styling information, application state, or currently logged-in user.
+Use context to pass data to child components without explicitly passing it through components (known as prop drilling). Context is useful to share data that is needed in components throughout the application, such as styling information, application state, or the currently logged-in user.
 
-To use context you need three parts:
+The code to use a context is divided into three parts:
 
-- `createContextId()`: this creates a serializable ID for the context. Make sure that this id is unique within your application.
-- `useContextProvider()`: At a parent component call this method to publish the context value. All children (and grandchildren) that are descendants of this component will be able to retrieve the context.
+- `createContextId()`: this creates a serializable ID for the context. Make sure that this ID is unique within your application.
+- `useContextProvider()`: In a parent component, call this method to publish the context value. All children (and grandchildren) that are descendants of this component will be able to retrieve the context.
 - [`useContext()`](/docs/(qwik)/components/context/index.mdx#usecontext) to retrieve the context and use it in any component.
 
 In this example, we would like to pass the `TodosStore` to the `<Items>` component. Update the code to use [`useContext()`](/docs/(qwik)/components/context/index.mdx#usecontext) to retrieve the value.

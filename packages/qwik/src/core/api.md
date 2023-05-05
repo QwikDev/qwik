@@ -414,7 +414,7 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 }
 
 // @public (undocumented)
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
@@ -1039,6 +1039,9 @@ export const version: string;
 
 // @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+
+// @internal (undocumented)
+export const _waitUntilRendered: (elm: Element) => Promise<void>;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;

@@ -11,7 +11,7 @@ In addition to implicit reactivity created by the templates, Qwik supports expli
 
 In this example clicking on `+1` updates `count` immediately. What we would like is to update the `delay count` after a 2-second delay. If `count` is updated before the 2 seconds are up then the timer is restarted.
 
-Notice that [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callback receives `track` function. Use the `track` function to tell Qwik which properties should trigger this watch. The `track` function creates subscriptions in store. On each invocation of [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) the subscriptions are cleared, so it is important to always set up a new set of subscriptions. This is useful if the set of subscriptions changes during the function lifetime.
+Notice that the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callback receives a `track` function. Use the `track` function to tell Qwik which properties should trigger the task's watcher. The `track` function creates subscriptions in the store. On each invocation of [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) the subscriptions are cleared, so it is important to always set up a new set of subscriptions. This is useful if the set of subscriptions changes during the function's lifetime.
 
 The [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callback function can return a cleanup function. The clean-up function is invoked on the next [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callback execution or when the component is removed. In our case, the cleanup function is used for returning code which clears the `setTimeout`.
 

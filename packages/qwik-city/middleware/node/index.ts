@@ -8,7 +8,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fromNodeHttp, getUrl } from './http';
-import { MIME_TYPES } from './mime-types';
+import { MIME_TYPES } from '../request-handler/mime-types';
 import { patchGlobalThis } from './node-fetch';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 

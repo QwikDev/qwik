@@ -315,6 +315,7 @@ You can think of inline components as being inlined into the component where the
 Inline components come with some limitations that the standard `component$()`
 does not have. Inline components:
 - Cannot use `use*` methods such as `useSignal` or `useStore`.
+- Cannot project content with a `<Slot>`
 
 As the name implies, inline components are best used sparingly for
 lightweight pieces of markup since they offer the convenience of being
@@ -338,9 +339,9 @@ bundled with the parent component.
 
 ### Events
 
-- [`useOn()`](../events/index.mdx) - appends a listener to the current component programatically
-- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programatically
-- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programatically
+- [`useOn()`](../events/index.mdx) - appends a listener to the current component programmatically
+- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programmatically
+- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programmatically
 
 ### Tasks/Lifecycle
 

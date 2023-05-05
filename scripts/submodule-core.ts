@@ -1,4 +1,4 @@
-import { type BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
+import { type BuildConfig, rollupOnWarn } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
@@ -50,15 +50,6 @@ async function submoduleCoreProd(config: BuildConfig) {
     banner: getBanner('@builder.io/qwik', config.distVersion),
   };
 
-  const cjsIntro = [
-    ,
-    /**
-     * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
-     * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
-     */
-    injectGlobalThisPoly(),
-  ].join('');
-
   const cjsOutput: OutputOptions = {
     dir: join(config.distPkgDir),
     format: 'umd',
@@ -69,7 +60,6 @@ async function submoduleCoreProd(config: BuildConfig) {
       '@builder.io/qwik/build': 'qwikBuild',
     },
     banner: getBanner('@builder.io/qwik', config.distVersion),
-    intro: cjsIntro,
   };
 
   const build = await rollup(input);
@@ -78,13 +68,17 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
 
+  const inputCore = join(config.distPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
-    input: join(config.distPkgDir, 'core.mjs'),
+    input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
       {
         name: 'build',
         resolveId(id) {
+          if (id === '@index.min') {
+            return id;
+          }
           if (id === '@builder.io/qwik/build') {
             return id;
           }
@@ -112,7 +106,10 @@ async function submoduleCoreProd(config: BuildConfig) {
         async renderChunk(code) {
           const esmMinifyResult = await minify(code, {
             module: true,
+            toplevel: true,
             compress: {
+              module: true,
+              toplevel: true,
               global_defs: {
                 // special global that when set to false will remove all dev code entirely
                 // developer production builds could use core.min.js directly, or setup
@@ -127,9 +124,13 @@ async function submoduleCoreProd(config: BuildConfig) {
               },
               ecma: 2020,
               passes: 3,
+              pure_getters: true,
+              unsafe_symbols: true,
+              keep_fargs: false,
             },
             mangle: {
               toplevel: true,
+              module: true,
               properties: {
                 regex: '^\\$.+\\$$',
               },
@@ -137,7 +138,6 @@ async function submoduleCoreProd(config: BuildConfig) {
             format: {
               comments: /__PURE__/,
               preserve_annotations: true,
-              preamble: getBanner('@builder.io/qwik', config.distVersion),
               ecma: 2020,
             },
           });
@@ -174,16 +174,11 @@ async function submoduleCoreProd(config: BuildConfig) {
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
   const result = await minify(code, {
     compress: {
-      booleans: false,
-      collapse_vars: true,
-      dead_code: true,
-      inline: true,
+      pure_getters: true,
+      unsafe_symbols: true,
+      keep_fargs: false,
       join_vars: false,
-      passes: 3,
-      reduce_vars: true,
-      side_effects: true,
-      toplevel: true,
-      unused: true,
+
       global_defs: {
         'globalThis.qDev': false,
         'globalThis.qInspector': false,
@@ -195,9 +190,11 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       },
     },
     format: {
-      comments: false,
       beautify: true,
       braces: true,
+      comments: /__PURE__/,
+      preserve_annotations: true,
+      ecma: 2020,
       preamble: getBanner('@builder.io/qwik', config.distVersion),
     },
     mangle: false,
@@ -236,7 +233,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
     banner: {
-      js: `${injectGlobalThisPoly()}\nglobalThis.qwikCore = (function (module) {`,
+      js: `globalThis.qwikCore = (function (module) {`,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,

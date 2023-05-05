@@ -16,6 +16,7 @@ export default defineConfig(() => {
       noExternal: [
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
+        '@algolia/autocomplete-shared',
         'algoliasearch/lite',
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
@@ -104,7 +105,7 @@ export default defineConfig(() => {
 });
 
 const page = {
-  xEi06O8vOjU: 'page',
+  KnNE9eL0qfc: 'page',
   '9t1uPE4yoLA': 'page',
 };
 

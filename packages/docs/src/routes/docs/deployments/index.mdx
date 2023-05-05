@@ -36,3 +36,31 @@ npm run build
 The `requestHandler()` utility is what each of the above middleware bundles uses in order to translate their request/response to a standard format for Qwik City to use. This function can be used to provide middleware for specific server frameworks.
 
 If there's middleware missing and you'd like it added, take a look at how the `requestHandler()` utility is used to handle requests for each of the middleware source-code above. Better yet, we'd love to have your middleware contributions! [PR's are welcome](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware)!
+
+## Add A New Deployment
+
+Thanks for your interesting into adding a deployment integration to Qwik! We're more than happy to help you get started. Before we get too far, if there's already a deployment for what you're looking for, we'd [love to have you contribute to it](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters). If the deployment is not already available, let's add it!
+
+To start it's probably best to copy an existing adapters and middleware and modify it to fit your needs. A deployment is made up of a few different parts:
+
+### Add An Adapter
+
+An adapter is the term used to summarize the Vite config that needed for the special build configuration. Each server, whether it's a cloud-service or a custom server, has its own unique build configuration for a specific output the server uses. For example, [Cloudflare](/docs/deployments/cloudflare-pages/index.mdx), [Netlify](/docs/deployments/netlify-edge/index.mdx) and [Node.js Server](/docs/deployments/node/index.mdx) each have their own build configurations.
+
+The adapter is really a Vite config, that's extending the base config. The base config is the same for all adapters, and the adapter config is the unique part for each server.
+
+- [Adapters Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters)
+
+### Add Middleware
+
+Middleware is the glue code that connects the server rendering framework (such as Cloudflare, Netlify, Vercel, Express etc.) with the Qwik City meta-framework. Each middleware is responsible for handling the request and response from the server and translating it to a standard format for Qwik City to use. 
+
+Luckily Qwik City uses the standardized [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) interfaces, so the middleware is usually pretty minimal.
+
+For middleware, you'll notice they each one calls the common `@builder.io/qwik-city/middleware/request-handler` package. The job of each middleware is to translate the request and response to the standardized format that Qwik City request handler package uses.
+
+- [Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware)
+
+### Add To The Starter CLI
+
+The next step is to add the new adapter to the Starter CLI. For this step it's probably best to ping the core team on [Discord](https://qwik.builder.io/chat) to help you get started. The CLI is a great place to add the new adapter, because it's a great way to test the new adapter and make sure it's working as expected.

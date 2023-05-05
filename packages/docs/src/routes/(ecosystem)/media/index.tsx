@@ -2,27 +2,44 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
-// A helper for defining YouTube Media Entries
-export const youtube = (title: string, id: string, start_time?: number): MediaEntry => {
-  const url = new URL('https://www.youtube.com/watch');
-  url.searchParams.append('v', id);
-  // if there's a start_time and it's not 0
-  if (start_time) {
-    url.searchParams.append('t', start_time.toString());
-  }
-  return {
-    href: url.href,
-    imgSrc: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
-    title,
-  };
-};
+/*************************************************************/
+/* This file is used to generate the ecosystem and media pages.
+/* Please find the appropriate section in the MEDIA variable
+/* to add your content.
+/* Thanks!!!
+/*************************************************************/
 
 export const MEDIA = mediaObj({
+  /*****************************************/
+  /* Courses
+  /*****************************************/
+  courses: [
+    youtube('The Net Ninja', 'W0xjcx4mrkE', { playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw' }),
+    {
+      href: 'https://qwikschool.com/',
+      imgSrc:
+        'https://user-images.githubusercontent.com/1430726/234708569-7a51fe77-3a65-4a28-9617-73ad159aa551.png',
+      title: 'QwikSchool.com',
+    },
+    youtube('Qwik JS - Crash Introduction to Building a Super Fast Application', 'zLHYDY9dAbs', {
+      playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
+    }),
+    {
+      href: 'https://frontendmasters.com/courses/qwik/',
+      imgSrc: 'https://static.frontendmasters.com/assets/courses/2023-02-28-qwik/posterframe.webp',
+      title: 'FrontendMasters: Qwik for Instant-Loading Websites & Apps',
+    },
+    youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag'),
+  ],
+
+  /*****************************************/
+  /* Videos
+  /*****************************************/
   videos: [
+    youtube('Unveiling Qwik 1.0: What You Need to Know!', 'NjKOAbWqOM4'),
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
     youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
     youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
-    youtube('Qwik City for Resumable, Dynamic Apps', 'cJJdrYnsl6U'),
     youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
     youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),
     youtube('Building Qwik w/ Misko Hevery', 'lY6e7Hw4uVo'),
@@ -37,7 +54,6 @@ export const MEDIA = mediaObj({
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
     youtube('🇪🇸 Hablemos de Qwik', 'XMLMS2NVC1g'),
     youtube('🇪🇸 Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw'),
-    youtube('🇪🇸 Qwik en solo 2 Horas, Curso Rápido y Efectivo', 'FF3D4tppyag'),
     youtube('🇪🇸 Introducción a QwikJS', 'fX7bM4iuuUQ'),
     youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
     youtube('Introduction to Qwik for JS Developers ft. Miško Hevery | JS Drops', 'DxJgXw91cCQ'),
@@ -54,9 +70,14 @@ export const MEDIA = mediaObj({
       `Interview and Q&A with JSNation Speaker: Miško Hevery | Intro and Overview of Qwik`,
       'mLbReseU_I0'
     ),
+    youtube('Resumability | Explained Briefly', 'vQ365FjT-yI'),
   ],
+
+  /*****************************************/
+  /* Podcasts
+  /*****************************************/
   podcasts: [
-    youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
+    youtube('Qwik City for Resumable, Dynamic Apps', 'cJJdrYnsl6U'),
     youtube('Qwik + React State (and a new mic!)', 'fa6-Mn0Eybg'),
     youtube(
       'Miško Hevery: Qwik, PartyTown, and Lessons from Angular [Swyx Mixtape]',
@@ -67,6 +88,7 @@ export const MEDIA = mediaObj({
     youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0'),
     youtube('QWIK - Set of great demos by Misko Hevery', '7MgNMIPISY4'),
     youtube('Qwik the HTML First Framework', 'GdIZh42etYk'),
+    youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
     youtube('Introduction to Qwik – Misko Hevery (English)', 'gYbHdss_y04'),
     youtube(
       'Build Performant, Resumable Sites with Qwik and Partytown (with Miško Hevery) | Some Antics',
@@ -89,8 +111,12 @@ export const MEDIA = mediaObj({
       title: 'FedBites: Qwik Special with Miško Hevery & Adam Bradley',
     },
   ],
+
+  /*****************************************/
+  /* Presentations
+  /*****************************************/
   presentations: [
-    youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
+    youtube('Qwik framework overview', 'Jf_E1_19aB4', { startTime: 629 }),
     youtube(
       'Mindblowing Google PageSpeed Scores with Qwik | Misko Hevery | Reliable Web Summit 2021',
       'sCPLWf2cEY0'
@@ -98,7 +124,7 @@ export const MEDIA = mediaObj({
     youtube(
       'WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread',
       '0dC11DMR3fU',
-      154
+      { startTime: 154 }
     ),
     youtube(
       'Qwik: A holly grail of progressive hydration for ultimate speed by Miško Hevery',
@@ -113,6 +139,10 @@ export const MEDIA = mediaObj({
     youtube('Qwik: Beta and Beyond', 'Tfd62DiRTKc'),
     youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ'),
   ],
+
+  /*****************************************/
+  /* Blogs
+  /*****************************************/
   blogs: [
     {
       href: 'https://www.builder.io/blog/resumability-from-ground-up',
@@ -211,6 +241,10 @@ export const MEDIA = mediaObj({
       title: 'Introducing Qwik starters - get up and running with Qwik now',
     },
   ],
+
+  /*****************************************/
+  /* Resources
+  /*****************************************/
   resources: [
     {
       href: 'https://docs.google.com/presentation/d/1q0eILmAAdFyE0tHkvd_fSuFtcHsHzUn0nZnz5FDgU4k/edit#slide=id.gff298a2a9a_1_2',
@@ -293,7 +327,9 @@ export default component$(() => {
   useStyles$(styles);
   return (
     <article class="media">
-      <h1>Qwik Presentations, Talks, Videos and Podcasts</h1>
+      <h1>Qwik Courses, Presentations, Talks, Videos and Podcasts</h1>
+
+      <Section id="courses" listStyle="thumbnails" imgLoading="eager" />
 
       <Section id="videos" listStyle="thumbnails" imgLoading="eager" />
 
@@ -321,6 +357,30 @@ export default component$(() => {
     </article>
   );
 });
+
+/**
+ * A helper for defining YouTube Media Entries
+ */
+export function youtube(
+  title: string,
+  id: string,
+  { startTime, playlist }: { startTime?: number; playlist?: string } = {}
+): MediaEntry {
+  const url = new URL('https://www.youtube.com/watch');
+  url.searchParams.append('v', id);
+  // if there's a start_time and it's not 0
+  if (startTime) {
+    url.searchParams.append('t', startTime.toString());
+  }
+  if (playlist) {
+    url.searchParams.append('list', playlist);
+  }
+  return {
+    href: url.href,
+    imgSrc: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
+    title,
+  };
+}
 
 export const head: DocumentHead = {
   title: 'Qwik Presentations, Talks, Videos and Podcasts',

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bgBlue, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
+import { bgBlue, bold, magenta, cyan, bgMagenta, green } from 'kleur/colors';
 import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
@@ -88,12 +88,15 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   const overwriteFiles = result.updates.files.filter((f) => f.type === 'overwrite');
   const createFiles = result.updates.files.filter((f) => f.type === 'create');
   const installDepNames = Object.keys(result.updates.installedDeps);
+  const installScripts = result.updates.installedScripts;
+
   const installDeps = installDepNames.length > 0;
 
   if (
     modifyFiles.length === 0 &&
     overwriteFiles.length === 0 &&
     createFiles.length === 0 &&
+    installScripts.length === 0 &&
     !installDeps
   ) {
     panic(`No updates made`);
@@ -128,13 +131,23 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     );
   }
 
-  if (installDepNames) {
+  if (installDepNames.length > 0) {
     log.message(
       [
         `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
         ...installDepNames.map(
           (depName) => `   - ${depName} ${result.updates.installedDeps[depName]}`
         ),
+      ].join('\n')
+    );
+  }
+
+  if (installScripts.length > 0) {
+    const prefix = pkgManager === 'npm' ? 'npm run' : pkgManager;
+    log.message(
+      [
+        `📜 ${cyan(`New ${pkgManager} script${installDepNames.length > 1 ? 's' : ''}:`)}`,
+        ...installScripts.map((script) => `   - ${prefix} ${script}`),
       ].join('\n')
     );
   }
@@ -152,10 +165,19 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   }
 }
 
-function logUpdateAppCommitResult(result: UpdateAppResult, packageManager: string) {
+function logUpdateAppCommitResult(result: UpdateAppResult, pkgManager: string) {
+  if (result.updates.installedScripts.length > 0) {
+    const prefix = pkgManager === 'npm' ? 'npm run' : pkgManager;
+    const message = result.updates.installedScripts
+      .map((script) => `   - ${prefix} ${green(script)}`)
+      .join('\n');
+    note(message, 'New scripts added');
+  }
+
   const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
   if (nextSteps) {
-    note(logNextStep(nextSteps, packageManager), 'Note');
+    const noteMessage = `🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`;
+    note(logNextStep(nextSteps, pkgManager), noteMessage);
   }
 
   outro(`🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`);

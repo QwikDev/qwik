@@ -19,6 +19,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const fileUpdates: FsUpdates = {
     files: [],
     installedDeps: {},
+    installedScripts: Object.keys(integration.pkgJson.scripts || {}),
   };
 
   if (opts.installDeps) {

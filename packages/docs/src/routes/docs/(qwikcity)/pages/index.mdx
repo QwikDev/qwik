@@ -57,13 +57,20 @@ export const head: DocumentHead = {
       content: 'This is the about page',
     },
   ],
+  link: [
+    {
+      rel: 'canonical',
+      href: 'https://example.com/about',
+    },
+  ],
 };
 ```
+
+The example above sets the title, as well as some [Open Graph](https://ogp.me/) meta and the [canonical link](https://developers.google.com/search/docs/crawling-indexing/canonicalization).
 
 > HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly because it would break the HTML streaming.
 
 Look into `useDocumentHead()` to read and consume the `DocumentHead` object from within your component.
-
 
 ### Dynamic head
 

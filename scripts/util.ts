@@ -49,6 +49,8 @@ export interface BuildConfig {
   qwikcity?: boolean;
   qwikreact?: boolean;
   qwikauth?: boolean;
+  qwikworker?: boolean;
+  supabaseauthhelpers?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -184,24 +186,6 @@ export const nodeBuiltIns = [
   'url',
   'util',
 ];
-
-export function injectGlobalThisPoly() {
-  return `
-if (typeof globalThis == 'undefined') {
-  const g = 'undefined' != typeof global ? global : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.globalThis = g;
-}
-`;
-}
-
-export function injectGlobalPoly() {
-  return `
-if (typeof global == 'undefined') {
-  const g = 'undefined' != typeof globalThis ? globalThis : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.global = g;
-}
-`;
-}
 
 /**
  * Utility just to ignore certain rollup warns we already know aren't issues.

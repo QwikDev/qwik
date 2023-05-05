@@ -20,36 +20,40 @@ export default component$(() => {
   });
 
   return (
-    <div class="section">
-      <div class="container center">
-        <input
-          type="range"
-          value={state.number}
-          max={50}
-          onInput$={(ev) => {
-            state.number = (ev.target as HTMLInputElement).valueAsNumber;
-          }}
-        />
-        <div
-          style={{
-            '--state': `${state.count * 0.1}`,
-          }}
-          class={{
-            host: true,
-            pride: loc.url.searchParams.get('pride') === 'true',
-          }}
-        >
-          {Array.from({ length: state.number }, (_, i) => (
-            <div
-              key={i}
-              class={{
-                square: true,
-                odd: i % 2 === 0,
-              }}
-              style={{ '--index': `${i + 1}` }}
-            />
-          )).reverse()}
-        </div>
+    <div class="container container-center">
+      <div role="presentation" class="ellipsis"></div>
+      <h1>
+        <span class="highlight">Generate</span> Flowers
+      </h1>
+
+      <input
+        class="input"
+        type="range"
+        value={state.number}
+        max={50}
+        onInput$={(ev) => {
+          state.number = (ev.target as HTMLInputElement).valueAsNumber;
+        }}
+      />
+      <div
+        style={{
+          '--state': `${state.count * 0.1}`,
+        }}
+        class={{
+          host: true,
+          pride: loc.url.searchParams.get('pride') === 'true',
+        }}
+      >
+        {Array.from({ length: state.number }, (_, i) => (
+          <div
+            key={i}
+            class={{
+              square: true,
+              odd: i % 2 === 0,
+            }}
+            style={{ '--index': `${i + 1}` }}
+          />
+        )).reverse()}
       </div>
     </div>
   );

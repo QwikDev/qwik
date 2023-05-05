@@ -32,7 +32,7 @@ export default component$<{
       <div
         class="overflow-auto slot-container mb-4"
         style={{
-          maxHeight: maxHeight ? maxHeight + 'px' : 'none',
+          '--pretty-code-fragment-max-height': maxHeight ? maxHeight + 'px' : 'none',
         }}
       >
         <Slot name={tabs ? String(activeTab.value) : ''} />
@@ -102,7 +102,7 @@ function examplePath(
     .replace('/(qwik)/', '/')
     .replace('/(qwikcity)/', '/')
     .replace('/src/routes/demo', '/demo')
-    .replace(/\/[\w\d]+.tsx?/, '/');
+    .replace(/\/[\w\d]+\.tsx?$/, '/');
 
   if (!includeTheme) {
     return newPath;

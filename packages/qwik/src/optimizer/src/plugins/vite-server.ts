@@ -36,11 +36,11 @@ export async function configureDevServer(
     try {
       if (!globalThis.fetch) {
         const undici = await sys.strictDynamicImport('undici');
-        global.fetch = undici.fetch;
-        global.Headers = undici.Headers;
-        global.Request = undici.Request;
-        global.Response = undici.Response;
-        global.FormData = undici.FormData;
+        globalThis.fetch = undici.fetch;
+        globalThis.Headers = undici.Headers;
+        globalThis.Request = undici.Request;
+        globalThis.Response = undici.Response;
+        globalThis.FormData = undici.FormData;
       }
     } catch {
       console.warn('Global fetch() was not installed');

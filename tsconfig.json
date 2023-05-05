@@ -88,12 +88,15 @@
     "packages/qwik/src",
     "packages/qwik-city",
     "packages/qwik-auth",
+    "packages/qwik-worker",
+    "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
     "scripts",
     "starters/apps/e2e",
     "starters/apps/qwikcity-test/**/*",
     "starters/dev-server.ts",
-    "packages/qwik-react/vite"
+    "packages/qwik-react/vite",
+    "@types/deno.d.ts"
   ],
   "exclude": ["packages/create-qwik/dist", "**/lib", "packages/qwik/**/*.d.ts"]
 }

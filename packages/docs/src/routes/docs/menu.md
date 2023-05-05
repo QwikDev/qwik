@@ -35,13 +35,21 @@
 
 - [Overview](integrations/index.mdx)
 - [Auth.js](integrations/authjs/index.mdx)
+- [Builder.io](integrations/builderio/index.mdx)
+- [Cypress](integrations/cypress/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
+- [Icons](integrations/icons/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
+- [Modular Forms](integrations/modular-forms/index.mdx)
+- [Nx Monorepos](integrations/nx/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
 - [PostCSS](integrations/postcss/index.mdx)
+- [Prisma](integrations/prisma/index.mdx)
 - [React](integrations/react/index.mdx)
+- [Storybook](integrations/storybook/index.mdx)
 - [Styled Vanilla Extract](integrations/styled-vanilla-extract/index.mdx)
+- [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
 
@@ -54,6 +62,7 @@
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
+- [Deno](deployments/deno/index.mdx)
 
 ## Guides
 
@@ -75,6 +84,7 @@
 - [The $ dollar sign](/docs/(qwik)/advanced/dollar/index.mdx)
 - [Containers](/docs/(qwik)/advanced/containers/index.mdx)
 - [QRL](/docs/(qwik)/advanced/qrl/index.mdx)
+- [Library](/docs/(qwik)/advanced/library/index.mdx)
 - [Qwikloader](/docs/(qwik)/advanced/qwikloader/index.mdx)
 - [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx)
 - [Prefetching](/docs/(qwik)/advanced/prefetching/index.mdx)

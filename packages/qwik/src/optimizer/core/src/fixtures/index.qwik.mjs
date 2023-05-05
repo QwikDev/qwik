@@ -1,3384 +1,1073 @@
 import {
+  createContextId,
   componentQrl,
   inlinedQrl,
-  useStylesScopedQrl,
-  _wrapSignal,
-  _IMMUTABLE,
-  createContext,
-  useLexicalScope,
-  useContextProvider,
-  useStore,
+  _jsxBranch,
+  useOnDocument,
+  eventQrl,
   useContext,
-  Slot,
-  Fragment as Fragment$1,
+  _jsxC,
+  SkipRender,
+  withLocale,
+  _deserializeData,
+  noSerialize,
+  useServerData,
+  useStylesQrl,
+  useStore,
+  _weakSerialize,
+  useSignal,
+  useLexicalScope,
+  _getContextElement,
+  useContextProvider,
   useTaskQrl,
-  useRef,
-  useClientEffectQrl,
-  useCleanupQrl,
+  Slot,
+  getLocale,
+  untrack,
+  _jsxS,
+  _jsxQ,
+  _wrapSignal,
+  implicit$FirstArg,
+  _serializeData,
+  _restProps,
+  _fnSignal,
 } from '@builder.io/qwik';
-import { jsx, Fragment, jsxs } from '@builder.io/qwik/jsx-runtime';
-const Button = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    useStylesScopedQrl(inlinedQrl(STYLES$3, 'Button_component_useStylesScoped_a1JZ0Q0Q2Oc'));
-    return /* @__PURE__ */ jsx(
-      Fragment,
-      {
-        children: props.link
-          ? /* @__PURE__ */ jsx('a', {
-              role: 'button',
-              ...props.attributes,
-              get href() {
-                return props.link;
-              },
-              target: props.openLinkInNewTab ? '_blank' : void 0,
-              children: _wrapSignal(props, 'text'),
-              [_IMMUTABLE]: {
-                href: _wrapSignal(props, 'link'),
-              },
-            })
-          : /* @__PURE__ */ jsx('button', {
-              class: 'button-Button',
-              ...props.attributes,
-              children: _wrapSignal(props, 'text'),
-            }),
-        [_IMMUTABLE]: {
-          children: false,
-        },
-      },
-      'jc_0'
-    );
-  }, 'Button_component_gJoMUICXoUQ')
-);
-const STYLES$3 = `
-.button-Button {
-  all: unset;
-}`;
-const builderContext = createContext('Builder');
-const TARGET = 'qwik';
-function isBrowser() {
-  return typeof window !== 'undefined' && typeof document !== 'undefined';
-}
-function isIframe() {
-  return isBrowser() && window.self !== window.top;
-}
-function isEditing() {
-  return isIframe() && window.location.search.indexOf('builder.frameEditing=') !== -1;
-}
-const fastClone = (obj) => JSON.parse(JSON.stringify(obj));
-const SIZES = {
-  small: {
-    min: 320,
-    default: 321,
-    max: 640,
-  },
-  medium: {
-    min: 641,
-    default: 642,
-    max: 991,
-  },
-  large: {
-    min: 990,
-    default: 991,
-    max: 1200,
-  },
-};
-const getMaxWidthQueryForSize = (size, sizeValues = SIZES) =>
-  `@media (max-width: ${sizeValues[size].max}px)`;
-const getSizesForBreakpoints = ({ small, medium }) => {
-  const newSizes = fastClone(SIZES);
-  if (!small || !medium) return newSizes;
-  const smallMin = Math.floor(small / 2);
-  newSizes.small = {
-    max: small,
-    min: smallMin,
-    default: smallMin + 1,
-  };
-  const mediumMin = newSizes.small.max + 1;
-  newSizes.medium = {
-    max: medium,
-    min: mediumMin,
-    default: mediumMin + 1,
-  };
-  const largeMin = newSizes.medium.max + 1;
-  newSizes.large = {
-    max: 2e3,
-    min: largeMin,
-    default: largeMin + 1,
-  };
-  return newSizes;
-};
-function evaluate({ code, context, state, event, isExpression = true }) {
-  if (code === '') {
-    console.warn('Skipping evaluation of empty code block.');
-    return;
-  }
-  const builder = {
-    isEditing: isEditing(),
-    isBrowser: isBrowser(),
-    isServer: !isBrowser(),
-  };
-  const useReturn =
-    isExpression &&
-    !(code.includes(';') || code.includes(' return ') || code.trim().startsWith('return '));
-  const useCode = useReturn ? `return (${code});` : code;
-  try {
-    return new Function('builder', 'Builder', 'state', 'context', 'event', useCode)(
-      builder,
-      builder,
-      state,
-      context,
-      event
-    );
-  } catch (e) {
-    console.warn('Builder custom code error: \n While Evaluating: \n ', useCode, '\n', e);
-  }
-}
-const set = (obj, _path, value) => {
-  if (Object(obj) !== obj) return obj;
-  const path = Array.isArray(_path) ? _path : _path.toString().match(/[^.[\]]+/g);
-  path
-    .slice(0, -1)
-    .reduce(
-      (a, c, i) =>
-        Object(a[c]) === a[c]
-          ? a[c]
-          : (a[c] = Math.abs(Number(path[i + 1])) >> 0 === +path[i + 1] ? [] : {}),
-      obj
-    )[path[path.length - 1]] = value;
-  return obj;
-};
-function transformBlock(block) {
-  return block;
-}
-const evaluateBindings = ({ block, context, state }) => {
-  if (!block.bindings) return block;
-  const copy = fastClone(block);
-  const copied = {
-    ...copy,
-    properties: {
-      ...copy.properties,
-    },
-    actions: {
-      ...copy.actions,
-    },
-  };
-  for (const binding in block.bindings) {
-    const expression = block.bindings[binding];
-    const value = evaluate({
-      code: expression,
-      state,
-      context,
-    });
-    set(copied, binding, value);
-  }
-  return copied;
-};
-function getProcessedBlock({ block, context, shouldEvaluateBindings, state }) {
-  const transformedBlock = transformBlock(block);
-  if (shouldEvaluateBindings)
-    return evaluateBindings({
-      block: transformedBlock,
-      state,
-      context,
-    });
-  else return transformedBlock;
-}
-const camelToKebabCase = (string) =>
-  string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
-const checkIsDefined = (maybeT) => maybeT !== null && maybeT !== void 0;
-const convertStyleMapToCSSArray = (style) => {
-  const cssProps = Object.entries(style).map(([key, value]) => {
-    if (typeof value === 'string') return `${camelToKebabCase(key)}: ${value};`;
-    else return void 0;
-  });
-  return cssProps.filter(checkIsDefined);
-};
-const convertStyleMapToCSS = (style) => convertStyleMapToCSSArray(style).join('\n');
-const createCssClass = ({ mediaQuery, className: className3, styles }) => {
-  const cssClass = `.${className3} {
-    ${convertStyleMapToCSS(styles)}
-  }`;
-  if (mediaQuery)
-    return `${mediaQuery} {
-      ${cssClass}
-    }`;
-  else return cssClass;
-};
-const tag$1 = function tag2(props, state) {
-  return 'style';
-};
-const RenderInlinedStyles = (props) => {
-  const state = {};
-  state.tag = tag$1();
-  return /* @__PURE__ */ jsx(
-    Fragment,
-    {
-      children: /* @__PURE__ */ jsx('style', {
-        get dangerouslySetInnerHTML() {
-          return props.styles;
-        },
-        [_IMMUTABLE]: {
-          dangerouslySetInnerHTML: _wrapSignal(props, 'styles'),
-        },
-      }),
-      [_IMMUTABLE]: {
-        children: false,
-      },
-    },
-    'zz_0'
-  );
-};
-const useBlock$1 = function useBlock2(props, state) {
-  return getProcessedBlock({
-    block: props.block,
-    state: props.context.state,
-    context: props.context.context,
-    shouldEvaluateBindings: true,
-  });
-};
-const canShowBlock$1 = function canShowBlock2(props, state) {
-  if (checkIsDefined(useBlock$1(props).hide)) return !useBlock$1(props).hide;
-  if (checkIsDefined(useBlock$1(props).show)) return useBlock$1(props).show;
-  return true;
-};
-const css = function css2(props, state) {
-  const styles = useBlock$1(props).responsiveStyles;
-  const content = props.context.content;
-  const sizesWithUpdatedBreakpoints = getSizesForBreakpoints(content?.meta?.breakpoints || {});
-  const largeStyles = styles?.large;
-  const mediumStyles = styles?.medium;
-  const smallStyles = styles?.small;
-  const className3 = useBlock$1(props).id;
-  const largeStylesClass = largeStyles
-    ? createCssClass({
-        className: className3,
-        styles: largeStyles,
-      })
-    : '';
-  const mediumStylesClass = mediumStyles
-    ? createCssClass({
-        className: className3,
-        styles: mediumStyles,
-        mediaQuery: getMaxWidthQueryForSize('medium', sizesWithUpdatedBreakpoints),
-      })
-    : '';
-  const smallStylesClass = smallStyles
-    ? createCssClass({
-        className: className3,
-        styles: smallStyles,
-        mediaQuery: getMaxWidthQueryForSize('small', sizesWithUpdatedBreakpoints),
-      })
-    : '';
-  return [largeStylesClass, mediumStylesClass, smallStylesClass].join(' ');
-};
-const BlockStyles = (props) => {
-  return /* @__PURE__ */ jsx(
-    Fragment,
-    {
-      children:
-        css(props) && canShowBlock$1(props)
-          ? /* @__PURE__ */ jsx(
-              RenderInlinedStyles,
-              {
-                styles: css(props),
-              },
-              'LQ_0'
-            )
-          : null,
-      [_IMMUTABLE]: {
-        children: false,
-      },
-    },
-    'LQ_1'
-  );
-};
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-const getEventHandlerName = (key) => `on${capitalizeFirstLetter(key)}$`;
-function createEventHandler(value, options) {
-  return inlinedQrl(
-    (event) => {
-      const [options2, value2] = useLexicalScope();
-      return evaluate({
-        code: value2,
-        context: options2.context,
-        state: options2.state,
-        event,
-      });
-    },
-    'createEventHandler_7wCAiJVliNE',
-    [options, value]
-  );
-}
-function getBlockActions(options) {
-  const obj = {};
-  const optionActions = options.block.actions ?? {};
-  for (const key in optionActions) {
-    if (!optionActions.hasOwnProperty(key)) continue;
-    const value = optionActions[key];
-    obj[getEventHandlerName(key)] = createEventHandler(value, options);
-  }
-  return obj;
-}
-function getBlockComponentOptions(block) {
-  return {
-    ...block.component?.options,
-    ...block.options,
-    builderBlock: block,
-  };
-}
-function transformBlockProperties(properties) {
-  return properties;
-}
-function getBlockProperties(block) {
-  const properties = {
-    ...block.properties,
-    'builder-id': block.id,
-    style: getStyleAttribute(block.style),
-    class: [block.id, 'builder-block', block.class, block.properties?.class]
-      .filter(Boolean)
-      .join(' '),
-  };
-  return transformBlockProperties(properties);
-}
-function getStyleAttribute(style) {
-  if (!style) return void 0;
-  switch (TARGET) {
-    case 'svelte':
-    case 'vue2':
-    case 'vue3':
-    case 'solid':
-      return convertStyleMapToCSSArray(style).join(' ');
-    case 'qwik':
-    case 'reactNative':
-    case 'react':
-      return style;
-  }
-}
-function getBlockTag(block) {
-  return block.tagName || 'div';
-}
-const EMPTY_HTML_ELEMENTS = [
-  'area',
-  'base',
-  'br',
-  'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'keygen',
-  'link',
-  'meta',
-  'param',
-  'source',
-  'track',
-  'wbr',
-];
-const isEmptyHtmlElement = (tagName) => {
-  return typeof tagName === 'string' && EMPTY_HTML_ELEMENTS.includes(tagName.toLowerCase());
-};
-const getComponent = ({ block, context }) => {
-  const componentName = getProcessedBlock({
-    block,
-    state: context.state,
-    context: context.context,
-    shouldEvaluateBindings: false,
-  }).component?.name;
-  if (!componentName) return null;
-  const ref = context.registeredComponents[componentName];
-  if (!ref) {
-    console.warn(`
-      Could not find a registered component named "${componentName}".
-      If you registered it, is the file that registered it imported by the file that needs to render it?`);
-    return void 0;
-  } else return ref;
-};
-const getRepeatItemData = ({ block, context }) => {
-  const { repeat, ...blockWithoutRepeat } = block;
-  if (!repeat?.collection) return void 0;
-  const itemsArray = evaluate({
-    code: repeat.collection,
-    state: context.state,
-    context: context.context,
-  });
-  if (!Array.isArray(itemsArray)) return void 0;
-  const collectionName = repeat.collection.split('.').pop();
-  const itemNameToUse = repeat.itemName || (collectionName ? collectionName + 'Item' : 'item');
-  const repeatArray = itemsArray.map((item, index) => ({
-    context: {
-      ...context,
-      state: {
-        ...context.state,
-        $index: index,
-        $item: item,
-        [itemNameToUse]: item,
-        [`$${itemNameToUse}Index`]: index,
-      },
-    },
-    block: blockWithoutRepeat,
-  }));
-  return repeatArray;
-};
-const RenderComponent = (props) => {
-  return /* @__PURE__ */ jsx(
-    Fragment,
-    {
-      children: props.componentRef
-        ? /* @__PURE__ */ jsxs(props.componentRef, {
-            ...props.componentOptions,
-            children: [
-              (props.blockChildren || []).map(function (child) {
-                return /* @__PURE__ */ jsx(
-                  RenderBlock$1,
-                  {
-                    block: child,
-                    get context() {
-                      return props.context;
-                    },
-                    [_IMMUTABLE]: {
-                      context: _wrapSignal(props, 'context'),
-                    },
-                  },
-                  'render-block-' + child.id
-                );
-              }),
-              (props.blockChildren || []).map(function (child) {
-                return /* @__PURE__ */ jsx(
-                  BlockStyles,
-                  {
-                    block: child,
-                    get context() {
-                      return props.context;
-                    },
-                    [_IMMUTABLE]: {
-                      context: _wrapSignal(props, 'context'),
-                    },
-                  },
-                  'block-style-' + child.id
-                );
-              }),
-            ],
-          })
-        : null,
-      [_IMMUTABLE]: {
-        children: false,
-      },
-    },
-    'R9_0'
-  );
-};
-const RenderRepeatedBlock = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    useContextProvider(
-      builderContext,
-      useStore({
-        content: props.repeatContext.content,
-        state: props.repeatContext.state,
-        context: props.repeatContext.context,
-        apiKey: props.repeatContext.apiKey,
-        registeredComponents: props.repeatContext.registeredComponents,
-        inheritedStyles: props.repeatContext.inheritedStyles,
-      })
-    );
-    return /* @__PURE__ */ jsx(
-      RenderBlock$1,
-      {
-        get block() {
-          return props.block;
-        },
-        get context() {
-          return props.repeatContext;
-        },
-        [_IMMUTABLE]: {
-          block: _wrapSignal(props, 'block'),
-          context: _wrapSignal(props, 'repeatContext'),
-        },
-      },
-      'K5_0'
-    );
-  }, 'RenderRepeatedBlock_component_nRyVBtbGKc8')
-);
-const component = function component2(props, state) {
-  return getComponent({
-    block: props.block,
-    context: props.context,
-  });
-};
-const tag = function tag22(props, state) {
-  return getBlockTag(useBlock(props));
-};
-const useBlock = function useBlock22(props, state) {
-  return repeatItemData(props)
-    ? props.block
-    : getProcessedBlock({
-        block: props.block,
-        state: props.context.state,
-        context: props.context.context,
-        shouldEvaluateBindings: true,
-      });
-};
-const canShowBlock = function canShowBlock22(props, state) {
-  if (checkIsDefined(useBlock(props).hide)) return !useBlock(props).hide;
-  if (checkIsDefined(useBlock(props).show)) return useBlock(props).show;
-  return true;
-};
-const proxyState = function proxyState2(props, state) {
-  if (typeof Proxy === 'undefined') {
-    console.error('no Proxy available in this environment, cannot proxy state.');
-    return props.context.state;
-  }
-  const useState = new Proxy(props.context.state, {
-    set: (obj, prop, value) => {
-      obj[prop] = value;
-      props.context.setState?.(obj);
-      return true;
-    },
-  });
-  return useState;
-};
-const actions = function actions2(props, state) {
-  return getBlockActions({
-    block: useBlock(props),
-    state: proxyState(props),
-    context: props.context.context,
-  });
-};
-const attributes = function attributes2(props, state) {
-  const blockProperties = getBlockProperties(useBlock(props));
-  return {
-    ...blockProperties,
-    ...{},
-  };
-};
-const renderComponentProps = function renderComponentProps2(props, state) {
-  return {
-    blockChildren: useBlock(props).children ?? [],
-    componentRef: component(props)?.component,
-    componentOptions: {
-      ...getBlockComponentOptions(useBlock(props)),
-      ...(!component(props)?.noWrap
-        ? {}
-        : {
-            attributes: {
-              ...attributes(props),
-              ...actions(props),
-            },
-          }),
-    },
-    context: childrenContext(props),
-  };
-};
-const childrenWithoutParentComponent = function childrenWithoutParentComponent2(props, state) {
-  const shouldRenderChildrenOutsideRef = !component(props)?.component && !repeatItemData(props);
-  return shouldRenderChildrenOutsideRef ? useBlock(props).children ?? [] : [];
-};
-const repeatItemData = function repeatItemData2(props, state) {
-  return getRepeatItemData({
-    block: props.block,
-    context: props.context,
-  });
-};
-const childrenContext = function childrenContext2(props, state) {
-  const getInheritedTextStyles = () => {
-    return {};
-  };
-  return {
-    apiKey: props.context.apiKey,
-    state: props.context.state,
-    content: props.context.content,
-    context: props.context.context,
-    setState: props.context.setState,
-    registeredComponents: props.context.registeredComponents,
-    inheritedStyles: getInheritedTextStyles(),
-  };
-};
-const RenderBlock = (props) => {
-  const state = {};
-  state.tag = tag(props);
-  return /* @__PURE__ */ jsx(
-    Fragment,
-    {
-      children: canShowBlock(props)
-        ? !component(props)?.noWrap
-          ? /* @__PURE__ */ jsxs(
-              Fragment,
-              {
-                children: [
-                  isEmptyHtmlElement(tag(props))
-                    ? /* @__PURE__ */ jsx(state.tag, {
-                        ...attributes(props),
-                        ...actions(props),
-                      })
-                    : null,
-                  !isEmptyHtmlElement(tag(props)) && repeatItemData(props)
-                    ? (repeatItemData(props) || []).map(function (data, index) {
-                        return /* @__PURE__ */ jsx(
-                          RenderRepeatedBlock,
-                          {
-                            get repeatContext() {
-                              return data.context;
-                            },
-                            get block() {
-                              return data.block;
-                            },
-                            [_IMMUTABLE]: {
-                              repeatContext: _wrapSignal(data, 'context'),
-                              block: _wrapSignal(data, 'block'),
-                            },
-                          },
-                          index
-                        );
-                      })
-                    : null,
-                  !isEmptyHtmlElement(tag(props)) && !repeatItemData(props)
-                    ? /* @__PURE__ */ jsxs(state.tag, {
-                        ...attributes(props),
-                        ...actions(props),
-                        children: [
-                          /* @__PURE__ */ jsx(
-                            RenderComponent,
-                            {
-                              ...renderComponentProps(props),
-                            },
-                            '9d_0'
-                          ),
-                          (childrenWithoutParentComponent(props) || []).map(function (child) {
-                            return /* @__PURE__ */ jsx(
-                              RenderBlock,
-                              {
-                                block: child,
-                                context: childrenContext(props),
-                              },
-                              'render-block-' + child.id
-                            );
-                          }),
-                          (childrenWithoutParentComponent(props) || []).map(function (child) {
-                            return /* @__PURE__ */ jsx(
-                              BlockStyles,
-                              {
-                                block: child,
-                                context: childrenContext(props),
-                              },
-                              'block-style-' + child.id
-                            );
-                          }),
-                        ],
-                      })
-                    : null,
-                ],
-                [_IMMUTABLE]: {
-                  children: false,
-                },
-              },
-              '9d_1'
-            )
-          : /* @__PURE__ */ jsx(
-              RenderComponent,
-              {
-                ...renderComponentProps(props),
-              },
-              '9d_2'
-            )
-        : null,
-      [_IMMUTABLE]: {
-        children: false,
-      },
-    },
-    '9d_3'
-  );
-};
-const RenderBlock$1 = RenderBlock;
-const className$1 = function className2(props, state, builderContext2) {
-  return 'builder-blocks' + (!props.blocks?.length ? ' no-blocks' : '');
-};
-const onClick$1 = function onClick2(props, state, builderContext2) {
-  if (isEditing() && !props.blocks?.length)
-    window.parent?.postMessage(
-      {
-        type: 'builder.clickEmptyBlocks',
-        data: {
-          parentElementId: props.parent,
-          dataPath: props.path,
-        },
-      },
-      '*'
-    );
-};
-const onMouseEnter = function onMouseEnter2(props, state, builderContext2) {
-  if (isEditing() && !props.blocks?.length)
-    window.parent?.postMessage(
-      {
-        type: 'builder.hoverEmptyBlocks',
-        data: {
-          parentElementId: props.parent,
-          dataPath: props.path,
-        },
-      },
-      '*'
-    );
-};
-const RenderBlocks = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    useStylesScopedQrl(inlinedQrl(STYLES$2, 'RenderBlocks_component_useStylesScoped_0XKYzaR059E'));
-    const builderContext$1 = useContext(builderContext);
-    const state = {};
-    return /* @__PURE__ */ jsxs('div', {
-      class: className$1(props) + ' div-RenderBlocks',
-      get 'builder-path'() {
-        return props.path;
-      },
-      get 'builder-parent-id'() {
-        return props.parent;
-      },
-      get style() {
-        return props.styleProp;
-      },
-      onClick$: inlinedQrl(
-        (event) => {
-          const [builderContext2, props2, state2] = useLexicalScope();
-          return onClick$1(props2);
-        },
-        'RenderBlocks_component_div_onClick_RzhhZa265Yg',
-        [builderContext$1, props, state]
-      ),
-      onMouseEnter$: inlinedQrl(
-        (event) => {
-          const [builderContext2, props2, state2] = useLexicalScope();
-          return onMouseEnter(props2);
-        },
-        'RenderBlocks_component_div_onMouseEnter_nG7I7RYG3JQ',
-        [builderContext$1, props, state]
-      ),
-      children: [
-        props.blocks
-          ? (props.blocks || []).map(function (block) {
-              return /* @__PURE__ */ jsx(
-                RenderBlock$1,
-                {
-                  block,
-                  context: builderContext$1,
-                },
-                'render-block-' + block.id
-              );
-            })
-          : null,
-        props.blocks
-          ? (props.blocks || []).map(function (block) {
-              return /* @__PURE__ */ jsx(
-                BlockStyles,
-                {
-                  block,
-                  context: builderContext$1,
-                },
-                'block-style-' + block.id
-              );
-            })
-          : null,
-      ],
-      [_IMMUTABLE]: {
-        'builder-path': _wrapSignal(props, 'path'),
-        'builder-parent-id': _wrapSignal(props, 'parent'),
-        style: _wrapSignal(props, 'styleProp'),
-        children: false,
-      },
-    });
-  }, 'RenderBlocks_component_MYUZ0j1uLsw')
-);
-const STYLES$2 = `
-.div-RenderBlocks {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}`;
-const getGutterSize = function getGutterSize2(props, state, builderContext2) {
-  return typeof props.space === 'number' ? props.space || 0 : 20;
-};
-const getColumns = function getColumns2(props, state, builderContext2) {
-  return props.columns || [];
-};
-const getWidth = function getWidth2(props, state, builderContext2, index) {
-  const columns = getColumns(props);
-  return columns[index]?.width || 100 / columns.length;
-};
-const getColumnCssWidth = function getColumnCssWidth2(props, state, builderContext2, index) {
-  const columns = getColumns(props);
-  const gutterSize = getGutterSize(props);
-  const subtractWidth = (gutterSize * (columns.length - 1)) / columns.length;
-  return `calc(${getWidth(props, state, builderContext2, index)}% - ${subtractWidth}px)`;
-};
-const maybeApplyForTablet = function maybeApplyForTablet2(props, state, builderContext2, prop) {
-  const _stackColumnsAt = props.stackColumnsAt || 'tablet';
-  return _stackColumnsAt === 'tablet' ? prop : 'inherit';
-};
-const columnsCssVars = function columnsCssVars2(props, state, builderContext2) {
-  const flexDir =
-    props.stackColumnsAt === 'never'
-      ? 'inherit'
-      : props.reverseColumnsWhenStacked
-      ? 'column-reverse'
-      : 'column';
-  return {
-    '--flex-dir': flexDir,
-    '--flex-dir-tablet': maybeApplyForTablet(props, state, builderContext2, flexDir),
-  };
-};
-const columnCssVars = function columnCssVars2(props, state, builderContext2) {
-  const width = '100%';
-  const marginLeft = '0';
-  return {
-    '--column-width': width,
-    '--column-margin-left': marginLeft,
-    '--column-width-tablet': maybeApplyForTablet(props, state, builderContext2, width),
-    '--column-margin-left-tablet': maybeApplyForTablet(props, state, builderContext2, marginLeft),
-  };
-};
-const getWidthForBreakpointSize = function getWidthForBreakpointSize2(
-  props,
-  state,
-  builderContext2,
-  size
-) {
-  const breakpointSizes = getSizesForBreakpoints(builderContext2.content?.meta?.breakpoints || {});
-  return breakpointSizes[size].max;
-};
-const columnStyleObjects = function columnStyleObjects2(props, state, builderContext2) {
-  return {
-    columns: {
-      small: {
-        flexDirection: 'var(--flex-dir)',
-        alignItems: 'stretch',
-      },
-      medium: {
-        flexDirection: 'var(--flex-dir-tablet)',
-        alignItems: 'stretch',
-      },
-    },
-    column: {
-      small: {
-        width: 'var(--column-width) !important',
-        marginLeft: 'var(--column-margin-left) !important',
-      },
-      medium: {
-        width: 'var(--column-width-tablet) !important',
-        marginLeft: 'var(--column-margin-left-tablet) !important',
-      },
-    },
-  };
-};
-const columnsStyles = function columnsStyles2(props, state, builderContext2) {
-  return `
-        @media (max-width: ${getWidthForBreakpointSize(
-          props,
-          state,
-          builderContext2,
-          'medium'
-        )}px) {
-          .${props.builderBlock.id}-breakpoints {
-            ${convertStyleMapToCSS(columnStyleObjects().columns.medium)}
+import { isBrowser, isServer, isDev } from '@builder.io/qwik/build';
+import * as qwikCity from '@qwik-city-plan';
+import swRegister from '@qwik-city-sw-register';
+import { z } from 'zod';
+import { z as z2 } from 'zod';
+const RouteStateContext = /* @__PURE__ */ createContextId('qc-s');
+const ContentContext = /* @__PURE__ */ createContextId('qc-c');
+const ContentInternalContext = /* @__PURE__ */ createContextId('qc-ic');
+const DocumentHeadContext = /* @__PURE__ */ createContextId('qc-h');
+const RouteLocationContext = /* @__PURE__ */ createContextId('qc-l');
+const RouteNavigateContext = /* @__PURE__ */ createContextId('qc-n');
+const RouteActionContext = /* @__PURE__ */ createContextId('qc-a');
+const RouterOutlet = /* @__PURE__ */ componentQrl(
+  /* @__PURE__ */ inlinedQrl(() => {
+    _jsxBranch();
+    useOnDocument(
+      'qinit',
+      eventQrl(
+        /* @__PURE__ */ inlinedQrl(() => {
+          const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
+          const CLIENT_HISTORY_INITIALIZED = '_qCityHistory';
+          if (!window[POPSTATE_FALLBACK_INITIALIZED]) {
+            window[POPSTATE_FALLBACK_INITIALIZED] = () => {
+              if (!window[CLIENT_HISTORY_INITIALIZED]) location.reload();
+            };
+            setTimeout(() => {
+              addEventListener('popstate', window[POPSTATE_FALLBACK_INITIALIZED]);
+            }, 0);
           }
-
-          .${props.builderBlock.id}-breakpoints > .builder-column {
-            ${convertStyleMapToCSS(columnStyleObjects().column.medium)}
-          }
-        }
-
-        @media (max-width: ${getWidthForBreakpointSize(props, state, builderContext2, 'small')}px) {
-          .${props.builderBlock.id}-breakpoints {
-            ${convertStyleMapToCSS(columnStyleObjects().columns.small)}
-          }
-
-          .${props.builderBlock.id}-breakpoints > .builder-column {
-            ${convertStyleMapToCSS(columnStyleObjects().column.small)}
-          }
-        },
-      `;
-};
-const Columns = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    useStylesScopedQrl(inlinedQrl(STYLES$1, 'Columns_component_useStylesScoped_s7JLZz7MCCQ'));
-    const builderContext$1 = useContext(builderContext);
-    const state = {};
-    return /* @__PURE__ */ jsxs('div', {
-      class: `builder-columns ${props.builderBlock.id}-breakpoints div-Columns`,
-      style: {
-        ...{},
-        ...columnsCssVars(props, state, builderContext$1),
-      },
-      children: [
-        /* @__PURE__ */ jsx(
-          RenderInlinedStyles,
+        }, 'RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc')
+      )
+    );
+    const context = useContext(ContentInternalContext);
+    if (context.value && context.value.length > 0) {
+      const contentsLen = context.value.length;
+      let cmp = null;
+      for (let i = contentsLen - 1; i >= 0; i--)
+        cmp = _jsxC(
+          context.value[i].default,
           {
-            styles: columnsStyles(props, state, builderContext$1),
+            children: cmp,
           },
-          'c0_0'
-        ),
-        (props.columns || []).map(function (column, index) {
-          return /* @__PURE__ */ jsx(
-            'div',
-            {
-              class: 'builder-column div-Columns-2',
-              style: {
-                width: getColumnCssWidth(props, state, builderContext$1, index),
-                marginLeft: `${index === 0 ? 0 : getGutterSize(props)}px`,
-                ...{},
-                ...columnCssVars(props, state, builderContext$1),
-              },
-              children: /* @__PURE__ */ jsx(
-                RenderBlocks,
-                {
-                  get blocks() {
-                    return column.blocks;
-                  },
-                  path: `component.options.columns.${index}.blocks`,
-                  get parent() {
-                    return props.builderBlock.id;
-                  },
-                  styleProp: {
-                    flexGrow: '1',
-                  },
-                  [_IMMUTABLE]: {
-                    blocks: _wrapSignal(column, 'blocks'),
-                    parent: _wrapSignal(props.builderBlock, 'id'),
-                  },
-                },
-                'c0_1'
-              ),
-            },
-            index
-          );
-        }),
-      ],
-      [_IMMUTABLE]: {
-        children: false,
-      },
-    });
-  }, 'Columns_component_7yLj4bxdI6c')
+          1,
+          'k8_0'
+        );
+      return cmp;
+    }
+    return SkipRender;
+  }, 'RouterOutlet_component_AKetNByE5TM')
 );
-const STYLES$1 = `
-.div-Columns {
-  display: flex;
-  line-height: normal;
-}.div-Columns-2 {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}`;
-const FragmentComponent = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    return /* @__PURE__ */ jsx('span', {
-      children: /* @__PURE__ */ jsx(Slot, {}, 'oj_0'),
-    });
-  }, 'FragmentComponent_component_T0AypnadAK0')
-);
-function removeProtocol(path) {
-  return path.replace(/http(s)?:/, '');
-}
-function updateQueryParam(uri = '', key, value) {
-  const re = new RegExp('([?&])' + key + '=.*?(&|$)', 'i');
-  const separator = uri.indexOf('?') !== -1 ? '&' : '?';
-  if (uri.match(re)) return uri.replace(re, '$1' + key + '=' + encodeURIComponent(value) + '$2');
-  return uri + separator + key + '=' + encodeURIComponent(value);
-}
-function getShopifyImageUrl(src, size) {
-  if (!src || !src?.match(/cdn\.shopify\.com/) || !size) return src;
-  if (size === 'master') return removeProtocol(src);
-  const match = src.match(/(_\d+x(\d+)?)?(\.(jpg|jpeg|gif|png|bmp|bitmap|tiff|tif)(\?v=\d+)?)/i);
-  if (match) {
-    const prefix = src.split(match[0]);
-    const suffix = match[3];
-    const useSize = size.match('x') ? size : `${size}x`;
-    return removeProtocol(`${prefix[0]}_${useSize}${suffix}`);
+const MODULE_CACHE = /* @__PURE__ */ new WeakMap();
+const CLIENT_DATA_CACHE = /* @__PURE__ */ new Map();
+const QACTION_KEY = 'qaction';
+const toPath = (url) => url.pathname + url.search + url.hash;
+const toUrl = (url, baseUrl) => new URL(url, baseUrl.href);
+const isSameOrigin = (a, b) => a.origin === b.origin;
+const isSamePath = (a, b) => a.pathname + a.search === b.pathname + b.search;
+const isSamePathname = (a, b) => a.pathname === b.pathname;
+const isSameOriginDifferentPathname = (a, b) => isSameOrigin(a, b) && !isSamePath(a, b);
+const getClientDataPath = (pathname, pageSearch, action) => {
+  let search = pageSearch ?? '';
+  if (action) search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
+  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
+};
+const getClientNavPath = (props, baseUrl) => {
+  const href = props.href;
+  if (typeof href === 'string' && href.trim() !== '' && typeof props.target !== 'string')
+    try {
+      const linkUrl = toUrl(href, baseUrl.url);
+      const currentUrl = toUrl('', baseUrl.url);
+      if (isSameOrigin(linkUrl, currentUrl)) return toPath(linkUrl);
+    } catch (e) {
+      console.error(e);
+    }
+  else if (props.reload) return toPath(toUrl('', baseUrl.url));
+  return null;
+};
+const getPrefetchDataset = (props, clientNavPath, currentLoc) => {
+  if (props.prefetch === true && clientNavPath) {
+    const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
+    if (!isSamePathname(prefetchUrl, toUrl('', currentLoc.url))) return '';
   }
   return null;
-}
-function getSrcSet(url) {
-  if (!url) return url;
-  const sizes = [100, 200, 400, 800, 1200, 1600, 2e3];
-  if (url.match(/builder\.io/)) {
-    let srcUrl = url;
-    const widthInSrc = Number(url.split('?width=')[1]);
-    if (!isNaN(widthInSrc)) srcUrl = `${srcUrl} ${widthInSrc}w`;
-    return sizes
-      .filter((size) => size !== widthInSrc)
-      .map((size) => `${updateQueryParam(url, 'width', size)} ${size}w`)
-      .concat([srcUrl])
-      .join(', ');
+};
+const clientNavigate = (win, newUrl, routeNavigate) => {
+  const currentUrl = win.location;
+  if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
+    handleScroll(win, currentUrl, newUrl);
+    win.history.pushState('', '', toPath(newUrl));
   }
-  if (url.match(/cdn\.shopify\.com/))
-    return sizes
-      .map((size) => [getShopifyImageUrl(url, `${size}x${size}`), size])
-      .filter(([sizeUrl]) => !!sizeUrl)
-      .map(([sizeUrl, size]) => `${sizeUrl} ${size}w`)
-      .concat([url])
-      .join(', ');
-  return url;
-}
-const srcSetToUse = function srcSetToUse2(props, state) {
-  const imageToUse = props.image || props.src;
-  const url = imageToUse;
-  if (!url || !(url.match(/builder\.io/) || url.match(/cdn\.shopify\.com/))) return props.srcset;
-  if (props.srcset && props.image?.includes('builder.io/api/v1/image')) {
-    if (!props.srcset.includes(props.image.split('?')[0])) {
-      console.debug('Removed given srcset');
-      return getSrcSet(url);
+  if (!win._qCityHistory) {
+    win._qCityHistory = 1;
+    win.addEventListener('popstate', () => {
+      const currentUrl2 = win.location;
+      const previousUrl = toUrl(routeNavigate.value, currentUrl2);
+      if (isSameOriginDifferentPathname(currentUrl2, previousUrl)) {
+        handleScroll(win, previousUrl, currentUrl2);
+        routeNavigate.value = toPath(new URL(currentUrl2.href));
+      }
+    });
+    win.removeEventListener('popstate', win._qCityPopstateFallback);
+  }
+};
+const handleScroll = async (win, previousUrl, newUrl) => {
+  const doc = win.document;
+  const newHash = newUrl.hash;
+  if (isSamePath(previousUrl, newUrl)) {
+    if (previousUrl.hash !== newHash) {
+      await domWait();
+      if (newHash) scrollToHashId(doc, newHash);
+      else win.scrollTo(0, 0);
     }
-  } else if (props.image && !props.srcset) return getSrcSet(url);
-  return getSrcSet(url);
+  } else {
+    if (newHash)
+      for (let i = 0; i < 24; i++) {
+        await domWait();
+        if (scrollToHashId(doc, newHash)) break;
+      }
+    else {
+      await domWait();
+      win.scrollTo(0, 0);
+    }
+  }
 };
-const webpSrcSet = function webpSrcSet2(props, state) {
-  if (srcSetToUse(props)?.match(/builder\.io/) && !props.noWebp)
-    return srcSetToUse(props).replace(/\?/g, '?format=webp&');
-  else return '';
+const domWait = () => new Promise((resolve) => setTimeout(resolve, 12));
+const scrollToHashId = (doc, hash) => {
+  const elmId = hash.slice(1);
+  const elm = doc.getElementById(elmId);
+  if (elm) elm.scrollIntoView();
+  return elm;
 };
-const aspectRatioCss = function aspectRatioCss2(props, state) {
-  const aspectRatioStyles = {
-    position: 'absolute',
-    height: '100%',
-    width: '100%',
-    left: '0px',
-    top: '0px',
-  };
-  const out = props.aspectRatio ? aspectRatioStyles : void 0;
-  return out;
-};
-const Image = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    useStylesScopedQrl(inlinedQrl(STYLES, 'Image_component_useStylesScoped_fBMYiVf9fuU'));
-    return /* @__PURE__ */ jsxs(
-      Fragment$1,
-      {
-        children: [
-          /* @__PURE__ */ jsxs('picture', {
-            children: [
-              webpSrcSet(props)
-                ? /* @__PURE__ */ jsx('source', {
-                    type: 'image/webp',
-                    srcSet: webpSrcSet(props),
-                  })
-                : null,
-              /* @__PURE__ */ jsx('img', {
-                loading: 'lazy',
-                get alt() {
-                  return props.altText;
-                },
-                role: props.altText ? 'presentation' : void 0,
-                style: {
-                  objectPosition: props.backgroundPosition || 'center',
-                  objectFit: props.backgroundSize || 'cover',
-                  ...aspectRatioCss(props),
-                },
-                class:
-                  'builder-image' + (props.className ? ' ' + props.className : '') + ' img-Image',
-                get src() {
-                  return props.image;
-                },
-                srcSet: srcSetToUse(props),
-                get sizes() {
-                  return props.sizes;
-                },
-                [_IMMUTABLE]: {
-                  alt: _wrapSignal(props, 'altText'),
-                  src: _wrapSignal(props, 'image'),
-                  sizes: _wrapSignal(props, 'sizes'),
-                },
-              }),
-            ],
-            [_IMMUTABLE]: {
-              children: false,
-            },
-          }),
-          props.aspectRatio && !(props.builderBlock?.children?.length && props.fitContent)
-            ? /* @__PURE__ */ jsx('div', {
-                class: 'builder-image-sizer div-Image',
-                style: {
-                  paddingTop: props.aspectRatio * 100 + '%',
-                },
-              })
-            : null,
-          props.builderBlock?.children?.length && props.fitContent
-            ? /* @__PURE__ */ jsx(Slot, {}, '0A_0')
-            : null,
-          !props.fitContent && props.children
-            ? /* @__PURE__ */ jsx('div', {
-                class: 'div-Image-2',
-                children: /* @__PURE__ */ jsx(Slot, {}, '0A_1'),
-              })
-            : null,
-        ],
-        [_IMMUTABLE]: {
-          children: false,
-        },
-      },
-      '0A_2'
+const dispatchPrefetchEvent = (prefetchData) => {
+  if (typeof document !== 'undefined')
+    document.dispatchEvent(
+      new CustomEvent('qprefetch', {
+        detail: prefetchData,
+      })
     );
-  }, 'Image_component_LRxDkFa1EfU')
-);
-const STYLES = `
-.img-Image {
-  opacity: 1;
-  transition: opacity 0.2s ease-in-out;
-}.div-Image {
-  width: 100%;
-  pointer-events: none;
-  font-size: 0;
-}.div-Image-2 {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}`;
-const componentInfo$a = {
-  name: 'Core:Button',
-  image:
-    'https://cdn.builder.io/api/v1/image/assets%2FIsxPKMo2gPRRKeakUztj1D6uqed2%2F81a15681c3e74df09677dfc57a615b13',
-  defaultStyles: {
-    appearance: 'none',
-    paddingTop: '15px',
-    paddingBottom: '15px',
-    paddingLeft: '25px',
-    paddingRight: '25px',
-    backgroundColor: '#000000',
-    color: 'white',
-    borderRadius: '4px',
-    textAlign: 'center',
-    cursor: 'pointer',
-  },
-  inputs: [
-    {
-      name: 'text',
-      type: 'text',
-      defaultValue: 'Click me!',
-      bubble: true,
-    },
-    {
-      name: 'link',
-      type: 'url',
-      bubble: true,
-    },
-    {
-      name: 'openLinkInNewTab',
-      type: 'boolean',
-      defaultValue: false,
-      friendlyName: 'Open link in new tab',
-    },
-  ],
-  static: true,
-  noWrap: true,
 };
-const serializeFn = (fnValue) => {
-  const fnStr = fnValue.toString().trim();
-  const appendFunction = !fnStr.startsWith('function') && !fnStr.startsWith('(');
-  return `return (${appendFunction ? 'function ' : ''}${fnStr}).apply(this, arguments)`;
+const resolveHead = (endpoint, routeLocation, contentModules, locale) => {
+  const head = createDocumentHead();
+  const getData = (loaderOrAction) => {
+    const id = loaderOrAction.__id;
+    if (loaderOrAction.__brand === 'server_loader') {
+      if (!(id in endpoint.loaders))
+        throw new Error(
+          'You can not get the returned data of a loader that has not been executed for this request.'
+        );
+    }
+    const data = endpoint.loaders[id];
+    if (data instanceof Promise)
+      throw new Error('Loaders returning a function can not be referred to in the head function.');
+    return data;
+  };
+  const headProps = {
+    head,
+    withLocale: (fn) => withLocale(locale, fn),
+    resolveValue: getData,
+    ...routeLocation,
+  };
+  for (let i = contentModules.length - 1; i >= 0; i--) {
+    const contentModuleHead = contentModules[i] && contentModules[i].head;
+    if (contentModuleHead) {
+      if (typeof contentModuleHead === 'function')
+        resolveDocumentHead(
+          head,
+          withLocale(locale, () => contentModuleHead(headProps))
+        );
+      else if (typeof contentModuleHead === 'object') resolveDocumentHead(head, contentModuleHead);
+    }
+  }
+  return headProps.head;
 };
-const componentInfo$9 = {
-  name: 'Columns',
-  inputs: [
-    {
-      name: 'columns',
-      type: 'array',
-      broadcast: true,
-      subFields: [
-        {
-          name: 'blocks',
-          type: 'array',
-          hideFromUI: true,
-          defaultValue: [
-            {
-              '@type': '@builder.io/sdk:Element',
-              responsiveStyles: {
-                large: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  flexShrink: '0',
-                  position: 'relative',
-                  marginTop: '30px',
-                  textAlign: 'center',
-                  lineHeight: 'normal',
-                  height: 'auto',
-                  minHeight: '20px',
-                  minWidth: '20px',
-                  overflow: 'hidden',
-                },
-              },
-              component: {
-                name: 'Image',
-                options: {
-                  image:
-                    'https://builder.io/api/v1/image/assets%2Fpwgjf0RoYWbdnJSbpBAjXNRMe9F2%2Ffb27a7c790324294af8be1c35fe30f4d',
-                  backgroundPosition: 'center',
-                  backgroundSize: 'cover',
-                  aspectRatio: 0.7004048582995948,
-                },
-              },
-            },
-            {
-              '@type': '@builder.io/sdk:Element',
-              responsiveStyles: {
-                large: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  flexShrink: '0',
-                  position: 'relative',
-                  marginTop: '30px',
-                  textAlign: 'center',
-                  lineHeight: 'normal',
-                  height: 'auto',
-                },
-              },
-              component: {
-                name: 'Text',
-                options: {
-                  text: '<p>Enter some text...</p>',
-                },
-              },
-            },
-          ],
-        },
-        {
-          name: 'width',
-          type: 'number',
-          hideFromUI: true,
-          helperText: 'Width %, e.g. set to 50 to fill half of the space',
-        },
-        {
-          name: 'link',
-          type: 'url',
-          helperText: 'Optionally set a url that clicking this column will link to',
-        },
-      ],
-      defaultValue: [
-        {
-          blocks: [
-            {
-              '@type': '@builder.io/sdk:Element',
-              responsiveStyles: {
-                large: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  flexShrink: '0',
-                  position: 'relative',
-                  marginTop: '30px',
-                  textAlign: 'center',
-                  lineHeight: 'normal',
-                  height: 'auto',
-                  minHeight: '20px',
-                  minWidth: '20px',
-                  overflow: 'hidden',
-                },
-              },
-              component: {
-                name: 'Image',
-                options: {
-                  image:
-                    'https://builder.io/api/v1/image/assets%2Fpwgjf0RoYWbdnJSbpBAjXNRMe9F2%2Ffb27a7c790324294af8be1c35fe30f4d',
-                  backgroundPosition: 'center',
-                  backgroundSize: 'cover',
-                  aspectRatio: 0.7004048582995948,
-                },
-              },
-            },
-            {
-              '@type': '@builder.io/sdk:Element',
-              responsiveStyles: {
-                large: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  flexShrink: '0',
-                  position: 'relative',
-                  marginTop: '30px',
-                  textAlign: 'center',
-                  lineHeight: 'normal',
-                  height: 'auto',
-                },
-              },
-              component: {
-                name: 'Text',
-                options: {
-                  text: '<p>Enter some text...</p>',
-                },
-              },
-            },
-          ],
-        },
-        {
-          blocks: [
-            {
-              '@type': '@builder.io/sdk:Element',
-              responsiveStyles: {
-                large: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  flexShrink: '0',
-                  position: 'relative',
-                  marginTop: '30px',
-                  textAlign: 'center',
-                  lineHeight: 'normal',
-                  height: 'auto',
-                  minHeight: '20px',
-                  minWidth: '20px',
-                  overflow: 'hidden',
-                },
-              },
-              component: {
-                name: 'Image',
-                options: {
-                  image:
-                    'https://builder.io/api/v1/image/assets%2Fpwgjf0RoYWbdnJSbpBAjXNRMe9F2%2Ffb27a7c790324294af8be1c35fe30f4d',
-                  backgroundPosition: 'center',
-                  backgroundSize: 'cover',
-                  aspectRatio: 0.7004048582995948,
-                },
-              },
-            },
-            {
-              '@type': '@builder.io/sdk:Element',
-              responsiveStyles: {
-                large: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  flexShrink: '0',
-                  position: 'relative',
-                  marginTop: '30px',
-                  textAlign: 'center',
-                  lineHeight: 'normal',
-                  height: 'auto',
-                },
-              },
-              component: {
-                name: 'Text',
-                options: {
-                  text: '<p>Enter some text...</p>',
-                },
-              },
-            },
-          ],
-        },
-      ],
-      onChange: serializeFn((options) => {
-        function clearWidths() {
-          columns.forEach((col) => {
-            col.delete('width');
-          });
+const resolveDocumentHead = (resolvedHead, updatedHead) => {
+  if (typeof updatedHead.title === 'string') resolvedHead.title = updatedHead.title;
+  mergeArray(resolvedHead.meta, updatedHead.meta);
+  mergeArray(resolvedHead.links, updatedHead.links);
+  mergeArray(resolvedHead.styles, updatedHead.styles);
+  Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
+};
+const mergeArray = (existingArr, newArr) => {
+  if (Array.isArray(newArr))
+    for (const newItem of newArr) {
+      if (typeof newItem.key === 'string') {
+        const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
+        if (existingIndex > -1) {
+          existingArr[existingIndex] = newItem;
+          continue;
         }
-        const columns = options.get('columns');
-        if (Array.isArray(columns)) {
-          const containsColumnWithWidth = !!columns.find((col) => col.get('width'));
-          if (containsColumnWithWidth) {
-            const containsColumnWithoutWidth = !!columns.find((col) => !col.get('width'));
-            if (containsColumnWithoutWidth) clearWidths();
-            else {
-              const sumWidths = columns.reduce((memo, col) => {
-                return memo + col.get('width');
-              }, 0);
-              const widthsDontAddUp = sumWidths !== 100;
-              if (widthsDontAddUp) clearWidths();
-            }
+      }
+      existingArr.push(newItem);
+    }
+};
+const createDocumentHead = () => ({
+  title: '',
+  meta: [],
+  links: [],
+  styles: [],
+  frontmatter: {},
+});
+const loadRoute = async (routes, menus, cacheModules, pathname) => {
+  if (Array.isArray(routes))
+    for (const route of routes) {
+      const match = route[0].exec(pathname);
+      if (match) {
+        const loaders = route[1];
+        const params = getPathParams(route[2], match);
+        const routeBundleNames = route[4];
+        const mods = new Array(loaders.length);
+        const pendingLoads = [];
+        const menuLoader = getMenuLoader(menus, pathname);
+        let menu = void 0;
+        loaders.forEach((moduleLoader, i) => {
+          loadModule(
+            moduleLoader,
+            pendingLoads,
+            (routeModule) => (mods[i] = routeModule),
+            cacheModules
+          );
+        });
+        loadModule(
+          menuLoader,
+          pendingLoads,
+          (menuModule) => (menu = menuModule?.default),
+          cacheModules
+        );
+        if (pendingLoads.length > 0) await Promise.all(pendingLoads);
+        return [params, mods, menu, routeBundleNames];
+      }
+    }
+  return null;
+};
+const loadModule = (moduleLoader, pendingLoads, moduleSetter, cacheModules) => {
+  if (typeof moduleLoader === 'function') {
+    const loadedModule = MODULE_CACHE.get(moduleLoader);
+    if (loadedModule) moduleSetter(loadedModule);
+    else {
+      const l = moduleLoader();
+      if (typeof l.then === 'function')
+        pendingLoads.push(
+          l.then((loadedModule2) => {
+            if (cacheModules !== false) MODULE_CACHE.set(moduleLoader, loadedModule2);
+            moduleSetter(loadedModule2);
+          })
+        );
+      else if (l) moduleSetter(l);
+    }
+  }
+};
+const getMenuLoader = (menus, pathname) => {
+  if (menus) {
+    pathname = pathname.endsWith('/') ? pathname : pathname + '/';
+    const menu = menus.find(
+      (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith('/') ? '' : '/'))
+    );
+    if (menu) return menu[1];
+  }
+};
+const getPathParams = (paramNames, match) => {
+  const params = {};
+  if (paramNames)
+    for (let i = 0; i < paramNames.length; i++) {
+      const param = match?.[i + 1] ?? '';
+      const v = param.endsWith('/') ? param.slice(0, -1) : param;
+      params[paramNames[i]] = decodeURIComponent(v);
+    }
+  return params;
+};
+const loadClientData = async (url, element, clearCache, action) => {
+  const pagePathname = url.pathname;
+  const pageSearch = url.search;
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
+  let qData = void 0;
+  if (!action) qData = CLIENT_DATA_CACHE.get(clientDataPath);
+  dispatchPrefetchEvent({
+    links: [pagePathname],
+  });
+  if (!qData) {
+    const options = getFetchOptions(action);
+    if (action) action.data = void 0;
+    qData = fetch(clientDataPath, options).then((rsp) => {
+      const redirectedURL = new URL(rsp.url);
+      if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+        location.href = redirectedURL.href;
+        return;
+      }
+      if ((rsp.headers.get('content-type') || '').includes('json'))
+        return rsp.text().then((text) => {
+          const clientData = _deserializeData(text, element);
+          if (!clientData) {
+            location.href = url.href;
+            return;
           }
-        }
-      }),
-    },
-    {
-      name: 'space',
-      type: 'number',
-      defaultValue: 20,
-      helperText: 'Size of gap between columns',
-      advanced: true,
-    },
-    {
-      name: 'stackColumnsAt',
-      type: 'string',
-      defaultValue: 'tablet',
-      helperText: 'Convert horizontal columns to vertical at what device size',
-      enum: ['tablet', 'mobile', 'never'],
-      advanced: true,
-    },
-    {
-      name: 'reverseColumnsWhenStacked',
-      type: 'boolean',
-      defaultValue: false,
-      helperText: 'When stacking columns for mobile devices, reverse the ordering',
-      advanced: true,
-    },
-  ],
-};
-const componentInfo$8 = {
-  name: 'Fragment',
-  static: true,
-  hidden: true,
-  canHaveChildren: true,
-  noWrap: true,
-};
-const componentInfo$7 = {
-  name: 'Image',
-  static: true,
-  image:
-    'https://firebasestorage.googleapis.com/v0/b/builder-3b0a2.appspot.com/o/images%2Fbaseline-insert_photo-24px.svg?alt=media&token=4e5d0ef4-f5e8-4e57-b3a9-38d63a9b9dc4',
-  defaultStyles: {
-    position: 'relative',
-    minHeight: '20px',
-    minWidth: '20px',
-    overflow: 'hidden',
-  },
-  canHaveChildren: true,
-  inputs: [
-    {
-      name: 'image',
-      type: 'file',
-      bubble: true,
-      allowedFileTypes: ['jpeg', 'jpg', 'png', 'svg'],
-      required: true,
-      defaultValue:
-        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F72c80f114dc149019051b6852a9e3b7a',
-      onChange: serializeFn((options) => {
-        const DEFAULT_ASPECT_RATIO = 0.7041;
-        options.delete('srcset');
-        options.delete('noWebp');
-        function loadImage(url, timeout = 6e4) {
-          return new Promise((resolve, reject) => {
-            const img = document.createElement('img');
-            let loaded = false;
-            img.onload = () => {
-              loaded = true;
-              resolve(img);
-            };
-            img.addEventListener('error', (event) => {
-              console.warn('Image load failed', event.error);
-              reject(event.error);
+          if (clearCache) CLIENT_DATA_CACHE.delete(clientDataPath);
+          if (clientData.redirect) location.href = clientData.redirect;
+          else if (action) {
+            const actionData = clientData.loaders[action.id];
+            action.resolve({
+              status: rsp.status,
+              result: actionData,
             });
-            img.src = url;
-            setTimeout(() => {
-              if (!loaded) reject(new Error('Image load timed out'));
-            }, timeout);
-          });
-        }
-        function round2(num) {
-          return Math.round(num * 1e3) / 1e3;
-        }
-        const value = options.get('image');
-        const aspectRatio = options.get('aspectRatio');
-        fetch(value)
-          .then((res) => res.blob())
-          .then((blob) => {
-            if (blob.type.includes('svg')) options.set('noWebp', true);
-          });
-        if (value && (!aspectRatio || aspectRatio === DEFAULT_ASPECT_RATIO))
-          return loadImage(value).then((img) => {
-            const possiblyUpdatedAspectRatio = options.get('aspectRatio');
-            if (
-              options.get('image') === value &&
-              (!possiblyUpdatedAspectRatio || possiblyUpdatedAspectRatio === DEFAULT_ASPECT_RATIO)
-            ) {
-              if (img.width && img.height) {
-                options.set('aspectRatio', round2(img.height / img.width));
-                options.set('height', img.height);
-                options.set('width', img.width);
-              }
-            }
-          });
-      }),
-    },
-    {
-      name: 'backgroundSize',
-      type: 'text',
-      defaultValue: 'cover',
-      enum: [
-        {
-          label: 'contain',
-          value: 'contain',
-          helperText: 'The image should never get cropped',
-        },
-        {
-          label: 'cover',
-          value: 'cover',
-          helperText: "The image should fill it's box, cropping when needed",
-        },
-      ],
-    },
-    {
-      name: 'backgroundPosition',
-      type: 'text',
-      defaultValue: 'center',
-      enum: [
-        'center',
-        'top',
-        'left',
-        'right',
-        'bottom',
-        'top left',
-        'top right',
-        'bottom left',
-        'bottom right',
-      ],
-    },
-    {
-      name: 'altText',
-      type: 'string',
-      helperText: 'Text to display when the user has images off',
-    },
-    {
-      name: 'height',
-      type: 'number',
-      hideFromUI: true,
-    },
-    {
-      name: 'width',
-      type: 'number',
-      hideFromUI: true,
-    },
-    {
-      name: 'sizes',
-      type: 'string',
-      hideFromUI: true,
-    },
-    {
-      name: 'srcset',
-      type: 'string',
-      hideFromUI: true,
-    },
-    {
-      name: 'lazy',
-      type: 'boolean',
-      defaultValue: true,
-      hideFromUI: true,
-    },
-    {
-      name: 'fitContent',
-      type: 'boolean',
-      helperText:
-        "When child blocks are provided, fit to them instead of using the image's aspect ratio",
-      defaultValue: true,
-    },
-    {
-      name: 'aspectRatio',
-      type: 'number',
-      helperText:
-        "This is the ratio of height/width, e.g. set to 1.5 for a 300px wide and 200px tall photo. Set to 0 to not force the image to maintain it's aspect ratio",
-      advanced: true,
-      defaultValue: 0.7041,
-    },
-  ],
-};
-const componentInfo$6 = {
-  name: 'Core:Section',
-  static: true,
-  image:
-    'https://cdn.builder.io/api/v1/image/assets%2FIsxPKMo2gPRRKeakUztj1D6uqed2%2F682efef23ace49afac61748dd305c70a',
-  inputs: [
-    {
-      name: 'maxWidth',
-      type: 'number',
-      defaultValue: 1200,
-    },
-    {
-      name: 'lazyLoad',
-      type: 'boolean',
-      defaultValue: false,
-      advanced: true,
-      description: 'Only render this section when in view',
-    },
-  ],
-  defaultStyles: {
-    paddingLeft: '20px',
-    paddingRight: '20px',
-    paddingTop: '50px',
-    paddingBottom: '50px',
-    marginTop: '0px',
-    width: '100vw',
-    marginLeft: 'calc(50% - 50vw)',
-  },
-  canHaveChildren: true,
-  defaultChildren: [
-    {
-      '@type': '@builder.io/sdk:Element',
-      responsiveStyles: {
-        large: {
-          textAlign: 'center',
-        },
-      },
-      component: {
-        name: 'Text',
-        options: {
-          text: "<p><b>I am a section! My content keeps from getting too wide, so that it's easy to read even on big screens.</b></p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur</p>",
-        },
-      },
-    },
-  ],
-};
-const SectionComponent = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    return /* @__PURE__ */ jsx('section', {
-      ...props.attributes,
-      style: {
-        width: '100%',
-        alignSelf: 'stretch',
-        flexGrow: 1,
-        boxSizing: 'border-box',
-        maxWidth: props.maxWidth || 1200,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-      },
-      children: /* @__PURE__ */ jsx(Slot, {}, '2Y_0'),
+          }
+          return clientData;
+        });
+      else {
+        location.href = url.href;
+        return void 0;
+      }
     });
-  }, 'SectionComponent_component_ZWF9iD5WeLg')
-);
-const componentInfo$5 = {
-  name: 'Symbol',
-  noWrap: true,
-  static: true,
-  inputs: [
-    {
-      name: 'symbol',
-      type: 'uiSymbol',
-    },
-    {
-      name: 'dataOnly',
-      helperText: "Make this a data symbol that doesn't display any UI",
-      type: 'boolean',
-      defaultValue: false,
-      advanced: true,
-      hideFromUI: true,
-    },
-    {
-      name: 'inheritState',
-      helperText: 'Inherit the parent component state and data',
-      type: 'boolean',
-      defaultValue: false,
-      advanced: true,
-    },
-    {
-      name: 'renderToLiquid',
-      helperText:
-        'Render this symbols contents to liquid. Turn off to fetch with javascript and use custom targeting',
-      type: 'boolean',
-      defaultValue: false,
-      advanced: true,
-      hideFromUI: true,
-    },
-    {
-      name: 'useChildren',
-      hideFromUI: true,
-      type: 'boolean',
-    },
-  ],
-};
-function getGlobalThis() {
-  if (typeof globalThis !== 'undefined') return globalThis;
-  if (typeof window !== 'undefined') return window;
-  if (typeof global !== 'undefined') return global;
-  if (typeof self !== 'undefined') return self;
-  return globalThis;
-}
-function getFetch() {
-  const globalFetch = getGlobalThis().fetch;
-  if (typeof globalFetch === 'undefined') {
-    console.warn(`Builder SDK could not find a global fetch function. Make sure you have a polyfill for fetch in your project.
-      For more information, read https://github.com/BuilderIO/this-package-uses-fetch`);
-    throw new Error('Builder SDK could not find a global `fetch` function');
+    if (!action) CLIENT_DATA_CACHE.set(clientDataPath, qData);
   }
-  return globalFetch;
-}
-const fetch$1 = getFetch();
-const getTopLevelDomain = (host) => {
-  if (host === 'localhost' || host === '127.0.0.1') return host;
-  const parts = host.split('.');
-  if (parts.length > 2) return parts.slice(1).join('.');
-  return host;
-};
-const getCookie = async ({ name, canTrack }) => {
-  try {
-    if (!canTrack) return void 0;
-    return document.cookie
-      .split('; ')
-      .find((row) => row.startsWith(`${name}=`))
-      ?.split('=')[1];
-  } catch (err) {
-    console.debug('[COOKIE] GET error: ', err);
-    return void 0;
-  }
-};
-const stringifyCookie = (cookie) =>
-  cookie
-    .map(([key, value]) => (value ? `${key}=${value}` : key))
-    .filter(checkIsDefined)
-    .join('; ');
-const SECURE_CONFIG = [
-  ['secure', ''],
-  ['SameSite', 'None'],
-];
-const createCookieString = ({ name, value, expires }) => {
-  const secure = isBrowser() ? location.protocol === 'https:' : true;
-  const secureObj = secure ? SECURE_CONFIG : [[]];
-  const expiresObj = expires ? [['expires', expires.toUTCString()]] : [[]];
-  const cookieValue = [
-    [name, value],
-    ...expiresObj,
-    ['path', '/'],
-    ['domain', getTopLevelDomain(window.location.hostname)],
-    ...secureObj,
-  ];
-  const cookie = stringifyCookie(cookieValue);
-  return cookie;
-};
-const setCookie = async ({ name, value, expires, canTrack }) => {
-  try {
-    if (!canTrack) return;
-    const cookie = createCookieString({
-      name,
-      value,
-      expires,
-    });
-    document.cookie = cookie;
-  } catch (err) {
-    console.warn('[COOKIE] SET error: ', err);
-  }
-};
-const BUILDER_STORE_PREFIX = 'builderio.variations';
-const getContentTestKey = (id) => `${BUILDER_STORE_PREFIX}.${id}`;
-const getContentVariationCookie = ({ contentId, canTrack }) =>
-  getCookie({
-    name: getContentTestKey(contentId),
-    canTrack,
+  return qData.then((v) => {
+    if (!v) CLIENT_DATA_CACHE.delete(clientDataPath);
+    return v;
   });
-const setContentVariationCookie = ({ contentId, canTrack, value }) =>
-  setCookie({
-    name: getContentTestKey(contentId),
-    value,
-    canTrack,
-  });
-const checkIsBuilderContentWithVariations = (item) =>
-  checkIsDefined(item.id) &&
-  checkIsDefined(item.variations) &&
-  Object.keys(item.variations).length > 0;
-const getRandomVariationId = ({ id, variations }) => {
-  let n = 0;
-  const random = Math.random();
-  for (const id1 in variations) {
-    const testRatio = variations[id1]?.testRatio;
-    n += testRatio;
-    if (random < n) return id1;
-  }
-  return id;
 };
-const getTestFields = ({ item, testGroupId }) => {
-  const variationValue = item.variations[testGroupId];
-  if (testGroupId === item.id || !variationValue)
+const getFetchOptions = (action) => {
+  const actionData = action?.data;
+  if (!actionData) return void 0;
+  if (actionData instanceof FormData)
     return {
-      testVariationId: item.id,
-      testVariationName: 'Default',
+      method: 'POST',
+      body: actionData,
     };
   else
     return {
-      data: variationValue.data,
-      testVariationId: variationValue.id,
-      testVariationName: variationValue.name || (variationValue.id === item.id ? 'Default' : ''),
+      method: 'POST',
+      body: JSON.stringify(actionData),
+      headers: {
+        'Content-Type': 'application/json, charset=UTF-8',
+      },
     };
 };
-const getContentVariation = async ({ item, canTrack }) => {
-  const testGroupId = await getContentVariationCookie({
-    canTrack,
-    contentId: item.id,
-  });
-  const testFields = testGroupId
-    ? getTestFields({
-        item,
-        testGroupId,
-      })
-    : void 0;
-  if (testFields) return testFields;
-  else {
-    const randomVariationId = getRandomVariationId({
-      variations: item.variations,
-      id: item.id,
-    });
-    setContentVariationCookie({
-      contentId: item.id,
-      value: randomVariationId,
-      canTrack,
-    }).catch((err) => {
-      console.error('could not store A/B test variation: ', err);
-    });
-    return getTestFields({
-      item,
-      testGroupId: randomVariationId,
-    });
-  }
+const isQDataJson = (pathname) => {
+  return pathname.endsWith(QDATA_JSON);
 };
-const handleABTesting = async ({ item, canTrack }) => {
-  if (!checkIsBuilderContentWithVariations(item)) return;
-  const variationValue = await getContentVariation({
-    item,
-    canTrack,
-  });
-  Object.assign(item, variationValue);
-};
-function flatten(object, path = null, separator = '.') {
-  return Object.keys(object).reduce((acc, key) => {
-    const value = object[key];
-    const newPath = [path, key].filter(Boolean).join(separator);
-    const isObject = [
-      typeof value === 'object',
-      value !== null,
-      !(Array.isArray(value) && value.length === 0),
-    ].every(Boolean);
-    return isObject
-      ? {
-          ...acc,
-          ...flatten(value, newPath, separator),
-        }
-      : {
-          ...acc,
-          [newPath]: value,
-        };
-  }, {});
-}
-const BUILDER_SEARCHPARAMS_PREFIX = 'builder.';
-const BUILDER_OPTIONS_PREFIX = 'options.';
-const convertSearchParamsToQueryObject = (searchParams) => {
-  const options = {};
-  searchParams.forEach((value, key) => {
-    options[key] = value;
-  });
-  return options;
-};
-const getBuilderSearchParams = (_options) => {
-  if (!_options) return {};
-  const options = normalizeSearchParams(_options);
-  const newOptions = {};
-  Object.keys(options).forEach((key) => {
-    if (key.startsWith(BUILDER_SEARCHPARAMS_PREFIX)) {
-      const trimmedKey = key
-        .replace(BUILDER_SEARCHPARAMS_PREFIX, '')
-        .replace(BUILDER_OPTIONS_PREFIX, '');
-      newOptions[trimmedKey] = options[key];
-    }
-  });
-  return newOptions;
-};
-const getBuilderSearchParamsFromWindow = () => {
-  if (!isBrowser()) return {};
-  const searchParams = new URLSearchParams(window.location.search);
-  return getBuilderSearchParams(searchParams);
-};
-const normalizeSearchParams = (searchParams) =>
-  searchParams instanceof URLSearchParams
-    ? convertSearchParamsToQueryObject(searchParams)
-    : searchParams;
-const generateContentUrl = (options) => {
-  const {
-    limit = 30,
-    userAttributes,
-    query,
-    noTraverse = false,
-    model,
-    apiKey,
-    includeRefs = true,
-    locale,
-  } = options;
-  if (!apiKey) throw new Error('Missing API key');
-  const url = new URL(
-    `https://cdn.builder.io/api/v2/content/${model}?apiKey=${apiKey}&limit=${limit}&noTraverse=${noTraverse}&includeRefs=${includeRefs}${
-      locale ? `&locale=${locale}` : ''
-    }`
-  );
-  const queryOptions = {
-    ...getBuilderSearchParamsFromWindow(),
-    ...normalizeSearchParams(options.options || {}),
-  };
-  const flattened = flatten(queryOptions);
-  for (const key in flattened) url.searchParams.set(key, String(flattened[key]));
-  if (userAttributes) url.searchParams.set('userAttributes', JSON.stringify(userAttributes));
-  if (query) {
-    const flattened1 = flatten({
-      query,
-    });
-    for (const key1 in flattened1) url.searchParams.set(key1, JSON.stringify(flattened1[key1]));
-  }
-  return url;
-};
-async function getContent(options) {
-  return (
-    (
-      await getAllContent({
-        ...options,
-        limit: 1,
-      })
-    ).results[0] || null
-  );
-}
-async function getAllContent(options) {
-  const url = generateContentUrl(options);
-  const res = await fetch$1(url.href);
-  const content = await res.json();
-  const canTrack = options.canTrack !== false;
-  if (canTrack && Array.isArray(content.results))
-    for (const item of content.results)
-      await handleABTesting({
-        item,
-        canTrack,
-      });
-  return content;
-}
-const className = function className22(props, state, builderContext2) {
-  return [
-    ...[props.attributes.class],
-    'builder-symbol',
-    props.symbol?.inline ? 'builder-inline-symbol' : void 0,
-    props.symbol?.dynamic || props.dynamic ? 'builder-dynamic-symbol' : void 0,
-  ]
-    .filter(Boolean)
-    .join(' ');
-};
-const contentToUse = function contentToUse2(props, state, builderContext2) {
-  return props.symbol?.content || state.fetchedContent;
-};
-const Symbol$1 = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    const builderContext$1 = useContext(builderContext);
-    const state = useStore({
-      fetchedContent: null,
-    });
-    useTaskQrl(
-      inlinedQrl(
-        ({ track: track2 }) => {
-          const [builderContext2, props2, state2] = useLexicalScope();
-          track2(() => props2.symbol);
-          track2(() => state2.fetchedContent);
-          const symbolToUse = props2.symbol;
-          if (
-            symbolToUse &&
-            !symbolToUse.content &&
-            !state2.fetchedContent &&
-            symbolToUse.model &&
-            builderContext2?.apiKey
-          )
-            getContent({
-              model: symbolToUse.model,
-              apiKey: builderContext2.apiKey,
-              query: {
-                id: symbolToUse.entry,
-              },
-            }).then((response) => {
-              state2.fetchedContent = response;
-            });
-        },
-        'Symbol_component_useTask_NIAWAC1bMBo',
-        [builderContext$1, props, state]
+const QDATA_JSON = '/q-data.json';
+const useContent = () => useContext(ContentContext);
+const useDocumentHead = () => useContext(DocumentHeadContext);
+const useLocation = () => useContext(RouteLocationContext);
+const useNavigate = () => useContext(RouteNavigateContext);
+const useAction = () => useContext(RouteActionContext);
+const useQwikCityEnv = () => noSerialize(useServerData('qwikcity'));
+const QwikCityProvider = /* @__PURE__ */ componentQrl(
+  /* @__PURE__ */ inlinedQrl((props) => {
+    useStylesQrl(
+      /* @__PURE__ */ inlinedQrl(
+        `:root{view-transition-name: none}`,
+        'QwikCityProvider_component_useStyles_RPDJAz33WLA'
       )
     );
-    return /* @__PURE__ */ jsx('div', {
-      ...props.attributes,
-      class: className(props),
-      children: /* @__PURE__ */ jsx(
-        RenderContent$1,
-        {
-          get apiKey() {
-            return builderContext$1.apiKey;
-          },
-          get context() {
-            return builderContext$1.context;
-          },
-          customComponents: Object.values(builderContext$1.registeredComponents),
-          data: {
-            ...props.symbol?.data,
-            ...builderContext$1.state,
-            ...props.symbol?.content?.data?.state,
-          },
-          model: props.symbol?.model,
-          content: contentToUse(props, state),
-          [_IMMUTABLE]: {
-            apiKey: _wrapSignal(builderContext$1, 'apiKey'),
-            context: _wrapSignal(builderContext$1, 'context'),
-          },
+    const env = useQwikCityEnv();
+    if (!env?.params) throw new Error(`Missing Qwik City Env Data`);
+    const urlEnv = useServerData('url');
+    if (!urlEnv) throw new Error(`Missing Qwik URL Env Data`);
+    const url = new URL(urlEnv);
+    const routeLocation = useStore(
+      {
+        url,
+        params: env.params,
+        isNavigating: false,
+      },
+      {
+        deep: false,
+      }
+    );
+    const loaderState = _weakSerialize(
+      useStore(env.response.loaders, {
+        deep: false,
+      })
+    );
+    const navPath = useSignal(toPath(url));
+    const documentHead = useStore(createDocumentHead);
+    const content = useStore({
+      headings: void 0,
+      menu: void 0,
+    });
+    const contentInternal = useSignal();
+    const currentActionId = env.response.action;
+    const currentAction = currentActionId ? env.response.loaders[currentActionId] : void 0;
+    const actionState = useSignal(
+      currentAction
+        ? {
+            id: currentActionId,
+            data: env.response.formData,
+            output: {
+              result: currentAction,
+              status: env.response.status,
+            },
+          }
+        : void 0
+    );
+    const goto = eventQrl(
+      /* @__PURE__ */ inlinedQrl(
+        async (path, forceReload) => {
+          const [actionState2, navPath2, routeLocation2] = useLexicalScope();
+          if (path === void 0) {
+            path = navPath2.value;
+            navPath2.value = '';
+          } else if (forceReload) navPath2.value = '';
+          const resolvedURL = new URL(path, routeLocation2.url);
+          path = toPath(resolvedURL);
+          if (!forceReload && navPath2.value === path) return;
+          navPath2.value = path;
+          if (isBrowser) {
+            loadClientData(resolvedURL, _getContextElement());
+            loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, resolvedURL.pathname);
+          }
+          actionState2.value = void 0;
+          routeLocation2.isNavigating = true;
         },
-        'Wt_0'
-      ),
-    });
-  }, 'Symbol_component_WVvggdkUPdk')
-);
-const componentInfo$4 = {
-  name: 'Text',
-  static: true,
-  image:
-    'https://firebasestorage.googleapis.com/v0/b/builder-3b0a2.appspot.com/o/images%2Fbaseline-text_fields-24px%20(1).svg?alt=media&token=12177b73-0ee3-42ca-98c6-0dd003de1929',
-  inputs: [
-    {
-      name: 'text',
-      type: 'html',
-      required: true,
-      autoFocus: true,
-      bubble: true,
-      defaultValue: 'Enter some text...',
-    },
-  ],
-  defaultStyles: {
-    lineHeight: 'normal',
-    height: 'auto',
-    textAlign: 'center',
-  },
-};
-const Text = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    return /* @__PURE__ */ jsx('span', {
-      class: 'builder-text',
-      get dangerouslySetInnerHTML() {
-        return props.text;
-      },
-      style: {
-        outline: 'none',
-      },
-      [_IMMUTABLE]: {
-        dangerouslySetInnerHTML: _wrapSignal(props, 'text'),
-      },
-    });
-  }, 'Text_component_15p0cKUxgIE')
-);
-const componentInfo$3 = {
-  name: 'Video',
-  canHaveChildren: true,
-  defaultStyles: {
-    minHeight: '20px',
-    minWidth: '20px',
-  },
-  image:
-    'https://firebasestorage.googleapis.com/v0/b/builder-3b0a2.appspot.com/o/images%2Fbaseline-videocam-24px%20(1).svg?alt=media&token=49a84e4a-b20e-4977-a650-047f986874bb',
-  inputs: [
-    {
-      name: 'video',
-      type: 'file',
-      allowedFileTypes: ['mp4'],
-      bubble: true,
-      defaultValue:
-        'https://firebasestorage.googleapis.com/v0/b/builder-3b0a2.appspot.com/o/assets%2FKQlEmWDxA0coC3PK6UvkrjwkIGI2%2F28cb070609f546cdbe5efa20e931aa4b?alt=media&token=912e9551-7a7c-4dfb-86b6-3da1537d1a7f',
-      required: true,
-    },
-    {
-      name: 'posterImage',
-      type: 'file',
-      allowedFileTypes: ['jpeg', 'png'],
-      helperText: 'Image to show before the video plays',
-    },
-    {
-      name: 'autoPlay',
-      type: 'boolean',
-      defaultValue: true,
-    },
-    {
-      name: 'controls',
-      type: 'boolean',
-      defaultValue: false,
-    },
-    {
-      name: 'muted',
-      type: 'boolean',
-      defaultValue: true,
-    },
-    {
-      name: 'loop',
-      type: 'boolean',
-      defaultValue: true,
-    },
-    {
-      name: 'playsInline',
-      type: 'boolean',
-      defaultValue: true,
-    },
-    {
-      name: 'fit',
-      type: 'text',
-      defaultValue: 'cover',
-      enum: ['contain', 'cover', 'fill', 'auto'],
-    },
-    {
-      name: 'fitContent',
-      type: 'boolean',
-      helperText: 'When child blocks are provided, fit to them instead of using the aspect ratio',
-      defaultValue: true,
-      advanced: true,
-    },
-    {
-      name: 'position',
-      type: 'text',
-      defaultValue: 'center',
-      enum: [
-        'center',
-        'top',
-        'left',
-        'right',
-        'bottom',
-        'top left',
-        'top right',
-        'bottom left',
-        'bottom right',
-      ],
-    },
-    {
-      name: 'height',
-      type: 'number',
-      advanced: true,
-    },
-    {
-      name: 'width',
-      type: 'number',
-      advanced: true,
-    },
-    {
-      name: 'aspectRatio',
-      type: 'number',
-      advanced: true,
-      defaultValue: 0.7004048582995948,
-    },
-    {
-      name: 'lazyLoad',
-      type: 'boolean',
-      helperText:
-        'Load this video "lazily" - as in only when a user scrolls near the video. Recommended for optmized performance and bandwidth consumption',
-      defaultValue: true,
-      advanced: true,
-    },
-  ],
-};
-const videoProps = function videoProps2(props, state) {
-  return {
-    ...(props.autoPlay === true
-      ? {
-          autoPlay: true,
-        }
-      : {}),
-    ...(props.muted === true
-      ? {
-          muted: true,
-        }
-      : {}),
-    ...(props.controls === true
-      ? {
-          controls: true,
-        }
-      : {}),
-    ...(props.loop === true
-      ? {
-          loop: true,
-        }
-      : {}),
-    ...(props.playsInline === true
-      ? {
-          playsInline: true,
-        }
-      : {}),
-  };
-};
-const spreadProps = function spreadProps2(props, state) {
-  return {
-    ...props.attributes,
-    ...videoProps(props),
-  };
-};
-const Video = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    return /* @__PURE__ */ jsx('video', {
-      ...spreadProps(props),
-      style: {
-        width: '100%',
-        height: '100%',
-        ...props.attributes?.style,
-        objectFit: props.fit,
-        objectPosition: props.position,
-        borderRadius: 1,
-      },
-      src: props.video || 'no-src',
-      get poster() {
-        return props.posterImage;
-      },
-      [_IMMUTABLE]: {
-        poster: _wrapSignal(props, 'posterImage'),
-      },
-    });
-  }, 'Video_component_qdcTZflYyoQ')
-);
-const componentInfo$2 = {
-  name: 'Embed',
-  static: true,
-  inputs: [
-    {
-      name: 'url',
-      type: 'url',
-      required: true,
-      defaultValue: '',
-      helperText: 'e.g. enter a youtube url, google map, etc',
-      onChange: serializeFn((options) => {
-        const url = options.get('url');
-        if (url) {
-          options.set('content', 'Loading...');
-          const apiKey = 'ae0e60e78201a3f2b0de4b';
-          return fetch(`https://iframe.ly/api/iframely?url=${url}&api_key=${apiKey}`)
-            .then((res) => res.json())
-            .then((data) => {
-              if (options.get('url') === url) {
-                if (data.html) options.set('content', data.html);
-                else options.set('content', 'Invalid url, please try another');
+        'QwikCityProvider_component_goto_event_cBcjROynRVg',
+        [actionState, navPath, routeLocation]
+      )
+    );
+    useContextProvider(ContentContext, content);
+    useContextProvider(ContentInternalContext, contentInternal);
+    useContextProvider(DocumentHeadContext, documentHead);
+    useContextProvider(RouteLocationContext, routeLocation);
+    useContextProvider(RouteNavigateContext, goto);
+    useContextProvider(RouteStateContext, loaderState);
+    useContextProvider(RouteActionContext, actionState);
+    useTaskQrl(
+      /* @__PURE__ */ inlinedQrl(
+        ({ track }) => {
+          const [
+            actionState2,
+            content2,
+            contentInternal2,
+            documentHead2,
+            env2,
+            loaderState2,
+            navPath2,
+            props2,
+            routeLocation2,
+            url2,
+          ] = useLexicalScope();
+          async function run() {
+            const [path, action] = track(() => [navPath2.value, actionState2.value]);
+            const locale = getLocale('');
+            let trackUrl;
+            let clientPageData;
+            let loadedRoute = null;
+            if (isServer) {
+              trackUrl = new URL(path, routeLocation2.url);
+              loadedRoute = env2.loadedRoute;
+              clientPageData = env2.response;
+            } else {
+              trackUrl = new URL(path, location);
+              if (trackUrl.pathname.endsWith('/')) {
+                if (!qwikCity.trailingSlash) trackUrl.pathname = trackUrl.pathname.slice(0, -1);
+              } else if (qwikCity.trailingSlash) trackUrl.pathname += '/';
+              let loadRoutePromise = loadRoute(
+                qwikCity.routes,
+                qwikCity.menus,
+                qwikCity.cacheModules,
+                trackUrl.pathname
+              );
+              const element = _getContextElement();
+              const pageData = (clientPageData = await loadClientData(
+                trackUrl,
+                element,
+                true,
+                action
+              ));
+              if (!pageData) {
+                navPath2.untrackedValue = toPath(trackUrl);
+                return;
               }
-            })
-            .catch((_err) => {
-              options.set(
-                'content',
-                'There was an error embedding this URL, please try again or another URL'
+              const newHref = pageData.href;
+              const newURL = new URL(newHref, trackUrl.href);
+              if (newURL.pathname !== trackUrl.pathname) {
+                trackUrl = newURL;
+                loadRoutePromise = loadRoute(
+                  qwikCity.routes,
+                  qwikCity.menus,
+                  qwikCity.cacheModules,
+                  trackUrl.pathname
+                );
+              }
+              loadedRoute = await loadRoutePromise;
+            }
+            if (loadedRoute) {
+              const [params, mods, menu] = loadedRoute;
+              const contentModules = mods;
+              const pageModule = contentModules[contentModules.length - 1];
+              routeLocation2.url = trackUrl;
+              routeLocation2.params = {
+                ...params,
+              };
+              navPath2.untrackedValue = toPath(trackUrl);
+              const resolvedHead = resolveHead(
+                clientPageData,
+                routeLocation2,
+                contentModules,
+                locale
+              );
+              content2.headings = pageModule.headings;
+              content2.menu = menu;
+              contentInternal2.value = noSerialize(contentModules);
+              documentHead2.links = resolvedHead.links;
+              documentHead2.meta = resolvedHead.meta;
+              documentHead2.styles = resolvedHead.styles;
+              documentHead2.title = resolvedHead.title;
+              documentHead2.frontmatter = resolvedHead.frontmatter;
+              if (isBrowser) {
+                if (
+                  (props2.viewTransition ?? true) &&
+                  isSameOriginDifferentPathname(window.location, url2)
+                )
+                  document.__q_view_transition__ = true;
+                const loaders = clientPageData?.loaders;
+                if (loaders) Object.assign(loaderState2, loaders);
+                CLIENT_DATA_CACHE.clear();
+                clientNavigate(window, trackUrl, navPath2);
+                routeLocation2.isNavigating = false;
+              }
+            }
+          }
+          const promise = run();
+          if (isServer) return promise;
+          else return;
+        },
+        'QwikCityProvider_component_useTask_02wMImzEAbk',
+        [
+          actionState,
+          content,
+          contentInternal,
+          documentHead,
+          env,
+          loaderState,
+          navPath,
+          props,
+          routeLocation,
+          url,
+        ]
+      )
+    );
+    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_0');
+  }, 'QwikCityProvider_component_TxCFOy819ag')
+);
+const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
+  /* @__PURE__ */ inlinedQrl((props) => {
+    const urlEnv = props.url ?? 'http://localhost/';
+    const url = new URL(urlEnv);
+    const routeLocation = useStore(
+      {
+        url,
+        params: props.params ?? {},
+        isNavigating: false,
+      },
+      {
+        deep: false,
+      }
+    );
+    const loaderState = useSignal({});
+    const goto = /* @__PURE__ */ inlinedQrl(async (path) => {
+      throw new Error('Not implemented');
+    }, 'QwikCityMockProvider_component_goto_BUbtvTyvVRE');
+    const documentHead = useStore(createDocumentHead, {
+      deep: false,
+    });
+    const content = useStore(
+      {
+        headings: void 0,
+        menu: void 0,
+      },
+      {
+        deep: false,
+      }
+    );
+    const contentInternal = useSignal();
+    useContextProvider(ContentContext, content);
+    useContextProvider(ContentInternalContext, contentInternal);
+    useContextProvider(DocumentHeadContext, documentHead);
+    useContextProvider(RouteLocationContext, routeLocation);
+    useContextProvider(RouteNavigateContext, goto);
+    useContextProvider(RouteStateContext, loaderState);
+    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_1');
+  }, 'QwikCityMockProvider_component_WmYC5H00wtI')
+);
+const Link = /* @__PURE__ */ componentQrl(
+  /* @__PURE__ */ inlinedQrl((props) => {
+    const nav = useNavigate();
+    const loc = useLocation();
+    const linkProps = {
+      ...props,
+    };
+    const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
+    const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
+    const reload = !!linkProps.reload;
+    linkProps['preventdefault:click'] = !!clientNavPath;
+    linkProps.href = clientNavPath || props.href;
+    const event = eventQrl(
+      /* @__PURE__ */ inlinedQrl(
+        (ev, elm) => prefetchLinkResources(elm, ev.type === 'qvisible'),
+        'Link_component_event_event_5g4B0Gd1Wck'
+      )
+    );
+    return /* @__PURE__ */ _jsxS(
+      'a',
+      {
+        ...linkProps,
+        'data-prefetch': prefetchDataset,
+        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'AD_0'),
+        onClick$: /* @__PURE__ */ inlinedQrl(
+          (_, elm) => {
+            const [nav2, reload2] = useLexicalScope();
+            if (elm.href) nav2(elm.href, reload2);
+          },
+          'Link_component_a_onClick_kzjavhDI3L0',
+          [nav, reload]
+        ),
+        onMouseOver$: event,
+        onFocus$: event,
+        onQVisible$: event,
+      },
+      null,
+      0,
+      'AD_1'
+    );
+  }, 'Link_component_8gdLBszqbaM')
+);
+const prefetchLinkResources = (elm, isOnVisible) => {
+  if (elm && elm.href && elm.hasAttribute('data-prefetch')) {
+    if (!windowInnerWidth) windowInnerWidth = innerWidth;
+    if (!isOnVisible || (isOnVisible && windowInnerWidth < 520))
+      loadClientData(new URL(elm.href), elm);
+  }
+};
+let windowInnerWidth = 0;
+const ServiceWorkerRegister = (props) =>
+  _jsxQ(
+    'script',
+    {
+      nonce: _wrapSignal(props, 'nonce'),
+    },
+    {
+      dangerouslySetInnerHTML: swRegister,
+    },
+    null,
+    3,
+    '1Z_0'
+  );
+const routeActionQrl = (actionQrl, ...rest) => {
+  const { id, validators } = getValidators(rest, actionQrl);
+  function action() {
+    const loc = useLocation();
+    const currentAction = useAction();
+    const initialState = {
+      actionPath: `?${QACTION_KEY}=${id}`,
+      isRunning: false,
+      status: void 0,
+      value: void 0,
+      formData: void 0,
+    };
+    const state = useStore(() => {
+      const value = currentAction.value;
+      if (value && value?.id === id) {
+        const data = value.data;
+        if (data instanceof FormData) initialState.formData = data;
+        if (value.output) {
+          const { status, result } = value.output;
+          initialState.status = status;
+          initialState.value = result;
+        }
+      }
+      return initialState;
+    });
+    const submit = /* @__PURE__ */ inlinedQrl(
+      (input = {}) => {
+        const [currentAction2, id2, loc2, state2] = useLexicalScope();
+        if (isServer)
+          throw new Error(`Actions can not be invoked within the server during SSR.
+Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
+        let data;
+        let form;
+        if (input instanceof SubmitEvent) {
+          form = input.target;
+          data = new FormData(form);
+          if (
+            (input.submitter instanceof HTMLInputElement ||
+              input.submitter instanceof HTMLButtonElement) &&
+            input.submitter.name
+          ) {
+            if (input.submitter.name) data.append(input.submitter.name, input.submitter.value);
+          }
+        } else data = input;
+        return new Promise((resolve) => {
+          if (data instanceof FormData) state2.formData = data;
+          state2.isRunning = true;
+          loc2.isNavigating = true;
+          currentAction2.value = {
+            data,
+            id: id2,
+            resolve: noSerialize(resolve),
+          };
+        }).then(({ result, status }) => {
+          state2.isRunning = false;
+          state2.status = status;
+          state2.value = result;
+          if (form) {
+            if (form.getAttribute('data-spa-reset') === 'true') form.reset();
+            const detail = {
+              status,
+              value: result,
+            };
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail,
+              })
+            );
+          }
+          return {
+            status,
+            value: result,
+          };
+        });
+      },
+      'routeActionQrl_action_submit_A5bZC7WO00A',
+      [currentAction, id, loc, state]
+    );
+    initialState.submit = submit;
+    return state;
+  }
+  action.__brand = 'server_action';
+  action.__validators = validators;
+  action.__qrl = actionQrl;
+  action.__id = id;
+  Object.freeze(action);
+  return action;
+};
+const globalActionQrl = (actionQrl, ...rest) => {
+  const action = routeActionQrl(actionQrl, ...rest);
+  if (isServer) {
+    if (typeof globalThis._qwikActionsMap === 'undefined')
+      globalThis._qwikActionsMap = /* @__PURE__ */ new Map();
+    globalThis._qwikActionsMap.set(action.__id, action);
+  }
+  return action;
+};
+const routeAction$ = /* @__PURE__ */ implicit$FirstArg(routeActionQrl);
+const globalAction$ = /* @__PURE__ */ implicit$FirstArg(globalActionQrl);
+const routeLoaderQrl = (loaderQrl, ...rest) => {
+  const { id, validators } = getValidators(rest, loaderQrl);
+  function loader() {
+    return useContext(RouteStateContext, (state) => {
+      if (!(id in state))
+        throw new Error(`Loader (${id}) was used in a path where the 'loader$' was not declared.
+    This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
+    For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
+      return _wrapSignal(state, id);
+    });
+  }
+  loader.__brand = 'server_loader';
+  loader.__qrl = loaderQrl;
+  loader.__validators = validators;
+  loader.__id = id;
+  Object.freeze(loader);
+  return loader;
+};
+const routeLoader$ = /* @__PURE__ */ implicit$FirstArg(routeLoaderQrl);
+const validatorQrl = (validator) => {
+  if (isServer)
+    return {
+      validate: validator,
+    };
+  return void 0;
+};
+const validator$ = /* @__PURE__ */ implicit$FirstArg(validatorQrl);
+const zodQrl = (qrl) => {
+  if (isServer) {
+    const schema = qrl.resolve().then((obj) => {
+      if (typeof obj === 'function') obj = obj(z);
+      if (obj instanceof z.Schema) return obj;
+      else return z.object(obj);
+    });
+    return {
+      async validate(ev, inputData) {
+        const data = inputData ?? (await ev.parseBody());
+        const result = await (await schema).safeParseAsync(data);
+        if (result.success) return result;
+        else {
+          if (isDev)
+            console.error(
+              '\nVALIDATION ERROR\naction$() zod validated failed',
+              '\n  - Issues:',
+              result.error.issues
+            );
+          return {
+            success: false,
+            status: 400,
+            error: result.error.flatten(),
+          };
+        }
+      },
+    };
+  }
+  return void 0;
+};
+const zod$ = /* @__PURE__ */ implicit$FirstArg(zodQrl);
+const serverQrl = (qrl) => {
+  if (isServer) {
+    const captured = qrl.getCaptured();
+    if (captured && captured.length > 0 && !_getContextElement())
+      throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
+  }
+  function stuff() {
+    return /* @__PURE__ */ inlinedQrl(
+      async (...args) => {
+        const [qrl2] = useLexicalScope();
+        if (isServer) {
+          const requestEvent = useQwikCityEnv()?.ev;
+          return qrl2.apply(requestEvent, args);
+        } else {
+          const ctxElm = _getContextElement();
+          const filtered = args.map((arg) => {
+            if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement)
+              return new FormData(arg.target);
+            else if (arg instanceof Event) return null;
+            else if (arg instanceof Node) return null;
+            return arg;
+          });
+          const hash = qrl2.getHash();
+          const path = `?qfunc=${qrl2.getHash()}`;
+          const body = await _serializeData([qrl2, ...filtered], false);
+          const res = await fetch(path, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/qwik-json',
+              'X-QRL': hash,
+            },
+            body,
+          });
+          const contentType = res.headers.get('Content-Type');
+          if (res.ok && contentType === 'text/event-stream') {
+            const { writable, readable } = getSSETransformer();
+            res.body?.pipeTo(writable);
+            return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
+          } else if (contentType === 'application/qwik-json') {
+            const str = await res.text();
+            const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+            if (res.status === 500) throw obj;
+            return obj;
+          }
+        }
+      },
+      'serverQrl_stuff_wOIPfiQ04l4',
+      [qrl]
+    );
+  }
+  return stuff();
+};
+const server$ = /* @__PURE__ */ implicit$FirstArg(serverQrl);
+const getValidators = (rest, qrl) => {
+  let id;
+  const validators = [];
+  if (rest.length === 1) {
+    const options = rest[0];
+    if (options && typeof options === 'object') {
+      if ('validate' in options) validators.push(options);
+      else {
+        id = options.id;
+        if (options.validation) validators.push(...options.validation);
+      }
+    }
+  } else if (rest.length > 1) validators.push(...rest.filter((v) => !!v));
+  if (typeof id === 'string') {
+    if (isDev) {
+      if (!/^[\w/.-]+$/.test(id))
+        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
+    }
+    id = `id_${id}`;
+  } else id = qrl.getHash();
+  return {
+    validators: validators.reverse(),
+    id,
+  };
+};
+const getSSETransformer = () => {
+  let currentLine = '';
+  const encoder = new TextDecoder();
+  const transformer = new TransformStream({
+    transform(chunk, controller) {
+      const lines = encoder.decode(chunk).split('\n\n');
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = currentLine + lines[i];
+        if (line.length === 0) {
+          controller.terminate();
+          break;
+        } else {
+          controller.enqueue(parseEvent(line));
+          currentLine = '';
+        }
+      }
+      currentLine += lines[lines.length - 1];
+    },
+  });
+  return transformer;
+};
+const parseEvent = (message) => {
+  const lines = message.split('\n');
+  const event = {
+    data: '',
+  };
+  let data = '';
+  for (const line of lines)
+    if (line.startsWith('data: ')) data += line.slice(6) + '\n';
+    else {
+      const [key, value] = line.split(':');
+      if (typeof key === 'string' && typeof value === 'string') event[key] = value.trim();
+    }
+  event.data = data;
+  return event;
+};
+async function* streamAsyncIterator(stream, ctxElm) {
+  const reader = stream.getReader();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      const obj = await _deserializeData(value.data, ctxElm);
+      yield obj;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => {
+  _jsxBranch();
+  if (action)
+    return _jsxS(
+      'form',
+      {
+        ...rest,
+        action: _wrapSignal(action, 'actionPath'),
+        'preventdefault:submit': !reloadDocument,
+        ['data-spa-reset']: spaReset ? 'true' : void 0,
+        onSubmit$: [!reloadDocument ? action.submit : void 0, onSubmit$],
+      },
+      {
+        method: 'post',
+      },
+      0,
+      key
+    );
+  else
+    return /* @__PURE__ */ _jsxC(
+      GetForm,
+      {
+        spaReset,
+        reloadDocument,
+        onSubmit$,
+        ...rest,
+      },
+      0,
+      key
+    );
+};
+const GetForm = /* @__PURE__ */ componentQrl(
+  /* @__PURE__ */ inlinedQrl((props) => {
+    const rest = _restProps(props, ['action', 'spaReset', 'reloadDocument', 'onSubmit$']);
+    const nav = useNavigate();
+    return /* @__PURE__ */ _jsxS(
+      'form',
+      {
+        ...rest,
+        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'BC_0'),
+        onSubmit$: /* @__PURE__ */ inlinedQrl(
+          async (_, form) => {
+            const [nav2] = useLexicalScope();
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            formData.forEach((value, key) => {
+              if (typeof value === 'string') params.append(key, value);
+            });
+            nav2('?' + params.toString(), true).then(() => {
+              if (form.getAttribute('data-spa-reset') === 'true') form.reset();
+              form.dispatchEvent(
+                new CustomEvent('submitcompleted', {
+                  bubbles: false,
+                  cancelable: false,
+                  composed: false,
+                  detail: {
+                    status: 200,
+                  },
+                })
               );
             });
-        } else options.delete('content');
-      }),
-    },
-    {
-      name: 'content',
-      type: 'html',
-      defaultValue: '<div style="padding: 20px; text-align: center">(Choose an embed URL)<div>',
-      hideFromUI: true,
-    },
-  ],
-};
-const SCRIPT_MIME_TYPES = ['text/javascript', 'application/javascript', 'application/ecmascript'];
-const isJsScript = (script) => SCRIPT_MIME_TYPES.includes(script.type);
-const findAndRunScripts$1 = function findAndRunScripts2(props, state, elem) {
-  if (!elem || !elem.getElementsByTagName) return;
-  const scripts = elem.getElementsByTagName('script');
-  for (let i = 0; i < scripts.length; i++) {
-    const script = scripts[i];
-    if (script.src && !state.scriptsInserted.includes(script.src)) {
-      state.scriptsInserted.push(script.src);
-      const newScript = document.createElement('script');
-      newScript.async = true;
-      newScript.src = script.src;
-      document.head.appendChild(newScript);
-    } else if (isJsScript(script) && !state.scriptsRun.includes(script.innerText))
-      try {
-        state.scriptsRun.push(script.innerText);
-        new Function(script.innerText)();
-      } catch (error) {
-        console.warn('`Embed`: Error running script:', error);
-      }
-  }
-};
-const Embed = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    const elem = useRef();
-    const state = useStore({
-      ranInitFn: false,
-      scriptsInserted: [],
-      scriptsRun: [],
-    });
-    useTaskQrl(
-      inlinedQrl(
-        ({ track: track2 }) => {
-          const [elem2, props2, state2] = useLexicalScope();
-          track2(() => elem2);
-          track2(() => state2.ranInitFn);
-          if (elem2 && !state2.ranInitFn) {
-            state2.ranInitFn = true;
-            findAndRunScripts$1(props2, state2, elem2);
-          }
-        },
-        'Embed_component_useTask_bg7ez0XUtiM',
-        [elem, props, state]
-      )
-    );
-    return /* @__PURE__ */ jsx('div', {
-      class: 'builder-embed',
-      ref: elem,
-      get dangerouslySetInnerHTML() {
-        return props.content;
-      },
-      [_IMMUTABLE]: {
-        dangerouslySetInnerHTML: _wrapSignal(props, 'content'),
-      },
-    });
-  }, 'Embed_component_Uji08ORjXbE')
-);
-const ImgComponent = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    return /* @__PURE__ */ jsx(
-      'img',
-      {
-        style: {
-          objectFit: props.backgroundSize || 'cover',
-          objectPosition: props.backgroundPosition || 'center',
-        },
-        get alt() {
-          return props.altText;
-        },
-        src: props.imgSrc || props.image,
-        ...props.attributes,
-        [_IMMUTABLE]: {
-          alt: _wrapSignal(props, 'altText'),
-        },
-      },
-      (isEditing() && props.imgSrc) || 'default-key'
-    );
-  }, 'ImgComponent_component_FXvIDBSffO8')
-);
-const componentInfo$1 = {
-  name: 'Raw:Img',
-  hideFromInsertMenu: true,
-  image:
-    'https://firebasestorage.googleapis.com/v0/b/builder-3b0a2.appspot.com/o/images%2Fbaseline-insert_photo-24px.svg?alt=media&token=4e5d0ef4-f5e8-4e57-b3a9-38d63a9b9dc4',
-  inputs: [
-    {
-      name: 'image',
-      bubble: true,
-      type: 'file',
-      allowedFileTypes: ['jpeg', 'jpg', 'png', 'svg'],
-      required: true,
-    },
-  ],
-  noWrap: true,
-  static: true,
-};
-const findAndRunScripts = function findAndRunScripts22(props, state, elem) {
-  if (elem && elem.getElementsByTagName && typeof window !== 'undefined') {
-    const scripts = elem.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-      const script = scripts[i];
-      if (script.src) {
-        if (state.scriptsInserted.includes(script.src)) continue;
-        state.scriptsInserted.push(script.src);
-        const newScript = document.createElement('script');
-        newScript.async = true;
-        newScript.src = script.src;
-        document.head.appendChild(newScript);
-      } else if (
-        !script.type ||
-        ['text/javascript', 'application/javascript', 'application/ecmascript'].includes(
-          script.type
-        )
-      ) {
-        if (state.scriptsRun.includes(script.innerText)) continue;
-        try {
-          state.scriptsRun.push(script.innerText);
-          new Function(script.innerText)();
-        } catch (error) {
-          console.warn('`CustomCode`: Error running script:', error);
-        }
-      }
-    }
-  }
-};
-const CustomCode = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    const elem = useRef();
-    const state = useStore({
-      scriptsInserted: [],
-      scriptsRun: [],
-    });
-    useClientEffectQrl(
-      inlinedQrl(
-        () => {
-          const [elem2, props2, state2] = useLexicalScope();
-          findAndRunScripts(props2, state2, elem2);
-        },
-        'CustomCode_component_useClientEffect_4w4c951ufB4',
-        [elem, props, state]
-      )
-    );
-    return /* @__PURE__ */ jsx('div', {
-      ref: elem,
-      class: 'builder-custom-code' + (props.replaceNodes ? ' replace-nodes' : ''),
-      get dangerouslySetInnerHTML() {
-        return props.code;
-      },
-      [_IMMUTABLE]: {
-        dangerouslySetInnerHTML: _wrapSignal(props, 'code'),
-      },
-    });
-  }, 'CustomCode_component_uYOSy7w7Zqw')
-);
-const componentInfo = {
-  name: 'Custom Code',
-  static: true,
-  requiredPermissions: ['editCode'],
-  inputs: [
-    {
-      name: 'code',
-      type: 'html',
-      required: true,
-      defaultValue: '<p>Hello there, I am custom HTML code!</p>',
-      code: true,
-    },
-    {
-      name: 'replaceNodes',
-      type: 'boolean',
-      helperText: 'Preserve server rendered dom nodes',
-      advanced: true,
-    },
-    {
-      name: 'scriptsClientOnly',
-      type: 'boolean',
-      defaultValue: false,
-      helperText:
-        'Only print and run scripts on the client. Important when scripts influence DOM that could be replaced when client loads',
-      advanced: true,
-    },
-  ],
-};
-const getDefaultRegisteredComponents = () => [
-  {
-    component: Button,
-    ...componentInfo$a,
-  },
-  {
-    component: Columns,
-    ...componentInfo$9,
-  },
-  {
-    component: CustomCode,
-    ...componentInfo,
-  },
-  {
-    component: Embed,
-    ...componentInfo$2,
-  },
-  {
-    component: FragmentComponent,
-    ...componentInfo$8,
-  },
-  {
-    component: Image,
-    ...componentInfo$7,
-  },
-  {
-    component: ImgComponent,
-    ...componentInfo$1,
-  },
-  {
-    component: SectionComponent,
-    ...componentInfo$6,
-  },
-  {
-    component: Symbol$1,
-    ...componentInfo$5,
-  },
-  {
-    component: Text,
-    ...componentInfo$4,
-  },
-  {
-    component: Video,
-    ...componentInfo$3,
-  },
-];
-function isPreviewing() {
-  if (!isBrowser()) return false;
-  if (isEditing()) return false;
-  return Boolean(location.search.indexOf('builder.preview=') !== -1);
-}
-const components = [];
-function registerComponent(component3, info) {
-  components.push({
-    component: component3,
-    ...info,
-  });
-  console.warn(
-    'registerComponent is deprecated. Use the `customComponents` prop in RenderContent instead to provide your custom components to the builder SDK.'
-  );
-  return component3;
-}
-const createRegisterComponentMessage = ({ component: _, ...info }) => ({
-  type: 'builder.registerComponent',
-  data: prepareComponentInfoToSend(info),
-});
-const serializeValue = (value) =>
-  typeof value === 'function' ? serializeFn(value) : fastClone(value);
-const prepareComponentInfoToSend = ({ inputs, ...info }) => ({
-  ...fastClone(info),
-  inputs: inputs?.map((input) =>
-    Object.entries(input).reduce(
-      (acc, [key, value]) => ({
-        ...acc,
-        [key]: serializeValue(value),
-      }),
-      {}
-    )
-  ),
-});
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0,
-      v = c == 'x' ? r : (r & 3) | 8;
-    return v.toString(16);
-  });
-}
-function uuid() {
-  return uuidv4().replace(/-/g, '');
-}
-const SESSION_LOCAL_STORAGE_KEY = 'builderSessionId';
-const getSessionId = async ({ canTrack }) => {
-  if (!canTrack) return void 0;
-  const sessionId = await getCookie({
-    name: SESSION_LOCAL_STORAGE_KEY,
-    canTrack,
-  });
-  if (checkIsDefined(sessionId)) return sessionId;
-  else {
-    const newSessionId = createSessionId();
-    setSessionId({
-      id: newSessionId,
-      canTrack,
-    });
-    return newSessionId;
-  }
-};
-const createSessionId = () => uuid();
-const setSessionId = ({ id, canTrack }) =>
-  setCookie({
-    name: SESSION_LOCAL_STORAGE_KEY,
-    value: id,
-    canTrack,
-  });
-const getLocalStorage = () =>
-  isBrowser() && typeof localStorage !== 'undefined' ? localStorage : void 0;
-const getLocalStorageItem = ({ key, canTrack }) => {
-  try {
-    if (canTrack) return getLocalStorage()?.getItem(key);
-    return void 0;
-  } catch (err) {
-    console.debug('[LocalStorage] GET error: ', err);
-    return void 0;
-  }
-};
-const setLocalStorageItem = ({ key, canTrack, value }) => {
-  try {
-    if (canTrack) getLocalStorage()?.setItem(key, value);
-  } catch (err) {
-    console.debug('[LocalStorage] SET error: ', err);
-  }
-};
-const VISITOR_LOCAL_STORAGE_KEY = 'builderVisitorId';
-const getVisitorId = ({ canTrack }) => {
-  if (!canTrack) return void 0;
-  const visitorId = getLocalStorageItem({
-    key: VISITOR_LOCAL_STORAGE_KEY,
-    canTrack,
-  });
-  if (checkIsDefined(visitorId)) return visitorId;
-  else {
-    const newVisitorId = createVisitorId();
-    setVisitorId({
-      id: newVisitorId,
-      canTrack,
-    });
-    return newVisitorId;
-  }
-};
-const createVisitorId = () => uuid();
-const setVisitorId = ({ id, canTrack }) =>
-  setLocalStorageItem({
-    key: VISITOR_LOCAL_STORAGE_KEY,
-    value: id,
-    canTrack,
-  });
-const getLocation = () => {
-  if (isBrowser()) {
-    const parsedLocation = new URL(location.href);
-    if (parsedLocation.pathname === '') parsedLocation.pathname = '/';
-    return parsedLocation;
-  } else {
-    console.warn('Cannot get location for tracking in non-browser environment');
-    return null;
-  }
-};
-const getUserAgent = () => (typeof navigator === 'object' && navigator.userAgent) || '';
-const getUserAttributes = () => {
-  const userAgent = getUserAgent();
-  const isMobile = {
-    Android() {
-      return userAgent.match(/Android/i);
-    },
-    BlackBerry() {
-      return userAgent.match(/BlackBerry/i);
-    },
-    iOS() {
-      return userAgent.match(/iPhone|iPod/i);
-    },
-    Opera() {
-      return userAgent.match(/Opera Mini/i);
-    },
-    Windows() {
-      return userAgent.match(/IEMobile/i) || userAgent.match(/WPDesktop/i);
-    },
-    any() {
-      return (
-        isMobile.Android() ||
-        isMobile.BlackBerry() ||
-        isMobile.iOS() ||
-        isMobile.Opera() ||
-        isMobile.Windows() ||
-        TARGET === 'reactNative'
-      );
-    },
-  };
-  const isTablet = userAgent.match(/Tablet|iPad/i);
-  const url = getLocation();
-  return {
-    urlPath: url?.pathname,
-    host: url?.host || url?.hostname,
-    device: isTablet ? 'tablet' : isMobile.any() ? 'mobile' : 'desktop',
-  };
-};
-const getTrackingEventData = async ({ canTrack }) => {
-  if (!canTrack)
-    return {
-      visitorId: void 0,
-      sessionId: void 0,
-    };
-  const sessionId = await getSessionId({
-    canTrack,
-  });
-  const visitorId = getVisitorId({
-    canTrack,
-  });
-  return {
-    sessionId,
-    visitorId,
-  };
-};
-const createEvent = async ({ type: eventType, canTrack, apiKey, metadata, ...properties }) => ({
-  type: eventType,
-  data: {
-    ...properties,
-    metadata: {
-      url: location.href,
-      ...metadata,
-    },
-    ...(await getTrackingEventData({
-      canTrack,
-    })),
-    userAttributes: getUserAttributes(),
-    ownerId: apiKey,
-  },
-});
-async function _track(eventProps) {
-  if (!eventProps.apiKey) {
-    console.error('[Builder.io]: Missing API key for track call. Please provide your API key.');
-    return;
-  }
-  if (!eventProps.canTrack) return;
-  if (isEditing()) return;
-  if (!(isBrowser() || TARGET === 'reactNative')) return;
-  return fetch(`https://builder.io/api/v1/track`, {
-    method: 'POST',
-    body: JSON.stringify({
-      events: [await createEvent(eventProps)],
-    }),
-    headers: {
-      'content-type': 'application/json',
-    },
-    mode: 'cors',
-  }).catch((err) => {
-    console.error('Failed to track: ', err);
-  });
-}
-const track = (args) =>
-  _track({
-    ...args,
-    canTrack: true,
-  });
-function round(num) {
-  return Math.round(num * 1e3) / 1e3;
-}
-const findParentElement = (target, callback, checkElement = true) => {
-  if (!(target instanceof HTMLElement)) return null;
-  let parent2 = checkElement ? target : target.parentElement;
-  do {
-    if (!parent2) return null;
-    const matches = callback(parent2);
-    if (matches) return parent2;
-  } while ((parent2 = parent2.parentElement));
-  return null;
-};
-const findBuilderParent = (target) =>
-  findParentElement(target, (el) => {
-    const id = el.getAttribute('builder-id') || el.id;
-    return Boolean(id?.indexOf('builder-') === 0);
-  });
-const computeOffset = ({ event, target }) => {
-  const targetRect = target.getBoundingClientRect();
-  const xOffset = event.clientX - targetRect.left;
-  const yOffset = event.clientY - targetRect.top;
-  const xRatio = round(xOffset / targetRect.width);
-  const yRatio = round(yOffset / targetRect.height);
-  return {
-    x: xRatio,
-    y: yRatio,
-  };
-};
-const getInteractionPropertiesForEvent = (event) => {
-  const target = event.target;
-  const targetBuilderElement = target && findBuilderParent(target);
-  const builderId = targetBuilderElement?.getAttribute('builder-id') || targetBuilderElement?.id;
-  return {
-    targetBuilderElement: builderId || void 0,
-    metadata: {
-      targetOffset: target
-        ? computeOffset({
-            event,
-            target,
-          })
-        : void 0,
-      builderTargetOffset: targetBuilderElement
-        ? computeOffset({
-            event,
-            target: targetBuilderElement,
-          })
-        : void 0,
-      builderElementIndex:
-        targetBuilderElement && builderId
-          ? [].slice.call(document.getElementsByClassName(builderId)).indexOf(targetBuilderElement)
-          : void 0,
-    },
-  };
-};
-const registry = {};
-function register(type, info) {
-  let typeList = registry[type];
-  if (!typeList) typeList = registry[type] = [];
-  typeList.push(info);
-  if (isBrowser()) {
-    const message = {
-      type: 'builder.register',
-      data: {
-        type,
-        info,
-      },
-    };
-    try {
-      parent.postMessage(message, '*');
-      if (parent !== window) window.postMessage(message, '*');
-    } catch (err) {
-      console.debug('Could not postmessage', err);
-    }
-  }
-}
-const registerInsertMenu = () => {
-  register('insertMenu', {
-    name: '_default',
-    default: true,
-    items: [
-      {
-        name: 'Box',
-      },
-      {
-        name: 'Text',
-      },
-      {
-        name: 'Image',
-      },
-      {
-        name: 'Columns',
-      },
-      ...[
-        {
-          name: 'Core:Section',
-        },
-        {
-          name: 'Core:Button',
-        },
-        {
-          name: 'Embed',
-        },
-        {
-          name: 'Custom Code',
-        },
-      ],
-    ],
-  });
-};
-let isSetupForEditing = false;
-const setupBrowserForEditing = (options = {}) => {
-  if (isSetupForEditing) return;
-  isSetupForEditing = true;
-  if (isBrowser()) {
-    window.parent?.postMessage(
-      {
-        type: 'builder.sdkInfo',
-        data: {
-          target: TARGET,
-          supportsPatchUpdates: false,
-          supportsAddBlockScoping: true,
-          supportsCustomBreakpoints: true,
-        },
-      },
-      '*'
-    );
-    window.parent?.postMessage(
-      {
-        type: 'builder.updateContent',
-        data: {
-          options,
-        },
-      },
-      '*'
-    );
-    window.addEventListener('message', ({ data }) => {
-      if (!data?.type) return;
-      switch (data.type) {
-        case 'builder.evaluate': {
-          const text = data.data.text;
-          const args = data.data.arguments || [];
-          const id = data.data.id;
-          const fn = new Function(text);
-          let result;
-          let error = null;
-          try {
-            result = fn.apply(null, args);
-          } catch (err) {
-            error = err;
-          }
-          if (error)
-            window.parent?.postMessage(
-              {
-                type: 'builder.evaluateError',
-                data: {
-                  id,
-                  error: error.message,
-                },
-              },
-              '*'
-            );
-          else if (result && typeof result.then === 'function')
-            result
-              .then((finalResult) => {
-                window.parent?.postMessage(
-                  {
-                    type: 'builder.evaluateResult',
-                    data: {
-                      id,
-                      result: finalResult,
-                    },
-                  },
-                  '*'
-                );
-              })
-              .catch(console.error);
-          else
-            window.parent?.postMessage(
-              {
-                type: 'builder.evaluateResult',
-                data: {
-                  result,
-                  id,
-                },
-              },
-              '*'
-            );
-          break;
-        }
-      }
-    });
-  }
-};
-const getCssFromFont = (font) => {
-  const family = font.family + (font.kind && !font.kind.includes('#') ? ', ' + font.kind : '');
-  const name = family.split(',')[0];
-  const url = font.fileUrl ?? font?.files?.regular;
-  let str = '';
-  if (url && family && name)
-    str += `
-@font-face {
-font-family: "${family}";
-src: local("${name}"), url('${url}') format('woff2');
-font-display: fallback;
-font-weight: 400;
-}
-      `.trim();
-  if (font.files)
-    for (const weight in font.files) {
-      const isNumber = String(Number(weight)) === weight;
-      if (!isNumber) continue;
-      const weightUrl = font.files[weight];
-      if (weightUrl && weightUrl !== url)
-        str += `
-@font-face {
-font-family: "${family}";
-src: url('${weightUrl}') format('woff2');
-font-display: fallback;
-font-weight: ${weight};
-}
-        `.trim();
-    }
-  return str;
-};
-const getFontCss = ({ customFonts }) => {
-  return customFonts?.map((font) => getCssFromFont(font))?.join(' ') || '';
-};
-const getCss = ({ cssCode, contentId }) => {
-  if (!cssCode) return '';
-  if (!contentId) return cssCode;
-  return cssCode?.replace(/&/g, `div[builder-content-id="${contentId}"]`) || '';
-};
-const RenderContentStyles = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    const state = useStore({
-      injectedStyles: `
-${getCss({
-  cssCode: props.cssCode,
-  contentId: props.contentId,
-})}
-${getFontCss({
-  customFonts: props.customFonts,
-})}
-
-.builder-text > p:first-of-type, .builder-text > .builder-paragraph:first-of-type {
-  margin: 0;
-}
-.builder-text > p, .builder-text > .builder-paragraph {
-  color: inherit;
-  line-height: inherit;
-  letter-spacing: inherit;
-  font-weight: inherit;
-  font-size: inherit;
-  text-align: inherit;
-  font-family: inherit;
-}
-`,
-    });
-    return /* @__PURE__ */ jsx(
-      RenderInlinedStyles,
-      {
-        get styles() {
-          return state.injectedStyles;
-        },
-        [_IMMUTABLE]: {
-          styles: _wrapSignal(state, 'injectedStyles'),
-        },
-      },
-      'V0_0'
-    );
-  }, 'RenderContentStyles_component_Og0xL34Zbvc')
-);
-const getContextStateInitialValue = ({ content, data, locale }) => {
-  const defaultValues = {};
-  content?.data?.inputs?.forEach((input) => {
-    if (
-      input.name &&
-      input.defaultValue !== void 0 &&
-      content?.data?.state &&
-      content.data.state[input.name] === void 0
-    )
-      defaultValues[input.name] = input.defaultValue;
-  });
-  const stateToUse = {
-    ...content?.data?.state,
-    ...data,
-    ...(locale
-      ? {
-          locale,
-        }
-      : {}),
-  };
-  return {
-    ...defaultValues,
-    ...stateToUse,
-  };
-};
-const getContentInitialValue = ({ content, data }) => {
-  return !content
-    ? void 0
-    : {
-        ...content,
-        data: {
-          ...content?.data,
-          ...data,
-        },
-        meta: content?.meta,
-      };
-};
-const mergeNewContent = function mergeNewContent2(props, state, elementRef, newContent) {
-  state.useContent = {
-    ...state.useContent,
-    ...newContent,
-    data: {
-      ...state.useContent?.data,
-      ...newContent?.data,
-    },
-    meta: {
-      ...state.useContent?.meta,
-      ...newContent?.meta,
-      breakpoints: newContent?.meta?.breakpoints || state.useContent?.meta?.breakpoints,
-    },
-  };
-};
-const setBreakpoints = function setBreakpoints2(props, state, elementRef, breakpoints) {
-  state.useContent = {
-    ...state.useContent,
-    meta: {
-      ...state.useContent?.meta,
-      breakpoints,
-    },
-  };
-};
-const setContextState = function setContextState2(props, state, elementRef, newState) {
-  state.contentState = newState;
-};
-const processMessage = function processMessage2(props, state, elementRef, event) {
-  const { data } = event;
-  if (data)
-    switch (data.type) {
-      case 'builder.configureSdk': {
-        const messageContent = data.data;
-        const { breakpoints, contentId } = messageContent;
-        if (!contentId || contentId !== state.useContent?.id) return;
-        if (breakpoints) setBreakpoints(props, state, elementRef, breakpoints);
-        state.forceReRenderCount = state.forceReRenderCount + 1;
-        break;
-      }
-      case 'builder.contentUpdate': {
-        const messageContent1 = data.data;
-        const key =
-          messageContent1.key ||
-          messageContent1.alias ||
-          messageContent1.entry ||
-          messageContent1.modelName;
-        const contentData = messageContent1.data;
-        if (key === props.model) {
-          mergeNewContent(props, state, elementRef, contentData);
-          state.forceReRenderCount = state.forceReRenderCount + 1;
-        }
-        break;
-      }
-    }
-};
-const evaluateJsCode = function evaluateJsCode2(props, state, elementRef) {
-  const jsCode = state.useContent?.data?.jsCode;
-  if (jsCode)
-    evaluate({
-      code: jsCode,
-      context: props.context || {},
-      state: state.contentState,
-    });
-};
-const onClick = function onClick22(props, state, elementRef, event) {
-  if (state.useContent) {
-    const variationId = state.useContent?.testVariationId;
-    const contentId = state.useContent?.id;
-    _track({
-      type: 'click',
-      canTrack: state.canTrackToUse,
-      contentId,
-      apiKey: props.apiKey,
-      variationId: variationId !== contentId ? variationId : void 0,
-      ...getInteractionPropertiesForEvent(event),
-      unique: !state.clicked,
-    });
-  }
-  if (!state.clicked) state.clicked = true;
-};
-const evalExpression = function evalExpression2(props, state, elementRef, expression) {
-  return expression.replace(/{{([^}]+)}}/g, (_match, group) =>
-    evaluate({
-      code: group,
-      context: props.context || {},
-      state: state.contentState,
-    })
-  );
-};
-const handleRequest = function handleRequest2(props, state, elementRef, { url, key }) {
-  fetch$1(url)
-    .then((response) => response.json())
-    .then((json) => {
-      const newState = {
-        ...state.contentState,
-        [key]: json,
-      };
-      setContextState(props, state, elementRef, newState);
-    })
-    .catch((err) => {
-      console.log('error fetching dynamic data', url, err);
-    });
-};
-const runHttpRequests = function runHttpRequests2(props, state, elementRef) {
-  const requests = state.useContent?.data?.httpRequests ?? {};
-  Object.entries(requests).forEach(([key, url]) => {
-    if (url && (!state.httpReqsData[key] || isEditing())) {
-      const evaluatedUrl = evalExpression(props, state, elementRef, url);
-      handleRequest(props, state, elementRef, {
-        url: evaluatedUrl,
-        key,
-      });
-    }
-  });
-};
-const emitStateUpdate = function emitStateUpdate2(props, state, elementRef) {
-  if (isEditing())
-    window.dispatchEvent(
-      new CustomEvent('builder:component:stateChange', {
-        detail: {
-          state: state.contentState,
-          ref: {
-            name: props.model,
           },
-        },
-      })
-    );
-};
-const RenderContent = /* @__PURE__ */ componentQrl(
-  inlinedQrl((props) => {
-    const elementRef = useRef();
-    const state = useStore({
-      allRegisteredComponents: [
-        ...getDefaultRegisteredComponents(),
-        ...components,
-        ...(props.customComponents || []),
-      ].reduce(
-        (acc, curr) => ({
-          ...acc,
-          [curr.name]: curr,
-        }),
-        {}
-      ),
-      canTrackToUse: checkIsDefined(props.canTrack) ? props.canTrack : true,
-      clicked: false,
-      contentState: getContextStateInitialValue({
-        content: props.content,
-        data: props.data,
-        locale: props.locale,
-      }),
-      forceReRenderCount: 0,
-      httpReqsData: {},
-      overrideContent: null,
-      update: 0,
-      useContent: getContentInitialValue({
-        content: props.content,
-        data: props.data,
-      }),
-    });
-    useContextProvider(
-      builderContext,
-      useStore({
-        content: state.useContent,
-        state: state.contentState,
-        context: props.context || {},
-        apiKey: props.apiKey,
-        registeredComponents: state.allRegisteredComponents,
-      })
-    );
-    useClientEffectQrl(
-      inlinedQrl(
-        () => {
-          const [elementRef2, props2, state2] = useLexicalScope();
-          if (!props2.apiKey)
-            console.error(
-              '[Builder.io]: No API key provided to `RenderContent` component. This can cause issues. Please provide an API key using the `apiKey` prop.'
-            );
-          if (isBrowser()) {
-            if (isEditing()) {
-              state2.forceReRenderCount = state2.forceReRenderCount + 1;
-              registerInsertMenu();
-              setupBrowserForEditing({
-                ...(props2.locale
-                  ? {
-                      locale: props2.locale,
-                    }
-                  : {}),
-                ...(props2.includeRefs
-                  ? {
-                      includeRefs: props2.includeRefs,
-                    }
-                  : {}),
-              });
-              Object.values(state2.allRegisteredComponents).forEach((registeredComponent) => {
-                const message = createRegisterComponentMessage(registeredComponent);
-                window.parent?.postMessage(message, '*');
-              });
-              window.addEventListener(
-                'message',
-                processMessage.bind(null, props2, state2, elementRef2)
-              );
-              window.addEventListener(
-                'builder:component:stateChangeListenerActivated',
-                emitStateUpdate.bind(null, props2, state2, elementRef2)
-              );
-            }
-            if (state2.useContent) {
-              const variationId = state2.useContent?.testVariationId;
-              const contentId = state2.useContent?.id;
-              _track({
-                type: 'impression',
-                canTrack: state2.canTrackToUse,
-                contentId,
-                apiKey: props2.apiKey,
-                variationId: variationId !== contentId ? variationId : void 0,
-              });
-            }
-            if (isPreviewing()) {
-              const searchParams = new URL(location.href).searchParams;
-              const searchParamPreview = searchParams.get('builder.preview');
-              const previewApiKey = searchParams.get('apiKey') || searchParams.get('builder.space');
-              if (searchParamPreview === props2.model && previewApiKey === props2.apiKey)
-                getContent({
-                  model: props2.model,
-                  apiKey: props2.apiKey,
-                }).then((content) => {
-                  if (content) mergeNewContent(props2, state2, elementRef2, content);
-                });
-            }
-            evaluateJsCode(props2, state2);
-            runHttpRequests(props2, state2, elementRef2);
-            emitStateUpdate(props2, state2);
-          }
-        },
-        'RenderContent_component_useClientEffect_cA0sVHIkr5g',
-        [elementRef, props, state]
-      )
-    );
-    useTaskQrl(
-      inlinedQrl(
-        ({ track: track2 }) => {
-          const [elementRef2, props2, state2] = useLexicalScope();
-          track2(() => state2.useContent?.data?.jsCode);
-          track2(() => state2.contentState);
-          evaluateJsCode(props2, state2);
-        },
-        'RenderContent_component_useTask_Kulmlf9pM08',
-        [elementRef, props, state]
-      )
-    );
-    useTaskQrl(
-      inlinedQrl(
-        ({ track: track2 }) => {
-          const [elementRef2, props2, state2] = useLexicalScope();
-          track2(() => state2.useContent?.data?.httpRequests);
-          runHttpRequests(props2, state2, elementRef2);
-        },
-        'RenderContent_component_useTask_1_X59YMGOetns',
-        [elementRef, props, state]
-      )
-    );
-    useTaskQrl(
-      inlinedQrl(
-        ({ track: track2 }) => {
-          const [elementRef2, props2, state2] = useLexicalScope();
-          track2(() => state2.contentState);
-          emitStateUpdate(props2, state2);
-        },
-        'RenderContent_component_useTask_2_u3gn3Pj2b2s',
-        [elementRef, props, state]
-      )
-    );
-    useCleanupQrl(
-      inlinedQrl(
-        () => {
-          const [elementRef2, props2, state2] = useLexicalScope();
-          if (isBrowser()) {
-            window.removeEventListener(
-              'message',
-              processMessage.bind(null, props2, state2, elementRef2)
-            );
-            window.removeEventListener(
-              'builder:component:stateChangeListenerActivated',
-              emitStateUpdate.bind(null, props2, state2, elementRef2)
-            );
-          }
-        },
-        'RenderContent_component_useCleanup_FwcO310HVAI',
-        [elementRef, props, state]
-      )
-    );
-    return /* @__PURE__ */ jsx(
-      Fragment,
-      {
-        children: state.useContent
-          ? /* @__PURE__ */ jsxs('div', {
-              ref: elementRef,
-              onClick$: inlinedQrl(
-                (event) => {
-                  const [elementRef2, props2, state2] = useLexicalScope();
-                  return onClick(props2, state2, elementRef2, event);
-                },
-                'RenderContent_component__Fragment_div_onClick_wLg5o3ZkpC0',
-                [elementRef, props, state]
-              ),
-              'builder-content-id': state.useContent?.id,
-              get 'builder-model'() {
-                return props.model;
-              },
-              children: [
-                /* @__PURE__ */ jsx(
-                  RenderContentStyles,
-                  {
-                    contentId: state.useContent?.id,
-                    cssCode: state.useContent?.data?.cssCode,
-                    customFonts: state.useContent?.data?.customFonts,
-                  },
-                  '03_0'
-                ),
-                /* @__PURE__ */ jsx(
-                  RenderBlocks,
-                  {
-                    blocks: state.useContent?.data?.blocks,
-                  },
-                  state.forceReRenderCount
-                ),
-              ],
-              [_IMMUTABLE]: {
-                'builder-model': _wrapSignal(props, 'model'),
-                children: false,
-              },
-            })
-          : null,
-        [_IMMUTABLE]: {
-          children: false,
-        },
+          'GetForm_component_form_onSubmit_p9MSze0ojs4',
+          [nav]
+        ),
       },
-      '03_1'
+      {
+        action: 'get',
+        'preventdefault:submit': _fnSignal(
+          (p0) => !p0.reloadDocument,
+          [props],
+          '!p0.reloadDocument'
+        ),
+        'data-spa-reset': _fnSignal(
+          (p0) => (p0.spaReset ? 'true' : void 0),
+          [props],
+          'p0.spaReset?"true":undefined'
+        ),
+      },
+      0,
+      'BC_1'
     );
-  }, 'RenderContent_component_hEAI0ahViXM')
+  }, 'GetForm_component_Nk9PlpjQm9Y')
 );
-const RenderContent$1 = RenderContent;
-const settings = {};
-function setEditorSettings(newSettings) {
-  if (isBrowser()) {
-    Object.assign(settings, newSettings);
-    const message = {
-      type: 'builder.settingsChange',
-      data: settings,
-    };
-    parent.postMessage(message, '*');
-  }
-}
 export {
-  Button,
-  Columns,
-  FragmentComponent as Fragment,
-  Image,
-  RenderBlocks,
-  RenderContent$1 as RenderContent,
-  SectionComponent as Section,
-  Symbol$1 as Symbol,
-  Text,
-  Video,
-  components,
-  convertSearchParamsToQueryObject,
-  createRegisterComponentMessage,
-  getAllContent,
-  getBuilderSearchParams,
-  getBuilderSearchParamsFromWindow,
-  getContent,
-  isEditing,
-  isPreviewing,
-  normalizeSearchParams,
-  register,
-  registerComponent,
-  setEditorSettings,
-  track,
+  Form,
+  Link,
+  QwikCityMockProvider,
+  QwikCityProvider,
+  RouterOutlet,
+  ServiceWorkerRegister,
+  globalAction$,
+  globalActionQrl,
+  routeAction$,
+  routeActionQrl,
+  routeLoader$,
+  routeLoaderQrl,
+  server$,
+  serverQrl,
+  useContent,
+  useDocumentHead,
+  useLocation,
+  useNavigate,
+  validator$,
+  validatorQrl,
+  z2 as z,
+  zod$,
+  zodQrl,
 };

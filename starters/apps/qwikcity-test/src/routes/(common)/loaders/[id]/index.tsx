@@ -154,13 +154,28 @@ export const useForm = routeAction$(
   })
 );
 
+export const useFormWithError = routeAction$(async (stuff, { fail }) => {
+  if (Math.random() > 2) {
+    return fail(500, {
+      message: 'Random error',
+    });
+  }
+  return {
+    name: stuff.name as string,
+  };
+});
+
 export const head: DocumentHead = ({ resolveValue }) => {
   const date = resolveValue(useDateLoader);
   const dep = resolveValue(useDependencyLoader);
   const action = resolveValue(useForm);
+  const actionWithError = resolveValue(useFormWithError);
   let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;
+  }
+  if (actionWithError) {
+    title += ` - Error: ${actionWithError.name} ${actionWithError.message}`;
   }
   return {
     title,

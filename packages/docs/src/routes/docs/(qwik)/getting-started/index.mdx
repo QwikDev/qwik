@@ -27,12 +27,12 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
 # Getting Started Qwikly
 
-Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (no eager JS execution and no hydration), built for the edge and [familiar to React developers](/docs/guides/qwik-react/).
+Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (no eager JS execution and no hydration), built for the edge and [familiar to React developers](/docs/integrations/react/index.mdx).
 
 To play with it right away, check out our in-browser playgrounds:
 
 - [StackBlitz Qwik](https://qwik.new) (Full Qwik + Qwikcity integration)
-- [Examples playground](/examples/reactivity/counter/) (Qwik only (no routing))
+- [Examples playground](/examples/reactivity/counter/) (Qwik only, no routing)
 
 ## Prerequisites
 
@@ -187,7 +187,7 @@ Code explanation:
 
 Things to note:
 
-- For validation, see [zod validation](/docs/action/#zod-validation).
+- For validation, see [zod validation](/docs/action/#validation-and-type-safety).
 - The `routeAction$` works even if JavaScript is disabled.
 - If JavaScript is enabled, the `Form` component will prevent the browser from posting the form and instead post the data using JavaScript and emulate the browser's native form behavior without a full refresh.
 
@@ -542,4 +542,4 @@ For more on just how much you can achieve with Qwik, we recommend reading the de
 - [Form actions](/docs/(qwikcity)/action/index.mdx) (and [zod validation](/docs/(qwikcity)/action/index.mdx#zod-validation))
 - [State management](/docs/(qwik)/components/state/index.mdx)
 - [Tasks](/docs/(qwik)/components/tasks/index.mdx#use-usetask-when-you-need-to)
-- [ServiceWorker cache](/docs/(qwik)/advanced/index.mdxspeculative-module-fetching/)
+- [ServiceWorker cache](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx#pre-populating-the-cache-with-a-service-worker)

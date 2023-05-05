@@ -40,7 +40,7 @@ export interface CookieOptions {
     httpOnly?: boolean;
     maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
     path?: string;
-    sameSite?: 'strict' | 'lax' | 'none';
+    sameSite?: 'strict' | 'lax' | 'none' | boolean;
     secure?: boolean;
 }
 

@@ -11,7 +11,7 @@ import { RenderResult } from '@builder.io/qwik';
 export const createDOM: () => Promise<{
     render: (jsxElement: JSXNode) => Promise<RenderResult>;
     screen: HTMLElement;
-    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string, eventPayload?: any) => Promise<void>;
+    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;
 }>;
 
 // (No @packageDocumentation comment for this package)

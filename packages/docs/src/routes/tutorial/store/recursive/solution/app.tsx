@@ -6,8 +6,8 @@ export default component$(() => {
   return (
     <>
       <Display counter={store.counter} list={store.list} />
-      <button onClick$={() => store.counter = { count: ++store.counter.count }}>+1 Count</button>
-      <button onClick$={() => store.list = [...store.list, 0]}>+1 List element</button>
+      <button onClick$={() => (store.counter = { count: ++store.counter.count })}>+1 Count</button>
+      <button onClick$={() => (store.list = [...store.list, 0])}>+1 List element</button>
     </>
   );
 });
@@ -17,5 +17,9 @@ interface DisplayProps {
   list: number[];
 }
 export const Display = component$((props: DisplayProps) => {
-  return <p>Count: {props.counter.count}, List length: {props.list.length}</p>
+  return (
+    <p>
+      Count: {props.counter.count}, List length: {props.list.length}
+    </p>
+  );
 });

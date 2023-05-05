@@ -17,5 +17,9 @@ interface DisplayProps {
   list: number[];
 }
 export const Display = component$((props: DisplayProps) => {
-  return <p>Count: {props.counter.count}, List length: {props.list.length}</p>
+  return (
+    <p>
+      Count: {props.counter.count}, List length: {props.list.length}
+    </p>
+  );
 });

@@ -12,9 +12,19 @@ import { _deserializeData, _serializeData, _verifySerializable } from '@builder.
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
+import type { ClientInfo } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/deno
 
+interface Addr {
+  transport: 'tcp' | 'udp';
+  hostname: string;
+  port: number;
+}
+interface ConnInfo {
+  readonly localAddr: Addr;
+  readonly remoteAddr: Addr;
+}
 /**
  * @public
  */
@@ -30,7 +40,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
 
   const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), '..', '..', 'dist');
 
-  async function router(request: Request) {
+  async function router(request: Request, conn: ConnInfo) {
     try {
       const url = new URL(request.url);
 
@@ -51,6 +61,13 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         },
         platform: {
           ssr: true,
+        },
+        getClientInfo: () => {
+          return opts.getClientInfo
+            ? opts.getClientInfo(request, conn)
+            : {
+                ip: conn.remoteAddr.hostname,
+              };
         },
       };
 
@@ -158,4 +175,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
+  getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
 }

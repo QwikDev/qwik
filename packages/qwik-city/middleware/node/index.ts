@@ -11,6 +11,7 @@ import { fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { patchGlobalThis } from './node-fetch';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { ClientInfo } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -38,7 +39,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
+      const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server', opts);
       const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
         const err = await handled.completion;
@@ -132,6 +133,7 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
+  getClientInfo?: (req: IncomingMessage) => ClientInfo;
 }
 
 /**

@@ -9,6 +9,11 @@ export interface EnvGetter {
   get(key: string): string | undefined;
 }
 
+export interface ClientInfo {
+  ip?: string | undefined | null;
+  country?: string | undefined | null;
+}
+
 /**
  * @public
  * Request event created by the server.
@@ -20,6 +25,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  getClientInfo: () => ClientInfo;
   getWritableStream: ServerResponseHandler<T>;
 }
 

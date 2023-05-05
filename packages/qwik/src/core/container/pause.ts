@@ -722,7 +722,7 @@ export const collectElementData = (
     }
   }
 
-  if (dynamicCtx) {
+  if (dynamicCtx === true) {
     collectContext(elCtx, collector);
     if (elCtx.$dynamicSlots$) {
       for (const slotCtx of elCtx.$dynamicSlots$) {

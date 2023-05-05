@@ -12,23 +12,9 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, env, waitUntil, next }: EventPluginContext) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions) |  |\n\n**Returns:**\n\n({ request, env, waitUntil, next }: [EventPluginContext](#eventplugincontext)<!-- -->) =&gt; Promise&lt;Response&gt;",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: Record<string, any> & {\n    ASSETS: {\n        fetch: (req: Request) => Response;\n    };\n}, ctx: PlatformCloudflarePages['ctx']) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions) |  |\n\n**Returns:**\n\n(request: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\['request'\\], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\['ctx'\\]) =&gt; Promise&lt;Response&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
       "mdFile": "qwik-city.createqwikcity.md"
-    },
-    {
-      "name": "EventPluginContext",
-      "id": "eventplugincontext",
-      "hierarchy": [
-        {
-          "name": "EventPluginContext",
-          "id": "eventplugincontext"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface EventPluginContext \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env](#) |  | Record&lt;string, any&gt; |  |\n|  [next](#) |  | (input?: Request \\| string, init?: RequestInit) =&gt; Promise&lt;Response&gt; |  |\n|  [request](#) |  | Request |  |\n|  [waitUntil](#) |  | (promise: Promise&lt;any&gt;) =&gt; void |  |",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
-      "mdFile": "qwik-city.eventplugincontext.md"
     },
     {
       "name": "PlatformCloudflarePages",
@@ -40,7 +26,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PlatformCloudflarePages \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env?](#) |  | [EventPluginContext](#eventplugincontext)<!-- -->\\['env'\\] | _(Optional)_ |",
+      "content": "```typescript\nexport interface PlatformCloudflarePages \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#) |  | { waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; } |  |\n|  [env](#) |  | Record&lt;string, any&gt; |  |\n|  [request](#) |  | Request |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
       "mdFile": "qwik-city.platformcloudflarepages.md"
     },

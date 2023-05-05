@@ -31,19 +31,19 @@ import type { RequestHandler } from '@builder.io/qwik-city';
 
 // Called with every HTTP request (regardless of method)
 export const onRequest: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is GET
 export const onGet: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is POST
 export const onPost: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is PUT
 export const onPut: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is PATCH
 export const onPatch: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is DELETE
 export const onDelete: RequestHandler = async (requestEvent) => { ... }
 ```
@@ -339,7 +339,7 @@ export const onGet: RequestHandler = async (requestEvent) => {
   const writableStream = requestEvent.getWritableStream();
   const writer = writableStream.getWriter();
   const encoder = new TextEncoder();
-  
+
   writer.write(encoder.encode('Hello World'));
   await wait(100);
   writer.write(encoder.encode('After 100ms'));
@@ -351,4 +351,16 @@ export const onGet: RequestHandler = async (requestEvent) => {
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+```
+
+### Redirecting to another URL
+
+Endpoints can redirect to another URL, by throwing the `redirect(status, url)` method. The `redirect()` method will automatically set the `Location` header to the redirect URL.
+
+```tsx
+import type { RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async (requestEvent) => {
+  throw requestEvent.redirect(302,'/auth/login');
+};
 ```

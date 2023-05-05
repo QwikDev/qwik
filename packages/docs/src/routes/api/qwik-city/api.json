@@ -1,0 +1,762 @@
+{
+  "id": "qwik-city",
+  "package": "@builder.io/qwik-city",
+  "members": [
+    {
+      "name": "Action",
+      "id": "action",
+      "hierarchy": [
+        {
+          "name": "Action",
+          "id": "action"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.action.md"
+    },
+    {
+      "name": "ActionConstructor",
+      "id": "actionconstructor",
+      "hierarchy": [
+        {
+          "name": "ActionConstructor",
+          "id": "actionconstructor"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ActionConstructor \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.actionconstructor.md"
+    },
+    {
+      "name": "ActionOptions",
+      "id": "actionoptions",
+      "hierarchy": [
+        {
+          "name": "ActionOptions",
+          "id": "actionoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ActionOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [id?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [validation?](#) | <code>readonly</code> | DataValidator\\[\\] | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.actionoptions.md"
+    },
+    {
+      "name": "ActionOptionsWithValidation",
+      "id": "actionoptionswithvalidation",
+      "hierarchy": [
+        {
+          "name": "ActionOptionsWithValidation",
+          "id": "actionoptionswithvalidation"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [id?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [validation](#) | <code>readonly</code> | \\[val: B, ...a: DataValidator\\[\\]\\] |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.actionoptionswithvalidation.md"
+    },
+    {
+      "name": "ActionStore",
+      "id": "actionstore",
+      "hierarchy": [
+        {
+          "name": "ActionStore",
+          "id": "actionstore"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [actionPath](#) | <code>readonly</code> | string | <p>It's the \"action\" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p>\n```tsx\n <form action={action.actionPath} />\n```\n<p>Most of the time this property should not be used directly, instead use the <code>Form</code> component:</p>\n```tsx\nimport {action$, Form} from '@builder.io/qwik-city';\n\nexport const useAddUser = action$(() => { ... });\n\nexport default component$(() => {\n  const action = useAddUser();\n  return (\n    <Form action={action}/>\n  );\n});\n```\n |\n|  [formData](#) | <code>readonly</code> | FormData \\| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [isRunning](#) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |\n|  [status?](#) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [submit](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |\n|  [value](#) | <code>readonly</code> | RETURN \\| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.actionstore.md"
+    },
+    {
+      "name": "ContentHeading",
+      "id": "contentheading",
+      "hierarchy": [
+        {
+          "name": "ContentHeading",
+          "id": "contentheading"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ContentHeading \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [id](#) | <code>readonly</code> | string |  |\n|  [level](#) | <code>readonly</code> | number |  |\n|  [text](#) | <code>readonly</code> | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.contentheading.md"
+    },
+    {
+      "name": "ContentMenu",
+      "id": "contentmenu",
+      "hierarchy": [
+        {
+          "name": "ContentMenu",
+          "id": "contentmenu"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ContentMenu \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [href?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)<!-- -->\\[\\] | _(Optional)_ |\n|  [text](#) | <code>readonly</code> | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.contentmenu.md"
+    },
+    {
+      "name": "DocumentHead",
+      "id": "documenthead",
+      "hierarchy": [
+        {
+          "name": "DocumentHead",
+          "id": "documenthead"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);\n```\n**References:** [DocumentHeadValue](#documentheadvalue)<!-- -->, [DocumentHeadProps](#documentheadprops)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documenthead.md"
+    },
+    {
+      "name": "DocumentHeadProps",
+      "id": "documentheadprops",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadProps",
+          "id": "documentheadprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [head](#) | <code>readonly</code> | [ResolvedDocumentHead](#resolveddocumenthead) |  |\n|  [resolveValue](#) | <code>readonly</code> | ResolveSyncValue |  |\n|  [withLocale](#) | <code>readonly</code> | &lt;T&gt;(fn: () =&gt; T) =&gt; T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documentheadprops.md"
+    },
+    {
+      "name": "DocumentHeadValue",
+      "id": "documentheadvalue",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadValue",
+          "id": "documentheadvalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DocumentHeadValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt; | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |\n|  [links?](#) | <code>readonly</code> | readonly [DocumentLink](#documentlink)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [meta?](#) | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)<!-- -->\\[\\] | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags. |\n|  [styles?](#) | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [title?](#) | <code>readonly</code> | string | _(Optional)_ Sets <code>document.title</code>. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documentheadvalue.md"
+    },
+    {
+      "name": "DocumentLink",
+      "id": "documentlink",
+      "hierarchy": [
+        {
+          "name": "DocumentLink",
+          "id": "documentlink"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DocumentLink \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [as?](#) |  | string | _(Optional)_ |\n|  [crossorigin?](#) |  | string | _(Optional)_ |\n|  [disabled?](#) |  | boolean | _(Optional)_ |\n|  [href?](#) |  | string | _(Optional)_ |\n|  [hreflang?](#) |  | string | _(Optional)_ |\n|  [id?](#) |  | string | _(Optional)_ |\n|  [imagesizes?](#) |  | string | _(Optional)_ |\n|  [imagesrcset?](#) |  | string | _(Optional)_ |\n|  [integrity?](#) |  | string | _(Optional)_ |\n|  [key?](#) |  | string | _(Optional)_ |\n|  [media?](#) |  | string | _(Optional)_ |\n|  [prefetch?](#) |  | string | _(Optional)_ |\n|  [referrerpolicy?](#) |  | string | _(Optional)_ |\n|  [rel?](#) |  | string | _(Optional)_ |\n|  [sizes?](#) |  | string | _(Optional)_ |\n|  [title?](#) |  | string | _(Optional)_ |\n|  [type?](#) |  | string | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documentlink.md"
+    },
+    {
+      "name": "DocumentMeta",
+      "id": "documentmeta",
+      "hierarchy": [
+        {
+          "name": "DocumentMeta",
+          "id": "documentmeta"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DocumentMeta \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [content?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [httpEquiv?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [itemprop?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [key?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [name?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [property?](#) | <code>readonly</code> | string | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documentmeta.md"
+    },
+    {
+      "name": "DocumentStyle",
+      "id": "documentstyle",
+      "hierarchy": [
+        {
+          "name": "DocumentStyle",
+          "id": "documentstyle"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DocumentStyle \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [key?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [props?](#) | <code>readonly</code> | Readonly&lt;{ \\[propName: string\\]: string; }&gt; | _(Optional)_ |\n|  [style](#) | <code>readonly</code> | string |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documentstyle.md"
+    },
+    {
+      "name": "FailReturn",
+      "id": "failreturn",
+      "hierarchy": [
+        {
+          "name": "FailReturn",
+          "id": "failreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type FailReturn<T> = T & {\n    failed: true;\n};\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.failreturn.md"
+    },
+    {
+      "name": "Form",
+      "id": "form",
+      "hierarchy": [
+        {
+          "name": "Form",
+          "id": "form"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => QwikJSX.Element\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
+      "mdFile": "qwik-city.form.md"
+    },
+    {
+      "name": "FormProps",
+      "id": "formprops",
+      "hierarchy": [
+        {
+          "name": "FormProps",
+          "id": "formprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [action?](#) |  | [ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt; | _(Optional)_ Reference to the action returned by <code>action()</code>. |\n|  [key?](#) |  | string \\| number \\| null | _(Optional)_ |\n|  [onSubmit$?](#) |  | (event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right when the form is submitted. |\n|  [onSubmitCompleted$?](#) |  | (event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right after the action is executed successfully and returns some data. |\n|  [reloadDocument?](#) |  | boolean | _(Optional)_ When <code>true</code> the form submission will cause a full page reload, even if SPA mode is enabled and JS is available. |\n|  [spaReset?](#) |  | boolean | <p>_(Optional)_ When <code>true</code> all the form inputs will be reset in SPA mode, just like happens in a full page form submission.</p><p>Defaults to <code>false</code></p> |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
+      "mdFile": "qwik-city.formprops.md"
+    },
+    {
+      "name": "FormSubmitSuccessDetail",
+      "id": "formsubmitsuccessdetail",
+      "hierarchy": [
+        {
+          "name": "FormSubmitSuccessDetail",
+          "id": "formsubmitsuccessdetail"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [status](#) |  | number |  |\n|  [value](#) |  | T |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
+      "mdFile": "qwik-city.formsubmitsuccessdetail.md"
+    },
+    {
+      "name": "globalAction$",
+      "id": "globalaction_",
+      "hierarchy": [
+        {
+          "name": "globalAction$",
+          "id": "globalaction_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nglobalAction$: ActionConstructor\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.globalaction_.md"
+    },
+    {
+      "name": "globalActionQrl",
+      "id": "globalactionqrl",
+      "hierarchy": [
+        {
+          "name": "globalActionQrl",
+          "id": "globalactionqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nglobalActionQrl: ActionConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.globalactionqrl.md"
+    },
+    {
+      "name": "JSONObject",
+      "id": "jsonobject",
+      "hierarchy": [
+        {
+          "name": "JSONObject",
+          "id": "jsonobject"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type JSONObject = {\n    [x: string]: JSONValue;\n};\n```\n**References:** [JSONValue](#jsonvalue)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.jsonobject.md"
+    },
+    {
+      "name": "JSONValue",
+      "id": "jsonvalue",
+      "hierarchy": [
+        {
+          "name": "JSONValue",
+          "id": "jsonvalue"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type JSONValue = string | number | boolean | {\n    [x: string]: JSONValue;\n} | Array<JSONValue>;\n```\n**References:** [JSONValue](#jsonvalue)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.jsonvalue.md"
+    },
+    {
+      "name": "Link",
+      "id": "link",
+      "hierarchy": [
+        {
+          "name": "Link",
+          "id": "link"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<LinkProps>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
+      "mdFile": "qwik-city.link.md"
+    },
+    {
+      "name": "LinkProps",
+      "id": "linkprops",
+      "hierarchy": [
+        {
+          "name": "LinkProps",
+          "id": "linkprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [prefetch?](#) |  | boolean | _(Optional)_ |\n|  [reload?](#) |  | boolean | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
+      "mdFile": "qwik-city.linkprops.md"
+    },
+    {
+      "name": "Loader",
+      "id": "loader",
+      "hierarchy": [
+        {
+          "name": "Loader",
+          "id": "loader"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Loader<RETURN> \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.loader.md"
+    },
+    {
+      "name": "LoaderSignal",
+      "id": "loadersignal",
+      "hierarchy": [
+        {
+          "name": "LoaderSignal",
+          "id": "loadersignal"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? ReadonlySignal<ValueOrPromise<B>> : ReadonlySignal<T>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.loadersignal.md"
+    },
+    {
+      "name": "MenuData",
+      "id": "menudata",
+      "hierarchy": [
+        {
+          "name": "MenuData",
+          "id": "menudata"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type MenuData = [pathname: string, menuLoader: MenuModuleLoader];\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.menudata.md"
+    },
+    {
+      "name": "PageModule",
+      "id": "pagemodule",
+      "hierarchy": [
+        {
+          "name": "PageModule",
+          "id": "pagemodule"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [default](#) | <code>readonly</code> | any |  |\n|  [head?](#) | <code>readonly</code> | ContentModuleHead | _(Optional)_ |\n|  [headings?](#) | <code>readonly</code> | [ContentHeading](#contentheading)<!-- -->\\[\\] | _(Optional)_ |\n|  [onStaticGenerate?](#) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.pagemodule.md"
+    },
+    {
+      "name": "PathParams",
+      "id": "pathparams",
+      "hierarchy": [
+        {
+          "name": "PathParams",
+          "id": "pathparams"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport declare type PathParams = Record<string, string>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.pathparams.md"
+    },
+    {
+      "name": "QwikCityMockProvider",
+      "id": "qwikcitymockprovider",
+      "hierarchy": [
+        {
+          "name": "QwikCityMockProvider",
+          "id": "qwikcitymockprovider"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<QwikCityMockProps>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
+      "mdFile": "qwik-city.qwikcitymockprovider.md"
+    },
+    {
+      "name": "QwikCityPlan",
+      "id": "qwikcityplan",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlan",
+          "id": "qwikcityplan"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityPlan \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [basePathname?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [cacheModules?](#) | <code>readonly</code> | boolean | _(Optional)_ |\n|  [menus?](#) | <code>readonly</code> | [MenuData](#menudata)<!-- -->\\[\\] | _(Optional)_ |\n|  [routes](#) | <code>readonly</code> | [RouteData](#routedata)<!-- -->\\[\\] |  |\n|  [serverPlugins?](#) | <code>readonly</code> | RouteModule\\[\\] | _(Optional)_ |\n|  [trailingSlash?](#) | <code>readonly</code> | boolean | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.qwikcityplan.md"
+    },
+    {
+      "name": "QwikCityProvider",
+      "id": "qwikcityprovider",
+      "hierarchy": [
+        {
+          "name": "QwikCityProvider",
+          "id": "qwikcityprovider"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
+      "mdFile": "qwik-city.qwikcityprovider.md"
+    },
+    {
+      "name": "ResolvedDocumentHead",
+      "id": "resolveddocumenthead",
+      "hierarchy": [
+        {
+          "name": "ResolvedDocumentHead",
+          "id": "resolveddocumenthead"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ResolvedDocumentHead = Required<DocumentHeadValue>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.resolveddocumenthead.md"
+    },
+    {
+      "name": "routeAction$",
+      "id": "routeaction_",
+      "hierarchy": [
+        {
+          "name": "routeAction$",
+          "id": "routeaction_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nrouteAction$: ActionConstructor\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.routeaction_.md"
+    },
+    {
+      "name": "routeActionQrl",
+      "id": "routeactionqrl",
+      "hierarchy": [
+        {
+          "name": "routeActionQrl",
+          "id": "routeactionqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nrouteActionQrl: ActionConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.routeactionqrl.md"
+    },
+    {
+      "name": "RouteData",
+      "id": "routedata",
+      "hierarchy": [
+        {
+          "name": "RouteData",
+          "id": "routedata"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [\n    pattern: RegExp,\n    loaders: ModuleLoader[],\n    paramNames: string[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.routedata.md"
+    },
+    {
+      "name": "routeLoader$",
+      "id": "routeloader_",
+      "hierarchy": [
+        {
+          "name": "routeLoader$",
+          "id": "routeloader_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nrouteLoader$: LoaderConstructor\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.routeloader_.md"
+    },
+    {
+      "name": "routeLoaderQrl",
+      "id": "routeloaderqrl",
+      "hierarchy": [
+        {
+          "name": "routeLoaderQrl",
+          "id": "routeloaderqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nrouteLoaderQrl: LoaderConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.routeloaderqrl.md"
+    },
+    {
+      "name": "RouteLocation",
+      "id": "routelocation",
+      "hierarchy": [
+        {
+          "name": "RouteLocation",
+          "id": "routelocation"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [isNavigating](#) | <code>readonly</code> | boolean |  |\n|  [params](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |  |\n|  [url](#) | <code>readonly</code> | URL |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.routelocation.md"
+    },
+    {
+      "name": "RouteNavigate",
+      "id": "routenavigate",
+      "hierarchy": [
+        {
+          "name": "RouteNavigate",
+          "id": "routenavigate"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.routenavigate.md"
+    },
+    {
+      "name": "RouterOutlet",
+      "id": "routeroutlet",
+      "hierarchy": [
+        {
+          "name": "RouterOutlet",
+          "id": "routeroutlet"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<{}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts",
+      "mdFile": "qwik-city.routeroutlet.md"
+    },
+    {
+      "name": "server$",
+      "id": "server_",
+      "hierarchy": [
+        {
+          "name": "server$",
+          "id": "server_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nserver$: <T extends import(\"./types\").ServerFunction>(first: T) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.server_.md"
+    },
+    {
+      "name": "serverQrl",
+      "id": "serverqrl",
+      "hierarchy": [
+        {
+          "name": "serverQrl",
+          "id": "serverqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nserverQrl: ServerConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.serverqrl.md"
+    },
+    {
+      "name": "ServiceWorkerRegister",
+      "id": "serviceworkerregister",
+      "hierarchy": [
+        {
+          "name": "ServiceWorkerRegister",
+          "id": "serviceworkerregister"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx",
+      "mdFile": "qwik-city.serviceworkerregister.md"
+    },
+    {
+      "name": "StaticGenerate",
+      "id": "staticgenerate",
+      "hierarchy": [
+        {
+          "name": "StaticGenerate",
+          "id": "staticgenerate"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface StaticGenerate \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [params?](#) |  | [PathParams](#pathparams)<!-- -->\\[\\] | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.staticgenerate.md"
+    },
+    {
+      "name": "StaticGenerateHandler",
+      "id": "staticgeneratehandler",
+      "hierarchy": [
+        {
+          "name": "StaticGenerateHandler",
+          "id": "staticgeneratehandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;\n```\n**References:** [StaticGenerate](#staticgenerate)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.staticgeneratehandler.md"
+    },
+    {
+      "name": "useContent",
+      "id": "usecontent",
+      "hierarchy": [
+        {
+          "name": "useContent",
+          "id": "usecontent"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseContent: () => import(\"./types\").ContentState\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
+      "mdFile": "qwik-city.usecontent.md"
+    },
+    {
+      "name": "useDocumentHead",
+      "id": "usedocumenthead",
+      "hierarchy": [
+        {
+          "name": "useDocumentHead",
+          "id": "usedocumenthead"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseDocumentHead: () => Required<ResolvedDocumentHead>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
+      "mdFile": "qwik-city.usedocumenthead.md"
+    },
+    {
+      "name": "useLocation",
+      "id": "uselocation",
+      "hierarchy": [
+        {
+          "name": "useLocation",
+          "id": "uselocation"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseLocation: () => RouteLocation\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
+      "mdFile": "qwik-city.uselocation.md"
+    },
+    {
+      "name": "useNavigate",
+      "id": "usenavigate",
+      "hierarchy": [
+        {
+          "name": "useNavigate",
+          "id": "usenavigate"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nuseNavigate: () => RouteNavigate\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
+      "mdFile": "qwik-city.usenavigate.md"
+    },
+    {
+      "name": "validator$",
+      "id": "validator_",
+      "hierarchy": [
+        {
+          "name": "validator$",
+          "id": "validator_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nvalidator$: ValidatorConstructor\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.validator_.md"
+    },
+    {
+      "name": "validatorQrl",
+      "id": "validatorqrl",
+      "hierarchy": [
+        {
+          "name": "validatorQrl",
+          "id": "validatorqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nvalidatorQrl: ValidatorConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.validatorqrl.md"
+    },
+    {
+      "name": "zod$",
+      "id": "zod_",
+      "hierarchy": [
+        {
+          "name": "zod$",
+          "id": "zod_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nzod$: ZodConstructor\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.zod_.md"
+    },
+    {
+      "name": "ZodConstructor",
+      "id": "zodconstructor",
+      "hierarchy": [
+        {
+          "name": "ZodConstructor",
+          "id": "zodconstructor"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ZodConstructor \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.zodconstructor.md"
+    },
+    {
+      "name": "zodQrl",
+      "id": "zodqrl",
+      "hierarchy": [
+        {
+          "name": "zodQrl",
+          "id": "zodqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nzodQrl: ZodConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.zodqrl.md"
+    }
+  ]
+}

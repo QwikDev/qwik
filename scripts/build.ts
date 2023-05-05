@@ -120,7 +120,7 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.api) {
-      apiExtractor(config);
+      await apiExtractor(config);
     }
 
     if (config.validate) {

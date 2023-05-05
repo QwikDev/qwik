@@ -56,6 +56,7 @@
   "devDependencies": {
     "@builder.io/partytown": "0.8.0",
     "@clack/prompts": "^0.6.3",
+    "@microsoft/api-documenter": "^7.21.6",
     "@microsoft/api-extractor": "7.34.4",
     "@napi-rs/cli": "2.12.1",
     "@napi-rs/triples": "1.1.0",

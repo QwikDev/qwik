@@ -994,11 +994,10 @@ export interface PropFnInterface<ARGS extends any[], RET>
 ## PropFunction
 
 ```typescript
-export type PropFunction<T extends Function> = T extends (
-  ...args: infer ARGS
-) => infer RET
-  ? PropFnInterface<ARGS, RET>
-  : never;
+export type PropFunction<T extends Function = (...args: any[]) => any> =
+  T extends (...args: infer ARGS) => infer RET
+    ? PropFnInterface<ARGS, RET>
+    : never;
 ```
 
 **References:** [PropFnInterface](#propfninterface)
@@ -1437,16 +1436,16 @@ export interface RenderResult
 export interface RenderSSROptions
 ```
 
-| Property                 | Modifiers | Type                                                                                                                        | Description  |
-| ------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| [base?](#)               |           | string                                                                                                                      | _(Optional)_ |
-| [beforeClose?](#)        |           | (contexts: QContext\[\], containerState: ContainerState, containsDynamic: boolean) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
-| [beforeContent?](#)      |           | [JSXNode](#jsxnode)&lt;string&gt;\[\]                                                                                       | _(Optional)_ |
-| [containerAttributes](#) |           | Record&lt;string, string&gt;                                                                                                |              |
-| [containerTagName](#)    |           | string                                                                                                                      |              |
-| [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                   | _(Optional)_ |
-| [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                               |              |
-| [url?](#)                |           | string                                                                                                                      | _(Optional)_ |
+| Property                 | Modifiers | Type                                                                                                                                                              | Description  |
+| ------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| [base?](#)               |           | string                                                                                                                                                            | _(Optional)_ |
+| [beforeClose?](#)        |           | (contexts: QContext\[\], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
+| [beforeContent?](#)      |           | [JSXNode](#jsxnode)&lt;string&gt;\[\]                                                                                                                             | _(Optional)_ |
+| [containerAttributes](#) |           | Record&lt;string, string&gt;                                                                                                                                      |              |
+| [containerTagName](#)    |           | string                                                                                                                                                            |              |
+| [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                                                         | _(Optional)_ |
+| [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                     |              |
+| [url?](#)                |           | string                                                                                                                                                            | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
@@ -2025,7 +2024,7 @@ Register a listener on the current component's host element.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
 ```typescript
-useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
+useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -2037,7 +2036,7 @@ Register a listener on `document`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
+useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -2049,7 +2048,7 @@ Register a listener on `window`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void
+useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)

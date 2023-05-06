@@ -423,6 +423,20 @@
       "mdFile": "qwik-city.qwikcityplan.md"
     },
     {
+      "name": "QwikCityProps",
+      "id": "qwikcityprops",
+      "hierarchy": [
+        {
+          "name": "QwikCityProps",
+          "id": "qwikcityprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityProps \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [viewTransition?](#) |  | boolean | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
+      "mdFile": "qwik-city.qwikcityprops.md"
+    },
+    {
       "name": "QwikCityProvider",
       "id": "qwikcityprovider",
       "hierarchy": [
@@ -530,7 +544,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [isNavigating](#) | <code>readonly</code> | boolean |  |\n|  [params](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |  |\n|  [url](#) | <code>readonly</code> | URL |  |",
+      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [isNavigating](#) | <code>readonly</code> | boolean |  |\n|  [params](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |  |\n|  [prevUrl](#) | <code>readonly</code> | URL \\| undefined |  |\n|  [url](#) | <code>readonly</code> | URL |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.routelocation.md"
     },
@@ -559,7 +573,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<{}>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx",
       "mdFile": "qwik-city.routeroutlet.md"
     },
     {

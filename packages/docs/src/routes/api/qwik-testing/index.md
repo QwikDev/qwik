@@ -16,8 +16,8 @@ createDOM: () =>
     ) => Promise<import("@builder.io/qwik").RenderResult>;
     screen: HTMLElement;
     userEvent: (
-      queryOrElement: string | Element | null,
-      eventNameCamel: string,
+      queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
+      eventNameCamel: string | keyof WindowEventMap,
       eventPayload?: any
     ) => Promise<void>;
   }>;

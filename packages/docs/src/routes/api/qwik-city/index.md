@@ -411,6 +411,18 @@ export interface QwikCityPlan
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## QwikCityProps
+
+```typescript
+export interface QwikCityProps
+```
+
+| Property             | Modifiers | Type    | Description                                                                        |
+| -------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
+| [viewTransition?](#) |           | boolean | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
+
 ## QwikCityProvider
 
 ```typescript
@@ -488,6 +500,7 @@ export interface RouteLocation
 | ----------------- | --------------------- | -------------------------------------------- | ----------- |
 | [isNavigating](#) | <code>readonly</code> | boolean                                      |             |
 | [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |             |
+| [prevUrl](#)      | <code>readonly</code> | URL \| undefined                             |             |
 | [url](#)          | <code>readonly</code> | URL                                          |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
@@ -508,7 +521,7 @@ export type RouteNavigate = QRL<
 RouterOutlet: import("@builder.io/qwik").Component<{}>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.ts)
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx)
 
 ## server$
 

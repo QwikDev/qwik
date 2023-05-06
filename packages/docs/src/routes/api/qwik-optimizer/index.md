@@ -496,13 +496,14 @@ export interface QwikVitePlugin
 export interface QwikVitePluginApi
 ```
 
-| Property             | Modifiers | Type                                           | Description |
-| -------------------- | --------- | ---------------------------------------------- | ----------- |
-| [getClientOutDir](#) |           | () =&gt; string \| null                        |             |
-| [getManifest](#)     |           | () =&gt; [QwikManifest](#qwikmanifest) \| null |             |
-| [getOptimizer](#)    |           | () =&gt; [Optimizer](#optimizer) \| null       |             |
-| [getOptions](#)      |           | () =&gt; NormalizedQwikPluginOptions           |             |
-| [getRootDir](#)      |           | () =&gt; string \| null                        |             |
+| Property                   | Modifiers | Type                                           | Description |
+| -------------------------- | --------- | ---------------------------------------------- | ----------- |
+| [getClientOutDir](#)       |           | () =&gt; string \| null                        |             |
+| [getClientPublicOutDir](#) |           | () =&gt; string \| null                        |             |
+| [getManifest](#)           |           | () =&gt; [QwikManifest](#qwikmanifest) \| null |             |
+| [getOptimizer](#)          |           | () =&gt; [Optimizer](#optimizer) \| null       |             |
+| [getOptions](#)            |           | () =&gt; NormalizedQwikPluginOptions           |             |
+| [getRootDir](#)            |           | () =&gt; string \| null                        |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 

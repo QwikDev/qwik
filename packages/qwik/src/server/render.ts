@@ -147,12 +147,12 @@ export async function renderToStream(
     serverData: opts.serverData,
     base: buildBase,
     beforeContent,
-    beforeClose: async (contexts, containerState, dynamic) => {
+    beforeClose: async (contexts, containerState, dynamic, textNodes) => {
       renderTime = renderTimer();
       const snapshotTimer = createTimer();
 
       containsDynamic = dynamic;
-      snapshotResult = await _pauseFromContexts(contexts, containerState);
+      snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
       const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [

@@ -416,8 +416,8 @@ importers:
         specifier: 4.1.5
         version: 4.1.5
       marked:
-        specifier: 5.0.0
-        version: 5.0.0
+        specifier: 4.3.0
+        version: 4.3.0
       mdast-util-mdx:
         specifier: ^2.0.1
         version: 2.0.1
@@ -6045,9 +6045,9 @@ packages:
     resolution: {integrity: sha512-y8j3a5/DkJCmS5x4dMCQL+OR0+2EAq3DOtio1COSHsmW2BGXnNCK3v12hJt1LrUz5iZH5g0LmuYOjDdI+czghA==}
     dev: true
 
-  /marked@5.0.0:
-    resolution: {integrity: sha512-YQ6+L9l/NSBDjFgCQQebmTCc62EUdZ5RpIZ7A/FmC8IYMB5s7Cz8sT7imuMAkbIL4CvXpQLdW45fpK5UwiU7DA==}
-    engines: {node: '>= 18'}
+  /marked@4.3.0:
+    resolution: {integrity: sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A==}
+    engines: {node: '>= 12'}
     hasBin: true
     dev: true
 

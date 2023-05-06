@@ -97,7 +97,7 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
 }
 
 // User triggered events should have priority
-const EVENT_PRIORITY = /*@__PURE__*/ (() =>
+const EVENT_PRIORITY = /*#__PURE__*/ (() =>
   [
     // Click Events
     'click',
@@ -165,7 +165,7 @@ const EVENT_PRIORITY = /*@__PURE__*/ (() =>
     'scroll',
   ].map((n) => `on${n.toLowerCase()}$`))();
 
-const FUNCTION_PRIORITY = /*@__PURE__*/ (() =>
+const FUNCTION_PRIORITY = /*#__PURE__*/ (() =>
   ['useTask$', 'useVisibleTask$', 'component$', 'useStyles$', 'useStylesScoped$'].map((n) =>
     n.toLowerCase()
   ))();

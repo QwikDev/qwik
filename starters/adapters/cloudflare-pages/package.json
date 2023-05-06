@@ -5,7 +5,7 @@
     "deploy": "wrangler pages publish ./dist --branch preview"
   },
   "devDependencies": {
-    "wrangler": "latest"
+    "wrangler": "^2.19.0"
   },
   "__qwik__": {
     "priority": 40,

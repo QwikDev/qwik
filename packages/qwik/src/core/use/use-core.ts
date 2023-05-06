@@ -173,7 +173,7 @@ export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
 
-const trackInvocation = /*@__PURE__*/ newInvokeContext(
+const trackInvocation = /*#__PURE__*/ newInvokeContext(
   undefined,
   undefined,
   undefined,

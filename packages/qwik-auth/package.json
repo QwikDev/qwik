@@ -41,7 +41,7 @@
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts",
   "devDependencies": {
-    "@auth/core": "^0.7.0",
+    "@auth/core": "^0.7.1",
     "@builder.io/qwik": "workspace:*",
     "@builder.io/qwik-city": "workspace:*",
     "@types/set-cookie-parser": "^2.4.2",

@@ -64,6 +64,7 @@ import {
 import { HOST_FLAG_DYNAMIC, type QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
+import { QObjectImmutable, QObjectRecursive } from '../state/constants';
 
 /**
  * @internal
@@ -408,7 +409,7 @@ export const _pauseFromContexts = async (
     }
     const flags = getProxyFlags(obj) ?? 0;
     const converted: (Subscriptions | number)[] = [];
-    if (flags > 0) {
+    if (flags & QObjectRecursive) {
       converted.push(flags);
     }
     for (const sub of subs) {
@@ -657,6 +658,7 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
           return;
         } else {
           collectValue(props, collector, false);
+          collectSubscriptions(getProxyManager(props)!, collector, false);
         }
       }
     }
@@ -712,6 +714,7 @@ export const collectElementData = (
 ) => {
   if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
     collectValue(elCtx.$props$, collector, dynamicCtx);
+    collectSubscriptions(getProxyManager(elCtx.$props$)!, collector, dynamicCtx);
   }
   if (elCtx.$componentQrl$) {
     collectValue(elCtx.$componentQrl$, collector, dynamicCtx);
@@ -763,6 +766,9 @@ export const collectSubscriptions = (
   collector: Collector,
   leaks: boolean | QwikElement
 ) => {
+  // if (!leaks) {
+  //   return;
+  // }
   if (collector.$seen$.has(manager)) {
     return;
   }
@@ -773,7 +779,7 @@ export const collectSubscriptions = (
   for (const key of subs) {
     const type = key[0];
     if (type > 0) {
-      collectValue(key[2], collector, true);
+      collectValue(key[2], collector, leaks);
     }
     if (leaks === true) {
       const host = key[1];
@@ -844,7 +850,10 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
             return;
           }
           seen.add(obj);
-          collectSubscriptions(getProxyManager(input)!, collector, leaks);
+          const mutable = (getProxyFlags(obj)! & QObjectImmutable) === 0;
+          if (leaks && mutable) {
+            collectSubscriptions(getProxyManager(input)!, collector, leaks);
+          }
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
             return;

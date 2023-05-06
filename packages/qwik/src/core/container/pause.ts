@@ -243,9 +243,13 @@ export const pauseContainer = async (
 export const _pauseFromContexts = async (
   allContexts: QContext[],
   containerState: ContainerState,
-  fallbackGetObjId?: GetObjID
+  fallbackGetObjId?: GetObjID,
+  textNodes?: Map<string, string>
 ): Promise<SnapshotResult> => {
   const collector = createCollector(containerState);
+  textNodes?.forEach((_, key) => {
+    collector.$seen$.add(key);
+  });
   let hasListeners = false;
 
   // TODO: optimize
@@ -376,6 +380,10 @@ export const _pauseFromContexts = async (
     const id = objToId.get(obj);
     if (id) {
       return id + suffix;
+    }
+    const textId = textNodes?.get(obj);
+    if (textId) {
+      return '*' + textId;
     }
     if (fallbackGetObjId) {
       return fallbackGetObjId(obj);
@@ -872,6 +880,11 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
           }
         }
         break;
+      }
+      case 'string': {
+        if (collector.$seen$.has(obj)) {
+          return;
+        }
       }
     }
   }

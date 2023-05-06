@@ -7,9 +7,15 @@ title: \@builder.io/qwik-city/middleware/cloudflare-pages API Reference
 ## createQwikCity
 
 ```typescript
-export declare function createQwikCity(
-  opts: QwikCityCloudflarePagesOptions
-): ({ request, env, waitUntil, next }: EventPluginContext) => Promise<Response>;
+export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (
+  request: PlatformCloudflarePages["request"],
+  env: Record<string, any> & {
+    ASSETS: {
+      fetch: (req: Request) => Response;
+    };
+  },
+  ctx: PlatformCloudflarePages["ctx"]
+) => Promise<Response>;
 ```
 
 | Parameter | Type                                                              | Description |
@@ -18,22 +24,7 @@ export declare function createQwikCity(
 
 **Returns:**
 
-({ request, env, waitUntil, next }: [EventPluginContext](#eventplugincontext)) =&gt; Promise&lt;Response&gt;
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
-
-## EventPluginContext
-
-```typescript
-export interface EventPluginContext
-```
-
-| Property       | Modifiers | Type                                                                          | Description |
-| -------------- | --------- | ----------------------------------------------------------------------------- | ----------- |
-| [env](#)       |           | Record&lt;string, any&gt;                                                     |             |
-| [next](#)      |           | (input?: Request \| string, init?: RequestInit) =&gt; Promise&lt;Response&gt; |             |
-| [request](#)   |           | Request                                                                       |             |
-| [waitUntil](#) |           | (promise: Promise&lt;any&gt;) =&gt; void                                      |             |
+(request: [PlatformCloudflarePages](#platformcloudflarepages)\['request'\], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)\['ctx'\]) =&gt; Promise&lt;Response&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 
@@ -43,9 +34,11 @@ export interface EventPluginContext
 export interface PlatformCloudflarePages
 ```
 
-| Property  | Modifiers | Type                                               | Description  |
-| --------- | --------- | -------------------------------------------------- | ------------ |
-| [env?](#) |           | [EventPluginContext](#eventplugincontext)\['env'\] | _(Optional)_ |
+| Property     | Modifiers | Type                                                     | Description |
+| ------------ | --------- | -------------------------------------------------------- | ----------- |
+| [ctx](#)     |           | { waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; } |             |
+| [env](#)     |           | Record&lt;string, any&gt;                                |             |
+| [request](#) |           | Request                                                  |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 

@@ -74,7 +74,8 @@ export interface RenderSSROptions {
   beforeClose?: (
     contexts: QContext[],
     containerState: ContainerState,
-    containsDynamic: boolean
+    containsDynamic: boolean,
+    textNodes: Map<string, string>
   ) => Promise<JSXNode>;
 }
 
@@ -90,6 +91,7 @@ export interface SSRContextStatic {
   $contexts$: QContext[];
   $dynamic$: boolean;
   $headNodes$: JSXNode<string>[];
+  $textNodes$: Map<string, string>;
 }
 
 const IS_HEAD = 1 << 0;
@@ -131,6 +133,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
       $dynamic$: false,
       $headNodes$: root === 'html' ? headNodes : [],
       $locale$: opts.serverData?.locale,
+      $textNodes$: new Map(),
     },
     $projectedChildren$: undefined,
     $projectedCtxs$: undefined,
@@ -188,7 +191,8 @@ const renderRoot = async (
           const result = beforeClose(
             ssrCtx.$static$.$contexts$,
             containerState,
-            ssrCtx.$static$.$dynamic$
+            ssrCtx.$static$.$dynamic$,
+            ssrCtx.$static$.$textNodes$
           );
           return processData(result, rCtx, ssrCtx, stream, 0, undefined);
         }
@@ -836,7 +840,9 @@ const processData = (
             : ([4, hostEl, node, ('#' + id) as any] as const);
 
         value = trackSignal(node, subs);
-        stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
+        const str = jsxToString(value);
+        ssrCtx.$static$.$textNodes$.set(str, id);
+        stream.write(`<!--t=${id}-->${escapeHtml(str)}<!---->`);
         return;
       } else {
         value = invoke(ssrCtx.$invocationContext$, () => node.value);

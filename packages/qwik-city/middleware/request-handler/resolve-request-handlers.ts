@@ -517,7 +517,11 @@ function now() {
   return typeof performance !== 'undefined' ? performance.now() : 0;
 }
 
-export async function measure<T>(requestEv: RequestEventBase, name: string, fn: () => T): Promise<T> {
+export async function measure<T>(
+  requestEv: RequestEventBase,
+  name: string,
+  fn: () => T
+): Promise<T> {
   const start = now();
   try {
     return await fn();

@@ -143,5 +143,9 @@
   {
     "href": "https://qwik-osm-poc.netlify.app/",
     "tags": "site"
+  },
+  {
+    "href": "https://leonerd.blog",
+    "tags": "portfolio"
   }
 ]

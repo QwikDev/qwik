@@ -9,7 +9,7 @@ import type {
   ValidatorReturn,
   DataValidator,
 } from '../../runtime/src/types';
-import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
+import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import {
   getRequestLoaders,
   getRequestMode,
@@ -178,11 +178,15 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
           if (!data || typeof data !== 'object') {
             throw new Error('Expected request data to be an object');
           }
-          const result = await runValidators(requestEv, action.__validators, data);
+          const result = await runValidators(requestEv, action.__validators, data, isDev);
           if (!result.success) {
             loaders[selectedAction] = requestEv.fail(result.status ?? 500, result.error);
           } else {
-            const actionResolved = await action.__qrl(result.data as JSONObject, requestEv);
+            const actionResolved = isDev
+              ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
+                  action.__qrl(result.data as JSONObject, requestEv)
+                )
+              : await action.__qrl(result.data as JSONObject, requestEv);
             if (isDev) {
               verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
@@ -203,10 +207,21 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
               );
             }
           }
-          return (loaders[loaderId] = runValidators(requestEv, loader.__validators, undefined)
+          return (loaders[loaderId] = runValidators(
+            requestEv,
+            loader.__validators,
+            undefined,
+            isDev
+          )
             .then((res) => {
               if (res.success) {
-                return loader.__qrl(requestEv as any);
+                if (isDev) {
+                  return measure(requestEv, loader.__qrl.getSymbol().split('_', 1)[0], () =>
+                    loader.__qrl(requestEv as any)
+                  );
+                } else {
+                  return loader.__qrl(requestEv as any);
+                }
               } else {
                 return requestEv.fail(res.status ?? 500, res.error);
               }
@@ -231,7 +246,8 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
 async function runValidators(
   requestEv: RequestEvent,
   validators: DataValidator[] | undefined,
-  data: unknown
+  data: unknown,
+  isDev: boolean
 ) {
   let lastResult: ValidatorReturn = {
     success: true,
@@ -239,7 +255,13 @@ async function runValidators(
   };
   if (validators) {
     for (const validator of validators) {
-      lastResult = await validator.validate(requestEv, data);
+      if (isDev) {
+        lastResult = await measure(requestEv, `validator$`, () =>
+          validator.validate(requestEv, data)
+        );
+      } else {
+        lastResult = await validator.validate(requestEv, data);
+      }
       if (!lastResult.success) {
         return lastResult;
       } else {
@@ -270,7 +292,11 @@ async function pureServerFunction(ev: RequestEvent) {
       if (isQrl(qrl) && qrl.getHash() === fn) {
         let result: unknown;
         try {
-          result = await qrl.apply(ev, args);
+          if (isDev) {
+            result = measure(ev, `server_${qrl.getSymbol()}`, () => qrl.apply(ev, args));
+          } else {
+            result = await qrl.apply(ev, args);
+          }
         } catch (err) {
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(500, await qwikSerializer._serializeData(err, true));
@@ -484,5 +510,27 @@ function makeQDataPath(href: string) {
     return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
   } else {
     return undefined;
+  }
+}
+
+function now() {
+  return typeof performance !== 'undefined' ? performance.now() : 0;
+}
+
+export async function measure<T>(
+  requestEv: RequestEventBase,
+  name: string,
+  fn: () => T
+): Promise<T> {
+  const start = now();
+  try {
+    return await fn();
+  } finally {
+    const duration = now() - start;
+    let measurements = requestEv.sharedMap.get('@serverTiming');
+    if (!measurements) {
+      requestEv.sharedMap.set('@serverTiming', (measurements = []));
+    }
+    measurements.push([name, duration]);
   }
 }

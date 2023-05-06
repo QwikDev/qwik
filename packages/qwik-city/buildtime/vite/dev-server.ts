@@ -125,6 +125,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
 
+            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+              | [string, number][]
+              | undefined;
+            if (serverTiming) {
+              res.setHeader(
+                'Server-Timing',
+                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+              );
+            }
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
               ...serverData,

@@ -91,7 +91,7 @@ export async function validateBuild(config: BuildConfig) {
     await validateModuleTreeshake(
       config,
       join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod']
+      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@builder.io/qwik/jsx-runtime']
     );
   }
 

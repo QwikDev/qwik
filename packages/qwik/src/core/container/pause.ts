@@ -65,7 +65,6 @@ import { HOST_FLAG_DYNAMIC, type QContext, tryGetContext } from '../state/contex
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
 import { QObjectImmutable, QObjectRecursive } from '../state/constants';
-// import { QObjectImmutable } from '../state/constants';
 
 /**
  * @internal
@@ -411,7 +410,6 @@ export const _pauseFromContexts = async (
     const flags = getProxyFlags(obj) ?? 0;
     const converted: (Subscriptions | number)[] = [];
     if (flags & QObjectRecursive) {
-      // if (flags > 0) {
       converted.push(flags);
     }
     for (const sub of subs) {
@@ -643,7 +641,6 @@ export interface Collector {
   $resources$: ResourceReturnInternal<any>[];
   $prefetch$: number;
   $deferElements$: QContext[];
-  $deferValues$: any[];
   $containerState$: ContainerState;
   $promises$: Promise<any>[];
 }
@@ -680,7 +677,6 @@ const createCollector = (containerState: ContainerState): Collector => {
     $elements$: [],
     $qrls$: [],
     $deferElements$: [],
-    $deferValues$: [],
     $promises$: [],
   };
 };

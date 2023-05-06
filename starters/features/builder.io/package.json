@@ -1,7 +1,7 @@
 {
   "description": "Visual headless CMS",
   "devDependencies": {
-    "@builder.io/sdk-qwik": "^0.2.3"
+    "@builder.io/sdk-qwik": "^0.3.0"
   },
   "__qwik__": {
     "displayName": "Integration: Builder.io",

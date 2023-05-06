@@ -2,21 +2,21 @@ import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS } from '../../util/ma
 import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
-import { assertDefined, assertEqual, assertFail, assertTrue } from '../../error/assert';
+import {
+  assertDefined,
+  assertElement,
+  assertEqual,
+  assertFail,
+  assertQwikElement,
+  assertTrue,
+} from '../../error/assert';
 import { logWarn } from '../../util/log';
 import { qDev, qInspector, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl, isQrl } from '../../qrl/qrl-class';
-import {
-  assertElement,
-  assertQwikElement,
-  isElement,
-  isQwikElement,
-  isText,
-  isVirtualElement,
-} from '../../util/element';
+import { isElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
 import {
   getVdom,
   type ProcessedJSXNode,

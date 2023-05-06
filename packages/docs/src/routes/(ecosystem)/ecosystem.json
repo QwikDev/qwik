@@ -1,19 +1,34 @@
 {
   "integrations": [
     {
-      "title": "Auth.js",
-      "href": "/docs/integrations/authjs/",
-      "imgSrc": "/ecosystem/authjs.png"
-    },
-    {
       "title": "Qwik/React",
       "href": "/docs/integrations/react/",
       "imgSrc": "/ecosystem/react.svg"
     },
     {
+      "title": "Builder.io CMS",
+      "href": "/docs/integrations/builderio/",
+      "imgSrc": "/ecosystem/builderio.svg"
+    },
+    {
       "title": "Partytown",
       "href": "/docs/integrations/partytown/",
       "imgSrc": "/ecosystem/partytown.svg"
+    },
+    {
+      "title": "Auth.js",
+      "href": "/docs/integrations/authjs/",
+      "imgSrc": "/ecosystem/authjs.png"
+    },
+    {
+      "title": "Cypress",
+      "href": "/docs/integrations/cypress/",
+      "imgSrc": "/ecosystem/cypress.svg"
+    },
+    {
+      "title": "Nx",
+      "href": "/docs/integrations/nx/",
+      "imgSrc": "/ecosystem/nx.svg"
     },
     {
       "title": "Playwright",
@@ -26,39 +41,9 @@
       "imgSrc": "/ecosystem/postcss.svg"
     },
     {
-      "title": "Styled-Vanilla-Extract",
-      "href": "/docs/integrations/styled-vanilla-extract/",
-      "imgSrc": "/ecosystem/styled-vanilla-extract.svg"
-    },
-    {
-      "title": "Tailwind",
-      "href": "/docs/integrations/tailwind/",
-      "imgSrc": "/ecosystem/tailwind.svg"
-    },
-    {
-      "title": "Supabase",
-      "href": "/docs/integrations/supabase/",
-      "imgSrc": "/ecosystem/supabase.svg"
-    },
-    {
-      "title": "Vitest",
-      "href": "/docs/integrations/vitest/",
-      "imgSrc": "/ecosystem/vitest.svg"
-    },
-    {
-      "title": "Cypress",
-      "href": "/docs/integrations/cypress/",
-      "imgSrc": "/ecosystem/cypress.svg"
-    },
-    {
       "title": "Prisma",
       "href": "/docs/integrations/prisma/",
       "imgSrc": "/ecosystem/prisma.svg"
-    },
-    {
-      "title": "Nx",
-      "href": "/docs/integrations/nx/",
-      "imgSrc": "/ecosystem/nx.svg"
     },
     {
       "title": "Storybook",
@@ -66,9 +51,24 @@
       "imgSrc": "/ecosystem/storybook.svg"
     },
     {
-      "title": "Builder.io CMS",
-      "href": "/docs/integrations/builderio/",
-      "imgSrc": "/ecosystem/builderio.svg"
+      "title": "Styled-Vanilla-Extract",
+      "href": "/docs/integrations/styled-vanilla-extract/",
+      "imgSrc": "/ecosystem/styled-vanilla-extract.svg"
+    },
+    {
+      "title": "Supabase",
+      "href": "/docs/integrations/supabase/",
+      "imgSrc": "/ecosystem/supabase.svg"
+    },
+    {
+      "title": "Tailwind",
+      "href": "/docs/integrations/tailwind/",
+      "imgSrc": "/ecosystem/tailwind.svg"
+    },
+    {
+      "title": "Vitest",
+      "href": "/docs/integrations/vitest/",
+      "imgSrc": "/ecosystem/vitest.svg"
     }
   ],
   "deployments": [

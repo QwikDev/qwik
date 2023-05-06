@@ -5,18 +5,15 @@ contributors:
   - manucorporat
   - mhevery
   - corscheid
+  - fkruczek
 ---
 
-This example features a store that contains other objects rather than just primitives. The `store.counter` property is an object literal.
+This example features a store that contains other objects rather than just primitives.
 
-The example doesn't work as is, because by default the `useStore` function only watches top-level properties.
+Because `useStore()` tracks deep reactivity by default, Arrays and Objects inside the store will also be reactive. 
 
-To make the example work, you need to do one of two things:
+For [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) to track all nested properties, it needs to allocate a lot of [Proxy](docs/(qwik)/concepts/reactivity/index.mdx#proxy) objects. This can be a performance issue if you have a lot of nested properties. 
 
-1. Wrap `{count:0}` in another [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) call (which is a bit cumbersome)
+In that case, you can pass the additional argument: `{deep: false}` to `useStore` to only track the top-level properties.
 
-1. Allow `useStore` to recursively apply reactivity to all properties by passing the additional argument: `{deep:true}`.
-
-> **Your task:** Update the sample with the [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) function.
-
-Note that stores are not tied to any single component. In fact, you can pass stores from one component to another.
+> **Your task:** Add `{deep: false}` as a second argument to the [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) function and modify event handlers to assign new values to the top-level properties of the store.

@@ -139,5 +139,9 @@
   {
     "href": "https://pay4me.app",
     "tags": "sass"
+  },
+  {
+    "href": "https://qwik-osm-poc.netlify.app/",
+    "tags": "site"
   }
 ]

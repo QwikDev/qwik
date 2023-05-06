@@ -118,6 +118,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   // Collect all elements
   const elements = new Map<number, Node>();
+  const text = new Map<number, string>();
   let node: Comment | null = null;
   let container = 0;
 
@@ -135,7 +136,9 @@ export const resumeContainer = (containerEl: Element) => {
       } else if (data.startsWith('t=')) {
         const id = data.slice(2);
         const index = strToInt(id);
-        elements.set(index, getTextNode(node));
+        const textNode = getTextNode(node);
+        elements.set(index, textNode);
+        text.set(index, textNode.data);
       }
     }
     if (data === 'cq') {
@@ -207,6 +210,14 @@ export const resumeContainer = (containerEl: Element) => {
       const func = inlinedFunctions[index];
       assertDefined(func, `missing inlined function for id:`, funcId);
       return func;
+    } else if (id.startsWith('*')) {
+      const elementId = id.slice(1);
+      const index = strToInt(elementId);
+      assertTrue(elements.has(index), `missing element for id:`, elementId);
+      const str = text.get(index);
+      assertDefined(str, `missing element for id:`, elementId);
+      finalized.set(id, str);
+      return str;
     }
     const index = strToInt(id);
     const objs = pauseState.objs;

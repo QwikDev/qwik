@@ -33,14 +33,13 @@ import {
   getEventName,
 } from '../../container/container';
 import type { RenderContext } from '../types';
-import { assertDefined } from '../../error/assert';
+import { assertDefined, assertElement } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { isSignal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
-import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   createContext,
@@ -75,7 +74,8 @@ export interface RenderSSROptions {
   beforeClose?: (
     contexts: QContext[],
     containerState: ContainerState,
-    containsDynamic: boolean
+    containsDynamic: boolean,
+    textNodes: Map<string, string>
   ) => Promise<JSXNode>;
 }
 
@@ -91,6 +91,7 @@ export interface SSRContextStatic {
   $contexts$: QContext[];
   $dynamic$: boolean;
   $headNodes$: JSXNode<string>[];
+  $textNodes$: Map<string, string>;
 }
 
 const IS_HEAD = 1 << 0;
@@ -132,6 +133,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
       $dynamic$: false,
       $headNodes$: root === 'html' ? headNodes : [],
       $locale$: opts.serverData?.locale,
+      $textNodes$: new Map(),
     },
     $projectedChildren$: undefined,
     $projectedCtxs$: undefined,
@@ -189,7 +191,8 @@ const renderRoot = async (
           const result = beforeClose(
             ssrCtx.$static$.$contexts$,
             containerState,
-            ssrCtx.$static$.$dynamic$
+            ssrCtx.$static$.$dynamic$,
+            ssrCtx.$static$.$textNodes$
           );
           return processData(result, rCtx, ssrCtx, stream, 0, undefined);
         }
@@ -837,7 +840,9 @@ const processData = (
             : ([4, hostEl, node, ('#' + id) as any] as const);
 
         value = trackSignal(node, subs);
-        stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
+        const str = jsxToString(value);
+        ssrCtx.$static$.$textNodes$.set(str, id);
+        stream.write(`<!--t=${id}-->${escapeHtml(str)}<!---->`);
         return;
       } else {
         value = invoke(ssrCtx.$invocationContext$, () => node.value);

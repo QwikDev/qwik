@@ -12,7 +12,13 @@ import {
   type SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
-import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
+import {
+  QObjectSignalFlags,
+  SIGNAL_IMMUTABLE,
+  SignalDerived,
+  SignalImpl,
+  SignalWrapper,
+} from '../state/signal';
 import { type Collector, collectSubscriptions, collectValue } from './pause';
 import {
   fastWeakSerialize,
@@ -112,13 +118,16 @@ const QRLSerializer: Serializer<QRLInternal> = {
   },
 };
 
-const WatchSerializer: Serializer<SubscriberEffect> = {
+const TaskSerializer: Serializer<SubscriberEffect> = {
   $prefix$: '\u0003',
   $test$: (v) => isSubscriberDescriptor(v),
   $collect$: (v, collector, leaks) => {
     collectValue(v.$qrl$, collector, leaks);
     if (v.$state$) {
       collectValue(v.$state$, collector, leaks);
+      if (leaks === true && v.$state$ instanceof SignalImpl) {
+        collectSubscriptions(v.$state$[QObjectManagerSymbol], collector, true);
+      }
     }
   },
   $serialize$: (obj, getObjId) => serializeWatch(obj, getObjId),
@@ -272,8 +281,9 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   $test$: (v) => v instanceof SignalImpl,
   $collect$: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
-    if (leaks === true) {
-      collectSubscriptions(obj[QObjectManagerSymbol], collector, leaks);
+    const mutable = (obj[QObjectSignalFlags] & SIGNAL_IMMUTABLE) === 0;
+    if (leaks === true && mutable) {
+      collectSubscriptions(obj[QObjectManagerSymbol], collector, true);
     }
     return obj;
   },
@@ -422,7 +432,7 @@ const serializers: Serializer<any>[] = [
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
   SignalWrapperSerializer, //// \u0013
-  WatchSerializer, //////////// \u0003
+  TaskSerializer, //////////// \u0003
   ResourceSerializer, ///////// \u0004
   URLSerializer, ////////////// \u0005
   DateSerializer, ///////////// \u0006

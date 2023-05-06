@@ -13,7 +13,8 @@ import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
 import { assertQwikElement, assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
-import { createPropsState, createProxy } from './store';
+import { createPropsState, createProxy, setObjectFlags } from './store';
+import { QObjectImmutable } from './constants';
 
 export const Q_CTX = '_qc_';
 
@@ -104,6 +105,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
             }
             if (props) {
               elCtx.$props$ = getObject(props);
+              setObjectFlags(elCtx.$props$!, QObjectImmutable);
             } else {
               elCtx.$props$ = createProxy(createPropsState(), containerState);
             }

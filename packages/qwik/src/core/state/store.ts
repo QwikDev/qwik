@@ -121,26 +121,23 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     assertNumber(flags, 'flags must be an number');
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
-    const immutable = (flags & QObjectImmutable) !== 0;
     let value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    if (immutable) {
-      const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
-      const immutableMeta = target[_IMMUTABLE]?.[prop];
-      if (
-        !(prop in target) ||
-        !!hiddenSignal ||
-        isSignal(immutableMeta) ||
-        immutableMeta === _IMMUTABLE
-      ) {
-        subscriber = null;
-      }
-      if (hiddenSignal) {
-        assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
-        value = hiddenSignal.value;
-      }
+    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+    const immutableMeta = target[_IMMUTABLE]?.[prop];
+    if (
+      !(prop in target) ||
+      !!hiddenSignal ||
+      isSignal(immutableMeta) ||
+      immutableMeta === _IMMUTABLE
+    ) {
+      subscriber = null;
+    }
+    if (hiddenSignal) {
+      assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
+      value = hiddenSignal.value;
     }
     if (subscriber) {
       const isA = isArray(target);

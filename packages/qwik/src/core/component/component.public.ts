@@ -166,8 +166,10 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * @public
  */
 export type PropFunctionProps<PROPS extends {}> = {
-  [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];
-}
+  [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET
+    ? PropFnInterface<ARGS, RET>
+    : PROPS[K];
+};
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -223,7 +225,12 @@ export type PropFunctionProps<PROPS extends {}> = {
  * @public
  */
 // </docs>
-export const component$ = <PROPS = unknown, ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}>(onMount: OnRenderFn<ARG>): Component<PROPS extends {} ? PROPS : ARG> => {
+export const component$ = <
+  PROPS = unknown,
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}
+>(
+  onMount: OnRenderFn<ARG>
+): Component<PROPS extends {} ? PROPS : ARG> => {
   return componentQrl<any>($(onMount));
 };
 

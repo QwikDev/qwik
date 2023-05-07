@@ -162,6 +162,15 @@ export const isQwikComponent = (component: any): component is Component<any> => 
   return typeof component == 'function' && component[SERIALIZABLE_STATE] !== undefined;
 };
 
+/**
+ * @public
+ */
+export type PropFunctionProps<PROPS extends {}> = {
+  [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET
+    ? PropFnInterface<ARGS, RET>
+    : PROPS[K];
+};
+
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#component instead)
@@ -216,16 +225,21 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends {}>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
-  return componentQrl<PROPS>($(onMount));
+export const component$ = <
+  PROPS = unknown,
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}
+>(
+  onMount: OnRenderFn<ARG>
+): Component<PROPS extends {} ? PROPS : ARG> => {
+  return componentQrl<any>($(onMount));
 };
 
 /**
  * @public
  */
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
 
-export interface RenderFactoryOutput<PROPS> {
+export interface RenderFactoryOutput<PROPS extends {}> {
   renderQRL: QRL<OnRenderFn<PROPS>>;
   waitOn: any[];
 }

@@ -3,7 +3,13 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 export { componentQrl, component$ } from './component/component.public';
 
-export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/component.public';
+export type {
+  PropsOf,
+  OnRenderFn,
+  Component,
+  PublicProps,
+  PropFunctionProps,
+} from './component/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API

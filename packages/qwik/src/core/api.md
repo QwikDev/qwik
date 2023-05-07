@@ -66,7 +66,7 @@ export interface AriaAttributes {
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
 // @public
-export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
+export const component$: <PROPS = unknown, ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}>(onMount: OnRenderFn<ARG>) => Component<PROPS extends {} ? PROPS : ARG>;
 
 // @public
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
@@ -393,7 +393,7 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
@@ -415,6 +415,11 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 
 // @public (undocumented)
 export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+
+// @public (undocumented)
+export type PropFunctionProps<PROPS extends {}> = {
+    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];
+};
 
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;

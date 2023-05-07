@@ -119,7 +119,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>\n```",
+      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS = unknown, ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}>(onMount: OnRenderFn<ARG>) => Component<PROPS extends {} ? PROPS : ARG>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component_.md"
     },
@@ -806,7 +806,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;\n```\n**References:** [JSXNode](#jsxnode)",
+      "content": "```typescript\nexport type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;\n```\n**References:** [JSXNode](#jsxnode)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.onrenderfn.md"
     },
@@ -851,6 +851,20 @@
       "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfunction.md"
+    },
+    {
+      "name": "PropFunctionProps",
+      "id": "propfunctionprops",
+      "hierarchy": [
+        {
+          "name": "PropFunctionProps",
+          "id": "propfunctionprops"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
+      "mdFile": "qwik.propfunctionprops.md"
     },
     {
       "name": "PropsOf",
@@ -1719,7 +1733,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Assign a value to a Context.\n\nUse `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nuseContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void\n```",
+      "content": "Assign a value to a Context.\n\nUse `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\nuseContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.usecontextprovider.md"
     },

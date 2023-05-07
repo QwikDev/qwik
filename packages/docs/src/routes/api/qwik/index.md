@@ -249,7 +249,12 @@ export const OtherComponent = component$(() => {
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
+component$: <
+  PROPS = unknown,
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}
+>(
+  onMount: OnRenderFn<ARG>
+) => Component<PROPS extends {} ? PROPS : ARG>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
@@ -964,7 +969,9 @@ noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 ## OnRenderFn
 
 ```typescript
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends {}> = (
+  props: PROPS
+) => JSXNode<any> | null;
 ```
 
 **References:** [JSXNode](#jsxnode)
@@ -1003,6 +1010,22 @@ export type PropFunction<T extends Function = (...args: any[]) => any> =
 **References:** [PropFnInterface](#propfninterface)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## PropFunctionProps
+
+```typescript
+export type PropFunctionProps<PROPS extends {}> = {
+  [K in keyof PROPS]: NonNullable<PROPS[K]> extends (
+    ...args: infer ARGS
+  ) => infer RET
+    ? PropFnInterface<ARGS, RET>
+    : PROPS[K];
+};
+```
+
+**References:** [PropFnInterface](#propfninterface)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## PropsOf
 
@@ -1955,7 +1978,7 @@ useContext: UseContext;
 
 Assign a value to a Context.
 
-Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.
+Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
 Context is a way to pass stores to the child components without prop-drilling.
 

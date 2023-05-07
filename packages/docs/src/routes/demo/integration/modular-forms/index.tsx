@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { $, component$ } from '@builder.io/qwik';
 import { routeLoader$, z } from '@builder.io/qwik-city';

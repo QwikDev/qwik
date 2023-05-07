@@ -67,7 +67,7 @@ Qwik still needs to collect the listener information, but this step is done as p
 
 ### Component Trees
 
-Frameworks work with component trees. To that end, frameworks need a complete understanding of the component trees to know which components need to be rerendered and when. If you look into the existing framework SSR/SSG output, the component boundary information has been destroyed. There is no way of knowing where component boundaries are by looking at the resulting HTML. To recreate this information, frameworks re-execute the component templates and memoize the component boundary location. Re-execution is what hydration is. Hydration is expensive as it requires both the download of component templates and their execution.
+Frameworks work with component trees. To that end, frameworks need a complete understanding of the component trees to know which components need to be rerendered and when. If you look into the existing framework SSR/SSG output, the component boundary information has been destroyed. There is no way of knowing where component boundaries are by looking at the resulting HTML. To recreate this information, frameworks re-execute the component templates and memorize the component boundary location. Re-execution is what hydration is. Hydration is expensive as it requires both the download of component templates and their execution.
 
 Qwik collects component boundary information as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
 

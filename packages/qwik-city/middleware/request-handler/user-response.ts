@@ -50,7 +50,7 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
       console.error(e);
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
-        const status = e.status as StatusCodes
+        const status = e.status as StatusCodes;
         requestEv.html(status, html);
       }
     } else if (!(e instanceof AbortMessage)) {

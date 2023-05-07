@@ -62,8 +62,14 @@ export interface SendMethod {
   (response: Response): AbortMessage;
 }
 
-export type StatusCodes = InformationalCode | SuccessCode | ClientErrorCode | ServerErrorCode | RedirectCode;
-export type ErrorCodes = ClientErrorCode | ServerErrorCode
+export type StatusCodes =
+  | InformationalCode
+  | SuccessCode
+  | ClientErrorCode
+  | ServerErrorCode
+  | RedirectCode;
+
+export type ErrorCodes = ClientErrorCode | ServerErrorCode;
 
 /**
  * HTTP Informational Status Codes
@@ -73,7 +79,7 @@ export type InformationalCode =
   | 100 // Continue
   | 101 // Switching Protocols
   | 102 // Processing
-  | 103 // Early Hints
+  | 103; // Early Hints
 
 /**
  * HTTP Success Status Codes
@@ -89,7 +95,7 @@ type SuccessCode =
   | 206 // Partial Content
   | 207 // Multi-Status
   | 208 // Already Reported
-  | 226 // IM Used
+  | 226; // IM Used
 
 /**
  * HTTP Redirect Status Codes
@@ -103,7 +109,7 @@ export type RedirectCode =
   | 304 // Not Modified
   | 305 // Use Proxy
   | 307 // Temporary Redirect
-  | 308 // Permanent Redirect
+  | 308; // Permanent Redirect
 
 /**
  * HTTP Client Error Status Codes
@@ -138,7 +144,7 @@ export type ClientErrorCode =
   | 428 // Precondition Required
   | 429 // Too Many Requests
   | 431 // Request Header Fields Too Large
-  | 451 // Unavailable For Legal Reasons
+  | 451; // Unavailable For Legal Reasons
 
 /**
  * HTTP Server Error Status Codes
@@ -155,8 +161,7 @@ export type ServerErrorCode =
   | 507 // Insufficient Storage
   | 508 // Loop Detected
   | 510 // Not Extended
-  | 511 // Network Authentication Required
-
+  | 511; // Network Authentication Required
 
 /**
  * @public
@@ -402,7 +407,7 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 }
 
 declare global {
-  interface QwikCityPlatform { }
+  interface QwikCityPlatform {}
 }
 
 /**

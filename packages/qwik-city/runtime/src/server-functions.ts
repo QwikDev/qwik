@@ -189,7 +189,7 @@ export const routeLoaderQrl = ((
   function loader() {
     return useContext(RouteStateContext, (state) => {
       if (!(id in state)) {
-        throw new Error(`Loader (${id}) was used in a path where the 'loader$' was not declared.
+        throw new Error(`routeLoader (${id}) was used in a path where the 'routeLoader$' was not declared.
     This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
     For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
       }

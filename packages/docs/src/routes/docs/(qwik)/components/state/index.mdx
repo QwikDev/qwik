@@ -25,6 +25,7 @@ contributors:
   - wtlin1228
   - AnthonyPAlicea
   - sreeisalso
+  - wmertens
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -140,6 +141,28 @@ const shallowStore = useStore(
   },
   { deep: false}
 );
+```
+
+### Methods
+
+To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
+
+```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
+export default component$(() => {
+  const state = useStore({
+    count: 0,
+    increment: $(function () { this.count++; }),
+  });
+
+  return (
+    <>
+      <button onClick$={() => state.increment()}>Increment</button>
+      <p>Count: {state.count}</p>
+    </>
+  );
+});
 ```
 
 ## Computed state

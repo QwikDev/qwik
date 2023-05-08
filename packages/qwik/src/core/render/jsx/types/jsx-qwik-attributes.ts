@@ -171,7 +171,7 @@ export type BaseClassList =
   | null
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
-  
+
 /**
  * @public
  */

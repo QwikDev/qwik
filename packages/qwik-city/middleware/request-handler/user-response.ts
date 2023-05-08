@@ -1,4 +1,4 @@
-import type { QwikSerializer, ServerRequestEvent } from './types';
+import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
@@ -50,7 +50,8 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
       console.error(e);
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
-        requestEv.html(e.status, html);
+        const status = e.status as StatusCodes;
+        requestEv.html(status, html);
       }
     } else if (!(e instanceof AbortMessage)) {
       if (getRequestMode(requestEv) !== 'dev') {

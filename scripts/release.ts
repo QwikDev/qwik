@@ -81,6 +81,13 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   qwikPkg.version = config.distVersion;
   await writePackageJson(qwikDir, qwikPkg);
 
+  // update packages/qwik-city
+  const qwikCityDir = join(config.packagesDir, 'qwik-city');
+  const qwikCityPkg = await readPackageJson(qwikCityDir);
+  commitPaths.push(join(qwikCityDir, 'package.json'));
+  qwikCityPkg.version = config.distVersion;
+  await writePackageJson(qwikCityDir, qwikCityPkg);
+
   // update the cli version
   const distCliDir = join(config.packagesDir, 'create-qwik');
   commitPaths.push(join(distCliDir, 'package.json'));
@@ -105,7 +112,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
 
   console.log(``);
   console.log(`Next:`);
-  console.log(` - Submit a PR to main with the package.json update`);
+  console.log(` - Submit a PR to main with the prepared release updates`);
   console.log(` - Once merged, run the "Qwik CI" release workflow`);
   console.log(` - https://github.com/BuilderIO/qwik/actions/workflows/ci.yml`);
   console.log(``);

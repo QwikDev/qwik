@@ -173,6 +173,14 @@ cache(policyOrMilliseconds: number | 'immutable'): void;
 
 void
 
+## ClassList
+
+```typescript
+export type ClassList = BaseClassList | BaseClassList[];
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+
 ## cleanup
 
 ```typescript

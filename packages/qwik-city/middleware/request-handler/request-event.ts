@@ -20,6 +20,7 @@ import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
 import type { ValueOrPromise } from '@builder.io/qwik';
+import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -34,8 +35,9 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  trailingSlash = true,
-  basePathname = '/',
+  manifest: QwikManifest | ResolvedManifest | undefined,
+  trailingSlash: boolean,
+  basePathname: string,
   qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
@@ -100,6 +102,7 @@ export function createRequestEvent(
   const loaders: Record<string, Promise<any>> = {};
 
   const sharedMap = new Map();
+  sharedMap.set('@manifest', manifest);
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,

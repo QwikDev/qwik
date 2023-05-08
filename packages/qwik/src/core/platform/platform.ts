@@ -3,7 +3,6 @@ import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../e
 import { getSymbolHash } from '../qrl/qrl-class';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
-import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (): CorePlatform => {
@@ -29,7 +28,7 @@ export const createPlatform = (): CorePlatform => {
       urlCopy.search = '';
       const importURL = urlCopy.href;
       return import(/* @vite-ignore */ importURL).then((mod) => {
-        return findSymbol(mod, symbolName);
+        return mod[symbolName];
       });
     },
     raf: (fn) => {
@@ -50,16 +49,6 @@ export const createPlatform = (): CorePlatform => {
       return [symbolName, chunk ?? '_'];
     },
   };
-};
-const findSymbol = (module: any, symbol: string) => {
-  if (symbol in module) {
-    return module[symbol];
-  }
-  for (const v of Object.values(module)) {
-    if (isObject(v) && symbol in v) {
-      return (v as any)[symbol];
-    }
-  }
 };
 
 /**

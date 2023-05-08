@@ -198,8 +198,8 @@ export const useAddUser = routeAction$(
   async (user) => {
     // The "user" is strongly typed: { firstName: string, lastName: string }
     const userID = await db.users.add({
-      firstName: data.firstName,
-      lastName: data.lastName,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
     return {
       success: true,

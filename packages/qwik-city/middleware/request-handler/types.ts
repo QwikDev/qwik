@@ -58,11 +58,110 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
  * @public
  */
 export interface SendMethod {
-  (statusCode: number, data: any): AbortMessage;
+  (statusCode: StatusCodes, data: any): AbortMessage;
   (response: Response): AbortMessage;
 }
 
-export type RedirectCode = 301 | 302 | 303 | 307 | 308;
+export type StatusCodes =
+  | InformationalCode
+  | SuccessCode
+  | ClientErrorCode
+  | ServerErrorCode
+  | RedirectCode;
+
+export type ErrorCodes = ClientErrorCode | ServerErrorCode;
+
+/**
+ * HTTP Informational Status Codes
+ * Status codes in the 1xx range indicate that the server has received and is processing the request, but no response is available yet.
+ */
+export type InformationalCode =
+  | 100 // Continue
+  | 101 // Switching Protocols
+  | 102 // Processing
+  | 103; // Early Hints
+
+/**
+ * HTTP Success Status Codes
+ * Status codes in the 2xx range indicate that the client's request was successfully received, understood, and accepted by the server.
+ */
+type SuccessCode =
+  | 200 // OK
+  | 201 // Created
+  | 202 // Accepted
+  | 203 // Non-Authoritative Information
+  | 204 // No Content
+  | 205 // Reset Content
+  | 206 // Partial Content
+  | 207 // Multi-Status
+  | 208 // Already Reported
+  | 226; // IM Used
+
+/**
+ * HTTP Redirect Status Codes
+ * Status codes in the 3xx range indicate that further action must be taken by the client to complete the request.
+ */
+export type RedirectCode =
+  | 300 // Multiple Choices
+  | 301 // Moved Permanently
+  | 302 // Found
+  | 303 // See Other
+  | 304 // Not Modified
+  | 305 // Use Proxy
+  | 307 // Temporary Redirect
+  | 308; // Permanent Redirect
+
+/**
+ * HTTP Client Error Status Codes
+ * Status codes in the 4xx range indicate that the client's request was malformed or invalid and could not be understood or processed by the server.
+ */
+export type ClientErrorCode =
+  | 400 // Bad Request
+  | 401 // Unauthorized
+  | 402 // Payment Required
+  | 403 // Forbidden
+  | 404 // Not Found
+  | 405 // Method Not Allowed
+  | 406 // Not Acceptable
+  | 407 // Proxy Authentication Required
+  | 408 // Request Timeout
+  | 409 // Conflict
+  | 410 // Gone
+  | 411 // Length Required
+  | 412 // Precondition Failed
+  | 413 // Payload Too Large
+  | 414 // URI Too Long
+  | 415 // Unsupported Media Type
+  | 416 // Range Not Satisfiable
+  | 417 // Expectation Failed
+  | 418 // I'm a teapot
+  | 421 // Misdirected Request
+  | 422 // Unprocessable Entity
+  | 423 // Locked
+  | 424 // Failed Dependency
+  | 425 // Too Early
+  | 426 // Upgrade Required
+  | 428 // Precondition Required
+  | 429 // Too Many Requests
+  | 431 // Request Header Fields Too Large
+  | 451; // Unavailable For Legal Reasons
+
+/**
+ * HTTP Server Error Status Codes
+ * Status codes in the 5xx range indicate that the server encountered an error or was unable to fulfill the request due to unexpected conditions.
+ */
+export type ServerErrorCode =
+  | 500 // Internal Server Error
+  | 501 // Not Implemented
+  | 502 // Bad Gateway
+  | 503 // Service Unavailable
+  | 504 // Gateway Timeout
+  | 505 // HTTP Version Not Supported
+  | 506 // Variant Also Negotiates
+  | 507 // Insufficient Storage
+  | 508 // Loop Detected
+  | 510 // Not Extended
+  | 511; // Network Authentication Required
 
 /**
  * @public
@@ -76,7 +175,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
-  readonly status: (statusCode?: number) => number;
+  readonly status: (statusCode?: StatusCodes) => number;
 
   /**
    * Which locale the content is in.
@@ -100,28 +199,28 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    * for which status code should be used.
    */
-  readonly error: (statusCode: number, message: string) => ErrorResponse;
+  readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
 
   /**
    * Convenience method to send an text body response. The response will be automatically
    * set the `Content-Type` header to`text/plain; charset=utf-8`.
    *  An `text()` response can only be called once.
    */
-  readonly text: (statusCode: number, text: string) => AbortMessage;
+  readonly text: (statusCode: StatusCodes, text: string) => AbortMessage;
 
   /**
    * Convenience method to send an HTML body response. The response will be automatically
    * set the `Content-Type` header to`text/html; charset=utf-8`.
    *  An `html()` response can only be called once.
    */
-  readonly html: (statusCode: number, html: string) => AbortMessage;
+  readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
 
   /**
    * Convenience method to JSON stringify the data and send it in the response.
    * The response will be automatically set the `Content-Type` header to
    * `application/json; charset=utf-8`. A `json()` response can only be called once.
    */
-  readonly json: (statusCode: number, data: any) => AbortMessage;
+  readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
 
   /**
    * Send a body response. The `Content-Type` response header is not automatically set

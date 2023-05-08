@@ -59,6 +59,7 @@ export type {
   JSXTagName,
   JSXChildren,
   ComponentBaseProps,
+  ClassList,
 } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';

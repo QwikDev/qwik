@@ -67,6 +67,7 @@ export const Parent = component$(() => {
 interface ChildProps {
   userData: { count: number };
 }
+
 export const Child = component$<ChildProps>(({ userData }) => {
   return (
     <>
@@ -216,7 +217,7 @@ export const Fetch = component$(() => {
 
 ```tsx
 export function Fetch() {
-  const [url, setUrl] = useState('https://api.github.com/repos/qwikstart/qwikstart-docs');
+  const [url, setUrl] = useState('https://api.github.com/repos/BuilderIO/qwik');
   const [responseJson, setResponseJson] = useState(undefined);
   useEffect(() => {
     fetch(url)
@@ -225,8 +226,8 @@ export function Fetch() {
   }, [url]);
   return (
     <>
-      <p>{responseJson?.name}</p>
-      <input name="url" onInput={(ev) => setUrl((ev.target as HTMLInputElement).value))} />
+      <p>{responseJson?.name} has {responseJson?.stargazers_count} ✨'s</p>
+      <input name="url" onInput={(ev) => setUrl((ev.target as HTMLInputElement).value)} />
     </>
   );
 }

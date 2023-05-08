@@ -11,11 +11,6 @@ export const SkipRender: JSXNode = Symbol('skip render') as any;
 /**
  * @public
  */
-export const Fragment: FunctionComponent<{}> = ((props: any) => props.children) as any;
-
-/**
- * @public
- */
 export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
 
 /**

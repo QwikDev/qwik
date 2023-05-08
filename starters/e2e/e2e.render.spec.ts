@@ -436,9 +436,9 @@ test.describe('render', () => {
       const result = page.locator('#html-fragment-test-result');
       const mounted = await result.getAttribute('data-mounted');
       if (mounted === 'server') {
-        expect(await result.innerHTML()).toEqual('<!--qv--><b>html fragment test</b><!--/qv-->');
+        await expect(await result.innerHTML()).toEqual('<!--qv--><b>html fragment test</b><!--/qv-->');
       } else if (mounted === 'browser') {
-        expect(await result.innerHTML()).toEqual('<!--qv --><b>html fragment test</b><!--/qv-->');
+        await expect(await result.innerHTML()).toEqual('<!--qv --><b>html fragment test</b><!--/qv-->');
       } else {
         throw new Error('Unexpected mounted value');
       }

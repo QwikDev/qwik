@@ -169,6 +169,7 @@ export type BaseClassList =
   | string
   | undefined
   | null
+  | false
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
 export type ClassList = BaseClassList | BaseClassList[];

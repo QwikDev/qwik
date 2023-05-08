@@ -332,6 +332,14 @@ export interface QwikVitePluginOptions {
 }
 
 // @public (undocumented)
+export interface ResolvedManifest {
+    // (undocumented)
+    manifest: QwikManifest;
+    // (undocumented)
+    mapper: SymbolMapper;
+}
+
+// @public (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
     manual?: Record<string, string>;

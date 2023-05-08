@@ -101,21 +101,23 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 
 // @public (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends RequestEventBase<PLATFORM> {
+    // Warning: (ae-forgotten-export) The symbol "ErrorCodes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
-    readonly error: (statusCode: number, message: string) => ErrorResponse;
+    readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
     // (undocumented)
     readonly exit: () => AbortMessage;
-    readonly html: (statusCode: number, html: string) => AbortMessage;
-    readonly json: (statusCode: number, data: any) => AbortMessage;
+    readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
+    readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
-    readonly status: (statusCode?: number) => number;
+    // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts
+    readonly status: (statusCode?: StatusCodes) => number;
     // Warning: (ae-forgotten-export) The symbol "AbortMessage" needs to be exported by the entry point index.d.ts
-    readonly text: (statusCode: number, text: string) => AbortMessage;
+    readonly text: (statusCode: StatusCodes, text: string) => AbortMessage;
 }
 
 // @public (undocumented)

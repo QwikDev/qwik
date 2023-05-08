@@ -37,8 +37,8 @@ import { createServerClient } from 'supabase-auth-helpers-qwik';
 
 export const useDBTest = routeLoader$(async (requestEv) => {
   const supabaseClient = createServerClient(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+    requestEv.env.get("PUBLIC_SUPABASE_URL")!,
+    requestEv.env.get("PUBLIC_SUPABASE_ANON_KEY")!,
     requestEv
   );
   const { data } = await supabaseClient.from('test').select('*')

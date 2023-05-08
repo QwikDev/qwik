@@ -5,9 +5,9 @@
 ```ts
 
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { SnapshotResult } from '@builder.io/qwik';
 import type { StreamWriter } from '@builder.io/qwik';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
 // @public
@@ -152,10 +152,10 @@ export interface RenderToStringResult extends RenderResult {
     };
 }
 
-// Warning: (ae-forgotten-export) The symbol "ResolvedManifest" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ResolvedManifest_2" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function resolveManifest(manifest: QwikManifest | ResolvedManifest | undefined): ResolvedManifest | undefined;
+export function resolveManifest(manifest: QwikManifest | ResolvedManifest_2 | undefined): ResolvedManifest_2 | undefined;
 
 // @public (undocumented)
 export interface SerializeDocumentOptions {

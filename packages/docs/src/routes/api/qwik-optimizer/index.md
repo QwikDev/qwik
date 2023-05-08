@@ -556,6 +556,19 @@ resolve(...paths: string[]): string;
 
 string
 
+## ResolvedManifest
+
+```typescript
+export interface ResolvedManifest
+```
+
+| Property      | Modifiers | Type                          | Description |
+| ------------- | --------- | ----------------------------- | ----------- |
+| [manifest](#) |           | [QwikManifest](#qwikmanifest) |             |
+| [mapper](#)   |           | [SymbolMapper](#symbolmapper) |             |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
 ## SingleEntryStrategy
 
 ```typescript

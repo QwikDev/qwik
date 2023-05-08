@@ -5,6 +5,7 @@ import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handle
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { encoder } from './resolve-request-handlers';
+import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -16,6 +17,7 @@ export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
+  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
@@ -26,6 +28,7 @@ export function runQwikCity<T>(
     serverRequestEv,
     loadedRoute,
     requestHandlers,
+    manifest,
     trailingSlash,
     basePathname,
     qwikSerializer,

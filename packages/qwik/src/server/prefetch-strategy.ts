@@ -4,15 +4,10 @@ import type {
   QwikManifest,
   RenderToStringOptions,
   SnapshotResult,
-  SymbolMapper,
 } from './types';
 
 import type { QRLInternal } from '../core/qrl/qrl-class';
-
-export interface ResolvedManifest {
-  mapper: SymbolMapper;
-  manifest: QwikManifest;
-}
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,

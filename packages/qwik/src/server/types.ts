@@ -1,6 +1,10 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
-import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { ResolvedManifest } from './prefetch-strategy';
+import type {
+  QwikManifest,
+  SymbolMapperFn,
+  SymbolMapper,
+  ResolvedManifest,
+} from '@builder.io/qwik/optimizer';
 
 /**
  * @public

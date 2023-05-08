@@ -537,6 +537,20 @@
       "mdFile": "qwik.path.resolve.md"
     },
     {
+      "name": "ResolvedManifest",
+      "id": "resolvedmanifest",
+      "hierarchy": [
+        {
+          "name": "ResolvedManifest",
+          "id": "resolvedmanifest"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ResolvedManifest \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manifest](#) |  | [QwikManifest](#qwikmanifest) |  |\n|  [mapper](#) |  | [SymbolMapper](#symbolmapper) |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.resolvedmanifest.md"
+    },
+    {
       "name": "SingleEntryStrategy",
       "id": "singleentrystrategy",
       "hierarchy": [

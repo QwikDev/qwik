@@ -105,6 +105,7 @@ export const smartUpdateChildren = (
 
   const ch = newVnode.$children$;
   if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
+    newVnode.$children$ = oldVnode.$children$;
     return;
   }
   const elm = oldVnode.$elm$;
@@ -481,6 +482,9 @@ export const diffVnode = (
     assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
     currentComponent.$slots$.push(newVnode);
     return;
+  } else if (dangerouslySetInnerHTML in props) {
+    setProperty(staticCtx, elm, 'innerHTML', props[dangerouslySetInnerHTML]);
+    return;
   }
   if (vnodeFlags & static_subtree) {
     return;
@@ -743,13 +747,6 @@ const createElm = (
     }
     setQId(rCtx, elCtx);
 
-    if (qDev && !qTest) {
-      const symbol = renderQRL.$symbol$;
-      if (symbol) {
-        directSetAttribute(elm, 'data-qrl', symbol);
-      }
-    }
-
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;
 
@@ -794,6 +791,9 @@ const createElm = (
     directSetAttribute(elm, QSlotS, '');
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
+  } else if (dangerouslySetInnerHTML in props) {
+    setProperty(staticCtx, elm, 'innerHTML', props[dangerouslySetInnerHTML]);
+    return elm;
   }
 
   let children = vnode.$children$;

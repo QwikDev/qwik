@@ -77,7 +77,7 @@ Start by serving a page at a particular route. This basic app serves a random da
 2. Each route's `index.tsx` file must have an `export default component$(...)` so that Qwikcity knows what content to serve. Paste the following content to `src/routes/joke/index.tsx`:
 
 <CodeSandbox src="/src/routes/demo/getting-started/01-route/index.tsx" style={{ height: '6em' }}>
-```tsx {3-5}
+```tsx {3-5} title="src/routes/joke/index.tsx"
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -264,7 +264,7 @@ NOTE: Clicking on the button updates the state, which in turn updates the UI.
 For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/04-state/index.tsx" style={{ height: '10em' }} maxHeight={500}>
-```tsx /isFavoriteSignal/
+```tsx /isFavoriteSignal/ title="src/routes/joke/index.tsx"
 import { component$, useSignal } from '@builder.io/qwik';
 import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
@@ -353,7 +353,7 @@ NOTE:
 For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/05-tasks/index.tsx" style={{ height: '10em' }} maxHeight={500}>
-```tsx {28-34}
+```tsx {28-34} title="src/routes/joke/index.tsx"
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import {
   routeLoader$,
@@ -448,7 +448,7 @@ Code explanation:
 For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox maxHeight={500} src="/src/routes/demo/getting-started/06-styling/index.tsx" style={{ height: '10em' }}>
-```tsx /useStylesScoped\$/
+```tsx /useStylesScoped\$/ title="src/routes/joke/index.tsx"
 import {
   component$,
   useSignal,

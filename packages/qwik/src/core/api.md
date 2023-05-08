@@ -277,6 +277,11 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     vocab?: string | undefined;
 }
 
+// @public (undocumented)
+export const HTMLFragment: FunctionComponent<{
+    html: string;
+}>;
+
 // @internal
 export const _hW: () => void;
 
@@ -875,7 +880,7 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const SSRHint: FunctionComponent<SSRHintProps>;
 
 // @public (undocumented)

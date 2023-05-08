@@ -692,6 +692,16 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## HTMLFragment
+
+```typescript
+HTMLFragment: FunctionComponent<{
+  html: string;
+}>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+
 ## implicit$FirstArg
 
 Create a `____$(...)` convenience method from `___(...)`.
@@ -1773,6 +1783,10 @@ SSRComment: FunctionComponent<{
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRHint
+
+> Warning: This API is now obsolete.
+>
+> - It has no effect
 
 ```typescript
 SSRHint: FunctionComponent<SSRHintProps>;

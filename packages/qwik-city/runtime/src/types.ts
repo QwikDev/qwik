@@ -81,10 +81,22 @@ export type RouteStateInternal = {
 /**
  * @alpha
  */
+export type ScrollState = [
+  scrollX: number,
+  scrollY: number,
+  scrollWidth: number,
+  scrollHeight: number
+];
+
+/**
+ * @alpha
+ */
 export type RestoreScroll = (
   navigationType: NavigationType,
   fromUrl: URL,
-  toUrl: URL
+  toUrl: URL,
+  prevScroll: ScrollState,
+  prevId: string
 ) => void | Promise<void>;
 
 /**

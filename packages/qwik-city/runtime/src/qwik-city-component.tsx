@@ -49,8 +49,8 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
 import { isSamePathname, toUrl } from './utils';
-import { clientNavigate } from './client-navigate';
-import { toLastPositionOnPopState } from './scroll-restoration';
+import { clientNavigate, getHistoryId } from './client-navigate';
+import { currentScrollState, toLastPositionOnPopState } from './scroll-restoration';
 
 /**
  * @public
@@ -255,19 +255,33 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
 
           const loaders = clientPageData?.loaders;
+          const win = window as ClientHistoryWindow;
           if (loaders) {
             Object.assign(loaderState, loaders);
           }
           CLIENT_DATA_CACHE.clear();
+          if (!win._qCityHistory) {
+            // only add event listener once
+            win._qCityHistory = 1;
 
+            win.addEventListener('popstate', () => {
+              return goto(location.href, {
+                type: 'popstate',
+              });
+            });
+
+            win.removeEventListener('popstate', win._qCityPopstateFallback!);
+          }
+          const navId = getHistoryId();
           clientNavigate(window, navType, prevUrl, trackUrl);
           routeLocation.isNavigating = false;
-          if (navResolver.r) {
-            _waitUntilRendered(elm as Element).then(() => {
-              const restore = props.restoreScroll$ ?? toLastPositionOnPopState;
-              restore(routeInternal.value.type, prevUrl, trackUrl).then(navResolver.r);
-            });
-          }
+          const currentScroll = currentScrollState(document.documentElement);
+          _waitUntilRendered(elm as Element).then(() => {
+            const restore = props.restoreScroll$ ?? toLastPositionOnPopState;
+            restore(routeInternal.value.type, prevUrl, trackUrl, currentScroll, navId).then(
+              navResolver.r
+            );
+          });
         }
       }
     }
@@ -338,3 +352,8 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
 
   return <Slot />;
 });
+
+interface ClientHistoryWindow extends Window {
+  _qCityHistory?: 1;
+  _qCityPopstateFallback?: () => void;
+}

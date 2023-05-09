@@ -1,5 +1,5 @@
 import { $, type QRL } from '@builder.io/qwik';
-import type { RestoreScroll } from './types';
+import type { RestoreScroll, ScrollState } from './types';
 import { isSamePath } from './utils';
 import { getHistoryId } from './client-navigate';
 
@@ -22,16 +22,16 @@ export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSet
  * @alpha
  */
 export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
-  async (type, fromUrl, toUrlSettled) => {
+  (type, fromUrl, toUrlSettled, prevScroll, prevId) => {
     nativeScrollRestoration.disable();
 
     // record current scroll position and scroll box before url settled
     const scrollRecord = getOrInitializeScrollRecord();
-    scrollRecord[getHistoryId()] = currentScrollState(document.documentElement);
+    scrollRecord[prevId] = prevScroll;
     flushScrollRecordToStorage(scrollRecord);
 
     // wait for url to settled
-    const toUrl = await toUrlSettled;
+    const toUrl = toUrlSettled;
     if (!scrollForHashChange(fromUrl, toUrl)) {
       // retrieve scroll position for popstate navigation
       let [scrollX, scrollY] = [0, 0];
@@ -64,7 +64,7 @@ const nativeScrollRestoration = {
 
 const QWIK_CITY_SCROLL_RECORD = '_qCityScroll';
 
-const currentScrollState = (elm: Element): ScrollState => [
+export const currentScrollState = (elm: Element): ScrollState => [
   window.scrollX,
   window.scrollY,
   Math.max(elm.scrollWidth, elm.clientWidth),
@@ -129,8 +129,6 @@ const scrollToHashId = (hash: string) => {
   }
   return elm;
 };
-
-type ScrollState = [scrollX: number, scrollY: number, scrollWidth: number, scrollHeight: number];
 
 type ScrollRecord = Record<string, ScrollState>;
 

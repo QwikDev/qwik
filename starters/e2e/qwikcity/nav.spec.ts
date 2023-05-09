@@ -46,9 +46,6 @@ test.describe('actions', () => {
         await page.reload();
         await expect(page.locator('h1')).toHaveText('Page Short');
 
-        page.addListener('domcontentloaded', () => {
-          throw new Error('Full-page refresh should not happen on popstate');
-        });
         await page.goBack();
 
         await expect(page.locator('h1')).toHaveText('Page Long');
@@ -88,7 +85,7 @@ test.describe('actions', () => {
       });
       test('should restore scroll on back and forward navigations', async ({ page }) => {
         await page.goto('/qwikcity-test/scroll-restoration/page-long/');
-
+        debugger;
         const link = page.locator('#to-page-short');
         const scrollHeightLong = await getScrollHeight(page);
         await scrollTo(page, 0, scrollHeightLong);

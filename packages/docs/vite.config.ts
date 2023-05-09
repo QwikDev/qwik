@@ -82,6 +82,7 @@ export default defineConfig(() => {
           type: 'smart',
           manual: {
             ...page,
+            ...menus,
             ...algoliaSearch,
             ...repl,
           },
@@ -107,6 +108,11 @@ export default defineConfig(() => {
 const page = {
   KnNE9eL0qfc: 'page',
   '9t1uPE4yoLA': 'page',
+};
+
+const menus = {
+  S0wV0vUzzSo: 'right',
+  '5wL0DAwmu0A': 'left',
 };
 
 const algoliaSearch = {

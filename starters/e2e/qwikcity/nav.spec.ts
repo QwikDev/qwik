@@ -85,7 +85,6 @@ test.describe('actions', () => {
       });
       test('should restore scroll on back and forward navigations', async ({ page }) => {
         await page.goto('/qwikcity-test/scroll-restoration/page-long/');
-        debugger;
         const link = page.locator('#to-page-short');
         const scrollHeightLong = await getScrollHeight(page);
         await scrollTo(page, 0, scrollHeightLong);

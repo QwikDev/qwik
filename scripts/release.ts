@@ -122,14 +122,13 @@ export async function publish(config: BuildConfig) {
   const isDryRun = !!config.dryRun;
 
   const distPkg = await readPackageJson(config.distQwikPkgDir);
-  const version = distPkg.version;
-  const gitTag = `v${version}`;
+  const gitTag = `v${distPkg.version}`;
   const distTag = config.setDistTag || 'dev';
 
-  console.log(`🚢 publishing ${version}`, isDryRun ? '(dry-run)' : '');
+  console.log(`🚢 publishing ${distPkg.version}`, isDryRun ? '(dry-run)' : '');
 
   // create a pack.tgz which is useful for debugging and uploaded as an artifact
-  const pkgTarName = `builder.io-qwik-${version}.tgz`;
+  const pkgTarName = `builder.io-qwik-${distPkg.version}.tgz`;
   await execa('npm', ['pack'], { cwd: config.distQwikPkgDir });
   await execa('mv', [pkgTarName, '../'], { cwd: config.distQwikPkgDir });
 
@@ -161,7 +160,7 @@ export async function publish(config: BuildConfig) {
   await run('git', gitConfigNameArgs, isDryRun);
 
   // git tag this commit
-  const gitTagArgs = ['tag', '-f', '-m', version, gitTag];
+  const gitTagArgs = ['tag', '-f', '-m', distPkg.version, gitTag];
   await run('git', gitTagArgs, isDryRun);
 
   if (isDryRun) {
@@ -195,16 +194,16 @@ export async function publish(config: BuildConfig) {
 
   if (!config.devRelease) {
     // create a github release using the git tag we just pushed
-    await createGithubRelease(version, gitTag, isDryRun);
+    await createGithubRelease(distPkg.version, gitTag, isDryRun);
   }
 
   console.log(
-    `🐋 published version "${version}" with dist-tag "${distTag}" to npm`,
+    `🐋 published version "${distPkg.version}" with dist-tag "${distTag}" to npm`,
     isDryRun ? '(dry-run)' : ''
   );
 
-  await publishCreateQwikCli(config, distTag, version, isDryRun);
-  await publishEslint(config, distTag, version, isDryRun);
+  await publishCreateQwikCli(config, distTag, distPkg.version, isDryRun);
+  await publishEslint(config, distTag, distPkg.version, isDryRun);
 }
 
 async function createGithubRelease(version: string, gitTag: string, isDryRun: boolean) {

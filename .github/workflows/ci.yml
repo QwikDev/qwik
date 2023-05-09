@@ -443,14 +443,14 @@ jobs:
           QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
         run: pnpm run qwik-save-artifacts
 
-      - name: Dry-Run Publish @builder.io/qwik
+      - name: Dry-Run Publish
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @builder.io/qwik
+      - name: Publish
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release
         env:

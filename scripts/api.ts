@@ -14,35 +14,40 @@ export async function apiExtractor(config: BuildConfig) {
 
   // core
   // Run the api extractor for each of the submodules
-  createTypesApi(config, join(config.srcDir, 'core'), join(config.distPkgDir, 'core.d.ts'), '.');
   createTypesApi(
     config,
-    join(config.srcDir, 'jsx-runtime'),
-    join(config.distPkgDir, 'jsx-runtime.d.ts'),
+    join(config.srcQwikDir, 'core'),
+    join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'optimizer'),
-    join(config.distPkgDir, 'optimizer.d.ts'),
+    join(config.srcQwikDir, 'jsx-runtime'),
+    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
     '.'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'server'),
-    join(config.distPkgDir, 'server.d.ts'),
+    join(config.srcQwikDir, 'optimizer'),
+    join(config.distQwikPkgDir, 'optimizer.d.ts'),
     '.'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'testing'),
-    join(config.distPkgDir, 'testing', 'index.d.ts'),
+    join(config.srcQwikDir, 'server'),
+    join(config.distQwikPkgDir, 'server.d.ts'),
+    '.'
+  );
+  createTypesApi(
+    config,
+    join(config.srcQwikDir, 'testing'),
+    join(config.distQwikPkgDir, 'testing', 'index.d.ts'),
     '..'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'build'),
-    join(config.distPkgDir, 'build', 'index.d.ts'),
+    join(config.srcQwikDir, 'build'),
+    join(config.distQwikPkgDir, 'build', 'index.d.ts'),
     '..'
   );
   generateServerReferenceModules(config);
@@ -251,12 +256,12 @@ declare module '*.mdx' {
 }
 `;
 
-  const destServerModulesPath = join(config.distPkgDir, 'server-modules.d.ts');
+  const destServerModulesPath = join(config.distQwikPkgDir, 'server-modules.d.ts');
   writeFileSync(destServerModulesPath, referenceDts);
 
   // manually prepend the ts reference since api extractor removes it
   const prependReferenceDts = `/// <reference path="./server-modules.d.ts" />\n\n`;
-  const distServerPath = join(config.distPkgDir, 'server.d.ts');
+  const distServerPath = join(config.distQwikPkgDir, 'server.d.ts');
   let serverDts = readFileSync(distServerPath, 'utf-8');
   serverDts = prependReferenceDts + serverDts;
   writeFileSync(distServerPath, serverDts);

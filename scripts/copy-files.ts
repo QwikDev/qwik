@@ -11,7 +11,7 @@ export async function copyFiles(config: BuildConfig) {
 
   await Promise.all(
     rootFiles.map((f) => {
-      copyFile(join(config.rootDir, f), join(config.distPkgDir, basename(f)));
+      copyFile(join(config.rootDir, f), join(config.distQwikPkgDir, basename(f)));
     })
   );
 }

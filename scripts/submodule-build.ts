@@ -6,7 +6,7 @@ import { writePackageJson } from './package-json';
 export async function submoduleBuild(config: BuildConfig) {
   const submodule = 'build';
   const buildSrcDtsDir = join(config.dtsDir, 'packages', 'qwik', 'src', submodule);
-  const buildDestDir = join(config.distPkgDir, submodule);
+  const buildDestDir = join(config.distQwikPkgDir, submodule);
 
   ensureDir(buildDestDir);
 
@@ -31,12 +31,12 @@ export async function submoduleBuild(config: BuildConfig) {
 
 export async function bundleIndex(config: BuildConfig, entryName: string) {
   const submodule = 'build';
-  const buildDestDir = join(config.distPkgDir, submodule);
+  const buildDestDir = join(config.distQwikPkgDir, submodule);
 
   ensureDir(buildDestDir);
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, 'build', `${entryName}.ts`)],
+    entryPoints: [join(config.srcQwikDir, 'build', `${entryName}.ts`)],
     entryNames: entryName,
     outdir: buildDestDir,
     bundle: true,

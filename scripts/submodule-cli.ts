@@ -10,8 +10,8 @@ export async function submoduleCli(config: BuildConfig) {
   const submodule = 'cli';
 
   await build({
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
-    outfile: join(config.distPkgDir, 'cli.cjs'),
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    outfile: join(config.distQwikPkgDir, 'cli.cjs'),
     format: 'cjs',
     platform: 'node',
     target: nodeTarget,
@@ -44,9 +44,12 @@ export async function submoduleCli(config: BuildConfig) {
     },
   });
 
-  await copyFile(join(config.srcDir, submodule, 'qwik.cjs'), join(config.distPkgDir, 'qwik.cjs'));
+  await copyFile(
+    join(config.srcQwikDir, submodule, 'qwik.cjs'),
+    join(config.distQwikPkgDir, 'qwik.cjs')
+  );
 
-  await copyStartersDir(config, config.distPkgDir, ['features', 'adapters']);
+  await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);
 
   console.log('📠', submodule);
 }

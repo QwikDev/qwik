@@ -17,9 +17,9 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
   const submodule = 'jsx-runtime';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, 'jsx-runtime', 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, 'jsx-runtime', 'index.ts')],
     entryNames: 'jsx-runtime',
-    outdir: config.distPkgDir,
+    outdir: config.distQwikPkgDir,
     bundle: true,
     sourcemap: true,
     target,

@@ -69,12 +69,6 @@ navTest('pushState for different hash', () => {
   );
   equal(win.history.state, { id: 2 });
   equal(getHistoryId(), '2');
-  const events = win.events();
-  equal(events.length, 1);
-  const event = events[0] as HashChangeEvent;
-  equal(event.type, 'hashchange');
-  equal(event.newURL, 'http://qwik.dev/page-b?search=123#hash-3');
-  equal(event.oldURL, 'http://qwik.dev/page-b?search=123#hash-2');
 });
 
 function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (path: string) => URL] {

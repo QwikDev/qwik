@@ -91,12 +91,16 @@ export type ScrollState = [
 /**
  * @alpha
  */
+export type ScrollRecord = Record<string, ScrollState>;
+
+/**
+ * @alpha
+ */
 export type RestoreScroll = (
   navigationType: NavigationType,
   fromUrl: URL,
   toUrl: URL,
-  prevScroll: ScrollState,
-  prevId: string
+  records: ScrollRecord
 ) => void | Promise<void>;
 
 /**

@@ -1,5 +1,5 @@
 import { $, type QRL } from '@builder.io/qwik';
-import type { RestoreScroll, ScrollState } from './types';
+import type { RestoreScroll, ScrollRecord, ScrollState } from './types';
 import { isSamePath } from './utils';
 import { getHistoryId } from './client-navigate';
 
@@ -22,12 +22,8 @@ export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSet
  * @alpha
  */
 export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
-  (type, fromUrl, toUrlSettled, prevScroll, prevId) => {
+  (type, fromUrl, toUrlSettled, scrollRecord) => {
     nativeScrollRestoration.disable();
-
-    // record current scroll position and scroll box before url settled
-    const scrollRecord = getOrInitializeScrollRecord();
-    scrollRecord[prevId] = prevScroll;
     flushScrollRecordToStorage(scrollRecord);
 
     // wait for url to settled
@@ -79,7 +75,7 @@ const flushScrollRecordToStorage = (scrollRecord: ScrollRecord) => {
   }
 };
 
-const getOrInitializeScrollRecord = (): ScrollRecord => {
+export const getOrInitializeScrollRecord = (): ScrollRecord => {
   const win = window as ScrollHistoryWindow;
   if (win[QWIK_CITY_SCROLL_RECORD]) {
     return win[QWIK_CITY_SCROLL_RECORD];
@@ -129,8 +125,6 @@ const scrollToHashId = (hash: string) => {
   }
   return elm;
 };
-
-type ScrollRecord = Record<string, ScrollState>;
 
 export interface ScrollHistoryWindow extends Window {
   _qCityScroll?: ScrollRecord;

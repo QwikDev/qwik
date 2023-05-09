@@ -344,10 +344,10 @@ export { RequestHandler }
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
-// Warning: (ae-forgotten-export) The symbol "ScrollState" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ScrollRecord" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, prevScroll: ScrollState, prevId: string) => void | Promise<void>;
+export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, records: ScrollRecord) => void | Promise<void>;
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;

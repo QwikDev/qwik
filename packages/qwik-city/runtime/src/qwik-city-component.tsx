@@ -50,7 +50,11 @@ import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
 import { isSamePathname, toUrl } from './utils';
 import { clientNavigate, getHistoryId } from './client-navigate';
-import { currentScrollState, toLastPositionOnPopState } from './scroll-restoration';
+import {
+  currentScrollState,
+  getOrInitializeScrollRecord,
+  toLastPositionOnPopState,
+} from './scroll-restoration';
 
 /**
  * @public
@@ -273,14 +277,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win.removeEventListener('popstate', win._qCityPopstateFallback!);
           }
           const navId = getHistoryId();
+          const scrollRecord = getOrInitializeScrollRecord();
+          scrollRecord[navId] = currentScrollState(document.documentElement);
           clientNavigate(window, navType, prevUrl, trackUrl);
           routeLocation.isNavigating = false;
-          const currentScroll = currentScrollState(document.documentElement);
           _waitUntilRendered(elm as Element).then(() => {
             const restore = props.restoreScroll$ ?? toLastPositionOnPopState;
-            restore(routeInternal.value.type, prevUrl, trackUrl, currentScroll, navId).then(
-              navResolver.r
-            );
+            restore(routeInternal.value.type, prevUrl, trackUrl, scrollRecord).then(navResolver.r);
           });
         }
       }

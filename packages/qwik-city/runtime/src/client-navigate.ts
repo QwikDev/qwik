@@ -12,7 +12,7 @@ export const clientNavigate = (win: Window, navType: NavigationType, fromURL: UR
       const sameHash = fromURL.hash === toURL.hash;
       // push to history for path or hash changes
       if (!samePath || !sameHash) {
-        win.history.pushState({ id: clientHistoryState.id++ }, '', toPath(toURL));
+        win.history.pushState({ id: ++clientHistoryState.id }, '', toPath(toURL));
       }
     }
   }

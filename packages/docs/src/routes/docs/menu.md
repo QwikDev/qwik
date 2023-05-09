@@ -96,6 +96,9 @@
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 
+## Reference
+- [API Reference](/api/)
+
 ## Community
 
 - [GitHub](https://github.com/BuilderIO/qwik)

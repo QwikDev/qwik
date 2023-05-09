@@ -50,7 +50,7 @@ export const onDelete: RequestHandler = async (requestEvent) => { ... }
 
 ## Endpoints vs server$
 
-Endpoints are low level APIs that give developers full control over the HTTP response. The are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
+Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
 
 The `server$` functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` are strongly typed and provide a more convenient API for returning data.
 

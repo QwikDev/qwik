@@ -52,7 +52,7 @@ export {
 } from './render/jsx/utils.public';
 export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
-export { Fragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
 export type {
   DOMAttributes,

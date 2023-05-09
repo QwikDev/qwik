@@ -55,6 +55,7 @@ export interface SSRHintProps {
 
 /**
  * @public
+ * @deprecated - It has no effect
  */
 export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 

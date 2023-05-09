@@ -6,7 +6,6 @@ import { OnThisPage } from '../../../components/on-this-page/on-this-page';
 import { SideBar } from '../../../components/sidebar/sidebar';
 
 export default component$(() => {
-
   return (
     <div class="docs fixed-header">
       <Header />

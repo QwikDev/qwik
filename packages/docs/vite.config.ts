@@ -111,9 +111,9 @@ const page = {
 };
 
 const menus = {
-  'S0wV0vUzzSo': 'right',
-  '5wL0DAwmu0A': 'left'
-}
+  S0wV0vUzzSo: 'right',
+  '5wL0DAwmu0A': 'left',
+};
 
 const algoliaSearch = {
   I5CyQjO9FjQ: 'algoliasearch',

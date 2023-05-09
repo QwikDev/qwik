@@ -10,6 +10,19 @@ test.describe('actions', () => {
   test.describe('spa', () => {
     test.use({ javaScriptEnabled: true });
     tests();
+
+    test('issue4100', async ({ page }) => {
+      await page.goto('/qwikcity-test/issue4100/');
+      const increment = page.locator('button');
+      const link = page.locator('a');
+
+      await expect(increment).toHaveText('Click me 0');
+      await increment.click();
+      await expect(increment).toHaveText('Click me 1');
+      await link.click();
+      await expect(new URL(page.url()).hash).toBe('#navigate');
+      await expect(increment).toHaveText('Click me 1');
+    });
   });
 
   function tests() {
@@ -133,21 +146,6 @@ test.describe('actions', () => {
           layoutHierarchy: ['root', 'api'],
           h1: 'Qwik City Test API!',
         });
-      });
-    });
-
-    test.describe('issue4100', () => {
-      test('should not reload on hash change', async ({ page }) => {
-        await page.goto('/qwikcity-test/issue4100/');
-        const increment = page.locator('button');
-        const link = page.locator('a');
-
-        await expect(increment).toHaveText('Click me 0');
-        await increment.click();
-        await expect(increment).toHaveText('Click me 1');
-        await link.click();
-        await expect(new URL(page.url()).hash).toBe('#navigate');
-        await expect(increment).toHaveText('Click me 1');
       });
     });
   }

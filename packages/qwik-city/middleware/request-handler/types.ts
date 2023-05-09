@@ -96,7 +96,7 @@ type SuccessCode =
   | 206 // Partial Content
   | 207 // Multi-Status
   | 208 // Already Reported
-  | 226 // IM Used;
+  | 226; // IM Used;
 
 /**
  * HTTP Redirect Status Codes

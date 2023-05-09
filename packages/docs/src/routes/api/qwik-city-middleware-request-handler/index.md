@@ -4,6 +4,14 @@ title: \@builder.io/qwik-city/middleware/request-handler API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik-city/middleware/request-handler
 
+## AbortMessage
+
+```typescript
+export declare class AbortMessage
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/redirect-handler.ts)
+
 ## CacheControl
 
 ```typescript
@@ -178,6 +186,16 @@ mergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/cookie.ts)
 
+## RedirectMessage
+
+```typescript
+export declare class RedirectMessage extends AbortMessage
+```
+
+**Extends:** [AbortMessage](#abortmessage)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/redirect-handler.ts)
+
 ## RequestEvent
 
 ```typescript
@@ -242,17 +260,17 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
 
 **Extends:** [RequestEventBase](#requesteventbase)&lt;PLATFORM&gt;
 
-| Property      | Modifiers             | Type                                                          | Description                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [error](#)    | <code>readonly</code> | (statusCode: ErrorCodes, message: string) =&gt; ErrorResponse | When called, the response will immediately end with the given status code. This could be useful to end a response with <code>404</code>, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used. |
-| [exit](#)     | <code>readonly</code> | () =&gt; AbortMessage                                         |                                                                                                                                                                                                                                                                                              |
-| [html](#)     | <code>readonly</code> | (statusCode: StatusCodes, html: string) =&gt; AbortMessage    | Convenience method to send an HTML body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/html; charset=utf-8</code>. An <code>html()</code> response can only be called once.                                                              |
-| [json](#)     | <code>readonly</code> | (statusCode: StatusCodes, data: any) =&gt; AbortMessage       | Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the <code>Content-Type</code> header to <code>application/json; charset=utf-8</code>. A <code>json()</code> response can only be called once.                              |
-| [locale](#)   | <code>readonly</code> | (local?: string) =&gt; string                                 | <p>Which locale the content is in.</p><p>The locale value can be retrieved from selected methods using <code>getLocale()</code>:</p>                                                                                                                                                         |
-| [redirect](#) | <code>readonly</code> | (statusCode: RedirectCode, url: string) =&gt; RedirectMessage | <p>URL to redirect to. When called, the response will immediately end with the correct redirect status and headers.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections</p>                                                                                                 |
-| [send](#)     | <code>readonly</code> | SendMethod                                                    | Send a body response. The <code>Content-Type</code> response header is not automatically set when using <code>send()</code> and must be set manually. A <code>send()</code> response can only be called once.                                                                                |
-| [status](#)   | <code>readonly</code> | (statusCode?: StatusCodes) =&gt; number                       | <p>HTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling <code>status()</code> without an argument will can be used to return the current status code.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Status</p> |
-| [text](#)     | <code>readonly</code> | (statusCode: StatusCodes, text: string) =&gt; AbortMessage    | Convenience method to send an text body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/plain; charset=utf-8</code>. An <code>text()</code> response can only be called once.                                                             |
+| Property      | Modifiers             | Type                                                                              | Description                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [error](#)    | <code>readonly</code> | (statusCode: ErrorCodes, message: string) =&gt; ErrorResponse                     | When called, the response will immediately end with the given status code. This could be useful to end a response with <code>404</code>, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used. |
+| [exit](#)     | <code>readonly</code> | () =&gt; [AbortMessage](#abortmessage)                                            |                                                                                                                                                                                                                                                                                              |
+| [html](#)     | <code>readonly</code> | (statusCode: StatusCodes, html: string) =&gt; [AbortMessage](#abortmessage)       | Convenience method to send an HTML body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/html; charset=utf-8</code>. An <code>html()</code> response can only be called once.                                                              |
+| [json](#)     | <code>readonly</code> | (statusCode: StatusCodes, data: any) =&gt; [AbortMessage](#abortmessage)          | Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the <code>Content-Type</code> header to <code>application/json; charset=utf-8</code>. A <code>json()</code> response can only be called once.                              |
+| [locale](#)   | <code>readonly</code> | (local?: string) =&gt; string                                                     | <p>Which locale the content is in.</p><p>The locale value can be retrieved from selected methods using <code>getLocale()</code>:</p>                                                                                                                                                         |
+| [redirect](#) | <code>readonly</code> | (statusCode: RedirectCode, url: string) =&gt; [RedirectMessage](#redirectmessage) | <p>URL to redirect to. When called, the response will immediately end with the correct redirect status and headers.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections</p>                                                                                                 |
+| [send](#)     | <code>readonly</code> | SendMethod                                                                        | Send a body response. The <code>Content-Type</code> response header is not automatically set when using <code>send()</code> and must be set manually. A <code>send()</code> response can only be called once.                                                                                |
+| [status](#)   | <code>readonly</code> | (statusCode?: StatusCodes) =&gt; number                                           | <p>HTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling <code>status()</code> without an argument will can be used to return the current status code.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Status</p> |
+| [text](#)     | <code>readonly</code> | (statusCode: StatusCodes, text: string) =&gt; [AbortMessage](#abortmessage)       | Convenience method to send an text body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/plain; charset=utf-8</code>. An <code>text()</code> response can only be called once.                                                             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 

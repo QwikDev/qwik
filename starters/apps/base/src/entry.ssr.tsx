@@ -1,7 +1,7 @@
 /**
  * WHAT IS THIS FILE?
  *
- * SSR entry point, in all cases the application is render outside the browser, this
+ * SSR entry point, in all cases the application is rendered outside the browser, this
  * entry point will be the common one.
  *
  * - Server (express, cloudflare...)

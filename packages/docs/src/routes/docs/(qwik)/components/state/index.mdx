@@ -148,7 +148,7 @@ const shallowStore = useStore(
 To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
 
 ```tsx
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore, $ } from '@builder.io/qwik';
 
 export default component$(() => {
   const state = useStore({

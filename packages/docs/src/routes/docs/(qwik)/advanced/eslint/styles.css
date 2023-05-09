@@ -1,0 +1,13 @@
+[data-theme='dark'] .docs .panel {
+  background: #373737;
+  border-color: #575757;
+  color: var(--color-text);
+}
+
+.docs a.panel {
+  text-decoration: none;
+}
+
+[data-theme='dark'] .docs .panel .panel-border {
+  border-color: #575757;
+}

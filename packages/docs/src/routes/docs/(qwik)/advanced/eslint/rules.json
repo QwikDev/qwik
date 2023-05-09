@@ -1,0 +1,237 @@
+{
+  "rules": {
+    "use-method-usage": {
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "description": "Object destructuring is not recommended for component$",
+          "category": "Variables",
+          "recommended": true,
+          "url": "https://github.com/BuilderIO/qwik"
+        },
+        "messages": {
+          "use-after-await": "Calling use* methods after await is not safe.",
+          "use-wrong-function": "Calling use* methods in wrong function.",
+          "use-not-root": "Calling use* methods in non-root component."
+        },
+        "examples": {
+          "use-after-await": {
+            "good": [
+              {
+                "code": "foo"
+              }
+            ],
+            "bad": [
+              {
+                "code": "bar"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "valid-lexical-scope": {
+      "defaultOptions": [
+        {
+          "allowAny": true
+        }
+      ],
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "description": "Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.",
+          "recommended": "error",
+          "url": "https://qwik.builder.io/docs/advanced/dollar/"
+        },
+        "schema": [
+          {
+            "type": "object",
+            "properties": {
+              "allowAny": {
+                "type": "boolean"
+              }
+            },
+            "default": {
+              "allowAny": true
+            }
+          }
+        ],
+        "messages": {
+          "referencesOutside": "Seems like you are referencing \"{{varName}}\" inside a different scope ({{dollarName}}), when this happens, Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.",
+          "invalidJsxDollar": "Seems like you are using \"{{varName}}\" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.",
+          "mutableIdentifier": "Seems like you are mutating the value of (\"{{varName}}\"), but this is not possible when captured by the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details."
+        }
+      }
+    },
+    "loader-location": {
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "description": "Detect declaration location of loader$",
+          "recommended": true,
+          "url": "https://github.com/BuilderIO/qwik"
+        },
+        "messages": {
+          "invalidLoaderLocation": "`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the `src/routes` directory, instead it was declared in \"{{path}}\".\nPlease check the docs: https://qwik.builder.io/qwikcity/loader",
+          "missingExport": "The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```",
+          "wrongName": "The named export of `{{fnName}}()` needs to follow the `use*` naming convention. It must start with `use`, like this:\n```\nexport const {{fixed}} = {{fnName}}(() => { ... });\n```\nInstead it was named:\n```\nexport const {{id}} = ...\n```",
+          "recommendedValue": "For `{{fnName}}()` it is recommended to inline the arrow function. Instead of:\n```\nexport const {{id}} = {{fnName}}({{arg}});\n```\nDo this:\n```\nexport const {{id}} = {{fnName}}(() => { ...logic here... });\n```\nThis will help the optimizer make sure that no server code is leaked to the client build."
+        }
+      }
+    },
+    "no-react-props": {
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "recommended": "warn",
+          "description": "Disallow usage of React-specific `className`/`htmlFor` props."
+        },
+        "fixable": "code",
+        "schema": [],
+        "messages": {
+          "prefer": "Prefer the `{{ to }}` prop over the deprecated `{{ from }}` prop."
+        }
+      }
+    },
+    "prefer-classlist": {
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "recommended": false,
+          "description": "Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames."
+        },
+        "fixable": "code",
+        "schema": [
+          {
+            "type": "object",
+            "properties": {
+              "classnames": {
+                "type": "array",
+                "description": "An array of names to treat as `classnames` functions",
+                "default": ["cn", "clsx", "classnames"],
+                "items": {
+                  "type": "string",
+                  "minItems": 1,
+                  "uniqueItems": true
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ],
+        "messages": {
+          "preferClasslist": "The classlist prop should be used instead of {{ classnames }} to efficiently set classes based on an object."
+        }
+      }
+    },
+    "jsx-no-script-url": {
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "recommended": "error",
+          "description": "Disallow javascript: URLs.",
+          "url": "https://github.com/solidjs-community/eslint-plugin-solid/blob/main/docs/jsx-no-script-url.md"
+        },
+        "schema": [],
+        "messages": {
+          "noJSURL": "For security, don't use javascript: URLs. Use event handlers instead if you can."
+        }
+      }
+    },
+    "jsx-key": {
+      "meta": {
+        "docs": {
+          "description": "Disallow missing `key` props in iterators/collection literals",
+          "category": "Possible Errors",
+          "recommended": true
+        },
+        "messages": {
+          "missingIterKey": "Missing \"key\" prop for element in iterator",
+          "missingIterKeyUsePrag": "Missing \"key\" prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use <Fragment> instead",
+          "missingArrayKey": "Missing \"key\" prop for element in array. The key prop allows for improved rendering performance.",
+          "missingArrayKeyUsePrag": "Missing \"key\" prop for element in array. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use <Fragment> instead",
+          "nonUniqueKeys": "`key` prop must be unique"
+        },
+        "schema": [
+          {
+            "type": "object",
+            "properties": {
+              "checkFragmentShorthand": {
+                "type": "boolean",
+                "default": false
+              },
+              "checkKeyMustBeforeSpread": {
+                "type": "boolean",
+                "default": false
+              },
+              "warnOnDuplicates": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "unused-server": {
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "description": "Detect unused server$() functions",
+          "recommended": true,
+          "url": "https://github.com/BuilderIO/qwik"
+        },
+        "messages": {
+          "unusedServer": "Unused server$(). Seems like you are declaring a new server$ function, but you are never calling it. You might want to do:\n\n{{ suggestion }}"
+        }
+      }
+    },
+    "jsx-img": {
+      "defaultOptions": [],
+      "meta": {
+        "type": "problem",
+        "docs": {
+          "description": "For performance reasons, always provide width and height attributes for <img> elements, it will help to prevent layout shifts.",
+          "recommended": "warn",
+          "url": "https://qwik.builder.io/docs/advanced/dollar/"
+        },
+        "fixable": "code",
+        "schema": [],
+        "messages": {
+          "noWidthHeight": "For performance reasons, always provide width and height attributes for <img> elements, it will help to prevent layout shifts."
+        }
+      }
+    }
+  },
+  "configs": {
+    "recommended": {
+      "plugins": ["qwik"],
+      "rules": {
+        "qwik/use-method-usage": "error",
+        "qwik/valid-lexical-scope": "error",
+        "qwik/no-react-props": "error",
+        "qwik/prefer-classlist": "warn",
+        "qwik/jsx-no-script-url": "warn",
+        "qwik/loader-location": "warn",
+        "qwik/jsx-key": "warn",
+        "qwik/unused-server": "error",
+        "qwik/jsx-img": "warn"
+      }
+    },
+    "strict": {
+      "plugins": ["qwik"],
+      "rules": {
+        "qwik/valid-lexical-scope": "error",
+        "qwik/use-method-usage": "error",
+        "qwik/loader-location": "error",
+        "qwik/no-react-props": "error",
+        "qwik/prefer-classlist": "error",
+        "qwik/jsx-no-script-url": "error",
+        "qwik/jsx-key": "error",
+        "qwik/unused-server": "error",
+        "qwik/jsx-img": "error"
+      }
+    }
+  }
+}

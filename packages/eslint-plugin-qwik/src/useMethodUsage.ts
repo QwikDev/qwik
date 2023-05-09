@@ -2,7 +2,19 @@
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
 
-export const useMethodUsage: Rule.RuleModule = {
+type QwikEslintExample = {
+  code: string;
+  codeHighlight?: string;
+  description?: string;
+};
+
+type QwikEslintRuleModule = Rule.RuleModule & {
+  meta: Rule.RuleModule['meta'] & {
+    examples?: Record<string, { good: QwikEslintExample[]; bad: QwikEslintExample[] }>;
+  };
+};
+
+export const useMethodUsage: QwikEslintRuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -15,6 +27,20 @@ export const useMethodUsage: Rule.RuleModule = {
       'use-after-await': 'Calling use* methods after await is not safe.',
       'use-wrong-function': 'Calling use* methods in wrong function.',
       'use-not-root': 'Calling use* methods in non-root component.',
+    },
+    examples: {
+      'use-after-await': {
+        good: [
+          {
+            code: `foo`,
+          },
+        ],
+        bad: [
+          {
+            code: `bar`,
+          },
+        ],
+      },
     },
   },
   create(context) {

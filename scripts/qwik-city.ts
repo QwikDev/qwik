@@ -49,6 +49,7 @@ export async function buildQwikCity(config: BuildConfig) {
 
   const diskQwikCityPkg: PackageJSON = {
     ...srcQwikCityPkg,
+    version: config.distVersion,
     main: './index.qwik.mjs',
     qwik: './index.qwik.mjs',
     types: './index.d.ts',

@@ -332,8 +332,8 @@ interface JsxDevOpts {
 /**
  * @public
  */
-export const HTMLFragment: FunctionComponent<{ html: string }> = ((props: { html: string }) =>
-  jsx(Virtual, { dangerouslySetInnerHTML: props.html })) as any;
+export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }> = (props, key) =>
+  jsx(Virtual, props, key);
 
 /**
  * @public

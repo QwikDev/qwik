@@ -1402,7 +1402,7 @@ renderSSRSuite('ssr raw', async () => {
 renderSSRSuite('html fragment', async () => {
   await testSSR(
     <body>
-      <HTMLFragment html="<div>hello</div>" />
+      <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
     </body>,
     `
   <html q:container="paused" q:version="dev" q:render="ssr-dev">

@@ -704,7 +704,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 
 ```typescript
 HTMLFragment: FunctionComponent<{
-  html: string;
+  dangerouslySetInnerHTML: string;
 }>;
 ```
 

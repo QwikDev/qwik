@@ -284,7 +284,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 
 // @public (undocumented)
 export const HTMLFragment: FunctionComponent<{
-    html: string;
+    dangerouslySetInnerHTML: string;
 }>;
 
 // @internal

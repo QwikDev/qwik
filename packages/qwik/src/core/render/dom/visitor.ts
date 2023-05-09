@@ -25,6 +25,7 @@ import {
 } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
+  dangerouslySetInnerHTML,
   isAriaAttribute,
   jsxToString,
   pushRenderContext,
@@ -886,13 +887,8 @@ const forceAttribute: PropHandler = (ctx, elm, newValue, prop) => {
   return true;
 };
 
-const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';
 const setInnerHTML: PropHandler = (ctx, elm, newValue) => {
-  if (dangerouslySetInnerHTML in elm) {
-    setProperty(ctx, elm, dangerouslySetInnerHTML, newValue);
-  } else if ('innerHTML' in elm) {
-    setProperty(ctx, elm, 'innerHTML', newValue);
-  }
+  setProperty(ctx, elm, 'innerHTML', newValue);
   return true;
 };
 
@@ -910,8 +906,8 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   form: forceAttribute,
   tabIndex: forceAttribute,
   download: forceAttribute,
-  [dangerouslySetInnerHTML]: setInnerHTML,
   innerHTML: noop,
+  [dangerouslySetInnerHTML]: setInnerHTML,
 };
 
 export const smartSetProperty = (

@@ -778,7 +778,7 @@ export const SSRRawTest = component$(() => {
 export const HTMLFragmentTest = component$(() => {
   return (
     <div id="html-fragment-test-result" data-mounted={isServer ? 'server' : 'browser'}>
-      <HTMLFragment html="<b>html fragment test</b>" />
+      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
     </div>
   );
 });

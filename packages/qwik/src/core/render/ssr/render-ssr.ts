@@ -14,6 +14,7 @@ import {
   shouldWrapFunctional,
   static_subtree,
   stringifyStyle,
+  dangerouslySetInnerHTML,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
@@ -266,7 +267,7 @@ const renderNodeVirtual = (
   virtualComment += '-->';
   stream.write(virtualComment);
 
-  const html = node.props['dangerouslySetInnerHTML'];
+  const html = node.props[dangerouslySetInnerHTML];
   if (html) {
     stream.write(html);
     stream.write(CLOSE_VIRTUAL);
@@ -313,7 +314,7 @@ const CLOSE_VIRTUAL = `<!--/qv-->`;
 const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
-    if (prop === 'dangerouslySetInnerHTML') {
+    if (prop === dangerouslySetInnerHTML) {
       continue;
     }
     const value = attributes[prop];
@@ -327,7 +328,7 @@ const renderAttributes = (attributes: Record<string, string>): string => {
 const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
-    if (prop === 'children' || prop === 'dangerouslySetInnerHTML') {
+    if (prop === 'children' || prop === dangerouslySetInnerHTML) {
       continue;
     }
     const value = attributes[prop];
@@ -350,7 +351,7 @@ const renderNodeElementSync = (
   }
 
   // Render innerHTML
-  const innerHTML = attributes.dangerouslySetInnerHTML;
+  const innerHTML = attributes[dangerouslySetInnerHTML];
   if (innerHTML != null) {
     stream.write(innerHTML);
   }
@@ -389,8 +390,8 @@ const renderSSRComponent = (
         array.push(
           jsx('style', {
             [QStyle]: style.styleId,
+            [dangerouslySetInnerHTML]: style.content,
             hidden: '',
-            dangerouslySetInnerHTML: style.content,
           })
         );
       }
@@ -533,7 +534,7 @@ const renderNode = (
           value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
           useSignal = true;
         }
-        if (prop === 'dangerouslySetInnerHTML') {
+        if (prop === dangerouslySetInnerHTML) {
           htmlStr = value;
           continue;
         }
@@ -574,7 +575,7 @@ const renderNode = (
         value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
         useSignal = true;
       }
-      if (prop === 'dangerouslySetInnerHTML') {
+      if (prop === dangerouslySetInnerHTML) {
         htmlStr = value;
         continue;
       }

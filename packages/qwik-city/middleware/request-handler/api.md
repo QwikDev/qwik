@@ -18,6 +18,10 @@ import type { _serializeData } from '@builder.io/qwik';
 import type { ValueOrPromise } from '@builder.io/qwik';
 import type { _verifySerializable } from '@builder.io/qwik';
 
+// @public (undocumented)
+export class AbortMessage {
+}
+
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -62,6 +66,10 @@ export function getErrorHtml(status: number, e: any): string;
 
 // @public (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
+
+// @public (undocumented)
+export class RedirectMessage extends AbortMessage {
+}
 
 // @public (undocumented)
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
@@ -110,13 +118,11 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
     readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
     // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts
     readonly status: (statusCode?: StatusCodes) => number;
-    // Warning: (ae-forgotten-export) The symbol "AbortMessage" needs to be exported by the entry point index.d.ts
     readonly text: (statusCode: StatusCodes, text: string) => AbortMessage;
 }
 

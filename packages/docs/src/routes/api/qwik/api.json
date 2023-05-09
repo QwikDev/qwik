@@ -472,6 +472,20 @@
       "mdFile": "qwik.htmlattributes.md"
     },
     {
+      "name": "HTMLFragment",
+      "id": "htmlfragment",
+      "hierarchy": [
+        {
+          "name": "HTMLFragment",
+          "id": "htmlfragment"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nHTMLFragment: FunctionComponent<{\n    dangerouslySetInnerHTML: string;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
+      "mdFile": "qwik.htmlfragment.md"
+    },
+    {
       "name": "implicit$FirstArg",
       "id": "implicit_firstarg",
       "hierarchy": [
@@ -1551,7 +1565,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nSSRHint: FunctionComponent<SSRHintProps>\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> - It has no effect\n> \n\n\n```typescript\nSSRHint: FunctionComponent<SSRHintProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrhint.md"
     },

@@ -138,7 +138,6 @@ export async function renderToStream(
   const renderSymbols: string[] = [];
   let renderTime = 0;
   let snapshotTime = 0;
-  let containsDynamic = false;
 
   await _renderSSR(rootNode, {
     stream,
@@ -147,11 +146,10 @@ export async function renderToStream(
     serverData: opts.serverData,
     base: buildBase,
     beforeContent,
-    beforeClose: async (contexts, containerState, dynamic, textNodes) => {
+    beforeClose: async (contexts, containerState, _dynamic, textNodes) => {
       renderTime = renderTimer();
       const snapshotTimer = createTimer();
 
-      containsDynamic = dynamic;
       snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
       const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
@@ -232,7 +230,7 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
-  const isDynamic = containsDynamic || snapshotResult!.resources.some((r) => r._cache !== Infinity);
+  const isDynamic = snapshotResult!.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,

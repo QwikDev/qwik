@@ -387,6 +387,66 @@ test.describe('render', () => {
       await toggle.click();
       await expect(result).toHaveText('CompB');
     });
+
+    test('skip render', async ({ page }) => {
+      const increment = page.locator('#skip-render-button');
+      const result = page.locator('#skip-render-result');
+
+      await expect(increment).toHaveText('Increment 0');
+      await expect(result).toHaveText('Number: 0');
+
+      await increment.click();
+      await expect(increment).toHaveText('Increment 0');
+      await expect(result).toHaveText('Number: 1');
+
+      await increment.click();
+      await expect(increment).toHaveText('Increment 0');
+      await expect(result).toHaveText('Number: 2');
+
+      await increment.click();
+      await expect(increment).toHaveText('Increment 3');
+      await expect(result).toHaveText('Number: 3');
+
+      await increment.click();
+      await expect(increment).toHaveText('Increment 3');
+      await expect(result).toHaveText('Number: 4');
+
+      await increment.click();
+      await expect(increment).toHaveText('Increment 3');
+      await expect(result).toHaveText('Number: 5');
+
+      await increment.click();
+      await expect(increment).toHaveText('Increment 6');
+      await expect(result).toHaveText('Number: 6');
+    });
+
+    test('ssr raw', async ({ page }) => {
+      const result = page.locator('#ssr-raw-test-result');
+      const mounted = await result.getAttribute('data-mounted');
+      if (mounted === 'server') {
+        expect(await result.innerHTML()).toEqual('<b>ssr raw test</b>');
+      } else if (mounted === 'browser') {
+        expect(await result.innerHTML()).toEqual('<!--qv --><!--/qv-->');
+      } else {
+        throw new Error('Unexpected mounted value');
+      }
+    });
+
+    test('html fragment', async ({ page }) => {
+      const result = page.locator('#html-fragment-test-result');
+      const mounted = await result.getAttribute('data-mounted');
+      if (mounted === 'server') {
+        await expect(await result.innerHTML()).toEqual(
+          '<!--qv--><b>html fragment test</b><!--/qv-->'
+        );
+      } else if (mounted === 'browser') {
+        await expect(await result.innerHTML()).toEqual(
+          '<!--qv --><b>html fragment test</b><!--/qv-->'
+        );
+      } else {
+        throw new Error('Unexpected mounted value');
+      }
+    });
   }
 
   tests();

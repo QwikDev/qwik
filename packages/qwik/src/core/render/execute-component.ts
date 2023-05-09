@@ -232,3 +232,4 @@ export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
 
 export const static_listeners = 1 << 0;
 export const static_subtree = 1 << 1;
+export const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';

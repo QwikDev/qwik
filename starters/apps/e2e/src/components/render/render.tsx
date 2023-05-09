@@ -9,8 +9,12 @@ import {
   event$,
   h,
   jsx,
+  SkipRender,
+  SSRRaw,
+  HTMLFragment,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
+import { isServer } from '@builder.io/qwik/build';
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
@@ -86,6 +90,9 @@ export const RenderChildren = component$(() => {
       <Issue3702 />
       <Issue3795 />
       <Issue4029 />
+      <SkipRenderTest />
+      <SSRRawTest />
+      <HTMLFragmentTest />
     </>
   );
 });
@@ -743,3 +750,35 @@ export const Issue4029 = component$(() => {
 
 export const CompA = component$(() => <div id="issue-4029-result">CompA</div>);
 export const CompB = component$(() => <div id="issue-4029-result">CompB</div>);
+
+export const SkipRenderTest = component$(() => {
+  const count = useSignal(0);
+  if (count.value % 3 !== 0) {
+    return SkipRender;
+  }
+  const countV = count.value + '';
+  return (
+    <>
+      <button id="skip-render-button" onClick$={() => count.value++}>
+        Increment {countV}
+      </button>
+      <div id="skip-render-result">Number: {count.value}</div>
+    </>
+  );
+});
+
+export const SSRRawTest = component$(() => {
+  return (
+    <div id="ssr-raw-test-result" data-mounted={isServer ? 'server' : 'browser'}>
+      <SSRRaw data="<b>ssr raw test</b>" />
+    </div>
+  );
+});
+
+export const HTMLFragmentTest = component$(() => {
+  return (
+    <div id="html-fragment-test-result" data-mounted={isServer ? 'server' : 'browser'}>
+      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
+    </div>
+  );
+});

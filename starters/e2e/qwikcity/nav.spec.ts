@@ -22,6 +22,19 @@ test.describe('actions', () => {
   });
 
   function spaOnlyTests() {
+    test('issue4100', async ({ page }) => {
+      await page.goto('/qwikcity-test/issue4100/');
+      const increment = page.locator('button');
+      const link = page.locator('a');
+
+      await expect(increment).toHaveText('Click me 0');
+      await increment.click();
+      await expect(increment).toHaveText('Click me 1');
+      await link.click();
+      await expect(new URL(page.url()).hash).toBe('#navigate');
+      await expect(increment).toHaveText('Click me 1');
+    });
+
     test.describe('scroll-restoration', () => {
       test('should not refresh again on popstate after manual refresh', async ({ page }) => {
         await page.goto('/qwikcity-test/scroll-restoration/page-long/');

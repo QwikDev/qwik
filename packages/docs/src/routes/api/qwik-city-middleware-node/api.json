@@ -1,0 +1,62 @@
+{
+  "id": "qwik-city-middleware-node",
+  "package": "@builder.io/qwik-city/middleware/node",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNodeRequestOptions): {\n    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;\n    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;\n    staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;\n};\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions) |  |\n\n**Returns:**\n\n{ router: (req: IncomingMessage, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
+      "mdFile": "qwik-city.createqwikcity.md"
+    },
+    {
+      "name": "NodeRequestNextFunction",
+      "id": "noderequestnextfunction",
+      "hierarchy": [
+        {
+          "name": "NodeRequestNextFunction",
+          "id": "noderequestnextfunction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface NodeRequestNextFunction \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
+      "mdFile": "qwik-city.noderequestnextfunction.md"
+    },
+    {
+      "name": "PlatformNode",
+      "id": "platformnode",
+      "hierarchy": [
+        {
+          "name": "PlatformNode",
+          "id": "platformnode"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [incomingMessage?](#) |  | IncomingMessage | _(Optional)_ |\n|  [node?](#) |  | string | _(Optional)_ |\n|  [ssr?](#) |  | true | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
+      "mdFile": "qwik-city.platformnode.md"
+    },
+    {
+      "name": "QwikCityNodeRequestOptions",
+      "id": "qwikcitynoderequestoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityNodeRequestOptions",
+          "id": "qwikcitynoderequestoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
+      "mdFile": "qwik-city.qwikcitynoderequestoptions.md"
+    }
+  ]
+}

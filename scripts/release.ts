@@ -48,9 +48,9 @@ export async function setReleaseVersion(config: BuildConfig) {
   // check this version isn't already published
   await checkExistingNpmVersion('@builder.io/qwik', config.distVersion);
 
-  const distPkg = await readPackageJson(config.distPkgDir);
+  const distPkg = await readPackageJson(config.distQwikPkgDir);
   distPkg.version = config.distVersion;
-  await writePackageJson(config.distPkgDir, distPkg);
+  await writePackageJson(config.distQwikPkgDir, distPkg);
 }
 
 export async function prepareReleaseVersion(config: BuildConfig) {
@@ -81,6 +81,13 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   qwikPkg.version = config.distVersion;
   await writePackageJson(qwikDir, qwikPkg);
 
+  // update packages/qwik-city
+  const qwikCityDir = join(config.packagesDir, 'qwik-city');
+  const qwikCityPkg = await readPackageJson(qwikCityDir);
+  commitPaths.push(join(qwikCityDir, 'package.json'));
+  qwikCityPkg.version = config.distVersion;
+  await writePackageJson(qwikCityDir, qwikCityPkg);
+
   // update the cli version
   const distCliDir = join(config.packagesDir, 'create-qwik');
   commitPaths.push(join(distCliDir, 'package.json'));
@@ -105,7 +112,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
 
   console.log(``);
   console.log(`Next:`);
-  console.log(` - Submit a PR to main with the package.json update`);
+  console.log(` - Submit a PR to main with the prepared release updates`);
   console.log(` - Once merged, run the "Qwik CI" release workflow`);
   console.log(` - https://github.com/BuilderIO/qwik/actions/workflows/ci.yml`);
   console.log(``);
@@ -114,18 +121,17 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
 export async function publish(config: BuildConfig) {
   const isDryRun = !!config.dryRun;
 
-  const distPkgDir = config.distPkgDir;
-  const distPkg = await readPackageJson(distPkgDir);
+  const distPkg = await readPackageJson(config.distQwikPkgDir);
   const version = distPkg.version;
   const gitTag = `v${version}`;
   const distTag = config.setDistTag || 'dev';
 
-  console.log(`🚢 publishing ${distPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');
+  console.log(`🚢 publishing ${version}`, isDryRun ? '(dry-run)' : '');
 
   // create a pack.tgz which is useful for debugging and uploaded as an artifact
   const pkgTarName = `builder.io-qwik-${version}.tgz`;
-  await execa('npm', ['pack'], { cwd: distPkgDir });
-  await execa('mv', [pkgTarName, '../'], { cwd: distPkgDir });
+  await execa('npm', ['pack'], { cwd: config.distQwikPkgDir });
+  await execa('mv', [pkgTarName, '../'], { cwd: config.distQwikPkgDir });
 
   // make sure our build is good to go and has the files we expect
   // and each of the files can be parsed correctly
@@ -134,7 +140,12 @@ export async function publish(config: BuildConfig) {
   // check all is good with an npm publish --dry-run before we continue
   // dry-run does everything the same except actually publish to npm
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
-  await run('npm', npmPublishArgs, true, true, { cwd: distPkgDir });
+
+  // publish @builder.io/qwik-city (dry-run)
+  await run('npm', npmPublishArgs, true, true, { cwd: config.distQwikCityPkgDir });
+
+  // publish @builder.io/qwik (dry-run)
+  await run('npm', npmPublishArgs, true, true, { cwd: config.distQwikPkgDir });
 
   // looks like the npm publish --dry-run was successful and
   // we have more confidence that it should work on a real publish
@@ -168,9 +179,12 @@ export async function publish(config: BuildConfig) {
     // if we've made it this far then the npm publish dry-run passed
     // and all of the git commands worked, time to publish!!
     // ⛴ LET'S GO!!
-    await run('npm', npmPublishArgs, false, false, { cwd: distPkgDir });
 
-    console.log(`   https://www.npmjs.com/package/${distPkg.name}`);
+    // publish @builder/qwik-city
+    await run('npm', npmPublishArgs, false, false, { cwd: config.distQwikCityPkgDir });
+
+    // publish @builder/qwik
+    await run('npm', npmPublishArgs, false, false, { cwd: config.distQwikPkgDir });
 
     if (!config.devRelease) {
       // git push to the production repo w/out the dry-run flag
@@ -185,7 +199,7 @@ export async function publish(config: BuildConfig) {
   }
 
   console.log(
-    `🐋 published version "${version}" of ${distPkg.name} with dist-tag "${distTag}" to npm`,
+    `🐋 published version "${version}" with dist-tag "${distTag}" to npm`,
     isDryRun ? '(dry-run)' : ''
   );
 

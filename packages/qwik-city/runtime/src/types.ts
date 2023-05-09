@@ -62,6 +62,7 @@ export interface RouteLocation {
   readonly params: Readonly<Record<string, string>>;
   readonly url: URL;
   readonly isNavigating: boolean;
+  readonly prevUrl: URL | undefined;
 }
 
 /**
@@ -83,7 +84,7 @@ export type RouteStateInternal = {
 export type RestoreScroll = (
   navigationType: NavigationType,
   fromUrl: URL,
-  toUrl: Promise<URL>
+  toUrl: URL
 ) => void | Promise<void>;
 
 /**
@@ -435,7 +436,7 @@ export interface ActionConstructor {
       options: ActionOptions
     ) => ValueOrPromise<O>,
     options?: ActionOptions
-  ): Action<O>;
+  ): Action<StrictUnion<O>>;
 
   // Without validation
   <O extends Record<string, any> | void | null, REST extends DataValidator[]>(

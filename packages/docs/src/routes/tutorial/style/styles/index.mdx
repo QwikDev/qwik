@@ -31,9 +31,9 @@ The problem with this approach is that we will load styles twice.
 What is needed is to load the styles independently from the component. This is what [`useStyles$()`](/docs/(qwik)/components/styles/index.mdx#usestyles) is for. There are two scenarios:
 
 1. The component is rendered on the server and the styles are inserted into `<head>` as part of the SSR.
-   - Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.
+   > Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.
 2. The component is rendered on the client for the first time. In that case, the new component does not have styles in the `<head>` as the component was not part of SSR.
-   - Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
+   > Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
 
 ### Example
 

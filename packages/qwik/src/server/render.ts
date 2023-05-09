@@ -13,8 +13,8 @@ import type {
 } from './types';
 import { isDev } from '@builder.io/qwik/build';
 import { getQwikLoaderScript } from './scripts';
-import { getPrefetchResources, type ResolvedManifest } from './prefetch-strategy';
-import type { SymbolMapper } from '../optimizer/src/types';
+import { getPrefetchResources } from './prefetch-strategy';
+import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
@@ -138,7 +138,6 @@ export async function renderToStream(
   const renderSymbols: string[] = [];
   let renderTime = 0;
   let snapshotTime = 0;
-  let containsDynamic = false;
 
   await _renderSSR(rootNode, {
     stream,
@@ -147,12 +146,11 @@ export async function renderToStream(
     serverData: opts.serverData,
     base: buildBase,
     beforeContent,
-    beforeClose: async (contexts, containerState, dynamic) => {
+    beforeClose: async (contexts, containerState, _dynamic, textNodes) => {
       renderTime = renderTimer();
       const snapshotTimer = createTimer();
 
-      containsDynamic = dynamic;
-      snapshotResult = await _pauseFromContexts(contexts, containerState);
+      snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
       const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
@@ -232,7 +230,7 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
-  const isDynamic = containsDynamic || snapshotResult!.resources.some((r) => r._cache !== Infinity);
+  const isDynamic = snapshotResult!.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,

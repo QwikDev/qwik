@@ -1,0 +1,48 @@
+{
+  "id": "qwik-city-middleware-netlify-edge",
+  "package": "@builder.io/qwik-city/middleware/netlify-edge",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityNetlifyOptions](#qwikcitynetlifyoptions) |  |\n\n**Returns:**\n\n(request: Request, context: Context) =&gt; Promise&lt;Response&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
+      "mdFile": "qwik-city.createqwikcity.md"
+    },
+    {
+      "name": "PlatformNetlify",
+      "id": "platformnetlify",
+      "hierarchy": [
+        {
+          "name": "PlatformNetlify",
+          "id": "platformnetlify"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> \n```\n**Extends:** Partial&lt;Omit&lt;Context, 'next' \\| 'cookies'&gt;&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
+      "mdFile": "qwik-city.platformnetlify.md"
+    },
+    {
+      "name": "QwikCityNetlifyOptions",
+      "id": "qwikcitynetlifyoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityNetlifyOptions",
+          "id": "qwikcitynetlifyoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityNetlifyOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
+      "mdFile": "qwik-city.qwikcitynetlifyoptions.md"
+    }
+  ]
+}

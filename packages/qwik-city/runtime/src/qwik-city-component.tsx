@@ -12,6 +12,8 @@ import {
   _getContextElement,
   _weakSerialize,
   useStyles$,
+  _waitUntilRendered,
+  type PropFunction,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
@@ -42,11 +44,13 @@ import type {
   RouteActionValue,
   RouteNavigate,
   RouteStateInternal,
+  RestoreScroll,
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { isSameOriginDifferentPathname, isSamePathname, toUrl } from './utils';
+import { isSamePathname, toUrl } from './utils';
 import { clientNavigate } from './client-navigate';
+import { toLastPositionOnPopState } from './scroll-restoration';
 
 /**
  * @public
@@ -76,13 +80,15 @@ export interface QwikCityProps {
    * @see https://caniuse.com/mdn-api_viewtransition
    */
   viewTransition?: boolean;
+
+  restoreScroll$?: PropFunction<RestoreScroll>;
 }
 
 /**
  * @public
  */
 export const QwikCityProvider = component$<QwikCityProps>((props) => {
-  useStyles$(`:root{view-transition-name: none}`);
+  useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);
@@ -99,10 +105,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       url,
       params: env.params,
       isNavigating: false,
+      prevUrl: undefined,
     },
     { deep: false }
   );
-
+  const navResolver: { r?: () => void } = {};
   const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
   const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
@@ -145,6 +152,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
     actionState.value = undefined;
     routeLocation.isNavigating = true;
+
+    return new Promise<void>((resolve) => {
+      navResolver.r = resolve;
+    });
   });
 
   useContextProvider(ContentContext, content);
@@ -165,7 +176,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       let trackUrl: URL;
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
-
+      let elm: unknown;
       if (isServer) {
         // server
         trackUrl = new URL(navigation.dest, routeLocation.url);
@@ -189,8 +200,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           qwikCity.cacheModules,
           trackUrl.pathname
         );
-        const element = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, element, true, action));
+        elm = _getContextElement();
+        const pageData = (clientPageData = await loadClientData(trackUrl, elm, true, action));
         if (!pageData) {
           // Reset the path to the current path
           (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
@@ -216,6 +227,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Update route location
+        routeLocation.prevUrl = prevUrl;
         routeLocation.url = trackUrl;
         routeLocation.params = { ...params };
 
@@ -237,10 +249,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
-          if (
-            (props.viewTransition ?? true) &&
-            isSameOriginDifferentPathname(window.location, url)
-          ) {
+          if (props.viewTransition !== false) {
             // mark next DOM render to use startViewTransition API
             document.__q_view_transition__ = true;
           }
@@ -253,6 +262,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
           clientNavigate(window, navType, prevUrl, trackUrl);
           routeLocation.isNavigating = false;
+          if (navResolver.r) {
+            _waitUntilRendered(elm as Element).then(() => {
+              const restore = props.restoreScroll$ ?? toLastPositionOnPopState;
+              restore(routeInternal.value.type, prevUrl, trackUrl).then(navResolver.r);
+            });
+          }
         }
       }
     }
@@ -286,6 +301,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
       url,
       params: props.params ?? {},
       isNavigating: false,
+      prevUrl: undefined,
     },
     { deep: false }
   );

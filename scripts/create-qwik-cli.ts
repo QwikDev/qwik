@@ -82,9 +82,15 @@ export async function publishCreateQwikCli(
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
-  console.log(`   update devDependencies["@builder.io/qwik"] = "${version}"`);
-  baseAppPkg.devDependencies['@builder.io/qwik'] = version;
-  baseAppPkg.devDependencies['eslint-plugin-qwik'] = version;
+  let semverQwik = `^${version}`;
+  console.log(`   update devDependencies["@builder.io/qwik"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@builder.io/qwik'] = semverQwik;
+
+  console.log(`   update devDependencies["@builder.io/qwik-city"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@builder.io/qwik-city'] = semverQwik;
+
+  console.log(`   update devDependencies["eslint-plugin-qwik"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['eslint-plugin-qwik'] = semverQwik;
 
   const rootPkg = await readPackageJson(config.rootDir);
   const typescriptDepVersion = rootPkg.devDependencies!.typescript;

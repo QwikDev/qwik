@@ -1,7 +1,8 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
+import { normalizePathSlash } from '../../../utils/fs';
 
 /**
  * @public
@@ -37,7 +38,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
       };
     },
 
-    async generate({ clientOutDir, basePathname }) {
+    async generate({ clientOutDir, serverOutDir, basePathname }) {
       const routesJsonPath = join(clientOutDir, '_routes.json');
       const hasRoutesJson = fs.existsSync(routesJsonPath);
       if (!hasRoutesJson && opts.functionRoutes !== false) {
@@ -47,6 +48,16 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
           exclude: [basePathname + 'build/*', basePathname + 'assets/*'],
         };
         await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
+      }
+      // https://developers.cloudflare.com/pages/platform/functions/advanced-mode/
+      const workerJsPath = join(clientOutDir, '_worker.js');
+      const hasWorkerJs = fs.existsSync(workerJsPath);
+      if (!hasWorkerJs) {
+        const importPath = relative(clientOutDir, join(serverOutDir, 'entry.cloudflare-pages'));
+        await fs.promises.writeFile(
+          workerJsPath,
+          `import { fetch } from "${normalizePathSlash(importPath)}"; export default { fetch };`
+        );
       }
     },
   });

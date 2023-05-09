@@ -11,7 +11,7 @@ import type {
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
-import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
@@ -125,6 +125,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
 
+            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+              | [string, number][]
+              | undefined;
+            if (serverTiming) {
+              res.setHeader(
+                'Server-Timing',
+                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+              );
+            }
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
               ...serverData,
@@ -173,10 +182,18 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             serverRequestEv.platform = ctx.opts.platform;
           }
 
+          const manifest: QwikManifest = {
+            symbols: {},
+            mapping: {},
+            bundles: {},
+            injections: [],
+            version: '1',
+          };
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
+            manifest,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer

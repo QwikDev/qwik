@@ -14,9 +14,10 @@ import {
   shouldWrapFunctional,
   static_subtree,
   stringifyStyle,
+  dangerouslySetInnerHTML,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { InternalSSRStream, SSRRaw, SSRHint } from '../jsx/utils.public';
+import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import {
   groupListeners,
@@ -33,14 +34,13 @@ import {
   getEventName,
 } from '../../container/container';
 import type { RenderContext } from '../types';
-import { assertDefined } from '../../error/assert';
+import { assertDefined, assertElement } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { isSignal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
-import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   createContext,
@@ -75,7 +75,8 @@ export interface RenderSSROptions {
   beforeClose?: (
     contexts: QContext[],
     containerState: ContainerState,
-    containsDynamic: boolean
+    containsDynamic: boolean,
+    textNodes: Map<string, string>
   ) => Promise<JSXNode>;
 }
 
@@ -89,8 +90,8 @@ export interface SSRContext {
 export interface SSRContextStatic {
   $locale$: string;
   $contexts$: QContext[];
-  $dynamic$: boolean;
   $headNodes$: JSXNode<string>[];
+  $textNodes$: Map<string, string>;
 }
 
 const IS_HEAD = 1 << 0;
@@ -129,9 +130,9 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const ssrCtx: SSRContext = {
     $static$: {
       $contexts$: [],
-      $dynamic$: false,
       $headNodes$: root === 'html' ? headNodes : [],
       $locale$: opts.serverData?.locale,
+      $textNodes$: new Map(),
     },
     $projectedChildren$: undefined,
     $projectedCtxs$: undefined,
@@ -189,7 +190,8 @@ const renderRoot = async (
           const result = beforeClose(
             ssrCtx.$static$.$contexts$,
             containerState,
-            ssrCtx.$static$.$dynamic$
+            false,
+            ssrCtx.$static$.$textNodes$
           );
           return processData(result, rCtx, ssrCtx, stream, 0, undefined);
         }
@@ -265,6 +267,12 @@ const renderNodeVirtual = (
   virtualComment += '-->';
   stream.write(virtualComment);
 
+  const html = node.props[dangerouslySetInnerHTML];
+  if (html) {
+    stream.write(html);
+    stream.write(CLOSE_VIRTUAL);
+    return;
+  }
   if (extraNodes) {
     for (const node of extraNodes) {
       renderNodeElementSync(node.type, node.props, stream);
@@ -306,7 +314,7 @@ const CLOSE_VIRTUAL = `<!--/qv-->`;
 const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
-    if (prop === 'dangerouslySetInnerHTML') {
+    if (prop === dangerouslySetInnerHTML) {
       continue;
     }
     const value = attributes[prop];
@@ -320,7 +328,7 @@ const renderAttributes = (attributes: Record<string, string>): string => {
 const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
-    if (prop === 'children') {
+    if (prop === 'children' || prop === dangerouslySetInnerHTML) {
       continue;
     }
     const value = attributes[prop];
@@ -343,7 +351,7 @@ const renderNodeElementSync = (
   }
 
   // Render innerHTML
-  const innerHTML = attributes.dangerouslySetInnerHTML;
+  const innerHTML = attributes[dangerouslySetInnerHTML];
   if (innerHTML != null) {
     stream.write(innerHTML);
   }
@@ -382,8 +390,8 @@ const renderSSRComponent = (
         array.push(
           jsx('style', {
             [QStyle]: style.styleId,
+            [dangerouslySetInnerHTML]: style.content,
             hidden: '',
-            dangerouslySetInnerHTML: style.content,
           })
         );
       }
@@ -526,7 +534,7 @@ const renderNode = (
           value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
           useSignal = true;
         }
-        if (prop === 'dangerouslySetInnerHTML') {
+        if (prop === dangerouslySetInnerHTML) {
           htmlStr = value;
           continue;
         }
@@ -567,7 +575,7 @@ const renderNode = (
         value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
         useSignal = true;
       }
-      if (prop === 'dangerouslySetInnerHTML') {
+      if (prop === dangerouslySetInnerHTML) {
         htmlStr = value;
         continue;
       }
@@ -789,10 +797,6 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   if (tagName === InternalSSRStream) {
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
-  if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
-    ssrCtx.$static$.$dynamic$ = true;
-    return;
-  }
   const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key, node.flags);
   if (!shouldWrapFunctional(res, node)) {
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
@@ -837,7 +841,9 @@ const processData = (
             : ([4, hostEl, node, ('#' + id) as any] as const);
 
         value = trackSignal(node, subs);
-        stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
+        const str = jsxToString(value);
+        ssrCtx.$static$.$textNodes$.set(str, id);
+        stream.write(`<!--t=${id}-->${escapeHtml(str)}<!---->`);
         return;
       } else {
         value = invoke(ssrCtx.$invocationContext$, () => node.value);

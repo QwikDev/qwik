@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@azure/functions": "^3.5.0",
-    "@azure/static-web-apps-cli": "^1.0.3"
+    "@azure/static-web-apps-cli": "^1.1.1"
   },
   "__qwik__": {
     "priority": 30,

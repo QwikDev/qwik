@@ -44,7 +44,7 @@ export type {
   JSONValue,
 } from './types';
 
-export { RouterOutlet, type RouterOutletProps } from './router-outlet-component';
+export { RouterOutlet } from './router-outlet-component';
 export {
   type QwikCityProps,
   QwikCityProvider,

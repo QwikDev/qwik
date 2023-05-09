@@ -126,7 +126,7 @@ export function panic(msg: string) {
 }
 
 export function bye() {
-  outro('take care 👋');
+  outro('Take care, see you soon! 👋');
   process.exit(0);
 }
 

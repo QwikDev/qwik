@@ -44,7 +44,7 @@ export interface ActionConstructor {
     // (undocumented)
     <O extends Record<string, any> | void | null, B extends TypedDataValidator, REST extends DataValidator[]>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B, ...rest: REST): Action<StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>, GetValidatorType<B>, false>;
     // (undocumented)
-    <O>(actionQrl: (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>, options?: ActionOptions): Action<O>;
+    <O>(actionQrl: (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>, options?: ActionOptions): Action<StrictUnion<O>>;
     // (undocumented)
     <O extends Record<string, any> | void | null, REST extends DataValidator[]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>, ...rest: REST): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 }
@@ -319,6 +319,10 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
+    // Warning: (ae-incompatible-release-tags) The symbol "restoreScroll$" is marked as @public, but its signature references "RestoreScroll" which is marked as @alpha
+    //
+    // (undocumented)
+    restoreScroll$?: PropFunction<RestoreScroll>;
     viewTransition?: boolean;
 }
 
@@ -341,7 +345,7 @@ export { RequestHandler }
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 // @alpha (undocumented)
-export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: Promise<URL>) => void | Promise<void>;
+export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL) => void | Promise<void>;
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;
@@ -377,6 +381,8 @@ export interface RouteLocation {
     // (undocumented)
     readonly params: Readonly<Record<string, string>>;
     // (undocumented)
+    readonly prevUrl: URL | undefined;
+    // (undocumented)
     readonly url: URL;
 }
 
@@ -387,15 +393,7 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<RouterOutletProps>;
-
-// @public (undocumented)
-export interface RouterOutletProps {
-    // Warning: (ae-incompatible-release-tags) The symbol "restoreScroll$" is marked as @public, but its signature references "RestoreScroll" which is marked as @alpha
-    //
-    // (undocumented)
-    restoreScroll$?: PropFunction<RestoreScroll>;
-}
+export const RouterOutlet: Component<    {}>;
 
 // Warning: (ae-forgotten-export) The symbol "ServerFunction" needs to be exported by the entry point index.d.ts
 //

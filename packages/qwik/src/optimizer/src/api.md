@@ -291,6 +291,8 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientOutDir: () => string | null;
     // (undocumented)
+    getClientPublicOutDir: () => string | null;
+    // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
@@ -327,6 +329,14 @@ export interface QwikVitePluginOptions {
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
     vendorRoots?: string[];
+}
+
+// @public (undocumented)
+export interface ResolvedManifest {
+    // (undocumented)
+    manifest: QwikManifest;
+    // (undocumented)
+    mapper: SymbolMapper;
 }
 
 // @public (undocumented)

@@ -65,8 +65,13 @@ export interface AriaAttributes {
 // @public (undocumented)
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
+// Warning: (ae-forgotten-export) The symbol "BaseClassList" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ClassList = BaseClassList | BaseClassList[];
+
 // @public
-export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
+export const component$: <PROPS = unknown, ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}>(onMount: OnRenderFn<ARG>) => Component<PROPS extends {} ? PROPS : ARG>;
 
 // @public
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
@@ -222,7 +227,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     draggable?: boolean | undefined;
     // (undocumented)
-    hidden?: boolean | undefined;
+    hidden?: boolean | 'hidden' | 'until-found' | undefined;
     // (undocumented)
     id?: string | undefined;
     // (undocumented)
@@ -276,6 +281,11 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     vocab?: string | undefined;
 }
+
+// @public (undocumented)
+export const HTMLFragment: FunctionComponent<{
+    dangerouslySetInnerHTML: string;
+}>;
 
 // @internal
 export const _hW: () => void;
@@ -393,7 +403,7 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
@@ -405,7 +415,7 @@ export interface OnVisibleTaskOptions {
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -415,6 +425,11 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 
 // @public (undocumented)
 export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+
+// @public (undocumented)
+export type PropFunctionProps<PROPS extends {}> = {
+    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];
+};
 
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
@@ -710,7 +725,7 @@ export interface RenderSSROptions {
     // (undocumented)
     base?: string;
     // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
+    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean, textNodes: Map<string, string>) => Promise<JSXNode>;
     // (undocumented)
     beforeContent?: JSXNode<string>[];
     // (undocumented)
@@ -870,7 +885,7 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const SSRHint: FunctionComponent<SSRHintProps>;
 
 // @public (undocumented)
@@ -1039,6 +1054,9 @@ export const version: string;
 
 // @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+
+// @internal (undocumented)
+export const _waitUntilRendered: (elm: Element) => Promise<void>;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;

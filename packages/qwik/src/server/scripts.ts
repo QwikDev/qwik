@@ -1,7 +1,7 @@
-const QWIK_LOADER_DEFAULT_MINIFIED: string = (global as any).QWIK_LOADER_DEFAULT_MINIFIED;
-const QWIK_LOADER_DEFAULT_DEBUG: string = (global as any).QWIK_LOADER_DEFAULT_DEBUG;
-const QWIK_LOADER_OPTIMIZE_MINIFIED: string = (global as any).QWIK_LOADER_OPTIMIZE_MINIFIED;
-const QWIK_LOADER_OPTIMIZE_DEBUG: string = (global as any).QWIK_LOADER_OPTIMIZE_DEBUG;
+const QWIK_LOADER_DEFAULT_MINIFIED: string = (globalThis as any).QWIK_LOADER_DEFAULT_MINIFIED;
+const QWIK_LOADER_DEFAULT_DEBUG: string = (globalThis as any).QWIK_LOADER_DEFAULT_DEBUG;
+const QWIK_LOADER_OPTIMIZE_MINIFIED: string = (globalThis as any).QWIK_LOADER_OPTIMIZE_MINIFIED;
+const QWIK_LOADER_OPTIMIZE_DEBUG: string = (globalThis as any).QWIK_LOADER_OPTIMIZE_DEBUG;
 
 /**
  * Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader

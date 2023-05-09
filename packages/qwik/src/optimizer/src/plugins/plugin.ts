@@ -311,7 +311,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const buildStart = async (_ctx: any) => {
+  const buildStart = async (ctx: any) => {
     log(
       `buildStart()`,
       opts.buildMode,
@@ -387,6 +387,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         log(`buildStart() add transformedOutput`, key, output.hook?.displayName);
         transformedOutputs.set(key, [output, key]);
         ssrTransformedOutputs.set(key, [output, key]);
+        if (output.isEntry) {
+          ctx.emitFile({
+            id: key,
+            type: 'chunk',
+          });
+        }
       }
 
       diagnosticsCallback(result.diagnostics, optimizer, srcDir);
@@ -402,6 +408,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     importer: string | undefined,
     resolveIdOpts?: { ssr?: boolean }
   ) => {
+    log(`resolveId()`, 'Start', id, importer);
+
     if (id.startsWith('\0')) {
       return;
     }
@@ -444,6 +452,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (importer) {
+      // Only process relative links
+      if (!id.startsWith('.') && !id.startsWith('/')) {
+        return;
+      }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
       const path = getPath();
@@ -469,6 +481,24 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           };
         }
       }
+    } else if (id.startsWith('/')) {
+      const parsedId = parseId(id);
+      const importeePathId = normalizePath(parsedId.pathId);
+      const path = getPath();
+      const ext = path.extname(importeePathId);
+      if (RESOLVE_EXTS[ext]) {
+        log(`resolveId("${importeePathId}", "${importer}")`);
+        const transformedOutput = resolveIdOpts?.ssr
+          ? ssrTransformedOutputs.get(importeePathId)
+          : transformedOutputs.get(importeePathId);
+
+        if (transformedOutput) {
+          log(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
+          return {
+            id: importeePathId + parsedId.query,
+          };
+        }
+      }
     }
     return null;
   };
@@ -481,7 +511,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: getQwikBuildModule(loadOpts),
+        code: getQwikBuildModule(loadOpts, opts.target),
       };
     }
 
@@ -749,8 +779,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return id;
   };
 
-  function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
-    const isServer = !!loadOpts.ssr;
+  function getQwikBuildModule(loadOpts: { ssr?: boolean }, target: QwikBuildTarget) {
+    const isServer = !!loadOpts.ssr || target === 'test';
     const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};

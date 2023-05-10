@@ -53,7 +53,7 @@ export async function setReleaseVersion(config: BuildConfig) {
   distQwikPkg.version = config.distVersion;
   await writePackageJson(config.distQwikPkgDir, distQwikPkg);
 
-  // check this @builder.io/qwik version isn't already published
+  // check this @builder.io/qwik-city version isn't already published
   await checkExistingNpmVersion('@builder.io/qwik-city', config.distVersion);
 
   // set @builder.io/qwik-city release version

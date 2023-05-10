@@ -45,12 +45,21 @@ export async function setReleaseVersion(config: BuildConfig) {
 
   console.log(`🔥 Set release npm version: ${config.distVersion}`);
 
-  // check this version isn't already published
+  // check this @builder.io/qwik version isn't already published
   await checkExistingNpmVersion('@builder.io/qwik', config.distVersion);
 
-  const distPkg = await readPackageJson(config.distQwikPkgDir);
-  distPkg.version = config.distVersion;
-  await writePackageJson(config.distQwikPkgDir, distPkg);
+  // set @builder.io/qwik release version
+  const distQwikPkg = await readPackageJson(config.distQwikPkgDir);
+  distQwikPkg.version = config.distVersion;
+  await writePackageJson(config.distQwikPkgDir, distQwikPkg);
+
+  // check this @builder.io/qwik-city version isn't already published
+  await checkExistingNpmVersion('@builder.io/qwik-city', config.distVersion);
+
+  // set @builder.io/qwik-city release version
+  const distCityPkg = await readPackageJson(config.distQwikCityPkgDir);
+  distCityPkg.version = config.distVersion;
+  await writePackageJson(config.distQwikCityPkgDir, distCityPkg);
 }
 
 export async function prepareReleaseVersion(config: BuildConfig) {

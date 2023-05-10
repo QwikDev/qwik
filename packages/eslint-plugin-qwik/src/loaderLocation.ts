@@ -24,7 +24,7 @@ export const loaderLocation: Rule.RuleModule = {
     },
     messages: {
       invalidLoaderLocation:
-        '`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the `src/routes` directory, instead it was declared in "{{path}}".\nPlease check the docs: https://qwik.builder.io/qwikcity/loader',
+        '`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the `src/routes` directory, instead it was declared in "{{path}}".\nPlease check the docs: https://qwik.builder.io/docs/route-loader/',
       missingExport:
         'The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```',
       wrongName:

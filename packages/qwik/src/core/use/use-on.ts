@@ -3,6 +3,7 @@ import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
+import { type CustomEventType } from '../../../../../scripts/util'
 
 
 
@@ -20,7 +21,7 @@ import { useInvokeContext } from './use-core';
  * @public
  */
 // </docs>
-export const useOn = (event: CustomEvent, eventQrl: QRL<(ev: Event) => void> | undefined) =>
+export const useOn = (event: CustomEventType, eventQrl: QRL<(ev: Event) => void> | undefined) =>
   _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -54,7 +55,7 @@ export const useOn = (event: CustomEvent, eventQrl: QRL<(ev: Event) => void> | u
  */
 // </docs>
 export const useOnDocument = (
-  event: CustomEvent,
+  event: CustomEventType,
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`document:on-${event}`, eventQrl);
 
@@ -90,7 +91,7 @@ export const useOnDocument = (
  */
 // </docs>
 export const useOnWindow = (
-  event: CustomEvent,
+  event: CustomEventType,
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`window:on-${event}`, eventQrl);
 
@@ -110,5 +111,3 @@ const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>
     elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
   }
 };
-
-

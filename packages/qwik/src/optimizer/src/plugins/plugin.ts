@@ -446,19 +446,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    // Only process relative links
-    if (!id.startsWith('.') && !id.startsWith('/')) {
-      return;
-    }
+    const path = getPath();
 
     if (importer) {
       // Only process relative links
-      if (!id.startsWith('.') && !id.startsWith('/')) {
+      if (!id.startsWith('.') && !path.isAbsolute(id)) {
         return;
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
-      const path = getPath();
       const ext = path.extname(importeePathId);
       if (RESOLVE_EXTS[ext]) {
         importer = normalizePath(importer);
@@ -481,10 +477,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           };
         }
       }
-    } else if (id.startsWith('/')) {
+    } else if (path.isAbsolute(id)) {
       const parsedId = parseId(id);
       const importeePathId = normalizePath(parsedId.pathId);
-      const path = getPath();
       const ext = path.extname(importeePathId);
       if (RESOLVE_EXTS[ext]) {
         log(`resolveId("${importeePathId}", "${importer}")`);

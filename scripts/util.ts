@@ -347,20 +347,12 @@ const IGNORE: { [path: string]: boolean } = {
   'pnpm-lock.yaml': true,
 };
 
-
 /**
 Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
 
 @category Type
 */
-export type Primitive =
-	| null
-	| undefined
-	| string
-	| number
-	| boolean
-	| symbol
-	| bigint;
+export type Primitive = null | undefined | string | number | boolean | symbol | bigint;
 
 /**
 Allows creating a union type by combining primitive types and literal types without sacrificing auto-completion in IDEs for the literal type part of the union.
@@ -389,11 +381,55 @@ const pet: Pet2 = '';
 
 @category Type
 */
-export type LiteralUnion<
-	LiteralType,
-	BaseType extends Primitive,
-> = LiteralType | (BaseType & Record<never, never>);
+export type LiteralUnion<LiteralType, BaseType extends Primitive> =
+  | LiteralType
+  | (BaseType & Record<never, never>);
 
-type DomEvent = "abort" | "afterprint" | "animationend" | "animationiteration" | "animationstart" | "beforeprint" | "beforeunload" | "blur" | "canplay" | "canplaythrough" | "change" | "click" | "contextmenu" | "copy" | "cut" | "dblclick" | "drag" | "dragend" | "dragenter" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" | "ended" | "error" | "focus" | "focusin" | "focusout" | "fullscreenchange" | "fullscreenerror" | "hashchange" | "input" | "invalid" | "keydown" | "keypress" | "keyup" | "loadstart" | "loadeddata" | "loadedmetadata" | "loadend" | "message" | "mousedown" | "mouseenter" | "mouseover";
+type DomEvent =
+  | 'abort'
+  | 'afterprint'
+  | 'animationend'
+  | 'animationiteration'
+  | 'animationstart'
+  | 'beforeprint'
+  | 'beforeunload'
+  | 'blur'
+  | 'canplay'
+  | 'canplaythrough'
+  | 'change'
+  | 'click'
+  | 'contextmenu'
+  | 'copy'
+  | 'cut'
+  | 'dblclick'
+  | 'drag'
+  | 'dragend'
+  | 'dragenter'
+  | 'dragleave'
+  | 'dragover'
+  | 'dragstart'
+  | 'drop'
+  | 'durationchange'
+  | 'ended'
+  | 'error'
+  | 'focus'
+  | 'focusin'
+  | 'focusout'
+  | 'fullscreenchange'
+  | 'fullscreenerror'
+  | 'hashchange'
+  | 'input'
+  | 'invalid'
+  | 'keydown'
+  | 'keypress'
+  | 'keyup'
+  | 'loadstart'
+  | 'loadeddata'
+  | 'loadedmetadata'
+  | 'loadend'
+  | 'message'
+  | 'mousedown'
+  | 'mouseenter'
+  | 'mouseover';
 
 export type CustomEventType = LiteralUnion<DomEvent, string>;

@@ -19,7 +19,7 @@ import { type CustomEventType } from '../../../../../scripts/util';
  * @public
  */
 // </docs>
-export const useOn = (event: CustomEventType, eventQrl: QRL<(ev: Event) => void> | undefined) =>
+export const useOn = (event: CustomEventType | CustomEventType[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
   _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -53,7 +53,7 @@ export const useOn = (event: CustomEventType, eventQrl: QRL<(ev: Event) => void>
  */
 // </docs>
 export const useOnDocument = (
-  event: CustomEventType,
+  event: CustomEventType | CustomEventType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`document:on-${event}`, eventQrl);
 
@@ -89,7 +89,7 @@ export const useOnDocument = (
  */
 // </docs>
 export const useOnWindow = (
-  event: CustomEventType,
+  event: CustomEventType | CustomEventType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`window:on-${event}`, eventQrl);
 

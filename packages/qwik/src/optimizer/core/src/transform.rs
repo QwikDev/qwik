@@ -478,18 +478,21 @@ impl<'a> QwikTransform<'a> {
         let folded = first_arg;
 
         let mut set: HashSet<Id> = HashSet::new();
+        let mut contains_side_effect = false;
         for ident in &descendent_idents {
             if self.options.global_collect.is_global(ident) {
+                contains_side_effect = true;
+            } else if invalid_decl.iter().any(|entry| entry.0 == *ident) {
                 return (None, false);
-            }
-            if invalid_decl.iter().any(|entry| entry.0 == *ident) {
-                return (None, false);
-            }
-            if decl_collect.iter().any(|entry| entry.0 == *ident) {
+            } else if decl_collect.iter().any(|entry| entry.0 == *ident) {
                 set.insert(ident.clone());
             }
         }
         let mut scoped_idents: Vec<Id> = set.into_iter().collect();
+
+        if contains_side_effect {
+            return (None, scoped_idents.is_empty());
+        }
         scoped_idents.sort();
 
         let serialize_fn = matches!(self.options.is_server, None | Some(true));
@@ -1522,7 +1525,16 @@ impl<'a> QwikTransform<'a> {
         if let Some(expr) = inlined.0 {
             return Some((expr, inlined.1));
         }
-
+        if inlined.1 {
+            return if is_fn {
+                Some((
+                    ast::Expr::Ident(new_ident_from_id(&self.ensure_core_import(&_IMMUTABLE))),
+                    true,
+                ))
+            } else {
+                Some((expr.clone(), true))
+            };
+        }
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
             if let Some(prop_sym) = prop_sym {
@@ -1564,6 +1576,8 @@ impl<'a> QwikTransform<'a> {
         }
         if inlined_expr.is_some() {
             return inlined_expr;
+        } else if immutable {
+            return None;
         }
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);

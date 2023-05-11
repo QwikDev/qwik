@@ -166,11 +166,11 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
                 "Static ",
                 f ? 1 : 3
             ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_21") : /*#__PURE__*/ _jsxQ("p", null, null, "2", 3, null), 1, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxQ("p", null, null, "1", 3, "u6_21") : /*#__PURE__*/ _jsxQ("p", null, null, "2", 3, null), 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, [
                 prop.value && /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_22"),
                 /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null)
-            ], 1, null),
+            ], 3, null),
             /*#__PURE__*/ _jsxQ("div", null, null, [
                 "Static ",
                 f ? 1 : 3

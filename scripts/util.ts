@@ -346,5 +346,3 @@ const IGNORE: { [path: string]: boolean } = {
   'yarn.lock': true,
   'pnpm-lock.yaml': true,
 };
-
-

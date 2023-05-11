@@ -1,4 +1,4 @@
-import type { QwikKeysEvents } from "./jsx-qwik-attributes";
+import type { QwikKeysEvents } from './jsx-qwik-attributes';
 
 export interface SyntheticEvent<T = Element, E = Event>
   extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}

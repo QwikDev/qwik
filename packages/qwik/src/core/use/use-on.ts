@@ -19,8 +19,10 @@ import { type CustomEventType } from '../render/jsx/types/jsx-qwik-events';
  * @public
  */
 // </docs>
-export const useOn = (event: CustomEventType | CustomEventType[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
-  _useOn(`on-${event}`, eventQrl);
+export const useOn = (
+  event: CustomEventType | CustomEventType[],
+  eventQrl: QRL<(ev: Event) => void> | undefined
+) => _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -109,4 +111,3 @@ const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>
     elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
   }
 };
-

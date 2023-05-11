@@ -18,7 +18,7 @@
           "use-after-await": {
             "good": [
               {
-                "code": "foo"
+                "code": "\nimport {foo} from 'foo';\nconst a = 'alpha';\nconst b: number = 1;\n\nif (a.length > 0) {\n  a += b;\n}\n            "
               }
             ],
             "bad": [
@@ -108,7 +108,11 @@
               "classnames": {
                 "type": "array",
                 "description": "An array of names to treat as `classnames` functions",
-                "default": ["cn", "clsx", "classnames"],
+                "default": [
+                  "cn",
+                  "clsx",
+                  "classnames"
+                ],
                 "items": {
                   "type": "string",
                   "minItems": 1,
@@ -206,7 +210,9 @@
   },
   "configs": {
     "recommended": {
-      "plugins": ["qwik"],
+      "plugins": [
+        "qwik"
+      ],
       "rules": {
         "qwik/use-method-usage": "error",
         "qwik/valid-lexical-scope": "error",
@@ -220,7 +226,9 @@
       }
     },
     "strict": {
-      "plugins": ["qwik"],
+      "plugins": [
+        "qwik"
+      ],
       "rules": {
         "qwik/valid-lexical-scope": "error",
         "qwik/use-method-usage": "error",

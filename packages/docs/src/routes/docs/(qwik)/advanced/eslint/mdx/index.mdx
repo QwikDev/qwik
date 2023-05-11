@@ -1,0 +1,408 @@
+import '../styles.css';
+
+<div>
+<h1 id="smth">ESLint-Rules</h1>
+<p>Qwik comes with an own set of ESLint rules to help developers write better code.</p>
+
+<div class="bg-slate-50 rounded-md border border-slate-200 mt-4 grid grid-cols-4 text-sm panel">
+  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
+    <span class="opacity-50 block mb-2">✅</span>
+    <b>Warn</b> in 'recommended' ruleset
+  </div>
+  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
+    <span class="block mb-2">✅</span>
+    <b>Error</b> in 'recommended' ruleset
+  </div>
+  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
+    <span class="opacity-50 block mb-2">🔔</span>
+    <b>Warn</b> in 'strict' ruleset
+  </div>
+  <div class="list-none my-6 px-6">
+    <span class="block mb-2">🔔</span>
+    <b>Error</b> in 'strict' ruleset
+  </div>
+</div>
+
+<h2>Possible Problems</h2>
+<p>These rules are available.</p>
+<div class="my-6">
+  
+    <a href="#use-method-usage" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>use-method-usage</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Object destructuring is not recommended for component$</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#valid-lexical-scope" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>valid-lexical-scope</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#loader-location" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>loader-location</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Detect declaration location of loader$</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': true,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#no-react-props" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>no-react-props</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Disallow usage of React-specific `className`/`htmlFor` props.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#prefer-classlist" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>prefer-classlist</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': true,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#jsx-no-script-url" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>jsx-no-script-url</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Disallow javascript: URLs.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': true,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#jsx-key" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>jsx-key</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Disallow missing `key` props in iterators/collection literals</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': true,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#unused-server" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>unused-server</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">Detect unused server$() functions</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+  
+    <a href="#jsx-img" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+      <div class="flex-1">
+        <code>jsx-img</code>
+        <span class="text-xs block mt-2 max-w-[90%] leading-5">For performance reasons, always provide width and height attributes for &lt;img&gt; elements, it will help to prevent layout shifts.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': true,
+          }}     
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'opacity-100': false,
+            'opacity-50': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+</div>
+<h2>Details</h2>
+<div class="my-6">
+
+    <div>
+      <h3 id="use-method-usage">use-method-usage</h3>
+      <span>Object destructuring is not recommended for component$</span>
+
+
+      <h4>use-after-await</h4>
+
+```js
+import { foo } from "foo";
+const a = "alpha";
+const b: number = 1;
+
+if (a.length > 0) {
+  a += b;
+}
+```
+
+      <h4>use-wrong-function</h4>
+
+
+      <h4>use-not-root</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="valid-lexical-scope">valid-lexical-scope</h3>
+      <span>Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.</span>
+
+
+      <h4>referencesOutside</h4>
+
+
+      <h4>invalidJsxDollar</h4>
+
+
+      <h4>mutableIdentifier</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="loader-location">loader-location</h3>
+      <span>Detect declaration location of loader$</span>
+
+
+      <h4>invalidLoaderLocation</h4>
+
+
+      <h4>missingExport</h4>
+
+
+      <h4>wrongName</h4>
+
+
+      <h4>recommendedValue</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="no-react-props">no-react-props</h3>
+      <span>Disallow usage of React-specific `className`/`htmlFor` props.</span>
+
+
+      <h4>prefer</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="prefer-classlist">prefer-classlist</h3>
+      <span>Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.</span>
+
+
+      <h4>preferClasslist</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="jsx-no-script-url">jsx-no-script-url</h3>
+      <span>Disallow javascript: URLs.</span>
+
+
+      <h4>noJSURL</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="jsx-key">jsx-key</h3>
+      <span>Disallow missing `key` props in iterators/collection literals</span>
+
+
+      <h4>missingIterKey</h4>
+
+
+      <h4>missingIterKeyUsePrag</h4>
+
+
+      <h4>missingArrayKey</h4>
+
+
+      <h4>missingArrayKeyUsePrag</h4>
+
+
+      <h4>nonUniqueKeys</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="unused-server">unused-server</h3>
+      <span>Detect unused server$() functions</span>
+
+
+      <h4>unusedServer</h4>
+
+
+    </div>
+
+
+    <div>
+      <h3 id="jsx-img">jsx-img</h3>
+      <span>For performance reasons, always provide width and height attributes for &lt;img&gt; elements, it will help to prevent layout shifts.</span>
+
+
+      <h4>noWidthHeight</h4>
+
+
+    </div>
+
+</div>
+</div>

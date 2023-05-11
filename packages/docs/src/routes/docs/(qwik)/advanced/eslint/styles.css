@@ -4,8 +4,12 @@
   color: var(--color-text);
 }
 
-.docs a.panel {
+.docs .panel {
   text-decoration: none;
+}
+
+.docs .panel p {
+  margin: 0 !important;
 }
 
 [data-theme='dark'] .docs .panel .panel-border {

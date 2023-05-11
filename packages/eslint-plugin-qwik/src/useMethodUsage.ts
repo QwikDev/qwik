@@ -32,7 +32,15 @@ export const useMethodUsage: QwikEslintRuleModule = {
       'use-after-await': {
         good: [
           {
-            code: `foo`,
+            code: `
+import {foo} from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+  a += b;
+}
+            `,
           },
         ],
         bad: [

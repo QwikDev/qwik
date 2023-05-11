@@ -1,3 +1,5 @@
+import type { QwikKeysEvents } from "./jsx-qwik-attributes";
+
 export interface SyntheticEvent<T = Element, E = Event>
   extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
 
@@ -250,51 +252,4 @@ export type LiteralUnion<LiteralType, BaseType extends Primitive> =
   | LiteralType
   | (BaseType & Record<never, never>);
 
-type DomEvent =
-  | 'abort'
-  | 'afterprint'
-  | 'animationend'
-  | 'animationiteration'
-  | 'animationstart'
-  | 'beforeprint'
-  | 'beforeunload'
-  | 'blur'
-  | 'canplay'
-  | 'canplaythrough'
-  | 'change'
-  | 'click'
-  | 'contextmenu'
-  | 'copy'
-  | 'cut'
-  | 'dblclick'
-  | 'drag'
-  | 'dragend'
-  | 'dragenter'
-  | 'dragleave'
-  | 'dragover'
-  | 'dragstart'
-  | 'drop'
-  | 'durationchange'
-  | 'ended'
-  | 'error'
-  | 'focus'
-  | 'focusin'
-  | 'focusout'
-  | 'fullscreenchange'
-  | 'fullscreenerror'
-  | 'hashchange'
-  | 'input'
-  | 'invalid'
-  | 'keydown'
-  | 'keypress'
-  | 'keyup'
-  | 'loadstart'
-  | 'loadeddata'
-  | 'loadedmetadata'
-  | 'loadend'
-  | 'message'
-  | 'mousedown'
-  | 'mouseenter'
-  | 'mouseover';
-
-export type CustomEventType = LiteralUnion<DomEvent, string>;
+export type CustomEventType = LiteralUnion<QwikKeysEvents, string>;

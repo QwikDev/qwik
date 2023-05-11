@@ -154,6 +154,9 @@ export interface FunctionComponent<P = Record<string, any>> {
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
 
+// @internal (undocumented)
+export const _getContextEvent: () => unknown;
+
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal

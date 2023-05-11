@@ -8,6 +8,11 @@ export { _IMMUTABLE } from './state/constants';
 export { _weakSerialize } from './state/common';
 export { _deserializeData } from './container/resume';
 export { verifySerializable as _verifySerializable } from './state/common';
-export { _getContextElement, _jsxBranch, _waitUntilRendered } from './use/use-core';
+export {
+  _getContextElement,
+  _getContextEvent,
+  _jsxBranch,
+  _waitUntilRendered,
+} from './use/use-core';
 export { _jsxQ, _jsxC, _jsxS } from './render/jsx/jsx-runtime';
 export { _fnSignal } from './qrl/inlined-fn';

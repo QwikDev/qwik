@@ -184,9 +184,9 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
           } else {
             const actionResolved = isDev
               ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
-                  action.__qrl(result.data as JSONObject, requestEv)
+                  action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                 )
-              : await action.__qrl(result.data as JSONObject, requestEv);
+              : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
             if (isDev) {
               verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
@@ -217,10 +217,10 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
               if (res.success) {
                 if (isDev) {
                   return measure(requestEv, loader.__qrl.getSymbol().split('_', 1)[0], () =>
-                    loader.__qrl(requestEv as any)
+                    loader.__qrl.call(requestEv, requestEv as any)
                   );
                 } else {
-                  return loader.__qrl(requestEv as any);
+                  return loader.__qrl.call(requestEv, requestEv as any);
                 }
               } else {
                 return requestEv.fail(res.status ?? 500, res.error);

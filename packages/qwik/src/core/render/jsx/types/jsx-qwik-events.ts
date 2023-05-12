@@ -217,7 +217,6 @@ interface AbstractView {
 /**
 Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
 
-@category Type
 */
 export type Primitive = null | undefined | string | number | boolean | symbol | bigint;
 
@@ -228,7 +227,6 @@ Currently, when a union type of a primitive type is combined with literal types,
 
 This type is a workaround for [Microsoft/TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729). It will be removed as soon as it's not needed anymore.
 
-@example
 ```
 // Before
 type Pet = 'dog' | 'cat' | string;
@@ -246,7 +244,6 @@ const pet: Pet2 = '';
 // Cradit to 'type-fest' for this solution
 ```
 
-@category Type
 */
 export type LiteralUnion<LiteralType, BaseType extends Primitive> =
   | LiteralType

@@ -15,3 +15,48 @@
 [data-theme='dark'] .docs .panel .panel-border {
   border-color: #575757;
 }
+
+.docs .rule-wrapper {
+  @apply mb-14;
+  @apply pb-14;
+  @apply border-b;
+}
+
+[data-theme='dark'] .docs .rule-wrapper {
+  border-color: #575757;
+}
+
+.docs .code-wrapper {
+  @apply relative;
+}
+
+.docs .badge {
+  @apply absolute;
+  @apply flex;
+  @apply rounded-full;
+  @apply text-lg;
+  @apply text-white;
+  @apply top-0;
+  @apply right-0;
+  @apply items-center;
+  @apply justify-center;
+  transform: translate(50%, -50%);
+  height: 40px;
+  width: 40px;
+}
+
+.docs .badge.good {
+  @apply text-green-500;
+  @apply bg-green-200;
+}
+[data-theme='dark'] .docs .badge.good {
+  @apply bg-green-900;
+}
+
+.docs .badge.bad {
+  @apply text-red-500;
+  @apply bg-red-200;
+}
+[data-theme='dark'] .docs .badge.bad {
+  @apply bg-red-900;
+}

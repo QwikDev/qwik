@@ -116,28 +116,24 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       }
       return target[prop];
     }
-    let subscriber: Subscriber | undefined | null;
     const flags = target[QObjectFlagsSymbol] ?? 0;
     assertNumber(flags, 'flags must be an number');
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
+    const immutable = (flags & QObjectImmutable) !== 0;
+    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+    let subscriber: Subscriber | undefined | null;
     let value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
-    const immutableMeta = target[_IMMUTABLE]?.[prop];
-    if (
-      !(prop in target) ||
-      !!hiddenSignal ||
-      isSignal(immutableMeta) ||
-      immutableMeta === _IMMUTABLE
-    ) {
+    if (immutable && (!(prop in target) || immutableValue(target[_IMMUTABLE]?.[prop]))) {
       subscriber = null;
     }
     if (hiddenSignal) {
       assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
       value = hiddenSignal.value;
+      subscriber = null;
     }
     if (subscriber) {
       const isA = isArray(target);
@@ -246,6 +242,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     };
   }
 }
+
+const immutableValue = (value: any) => {
+  return value === _IMMUTABLE || isSignal(value);
+};
 
 const wrap = <T>(value: T, containerState: ContainerState): T => {
   if (isObject(value)) {

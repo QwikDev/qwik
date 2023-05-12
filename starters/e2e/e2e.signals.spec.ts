@@ -427,6 +427,11 @@ test.describe('signals', () => {
       await remove.click();
       await expect(results).toHaveText([]);
     });
+
+    test('issue 4174', async ({ page }) => {
+      const result = page.locator('#issue-4174-result');
+      await expect(result).toHaveText('Store: visible-task');
+    });
   }
 
   tests();

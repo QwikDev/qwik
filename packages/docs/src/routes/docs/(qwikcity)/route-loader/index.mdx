@@ -125,7 +125,7 @@ This information comes in handy when the loader needs to conditionally return da
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useProductRecommendations = routeLoader$(async (requestEvent) => {
-  console.log('Request headers:', requestEvent.headers);
+  console.log('Request headers:', requestEvent.request.headers);
   console.log('Request cookies:', requestEvent.cookie);
   console.log('Request url:', requestEvent.url);
   console.log('Request method:', requestEvent.method);

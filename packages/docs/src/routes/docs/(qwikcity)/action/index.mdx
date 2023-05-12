@@ -248,7 +248,7 @@ import { routeAction$ } from '@builder.io/qwik-city';
 // The second argument of the action is the `RequestEvent` object
 export const useProductRecommendations = routeAction$(
   async (_data, requestEvent) => {
-    console.log('Request headers:', requestEvent.headers);
+    console.log('Request headers:', requestEvent.request.headers);
     console.log('Request cookies:', requestEvent.cookie);
     console.log('Request url:', requestEvent.url);
     console.log('Request params:', requestEvent.params);

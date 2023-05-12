@@ -6,7 +6,7 @@ import { loadIntegrations } from '../utils/integrations';
 import { installDeps } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
-import { bgRed, cyan } from 'kleur/colors';
+import { bgRed, cyan } from 'picocolors';
 import { spinner, log } from '@clack/prompts';
 
 export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {

@@ -12,12 +12,13 @@ import {
   isCancel,
   log,
 } from '@clack/prompts';
-import { bgBlue, red, gray } from 'kleur/colors';
+import { bgBlue, red, gray } from 'picocolors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { connectBuilder } from 'packages/qwik/src/cli/builder-connect/update-project';
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
@@ -124,6 +125,10 @@ export async function runCreateInteractiveCli() {
   s.start('Creating App...');
   const result = await createApp(opts);
   s.stop('Created App 🐰');
+
+  if (result.starterId === 'site-with-visual-cms') {
+    await connectBuilder(result.outDir);
+  }
 
   if (gitInitAnswer) {
     if (fs.existsSync(join(outDir, '.git'))) {

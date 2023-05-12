@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { magenta } from 'kleur/colors';
+import { magenta } from 'picocolors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';

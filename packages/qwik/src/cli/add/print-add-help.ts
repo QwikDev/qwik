@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { magenta, dim } from 'kleur/colors';
+import { magenta, dim } from 'picocolors';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import { pmRunCmd, note, bye, limitLength } from '../utils/utils';
 import { confirm, intro, isCancel, select } from '@clack/prompts';

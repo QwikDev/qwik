@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { dim, cyan, bgMagenta, magenta, } from 'kleur/colors';
+import { dim, cyan, bgMagenta, magenta, } from 'picocolors';
 import type { AppCommand } from '../utils/app-command';
 import { execaCommand } from 'execa';
 import { getPackageManager, pmRunCmd } from '../utils/utils';

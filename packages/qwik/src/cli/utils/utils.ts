@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { red, blue, magenta, white, gray, reset, green } from 'kleur/colors';
+import { red, blue, magenta, white, gray, reset, green } from 'picocolors';
 import { outro } from '@clack/prompts';
 import spawn from 'cross-spawn';
 import type { ChildProcess } from 'node:child_process';
@@ -120,8 +120,12 @@ export function pmRunCmd() {
   return `${pm} run`;
 }
 
-export function panic(msg: string) {
+export function error(msg: string) {
   console.error(`\n❌ ${red(msg)}\n`);
+}
+
+export function panic(msg: string) {
+  error(msg);
   process.exit(1);
 }
 

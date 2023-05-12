@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bgBlue, bold, magenta, cyan, bgMagenta, green } from 'kleur/colors';
+import { bgBlue, bold, magenta, cyan, bgMagenta, green } from 'picocolors';
 import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';

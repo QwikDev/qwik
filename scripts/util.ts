@@ -1,4 +1,4 @@
-import type { Plugin, WatchMode } from 'esbuild';
+import type { Plugin } from 'esbuild';
 import { join } from 'node:path';
 import mri from 'mri';
 import {
@@ -67,7 +67,6 @@ export interface BuildConfig {
   tsc?: boolean;
   validate?: boolean;
   wasm?: boolean;
-  watch?: boolean;
 }
 
 /**
@@ -135,23 +134,6 @@ export function importPath(filter: RegExp, newModulePath: string) {
 }
 
 /**
- * Esbuild plugin to print out console logs the rebuild has finished or if it has errors.
- */
-export function watcher(config: BuildConfig, filename?: string): WatchMode | boolean {
-  if (config.watch) {
-    return {
-      onRebuild(error) {
-        if (error) console.error('watch build failed:', error);
-        else {
-          if (filename) console.log('rebuilt:', filename);
-        }
-      },
-    };
-  }
-  return false;
-}
-
-/**
  * Standard license banner to place at the top of the generated files.
  */
 export const getBanner = (moduleName: string, version: string) => {
@@ -172,7 +154,7 @@ export const getBanner = (moduleName: string, version: string) => {
  */
 export const target = 'es2020';
 
-export const nodeTarget = 'node14';
+export const nodeTarget = 'node16';
 
 /**
  * Helper just to know which Node.js modules that should stay external.

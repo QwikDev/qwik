@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { red, dim, cyan, bgMagenta } from 'kleur/colors';
+import { red, dim, cyan, bgMagenta } from 'picocolors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';

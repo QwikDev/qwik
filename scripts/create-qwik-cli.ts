@@ -1,15 +1,13 @@
-import { type BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
+import { type BuildConfig, copyFile, emptyDir, mkdir, stat, panic } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'node:path';
-import { getBanner, readdir, watcher, run } from './util';
+import { getBanner, readdir, run } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
 import { existsSync } from 'node:fs';
-import { rm } from 'node:fs/promises';
-
-const PACKAGE = 'create-qwik';
+import { readFile, rm } from 'node:fs/promises';
 
 export async function buildCreateQwikCli(config: BuildConfig) {
-  const srcCliDir = join(config.packagesDir, PACKAGE);
+  const srcCliDir = join(config.packagesDir, 'create-qwik');
   const distCliDir = join(srcCliDir, 'dist');
 
   await bundleCreateQwikCli(config, srcCliDir, distCliDir);
@@ -25,11 +23,12 @@ export async function buildCreateQwikCli(config: BuildConfig) {
 async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distCliDir: string) {
   emptyDir(distCliDir);
 
+  const outFile = join(distCliDir, 'index.cjs');
+
   await build({
     entryPoints: [join(srcCliDir, 'index.ts')],
-    outfile: join(distCliDir, 'index.cjs'),
-    target: nodeTarget,
-    platform: 'node',
+    outfile: outFile,
+    target: 'node18',
     format: 'cjs',
     bundle: true,
     sourcemap: false,
@@ -38,29 +37,60 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
       {
         name: 'colorAlias',
         setup(build) {
-          build.onResolve({ filter: /^chalk$/ }, async (args) => {
-            const result = await build.resolve('kleur', {
-              resolveDir: args.resolveDir,
-              kind: 'import-statement',
-            });
-            if (result.errors.length > 0) {
-              return { errors: result.errors };
-            }
-            return { path: result.path };
+          build.onResolve({ filter: /^picocolors$/ }, async () => {
+            // for some reason esbuild resolves the browser build
+            // which doesn't work in node
+            return { path: join(config.rootDir, 'node_modules', 'picocolors', 'picocolors.js') };
+          });
+
+          build.onLoad({ filter: /.js/ }, async (args) => {
+            let contents = await readFile(args.path, 'utf8');
+            contents = contents.replace(/const __dirname /g, '// HACK! const __dirname ');
+            return { contents };
           });
         },
       },
     ],
-    external: ['prettier', 'typescript'],
+    external: [
+      'assert',
+      'child_process',
+      'events',
+      'fs',
+      'os',
+      'path',
+      'prettier',
+      'stream',
+      'tty',
+      'typescript',
+      'util',
+      'node:buffer',
+      'node:child_process',
+      'node:fs',
+      'node:http',
+      'node:os',
+      'node:path',
+      'node:process',
+      'node:readline',
+      'node:tty',
+      'node:url',
+      'node:util',
+    ],
     define: {
       'globalThis.CODE_MOD': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
     banner: {
-      js: getBanner(PACKAGE, config.distVersion),
+      js: getBanner('create-qwik', config.distVersion),
     },
-    watch: watcher(config),
   });
+
+  const openNodeModuleDir = join(config.rootDir, 'node_modules', 'open');
+  const xdgOpenPath = join(openNodeModuleDir, 'xdg-open');
+  if (!existsSync(xdgOpenPath)) {
+    panic(`CLI build unable to find 'open' node_module file: "${xdgOpenPath}"`);
+  }
+
+  await copyFile(xdgOpenPath, join(distCliDir, 'xdg-open'));
 }
 
 export async function publishCreateQwikCli(
@@ -69,7 +99,7 @@ export async function publishCreateQwikCli(
   version: string,
   isDryRun: boolean
 ) {
-  const distCliDir = join(config.packagesDir, PACKAGE, 'dist');
+  const distCliDir = join(config.packagesDir, 'create-qwik', 'dist');
   const cliPkg = await readPackageJson(distCliDir);
 
   // update the cli version

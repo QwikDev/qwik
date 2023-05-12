@@ -1,6 +1,6 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { type BuildConfig, getBanner, importPath, nodeTarget, target, watcher } from './util';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson } from './package-json';
 
@@ -35,7 +35,6 @@ export async function submoduleServer(config: BuildConfig) {
     banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
-    watch: watcher(config, submodule),
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
@@ -62,7 +61,6 @@ export async function submoduleServer(config: BuildConfig) {
     },
     outExtension: { '.js': '.cjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
-    watch: watcher(config),
     platform: 'node',
     target: nodeTarget,
     define: {

@@ -1,5 +1,5 @@
 import type { AppCommand } from '../utils/app-command';
-import { red } from 'kleur/colors';
+import { red } from 'picocolors';
 import { runAddInteractive } from './run-add-interactive';
 import { printAddHelp } from './print-add-help';
 

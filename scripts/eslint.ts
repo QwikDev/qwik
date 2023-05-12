@@ -1,4 +1,4 @@
-import { type BuildConfig, copyFile, watcher, run, nodeTarget } from './util';
+import { type BuildConfig, copyFile, run, nodeTarget } from './util';
 import { join } from 'node:path';
 import { build } from 'esbuild';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -17,7 +17,6 @@ export async function buildEslint(config: BuildConfig) {
     target: nodeTarget,
     platform: 'node',
     minify: !config.dev,
-    watch: watcher(config),
     external: ['eslint', 'espree', '@typescript-eslint/utils', 'typescript'],
   });
   await copyFile(join(eslintDir, 'package.json'), join(eslintOutput, 'package.json'));

@@ -1,4 +1,4 @@
-import { cyan } from 'kleur/colors';
+import { cyan } from 'picocolors';
 import type { NextSteps } from '../types';
 
 export function logSuccessFooter(docs: string[]) {

@@ -6,7 +6,7 @@ import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { msToString } from '../utils/format';
 import { pathToFileURL } from 'node:url';
 import { relative } from 'node:path';
-import { bold, green, dim, red, magenta } from 'kleur/colors';
+import { bold, green, dim, red, magenta } from 'picocolors';
 import { formatError } from '../buildtime/vite/format-error';
 import { buildErrorMessage } from 'vite';
 

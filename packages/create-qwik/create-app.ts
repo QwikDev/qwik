@@ -1,6 +1,6 @@
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 import fs from 'node:fs';
-import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
+import { bgMagenta, magenta, cyan, bold } from 'picocolors';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,

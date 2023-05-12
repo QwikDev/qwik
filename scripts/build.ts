@@ -139,10 +139,6 @@ export async function build(config: BuildConfig) {
       // release from ci
       await publish(config);
     }
-
-    if (config.watch) {
-      console.log('👀 watching...');
-    }
   } catch (e: any) {
     panic(String(e ? e.stack || e : 'Error'));
   }

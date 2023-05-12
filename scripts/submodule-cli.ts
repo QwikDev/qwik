@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { type BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
+import { type BuildConfig, copyFile, getBanner, nodeTarget } from './util';
 
 /**
  * Builds @builder.io/qwik/cli
@@ -19,20 +19,14 @@ export async function submoduleCli(config: BuildConfig) {
     bundle: true,
     banner: { js: getBanner('@builder.io/qwik/cli', config.distVersion) },
     outExtension: { '.js': '.cjs' },
-    watch: watcher(config, submodule),
     plugins: [
       {
         name: 'colorAlias',
         setup(build) {
-          build.onResolve({ filter: /^chalk$/ }, async (args) => {
-            const result = await build.resolve('kleur', {
-              resolveDir: args.resolveDir,
-              kind: 'import-statement',
-            });
-            if (result.errors.length > 0) {
-              return { errors: result.errors };
-            }
-            return { path: result.path };
+          build.onResolve({ filter: /^picocolors$/ }, async (args) => {
+            // for some reason esbuild resolves the browser build
+            // which doesn't work in node
+            return { path: join(config.rootDir, 'node_modules', 'picocolors', 'picocolors.js') };
           });
         },
       },

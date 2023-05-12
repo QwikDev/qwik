@@ -237,7 +237,8 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
  */
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
-   * HTTP response headers.
+   * HTTP response headers. Notice it will be empty until you first add a header.
+   * If you want to read the request headers, use `request.headers` instead.
    *
    * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
    */

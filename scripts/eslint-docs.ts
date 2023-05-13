@@ -84,16 +84,16 @@ rulesMap.forEach((rule) => {
       <div class="flex gap-2 items-center">
         <span
           class={{
-            'opacity-100': ${rule.recommended === false},
-            'opacity-50': ${rule.recommended === 'warn'},
+            'icon': ${rule.recommended === false},
+            'icon icon-inactive': ${rule.recommended === 'warn'},
           }}     
         >
           ✅
         </span>
         <span
           class={{
-            'opacity-100': ${rule.strict === false},
-            'opacity-50': ${rule.strict === 'warn'},
+            'icon': ${rule.strict === false},
+            'icon icon-inactive': ${rule.strict === 'warn'},
           }}
         >
           🔔

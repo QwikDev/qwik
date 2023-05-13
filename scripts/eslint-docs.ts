@@ -1,7 +1,13 @@
 import * as fs from 'fs';
 import { resolve } from 'path';
 import { format } from 'prettier';
-import { rules, configs } from '../packages/eslint-plugin-qwik/index';
+import {
+  rules,
+  configs,
+  examples,
+  type QwikEslintExample,
+  type QwikEslintExamples,
+} from '../packages/eslint-plugin-qwik/index';
 
 const outputPathMdx = resolve(
   process.cwd(),
@@ -17,14 +23,15 @@ function escapeHtml(htmlStr: string) {
     .replace(/'/g, '&#39;');
 }
 
-const rulesMap = Object.keys(rules).map((rule) => {
+const rulesMap = Object.keys(rules).map((ruleName) => {
+  const rule = ruleName as keyof typeof rules;
   return {
     name: rule,
-    description: escapeHtml(rules[rule].meta.docs.description),
-    recommended: configs.recommended.rules[`qwik/${rule}`] || false,
+    description: escapeHtml(rules[rule]?.meta?.docs?.description || ''),
+    recommended: configs?.recommended?.rules[`qwik/${rule}`] || false,
     strict: configs.strict.rules[`qwik/${rule}`] || false,
-    messages: rules[rule].meta.messages,
-    examples: rules[rule].meta.examples,
+    messages: rules[rule]?.meta?.messages || '',
+    examples: examples[rule],
   };
 });
 
@@ -115,8 +122,8 @@ rulesMap.forEach((rule) => {
       <h4>${messageKey}</h4>
     `);
 
-    const goodExamples = rule?.examples?.[messageKey]?.good;
-    const badExamples = rule?.examples?.[messageKey]?.bad;
+    const goodExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.good || [];
+    const badExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.bad || [];
 
     if (goodExamples) {
       mdx.push('<p>Examples of <b>correct</b> code for this rule:</p>');

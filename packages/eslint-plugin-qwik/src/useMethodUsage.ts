@@ -1,20 +1,9 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
+import type { QwikEslintExamples } from '..';
 
-type QwikEslintExample = {
-  code: string;
-  codeHighlight?: string;
-  description?: string;
-};
-
-type QwikEslintRuleModule = Rule.RuleModule & {
-  meta: Rule.RuleModule['meta'] & {
-    examples?: Record<string, { good: QwikEslintExample[]; bad: QwikEslintExample[] }>;
-  };
-};
-
-export const useMethodUsage: QwikEslintRuleModule = {
+export const useMethodUsage: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -27,48 +16,6 @@ export const useMethodUsage: QwikEslintRuleModule = {
       'use-after-await': 'Calling use* methods after await is not safe.',
       'use-wrong-function': 'Calling use* methods in wrong function.',
       'use-not-root': 'Calling use* methods in non-root component.',
-    },
-    examples: {
-      'use-after-await': {
-        good: [
-          {
-            codeHighlight: '{1,5-7} /alpha/',
-            code: `
-import {foo} from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  a += b;
-}
-            `.trim(),
-          },
-        ],
-        bad: [
-          {
-            code: `
-import {foo} from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  a += b;
-}
-            `.trim(),
-          },
-          {
-            code: `
-import {foo} from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-    a += b;
-}
-            `.trim(),
-          },
-        ],
-      },
     },
   },
   create(context) {
@@ -160,5 +107,48 @@ if (a.length > 0) {
         }
       },
     };
+  },
+};
+
+export const useMethodUsageExamples: QwikEslintExamples = {
+  'use-after-await': {
+    good: [
+      {
+        codeHighlight: '{1,5-7} /alpha/',
+        code: `
+import {foo} from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+a += b;
+}
+        `.trim(),
+      },
+    ],
+    bad: [
+      {
+        code: `
+import {foo} from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+a += b;
+}
+        `.trim(),
+      },
+      {
+        code: `
+import {foo} from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+a += b;
+}
+        `.trim(),
+      },
+    ],
   },
 };

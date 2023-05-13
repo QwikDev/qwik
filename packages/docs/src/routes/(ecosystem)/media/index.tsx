@@ -30,6 +30,12 @@ export const MEDIA = mediaObj({
       title: 'FrontendMasters: Qwik for Instant-Loading Websites & Apps',
     },
     youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag'),
+   {
+      href: 'https://cursos.devtalles.com/courses/qwik-introduccion',
+      imgSrc:
+        'https://import.cdn.thinkific.com/643563/courses/2285840/IHPERb8ESdaFTzQ6reQb_Qwik%20Cover%20curso.png',
+      title: 'Qwik - Introducción al Framework',
+    },
   ],
 
   /*****************************************/

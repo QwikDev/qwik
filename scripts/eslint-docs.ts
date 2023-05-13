@@ -143,6 +143,8 @@ rulesMap.forEach((rule) => {
         mdx.push('</div>');
       });
     }
+
+    mdx.push('<a href="#" class="edit-examples">Edit examples</a>');
   });
   mdx.push(`
     </div>

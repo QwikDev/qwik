@@ -1021,7 +1021,7 @@ export interface PropFnInterface<ARGS extends any[], RET>
 ```typescript
 export type PropFunction<T extends Function = (...args: any[]) => any> =
   T extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : never;
 ```
 
@@ -1036,7 +1036,7 @@ export type PropFunctionProps<PROPS extends {}> = {
   [K in keyof PROPS]: NonNullable<PROPS[K]> extends (
     ...args: infer ARGS
   ) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : PROPS[K];
 };
 ```

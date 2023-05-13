@@ -876,7 +876,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfunction.md"
     },
@@ -890,7 +890,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propfunctionprops.md"
     },

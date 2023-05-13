@@ -165,7 +165,7 @@ let runtimeSymbolId = 0;
 export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
   ...args: infer ARGS
 ) => infer RET
-  ? PropFnInterface<ARGS, RET>
+  ? PropFnInterface<ARGS, Awaited<RET>>
   : never;
 
 // <docs markdown="../readme.md#$">

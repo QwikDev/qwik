@@ -427,11 +427,11 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 }
 
 // @public (undocumented)
-export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
 
 // @public (undocumented)
 export type PropFunctionProps<PROPS extends {}> = {
-    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];
+    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
 };
 
 // @public

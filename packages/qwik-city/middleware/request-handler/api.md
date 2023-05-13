@@ -161,6 +161,7 @@ export interface ResolveValue {
 
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
+    checkOrigin?: boolean;
     // (undocumented)
     qwikCityPlan: QwikCityPlan;
     // (undocumented)

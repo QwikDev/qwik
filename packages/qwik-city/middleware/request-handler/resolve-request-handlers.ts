@@ -30,6 +30,7 @@ export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
+  checkOrigin: boolean,
   renderHandler: RequestHandler
 ) => {
   const routeLoaders: LoaderInternal[] = [];
@@ -49,9 +50,14 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
+    if (
+      checkOrigin &&
+      (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
+    ) {
+      requestHandlers.unshift(csrfCheckMiddleware);
+    }
     if (isPageRoute) {
       if (method === 'POST') {
-        requestHandlers.unshift(securityMiddleware);
         requestHandlers.push(pureServerFunction);
       }
       requestHandlers.push(fixTrailingSlash);
@@ -377,21 +383,24 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*#__PURE__*/ new TextEncoder();
 
-export function securityMiddleware(requestEv: RequestEvent) {
-  const isDev = getRequestMode(requestEv) === 'dev';
-  let inputOrigin = requestEv.request.headers.get('origin');
-  let origin = requestEv.url.origin;
-  if (isDev) {
-    // In development, we compare the host instead of the origin.
-    inputOrigin = inputOrigin ? new URL(inputOrigin).host : null;
-    origin = requestEv.url.host;
-  }
-  const forbidden = inputOrigin !== origin;
-  if (forbidden) {
-    throw requestEv.error(
-      403,
-      `Cross-site ${requestEv.request.method} form submissions are forbidden`
-    );
+function csrfCheckMiddleware(requestEv: RequestEvent) {
+  const isForm = isContentType(
+    requestEv.request.headers,
+    'application/x-www-form-urlencoded',
+    'multipart/form-data',
+    'text/plain'
+  );
+  if (isForm) {
+    const inputOrigin = requestEv.request.headers.get('origin');
+    const origin = requestEv.url.origin;
+    const forbidden = inputOrigin !== origin;
+    if (forbidden) {
+      throw requestEv.error(
+        403,
+        `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+The request origin "${inputOrigin}" does not match the server origin "${origin}".`
+      );
+    }
   }
 }
 export function renderQwikMiddleware(render: Render) {
@@ -533,4 +542,9 @@ export async function measure<T>(
     }
     measurements.push([name, duration]);
   }
+}
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  return types.includes(type);
 }

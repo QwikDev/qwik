@@ -173,6 +173,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           serverPlugins,
           loadedRoute,
           req.method ?? 'GET',
+          false,
           renderFn
         );
 

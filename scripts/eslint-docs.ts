@@ -48,21 +48,21 @@ mdx.push('<h1 id="smth">ESLint-Rules</h1>');
 mdx.push('<p>Qwik comes with an own set of ESLint rules to help developers write better code.</p>');
 
 mdx.push(`
-<div class="bg-slate-50 rounded-md border border-slate-200 mt-4 grid grid-cols-4 text-sm panel">
-  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
-    <span class="opacity-50 block mb-2">✅</span>
+<div class="ruleset-legend panel">
+  <div class="panel-border">
+    <span class="icon icon-inactive">✅</span>
     <b>Warn</b> in 'recommended' ruleset
   </div>
-  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
-    <span class="block mb-2">✅</span>
+  <div class="panel-border">
+    <span class="icon">✅</span>
     <b>Error</b> in 'recommended' ruleset
   </div>
-  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
-    <span class="opacity-50 block mb-2">🔔</span>
+  <div class="panel-border">
+    <span class="icon icon-inactive">🔔</span>
     <b>Warn</b> in 'strict' ruleset
   </div>
   <div class="list-none my-6 px-6">
-    <span class="block mb-2">🔔</span>
+    <span class="icon">🔔</span>
     <b>Error</b> in 'strict' ruleset
   </div>
 </div>
@@ -74,10 +74,10 @@ mdx.push(`<p>These rules are available.</p>`);
 mdx.push(`<div class="my-6">`);
 rulesMap.forEach((rule) => {
   mdx.push(`  
-    <a href="#${rule.name}" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#${rule.name}" class="p-4 flex panel">
       <div class="flex-1">
         <code>${rule.name}</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">${rule.description}</span>
+        <span class="rule-description">${rule.description}</span>
       </div>
       <div class="flex gap-2 items-center">
         <span

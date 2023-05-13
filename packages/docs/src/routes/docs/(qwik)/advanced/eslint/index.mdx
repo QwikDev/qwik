@@ -12,21 +12,21 @@ import './styles.css';
 <h1 id="smth">ESLint-Rules</h1>
 <p>Qwik comes with an own set of ESLint rules to help developers write better code.</p>
 
-<div class="bg-slate-50 rounded-md border border-slate-200 mt-4 grid grid-cols-4 text-sm panel">
-  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
-    <span class="opacity-50 block mb-2">✅</span>
+<div class="ruleset-legend panel">
+  <div class="panel-border">
+    <span class="icon icon-inactive">✅</span>
     <b>Warn</b> in 'recommended' ruleset
   </div>
-  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
-    <span class="block mb-2">✅</span>
+  <div class="panel-border">
+    <span class="icon">✅</span>
     <b>Error</b> in 'recommended' ruleset
   </div>
-  <div class="list-none border-r border-slate-200 my-6 px-6 panel-border">
-    <span class="opacity-50 block mb-2">🔔</span>
+  <div class="panel-border">
+    <span class="icon icon-inactive">🔔</span>
     <b>Warn</b> in 'strict' ruleset
   </div>
   <div class="list-none my-6 px-6">
-    <span class="block mb-2">🔔</span>
+    <span class="icon">🔔</span>
     <b>Error</b> in 'strict' ruleset
   </div>
 </div>
@@ -35,10 +35,10 @@ import './styles.css';
 <p>These rules are available.</p>
 <div class="my-6">
   
-    <a href="#use-method-usage" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#use-method-usage" class="p-4 flex panel">
       <div class="flex-1">
         <code>use-method-usage</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Object destructuring is not recommended for component$</span>
+        <span class="rule-description">Object destructuring is not recommended for component$</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -61,10 +61,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#valid-lexical-scope" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#valid-lexical-scope" class="p-4 flex panel">
       <div class="flex-1">
         <code>valid-lexical-scope</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.</span>
+        <span class="rule-description">Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -87,10 +87,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#loader-location" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#loader-location" class="p-4 flex panel">
       <div class="flex-1">
         <code>loader-location</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Detect declaration location of loader$</span>
+        <span class="rule-description">Detect declaration location of loader$</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -113,10 +113,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#no-react-props" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#no-react-props" class="p-4 flex panel">
       <div class="flex-1">
         <code>no-react-props</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Disallow usage of React-specific `className`/`htmlFor` props.</span>
+        <span class="rule-description">Disallow usage of React-specific `className`/`htmlFor` props.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -139,10 +139,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#prefer-classlist" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#prefer-classlist" class="p-4 flex panel">
       <div class="flex-1">
         <code>prefer-classlist</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.</span>
+        <span class="rule-description">Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -165,10 +165,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#jsx-no-script-url" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#jsx-no-script-url" class="p-4 flex panel">
       <div class="flex-1">
         <code>jsx-no-script-url</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Disallow javascript: URLs.</span>
+        <span class="rule-description">Disallow javascript: URLs.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -191,10 +191,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#jsx-key" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#jsx-key" class="p-4 flex panel">
       <div class="flex-1">
         <code>jsx-key</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Disallow missing `key` props in iterators/collection literals</span>
+        <span class="rule-description">Disallow missing `key` props in iterators/collection literals</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -217,10 +217,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#unused-server" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#unused-server" class="p-4 flex panel">
       <div class="flex-1">
         <code>unused-server</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">Detect unused server$() functions</span>
+        <span class="rule-description">Detect unused server$() functions</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
@@ -243,10 +243,10 @@ import './styles.css';
     </a>
   
   
-    <a href="#jsx-img" class="bg-slate-50 rounded-md p-4 mt-4 flex cursor-pointer panel">
+    <a href="#jsx-img" class="p-4 flex panel">
       <div class="flex-1">
         <code>jsx-img</code>
-        <span class="text-xs block mt-2 max-w-[90%] leading-5">For performance reasons, always provide width and height attributes for &lt;img&gt; elements, it will help to prevent layout shifts.</span>
+        <span class="rule-description">For performance reasons, always provide width and height attributes for &lt;img&gt; elements, it will help to prevent layout shifts.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span

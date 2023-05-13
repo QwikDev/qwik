@@ -31,10 +31,9 @@ export const MEDIA = mediaObj({
     },
     youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag'),
     {
-      href: 'https://cursos.devtalles.com/courses/qwik-introduccion',
-      imgSrc:
-        'https://fernando-herrera.com/assets/img/cursos/qwik-gratis.png',
-      title: 'Fernando Herrera + DevTalles',
+      href: 'https://open.spotify.com/episode/2dl2QegrUBnepz0RHZ17rG?si=EfvbNWURT1-9u1Z34BVd1g',
+      imgSrc: 'https://devtalles.com/files/qwik/podcast-banner.jpg',
+      title: 'DevTalles 113: qwik v1.0',
     },
   ],
 
@@ -116,12 +115,6 @@ export const MEDIA = mediaObj({
       imgSrc: 'https://i.scdn.co/image/ab6765630000ba8a18aa5c33cbb1658d26724fcf',
       title: 'FedBites: Qwik Special with Miško Hevery & Adam Bradley',
     },
-    {
-      href: 'https://open.spotify.com/episode/2dl2QegrUBnepz0RHZ17rG?si=EfvbNWURT1-9u1Z34BVd1g',
-      imgSrc: 'https://devtalles.com/files/qwik/podcast-banner.jpg',
-      title: 'DevTalles 113: qwik v1.0',
-    },
-    
   ],
 
   /*****************************************/

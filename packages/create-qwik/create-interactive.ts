@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
-import { join, relative } from 'node:path';
+import path, { join, relative } from 'node:path';
 import {
   text,
   select,
@@ -61,7 +61,7 @@ export async function runCreateInteractiveCli() {
       )}" already exists and is not empty. What would you like to do?`,
       options: [
         { value: 'exit', label: 'Do not overwrite this directory and exit' },
-        { value: 'replace', label: 'Overwrite and replace this directory' },
+        { value: 'replace', label: 'Remove contents of this directory' },
       ],
     });
 
@@ -71,7 +71,13 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
+      fs.promises
+        .readdir(outDir)
+        .then((filePaths) =>
+          filePaths.forEach((pathToFile) =>
+            fs.promises.rm(path.join(outDir, pathToFile), { recursive: true })
+          )
+        );
     }
   }
 

@@ -1,13 +1,8 @@
 import * as fs from 'fs';
 import { resolve } from 'path';
 import { format } from 'prettier';
-import {
-  rules,
-  configs,
-  examples,
-  type QwikEslintExample,
-  type QwikEslintExamples,
-} from '../packages/eslint-plugin-qwik/index';
+import { rules, configs } from '../packages/eslint-plugin-qwik/index';
+import { examples, type QwikEslintExample } from '../packages/eslint-plugin-qwik/examples';
 
 const outputPathMdx = resolve(
   process.cwd(),
@@ -125,7 +120,7 @@ rulesMap.forEach((rule) => {
     const goodExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.good || [];
     const badExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.bad || [];
 
-    if (goodExamples) {
+    if (goodExamples.length > 0) {
       mdx.push('<p>Examples of <b>correct</b> code for this rule:</p>');
       goodExamples.map((example) => {
         mdx.push('<div class="code-wrapper">');
@@ -137,7 +132,7 @@ rulesMap.forEach((rule) => {
       });
     }
 
-    if (badExamples) {
+    if (badExamples.length > 0) {
       mdx.push('<p>Examples of <b>incorrect</b> code for this rule:</p>');
       badExamples.map((example) => {
         mdx.push('<div class="code-wrapper">');

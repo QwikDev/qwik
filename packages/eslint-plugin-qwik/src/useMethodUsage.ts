@@ -110,44 +110,44 @@ export const useMethodUsage: Rule.RuleModule = {
   },
 };
 
+const dummyExample1 = `
+import { foo } from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+  if (b > 0) {
+    a += b;
+  }
+}
+`.trim();
+
 export const useMethodUsageExamples: QwikEslintExamples = {
   'use-after-await': {
     good: [
       {
         codeHighlight: '{1,5-7} /alpha/',
-        code: `
-import {foo} from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-a += b;
-}
-        `.trim(),
+        code: dummyExample1,
       },
     ],
     bad: [
       {
-        code: `
-import {foo} from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-a += b;
-}
-        `.trim(),
+        code: dummyExample1,
       },
       {
-        code: `
-import {foo} from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-a += b;
-}
-        `.trim(),
+        code: dummyExample1,
+      },
+      {
+        code: dummyExample1,
+      },
+      {
+        code: dummyExample1,
+      },
+      {
+        code: dummyExample1,
+      },
+      {
+        code: dummyExample1,
       },
     ],
   },

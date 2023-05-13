@@ -283,12 +283,14 @@ import './styles.css';
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {1,5-7} /alpha/
-import {foo} from 'foo';
+import { foo } from 'foo';
 const a = 'alpha';
 const b: number = 1;
 
 if (a.length > 0) {
+if (b > 0) {
 a += b;
+}
 }
 
 ````
@@ -297,12 +299,14 @@ a += b;
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx undefined
-import {foo} from 'foo';
+import { foo } from 'foo';
 const a = 'alpha';
 const b: number = 1;
 
 if (a.length > 0) {
-a += b;
+  if (b > 0) {
+    a += b;
+  }
 }
 ````
 
@@ -310,12 +314,74 @@ a += b;
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx undefined
-import {foo} from 'foo';
+import { foo } from 'foo';
 const a = 'alpha';
 const b: number = 1;
 
 if (a.length > 0) {
+if (b > 0) {
 a += b;
+}
+}
+
+````
+</div>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx undefined
+import { foo } from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+  if (b > 0) {
+    a += b;
+  }
+}
+````
+
+</div>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx undefined
+import { foo } from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+if (b > 0) {
+a += b;
+}
+}
+
+````
+</div>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx undefined
+import { foo } from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+  if (b > 0) {
+    a += b;
+  }
+}
+````
+
+</div>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx undefined
+import { foo } from 'foo';
+const a = 'alpha';
+const b: number = 1;
+
+if (a.length > 0) {
+if (b > 0) {
+a += b;
+}
 }
 
 ```

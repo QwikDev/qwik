@@ -3,7 +3,7 @@ import { isElement, isQwikElement } from '../util/element';
 import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 
-const ASSERT_DISCLAIMER = 'Internal assert, this is likely caused by a bug in Qwik';
+const ASSERT_DISCLAIMER = 'Internal assert, this is likely caused by a bug in Qwik: ';
 
 export function assertDefined<T>(
   value: T,

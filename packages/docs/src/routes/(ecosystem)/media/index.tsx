@@ -33,9 +33,9 @@ export const MEDIA = mediaObj({
     {
       href: 'https://cursos.devtalles.com/courses/qwik-introduccion',
       imgSrc:
-        'https://import.cdn.thinkific.com/643563/courses/2285840/IHPERb8ESdaFTzQ6reQb_Qwik%20Cover%20curso.png',
-      title: 'Qwik - Introducción al Framework',
-    }
+        'https://fernando-herrera.com/assets/img/cursos/qwik-gratis.png',
+      title: 'Fernando Herrera + DevTalles',
+    },
   ],
 
   /*****************************************/

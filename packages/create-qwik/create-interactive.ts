@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
-import path, { join, relative } from 'node:path';
+import { join, relative } from 'node:path';
 import {
   text,
   select,
@@ -75,7 +75,7 @@ export async function runCreateInteractiveCli() {
         .readdir(outDir)
         .then((filePaths) =>
           filePaths.forEach((pathToFile) =>
-            fs.promises.rm(path.join(outDir, pathToFile), { recursive: true })
+            fs.promises.rm(join(outDir, pathToFile), { recursive: true })
           )
         );
     }

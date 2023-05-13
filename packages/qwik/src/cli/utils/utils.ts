@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { red, blue, magenta, white, gray, reset, green } from 'kleur/colors';
-import { outro } from '@clack/prompts';
+import { log, outro } from '@clack/prompts';
 import spawn from 'cross-spawn';
 import type { ChildProcess } from 'node:child_process';
 import detectPackageManager from 'which-pm-runs';
@@ -17,7 +17,14 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
         stdio: 'ignore',
       });
 
-      child.on('error', () => {
+      child.on('error', (e) => {
+        if (e) {
+          if (e.message) {
+            log.error(red(String(e.message)) + `\n\n`);
+          } else {
+            log.error(red(String(e)) + `\n\n`);
+          }
+        }
         resolve(false);
       });
 

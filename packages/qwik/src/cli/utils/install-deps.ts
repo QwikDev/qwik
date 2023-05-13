@@ -20,57 +20,60 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
 
   const { install, abort } = installDeps(pkgManager, tmpInstallDir);
 
-  const complete = async (runInstall: boolean, outDir: string) => {
+  const complete = async (outDir: string) => {
     let success = false;
 
-    if (runInstall) {
-      try {
-        const installed = await install;
-        if (installed) {
-          const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
-          const appNodeModules = path.join(outDir, 'node_modules');
-          await fs.promises.rename(tmpNodeModules, appNodeModules);
+    try {
+      const installed = await install;
+      if (installed) {
+        const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
+        const appNodeModules = path.join(outDir, 'node_modules');
+        await fs.promises.rename(tmpNodeModules, appNodeModules);
 
-          try {
-            await fs.promises.rename(
-              path.join(tmpInstallDir, 'package-lock.json'),
-              path.join(outDir, 'package-lock.json')
-            );
-          } catch (e) {
-            //
-          }
-          try {
-            await fs.promises.rename(
-              path.join(tmpInstallDir, 'yarn.lock'),
-              path.join(outDir, 'yarn.lock')
-            );
-          } catch (e) {
-            //
-          }
-          try {
-            await fs.promises.rename(
-              path.join(tmpInstallDir, 'pnpm-lock.yaml'),
-              path.join(outDir, 'pnpm-lock.yaml')
-            );
-          } catch (e) {
-            //
-          }
-
-          success = true;
-        } else {
-          const errorMessage =
-            `${bgRed(` ${pkgManager} install failed `)}\n` +
-            ` You might need to run ${cyan(
-              `"${pkgManager} install"`
-            )} manually inside the root of the project.\n\n`;
-
-          log.error(errorMessage);
+        try {
+          await fs.promises.rename(
+            path.join(tmpInstallDir, 'package-lock.json'),
+            path.join(outDir, 'package-lock.json')
+          );
+        } catch (e) {
+          //
         }
-      } catch (e) {
-        //
+        try {
+          await fs.promises.rename(
+            path.join(tmpInstallDir, 'yarn.lock'),
+            path.join(outDir, 'yarn.lock')
+          );
+        } catch (e) {
+          //
+        }
+        try {
+          await fs.promises.rename(
+            path.join(tmpInstallDir, 'pnpm-lock.yaml'),
+            path.join(outDir, 'pnpm-lock.yaml')
+          );
+        } catch (e) {
+          //
+        }
+
+        success = true;
       }
-    } else {
-      await abort();
+    } catch (e: any) {
+      if (e) {
+        if (e.message) {
+          log.error(red(String(e.message)) + `\n\n`);
+        } else {
+          log.error(red(String(e)) + `\n\n`);
+        }
+      }
+    }
+
+    if (!success) {
+      const errorMessage =
+        `${bgRed(` ${pkgManager} install failed `)}\n` +
+        ` You might need to run ${cyan(
+          `"${pkgManager} install"`
+        )} manually inside the root of the project.\n\n`;
+      log.error(errorMessage);
     }
 
     return success;

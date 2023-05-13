@@ -349,7 +349,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ServerRenderOptions extends RenderOptions \n```\n**Extends:** RenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [qwikCityPlan](#) |  | QwikCityPlan |  |\n|  [render](#) |  | Render |  |",
+      "content": "```typescript\nexport interface ServerRenderOptions extends RenderOptions \n```\n**Extends:** RenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [checkOrigin?](#) |  | boolean | <p>_(Optional)_ Protection against cross-site request forgery (CSRF) attacks.</p><p>When <code>true</code>, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.</p><p>Be careful when disabling this option as it may lead to CSRF attacks.</p><p>Defaults to <code>true</code>.</p> |\n|  [qwikCityPlan](#) |  | QwikCityPlan |  |\n|  [render](#) |  | Render |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik-city.serverrenderoptions.md"
     },

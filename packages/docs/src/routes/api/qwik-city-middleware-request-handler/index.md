@@ -337,10 +337,11 @@ export interface ServerRenderOptions extends RenderOptions
 
 **Extends:** RenderOptions
 
-| Property          | Modifiers | Type         | Description |
-| ----------------- | --------- | ------------ | ----------- |
-| [qwikCityPlan](#) |           | QwikCityPlan |             |
-| [render](#)       |           | Render       |             |
+| Property          | Modifiers | Type         | Description                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------- | --------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [checkOrigin?](#) |           | boolean      | <p>_(Optional)_ Protection against cross-site request forgery (CSRF) attacks.</p><p>When <code>true</code>, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.</p><p>Be careful when disabling this option as it may lead to CSRF attacks.</p><p>Defaults to <code>true</code>.</p> |
+| [qwikCityPlan](#) |           | QwikCityPlan |                                                                                                                                                                                                                                                                                                                                                               |
+| [render](#)       |           | Render       |                                                                                                                                                                                                                                                                                                                                                               |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 

@@ -66,8 +66,9 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-| Property     | Modifiers | Type                                      | Description                                   |
-| ------------ | --------- | ----------------------------------------- | --------------------------------------------- |
-| [static?](#) |           | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |
+| Property     | Modifiers | Type                                      | Description                                                                                                                                                                                                                                                        |
+| ------------ | --------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [origin?](#) |           | string                                    | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |
+| [static?](#) |           | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files                                                                                                                                                                                                                      |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts)

@@ -330,8 +330,3 @@ const formToObj = (formData: FormData): Record<string, any> => {
   });
   return obj;
 };
-
-export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
-  return types.includes(type);
-}

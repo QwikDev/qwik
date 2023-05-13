@@ -5,9 +5,8 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
-
 function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
@@ -18,8 +17,10 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-export function getUrl(req: IncomingMessage) {
-  const origin = ORIGIN ?? getOrigin(req);
+export function getUrl(
+  req: IncomingMessage,
+  origin: string = process.env.ORIGIN ?? getOrigin(req)
+) {
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 

@@ -386,7 +386,7 @@ export const Counter = component$(() => {
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
 export const Clock = component$(() => {
-  const seconds = useSignal(0);
+  const time = useSignal(0);
 
   // The `useVisibleTask$` hook is used to create a task that runs eagarly on the client.
   useVisibleTask$((taskContext) => {

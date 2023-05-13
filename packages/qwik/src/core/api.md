@@ -65,6 +65,11 @@ export interface AriaAttributes {
 // @public (undocumented)
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
+// Warning: (ae-forgotten-export) The symbol "BaseClassList" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ClassList = BaseClassList | BaseClassList[];
+
 // @public
 export const component$: <PROPS = unknown, ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}>(onMount: OnRenderFn<ARG>) => Component<PROPS extends {} ? PROPS : ARG>;
 
@@ -148,6 +153,9 @@ export interface FunctionComponent<P = Record<string, any>> {
 
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
+
+// @internal (undocumented)
+export const _getContextEvent: () => unknown;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -276,6 +284,11 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     vocab?: string | undefined;
 }
+
+// @public (undocumented)
+export const HTMLFragment: FunctionComponent<{
+    dangerouslySetInnerHTML: string;
+}>;
 
 // @internal
 export const _hW: () => void;
@@ -414,11 +427,11 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 }
 
 // @public (undocumented)
-export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
 
 // @public (undocumented)
 export type PropFunctionProps<PROPS extends {}> = {
-    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];
+    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
 };
 
 // @public
@@ -875,7 +888,7 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const SSRHint: FunctionComponent<SSRHintProps>;
 
 // @public (undocumented)

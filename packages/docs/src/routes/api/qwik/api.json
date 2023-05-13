@@ -79,6 +79,20 @@
       "mdFile": "qwik.resourcectx.cache.md"
     },
     {
+      "name": "ClassList",
+      "id": "classlist",
+      "hierarchy": [
+        {
+          "name": "ClassList",
+          "id": "classlist"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ClassList = BaseClassList | BaseClassList[];\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
+      "mdFile": "qwik.classlist.md"
+    },
+    {
       "name": "cleanup",
       "id": "renderresult-cleanup",
       "hierarchy": [
@@ -456,6 +470,20 @@
       "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#) |  | boolean \\| 'hidden' \\| 'until-found' \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#) |  | any | _(Optional)_ |\n|  [inputMode?](#) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#) |  | string \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
+    },
+    {
+      "name": "HTMLFragment",
+      "id": "htmlfragment",
+      "hierarchy": [
+        {
+          "name": "HTMLFragment",
+          "id": "htmlfragment"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nHTMLFragment: FunctionComponent<{\n    dangerouslySetInnerHTML: string;\n}>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
+      "mdFile": "qwik.htmlfragment.md"
     },
     {
       "name": "implicit$FirstArg",
@@ -848,7 +876,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfunction.md"
     },
@@ -862,7 +890,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propfunctionprops.md"
     },
@@ -1537,7 +1565,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nSSRHint: FunctionComponent<SSRHintProps>\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> - It has no effect\n> \n\n\n```typescript\nSSRHint: FunctionComponent<SSRHintProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrhint.md"
     },

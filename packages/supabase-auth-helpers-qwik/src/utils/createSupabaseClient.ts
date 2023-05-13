@@ -140,7 +140,7 @@ export function createServerClient<
     supabaseUrl,
     supabaseKey,
     getRequestHeader: (key) => {
-      return requestEv.headers.get(key) ?? undefined;
+      return requestEv.request.headers.get(key) ?? undefined;
     },
     getCookie: (name) => {
       return requestEv.cookie.get(name)?.value;

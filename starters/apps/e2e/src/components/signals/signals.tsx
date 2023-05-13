@@ -124,6 +124,7 @@ export const SignalsChildren = component$(() => {
       <Issue3482 />
       <Issue3663 />
       <Issue3440 />
+      <Issue4174 />
     </div>
   );
 });
@@ -897,6 +898,23 @@ export const Issue3440 = component$(() => {
           </button>
         </div>
       </div>
+    </>
+  );
+});
+
+export const Issue4174 = component$(() => {
+  const storeWithoutInit = useStore<{ value?: string }>({});
+
+  useVisibleTask$(
+    () => {
+      storeWithoutInit.value = 'visible-task';
+    },
+    { strategy: 'document-ready' }
+  );
+
+  return (
+    <>
+      <div id="issue-4174-result">Store: {storeWithoutInit.value}</div>
     </>
   );
 });

@@ -173,6 +173,14 @@ cache(policyOrMilliseconds: number | 'immutable'): void;
 
 void
 
+## ClassList
+
+```typescript
+export type ClassList = BaseClassList | BaseClassList[];
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+
 ## cleanup
 
 ```typescript
@@ -692,6 +700,16 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## HTMLFragment
+
+```typescript
+HTMLFragment: FunctionComponent<{
+  dangerouslySetInnerHTML: string;
+}>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+
 ## implicit$FirstArg
 
 Create a `____$(...)` convenience method from `___(...)`.
@@ -1003,7 +1021,7 @@ export interface PropFnInterface<ARGS extends any[], RET>
 ```typescript
 export type PropFunction<T extends Function = (...args: any[]) => any> =
   T extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : never;
 ```
 
@@ -1018,7 +1036,7 @@ export type PropFunctionProps<PROPS extends {}> = {
   [K in keyof PROPS]: NonNullable<PROPS[K]> extends (
     ...args: infer ARGS
   ) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : PROPS[K];
 };
 ```
@@ -1773,6 +1791,10 @@ SSRComment: FunctionComponent<{
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRHint
+
+> Warning: This API is now obsolete.
+>
+> - It has no effect
 
 ```typescript
 SSRHint: FunctionComponent<SSRHintProps>;

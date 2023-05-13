@@ -17,9 +17,9 @@ export async function submoduleServer(config: BuildConfig) {
   const qwikDomVersion = await getQwikDomVersion(config);
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
     entryNames: 'server',
-    outdir: config.distPkgDir,
+    outdir: config.distQwikPkgDir,
     sourcemap: config.dev,
     bundle: true,
     target,

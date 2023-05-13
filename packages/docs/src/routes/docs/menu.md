@@ -97,6 +97,10 @@
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 - [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 
+## Reference
+
+- [API Reference](/api/)
+
 ## Community
 
 - [GitHub](https://github.com/BuilderIO/qwik)

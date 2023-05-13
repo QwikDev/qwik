@@ -173,14 +173,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           serverPlugins,
           loadedRoute,
           req.method ?? 'GET',
+          false,
           renderFn
         );
 
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
-          if (ctx.opts.platform) {
-            serverRequestEv.platform = ctx.opts.platform;
-          }
+          Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
           const manifest: QwikManifest = {
             symbols: {},

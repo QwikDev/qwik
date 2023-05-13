@@ -45,6 +45,17 @@ export type ServerResponseHandler<T = any> = (
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
+  /**
+   * Protection against cross-site request forgery (CSRF) attacks.
+   *
+   * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions,
+   * the request origin is checked to match the server's origin.
+   *
+   * Be careful when disabling this option as it may lead to CSRF attacks.
+   *
+   * Defaults to `true`.
+   */
+  checkOrigin?: boolean;
 }
 
 /**
@@ -67,7 +78,8 @@ export type StatusCodes =
   | SuccessCode
   | ClientErrorCode
   | ServerErrorCode
-  | RedirectCode;
+  | RedirectCode
+  | number;
 
 export type ErrorCodes = ClientErrorCode | ServerErrorCode;
 
@@ -95,7 +107,7 @@ type SuccessCode =
   | 206 // Partial Content
   | 207 // Multi-Status
   | 208 // Already Reported
-  | 226; // IM Used
+  | 226; // IM Used;
 
 /**
  * HTTP Redirect Status Codes
@@ -236,7 +248,8 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
  */
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
-   * HTTP response headers.
+   * HTTP response headers. Notice it will be empty until you first add a header.
+   * If you want to read the request headers, use `request.headers` instead.
    *
    * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
    */

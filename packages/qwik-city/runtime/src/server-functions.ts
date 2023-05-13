@@ -10,6 +10,7 @@ import {
   _serializeData,
   _deserializeData,
   _getContextElement,
+  _getContextEvent,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -291,7 +292,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
   function stuff() {
     return $(async function (this: any, ...args: any[]) {
       if (isServer) {
-        const requestEvent = useQwikCityEnv()?.ev ?? this;
+        const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
         return qrl.apply(requestEvent, args);
       } else {
         const ctxElm = _getContextElement();

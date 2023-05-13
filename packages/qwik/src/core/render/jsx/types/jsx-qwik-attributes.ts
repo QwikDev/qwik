@@ -172,6 +172,10 @@ export type BaseClassList =
   | false
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
+
+/**
+ * @public
+ */
 export type ClassList = BaseClassList | BaseClassList[];
 
 export interface QwikProps<T> extends PreventDefault<T> {

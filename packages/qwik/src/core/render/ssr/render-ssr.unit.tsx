@@ -13,9 +13,9 @@ import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
 import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
-import { SSRComment } from '../jsx/utils.public';
+import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
-import { jsx } from '../jsx/jsx-runtime';
+import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
 import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
@@ -1382,6 +1382,36 @@ renderSSRSuite('ssr marks', async () => {
         <li>3</li>
       </body>
     </html>`
+  );
+});
+
+renderSSRSuite('ssr raw', async () => {
+  await testSSR(
+    <body>
+      <SSRRaw data="<div>hello</div>" />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
+    <body>
+      <div>hello</div>
+    </body>
+  </html>`
+  );
+});
+
+renderSSRSuite('html fragment', async () => {
+  await testSSR(
+    <body>
+      <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
+    <body>
+      <!--qv-->
+      <div>hello</div>
+      <!--/qv-->
+    </body>
+  </html>`
   );
 });
 

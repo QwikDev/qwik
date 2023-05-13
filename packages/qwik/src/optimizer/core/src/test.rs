@@ -1994,6 +1994,7 @@ fn example_immutable_analysis() {
         code: r#"
 import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
+import styles from './styles.module.css';
 
 export const App = component$((props) => {
     const {Model} = props;
@@ -2009,6 +2010,8 @@ export const App = component$((props) => {
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                class={styles.foo}
+                document={window.document}
                 onClick$={props.onClick$}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
@@ -2584,6 +2587,7 @@ fn example_derived_signals_div() {
 import { component$, useStore, mutable } from '@builder.io/qwik';
 
 import {dep} from './file';
+import styles from './styles.module.css';
 
 export const App = component$(() => {
     const signal = useSignal(0);
@@ -2598,6 +2602,8 @@ export const App = component$(() => {
                 stable0: true,
                 hidden: false,
             }}
+            staticClass={styles.foo}
+            staticDocument={window.document}
             staticText="text"
             staticText2={`text`}
             staticNumber={1}

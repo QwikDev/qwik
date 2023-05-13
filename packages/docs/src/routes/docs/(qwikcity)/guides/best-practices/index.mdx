@@ -121,7 +121,7 @@ Many actions related to location information can be executed during the initial 
 
 By forcing this logic to run on the client side, it introduces increased upfront JavaScript and leads to eager loading.
 
-Using the if typeof window !== "undefined" pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
+Using the `if typeof window !== "undefined"` pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
 
 While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
 

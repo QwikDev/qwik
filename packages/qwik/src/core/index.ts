@@ -52,13 +52,14 @@ export {
 } from './render/jsx/utils.public';
 export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
-export { Fragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
 export type {
   DOMAttributes,
   JSXTagName,
   JSXChildren,
   ComponentBaseProps,
+  ClassList,
 } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';

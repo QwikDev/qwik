@@ -42,6 +42,7 @@ export interface VirtualElement {
   readonly nodeName: string;
   readonly isConnected: boolean;
   readonly parentElement: Element | null;
+  innerHTML: string;
 }
 
 export type QwikElement = Element | VirtualElement;
@@ -52,12 +53,12 @@ export const newVirtualElement = (doc: Document): VirtualElement => {
   return new VirtualElementImpl(open, close);
 };
 
-export const parseVirtualAttributes = (str: string): Map<string, string> => {
+export const parseVirtualAttributes = (str: string): Record<string, string> => {
   if (!str) {
-    return new Map();
+    return {};
   }
   const attributes = str.split(' ');
-  return new Map(
+  return Object.fromEntries(
     attributes.map((attr) => {
       const index = attr.indexOf('=');
       if (index >= 0) {
@@ -69,9 +70,9 @@ export const parseVirtualAttributes = (str: string): Map<string, string> => {
   );
 };
 
-export const serializeVirtualAttributes = (map: Map<string, string>) => {
+export const serializeVirtualAttributes = (map: Record<string, string>) => {
   const attributes: string[] = [];
-  map.forEach((value, key) => {
+  Object.entries(map).forEach(([key, value]) => {
     if (!value) {
       attributes.push(`${key}`);
     } else {
@@ -133,7 +134,7 @@ export class VirtualElementImpl implements VirtualElement {
   readonly nodeType = 111 as const;
   readonly localName = VIRTUAL;
   readonly nodeName = VIRTUAL;
-  private $attributes$: Map<string, string>;
+  private $attributes$: Record<string, string>;
   private $template$: HTMLTemplateElement;
 
   constructor(public open: Comment, public close: Comment) {
@@ -160,7 +161,7 @@ export class VirtualElementImpl implements VirtualElement {
     const parent = this.parentElement;
     if (parent) {
       // const ch = this.childNodes;
-      const ch = Array.from(this.childNodes);
+      const ch = this.childNodes;
       assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
       this.$template$.append(...ch);
@@ -174,7 +175,7 @@ export class VirtualElementImpl implements VirtualElement {
 
   insertBeforeTo(newParent: QwikElement, child: Node | null) {
     // const ch = this.childNodes;
-    const ch = Array.from(this.childNodes);
+    const ch = this.childNodes;
     // TODO
     // if (this.parentElement) {
     //   console.warn('already attached');
@@ -204,22 +205,22 @@ export class VirtualElementImpl implements VirtualElement {
   }
 
   getAttribute(prop: string) {
-    return this.$attributes$.get(prop) ?? null;
+    return this.$attributes$[prop] ?? null;
   }
 
   hasAttribute(prop: string) {
-    return this.$attributes$.has(prop);
+    return prop in this.$attributes$;
   }
 
   setAttribute(prop: string, value: string) {
-    this.$attributes$.set(prop, value);
+    this.$attributes$[prop] = value;
     if (qSerialize) {
       this.open.data = updateComment(this.$attributes$);
     }
   }
 
   removeAttribute(prop: string) {
-    this.$attributes$.delete(prop);
+    delete this.$attributes$[prop];
     if (qSerialize) {
       this.open.data = updateComment(this.$attributes$);
     }
@@ -270,6 +271,21 @@ export class VirtualElementImpl implements VirtualElement {
     return null;
   }
 
+  get innerHTML() {
+    return '';
+  }
+
+  set innerHTML(html: string) {
+    const parent = this.parentElement;
+    if (parent) {
+      this.childNodes.forEach((a) => this.removeChild(a));
+      this.$template$.innerHTML = html;
+      parent.insertBefore(this.$template$.content, this.close);
+    } else {
+      this.$template$.innerHTML = html;
+    }
+  }
+
   get firstChild() {
     if (this.parentElement) {
       const first = this.open.nextSibling;
@@ -289,7 +305,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
   get childNodes(): Node[] {
     if (!this.parentElement) {
-      return this.$template$.childNodes as any;
+      return Array.from(this.$template$.childNodes) as any;
     }
     const nodes: Node[] = [];
     let node: Node | null = this.open;
@@ -310,7 +326,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
 }
 
-const updateComment = (attributes: Map<string, string>) => {
+const updateComment = (attributes: Record<string, string>) => {
   return `qv ${serializeVirtualAttributes(attributes)}`;
 };
 

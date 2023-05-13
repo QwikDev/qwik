@@ -32,8 +32,7 @@ export const MEDIA = mediaObj({
     youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag'),
     {
       href: 'https://cursos.devtalles.com/courses/qwik-introduccion',
-      imgSrc:
-        'https://fernando-herrera.com/assets/img/cursos/qwik-gratis.png',
+      imgSrc: 'https://fernando-herrera.com/assets/img/cursos/qwik-gratis.png',
       title: 'Fernando Herrera + DevTalles',
     },
   ],
@@ -121,7 +120,6 @@ export const MEDIA = mediaObj({
       imgSrc: 'https://devtalles.com/files/qwik/podcast-banner.jpg',
       title: 'DevTalles 113: qwik v1.0',
     },
-    
   ],
 
   /*****************************************/

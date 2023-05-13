@@ -67,8 +67,8 @@ export type TransformProps<PROPS extends {}> = {
 /**
  * @public
  */
-export type TransformProp<T> = T extends PropFnInterface<infer ARGS, infer RET>
-  ? (...args: ARGS) => ValueOrPromise<RET>
+export type TransformProp<T> = NonNullable<T> extends (...args: infer ARGS) => infer RET
+  ? (...args: ARGS) => ValueOrPromise<Awaited<RET>>
   : T;
 
 /**
@@ -167,7 +167,7 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  */
 export type PropFunctionProps<PROPS extends {}> = {
   [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : PROPS[K];
 };
 

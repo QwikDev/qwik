@@ -17,6 +17,16 @@ Qwik components are very similar to React components. They are functions that re
 - JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
 - Conditional rendering is done with the ternary operator `?` and the `&&` operator, just like React.
 
+
+```tsx title="src/components/my-other-component/index.tsx"
+import { component$, Slot } from '@builder.io/qwik';
+import type { ClassList } from '@builder.io/qwik'
+
+export component$((props: { class?: ClassList }) => { // ✅
+  return <div class={class}><Slot /></div>;
+});
+```
+
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -48,7 +58,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
         }}
       >
         <h1>Count: {count.value}</h1>
-        <MyOtherComponent>
+        <MyOtherComponent class="correct-way" /> {/* ✅ */}
           {count.value > 10 && <p>Count is greater than 10</p>}
           {count.value > 10 ? <p>Count is greater than 10</p> : <p>Count is less than 10</p>}
         </MyOtherComponent>

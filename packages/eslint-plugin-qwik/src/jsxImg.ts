@@ -1,4 +1,5 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
 
@@ -55,3 +56,26 @@ export const jsxImg = createRule({
     };
   },
 });
+
+const noWidthHeightGood = `
+tbd`.trim();
+
+const noWidthHeightBad = `
+tbd`.trim();
+
+export const jsxImgExamples: QwikEslintExamples = {
+  noWidthHeight: {
+    good: [
+      {
+        codeHighlight: '',
+        code: noWidthHeightGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: noWidthHeightBad,
+      },
+    ],
+  },
+};

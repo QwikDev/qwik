@@ -1,4 +1,12 @@
+import { jsxImgExamples } from './src/jsxImg';
+import { jsxKeyExamples } from './src/jsxKey';
+import { jsxNoScriptUrlExamples } from './src/jsxNoScriptUrl';
+import { loaderLocation, loaderLocationExamples } from './src/loaderLocation';
+import { noReactPropsExamples } from './src/noReactProps';
+import { preferClasslistExamples } from './src/preferClasslist';
+import { unusedServerExamples } from './src/unusedServer';
 import { useMethodUsageExamples } from './src/useMethodUsage';
+import { validLexicalScopeExamples } from './src/validLexicalScope';
 
 export type QwikEslintExample = {
   code: string;
@@ -16,12 +24,12 @@ export type QwikEslintExamples = Record<
 
 export const examples = {
   'use-method-usage': useMethodUsageExamples,
-  'valid-lexical-scope': null,
-  'loader-location': null,
-  'no-react-props': null,
-  'prefer-classlist': null,
-  'jsx-no-script-url': null,
-  'jsx-key': null,
-  'unused-server': null,
-  'jsx-img': null,
+  'valid-lexical-scope': validLexicalScopeExamples,
+  'loader-location': loaderLocationExamples,
+  'no-react-props': noReactPropsExamples,
+  'prefer-classlist': preferClasslistExamples,
+  'jsx-no-script-url': jsxNoScriptUrlExamples,
+  'jsx-key': jsxKeyExamples,
+  'unused-server': unusedServerExamples,
+  'jsx-img': jsxImgExamples,
 };

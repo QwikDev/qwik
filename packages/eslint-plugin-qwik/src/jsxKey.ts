@@ -1,4 +1,5 @@
 import jsxAstUtils from 'jsx-ast-utils';
+import { QwikEslintExamples } from '../examples';
 
 // ------------------------------------------------------------------------------
 // Rule Definition
@@ -281,5 +282,108 @@ export const jsxKey = {
         checkFunctionsBlockStatement(fn);
       },
     };
+  },
+};
+
+const missingIterKeyGood = `
+tbd`.trim();
+
+const missingIterKeyBad = `
+tbd`.trim();
+
+const missingIterKeyUsePragGood = `
+tbd`.trim();
+
+const missingIterKeyUsePragBad = `
+tbd`.trim();
+
+const missingArrayKeyGood = `
+tbd`.trim();
+
+const missingArrayKeyBad = `
+tbd`.trim();
+
+const missingArrayKeyUsePragGood = `
+tbd`.trim();
+
+const missingArrayKeyUsePragBad = `
+tbd`.trim();
+
+const nonUniqueKeysGood = `
+tbd`.trim();
+
+const nonUniqueKeysBad = `
+tbd`.trim();
+
+export const jsxKeyExamples: QwikEslintExamples = {
+  missingIterKey: {
+    good: [
+      {
+        codeHighlight: '',
+        code: missingIterKeyGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: missingIterKeyBad,
+      },
+    ],
+  },
+  missingIterKeyUsePrag: {
+    good: [
+      {
+        codeHighlight: '',
+        code: missingIterKeyUsePragGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: missingIterKeyUsePragBad,
+      },
+    ],
+  },
+  missingArrayKey: {
+    good: [
+      {
+        codeHighlight: '',
+        code: missingArrayKeyGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: missingArrayKeyBad,
+      },
+    ],
+  },
+  missingArrayKeyUsePrag: {
+    good: [
+      {
+        codeHighlight: '',
+        code: missingArrayKeyUsePragGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: missingArrayKeyUsePragBad,
+      },
+    ],
+  },
+  nonUniqueKeys: {
+    good: [
+      {
+        codeHighlight: '',
+        code: nonUniqueKeysGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: nonUniqueKeysBad,
+      },
+    ],
   },
 };

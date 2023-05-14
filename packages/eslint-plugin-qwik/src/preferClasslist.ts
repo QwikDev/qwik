@@ -2,6 +2,7 @@
 
 import type { TSESTree as T } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
+import { QwikEslintExamples } from '../examples';
 
 export const preferClasslist = {
   meta: {
@@ -87,5 +88,28 @@ export const preferClasslist = {
         }
       },
     };
+  },
+};
+
+const preferClasslistGood = `
+tbd`.trim();
+
+const preferClasslistBad = `
+tbd`.trim();
+
+export const preferClasslistExamples: QwikEslintExamples = {
+  preferClasslist: {
+    good: [
+      {
+        codeHighlight: '',
+        code: preferClasslistGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: preferClasslistBad,
+      },
+    ],
   },
 };

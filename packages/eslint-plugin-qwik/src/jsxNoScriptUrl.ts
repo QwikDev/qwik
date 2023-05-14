@@ -1,4 +1,5 @@
 import { TSESLint, ASTUtils } from '@typescript-eslint/utils';
+import { QwikEslintExamples } from '../examples';
 const { getStaticValue } = ASTUtils;
 
 // A javascript: URL can contain leading C0 control or \u0020 SPACE,
@@ -46,5 +47,28 @@ export const jsxNoScriptUrl = {
         }
       },
     };
+  },
+};
+
+const noJSURLGood = `
+tbd`.trim();
+
+const noJSURLBad = `
+tbdb`.trim();
+
+export const jsxNoScriptUrlExamples: QwikEslintExamples = {
+  noJSURL: {
+    good: [
+      {
+        codeHighlight: '',
+        code: noJSURLGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: noJSURLBad,
+      },
+    ],
   },
 };

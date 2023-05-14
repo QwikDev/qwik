@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
+import { QwikEslintExamples } from '../examples';
 
 export const unusedServer: Rule.RuleModule = {
   meta: {
@@ -41,5 +42,28 @@ export const unusedServer: Rule.RuleModule = {
         }
       },
     };
+  },
+};
+
+const unusedServerGood = `
+tbd`.trim();
+
+const unusedServerBad = `
+tbd`.trim();
+
+export const unusedServerExamples: QwikEslintExamples = {
+  unusedServer: {
+    good: [
+      {
+        codeHighlight: '',
+        code: unusedServerGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: unusedServerBad,
+      },
+    ],
   },
 };

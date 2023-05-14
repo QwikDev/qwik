@@ -1,5 +1,6 @@
 import type { TSESLint } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
+import { QwikEslintExamples } from '../examples';
 
 const reactSpecificProps = [
   { from: 'className', to: 'class' },
@@ -50,5 +51,28 @@ export const noReactProps = {
         }
       },
     };
+  },
+};
+
+const preferGood = `
+tbd`.trim();
+
+const preferBad = `
+tbd`.trim();
+
+export const noReactPropsExamples: QwikEslintExamples = {
+  prefer: {
+    good: [
+      {
+        codeHighlight: '',
+        code: preferGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: preferBad,
+      },
+    ],
   },
 };

@@ -5,6 +5,7 @@ import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
 import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
+import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
 
@@ -479,4 +480,67 @@ const ALLOWED_CLASSES = {
   FormData: true,
   URLSearchParams: true,
   Error: true,
+};
+
+const referencesOutsideGood = `
+tbd`.trim();
+
+const referencesOutsideBad = `
+tbd`.trim();
+
+const invalidJsxDollarGood = `
+tbd`.trim();
+
+const invalidJsxDollarBad = `
+tbd`.trim();
+
+const mutableIdentifierGood = `
+tbd`.trim();
+
+const mutableIdentifierBad = `
+tbd`.trim();
+
+export const validLexicalScopeExamples: QwikEslintExamples = {
+  referencesOutside: {
+    good: [
+      {
+        codeHighlight: '',
+        code: referencesOutsideGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: referencesOutsideBad,
+      },
+    ],
+  },
+  invalidJsxDollar: {
+    good: [
+      {
+        codeHighlight: '',
+        code: invalidJsxDollarGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: invalidJsxDollarBad,
+      },
+    ],
+  },
+  mutableIdentifier: {
+    good: [
+      {
+        codeHighlight: '',
+        code: mutableIdentifierGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: mutableIdentifierBad,
+      },
+    ],
+  },
 };

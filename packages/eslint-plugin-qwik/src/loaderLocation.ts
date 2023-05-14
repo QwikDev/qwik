@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
+import { QwikEslintExamples } from '../examples';
 
 export const ROUTE_FNS: Record<string, boolean> = {
   loader$: true,
@@ -158,3 +159,86 @@ export function normalizePath(path: string) {
   }
   return path;
 }
+
+const invalidLoaderLocationGood = `
+tbd`.trim();
+
+const invalidLoaderLocationBad = `
+tbd`.trim();
+
+const missingExportGood = `
+tbd`.trim();
+
+const missingExportBad = `
+tbd`.trim();
+
+const wrongNameGood = `
+tbd`.trim();
+
+const wrongNameBad = `
+tbd`.trim();
+
+const recommendedValueGood = `
+tbd`.trim();
+
+const recommendedValueBad = `
+tbd`.trim();
+
+export const loaderLocationExamples: QwikEslintExamples = {
+  invalidLoaderLocation: {
+    good: [
+      {
+        codeHighlight: '',
+        code: invalidLoaderLocationGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: invalidLoaderLocationBad,
+      },
+    ],
+  },
+  missingExport: {
+    good: [
+      {
+        codeHighlight: '',
+        code: missingExportGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: missingExportBad,
+      },
+    ],
+  },
+  wrongName: {
+    good: [
+      {
+        codeHighlight: '',
+        code: wrongNameGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: wrongNameBad,
+      },
+    ],
+  },
+  recommendedValue: {
+    good: [
+      {
+        codeHighlight: '',
+        code: recommendedValueGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '',
+        code: recommendedValueBad,
+      },
+    ],
+  },
+};

@@ -1,8 +1,9 @@
 import { component$, useContext, useSignal, useStyles$ } from '@builder.io/qwik';
 import styles from '../store.css?inline';
-import { STORE_CONTEXT } from '../utils';
+import { STORE_CONTEXT, fetchFromShopify } from '../utils';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import type { ProductType } from '../types';
+import { addLineItemMutation } from '../mutation';
 
 export default component$(() => {
   useStyles$(styles);
@@ -13,7 +14,6 @@ export default component$(() => {
       <article>
         <div class="purple-gradient" role="presentation" />
         <div class="blue-gradient" role="presentation" />
-
         <div class="flex flex-wrap">
           {(appStore.products || []).map((product: any) => (
             <Product product={product} />
@@ -29,6 +29,7 @@ type Props = {
 };
 
 export const Product = component$<Props>(({ product }) => {
+  const appStore = useContext(STORE_CONTEXT);
   const showProductSignal = useSignal(true);
   const selectedVariantId = useSignal(product.variants.find((v) => v.available)?.id || '');
   return (
@@ -68,6 +69,7 @@ export const Product = component$<Props>(({ product }) => {
             >
               {product.variants.map((variant) => (
                 <option
+                  key={variant.id}
                   selected={selectedVariantId.value === variant.id}
                   disabled={!variant.available}
                   value={variant.id}
@@ -84,7 +86,18 @@ export const Product = component$<Props>(({ product }) => {
           </span>
         </div>
         <div class="flex">
-          <button class="button_primary">
+          <button
+            class="button_primary"
+            onClick$={async () => {
+              const response = await fetchFromShopify(
+                addLineItemMutation(appStore.cart.id, selectedVariantId.value)
+              );
+              const {
+                data: { checkoutLineItemsAdd },
+              } = await response.json();
+              appStore.cart = checkoutLineItemsAdd.checkout;
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="mr-2 h-6 w-6"

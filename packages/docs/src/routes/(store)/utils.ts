@@ -8,18 +8,16 @@ export const STORE_CONTEXT = createContextId<{
   cart?: any;
 }>('store_context');
 
-export const fetchFromShopify = server$(
-  async (body: unknown) =>
-    await fetch(import.meta.env.VITE_SHOPIFY_URL, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': import.meta.env.VITE_SHOPIFY_TOKEN,
-      },
-      body: JSON.stringify(body),
-    })
-);
+export const fetchFromShopify = async (body: unknown) =>
+  await fetch(import.meta.env.VITE_SHOPIFY_URL, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Shopify-Storefront-Access-Token': import.meta.env.VITE_SHOPIFY_TOKEN,
+    },
+    body: JSON.stringify(body),
+  });
 
 export const mapProducts = (data: any[]) =>
   data
@@ -40,7 +38,7 @@ export const setCookie = (name: string, value: string, days: number) => {
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     expires = '; expires=' + date.toUTCString();
   }
-  document.cookie = name + '=' + (value || '') + expires + `; Secure; SameSite=Strict; path=/`;
+  document.cookie = name + '=' + (value.split('=').join('|___|') || '') + expires + `; Secure; SameSite=Strict; path=/`;
 };
 
 export const getCookie = (name: string) => {
@@ -49,7 +47,7 @@ export const getCookie = (name: string) => {
   keyValues.forEach((item) => {
     const [key, value] = item.split('=');
     if (key.trim() === name) {
-      result = value;
+      result = value.split('|___|').join('=');
     }
   });
   return result;

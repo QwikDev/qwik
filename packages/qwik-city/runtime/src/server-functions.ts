@@ -291,7 +291,10 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
 
   function stuff() {
     return $(async function (this: any, ...args: any[]) {
-      const signal = args.length > 0 && args[0] instanceof AbortSignal ? (args.shift() as AbortSignal) : undefined;
+      const signal =
+        args.length > 0 && args[0] instanceof AbortSignal
+          ? (args.shift() as AbortSignal)
+          : undefined;
       if (isServer) {
         const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
         return qrl.apply(requestEvent, args);

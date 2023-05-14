@@ -87,13 +87,15 @@ export async function fromNodeHttp(
           res.on('close', () => controller.error());
         },
         write(chunk) {
-          return new Promise((resolve, reject) => res.write(chunk, cb => {
-            if (cb) {
-              reject(cb);
-            } else {
-              resolve();
-            }
-          }))
+          return new Promise((resolve, reject) =>
+            res.write(chunk, (cb) => {
+              if (cb) {
+                reject(cb);
+              } else {
+                resolve();
+              }
+            })
+          );
         },
         close() {
           res.end();

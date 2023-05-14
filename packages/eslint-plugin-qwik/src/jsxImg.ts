@@ -12,6 +12,7 @@ export const jsxImg = createRule({
       description:
         'For performance reasons, always provide width and height attributes for <img> elements, it will help to prevent layout shifts.',
       recommended: 'warn',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-img',
     },
     fixable: 'code',
     schema: [],

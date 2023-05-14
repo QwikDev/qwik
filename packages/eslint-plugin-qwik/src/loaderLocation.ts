@@ -21,7 +21,7 @@ export const loaderLocation: Rule.RuleModule = {
     docs: {
       description: 'Detect declaration location of loader$',
       recommended: true,
-      url: 'https://github.com/BuilderIO/qwik',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#loader-location',
     },
     schema: [
       {

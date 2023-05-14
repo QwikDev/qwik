@@ -23,7 +23,7 @@ export const jsxNoScriptUrl = {
     docs: {
       recommended: 'error',
       description: 'Disallow javascript: URLs.',
-      url: 'https://github.com/solidjs-community/eslint-plugin-solid/blob/main/docs/jsx-no-script-url.md',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-no-script-url',
     },
     schema: [],
     messages: {

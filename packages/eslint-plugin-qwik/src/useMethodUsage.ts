@@ -10,7 +10,7 @@ export const useMethodUsage: Rule.RuleModule = {
       description: 'Object destructuring is not recommended for component$',
       category: 'Variables',
       recommended: true,
-      url: 'https://github.com/BuilderIO/qwik',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#use-method-usage',
     },
     messages: {
       'use-after-await': 'Calling use* methods after await is not safe.',

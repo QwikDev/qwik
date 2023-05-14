@@ -49,6 +49,9 @@
   @apply pb-14;
   @apply border-b;
 }
+.docs .rule-wrapper:last-child {
+  @apply border-b-0;
+}
 
 [data-theme='dark'] .docs .rule-wrapper {
   border-color: #575757;

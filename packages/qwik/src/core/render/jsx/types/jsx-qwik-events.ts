@@ -228,7 +228,8 @@ export type Primitive = null | undefined | string | number | boolean | symbol | 
  * This type is a workaround for Microsoft/TypeScript#29729.
  * It will be removed as soon as it's not needed anymore.
  *
- *  * Example:
+ * Example:
+ *
  * ```
  * // Before
  * type Pet = 'dog' | 'cat' | string;
@@ -242,10 +243,12 @@ export type Primitive = null | undefined | string | number | boolean | symbol | 
  *
  * const pet: Pet2 = '';
  * // You **will** get auto-completion for `dog` and `cat` literals.
+ * ```
  */
 export type LiteralUnion<LiteralType, BaseType extends Primitive> =
   | LiteralType
   | (BaseType & Record<never, never>);
+
 /**
  * The PascalCaseEventLiteralType combines the QwikKeysEvents type and string type
  * using the LiteralUnion utility type, allowing autocompletion for event names while

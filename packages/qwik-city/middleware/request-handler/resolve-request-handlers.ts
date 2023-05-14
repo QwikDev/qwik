@@ -317,7 +317,7 @@ async function pureServerFunction(ev: RequestEvent) {
             }
             ev.headers.set('Content-Type', 'application/qwik-json');
             const message = await qwikSerializer._serializeData(item, true);
-            stream.write(encoder.encode(`event: qwik\ndata: ${message}\n\n`));
+            await stream.write(encoder.encode(`event: qwik\ndata: ${message}\n\n`));
           }
           stream.close();
         } else {

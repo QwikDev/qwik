@@ -101,16 +101,6 @@ export const onRequest = async ({ platform }) => {
 };
 ```
 
-Additionally, you may import the `RequestHandlerNetlify` type to have have type completions in your editor.
-
-```tsx
-import { type RequestHandlerNetlify } from '@builder.io/qwik-city/middleware/netlify-edge';
-
-export const onGet: RequestHandlerNetlify = ({ platform }) => {
-  //...
-};
-```
-
 ### Environment variables
 
 ```ts
@@ -121,42 +111,3 @@ export const onRequest = async ({ env }) => {
 
 - [Netlify Environment Variables](https://docs.netlify.com/environment-variables/overview/#environment-variable-options)
 - [Netlify Edge Middleware Source](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/netlify-edge/index.ts)
-
-### Migration
-
-Previous versions of Qwik City used the `@netlify/vite-plugin-netlify-edge` plugin. This plugin still works great, but uses a "catch-all" approach, which means all requests will go through the edge functions, to include static files.
-
-The updated adapter, using the `npm run qwik add netlify-edge` command, will instead generate a `.netlify/edge-functions/manifest.json` config at build-time. If you would like to use the new adapter, you can remove the `@netlify/vite-plugin-netlify-edge` plugin from the root `vite.config.ts` file, and the root `netlify.toml` file.
-
-```diff title="vite.config.ts"
-import { defineConfig } from "vite";
-import { qwikVite } from "@builder.io/qwik/optimizer";
-import { qwikCity } from "@builder.io/qwik-city/vite";
-import tsconfigPaths from "vite-tsconfig-paths";
--import netlifyEdge from "@netlify/vite-plugin-netlify-edge";
-
-export default defineConfig(() => {
-  return {
-    plugins: [
-      qwikCity(),
-      qwikVite({
--        ssr: {
--          outDir: "netlify/edge-functions",
--        },
-      }),
-      tsconfigPaths(),
--      netlifyEdge({
--        functionName: "entry.netlify-edge",
--      }),
-    ],
-  };
-});
-```
-
-Remove the catch-all `edge_functions` config from `netlify.toml`
-
-```diff title="netlify.toml"
--[[edge_functions]]
--path = "/*"
--function = "entry.netlify-edge"
-```

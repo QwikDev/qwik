@@ -281,7 +281,7 @@ export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as a
 /**
  * @public
  */
-export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any>) => {
+export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any>) => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -291,6 +291,10 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
 
   function stuff() {
     return $(async function (this: any, ...args: any[]) {
+      const signal =
+        args.length > 0 && args[0] instanceof AbortSignal
+          ? (args.shift() as AbortSignal)
+          : undefined;
       if (isServer) {
         const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
         return qrl.apply(requestEvent, args);
@@ -315,13 +319,14 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...arss: any[]) => any
             'Content-Type': 'application/qwik-json',
             'X-QRL': hash,
           },
+          signal,
           body,
         });
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/event-stream') {
           const { writable, readable } = getSSETransformer();
-          res.body?.pipeTo(writable);
+          res.body?.pipeTo(writable, { signal });
           return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();

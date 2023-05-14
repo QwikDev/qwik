@@ -447,6 +447,7 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBas
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
+    (signal: AbortSignal, ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     dev: QRLDev | null;

@@ -131,7 +131,7 @@ rulesMap.forEach((rule) => {
       goodExamples.map((example) => {
         mdx.push('<div class="code-wrapper">');
         mdx.push('<span class="badge good">✓</span>');
-        mdx.push('```tsx ' + example.codeHighlight || '');
+        mdx.push('```tsx ' + (example.codeHighlight || ''));
         mdx.push(example.code);
         mdx.push('```');
         mdx.push('</div>');
@@ -143,7 +143,7 @@ rulesMap.forEach((rule) => {
       badExamples.map((example) => {
         mdx.push('<div class="code-wrapper">');
         mdx.push('<span class="badge bad">✕</span>');
-        mdx.push('```tsx');
+        mdx.push('```tsx ' + (example.codeHighlight || ''));
         mdx.push(example.code);
         mdx.push('```');
         mdx.push('</div>');

@@ -1803,7 +1803,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\n\n```typescript\nuseOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void\n```",
+      "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\n\n```typescript\nuseOn: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "qwik.useon.md"
     },
@@ -1817,7 +1817,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void\n```",
+      "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnDocument: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "qwik.useondocument.md"
     },
@@ -1831,7 +1831,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void\n```",
+      "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnWindow: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "qwik.useonwindow.md"
     },

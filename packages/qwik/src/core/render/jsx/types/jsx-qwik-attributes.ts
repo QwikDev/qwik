@@ -165,6 +165,8 @@ export type PreventDefault<T> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
 
+export type QwikKeysEvents = Lowercase<keyof QwikEventMap<any>>;
+
 export type BaseClassList =
   | string
   | undefined

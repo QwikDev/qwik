@@ -3,6 +3,7 @@ import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
+import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-events';
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -18,8 +19,10 @@ import { useInvokeContext } from './use-core';
  * @public
  */
 // </docs>
-export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) =>
-  _useOn(`on-${event}`, eventQrl);
+export const useOn = (
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
+  eventQrl: QRL<(ev: Event) => void> | undefined
+) => _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -52,7 +55,7 @@ export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => voi
  */
 // </docs>
 export const useOnDocument = (
-  event: string | string[],
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`document:on-${event}`, eventQrl);
 
@@ -88,7 +91,7 @@ export const useOnDocument = (
  */
 // </docs>
 export const useOnWindow = (
-  event: string | string[],
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`window:on-${event}`, eventQrl);
 

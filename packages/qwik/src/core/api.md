@@ -971,14 +971,16 @@ export const useId: () => string;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
+// Warning: (ae-forgotten-export) The symbol "PascalCaseEventLiteralType" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOn: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOnDocument: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOnWindow: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;

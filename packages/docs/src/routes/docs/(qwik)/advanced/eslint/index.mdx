@@ -278,117 +278,115 @@ import './styles.css';
       <h3 id="use-method-usage">use-method-usage</h3>
       <span>Object destructuring is not recommended for component$</span>
   
-
-      <h4>use-after-await</h4>
-    
+<h4>use-after-await</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge good">✓</span>
-```tsx {1,5-7} /alpha/
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
-  }
-}
+```tsx {2-3} /await/
+export const HelloWorld = component$(async () => {
+  useMethod();
+  await something();
+  return $(() => {
+    return (
+      <div>
+        {prop}
+      </div>
+    );
+  });
+});
 ```
 </div>
 <p>Examples of <b>incorrect</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
-```tsx 
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
-  }
-}
+```tsx {2-3} /await/
+export const HelloWorld = component$(async () => {
+  await something();
+  useMethod();
+  return $(() => {
+    return (
+      <div>
+        {prop}
+      </div>
+    );
+  });
+});
 ```
 </div>
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
-```tsx 
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
+```tsx {3,5} /await/
+export const HelloWorld = component$(async () => {
+  if (stuff) {
+    await something();
   }
-}
-```
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx 
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
-  }
-}
-```
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx 
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
-  }
-}
-```
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx 
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
-  }
-}
-```
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx 
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
-
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
-  }
-}
+  useMethod();
+  return $(() => {
+    return (
+      <div>
+        {prop}
+      </div>
+    );
+  });
+});
 ```
 </div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>use-wrong-function</h4>
-    
+<h4>use-wrong-function</h4>
+<p>Examples of <b>correct</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx {2} /component$/
+export const Counter = component$(async () => {
+  const count = useSignal(0);
+});
+```
+</div>
+<p>Examples of <b>incorrect</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx {2} /component$/
+export const Counter = (async () => {
+  const count = useSignal(0);
+});
+```
+</div>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx {2} /component$/
+export const Counter = (() => {
+  const count = useSignal(0);
+});
+```
+</div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>use-not-root</h4>
-    
+<h4>use-not-root</h4>
+<p>Examples of <b>correct</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx {2} /component$/
+export const Counter = component$(async () => {
+  const count = useSignal(0);
+});
+```
+</div>
+<p>Examples of <b>incorrect</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx {2} /component$/
+export const Counter = (async () => {
+  const count = useSignal(0);
+});
+```
+</div>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx {2} /component$/
+export const Counter = (() => {
+  const count = useSignal(0);
+});
+```
+</div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -398,17 +396,11 @@ if (a.length > 0) {
       <h3 id="valid-lexical-scope">valid-lexical-scope</h3>
       <span>Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.</span>
   
-
-      <h4>referencesOutside</h4>
-    
+<h4>referencesOutside</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>invalidJsxDollar</h4>
-    
+<h4>invalidJsxDollar</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>mutableIdentifier</h4>
-    
+<h4>mutableIdentifier</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -418,21 +410,13 @@ if (a.length > 0) {
       <h3 id="loader-location">loader-location</h3>
       <span>Detect declaration location of loader$</span>
   
-
-      <h4>invalidLoaderLocation</h4>
-    
+<h4>invalidLoaderLocation</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>missingExport</h4>
-    
+<h4>missingExport</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>wrongName</h4>
-    
+<h4>wrongName</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>recommendedValue</h4>
-    
+<h4>recommendedValue</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -442,9 +426,7 @@ if (a.length > 0) {
       <h3 id="no-react-props">no-react-props</h3>
       <span>Disallow usage of React-specific `className`/`htmlFor` props.</span>
   
-
-      <h4>prefer</h4>
-    
+<h4>prefer</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/noReactProps.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -454,9 +436,7 @@ if (a.length > 0) {
       <h3 id="prefer-classlist">prefer-classlist</h3>
       <span>Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.</span>
   
-
-      <h4>preferClasslist</h4>
-    
+<h4>preferClasslist</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/preferClasslist.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -466,9 +446,7 @@ if (a.length > 0) {
       <h3 id="jsx-no-script-url">jsx-no-script-url</h3>
       <span>Disallow javascript: URLs.</span>
   
-
-      <h4>noJSURL</h4>
-    
+<h4>noJSURL</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxNoScriptUrl.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -478,25 +456,15 @@ if (a.length > 0) {
       <h3 id="jsx-key">jsx-key</h3>
       <span>Disallow missing `key` props in iterators/collection literals</span>
   
-
-      <h4>missingIterKey</h4>
-    
+<h4>missingIterKey</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>missingIterKeyUsePrag</h4>
-    
+<h4>missingIterKeyUsePrag</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>missingArrayKey</h4>
-    
+<h4>missingArrayKey</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>missingArrayKeyUsePrag</h4>
-    
+<h4>missingArrayKeyUsePrag</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" class="edit-btn">Edit examples</a></div>
-
-      <h4>nonUniqueKeys</h4>
-    
+<h4>nonUniqueKeys</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -506,9 +474,7 @@ if (a.length > 0) {
       <h3 id="unused-server">unused-server</h3>
       <span>Detect unused server$() functions</span>
   
-
-      <h4>unusedServer</h4>
-    
+<h4>unusedServer</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/unusedServer.ts" class="edit-btn">Edit examples</a></div>
 
     </div>
@@ -518,9 +484,7 @@ if (a.length > 0) {
       <h3 id="jsx-img">jsx-img</h3>
       <span>For performance reasons, always provide width and height attributes for &lt;img&gt; elements, it will help to prevent layout shifts.</span>
   
-
-      <h4>noWidthHeight</h4>
-    
+<h4>noWidthHeight</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" class="edit-btn">Edit examples</a></div>
 
     </div>

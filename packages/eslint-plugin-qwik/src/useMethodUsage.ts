@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
-import type { QwikEslintExamples } from '..';
+import type { QwikEslintExamples } from '../examples';
 
 export const useMethodUsage: Rule.RuleModule = {
   meta: {
@@ -110,44 +110,121 @@ export const useMethodUsage: Rule.RuleModule = {
   },
 };
 
-const dummyExample1 = `
-import { foo } from 'foo';
-const a = 'alpha';
-const b: number = 1;
+const useAfterAwaitGood = `
+export const HelloWorld = component$(async () => {
+  useMethod();
+  await something();
+  return $(() => {
+    return (
+      <div>
+        {prop}
+      </div>
+    );
+  });
+});`.trim();
 
-if (a.length > 0) {
-  if (b > 0) {
-    a += b;
+const useAfterAwaitBad = `
+export const HelloWorld = component$(async () => {
+  await something();
+  useMethod();
+  return $(() => {
+    return (
+      <div>
+        {prop}
+      </div>
+    );
+  });
+});`.trim();
+
+const useAfterAwaitBad2 = `
+export const HelloWorld = component$(async () => {
+  if (stuff) {
+    await something();
   }
-}
+  useMethod();
+  return $(() => {
+    return (
+      <div>
+        {prop}
+      </div>
+    );
+  });
+});`.trim();
+
+const useWrongFunctionGood = `
+export const Counter = component$(async () => {
+  const count = useSignal(0);
+});
 `.trim();
+
+const useWrongFunctionBad = `
+export const Counter = (async () => {
+  const count = useSignal(0);
+});
+`.trim();
+
+const useWrongFunctionBad2 = `
+export const Counter = (() => {
+  const count = useSignal(0);
+});
+`.trim();
+
+const useNotRootGood = useWrongFunctionGood;
+const useNotRootBad = useWrongFunctionBad;
+const useNotRootBad2 = useWrongFunctionBad2;
 
 export const useMethodUsageExamples: QwikEslintExamples = {
   'use-after-await': {
     good: [
       {
-        codeHighlight: '{1,5-7} /alpha/',
-        code: dummyExample1,
+        codeHighlight: '{2-3} /await/',
+        code: useAfterAwaitGood,
       },
     ],
     bad: [
       {
-        code: dummyExample1,
+        codeHighlight: '{2-3} /await/',
+        code: useAfterAwaitBad,
       },
       {
-        code: dummyExample1,
+        codeHighlight: '{3,5} /await/',
+        code: useAfterAwaitBad2,
+      },
+    ],
+  },
+  'use-wrong-function': {
+    good: [
+      {
+        codeHighlight: '{2} /component$/',
+        code: useWrongFunctionGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{2} /component$/',
+        code: useWrongFunctionBad,
       },
       {
-        code: dummyExample1,
+        codeHighlight: '{2} /component$/',
+        code: useWrongFunctionBad2,
+      },
+    ],
+  },
+  'use-not-root': {
+    good: [
+      {
+        codeHighlight: '{2} /component$/',
+        code: useNotRootGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{2} /component$/',
+        code: useNotRootBad,
       },
       {
-        code: dummyExample1,
-      },
-      {
-        code: dummyExample1,
-      },
-      {
-        code: dummyExample1,
+        codeHighlight: '{2} /component$/',
+        code: useNotRootBad2,
       },
     ],
   },

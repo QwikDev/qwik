@@ -119,9 +119,7 @@ rulesMap.forEach((rule) => {
       <span>${rule.description}</span>
   `);
   Object.keys(rule.messages).map((messageKey) => {
-    mdx.push(`
-      <h4>${messageKey}</h4>
-    `);
+    mdx.push(`<h4>${messageKey}</h4>`);
 
     const goodExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.good || [];
     const badExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.bad || [];

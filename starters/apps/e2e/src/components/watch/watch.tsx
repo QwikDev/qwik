@@ -194,7 +194,10 @@ export function foo(this: any) {
 export const Issue2972 = component$(() => {
   const message = useSignal('');
   useTask$(async () => {
-    message.value = await $(foo).apply({ value: 'passed' });
+    let qrl= $(foo).bind({ value: 'passed' })
+    message.value = await qrl();
+    let test=typeof qrl.getSymbol === 'function'
+    message.value = test ? message.value : "failed"
   });
 
   return (

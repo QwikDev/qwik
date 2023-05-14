@@ -159,7 +159,9 @@ export const createQRL = <TYPE>(
     $captureRef$: captureRef,
     dev: null,
   };
-  const qrl = Object.assign(invokeQRL, methods);
+  Object.setPrototypeOf(methods, Function.prototype)
+  seal(methods)
+  const qrl = Object.setPrototypeOf(invokeQRL, methods);
   seal(qrl);
   return qrl as any;
 };

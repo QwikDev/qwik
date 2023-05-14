@@ -51,6 +51,7 @@
 - [Styled Vanilla Extract](integrations/styled-vanilla-extract/index.mdx)
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
+- [Tauri](integrations/tauri/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
 
 ## Deployments

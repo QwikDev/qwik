@@ -123,7 +123,7 @@ export async function runCreateInteractiveCli() {
 
   s.start('Creating App...');
   const result = await createApp(opts);
-  s.stop('Created App 🐰');
+  s.stop('App Created 🐰');
 
   if (gitInitAnswer) {
     if (fs.existsSync(join(outDir, '.git'))) {

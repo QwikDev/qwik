@@ -247,11 +247,13 @@ declare module '@qwik-client-manifest' {
 // MD
 declare module '*.md' {
   const node: FunctionComponent;
+  export const frontmatter: Record<string, any>;
   export default node;
 }
 // MDX
 declare module '*.mdx' {
   const node: FunctionComponent;
+  export const frontmatter: Record<string, any>;
   export default node;
 }
 `;

@@ -18,6 +18,12 @@ function escapeHtml(htmlStr: string) {
     .replace(/'/g, '&#39;');
 }
 
+function kebabToCamel(str: string) {
+  return str
+    .toLowerCase()
+    .replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
+}
+
 const rulesMap = Object.keys(rules).map((ruleName) => {
   const rule = ruleName as keyof typeof rules;
   return {
@@ -125,7 +131,7 @@ rulesMap.forEach((rule) => {
       goodExamples.map((example) => {
         mdx.push('<div class="code-wrapper">');
         mdx.push('<span class="badge good">✓</span>');
-        mdx.push('```tsx ' + example.codeHighlight);
+        mdx.push('```tsx ' + example.codeHighlight || '');
         mdx.push(example.code);
         mdx.push('```');
         mdx.push('</div>');
@@ -137,14 +143,18 @@ rulesMap.forEach((rule) => {
       badExamples.map((example) => {
         mdx.push('<div class="code-wrapper">');
         mdx.push('<span class="badge bad">✕</span>');
-        mdx.push('```tsx ' + example.codeHighlight);
+        mdx.push('```tsx');
         mdx.push(example.code);
         mdx.push('```');
         mdx.push('</div>');
       });
     }
 
-    mdx.push('<a href="#" class="edit-examples">Edit examples</a>');
+    mdx.push(
+      `<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/${kebabToCamel(
+        rule.name
+      )}.ts" class="edit-btn">Edit examples</a></div>`
+    );
   });
   mdx.push(`
     </div>
@@ -154,4 +164,6 @@ mdx.push(`</div>`);
 
 mdx.push(`</div>`);
 
-fs.writeFileSync(outputPathMdx, format(mdx.join('\n'), { parser: 'markdown' }));
+// TODO: format mdx breaks every odd code block
+// fs.writeFileSync(outputPathMdx, format(mdx.join('\n'), { parser: 'mdx' }));
+fs.writeFileSync(outputPathMdx, mdx.join('\n'));

@@ -96,3 +96,25 @@
 [data-theme='dark'] .docs .badge.bad {
   @apply bg-red-900;
 }
+
+.docs .edit-examples-wrapper {
+  text-align: right;
+}
+
+.docs .edit-examples-wrapper .edit-btn {
+  @apply bg-slate-50;
+  @apply border;
+  @apply border-slate-200;
+  @apply text-black;
+  @apply no-underline;
+  @apply px-2;
+  @apply py-1;
+  @apply rounded-md;
+  @apply inline-block;
+  @apply text-sm;
+}
+[data-theme='dark'] .docs .edit-examples-wrapper .edit-btn {
+  background: #373737;
+  border-color: #575757;
+  color: var(--color-text);
+}

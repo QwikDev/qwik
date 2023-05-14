@@ -151,7 +151,7 @@ rulesMap.forEach((rule) => {
     mdx.push(
       `<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/${kebabToCamel(
         rule.name
-      )}.ts" class="edit-btn">Edit examples</a></div>`
+      )}.ts" target="_blank" class="edit-btn">Edit examples</a></div>`
     );
   });
   mdx.push(`

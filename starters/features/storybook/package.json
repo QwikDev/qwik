@@ -1,13 +1,13 @@
 {
   "description": "Add Storybook",
   "devDependencies": {
-    "@storybook/addon-essentials": "7.0.9",
-    "@storybook/addon-links": "7.0.9",
-    "@storybook/blocks": "7.0.9",
-    "@storybook/builder-vite": "7.0.9",
-    "@storybook/html": "7.0.9",
-    "@storybook/html-vite": "7.0.9",
-    "storybook": "7.0.9",
+    "@storybook/addon-essentials": "7.0.11",
+    "@storybook/addon-links": "7.0.11",
+    "@storybook/blocks": "7.0.11",
+    "@storybook/builder-vite": "7.0.11",
+    "@storybook/html": "7.0.11",
+    "@storybook/html-vite": "7.0.11",
+    "storybook": "7.0.11",
     "storybook-framework-qwik": "0.2.0"
   },
   "scripts": {

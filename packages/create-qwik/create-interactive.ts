@@ -51,7 +51,7 @@ export async function runCreateInteractiveCli() {
 
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
-  let removeExistingOutDirPromise: Promise<void> | null = null;
+  let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
 
   if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const existingOutDirAnswer = await select({
@@ -71,11 +71,13 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      fs.promises
+      removeExistingOutDirPromise = fs.promises
         .readdir(outDir)
         .then((filePaths) =>
-          filePaths.forEach((pathToFile) =>
-            fs.promises.rm(join(outDir, pathToFile), { recursive: true })
+          Promise.all(
+            filePaths.map((pathToFile) =>
+              fs.promises.rm(join(outDir, pathToFile), { recursive: true })
+            )
           )
         );
     }

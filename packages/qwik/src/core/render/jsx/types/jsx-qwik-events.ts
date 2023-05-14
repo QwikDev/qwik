@@ -249,4 +249,4 @@ export type LiteralUnion<LiteralType, BaseType extends Primitive> =
   | LiteralType
   | (BaseType & Record<never, never>);
 
-export type CustomEventType = LiteralUnion<QwikKeysEvents, string>;
+export type PascalCaseEventLiteralType = LiteralUnion<QwikKeysEvents, string>;

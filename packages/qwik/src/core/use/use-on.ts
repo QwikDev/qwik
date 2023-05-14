@@ -3,7 +3,7 @@ import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
-import { type CustomEventType } from '../render/jsx/types/jsx-qwik-events';
+import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-events';
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -20,7 +20,7 @@ import { type CustomEventType } from '../render/jsx/types/jsx-qwik-events';
  */
 // </docs>
 export const useOn = (
-  event: CustomEventType | CustomEventType[],
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`on-${event}`, eventQrl);
 
@@ -55,7 +55,7 @@ export const useOn = (
  */
 // </docs>
 export const useOnDocument = (
-  event: CustomEventType | CustomEventType[],
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`document:on-${event}`, eventQrl);
 
@@ -91,7 +91,7 @@ export const useOnDocument = (
  */
 // </docs>
 export const useOnWindow = (
-  event: CustomEventType | CustomEventType[],
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
 ) => _useOn(`window:on-${event}`, eventQrl);
 

@@ -57,6 +57,7 @@ export const SlotParent = component$(() => {
 
           <Issue3607 />
           <Issue3727 />
+          <Issue4215 />
         </>
       )}
       <div>
@@ -364,5 +365,45 @@ export const Issue3727ChildB = component$(() => {
         ))}
       </ul>
     </article>
+  );
+});
+
+export const QwikSvgWithSlot = component$(() => {
+  return (
+    <svg
+      id="issue-4215-svg"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: '24px', height: '24px' }}
+    >
+      <Slot />
+    </svg>
+  );
+});
+
+export const Issue4215 = component$(() => {
+  const $visible = useSignal<boolean>(true);
+
+  return (
+    <>
+      <button
+        class="cta"
+        id="issue-4215-toggle"
+        onClick$={() => {
+          $visible.value = !$visible.value;
+        }}
+      >
+        Toggle icons
+      </button>
+
+      <div class="svg-container icon1">
+        <p>QwikSvgWithSlot</p>
+        <QwikSvgWithSlot>
+          {$visible.value && (
+            <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z" />
+          )}
+        </QwikSvgWithSlot>
+      </div>
+    </>
   );
 });

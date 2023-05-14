@@ -545,19 +545,24 @@ const renderContentProjection = (
       );
       const oldVdom = getVdom(slotCtx);
       const slotRctx = pushRenderContext(rCtx);
+      const slotEl = slotCtx.$element$ as VirtualElement;
       slotRctx.$slotCtx$ = slotCtx;
       slotCtx.$vdom$ = newVdom;
-      newVdom.$elm$ = slotCtx.$element$;
+      newVdom.$elm$ = slotEl;
+      let newFlags = flags & ~IS_SVG;
+      if (slotEl.isSvg) {
+        newFlags |= IS_SVG;
+      }
 
       // const oldVdom = getVdom(slotCtx.$element$);
       // const slotRctx = pushRenderContext(rCtx);
       // slotRctx.$slotCtx$ = slotCtx;
       // setVdom(slotCtx.$element$, newVdom);
-      const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotCtx.$element$);
+      const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotEl);
       if (index >= 0) {
         staticCtx.$addSlots$.splice(index, 1);
       }
-      return smartUpdateChildren(slotRctx, oldVdom, newVdom, flags);
+      return smartUpdateChildren(slotRctx, oldVdom, newVdom, newFlags);
     })
   ) as any;
 };
@@ -658,7 +663,7 @@ const createElm = (
   const staticCtx = rCtx.$static$;
   const containerState = staticCtx.$containerState$;
   if (isVirtual) {
-    elm = newVirtualElement(doc);
+    elm = newVirtualElement(doc, isSvg);
   } else if (tag === 'head') {
     elm = doc.head;
     flags |= IS_HEAD;
@@ -766,15 +771,19 @@ const createElm = (
         const newVnode = splittedNewChildren[slotName];
         const slotCtx = getSlotCtx(staticCtx, slotMap, elCtx, slotName, staticCtx.$containerState$);
         const slotRctx = pushRenderContext(rCtx);
+        const slotEl = slotCtx.$element$ as VirtualElement;
         slotRctx.$slotCtx$ = slotCtx;
         slotCtx.$vdom$ = newVnode;
-        newVnode.$elm$ = slotCtx.$element$;
-
+        newVnode.$elm$ = slotEl;
+        let newFlags = flags & ~IS_SVG;
+        if (slotEl.isSvg) {
+          newFlags |= IS_SVG;
+        }
         for (const node of newVnode.$children$) {
-          const nodeElm = createElm(slotRctx, node, flags, p);
+          const nodeElm = createElm(slotRctx, node, newFlags, p);
           assertDefined(node.$elm$, 'vnode elm must be defined');
           assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
-          appendChild(staticCtx, slotCtx.$element$, nodeElm);
+          appendChild(staticCtx, slotEl, nodeElm);
         }
       }
       return promiseAllLazy(p);

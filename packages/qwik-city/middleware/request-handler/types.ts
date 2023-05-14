@@ -45,6 +45,17 @@ export type ServerResponseHandler<T = any> = (
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
+  /**
+   * Protection against cross-site request forgery (CSRF) attacks.
+   *
+   * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions,
+   * the request origin is checked to match the server's origin.
+   *
+   * Be careful when disabling this option as it may lead to CSRF attacks.
+   *
+   * Defaults to `true`.
+   */
+  checkOrigin?: boolean;
 }
 
 /**

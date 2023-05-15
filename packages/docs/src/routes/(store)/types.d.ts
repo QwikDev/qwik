@@ -1,4 +1,4 @@
-export type ProductType = {
+export type StoreProductType = {
   id: string;
   title: string;
   availableForSale: boolean;

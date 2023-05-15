@@ -1,13 +1,13 @@
 import { component$, useContext, useSignal } from '@builder.io/qwik';
 import { addLineItemMutation } from '../mutation';
 import { STORE_CONTEXT, fetchFromShopify } from '../utils';
-import type { ProductType } from '../types';
+import type { StoreProductType } from '../types';
 
 type Props = {
-  product: ProductType;
+  product: StoreProductType;
 };
 
-export const Product = component$<Props>(({ product }) => {
+export const StoreProduct = component$<Props>(({ product }) => {
   const appStore = useContext(STORE_CONTEXT);
   const loadingSignal = useSignal(false);
   const showProductSignal = useSignal(true);

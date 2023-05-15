@@ -40,7 +40,6 @@ export default component$(() => {
     let response = await fetchFromShopify(body);
     const { data } = await response.json();
     appStore.cart = cartId ? data.node : data.checkoutCreate.checkout;
-    console.log('Checkout link ---> ', appStore.cart.webUrl);
 
     if (!cartId) {
       setCookie(COOKIE_CART_ID_KEY, appStore.cart.id, 30);
@@ -50,7 +49,6 @@ export default component$(() => {
   return (
     <>
       <Header />
-      <div class="text-white">Checkout link in the console 👀</div>
       <main>
         <Slot />
       </main>

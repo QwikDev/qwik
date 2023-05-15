@@ -9,7 +9,9 @@ export const StoreCartRows = component$(() => {
 
   const onModifyLineItemMutation = $(async (variantId: string, quantity: number) => {
     loadingSignal.value = true;
-    const response = await fetchFromShopify(modifyLineItemMutation(appStore.cart.id, variantId, quantity));
+    const response = await fetchFromShopify(
+      modifyLineItemMutation(appStore.cart.id, variantId, quantity)
+    );
     const {
       data: { checkoutLineItemsAdd },
     } = await response.json();
@@ -49,7 +51,10 @@ export const StoreCartRows = component$(() => {
                   <div class="flex justify-between text-base font-medium text-gray-900">
                     <h3>{lineItem.title}</h3>
                     <div class="ml-4">
-                      {formatPrice(lineItem.variant.price.amount, lineItem.variant.price.currencyCode)}
+                      {formatPrice(
+                        lineItem.variant.price.amount,
+                        lineItem.variant.price.currencyCode
+                      )}
                     </div>
                   </div>
                 </div>
@@ -59,11 +64,13 @@ export const StoreCartRows = component$(() => {
                   </label>
                   <div class="flex space-x col-span-2 text-solid-medium text-black">
                     <button
-                      disabled={loadingSignal.value}
+                      disabled={loadingSignal.value || lineItem.quantity === 1}
                       title="Remove item"
                       class="flex rounded-full items-center justify-center hover:opacity-70 transition duration-200 disabled:cursor-not-allowed"
                       onClick$={async () => {
-                        await onModifyLineItemMutation(lineItem.variant.id, -1);
+                        if (!loadingSignal.value && lineItem.quantity > 1) {
+                          await onModifyLineItemMutation(lineItem.variant.id, -1);
+                        }
                       }}
                     >
                       <svg
@@ -83,7 +90,9 @@ export const StoreCartRows = component$(() => {
                       title="Add item"
                       class="flex rounded-full items-center justify-center hover:opacity-70 transition duration-200 disabled:cursor-not-allowed"
                       onClick$={async () => {
-                        await onModifyLineItemMutation(lineItem.variant.id, 1);
+                        if (!loadingSignal.value) {
+                          await onModifyLineItemMutation(lineItem.variant.id, 1);
+                        }
                       }}
                     >
                       <svg
@@ -106,7 +115,9 @@ export const StoreCartRows = component$(() => {
                       value={lineItem.id}
                       class="font-medium text-black disabled:cursor-not-allowed"
                       onClick$={async () => {
-                        await onRemoveLineItemMutation(lineItem.id);
+                        if (!loadingSignal.value) {
+                          await onRemoveLineItemMutation(lineItem.id);
+                        }
                       }}
                     >
                       Remove

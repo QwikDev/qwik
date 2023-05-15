@@ -678,10 +678,7 @@ export const modifyLineItemMutation = (
 `,
 });
 
-export const removeLineItemMutation = (
-  checkoutId: string,
-  lineItemIds: string[],
-) => ({
+export const removeLineItemMutation = (checkoutId: string, lineItemIds: string[]) => ({
   variables: { checkoutId, lineItemIds },
   query: `
   fragment VariantFragment on ProductVariant {
@@ -1018,4 +1015,3 @@ export const removeLineItemMutation = (
   }
 `,
 });
-

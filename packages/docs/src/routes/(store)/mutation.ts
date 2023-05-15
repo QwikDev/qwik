@@ -1,6 +1,6 @@
 export const createCartMutation = () => ({
-	variables: { input: {} },
-	query: `
+  variables: { input: {} },
+  query: `
   fragment VariantFragment on ProductVariant {
     id
     title
@@ -337,8 +337,8 @@ export const createCartMutation = () => ({
 });
 
 export const addLineItemMutation = (checkoutId: string, variantId: string) => ({
-	variables: { checkoutId, lineItems: [{ quantity: 1, variantId }] },
-	query: `
+  variables: { checkoutId, lineItems: [{ quantity: 1, variantId }] },
+  query: `
   fragment VariantFragment on ProductVariant {
     id
     title

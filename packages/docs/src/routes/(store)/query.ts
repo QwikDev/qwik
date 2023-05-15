@@ -1,4 +1,7 @@
-export const productQuery = (id = import.meta.env.VITE_SHOPIFY_COLLECTION_ID, productsFirst = 20) => ({
+export const productQuery = (
+  id = import.meta.env.VITE_SHOPIFY_COLLECTION_ID,
+  productsFirst = 20
+) => ({
   variables: { id, productsFirst },
   query: `
   fragment VariantFragment on ProductVariant {
@@ -131,8 +134,10 @@ export const productQuery = (id = import.meta.env.VITE_SHOPIFY_COLLECTION_ID, pr
 });
 
 export const cartQuery = (id: string) => ({
-	variables: { id: "gid://shopify/Checkout/adcdcb1a100aae5508d7c276ec42e211?key=e4cb18e464bed5a5468f4de7b6d7c6cd" },
-	query: `
+  variables: {
+    id: 'gid://shopify/Checkout/adcdcb1a100aae5508d7c276ec42e211?key=e4cb18e464bed5a5468f4de7b6d7c6cd',
+  },
+  query: `
   fragment VariantFragment on ProductVariant {
     id
     title

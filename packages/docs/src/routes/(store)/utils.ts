@@ -1,5 +1,4 @@
 import { createContextId } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
 
 export const COOKIE_CART_ID_KEY = 'cartid';
 
@@ -9,12 +8,12 @@ export const STORE_CONTEXT = createContextId<{
 }>('store_context');
 
 export const fetchFromShopify = async (body: unknown) =>
-  await fetch(import.meta.env.VITE_SHOPIFY_URL, {
+  await fetch(import.meta.env.PUBLIC_SHOPIFY_URL, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': import.meta.env.VITE_SHOPIFY_TOKEN,
+      'X-Shopify-Storefront-Access-Token': import.meta.env.PUBLIC_SHOPIFY_TOKEN,
     },
     body: JSON.stringify(body),
   });

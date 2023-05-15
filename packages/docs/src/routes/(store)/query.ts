@@ -1,5 +1,5 @@
 export const productQuery = (
-  id = import.meta.env.VITE_SHOPIFY_COLLECTION_ID,
+  id = import.meta.env.PUBLIC_SHOPIFY_COLLECTION_ID,
   productsFirst = 20
 ) => ({
   variables: { id, productsFirst },
@@ -453,6 +453,6 @@ export const cartQuery = (id: string) => ({
       __typename
       ...CheckoutFragment
     }
-  }  
+  }
 `,
 });

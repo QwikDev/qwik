@@ -27,7 +27,7 @@
 }
 
 .store .product {
-  @apply relative m-10 flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-gray-100 shadow-md bg-white;
+  @apply relative flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-gray-100 shadow-md bg-white;
 }
 
 .store .product .title {

@@ -4,6 +4,7 @@ import { STORE_CONTEXT, fetchFromShopify } from '../utils';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import type { ProductType } from '../types';
 import { addLineItemMutation } from '../mutation';
+import { StoreIcon } from './store';
 
 export default component$(() => {
   useStyles$(styles);
@@ -11,10 +12,11 @@ export default component$(() => {
 
   return (
     <div class="store">
+      <StoreIcon class="mx-auto my-10"/>
       <article>
         <div class="purple-gradient" role="presentation" />
         <div class="blue-gradient" role="presentation" />
-        <div class="flex flex-wrap">
+        <div class="flex flex-wrap gap-9 justify-center max-w-[1200px] mb-20 mx-auto">
           {(appStore.products || []).map((product: any) => (
             <Product product={product} />
           ))}

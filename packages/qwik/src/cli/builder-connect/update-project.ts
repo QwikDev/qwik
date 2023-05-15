@@ -22,7 +22,7 @@ const updateBuilderProject = async (outDir: string, credentials: BuilderCredenti
     let envFile = await readFile(envFilePath, 'utf-8');
     envFile = envFile.replace(
       /PUBLIC_BUILDER_API_KEY=.*/,
-      `PUBLIC_BUILDER_API_KEY=${credentials.privateKey}`
+      `PUBLIC_BUILDER_API_KEY=${credentials.apiKey}`
     );
     await writeFile(envFilePath, envFile);
   } catch (e) {

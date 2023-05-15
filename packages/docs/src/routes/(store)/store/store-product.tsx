@@ -1,7 +1,8 @@
 import { component$, useContext, useSignal } from '@builder.io/qwik';
-import { addLineItemMutation } from '../mutation';
+import { modifyLineItemMutation } from '../mutation';
 import { STORE_CONTEXT, fetchFromShopify } from '../utils';
 import type { StoreProductType } from '../types';
+import { Image } from 'qwik-image';
 
 type Props = {
   product: StoreProductType;
@@ -17,7 +18,8 @@ export const StoreProduct = component$<Props>(({ product }) => {
       <h5 class="title">{product.title}</h5>
       <div class={`info ${showProductSignal.value ? 'overflow-hidden' : 'overflow-auto'}`}>
         {showProductSignal.value ? (
-          <img
+          <Image
+            layout="fixed"
             class="object-contain"
             width="300"
             height="300"
@@ -67,12 +69,12 @@ export const StoreProduct = component$<Props>(({ product }) => {
         </div>
         <div class="flex">
           <button
-            class="button_primary h-[40px]"
+            class="button_primary"
             disabled={loadingSignal.value}
             onClick$={async () => {
               loadingSignal.value = true;
               const response = await fetchFromShopify(
-                addLineItemMutation(appStore.cart.id, selectedVariantId.value)
+                modifyLineItemMutation(appStore.cart.id, selectedVariantId.value, 1)
               );
               const {
                 data: { checkoutLineItemsAdd },

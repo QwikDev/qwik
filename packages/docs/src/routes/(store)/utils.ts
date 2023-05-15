@@ -56,3 +56,10 @@ export const getCookie = (name: string) => {
   });
   return result;
 };
+
+export function formatPrice(value = 0, currency: any) {
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency,
+	}).format(value);
+}

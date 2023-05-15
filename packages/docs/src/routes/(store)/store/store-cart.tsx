@@ -1,8 +1,11 @@
-import { component$, useComputed$, useContext } from '@builder.io/qwik';
-import { STORE_CONTEXT } from '../utils';
+import { component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
+import { STORE_CONTEXT, formatPrice } from '../utils';
+import { StoreCartRows } from './store-cart-rows';
 
 export const StoreCart = component$(() => {
+  const showCartSignal = useSignal(false);
   const appStore = useContext(STORE_CONTEXT);
+  const isEmptySignal = useComputed$(() => appStore.cart?.lineItems?.edges?.length > 0 || false);
   const totalQuantitySignal = useComputed$(() =>
     appStore.cart
       ? appStore.cart.lineItems.edges.reduce(
@@ -12,33 +15,109 @@ export const StoreCart = component$(() => {
       : 0
   );
   return (
-    <div class="flex justify-end my-3 pr-4 text-slate-900 w-full absolute z-10">
-      {appStore.cart && (
-        <button
-          class="flex space-x-2 bg-gray-100 shadow-xl justify-center items-center border w-40 rounded-md space-x-5"
-          type="button"
-          aria-expanded="false"
-          onClick$={() => {
-            if (appStore.cart.webUrl) {
-              window.open(appStore.cart.webUrl);
-            }
-          }}
-        >
-          <div class="flex h-12 justify-center items-center space-x-2">
+    appStore.cart && (
+      <div class="cart">
+        <div class="flex justify-end my-3 pr-6 text-slate-900 w-full absolute z-10">
+          <button
+            name="Cart"
+            aria-label={`${totalQuantitySignal.value} items in cart`}
+            class="relative w-12 h-12 bg-slate-600 border-2 border-gray-300 rounded-xl text-white p-1"
+            onClick$={() => {
+              showCartSignal.value = true;
+            }}
+          >
             <svg
-              viewBox="0 0 20 20"
-              class="w-7 text-slate-900 text-solid-medium"
-              style="fill: currentcolor; stroke: none;"
+              xmlns="http://www.w3.org/2000/svg"
+              style="margin: auto"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
             >
-              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
             </svg>
-            <div>Cart</div>
-            <div class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold text-white bg-slate-900 rounded-full">
-              {totalQuantitySignal.value}
+            {totalQuantitySignal.value > 0 && (
+              <div class="absolute rounded-full -top-4 -right-4 text-black bg-white border-2 border-gray-300 w-8 h-8 pt-1">
+                {totalQuantitySignal.value}
+              </div>
+            )}
+          </button>
+        </div>
+        {showCartSignal.value && (
+          <div class="fixed inset-0 overflow-hidden z-[100]">
+            <div class="absolute inset-0 overflow-hidden">
+              <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-100"></div>
+              <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+                <div class="w-screen max-w-md translate-x-0">
+                  <div class="h-full flex flex-col bg-white shadow-xl overflow-y-scroll">
+                    <div class="flex-1 py-6 overflow-y-auto px-4 sm:px-6">
+                      <div class="flex items-start justify-between">
+                        <h2 class="text-lg font-medium text-gray-900">Shopping cart</h2>
+                        <div class="ml-3 h-7 flex items-center">
+                          <button
+                            type="button"
+                            class="-m-2 p-2 text-gray-400 hover:text-gray-500"
+                            onClick$={() => (showCartSignal.value = !showCartSignal.value)}
+                          >
+                            <span class="sr-only">Close panel</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke-width="2"
+                              stroke="currentColor"
+                              class="h-6 w-6"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"
+                              ></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="mt-8">
+                        {isEmptySignal.value ? (
+                          <StoreCartRows />
+                        ) : (
+                          <div class="flex items-center justify-center h-48 text-xl text-gray-400">
+                            Your cart is empty
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {isEmptySignal.value && (
+                      <div class="border-t border-gray-200 py-6 px-4 sm:px-6">
+                        <div class="flex justify-between text-base font-medium text-gray-900">
+                          <p>Subtotal</p>
+                          <p>
+                            {formatPrice(
+                              appStore.cart.totalPrice.amount,
+                              appStore.cart.totalPrice.currencyCode
+                            )}
+                          </p>
+                        </div>
+                        <p class="mt-0.5 text-sm text-gray-500">
+                          Shipping will be calculated at checkout.
+                        </p>
+                        <a target="_blank" href={appStore.cart.webUrl} class="button_primary mt-6">
+                          Checkout
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </button>
-      )}
-    </div>
+        )}
+      </div>
+    )
   );
 });

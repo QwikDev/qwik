@@ -1,4 +1,5 @@
 import {
+  $,
   component$,
   Slot,
   useContextProvider,
@@ -19,6 +20,7 @@ import {
 } from './utils';
 import { cartQuery, productQuery } from './query';
 import { createCartMutation } from './mutation';
+import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
 
 const useProductsLoader = routeLoader$(async () => {
   const response = await fetchFromShopify(productQuery());
@@ -29,6 +31,9 @@ const useProductsLoader = routeLoader$(async () => {
 });
 
 export default component$(() => {
+  useImageProvider({
+    imageTransformer$: $(({ src }: ImageTransformerProps): string => src),
+  });
   const appStore = useStore<{ products?: any; cart?: any }>({
     products: useProductsLoader().value,
   });

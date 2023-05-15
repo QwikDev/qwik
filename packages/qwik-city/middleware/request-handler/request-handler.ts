@@ -13,13 +13,14 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
-  const { render, qwikCityPlan, manifest } = opts;
+  const { render, qwikCityPlan, manifest, checkOrigin } = opts;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, qwikCityPlan.trailingSlash);
   const route = await loadRequestHandlers(
     qwikCityPlan,
     matchPathname,
     serverRequestEv.request.method,
+    checkOrigin ?? true,
     render
   );
   if (route) {
@@ -40,6 +41,7 @@ async function loadRequestHandlers(
   qwikCityPlan: QwikCityPlan,
   pathname: string,
   method: string,
+  checkOrigin: boolean,
   renderFn: Render
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;
@@ -48,6 +50,7 @@ async function loadRequestHandlers(
     serverPlugins,
     route,
     method,
+    checkOrigin,
     renderQwikMiddleware(renderFn)
   );
   if (requestHandlers.length > 0) {

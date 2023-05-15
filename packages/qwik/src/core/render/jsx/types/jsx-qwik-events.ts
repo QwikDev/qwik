@@ -1,3 +1,5 @@
+import type { QwikKeysEvents } from './jsx-qwik-attributes';
+
 export interface SyntheticEvent<T = Element, E = Event>
   extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
 
@@ -211,3 +213,45 @@ interface AbstractView {
   styleMedia: StyleMedia;
   document: Document;
 }
+
+// Utility types for supporting autocompletion in union types
+
+/**
+ * Matches any primitive value.
+ */
+export type Primitive = null | undefined | string | number | boolean | symbol | bigint;
+
+/**
+ * Allows creating a union type by combining primitive types and literal types
+ * without sacrificing auto-completion in IDEs for the literal type part of the union.
+ *
+ * This type is a workaround for Microsoft/TypeScript#29729.
+ * It will be removed as soon as it's not needed anymore.
+ *
+ * Example:
+ *
+ * ```
+ * // Before
+ * type Pet = 'dog' | 'cat' | string;
+ *
+ * const pet: Pet = '';
+ * // Start typing in your TypeScript-enabled IDE.
+ * // You **will not** get auto-completion for `dog` and `cat` literals.
+ *
+ * // After
+ * type Pet2 = LiteralUnion<'dog' | 'cat', string>;
+ *
+ * const pet: Pet2 = '';
+ * // You **will** get auto-completion for `dog` and `cat` literals.
+ * ```
+ */
+export type LiteralUnion<LiteralType, BaseType extends Primitive> =
+  | LiteralType
+  | (BaseType & Record<never, never>);
+
+/**
+ * The PascalCaseEventLiteralType combines the QwikKeysEvents type and string type
+ * using the LiteralUnion utility type, allowing autocompletion for event names while
+ * retaining support for custom event names as strings.
+ */
+export type PascalCaseEventLiteralType = LiteralUnion<QwikKeysEvents, string>;

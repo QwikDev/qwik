@@ -90,18 +90,14 @@ export async function runCreateInteractiveCli() {
 
   const starterId = starterIdAnswer as string;
 
-  const runInstallAnswer = await confirm({
+  const runDepInstallAnswer = await confirm({
     message: `Would you like to install ${pkgManager} dependencies?`,
     initialValue: true,
   });
 
-  if (isCancel(runInstallAnswer)) {
+  if (isCancel(runDepInstallAnswer)) {
     cancel('Operation cancelled.');
     process.exit(0);
-  }
-
-  if (runInstallAnswer === false) {
-    backgroundInstall.abort();
   }
 
   const gitInitAnswer = await confirm({
@@ -113,7 +109,11 @@ export async function runCreateInteractiveCli() {
     await removeExistingOutDirPromise;
   }
 
-  const runInstall: boolean = runInstallAnswer;
+  const runDepInstall: boolean = runDepInstallAnswer;
+
+  if (!runDepInstall) {
+    backgroundInstall.abort();
+  }
 
   const opts: CreateAppOptions = {
     starterId,
@@ -124,7 +124,7 @@ export async function runCreateInteractiveCli() {
 
   s.start('Creating App...');
   const result = await createApp(opts);
-  s.stop('Created App 🐰');
+  s.stop('App Created 🐰');
 
   if (result.starterId === 'site-with-visual-cms') {
     await connectBuilder(result.outDir);
@@ -155,10 +155,12 @@ export async function runCreateInteractiveCli() {
   }
 
   let successfulDepsInstall = false;
-  if (runInstall) {
-    s.start('Installing dependencies');
-    successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
-    s.stop(`${successfulDepsInstall ? 'Installed' : 'Failed to install'} dependencies 📋`);
+  if (runDepInstall) {
+    s.start(`Installing ${pkgManager} dependencies...`);
+    successfulDepsInstall = await backgroundInstall.complete(result.outDir);
+    s.stop(
+      `${successfulDepsInstall ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`
+    );
   }
 
   note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');

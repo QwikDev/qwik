@@ -6,6 +6,7 @@
     "lib": ["es2021", "DOM", "webworker"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
+    "allowArbitraryExtensions": true,
     "jsxImportSource": "@builder.io/qwik",
     "declaration": true,
     "outDir": "./dist-dev/tsc-out",

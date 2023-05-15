@@ -1021,7 +1021,7 @@ export interface PropFnInterface<ARGS extends any[], RET>
 ```typescript
 export type PropFunction<T extends Function = (...args: any[]) => any> =
   T extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : never;
 ```
 
@@ -1036,7 +1036,7 @@ export type PropFunctionProps<PROPS extends {}> = {
   [K in keyof PROPS]: NonNullable<PROPS[K]> extends (
     ...args: infer ARGS
   ) => infer RET
-    ? PropFnInterface<ARGS, RET>
+    ? PropFnInterface<ARGS, Awaited<RET>>
     : PROPS[K];
 };
 ```
@@ -2069,7 +2069,7 @@ Register a listener on the current component's host element.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
 ```typescript
-useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
+useOn: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -2081,7 +2081,7 @@ Register a listener on `document`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
+useOnDocument: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -2093,7 +2093,7 @@ Register a listener on `window`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
+useOnWindow: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)

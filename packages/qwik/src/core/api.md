@@ -427,11 +427,11 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 }
 
 // @public (undocumented)
-export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
 
 // @public (undocumented)
 export type PropFunctionProps<PROPS extends {}> = {
-    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : PROPS[K];
+    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
 };
 
 // @public
@@ -447,6 +447,7 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBas
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
+    (signal: AbortSignal, ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     dev: QRLDev | null;
@@ -970,14 +971,16 @@ export const useId: () => string;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
+// Warning: (ae-forgotten-export) The symbol "PascalCaseEventLiteralType" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOn: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOnDocument: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOnWindow: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;

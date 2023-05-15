@@ -22,9 +22,21 @@ export const loaderLocation: Rule.RuleModule = {
       recommended: true,
       url: 'https://github.com/BuilderIO/qwik',
     },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          routesDir: {
+            type: 'string',
+            default: 'src/routes',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
     messages: {
       invalidLoaderLocation:
-        '`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the `src/routes` directory, instead it was declared in "{{path}}".\nPlease check the docs: https://qwik.builder.io/docs/route-loader/',
+        '`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the {{routesDir}} directory, instead it was declared in "{{path}}".\nPlease check the docs: https://qwik.builder.io/docs/route-loader/',
       missingExport:
         'The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```',
       wrongName:
@@ -34,12 +46,12 @@ export const loaderLocation: Rule.RuleModule = {
     },
   },
   create(context) {
+    const routesDir = context.options?.[0]?.routesDir ?? 'src/routes';
     const path = normalizePath(context.getFilename());
     const isLayout = /\/layout(|!|-.+)\.tsx?$/.test(path);
     const isIndex = /\/index(|!|@.+)\.tsx?$/.test(path);
     const isPlugin = /\/plugin(|@.+)\.tsx?$/.test(path);
-
-    const isInsideRoutes = /\/src\/routes\//.test(path);
+    const isInsideRoutes = new RegExp(`/${routesDir}/`).test(path);
 
     const canContainLoader = isInsideRoutes && (isIndex || isLayout || isPlugin);
     return {
@@ -56,6 +68,7 @@ export const loaderLocation: Rule.RuleModule = {
             node: node.callee,
             messageId: 'invalidLoaderLocation',
             data: {
+              routesDir,
               fnName,
               path,
             },

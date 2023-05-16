@@ -20,14 +20,7 @@ import {
 import { checkoutQuery, productsQuery } from './query';
 import { checkoutCreateMutation } from './mutation';
 import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
-import type {
-  CheckoutQuery,
-  Checkout,
-  ProductsQuery,
-  UIProduct,
-  CheckoutCreateMutation,
-  ShopApp,
-} from './types';
+import type { CheckoutQuery, ProductsQuery, CheckoutCreateMutation, ShopApp } from './types';
 
 const useProductsLoader = routeLoader$(async () => {
   const response = await fetchFromShopify(productsQuery());

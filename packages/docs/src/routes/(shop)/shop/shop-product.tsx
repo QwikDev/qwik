@@ -85,7 +85,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
             onClick$={async () => {
               loadingSignal.value = true;
               const response = await fetchFromShopify(
-                modifyLineItemMutation(appShop.cart.id, selectedVariantId.value, 1)
+                modifyLineItemMutation(appShop.cart?.id || '', selectedVariantId.value, 1)
               );
               const {
                 data: { checkoutLineItemsAdd },

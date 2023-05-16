@@ -31,7 +31,7 @@ export const ShopCartRows = component$(() => {
 
   return (
     <div class="flow-root">
-      <ul class="-my-6 divide-y divide-gray-200">
+      <ul class="-my-6 divide-y divide-[color:var(--text-color)]">
         {appShop.cart.lineItems.edges.map(({ node: lineItem }: any) => {
           return (
             <li key={lineItem.id} class="py-6 flex">
@@ -48,7 +48,7 @@ export const ShopCartRows = component$(() => {
 
               <div class="ml-4 flex-1 flex flex-col">
                 <div>
-                  <div class="flex justify-between text-base font-medium text-gray-900">
+                  <div class="flex justify-between text-base font-medium text-[color:var(--text-color)]">
                     <div>
                       <h3>{lineItem.title}</h3>
                       <h4 class="text-sm">{lineItem.variant.title}</h4>
@@ -62,10 +62,10 @@ export const ShopCartRows = component$(() => {
                   </div>
                 </div>
                 <div class="flex-1 flex items-center text-md">
-                  <label html-for={`quantity-${lineItem.id}`} class="text-black mr-2">
+                  <label html-for={`quantity-${lineItem.id}`} class="mr-2 text-[color:var(--text-color)]">
                     x{lineItem.quantity}
                   </label>
-                  <div class="flex space-x col-span-2 text-solid-medium text-black">
+                  <div class="flex space-x col-span-2 text-solid-medium text-[color:var(--text-color)]">
                     <button
                       disabled={loadingSignal.value || lineItem.quantity === 1}
                       title="Remove item"
@@ -116,7 +116,7 @@ export const ShopCartRows = component$(() => {
                     <button
                       disabled={loadingSignal.value}
                       value={lineItem.id}
-                      class="font-medium text-black disabled:cursor-not-allowed"
+                      class="font-medium text-[color:var(--text-color)] disabled:cursor-not-allowed"
                       onClick$={async () => {
                         if (!loadingSignal.value) {
                           await onRemoveLineItemMutation(lineItem.id);

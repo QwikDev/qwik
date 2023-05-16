@@ -35,6 +35,12 @@ export const MEDIA = mediaObj({
       imgSrc: 'https://fernando-herrera.com/assets/img/cursos/qwik-gratis.png',
       title: 'Fernando Herrera + DevTalles',
     },
+    youtube('🇪🇸 manuelsanchezweb: Qwik para principiantes', 'X4puVLRTr4k'),
+    {
+      href: 'https://www.udemy.com/course/curso-intermedio-qwik-espanol/?referralCode=3D453D600C0CB529D84B',
+      imgSrc: 'https://www.manuelsanchezweb.com/img/qwik-intermedio.png',
+      title: '🇪🇸 manuelsanchezweb: Qwik intermedio-avanzado con proyectos',
+    },
   ],
 
   /*****************************************/

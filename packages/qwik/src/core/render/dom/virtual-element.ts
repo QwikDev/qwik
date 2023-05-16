@@ -9,13 +9,14 @@ import {
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { createElement } from './operations';
-import { getChildren } from './visitor';
+import { SVG_NS, getChildren } from './visitor';
 
 const VIRTUAL_SYMBOL = '__virtual';
 
 export interface VirtualElement {
   readonly open: Comment;
   readonly close: Comment;
+  readonly isSvg: boolean;
   readonly insertBefore: <T extends Node>(node: T, child: Node | null) => T;
   readonly appendChild: <T extends Node>(node: T) => T;
   readonly insertBeforeTo: (newParent: QwikElement, child: Node | null) => void;
@@ -47,10 +48,10 @@ export interface VirtualElement {
 
 export type QwikElement = Element | VirtualElement;
 
-export const newVirtualElement = (doc: Document): VirtualElement => {
+export const newVirtualElement = (doc: Document, isSvg: boolean): VirtualElement => {
   const open = doc.createComment('qv ');
   const close = doc.createComment('/qv');
-  return new VirtualElementImpl(open, close);
+  return new VirtualElementImpl(open, close, isSvg);
 };
 
 export const parseVirtualAttributes = (str: string): Record<string, string> => {
@@ -134,10 +135,11 @@ export class VirtualElementImpl implements VirtualElement {
   readonly nodeType = 111 as const;
   readonly localName = VIRTUAL;
   readonly nodeName = VIRTUAL;
+
   private $attributes$: Record<string, string>;
   private $template$: HTMLTemplateElement;
 
-  constructor(public open: Comment, public close: Comment) {
+  constructor(readonly open: Comment, readonly close: Comment, readonly isSvg: boolean) {
     const doc = (this.ownerDocument = open.ownerDocument);
     this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.$attributes$ = parseVirtualAttributes(open.data.slice(3));
@@ -351,7 +353,7 @@ export const getVirtualElement = (open: Comment): VirtualElement | null => {
   }
   if (open.data.startsWith('qv ')) {
     const close = findClose(open);
-    return new VirtualElementImpl(open, close);
+    return new VirtualElementImpl(open, close, open.parentElement?.namespaceURI === SVG_NS);
   }
   return null;
 };

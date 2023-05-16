@@ -82,15 +82,25 @@ export async function fromNodeHttp(
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      const stream = new WritableStream<Uint8Array>({
+      return new WritableStream<Uint8Array>({
+        start(controller) {
+          res.on('close', () => controller.error());
+        },
         write(chunk) {
-          res.write(chunk);
+          return new Promise((resolve, reject) =>
+            res.write(chunk, (cb) => {
+              if (cb) {
+                reject(cb);
+              } else {
+                resolve();
+              }
+            })
+          );
         },
         close() {
           res.end();
         },
       });
-      return stream;
     },
     platform: {
       ssr: true,

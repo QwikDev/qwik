@@ -42,14 +42,17 @@ export const StoreCartRows = component$(() => {
                   height="100"
                   class="w-full h-full object-center object-cover"
                   src={lineItem.variant.image.src}
-                  alt={lineItem.title}
+                  alt={lineItem.variant.title}
                 />
               </div>
 
               <div class="ml-4 flex-1 flex flex-col">
                 <div>
                   <div class="flex justify-between text-base font-medium text-gray-900">
-                    <h3>{lineItem.title}</h3>
+                    <div>
+                      <h3>{lineItem.title}</h3>
+                      <h4 class="text-sm">{lineItem.variant.title}</h4>
+                    </div>
                     <div class="ml-4">
                       {formatPrice(
                         lineItem.variant.price.amount,

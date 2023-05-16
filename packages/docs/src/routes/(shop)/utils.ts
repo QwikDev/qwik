@@ -1,4 +1,5 @@
 import { createContextId } from '@builder.io/qwik';
+import type { Product } from './types';
 
 export const COOKIE_CART_ID_KEY = 'cartid';
 
@@ -18,16 +19,16 @@ export const fetchFromShopify = async (body: unknown) =>
     body: JSON.stringify(body),
   });
 
-export const mapProducts = (data: any[]) =>
+export const mapProducts = (data: { node: Product }[]) =>
   data
     .filter(({ node }) => node.availableForSale)
-    .map(({ node }: any) => ({
+    .map(({ node }) => ({
       id: node.id,
       title: node.title,
       availableForSale: node.availableForSale,
       descriptionHtml: node.descriptionHtml,
       image: node.images.edges[0].node,
-      variants: node.variants.edges.map(({ node }: any) => node),
+      variants: node.variants.edges.map(({ node }) => node),
     }));
 
 export const setCookie = (name: string, value: string, days: number) => {

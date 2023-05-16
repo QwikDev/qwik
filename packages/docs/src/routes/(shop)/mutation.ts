@@ -1,6 +1,6 @@
-import { checkoutFragment } from "./common-gql";
+import { checkoutFragment } from './common-gql';
 
-export const createCartMutation = () => ({
+export const checkoutCreateMutation = () => ({
   variables: { input: {} },
   query: `
   ${checkoutFragment}

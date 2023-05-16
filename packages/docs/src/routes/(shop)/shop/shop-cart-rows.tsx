@@ -67,9 +67,10 @@ export const ShopCartRows = component$(() => {
                     class="mr-2 text-[color:var(--text-color)]"
                   >
                     {formatPrice(
-                        lineItem.variant.price.amount,
-                        lineItem.variant.price.currencyCode
-                      )} x {lineItem.quantity}
+                      lineItem.variant.price.amount,
+                      lineItem.variant.price.currencyCode
+                    )}{' '}
+                    x {lineItem.quantity}
                   </label>
                   <div class="flex space-x col-span-2 text-solid-medium text-[color:var(--text-color)]">
                     <button

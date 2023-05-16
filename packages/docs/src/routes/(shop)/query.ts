@@ -1,6 +1,6 @@
 import { checkoutFragment } from './common-gql';
 
-export const productQuery = (
+export const productsQuery = (
   id = import.meta.env.PUBLIC_SHOPIFY_COLLECTION_ID,
   productsFirst = 100
 ) => ({
@@ -52,7 +52,7 @@ export const productQuery = (
 `,
 });
 
-export const cartQuery = (id: string) => ({
+export const checkoutQuery = (id: string) => ({
   variables: { id },
   query: `
   ${checkoutFragment}

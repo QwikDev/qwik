@@ -2,9 +2,8 @@ import { component$, useContext, useStyles$ } from '@builder.io/qwik';
 import styles from '../shop.css?inline';
 import { SHOP_CONTEXT } from '../utils';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import { ShopIcon } from './shop-icon';
+import { ShopHeader } from './shop-header';
 import { ShopProduct } from './shop-product';
-import { ShopCart } from './shop-cart';
 
 export default component$(() => {
   useStyles$(styles);
@@ -12,8 +11,7 @@ export default component$(() => {
 
   return (
     <div class="shop">
-      <ShopIcon class="mx-auto mt-6 mb-2" />
-      <ShopCart />
+      <ShopHeader />
       <article>
         <div class="purple-gradient" role="presentation" />
         <div class="blue-gradient" role="presentation" />

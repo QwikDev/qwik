@@ -42,11 +42,6 @@
   @apply mr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5 text-slate-900 bg-white;
 }
 
-.shop .cart {
-  position: inherit;
-  @apply flex justify-center my-3 pr-6 pb-6 text-slate-900 w-full z-10;
-}
-
 .shop .product .button_primary,
 .shop .cart .button_primary {
   @apply flex items-center justify-center rounded-md px-5 py-2.5 text-center text-sm font-medium bg-slate-900 hover:bg-slate-600 text-white focus:outline-none focus:ring-4 focus:ring-blue-300 w-full h-[40px];

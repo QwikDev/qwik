@@ -5,7 +5,8 @@ export type ShopProductType = {
   image: {
     height: number;
     width: number;
-    src: string;
+    url: string;
+    altText: string;
   };
   body_html: string;
   variants: {

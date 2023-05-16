@@ -1,3 +1,5 @@
+import { checkoutFragment } from "./common-gql";
+
 export const productQuery = (
   id = import.meta.env.PUBLIC_SHOPIFY_COLLECTION_ID,
   productsFirst = 20
@@ -18,35 +20,12 @@ export const productQuery = (
     weight
     available: availableForSale
     sku
-    compareAtPrice {
-      amount
-      currencyCode
-    }
-    compareAtPriceV2: compareAtPrice {
-      amount
-      currencyCode
-    }
     image {
       id
-      src: url
+      url
       altText
       width
       height
-    }
-    selectedOptions {
-      name
-      value
-    }
-    unitPrice {
-      amount
-      currencyCode
-    }
-    unitPriceMeasurement {
-      measuredType
-      quantityUnit
-      quantityValue
-      referenceUnit
-      referenceValue
     }
   }
   fragment CollectionFragment on Collection {
@@ -58,7 +37,7 @@ export const productQuery = (
     title
     image {
       id
-      src: url
+      url
       altText
     }
   }
@@ -84,7 +63,7 @@ export const productQuery = (
       edges {
         node {
           id
-          src: url
+          url
           altText
           width
           height
@@ -125,81 +104,9 @@ export const productQuery = (
 export const cartQuery = (id: string) => ({
   variables: { id },
   query: `
-  fragment VariantFragment on ProductVariant {
-    id
-    title
-    price {
-      amount
-      currencyCode
-    }
-    priceV2: price {
-      amount
-      currencyCode
-    }
-    weight
-    available: availableForSale
-    sku
-    compareAtPrice {
-      amount
-      currencyCode
-    }
-    compareAtPriceV2: compareAtPrice {
-      amount
-      currencyCode
-    }
-    image {
-      id
-      src: url
-      altText
-      width
-      height
-    }
-    selectedOptions {
-      name
-      value
-    }
-    unitPrice {
-      amount
-      currencyCode
-    }
-    unitPriceMeasurement {
-      measuredType
-      quantityUnit
-      quantityValue
-      referenceUnit
-      referenceValue
-    }
-  }
-  fragment VariantWithProductFragment on ProductVariant {
-    ...VariantFragment
-    product {
-      id
-      handle
-    }
-  }
-  fragment CheckoutFragment on Checkout {
-    id
-    webUrl
-    totalPrice {
-      amount
-      currencyCode
-    }
-    lineItems(first: 250) {
-      edges {
-        node {
-          id
-          title
-          variant {
-            ...VariantWithProductFragment
-          }
-          quantity
-        }
-      }
-    }
-  }
+  ${checkoutFragment}
   query ($id: ID!) {
     node(id: $id) {
-      __typename
       ...CheckoutFragment
     }
   }

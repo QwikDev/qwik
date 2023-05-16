@@ -23,8 +23,8 @@ export const ShopProduct = component$<Props>(({ product }) => {
             class="object-contain"
             width="300"
             height="300"
-            src={product.image.src}
-            alt="product image"
+            src={product.image.url}
+            alt={product.image.altText}
           />
         ) : (
           <div class="text-[color:var(--text-color)]" dangerouslySetInnerHTML={product.body_html} />

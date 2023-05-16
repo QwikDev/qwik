@@ -41,8 +41,8 @@ export const ShopCartRows = component$(() => {
                   width="100"
                   height="100"
                   class="w-full h-full object-center object-cover"
-                  src={lineItem.variant.image.src}
-                  alt={lineItem.variant.title}
+                  src={lineItem.variant.image.url}
+                  alt={lineItem.variant.image.altText}
                 />
               </div>
 

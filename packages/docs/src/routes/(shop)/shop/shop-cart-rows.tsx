@@ -1,38 +1,38 @@
 import { component$, useContext, useSignal, $ } from '@builder.io/qwik';
-import { STORE_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
+import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
 import { Image } from 'qwik-image';
 import { modifyLineItemMutation, removeLineItemMutation } from '../mutation';
 
-export const StoreCartRows = component$(() => {
+export const ShopCartRows = component$(() => {
   const loadingSignal = useSignal(false);
-  const appStore = useContext(STORE_CONTEXT);
+  const appShop = useContext(SHOP_CONTEXT);
 
   const onModifyLineItemMutation = $(async (variantId: string, quantity: number) => {
     loadingSignal.value = true;
     const response = await fetchFromShopify(
-      modifyLineItemMutation(appStore.cart.id, variantId, quantity)
+      modifyLineItemMutation(appShop.cart.id, variantId, quantity)
     );
     const {
       data: { checkoutLineItemsAdd },
     } = await response.json();
-    appStore.cart = checkoutLineItemsAdd.checkout;
+    appShop.cart = checkoutLineItemsAdd.checkout;
     loadingSignal.value = false;
   });
 
   const onRemoveLineItemMutation = $(async (lineItemId: string) => {
     loadingSignal.value = true;
-    const response = await fetchFromShopify(removeLineItemMutation(appStore.cart.id, [lineItemId]));
+    const response = await fetchFromShopify(removeLineItemMutation(appShop.cart.id, [lineItemId]));
     const {
       data: { checkoutLineItemsRemove },
     } = await response.json();
-    appStore.cart = checkoutLineItemsRemove.checkout;
+    appShop.cart = checkoutLineItemsRemove.checkout;
     loadingSignal.value = false;
   });
 
   return (
     <div class="flow-root">
       <ul class="-my-6 divide-y divide-gray-200">
-        {appStore.cart.lineItems.edges.map(({ node: lineItem }: any) => {
+        {appShop.cart.lineItems.edges.map(({ node: lineItem }: any) => {
           return (
             <li key={lineItem.id} class="py-6 flex">
               <div class="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">

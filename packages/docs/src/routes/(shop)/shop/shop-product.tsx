@@ -1,15 +1,15 @@
 import { component$, useContext, useSignal } from '@builder.io/qwik';
 import { modifyLineItemMutation } from '../mutation';
-import { STORE_CONTEXT, fetchFromShopify } from '../utils';
-import type { StoreProductType } from '../types';
+import { SHOP_CONTEXT, fetchFromShopify } from '../utils';
+import type { ShopProductType } from '../types';
 import { Image } from 'qwik-image';
 
 type Props = {
-  product: StoreProductType;
+  product: ShopProductType;
 };
 
-export const StoreProduct = component$<Props>(({ product }) => {
-  const appStore = useContext(STORE_CONTEXT);
+export const ShopProduct = component$<Props>(({ product }) => {
+  const appShop = useContext(SHOP_CONTEXT);
   const loadingSignal = useSignal(false);
   const showProductSignal = useSignal(true);
   const selectedVariantId = useSignal(product.variants.find((v) => v.available)?.id || '');
@@ -74,12 +74,12 @@ export const StoreProduct = component$<Props>(({ product }) => {
             onClick$={async () => {
               loadingSignal.value = true;
               const response = await fetchFromShopify(
-                modifyLineItemMutation(appStore.cart.id, selectedVariantId.value, 1)
+                modifyLineItemMutation(appShop.cart.id, selectedVariantId.value, 1)
               );
               const {
                 data: { checkoutLineItemsAdd },
               } = await response.json();
-              appStore.cart = checkoutLineItemsAdd.checkout;
+              appShop.cart = checkoutLineItemsAdd.checkout;
               loadingSignal.value = false;
             }}
           >

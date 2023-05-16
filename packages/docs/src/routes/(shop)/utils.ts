@@ -2,10 +2,10 @@ import { createContextId } from '@builder.io/qwik';
 
 export const COOKIE_CART_ID_KEY = 'cartid';
 
-export const STORE_CONTEXT = createContextId<{
+export const SHOP_CONTEXT = createContextId<{
   products?: any;
   cart?: any;
-}>('store_context');
+}>('shop_context');
 
 export const fetchFromShopify = async (body: unknown) =>
   await fetch(import.meta.env.PUBLIC_SHOPIFY_URL, {

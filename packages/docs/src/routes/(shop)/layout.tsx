@@ -15,7 +15,7 @@ import {
   getCookie,
   mapProducts,
   setCookie,
-  STORE_CONTEXT,
+  SHOP_CONTEXT,
 } from './utils';
 import { cartQuery, productQuery } from './query';
 import { createCartMutation } from './mutation';
@@ -33,20 +33,20 @@ export default component$(() => {
   useImageProvider({
     imageTransformer$: $(({ src }: ImageTransformerProps): string => src),
   });
-  const appStore = useStore<{ products?: any; cart?: any }>({
+  const appShop = useStore<{ products?: any; cart?: any }>({
     products: useProductsLoader().value,
   });
-  useContextProvider(STORE_CONTEXT, appStore);
+  useContextProvider(SHOP_CONTEXT, appShop);
 
   useVisibleTask$(async () => {
     const cartId = getCookie(COOKIE_CART_ID_KEY);
     const body = cartId ? cartQuery(cartId) : createCartMutation();
     const response = await fetchFromShopify(body);
     const { data } = await response.json();
-    appStore.cart = cartId ? data.node : data.checkoutCreate.checkout;
+    appShop.cart = cartId ? data.node : data.checkoutCreate.checkout;
 
     if (!cartId) {
-      setCookie(COOKIE_CART_ID_KEY, appStore.cart.id, 30);
+      setCookie(COOKIE_CART_ID_KEY, appShop.cart.id, 30);
     }
   });
 

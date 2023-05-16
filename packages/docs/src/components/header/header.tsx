@@ -105,8 +105,8 @@ export const Header = component$(() => {
               </a>
             </li>
             <li>
-              <a href="/store/" class={{ active: pathname.startsWith('/store') }}>
-                <span>Store</span>
+              <a href="/shop/" class={{ active: pathname.startsWith('/shop') }}>
+                <span>Shop</span>
               </a>
             </li>
             <li>

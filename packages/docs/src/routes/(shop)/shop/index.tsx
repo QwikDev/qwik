@@ -1,25 +1,25 @@
 import { component$, useContext, useStyles$ } from '@builder.io/qwik';
-import styles from '../store.css?inline';
-import { STORE_CONTEXT } from '../utils';
+import styles from '../shop.css?inline';
+import { SHOP_CONTEXT } from '../utils';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import { StoreIcon } from './store-icon';
-import { StoreProduct } from './store-product';
-import { StoreCart } from './store-cart';
+import { ShopIcon } from './shop-icon';
+import { ShopProduct } from './shop-product';
+import { ShopCart } from './shop-cart';
 
 export default component$(() => {
   useStyles$(styles);
-  const appStore = useContext(STORE_CONTEXT);
+  const appShop = useContext(SHOP_CONTEXT);
 
   return (
-    <div class="store">
-      <StoreCart />
-      <StoreIcon class="mx-auto my-10" />
+    <div class="shop">
+      <ShopIcon class="mx-auto mt-6 mb-2" />
+      <ShopCart />
       <article>
         <div class="purple-gradient" role="presentation" />
         <div class="blue-gradient" role="presentation" />
         <div class="flex flex-wrap gap-9 justify-center max-w-[1200px] mb-20 mx-auto">
-          {(appStore.products || []).map((product: any) => (
-            <StoreProduct product={product} />
+          {(appShop.products || []).map((product: any) => (
+            <ShopProduct product={product} />
           ))}
         </div>
       </article>
@@ -28,5 +28,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'Qwik Store',
+  title: 'Qwik Shop',
 };

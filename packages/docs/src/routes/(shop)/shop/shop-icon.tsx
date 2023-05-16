@@ -1,6 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 
-export const StoreIcon = component$((props: any) => {
+export const ShopIcon = component$((props: any) => {
   return (
     <svg
       fill="none"

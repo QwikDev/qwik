@@ -42,7 +42,6 @@
 
 .shop .product .select {
   @apply mr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5 bg-white text-black text-xs;
-  
 }
 
 .shop .product .button_primary,

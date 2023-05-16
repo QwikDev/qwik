@@ -62,7 +62,10 @@ export const ShopCartRows = component$(() => {
                   </div>
                 </div>
                 <div class="flex-1 flex items-center text-md">
-                  <label html-for={`quantity-${lineItem.id}`} class="mr-2 text-[color:var(--text-color)]">
+                  <label
+                    html-for={`quantity-${lineItem.id}`}
+                    class="mr-2 text-[color:var(--text-color)]"
+                  >
                     x{lineItem.quantity}
                   </label>
                   <div class="flex space-x col-span-2 text-solid-medium text-[color:var(--text-color)]">

@@ -102,9 +102,7 @@ export const ShopCart = component$(() => {
                             )}
                           </p>
                         </div>
-                        <p class="mt-0.5 text-sm">
-                          Shipping will be calculated at checkout.
-                        </p>
+                        <p class="mt-0.5 text-sm">Shipping will be calculated at checkout.</p>
                         <a target="_blank" href={appShop.cart.webUrl} class="button_primary mt-6">
                           Checkout
                         </a>

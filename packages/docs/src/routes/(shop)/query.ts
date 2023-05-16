@@ -241,25 +241,6 @@ export const cartQuery = (id: string) => ({
       handle
     }
   }
-  fragment MailingAddressFragment on MailingAddress {
-    id
-    address1
-    address2
-    city
-    company
-    country
-    firstName
-    formatted
-    lastName
-    latitude
-    longitude
-    phone
-    province
-    zip
-    name
-    countryCode: countryCodeV2
-    provinceCode
-  }
   fragment CheckoutFragment on Checkout {
     id
     ready
@@ -325,9 +306,6 @@ export const cartQuery = (id: string) => ({
     appliedGiftCards {
       ...AppliedGiftCardFragment
     }
-    shippingAddress {
-      ...MailingAddressFragment
-    }
     shippingLine {
       handle
       price {
@@ -390,9 +368,6 @@ export const cartQuery = (id: string) => ({
         currencyCode
       }
       customerUrl
-      shippingAddress {
-        ...MailingAddressFragment
-      }
       lineItems(first: 250) {
         pageInfo {
           hasNextPage

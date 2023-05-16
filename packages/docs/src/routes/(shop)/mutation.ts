@@ -106,34 +106,6 @@ export const createCartMutation = () => ({
       handle
     }
   }
-  fragment UserErrorFragment on UserError {
-    field
-    message
-  }
-  fragment CheckoutUserErrorFragment on CheckoutUserError {
-    field
-    message
-    code
-  }
-  fragment MailingAddressFragment on MailingAddress {
-    id
-    address1
-    address2
-    city
-    company
-    country
-    firstName
-    formatted
-    lastName
-    latitude
-    longitude
-    phone
-    province
-    zip
-    name
-    countryCode: countryCodeV2
-    provinceCode
-  }
   fragment CheckoutFragment on Checkout {
     id
     ready
@@ -199,9 +171,6 @@ export const createCartMutation = () => ({
     appliedGiftCards {
       ...AppliedGiftCardFragment
     }
-    shippingAddress {
-      ...MailingAddressFragment
-    }
     shippingLine {
       handle
       price {
@@ -264,9 +233,6 @@ export const createCartMutation = () => ({
         currencyCode
       }
       customerUrl
-      shippingAddress {
-        ...MailingAddressFragment
-      }
       lineItems(first: 250) {
         pageInfo {
           hasNextPage
@@ -322,12 +288,6 @@ export const createCartMutation = () => ({
   }
   mutation ($input: CheckoutCreateInput!) {
     checkoutCreate(input: $input) {
-      userErrors {
-        ...UserErrorFragment
-      }
-      checkoutUserErrors {
-        ...CheckoutUserErrorFragment
-      }
       checkout {
         ...CheckoutFragment
       }
@@ -448,34 +408,6 @@ export const modifyLineItemMutation = (
       handle
     }
   }
-  fragment UserErrorFragment on UserError {
-    field
-    message
-  }
-  fragment CheckoutUserErrorFragment on CheckoutUserError {
-    field
-    message
-    code
-  }
-  fragment MailingAddressFragment on MailingAddress {
-    id
-    address1
-    address2
-    city
-    company
-    country
-    firstName
-    formatted
-    lastName
-    latitude
-    longitude
-    phone
-    province
-    zip
-    name
-    countryCode: countryCodeV2
-    provinceCode
-  }
   fragment CheckoutFragment on Checkout {
     id
     ready
@@ -541,9 +473,6 @@ export const modifyLineItemMutation = (
     appliedGiftCards {
       ...AppliedGiftCardFragment
     }
-    shippingAddress {
-      ...MailingAddressFragment
-    }
     shippingLine {
       handle
       price {
@@ -606,9 +535,6 @@ export const modifyLineItemMutation = (
         currencyCode
       }
       customerUrl
-      shippingAddress {
-        ...MailingAddressFragment
-      }
       lineItems(first: 250) {
         pageInfo {
           hasNextPage
@@ -664,12 +590,6 @@ export const modifyLineItemMutation = (
   }
   mutation ($checkoutId: ID!, $lineItems: [CheckoutLineItemInput!]!) {
     checkoutLineItemsAdd(checkoutId: $checkoutId, lineItems: $lineItems) {
-      userErrors {
-        ...UserErrorFragment
-      }
-      checkoutUserErrors {
-        ...CheckoutUserErrorFragment
-      }
       checkout {
         ...CheckoutFragment
       }
@@ -786,34 +706,6 @@ export const removeLineItemMutation = (checkoutId: string, lineItemIds: string[]
       handle
     }
   }
-  fragment UserErrorFragment on UserError {
-    field
-    message
-  }
-  fragment CheckoutUserErrorFragment on CheckoutUserError {
-    field
-    message
-    code
-  }
-  fragment MailingAddressFragment on MailingAddress {
-    id
-    address1
-    address2
-    city
-    company
-    country
-    firstName
-    formatted
-    lastName
-    latitude
-    longitude
-    phone
-    province
-    zip
-    name
-    countryCode: countryCodeV2
-    provinceCode
-  }
   fragment CheckoutFragment on Checkout {
     id
     ready
@@ -879,9 +771,6 @@ export const removeLineItemMutation = (checkoutId: string, lineItemIds: string[]
     appliedGiftCards {
       ...AppliedGiftCardFragment
     }
-    shippingAddress {
-      ...MailingAddressFragment
-    }
     shippingLine {
       handle
       price {
@@ -944,9 +833,6 @@ export const removeLineItemMutation = (checkoutId: string, lineItemIds: string[]
         currencyCode
       }
       customerUrl
-      shippingAddress {
-        ...MailingAddressFragment
-      }
       lineItems(first: 250) {
         pageInfo {
           hasNextPage
@@ -1002,12 +888,6 @@ export const removeLineItemMutation = (checkoutId: string, lineItemIds: string[]
   }
   mutation ($checkoutId: ID!, $lineItemIds: [ID!]!) {
     checkoutLineItemsRemove(checkoutId: $checkoutId, lineItemIds: $lineItemIds) {
-      userErrors {
-        ...UserErrorFragment
-      }
-      checkoutUserErrors {
-        ...CheckoutUserErrorFragment
-      }
       checkout {
         ...CheckoutFragment
       }

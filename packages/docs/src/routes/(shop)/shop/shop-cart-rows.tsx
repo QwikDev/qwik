@@ -119,7 +119,7 @@ export const ShopCartRows = component$(() => {
                     <button
                       disabled={loadingSignal.value}
                       value={lineItem.id}
-                      class="font-medium text-[color:var(--text-color)] disabled:cursor-not-allowed"
+                      class="font-medium text-[color:var(--text-color)] disabled:cursor-not-allowed hover:opacity-70"
                       onClick$={async () => {
                         if (!loadingSignal.value) {
                           await onRemoveLineItemMutation(lineItem.id);

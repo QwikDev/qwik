@@ -27,11 +27,13 @@
 }
 
 .shop .product {
-  @apply relative flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-gray-100 shadow-md bg-white;
+  @apply relative flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-gray-100 shadow-md;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .shop .product .title {
-  @apply mt-4 px-5 text-xl tracking-tight text-center text-slate-900;
+  @apply mt-4 px-5 text-xl tracking-tight text-center;
 }
 
 .shop .product .info {
@@ -39,10 +41,13 @@
 }
 
 .shop .product .select {
-  @apply mr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5 text-slate-900 bg-white;
+  @apply mr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5;
+  background-color: var(--bg-color);
 }
 
 .shop .product .button_primary,
 .shop .cart .button_primary {
-  @apply flex items-center justify-center rounded-md px-5 py-2.5 text-center text-sm font-medium bg-slate-900 hover:bg-slate-600 text-white focus:outline-none focus:ring-4 focus:ring-blue-300 w-full h-[40px];
+  @apply flex items-center justify-center rounded-md px-5 py-2.5 text-center text-sm font-medium bg-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-300 w-full h-[40px];
+  background-color: var(--text-color);
+  color: var(--bg-color);
 }

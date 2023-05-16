@@ -27,12 +27,12 @@ export const ShopProduct = component$<Props>(({ product }) => {
             alt="product image"
           />
         ) : (
-          <div dangerouslySetInnerHTML={product.body_html} />
+          <div class="text-[color:var(--text-color)]" dangerouslySetInnerHTML={product.body_html} />
         )}
       </div>
       <div class="py-2 px-5 flex items-center">
         <span
-          class="font-medium hover:underline text-black"
+          class="font-medium hover:underline text-[color:var(--text-color)]"
           onClick$={() => {
             showProductSignal.value = !showProductSignal.value;
           }}
@@ -63,7 +63,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
           ) : (
             <div />
           )}
-          <span class="text-3xl font-bold text-slate-900 py-2">
+          <span class="text-3xl font-bold py-2 text-[color:var(--text-color)]">
             ${product.variants[0].price.amount}
           </span>
         </div>
@@ -88,7 +88,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
                 <svg
                   aria-hidden="true"
                   role="status"
-                  class="inline w-4 h-4 mr-3 text-white animate-spin"
+                  class="inline w-4 h-4 mr-3 animate-spin"
                   viewBox="0 0 100 101"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"

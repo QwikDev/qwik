@@ -20,7 +20,7 @@ export const ShopCart = component$(() => {
         <button
           name="Cart"
           aria-label={`${totalQuantitySignal.value} items in cart`}
-          class="relative flex bg-slate-600 border-2 border-gray-300 rounded-xl text-white p-3"
+          class="relative flex border-2 border-gray-300 rounded-xl p-3 text-[color:var(--text-color)] bg-[color:var(--bg-color)]"
           onClick$={() => {
             showCartSignal.value = true;
           }}
@@ -42,7 +42,7 @@ export const ShopCart = component$(() => {
           </svg>
           <span class="px-2">Cart</span>
           {totalQuantitySignal.value > 0 && (
-            <div class="absolute rounded-full -top-4 -right-4 text-black bg-white border-2 border-gray-300 w-8 h-8 pt-0.5 -pl-0.5">
+            <div class="absolute rounded-full -top-4 -right-4 border-2 border-gray-300 w-8 h-8 pt-0.5 -pl-0.5 text-[color:var(--text-color)] bg-[color:var(--bg-color)]">
               {totalQuantitySignal.value}
             </div>
           )}

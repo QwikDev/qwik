@@ -8,7 +8,7 @@ export type ShopProductType = {
     url: string;
     altText: string;
   };
-  body_html: string;
+  descriptionHtml: string;
   variants: {
     id: string;
     title: string;

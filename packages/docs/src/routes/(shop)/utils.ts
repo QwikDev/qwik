@@ -25,8 +25,8 @@ export const mapProducts = (data: any[]) =>
       id: node.id,
       title: node.title,
       availableForSale: node.availableForSale,
+      descriptionHtml: node.descriptionHtml,
       image: node.images.edges[0].node,
-      body_html: node.descriptionHtml,
       variants: node.variants.edges.map(({ node }: any) => node),
     }));
 

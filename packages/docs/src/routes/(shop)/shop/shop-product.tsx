@@ -1,6 +1,6 @@
-import { component$, useContext, useSignal } from '@builder.io/qwik';
+import { component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
 import { modifyLineItemMutation } from '../mutation';
-import { SHOP_CONTEXT, fetchFromShopify } from '../utils';
+import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
 import type { ShopProductType } from '../types';
 import { Image } from 'qwik-image';
 
@@ -13,13 +13,16 @@ export const ShopProduct = component$<Props>(({ product }) => {
   const loadingSignal = useSignal(false);
   const showProductSignal = useSignal(true);
   const selectedVariantId = useSignal(product.variants.find((v) => v.available)?.id || '');
+  const selectedVariantSignal = useComputed$(() =>
+    product.variants.find((v) => v.id === selectedVariantId.value)
+  );
   return (
     <div class="product">
       <h5 class="title">{product.title}</h5>
       <div class={`info ${showProductSignal.value ? 'overflow-hidden' : 'overflow-auto'}`}>
         {showProductSignal.value ? (
           <Image
-            layout="fixed"
+            layout="constrained"
             class="object-contain"
             width="300"
             height="300"
@@ -27,7 +30,10 @@ export const ShopProduct = component$<Props>(({ product }) => {
             alt={product.image.altText}
           />
         ) : (
-          <div class="text-[color:var(--text-color)]" dangerouslySetInnerHTML={product.body_html} />
+          <div
+            class="text-[color:var(--text-color)]"
+            dangerouslySetInnerHTML={product.descriptionHtml}
+          />
         )}
       </div>
       <div class="py-2 px-5 flex items-center">
@@ -64,7 +70,12 @@ export const ShopProduct = component$<Props>(({ product }) => {
             <div />
           )}
           <span class="text-3xl font-bold py-2 text-[color:var(--text-color)]">
-            ${product.variants[0].price.amount}
+            {selectedVariantSignal.value
+              ? formatPrice(
+                  parseInt(selectedVariantSignal.value.price.amount, 10),
+                  selectedVariantSignal.value.price.currencyCode
+                )
+              : '--'}
           </span>
         </div>
         <div class="flex">

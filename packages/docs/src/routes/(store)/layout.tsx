@@ -3,7 +3,6 @@ import {
   component$,
   Slot,
   useContextProvider,
-  useSignal,
   useStore,
   useVisibleTask$,
 } from '@builder.io/qwik';
@@ -42,7 +41,7 @@ export default component$(() => {
   useVisibleTask$(async () => {
     const cartId = getCookie(COOKIE_CART_ID_KEY);
     const body = cartId ? cartQuery(cartId) : createCartMutation();
-    let response = await fetchFromShopify(body);
+    const response = await fetchFromShopify(body);
     const { data } = await response.json();
     appStore.cart = cartId ? data.node : data.checkoutCreate.checkout;
 

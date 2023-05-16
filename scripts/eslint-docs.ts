@@ -4,6 +4,8 @@ import { format } from 'prettier';
 import { rules, configs } from '../packages/eslint-plugin-qwik/index';
 import { examples, type QwikEslintExample } from '../packages/eslint-plugin-qwik/examples';
 
+const mdx = [];
+
 const outputPathMdx = resolve(
   process.cwd(),
   'packages/docs/src/routes/docs/(qwik)/advanced/eslint/index.mdx'
@@ -24,6 +26,26 @@ function kebabToCamel(str: string) {
     .replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
 }
 
+function renderExample(example: QwikEslintExample, state: 'good' | 'bad' = 'good') {
+  mdx.push('<div class="code-wrapper">');
+  if (state === 'good') {
+    mdx.push('<span class="badge good">✓</span>');
+  } else {
+    mdx.push('<span class="badge bad">✕</span>');
+  }
+  mdx.push(
+    '```tsx' +
+      ((example.codeHighlight && ` ${example.codeHighlight}`) || '') +
+      ((example.codeTitle && ` title="${example.codeTitle}"`) || '')
+  );
+  mdx.push(example.code);
+  mdx.push('```');
+  if (example.description) {
+    mdx.push(`<p class="code-description">${example.description}</p>`);
+  }
+  mdx.push('</div>');
+}
+
 const rulesMap = Object.keys(rules).map((ruleName) => {
   const rule = ruleName as keyof typeof rules;
   return {
@@ -35,8 +57,6 @@ const rulesMap = Object.keys(rules).map((ruleName) => {
     examples: examples[rule],
   };
 });
-
-const mdx = [];
 
 mdx.push(`
 [//]: <> (--------------------------------------)
@@ -127,24 +147,14 @@ rulesMap.forEach((rule) => {
     if (goodExamples.length > 0) {
       mdx.push('<p>Examples of <b>correct</b> code for this rule:</p>');
       goodExamples.map((example) => {
-        mdx.push('<div class="code-wrapper">');
-        mdx.push('<span class="badge good">✓</span>');
-        mdx.push('```tsx ' + (example.codeHighlight || ''));
-        mdx.push(example.code);
-        mdx.push('```');
-        mdx.push('</div>');
+        renderExample(example);
       });
     }
 
     if (badExamples.length > 0) {
       mdx.push('<p>Examples of <b>incorrect</b> code for this rule:</p>');
       badExamples.map((example) => {
-        mdx.push('<div class="code-wrapper">');
-        mdx.push('<span class="badge bad">✕</span>');
-        mdx.push('```tsx ' + (example.codeHighlight || ''));
-        mdx.push(example.code);
-        mdx.push('```');
-        mdx.push('</div>');
+        renderExample(example, 'bad');
       });
     }
 

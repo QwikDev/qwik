@@ -10,6 +10,7 @@ import { validLexicalScopeExamples } from './src/validLexicalScope';
 
 export type QwikEslintExample = {
   code: string;
+  codeTitle?: string;
   codeHighlight?: string;
   description?: string;
 };

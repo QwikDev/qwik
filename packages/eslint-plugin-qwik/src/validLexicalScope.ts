@@ -484,22 +484,58 @@ const ALLOWED_CLASSES = {
 };
 
 const referencesOutsideGood = `
-tbd`.trim();
+looking for a good example ...`.trim();
 
 const referencesOutsideBad = `
-tbd`.trim();
+looking for a good example ...`.trim();
 
 const invalidJsxDollarGood = `
-tbd`.trim();
+import { component$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = $(() => console.log());
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
 
 const invalidJsxDollarBad = `
-tbd`.trim();
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = () => console.log();
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
 
 const mutableIdentifierGood = `
-tbd`.trim();
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const person = { name: 'Bob' };
+
+  return (
+    <button onClick$={() => {
+      person.name = 'Alice';
+    }}>
+    </button>
+  );
+});`.trim();
 
 const mutableIdentifierBad = `
-tbd`.trim();
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  let personName = 'Bob';
+
+  return (
+    <button onClick$={() => {
+      personName = 'Alice';
+    }}>
+    </button>
+  );
+});`.trim();
 
 export const validLexicalScopeExamples: QwikEslintExamples = {
   referencesOutside: {
@@ -519,28 +555,31 @@ export const validLexicalScopeExamples: QwikEslintExamples = {
   invalidJsxDollar: {
     good: [
       {
-        codeHighlight: '',
+        codeHighlight: '{1} /click/#a',
         code: invalidJsxDollarGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '',
+        codeHighlight: '{1} /click/#a',
         code: invalidJsxDollarBad,
+        description: 'Event handler must be wrapped with `${ ... }`.',
       },
     ],
   },
   mutableIdentifier: {
     good: [
       {
-        codeHighlight: '',
+        codeHighlight: '{4} /person/#a',
         code: mutableIdentifierGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '',
+        codeHighlight: '{4} /personName/#a',
         code: mutableIdentifierBad,
+        description:
+          'Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.',
       },
     ],
   },

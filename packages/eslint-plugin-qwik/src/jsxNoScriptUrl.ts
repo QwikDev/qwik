@@ -51,10 +51,10 @@ export const jsxNoScriptUrl = {
 };
 
 const noJSURLGood = `
-tbd`.trim();
+<button onClick$={() => alert('open the door please')>ring</button>`.trim();
 
 const noJSURLBad = `
-tbdb`.trim();
+<button onClick$="javascript:alert('open the door please')">ring</button>`.trim();
 
 export const jsxNoScriptUrlExamples: QwikEslintExamples = {
   noJSURL: {
@@ -66,7 +66,7 @@ export const jsxNoScriptUrlExamples: QwikEslintExamples = {
     ],
     bad: [
       {
-        codeHighlight: '',
+        codeHighlight: '/javascript:/#a',
         code: noJSURLBad,
       },
     ],

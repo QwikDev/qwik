@@ -100,6 +100,12 @@
   @apply bg-red-900;
 }
 
+.docs .code-description {
+  @apply text-sm;
+  @apply px-4;
+  @apply my-8;
+}
+
 .docs .edit-examples-wrapper {
   text-align: right;
 }

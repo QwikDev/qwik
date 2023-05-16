@@ -177,54 +177,60 @@ export const useMethodUsageExamples: QwikEslintExamples = {
   'use-after-await': {
     good: [
       {
-        codeHighlight: '{2-3} /await/',
+        codeHighlight: '{2-3} /await/#a /use/#b',
         code: useAfterAwaitGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{2-3} /await/',
+        codeHighlight: '{2-3} /await/#a /use/#b',
         code: useAfterAwaitBad,
+        description: '`useMethod()` is called after `await`.',
       },
       {
-        codeHighlight: '{3,5} /await/',
+        codeHighlight: '{3,5} /await/#a /use/#b',
         code: useAfterAwaitBad2,
+        description: '`useMethod()` is called after a condition.',
       },
     ],
   },
   'use-wrong-function': {
     good: [
       {
-        codeHighlight: '{2} /component$/',
+        codeHighlight: '{2} /component$/#a',
         code: useWrongFunctionGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{2} /component$/',
+        codeHighlight: '{2} /component$/#a',
         code: useWrongFunctionBad,
+        description: '`use*` methods can just be used in `component$` functions.',
       },
       {
-        codeHighlight: '{2} /component$/',
+        codeHighlight: '{2} /component$/#a',
         code: useWrongFunctionBad2,
+        description: '`use*` methods can just be used in `component$` functions.',
       },
     ],
   },
   'use-not-root': {
     good: [
       {
-        codeHighlight: '{2} /component$/',
+        codeHighlight: '{2} /component$/#a',
         code: useNotRootGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{2} /component$/',
+        codeHighlight: '{2} /component$/#a',
         code: useNotRootBad,
+        description: '`use*` methods can just be used in `component$` functions.',
       },
       {
-        codeHighlight: '{2} /component$/',
+        codeHighlight: '{2} /component$/#a',
         code: useNotRootBad2,
+        description: '`use*` methods can just be used in `component$` functions.',
       },
     ],
   },

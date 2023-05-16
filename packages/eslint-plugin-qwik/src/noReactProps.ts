@@ -56,23 +56,24 @@ export const noReactProps = {
 };
 
 const preferGood = `
-tbd`.trim();
+<MyReactComponent class="foo" for="#password" />;`.trim();
 
 const preferBad = `
-tbd`.trim();
+<MyReactComponent className="foo" htmlFor="#password" />;`.trim();
 
 export const noReactPropsExamples: QwikEslintExamples = {
   prefer: {
     good: [
       {
-        codeHighlight: '',
+        codeHighlight: '/class/#a /for/#b',
         code: preferGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '',
+        codeHighlight: '/className/#a /htmlFor/#b',
         code: preferBad,
+        description: 'Prefer `class` and `for` props over `className` and `htmlFor`.',
       },
     ],
   },

@@ -26,6 +26,7 @@ import type {
   ProductsQuery,
   UIProduct,
   CheckoutCreateMutation,
+  ShopApp,
 } from './types';
 
 const useProductsLoader = routeLoader$(async () => {
@@ -37,12 +38,8 @@ const useProductsLoader = routeLoader$(async () => {
 });
 
 export default component$(() => {
-  useImageProvider({
-    imageTransformer$: $(({ src }: ImageTransformerProps): string => src),
-  });
-  const appShop = useStore<{ products?: UIProduct[]; cart?: Checkout }>({
-    products: useProductsLoader().value,
-  });
+  useImageProvider({ imageTransformer$: $(({ src }: ImageTransformerProps): string => src) });
+  const appShop = useStore<ShopApp>({ products: useProductsLoader().value });
   useContextProvider(SHOP_CONTEXT, appShop);
 
   useVisibleTask$(async () => {

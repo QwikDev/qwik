@@ -1,11 +1,11 @@
 import { component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
 import { modifyLineItemMutation } from '../mutation';
 import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
-import type { ShopProductType } from '../types';
+import type { UIProduct } from '../types';
 import { Image } from 'qwik-image';
 
 type Props = {
-  product: ShopProductType;
+  product: UIProduct;
 };
 
 export const ShopProduct = component$<Props>(({ product }) => {
@@ -72,7 +72,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
           <span class="text-3xl font-bold py-2 text-[color:var(--text-color)]">
             {selectedVariantSignal.value
               ? formatPrice(
-                  parseInt(selectedVariantSignal.value.price.amount, 10),
+                  parseFloat(selectedVariantSignal.value.price.amount),
                   selectedVariantSignal.value.price.currencyCode
                 )
               : '--'}

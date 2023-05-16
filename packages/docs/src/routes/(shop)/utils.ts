@@ -1,12 +1,9 @@
 import { createContextId } from '@builder.io/qwik';
-import type { Product } from './types';
+import type { Product, ShopApp } from './types';
 
 export const COOKIE_CART_ID_KEY = 'cartid';
 
-export const SHOP_CONTEXT = createContextId<{
-  products?: any;
-  cart?: any;
-}>('shop_context');
+export const SHOP_CONTEXT = createContextId<ShopApp>('shop_context');
 
 export const fetchFromShopify = async (body: unknown) =>
   await fetch(import.meta.env.PUBLIC_SHOPIFY_URL, {
@@ -58,7 +55,7 @@ export const getCookie = (name: string) => {
   return result;
 };
 
-export function formatPrice(value = 0, currency: any) {
+export function formatPrice(value = 0, currency: string) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,

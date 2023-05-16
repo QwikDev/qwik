@@ -1,3 +1,5 @@
+export type ShopApp = { products?: UIProduct[]; cart?: Checkout };
+
 export type CheckoutLineItemsAddMutation = {
   data: { checkoutLineItemsAdd: { checkout: Checkout } };
 };
@@ -52,7 +54,7 @@ export type Price = {
 
 export type Image = {
   url: string;
-  altText: any;
+  altText: string;
 };
 
 export type ProductsQuery = {

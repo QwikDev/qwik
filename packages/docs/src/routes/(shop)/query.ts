@@ -81,12 +81,7 @@ export const productQuery = (
       values
     }
     images(first: 250) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
       edges {
-        cursor
         node {
           id
           src: url
@@ -97,12 +92,7 @@ export const productQuery = (
       }
     }
     variants(first: 250) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
       edges {
-        cursor
         node {
           ...VariantFragment
         }
@@ -121,8 +111,7 @@ export const productQuery = (
             hasPreviousPage
           }
           edges {
-            cursor
-            node {
+                node {
               ...ProductFragment
             }
           }
@@ -181,59 +170,6 @@ export const cartQuery = (id: string) => ({
       referenceValue
     }
   }
-  fragment DiscountApplicationFragment on DiscountApplication {
-    __typename
-    targetSelection
-    allocationMethod
-    targetType
-    value {
-      ... on MoneyV2 {
-        amount
-        currencyCode
-      }
-      ... on PricingPercentageValue {
-        percentage
-      }
-    }
-    ... on ManualDiscountApplication {
-      title
-      description
-    }
-    ... on DiscountCodeApplication {
-      code
-      applicable
-    }
-    ... on ScriptDiscountApplication {
-      title
-    }
-    ... on AutomaticDiscountApplication {
-      title
-    }
-  }
-  fragment AppliedGiftCardFragment on AppliedGiftCard {
-    amountUsed {
-      amount
-      currencyCode
-    }
-    amountUsedV2: amountUsed {
-      amount
-      currencyCode
-    }
-    balance {
-      amount
-      currencyCode
-    }
-    balanceV2: balance {
-      amount
-      currencyCode
-    }
-    presentmentAmountUsed {
-      amount
-      currencyCode
-    }
-    id
-    lastCharacters
-  }
   fragment VariantWithProductFragment on ProductVariant {
     ...VariantFragment
     product {
@@ -243,159 +179,13 @@ export const cartQuery = (id: string) => ({
   }
   fragment CheckoutFragment on Checkout {
     id
-    ready
-    requiresShipping
-    note
-    paymentDue {
-      amount
-      currencyCode
-    }
-    paymentDueV2: paymentDue {
-      amount
-      currencyCode
-    }
     webUrl
-    orderStatusUrl
-    taxExempt
-    taxesIncluded
-    currencyCode
-    totalTax {
-      amount
-      currencyCode
-    }
-    totalTaxV2: totalTax {
-      amount
-      currencyCode
-    }
-    lineItemsSubtotalPrice {
-      amount
-      currencyCode
-    }
-    subtotalPrice {
-      amount
-      currencyCode
-    }
-    subtotalPriceV2: subtotalPrice {
-      amount
-      currencyCode
-    }
     totalPrice {
       amount
       currencyCode
     }
-    totalPriceV2: totalPrice {
-      amount
-      currencyCode
-    }
-    completedAt
-    createdAt
-    updatedAt
-    email
-    discountApplications(first: 10) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
-      edges {
-        node {
-          __typename
-          ...DiscountApplicationFragment
-        }
-      }
-    }
-    appliedGiftCards {
-      ...AppliedGiftCardFragment
-    }
-    shippingLine {
-      handle
-      price {
-        amount
-        currencyCode
-      }
-      priceV2: price {
-        amount
-        currencyCode
-      }
-      title
-    }
-    customAttributes {
-      key
-      value
-    }
-    order {
-      id
-      processedAt
-      orderNumber
-      subtotalPrice {
-        amount
-        currencyCode
-      }
-      subtotalPriceV2: subtotalPrice {
-        amount
-        currencyCode
-      }
-      totalShippingPrice {
-        amount
-        currencyCode
-      }
-      totalShippingPriceV2: totalShippingPrice {
-        amount
-        currencyCode
-      }
-      totalTax {
-        amount
-        currencyCode
-      }
-      totalTaxV2: totalTax {
-        amount
-        currencyCode
-      }
-      totalPrice {
-        amount
-        currencyCode
-      }
-      totalPriceV2: totalPrice {
-        amount
-        currencyCode
-      }
-      currencyCode
-      totalRefunded {
-        amount
-        currencyCode
-      }
-      totalRefundedV2: totalRefunded {
-        amount
-        currencyCode
-      }
-      customerUrl
-      lineItems(first: 250) {
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-        }
-        edges {
-          cursor
-          node {
-            title
-            variant {
-              ...VariantWithProductFragment
-            }
-            quantity
-            customAttributes {
-              key
-              value
-            }
-          }
-        }
-      }
-    }
     lineItems(first: 250) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
       edges {
-        cursor
         node {
           id
           title
@@ -403,20 +193,6 @@ export const cartQuery = (id: string) => ({
             ...VariantWithProductFragment
           }
           quantity
-          customAttributes {
-            key
-            value
-          }
-          discountAllocations {
-            allocatedAmount {
-              amount
-              currencyCode
-            }
-            discountApplication {
-              __typename
-              ...DiscountApplicationFragment
-            }
-          }
         }
       }
     }

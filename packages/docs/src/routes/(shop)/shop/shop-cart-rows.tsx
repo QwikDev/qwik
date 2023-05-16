@@ -55,7 +55,7 @@ export const ShopCartRows = component$(() => {
                     </div>
                     <div class="ml-4">
                       {formatPrice(
-                        lineItem.variant.price.amount,
+                        lineItem.variant.price.amount * lineItem.quantity,
                         lineItem.variant.price.currencyCode
                       )}
                     </div>

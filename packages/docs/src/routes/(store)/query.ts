@@ -134,9 +134,7 @@ export const productQuery = (
 });
 
 export const cartQuery = (id: string) => ({
-  variables: {
-    id: 'gid://shopify/Checkout/adcdcb1a100aae5508d7c276ec42e211?key=e4cb18e464bed5a5468f4de7b6d7c6cd',
-  },
+  variables: { id },
   query: `
   fragment VariantFragment on ProductVariant {
     id

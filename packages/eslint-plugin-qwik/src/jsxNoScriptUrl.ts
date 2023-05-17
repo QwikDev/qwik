@@ -60,7 +60,6 @@ export const jsxNoScriptUrlExamples: QwikEslintExamples = {
   noJSURL: {
     good: [
       {
-        codeHighlight: '',
         code: noJSURLGood,
       },
     ],

@@ -74,7 +74,6 @@ export const jsxImgExamples: QwikEslintExamples = {
     ],
     bad: [
       {
-        codeHighlight: '',
         code: noWidthHeightBad,
         description:
           'For performance reasons, always provide width and height attributes for `<img>` elements, it will help to prevent layout shifts.',

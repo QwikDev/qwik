@@ -25,7 +25,7 @@ export const validLexicalScope = createRule({
       description:
         'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
       recommended: 'error',
-      // url: 'https://qwik.builder.io/docs/advanced/eslint/#valid-lexical-scope',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#valid-lexical-scope',
     },
 
     schema: [

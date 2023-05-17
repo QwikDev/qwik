@@ -148,12 +148,16 @@ const shallowStore = useStore(
 To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
 
 ```tsx
-import { component$, useStore, $ } from '@builder.io/qwik';
+import { component$, useStore, $, type QRL } from "@builder.io/qwik";
+
+type CountStore = { count: number; increment: QRL<(this: CountStore) => void> };
 
 export default component$(() => {
-  const state = useStore({
+  const state = useStore<CountStore>({
     count: 0,
-    increment: $(function () { this.count++; }),
+    increment: $(function (this: CountStore) {
+      this.count++;
+    }),
   });
 
   return (

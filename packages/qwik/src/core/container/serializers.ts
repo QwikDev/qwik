@@ -243,7 +243,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
   $prefix$: '\u0011',
   $test$: (obj) => obj instanceof SignalDerived,
   $collect$: (obj, collector, leaks) => {
@@ -438,7 +438,6 @@ const serializers: Serializer<any>[] = [
   DateSerializer, ///////////// \u0006
   RegexSerializer, //////////// \u0007
   ErrorSerializer, //////////// \u000E
-  DocumentSerializer, ///////// \u000F
   ComponentSerializer, //////// \u0010
   DerivedSignalSerializer, //// \u0011
   NoFiniteNumberSerializer, /// \u0014
@@ -446,6 +445,7 @@ const serializers: Serializer<any>[] = [
   FormDataSerializer, ///////// \u0016
   JSXNodeSerializer, ////////// \u0017
   BigIntSerializer, /////////// \u0018
+  DocumentSerializer, ///////// \u000F
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.$collect$);

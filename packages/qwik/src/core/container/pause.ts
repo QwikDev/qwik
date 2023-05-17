@@ -526,6 +526,7 @@ export const _pauseFromContexts = async (
 
     if (ref.length > 0) {
       assertElement(node);
+      mustNotHaveHoles(ref);
       const value = ref.map(mustGetObjId).join(' ');
       if (value) {
         refs[elementID] = value;
@@ -957,3 +958,11 @@ const getTextID = (node: Text, containerState: ContainerState) => {
 const isEmptyObj = (obj: Record<string, any>) => {
   return Object.keys(obj).length === 0;
 };
+
+const mustNotHaveHoles = (arr: any[]) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (!(i in arr)) {
+      throw new Error('Array contains holes');
+    }
+  }
+}

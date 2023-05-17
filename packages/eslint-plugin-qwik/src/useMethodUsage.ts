@@ -64,6 +64,7 @@ export const useMethodUsage: Rule.RuleModule = {
             case 'Property':
             case 'ObjectExpression':
             case 'CallExpression':
+            case 'TSAsExpression':
               break;
             case 'ArrowFunctionExpression':
             case 'FunctionExpression':

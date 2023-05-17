@@ -6,7 +6,7 @@
     "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {
-    "wrangler": "^2.20.0"
+    "wrangler": "^3.0.0"
   },
   "__qwik__": {
     "priority": 40,

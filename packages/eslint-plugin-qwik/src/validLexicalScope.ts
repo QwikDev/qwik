@@ -484,10 +484,34 @@ const ALLOWED_CLASSES = {
 };
 
 const referencesOutsideGood = `
-looking for a good example ...`.trim();
+import { component$, useTask$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = $((msg: string) => {
+    console.log(msg);
+  });
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
 
 const referencesOutsideBad = `
-looking for a good example ...`.trim();
+import { component$, useTask$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = (msg: string) => {
+    console.log(msg);
+  };
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
 
 const invalidJsxDollarGood = `
 import { component$, $ } from '@builder.io/qwik';
@@ -541,14 +565,16 @@ export const validLexicalScopeExamples: QwikEslintExamples = {
   referencesOutside: {
     good: [
       {
-        codeHighlight: '',
+        codeHighlight: `{1,4} /print/#a /$((msg: string)/#b)`,
         code: referencesOutsideGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '',
+        codeHighlight: `{1,4} /print/#a /(msg: string)/#b)`,
         code: referencesOutsideBad,
+        description:
+          'Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.',
       },
     ],
   },

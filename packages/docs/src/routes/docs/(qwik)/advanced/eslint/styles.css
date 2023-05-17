@@ -103,7 +103,8 @@
 .docs .code-description {
   @apply text-sm;
   @apply px-4;
-  @apply my-8;
+  @apply mt-2;
+  @apply mb-10;
 }
 
 .docs .edit-examples-wrapper {

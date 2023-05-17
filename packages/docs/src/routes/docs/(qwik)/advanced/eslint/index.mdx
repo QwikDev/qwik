@@ -406,16 +406,41 @@ export const Counter = (() => {
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge good">✓</span>
-```tsx
-looking for a good example ...
+```tsx {1,4} /print/#a /$((msg: string)/#b)
+import { component$, useTask$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = $((msg: string) => {
+    console.log(msg);
+  });
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});
 ```
 </div>
 <p>Examples of <b>incorrect</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
-```tsx
-looking for a good example ...
+```tsx {1,4} /print/#a /(msg: string)/#b)
+import { component$, useTask$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = (msg: string) => {
+    console.log(msg);
+  };
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});
 ```
+<p class="code-description">Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.</p>
 </div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>invalidJsxDollar</h4>

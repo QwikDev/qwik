@@ -1,4 +1,4 @@
-import { checkoutFragment } from './common-gql';
+import { checkoutFragment } from './mutation';
 
 export const productsQuery = (
   id = import.meta.env.PUBLIC_SHOPIFY_COLLECTION_ID,

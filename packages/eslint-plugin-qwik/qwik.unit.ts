@@ -104,6 +104,11 @@ export const HelloWorld = component$(async () => {
             return <div></div>
           });
         });`,
+      `export const HelloWorld = component$(async () => {
+          const test = useFunction() as string;
+        
+          });
+          `,
     ],
     invalid: [
       {

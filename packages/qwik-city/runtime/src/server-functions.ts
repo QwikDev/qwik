@@ -325,7 +325,9 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/event-stream') {
-          return streamEvents(res.body!, ctxElm ?? document.documentElement);
+          return streamEvents(res.body!, (sse) =>
+            _deserializeData(sse['data'], ctxElm ?? document.documentElement)
+          );
         } else if (contentType === 'application/qwik-json') {
           const obj = await _deserializeData(await res.text(), ctxElm ?? document.documentElement);
           if (res.status === 500) {
@@ -379,10 +381,20 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   };
 };
 
-async function* streamEvents(stream: ReadableStream, ctxElm: unknown): AsyncGenerator<unknown> {
+type SSE = {
+  [key: string]: string;
+};
+
+async function* streamEvents<T>(
+  stream: ReadableStream,
+  transform?: (sse: SSE) => T
+): AsyncGenerator<T> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
-  let line = '';
+  let buffer = '';
+
+  let sse: SSE = {};
+  const regex = /(?::.*|([a-z]+): ?(.*?))(?:\r\n|\r|\n)(\r\n|\r|\n)?/y;
 
   try {
     for (;;) {
@@ -390,18 +402,24 @@ async function* streamEvents(stream: ReadableStream, ctxElm: unknown): AsyncGene
       if (done) {
         return;
       }
-      line += decoder.decode(value, {
+      buffer += decoder.decode(value, {
         stream: true,
       });
       for (;;) {
-        const match = /^(event|id|retry|data): (.*)\n\n?/u.exec(line);
+        const lastIndex = regex.lastIndex;
+        const match = buffer.match(regex);
         if (match === null) {
+          buffer = buffer.substring(lastIndex);
           break;
         }
-        if (match[1] === 'data') {
-          yield await _deserializeData(match[2], ctxElm);
+        const [, key, value, end] = match;
+        if (key !== undefined) {
+          sse[key] = sse[key] !== undefined ? `${sse[key]}\n${value}` : value;
         }
-        line = line.substring(match[0].length);
+        if (end !== undefined) {
+          yield transform ? transform(sse) : (sse as T);
+          sse = {};
+        }
       }
     }
   } finally {

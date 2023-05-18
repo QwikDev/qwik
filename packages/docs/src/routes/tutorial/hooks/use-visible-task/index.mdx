@@ -7,6 +7,7 @@ contributors:
   - felixsanz
   - kerbelp
   - mhevery
+  - cbazureau
 ---
 
 Use `useVisibleTask$()` to execute code after the component is resumed. This is useful for setting up timers or streams on the client when the application is resumed.
@@ -25,11 +26,11 @@ Qwik is resumable. Resumability means that the application starts on the server 
 
 ## When is `useVisibleTask$()` executed?
 
-Client effect code is executed after the component is resumed. The `useVisibleTask$()` method takes an additional argument (`{eagerness:'visible|load|idle'}`) that controls when the effect is executed. There are three options:
+Client effect code is executed after the component is resumed. The `useVisibleTask$()` method takes an additional argument (`{strategy:'intersection-observer|document-ready|document-idle'}`) that controls when the effect is executed. There are three options:
 
-- `visible` (default): Execute the effect when the component becomes visible. This is a preferred option because it delays the execution of the effect until the component is visible rather than eagerly on application startup (We are trying to minimize the amount of code the application runs on startup).
-- `load`: Execute the code as soon as possible. This is usually right after `DOMContentLoaded` event.
-- `idle`: Execute the code when the next idle callback is fired.
+- `intersection-observer` (default): the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API.
+- `document-ready`: the task will first execute when the document is ready, under the hood it uses the document load event.
+- `document-idle`: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.
 
 ### Example
 

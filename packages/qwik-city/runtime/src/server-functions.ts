@@ -326,7 +326,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/event-stream') {
           return streamEvents(res.body!, (sse) =>
-            _deserializeData(sse['data'], ctxElm ?? document.documentElement)
+            _deserializeData(sse.data!, ctxElm ?? document.documentElement)
           );
         } else if (contentType === 'application/qwik-json') {
           const obj = await _deserializeData(await res.text(), ctxElm ?? document.documentElement);
@@ -382,9 +382,13 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 };
 
 type SSE = {
-  [key: string]: string;
+  data?: string;
+  retry?: number;
+  event?: string;
+  id?: string;
 };
 
+// https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
 async function* streamEvents<T>(
   stream: ReadableStream,
   transform?: (sse: SSE) => T
@@ -394,7 +398,7 @@ async function* streamEvents<T>(
   let buffer = '';
 
   let sse: SSE = {};
-  const regex = /(?::.*|([a-z]+): ?(.*?))(?:\r\n|\r|\n)(\r\n|\r|\n)?/y;
+  const regex = /(?:|(:.*)|(.+?): ?(.*?))(?:\r\n|\r|\n)/y;
 
   try {
     for (;;) {
@@ -412,12 +416,29 @@ async function* streamEvents<T>(
           buffer = buffer.substring(lastIndex);
           break;
         }
-        const [, key, value, end] = match;
-        if (key !== undefined) {
-          sse[key] = sse[key] !== undefined ? `${sse[key]}\n${value}` : value;
+        const [, comment, key, value] = match;
+        switch (key) {
+          case 'data':
+            sse.data = sse.data ? `${sse.data}\n${value}` : value;
+            break;
+          case 'id':
+            if (value.indexOf('\x00') === -1) {
+              sse.id = value;
+            }
+            break;
+          case 'retry':
+            if (!/[^0-9]/.test(value)) {
+              sse.retry = parseInt(value);
+            }
+            break;
+          case 'event':
+            sse.event = value;
+            break;
         }
-        if (end !== undefined) {
-          yield transform ? transform(sse) : (sse as T);
+        if (comment === undefined && key === undefined) {
+          if (sse.event !== undefined) {
+            yield transform ? transform(sse) : (sse as T);
+          }
           sse = {};
         }
       }

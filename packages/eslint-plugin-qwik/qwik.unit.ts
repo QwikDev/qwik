@@ -106,7 +106,7 @@ export const HelloWorld = component$(async () => {
         });`,
       `export const HelloWorld = component$(async () => {
           const test = useFunction() as string;
-        
+
           });
           `,
     ],
@@ -610,6 +610,26 @@ test('jsx-img', () => {
       {
         code: `<img src='./file.png' />`,
         errors: [{ messageId: 'noWidthHeight' }],
+      },
+    ],
+  });
+});
+
+test('jsx-a', () => {
+  ruleTester.run('jsx-a', rules['jsx-a'], {
+    valid: [
+      `<a href={value} />`,
+      `<a value="200" />`,
+      `<a {...props}/>`,
+    ],
+    invalid: [
+      {
+        code: `<a/>`,
+        errors: [{ messageId: 'noHref' }],
+      },
+      {
+        code: `<a style='display:block;' />`,
+        errors: [{ messageId: 'noHref' }],
       },
     ],
   });

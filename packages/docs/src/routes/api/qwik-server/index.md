@@ -15,9 +15,9 @@ export declare function getQwikLoaderScript(opts?: {
 }): string;
 ```
 
-| Parameter | Type                                      | Description  |
-| --------- | ----------------------------------------- | ------------ |
-| opts      | { events?: string\[\]; debug?: boolean; } | _(Optional)_ |
+| Parameter | Type                                    | Description  |
+| --------- | --------------------------------------- | ------------ |
+| opts      | { events?: string[]; debug?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
@@ -90,10 +90,10 @@ export interface PrefetchImplementation
 export interface PrefetchResource
 ```
 
-| Property     | Modifiers | Type                                      | Description |
-| ------------ | --------- | ----------------------------------------- | ----------- |
-| [imports](#) |           | [PrefetchResource](#prefetchresource)\[\] |             |
-| [url](#)     |           | string                                    |             |
+| Property     | Modifiers | Type                                    | Description |
+| ------------ | --------- | --------------------------------------- | ----------- |
+| [imports](#) |           | [PrefetchResource](#prefetchresource)[] |             |
+| [url](#)     |           | string                                  |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -118,7 +118,7 @@ export interface QwikLoaderOptions
 
 | Property       | Modifiers | Type                          | Description  |
 | -------------- | --------- | ----------------------------- | ------------ |
-| [events?](#)   |           | string\[\]                    | _(Optional)_ |
+| [events?](#)   |           | string[]                      | _(Optional)_ |
 | [include?](#)  |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
 | [position?](#) |           | 'top' \| 'bottom'             | _(Optional)_ |
 
@@ -161,12 +161,12 @@ export interface RenderOptions extends SerializeDocumentOptions
 export interface RenderResult
 ```
 
-| Property               | Modifiers | Type                                      | Description  |
-| ---------------------- | --------- | ----------------------------------------- | ------------ |
-| [isStatic](#)          |           | boolean                                   |              |
-| [manifest?](#)         |           | QwikManifest                              | _(Optional)_ |
-| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)\[\] |              |
-| [snapshotResult](#)    |           | SnapshotResult \| undefined               |              |
+| Property               | Modifiers | Type                                    | Description  |
+| ---------------------- | --------- | --------------------------------------- | ------------ |
+| [isStatic](#)          |           | boolean                                 |              |
+| [manifest?](#)         |           | QwikManifest                            | _(Optional)_ |
+| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)[] |              |
+| [snapshotResult](#)    |           | SnapshotResult \| undefined             |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 

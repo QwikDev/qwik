@@ -206,8 +206,10 @@ function createApiMarkdown(a: ApiData) {
     // sanitize / adjust output
     const content = m.content
       .replace(/<!--(.|\s)*?-->/g, '')
-      // .replace(/<Slot\/>/g, '')
-      .replace(/\\#\\#\\# (\w+)/gm, '### $1');
+      // .replace(/<Slot\/>/g, ''
+      .replace(/\\#\\#\\# (\w+)/gm, '### $1')
+      .replace(/\\\[/gm, '[')
+      .replace(/\\\]/gm, ']');
     md.push(content);
     md.push(``);
 

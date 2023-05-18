@@ -543,6 +543,7 @@ export const HelloWorld = component$(() => {
     <button onClick$={() => {
       person.name = 'Alice';
     }}>
+      {person.name}
     </button>
   );
 });`.trim();
@@ -557,6 +558,7 @@ export const HelloWorld = component$(() => {
     <button onClick$={() => {
       personName = 'Alice';
     }}>
+      {personName}
     </button>
   );
 });`.trim();

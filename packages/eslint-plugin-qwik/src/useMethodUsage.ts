@@ -117,9 +117,7 @@ export const HelloWorld = component$(async () => {
   await something();
   return $(() => {
     return (
-      <div>
-        {prop}
-      </div>
+      <h1>Hello World</h1>
     );
   });
 });`.trim();
@@ -130,9 +128,7 @@ export const HelloWorld = component$(async () => {
   useMethod();
   return $(() => {
     return (
-      <div>
-        {prop}
-      </div>
+      <h1>Hello World</h1>
     );
   });
 });`.trim();
@@ -145,9 +141,7 @@ export const HelloWorld = component$(async () => {
   useMethod();
   return $(() => {
     return (
-      <div>
-        {prop}
-      </div>
+      <h1>Hello World</h1>
     );
   });
 });`.trim();

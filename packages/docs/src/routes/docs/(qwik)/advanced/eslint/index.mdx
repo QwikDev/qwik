@@ -288,9 +288,7 @@ export const HelloWorld = component$(async () => {
   await something();
   return $(() => {
     return (
-      <div>
-        {prop}
-      </div>
+      <h1>Hello World</h1>
     );
   });
 });
@@ -305,9 +303,7 @@ export const HelloWorld = component$(async () => {
   useMethod();
   return $(() => {
     return (
-      <div>
-        {prop}
-      </div>
+      <h1>Hello World</h1>
     );
   });
 });
@@ -324,9 +320,7 @@ export const HelloWorld = component$(async () => {
   useMethod();
   return $(() => {
     return (
-      <div>
-        {prop}
-      </div>
+      <h1>Hello World</h1>
     );
   });
 });
@@ -488,6 +482,7 @@ export const HelloWorld = component$(() => {
     <button onClick$={() => {
       person.name = 'Alice';
     }}>
+      {person.name}
     </button>
   );
 });
@@ -506,6 +501,7 @@ export const HelloWorld = component$(() => {
     <button onClick$={() => {
       personName = 'Alice';
     }}>
+      {personName}
     </button>
   );
 });

@@ -1,5 +1,5 @@
-import type { FsUpdates, UpdateAppOptions } from '../types';
 import fs from 'node:fs';
+import type { FsUpdates, UpdateAppOptions } from '../types';
 import { extname, join } from 'node:path';
 import { getPackageManager } from '../utils/utils';
 

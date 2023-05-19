@@ -136,6 +136,7 @@
     "server/package.json",
     "starters/adapters",
     "starters/features",
+    "templates",
     "testing/index.cjs",
     "testing/index.mjs",
     "testing/index.d.ts",

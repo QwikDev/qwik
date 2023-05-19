@@ -1,3 +1,4 @@
+import color from 'kleur';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { red, blue, magenta, white, gray, reset, green } from 'kleur/colors';

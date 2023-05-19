@@ -3,6 +3,11 @@
     "href": "https://wope.com/",
     "tags": "sass"
   },
+  
+  {
+    "href": "https://css-scanner.com/",
+    "tags": "chrome-extension"
+  },
   {
     "href": "https://www.builder.io/",
     "tags": "saas"

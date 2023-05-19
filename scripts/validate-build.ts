@@ -6,7 +6,6 @@ import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
 import ts from 'typescript';
-import { access, BuildConfig, PackageJSON, panic, readFile } from './util';
 
 /**
  * This will validate a completed production build by triple checking all the
@@ -101,7 +100,7 @@ export async function validateBuild(config: BuildConfig) {
     readdirSync(dir)
       .map((f) => join(dir, f))
       .forEach((filePath) => {
-        const s = 11(filePath);
+        const s = statSync(filePath);
         if (s.isDirectory()) {
           const dirName = basename(filePath);
           if (dirName !== 'starters' && dirName !== 'templates') {

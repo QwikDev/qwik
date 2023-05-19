@@ -15,6 +15,7 @@ import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
+import { AbortablePromise } from '../util/async';
 
 export const isQrl = (value: any): value is QRLInternal => {
   return typeof value === 'function' && typeof value.getSymbol === 'function';
@@ -97,7 +98,8 @@ export const createQRL = <TYPE>(
   function invokeFn(
     this: any,
     currentCtx?: InvokeContext | InvokeTuple,
-    beforeFn?: () => void | boolean
+    beforeFn?: () => void | boolean,
+    signal?: AbortSignal
   ) {
     return ((...args: any[]): any => {
       const start = now();
@@ -112,6 +114,9 @@ export const createQRL = <TYPE>(
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
+          if (signal !== undefined) {
+            context.$signal$ = signal;
+          }
           if (context.$event$ === undefined) {
             context.$event$ = this;
           }
@@ -133,10 +138,19 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const invokeQRL = async function (this: any, ...args: any) {
-    const fn = invokeFn.call(this, tryGetInvokeContext());
-    const result = await fn(...args);
-    return result;
+  const invokeQRL = function (this: any, ...args: any) {
+    return new AbortablePromise((resolve, reject, signal) => {
+      const fn = invokeFn.call(this, tryGetInvokeContext(), undefined, signal);
+      if (typeof fn?.then === 'function') {
+        fn(...args).then(resolve, reject);
+      } else {
+        try {
+          resolve(fn(...args));
+        } catch (e) {
+          reject(e);
+        }
+      }
+    });
   };
   const resolvedSymbol = refSymbol ?? symbol;
   const hash = getSymbolHash(resolvedSymbol);

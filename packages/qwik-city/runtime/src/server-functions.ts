@@ -11,6 +11,7 @@ import {
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  getInvokeContext,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -25,7 +26,6 @@ import type {
   Editable,
   ActionStore,
   RequestEvent,
-  ActionInternal,
   LoaderInternal,
   RequestEventAction,
   CommonLoaderActionOptions,
@@ -42,7 +42,6 @@ import type {
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
-import type { FormSubmitCompletedDetail } from './form-component';
 
 /**
  * @public
@@ -119,7 +118,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
-          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
+          const detail = { status, value: result };
           form.dispatchEvent(
             new CustomEvent('submitcompleted', {
               bubbles: false,
@@ -145,7 +144,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   action.__id = id;
   Object.freeze(action);
 
-  return action satisfies ActionInternal;
+  return action;
 }) as unknown as ActionConstructorQRL;
 
 /**
@@ -291,10 +290,6 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
 
   function stuff() {
     return $(async function (this: any, ...args: any[]) {
-      const signal =
-        args.length > 0 && args[0] instanceof AbortSignal
-          ? (args.shift() as AbortSignal)
-          : undefined;
       if (isServer) {
         const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
         return qrl.apply(requestEvent, args);
@@ -310,24 +305,34 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           }
           return arg;
         });
-        const hash = qrl.getHash();
-        const path = `?qfunc=${qrl.getHash()}`;
-        const body = await _serializeData([qrl, ...filtered], false);
-        const res = await fetch(path, {
+
+        const res = await fetch(`?qfunc=${qrl.getHash()}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/qwik-json',
-            'X-QRL': hash,
+            'X-QRL': qrl.getHash(),
           },
-          signal,
-          body,
+          signal: getInvokeContext().$signal$,
+          body: await _serializeData([qrl, ...filtered], false),
         });
-
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/event-stream') {
-          const { writable, readable } = getSSETransformer();
-          res.body?.pipeTo(writable, { signal });
-          return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
+          const controller = new AbortController();
+          controller?.signal.addEventListener('abort', () => {
+            res.body?.cancel();
+          });
+          const generator = (async function* () {
+            for await (const { data } of streamEvents(res.body!)) {
+              if (data) {
+                yield await _deserializeData(data, ctxElm ?? document.documentElement);
+              }
+            }
+          })();
+          generator.return = async () => {
+            controller.abort();
+            return { value: undefined, done: true };
+          };
+          return generator;
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
@@ -382,73 +387,78 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   };
 };
 
-const getSSETransformer = () => {
-  // Convert the stream into a stream of lines
-  let currentLine = '';
-  const encoder = new TextDecoder();
-  const transformer = new TransformStream<Uint8Array, SSEvent>({
-    transform(chunk, controller) {
-      const lines = encoder.decode(chunk).split('\n\n');
-      for (let i = 0; i < lines.length - 1; i++) {
-        const line = currentLine + lines[i];
-        if (line.length === 0) {
-          controller.terminate();
-          break;
-        } else {
-          controller.enqueue(parseEvent(line));
-          currentLine = '';
-        }
-      }
-      currentLine += lines[lines.length - 1];
-    },
-  });
-  return transformer;
+type SSE = {
+  data?: string;
+  retry?: number;
+  event?: string;
+  id?: string;
 };
 
-interface SSEvent {
-  data: string;
-  [key: string]: string;
-}
-const parseEvent = (message: string): SSEvent => {
-  const lines = message.split('\n');
-  const event: SSEvent = {
-    data: '',
-  };
-  let data = '';
-  for (const line of lines) {
-    if (line.startsWith('data: ')) {
-      data += line.slice(6) + '\n';
-    } else {
-      const [key, value] = line.split(':');
-      if (typeof key === 'string' && typeof value === 'string') {
-        event[key] = value.trim();
-      }
-    }
-  }
-  event.data = data;
-  return event;
-};
-
-async function* streamAsyncIterator(
-  stream: ReadableStream<SSEvent>,
-  ctxElm: unknown
-): AsyncGenerator<unknown> {
-  // Get a lock on the stream
+// https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
+async function* streamEvents(stream: ReadableStream): AsyncGenerator<SSE> {
   const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  let sse: SSE | undefined = undefined;
+  // eslint-disable-next-line no-control-regex
+  const regex = /(?:(:.*|)|([^\r\n:]+)(?:: ?(.*?))?)(?:\r\n|\r(?=[^\n]|$)|\n)/y;
 
   try {
-    while (true) {
-      // Read from the stream
+    for (;;) {
       const { done, value } = await reader.read();
-      // Exit if we're done
+      buffer += done
+        ? '\n\n'
+        : decoder.decode(value, {
+            stream: true,
+          });
+      for (;;) {
+        const lastIndex = regex.lastIndex;
+        const match = buffer.match(regex);
+        if (match === null) {
+          buffer = buffer.substring(lastIndex);
+          break;
+        }
+        const [, comment, key, value] = match;
+        const valueOrEmpty = value ?? '';
+        switch (key) {
+          case 'data':
+            sse ??= {};
+            sse.data = sse.data !== undefined ? `${sse.data}\n${valueOrEmpty}` : valueOrEmpty;
+            break;
+          case 'id':
+            if (valueOrEmpty.indexOf('\x00') === -1) {
+              sse ??= {};
+              sse.id = valueOrEmpty;
+            }
+            break;
+          case 'retry':
+            if (!/[^0-9]/.test(valueOrEmpty)) {
+              sse ??= {};
+              sse.retry = parseInt(valueOrEmpty);
+            }
+            break;
+          case 'event':
+            sse ??= {};
+            sse.event = valueOrEmpty;
+            break;
+        }
+        if (comment === '') {
+          if (sse) {
+            yield sse;
+          }
+          sse = undefined;
+        } else {
+          sse ??= {};
+        }
+      }
       if (done) {
         return;
       }
-      // Else yield the chunk
-      const obj = await _deserializeData(value.data, ctxElm);
-      yield obj;
     }
   } finally {
     reader.releaseLock();
   }
 }
+
+export const exportedForTesting = { streamEvents };

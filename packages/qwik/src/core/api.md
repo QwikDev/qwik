@@ -157,6 +157,12 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
+// Warning: (ae-forgotten-export) The symbol "InvokeContext" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "getInvokeContext" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const getInvokeContext: () => InvokeContext;
+
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -447,8 +453,8 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBas
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
-    (signal: AbortSignal, ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+    // Warning: (ae-forgotten-export) The symbol "AbortablePromise" needs to be exported by the entry point index.d.ts
+    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): AbortablePromise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     dev: QRLDev | null;
     // (undocumented)

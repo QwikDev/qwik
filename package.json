@@ -27,7 +27,7 @@
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
     "release.prepare": "pnpm lint && pnpm test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
-    "test.unit": "tsm node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
+    "test.unit": "pnpm build && tsm node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.unit.debug": "tsm --inspect-brk node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.watch": "watchlist packages unit.ts -- pnpm test.unit",
     "test.rust": "make test",

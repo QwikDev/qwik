@@ -48,6 +48,7 @@ export interface InvokeContext {
   $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
+  $signal$: AbortSignal | undefined;
 }
 
 let _context: InvokeContext | undefined;
@@ -69,6 +70,9 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
   return _context;
 };
 
+/**
+ * @internal
+ */
 export const getInvokeContext = (): InvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx) {
@@ -156,6 +160,7 @@ export const newInvokeContext = (
     $renderCtx$: undefined,
     $subscriber$: undefined,
     $waitOn$: undefined,
+    $signal$: undefined,
   };
   seal(ctx);
   return ctx;

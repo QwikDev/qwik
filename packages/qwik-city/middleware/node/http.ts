@@ -86,16 +86,13 @@ export async function fromNodeHttp(
         start(controller) {
           res.on('close', () => controller.error());
         },
-        write(chunk) {
-          return new Promise((resolve, reject) =>
-            res.write(chunk, (cb) => {
-              if (cb) {
-                reject(cb);
-              } else {
-                resolve();
-              }
-            })
-          );
+        write(chunk, controller) {
+          res.write(chunk, (error) => {
+            // FIXME: Ideally, we should forward the error instead of dropping it.
+            //        As it stands, however, we're not properly handling the rejection downstream,
+            //        leading to occasional ERR_UNHANDLED_REJECTION.
+            // controller.error(error);
+          });
         },
         close() {
           res.end();

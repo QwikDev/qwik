@@ -617,11 +617,7 @@ test('jsx-img', () => {
 
 test('jsx-a', () => {
   ruleTester.run('jsx-a', rules['jsx-a'], {
-    valid: [
-      `<a href={value} />`,
-      `<a value="200" />`,
-      `<a {...props}/>`,
-    ],
+    valid: [`<a href={value} />`, `<a value="200" />`, `<a {...props}/>`],
     invalid: [
       {
         code: `<a/>`,

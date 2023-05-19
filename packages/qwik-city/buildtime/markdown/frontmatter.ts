@@ -4,6 +4,7 @@ import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';
+import type { DocumentMeta, Editable } from 'packages/qwik-city/runtime/src/types';
 
 export function parseFrontmatter(ctx: BuildContext): Transformer {
   return (mdast, vfile) => {
@@ -51,7 +52,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
   if (attrs != null && typeof attrs === 'object') {
     const attrNames = Object.keys(attrs);
     if (attrNames.length > 0) {
-      const head: Required<ResolvedDocumentHead> = {
+      const head: Editable<Required<ResolvedDocumentHead>> = {
         title: '',
         meta: [],
         styles: [],
@@ -64,13 +65,45 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
         if (attrValue != null) {
           if (attrName === 'title') {
             head.title = attrValue.toString();
+            head.title = head.title.replace(/\\@/g, '@');
+          } else if (attrName === 'og' || attrName === 'opengraph') {
+            // set custom open graph property
+            if (typeof attrValue === 'object') {
+              for (const opengraph of Array.isArray(attrValue) ? attrValue : [attrValue]) {
+                if (
+                  opengraph != null &&
+                  typeof opengraph === 'object' &&
+                  !Array.isArray(opengraph)
+                ) {
+                  for (const [property, content] of Object.entries(opengraph)) {
+                    // proxy title & description if value is set to `true`
+                    if ((property === 'title' || property === 'description') && content === true) {
+                      // only proxy property when exists in attrs
+                      if (attrNames.includes(property)) {
+                        (head.meta as DocumentMeta[]).push({
+                          property: `og:${property}`,
+                          content: attrs[property]?.toString(),
+                        });
+                      }
+                    }
+                    // otherwise set custom property and content
+                    else {
+                      (head.meta as DocumentMeta[]).push({
+                        property: `og:${property}`,
+                        content: content?.toString(),
+                      });
+                    }
+                  }
+                }
+              }
+            }
           } else if (metaNames[attrName]) {
-            head.meta.push({
+            (head.meta as DocumentMeta[]).push({
               name: attrName,
               content: attrValue.toString(),
             });
           } else {
-            head.frontmatter[attrName] = attrValue;
+            (head.frontmatter as Record<string, any>)[attrName] = attrValue;
           }
         }
       }

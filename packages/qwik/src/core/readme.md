@@ -48,7 +48,7 @@ Example showing how `useStore` is used in Counter example to keep track of the c
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
-`useResouce` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
+`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
 
 The status can be one of the following:
 
@@ -66,23 +66,6 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 @see ResourceReturn
 
 @public
-
-# `useRef`
-
-It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
-
-```tsx
-export function useRef<T = Element>(current?: T): Ref<T> {
-  return useStore({ current });
-}
-```
-
-### Example
-
-<docs code="./examples.tsx#use-ref"/>
-
-@deprecated Use `useSignal` instead.
-@alpha
 
 # `useTask`
 
@@ -105,6 +88,30 @@ The `useTask` function is used to observe the `state.count` property. Any change
 @param watch - Function which should be re-executed when changes to the inputs are detected
 @public
 
+# `useVisibleTask`
+
+```tsx
+const Timer = component$(() => {
+  const store = useStore({
+    count: 0,
+  });
+
+  useVisibleTask$(() => {
+    // Only runs in the client
+    const timer = setInterval(() => {
+      store.count++;
+    }, 500);
+    return () => {
+      clearInterval(timer);
+    };
+  });
+
+  return <div>{store.count}</div>;
+});
+```
+
+@public
+
 # `Tracker`
 
 Used to signal to Qwik which state should be watched for changes.
@@ -120,62 +127,6 @@ The `obs` passed into the `taskFn` is used to mark `state.count` as a property o
 @see `useTask`
 
 @public
-
-# `useClientEffect`
-
-<docs code="./examples.tsx#use-client-effect"/>
-
-@public
-
-# `useMount`
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from '@builder.io/qwik';
-useTask$(() => {
-  // do something
-});
-```
-
-@see `useTask`
-@public
-@deprecated - use `useTask$()` instead. See https://qwik.builder.io/docs/components/lifecycle/#usetask
-
-# `useServerMount`
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
-useTask$(() => {
-  if (isServer) {
-    // only runs on server
-  }
-});
-```
-
-@see `useTask`
-@public
-
-# `useClientMount`
-
-Deprecated API, equivalent of doing:
-
-```tsx
-import { useTask$ } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
-useTask$(() => {
-  if (isBrowser) {
-    // only runs on server
-  }
-});
-```
-
-@see `useTask`
-@public
-@deprecated - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/#usemountserver
 
 # `useStyles`
 
@@ -199,14 +150,7 @@ Component styles allow Qwik to lazy load the style information for the component
 
 @see `useStyles`
 
-@alpha
-
-# `useCleanup`
-
-It can be used to release resources, abort network requests, stop timers...
-
-@alpha
-@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useClientEffect$()` instead.
+@public
 
 # `useOn`
 
@@ -216,7 +160,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
-@alpha
+@public
 
 # `useOnWindow`
 
@@ -228,7 +172,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 <docs code="./examples.tsx#use-on-window"/>
 
-@alpha
+@public
 
 # `useOnDocument`
 
@@ -240,7 +184,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 <docs code="./examples.tsx#use-on-document"/>
 
-@alpha
+@public
 
 # `noSerialize`
 
@@ -314,7 +258,7 @@ At first glance, `QRL` serves the same purpose as `import()`. However, there are
 
 Let's assume that you intend to write code such as this:
 
-```typescript
+```tsx
 return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
 ```
 
@@ -322,7 +266,7 @@ The above code needs to be serialized into DOM such as:
 
 ```
 <div q:base="/build/">
-  <button on:lick="./chunk-abc.js#onClick">...</button>
+  <button on:click="./chunk-abc.js#onClick">...</button>
 </div>
 ```
 
@@ -384,7 +328,7 @@ For example, these function calls are equivalent:
 <docs code="./examples.tsx#implicit$FirstArg"/>
 
 @param fn - a function that should have its first argument automatically `$`.
-@alpha
+@public
 
 # `qrl`
 
@@ -397,7 +341,7 @@ This function should be used by the Qwik Optimizer only. The function should not
 @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
 @param symbol - Symbol to lazy load
 @param lexicalScopeCapture - a set of lexically scoped variables to capture.
-@alpha
+@public
 
 # `useDocument`
 
@@ -405,28 +349,29 @@ Retrieves the document of the current element. It's important to use this method
 
 NOTE: `useDocument` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-@alpha
+@public
 
-# `Context`
+# `ContextId`
 
-Context is a typesafe ID for your context.
+ContextId is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
 <docs code="./examples.tsx#context"/>
 @public
 
-# `createContext`
+# `createContextId`
 
 Create a context ID to be used in your application.
+The name should be written with no spaces.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -438,7 +383,7 @@ Use `createContext()` to create a `Context`. `Context` is just a serializable id
 
 Assign a value to a Context.
 
-Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.
+Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
@@ -451,7 +396,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 # `useContext`
 
-Retrive Context value.
+Retrieve Context value.
 
 Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
 

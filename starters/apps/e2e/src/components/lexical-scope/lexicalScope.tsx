@@ -1,4 +1,4 @@
-import { component$, $, useStore, noSerialize, useSignal, Signal } from '@builder.io/qwik';
+import { component$, $, useStore, noSerialize, useSignal, type Signal } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);
@@ -99,6 +99,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const negativeInfinite = -Infinity;
   const nan = NaN;
   const urlSearchParams = new URLSearchParams('mph=88');
+  const bigint = BigInt('200000000000000000');
 
   const onclick = $(async () => {
     // eslint-disable-next-line
@@ -140,6 +141,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           urlSearchParams.get('mph'),
           formData.get('name'),
           formData.getAll('age'),
+          String(bigint),
         ]);
         state.count++;
       });

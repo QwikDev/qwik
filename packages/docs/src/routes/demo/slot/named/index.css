@@ -1,0 +1,20 @@
+section > h2 {
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  font-weight: bold;
+  padding: 10px;
+  padding-bottom: 5px;
+}
+
+section > div {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+section > div > div:last-child {
+  display: flex;
+  justify-content: center;
+  font-size: xx-small;
+}

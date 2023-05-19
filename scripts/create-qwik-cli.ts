@@ -1,3 +1,4 @@
+import { type BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
 import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
@@ -92,9 +93,15 @@ export async function publishCreateQwikCli(
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
-  console.log(`   update devDependencies["@builder.io/qwik"] = "${version}"`);
-  baseAppPkg.devDependencies['@builder.io/qwik'] = version;
-  baseAppPkg.devDependencies['eslint-plugin-qwik'] = version;
+  let semverQwik = `^${version}`;
+  console.log(`   update devDependencies["@builder.io/qwik"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@builder.io/qwik'] = semverQwik;
+
+  console.log(`   update devDependencies["@builder.io/qwik-city"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@builder.io/qwik-city'] = semverQwik;
+
+  console.log(`   update devDependencies["eslint-plugin-qwik"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['eslint-plugin-qwik'] = semverQwik;
 
   const rootPkg = await readPackageJson(config.rootDir);
   const typescriptDepVersion = rootPkg.devDependencies!.typescript;
@@ -124,7 +131,7 @@ export async function publishCreateQwikCli(
 export async function copyStartersDir(
   config: BuildConfig,
   distCliDir: string,
-  typeDirs: ('apps' | 'features' | 'adaptors')[]
+  typeDirs: ('apps' | 'features' | 'adapters')[]
 ) {
   const distStartersDir = join(distCliDir, 'starters');
   try {
@@ -144,12 +151,14 @@ export async function copyStartersDir(
 
       const distStartersDirs = await readdir(distDir);
       await Promise.all(
-        distStartersDirs.map(async (distStartersDir) => {
-          const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
-          if (!existsSync(pkgJsonPath)) {
-            throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
-          }
-        })
+        distStartersDirs
+          .filter((a) => a !== '.DS_Store')
+          .map(async (distStartersDir) => {
+            const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
+            if (!existsSync(pkgJsonPath)) {
+              throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
+            }
+          })
       );
     })
   );

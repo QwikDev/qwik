@@ -26,22 +26,45 @@ export const App = component$(({count}) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
+const I1 = 12;
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+function I9() {}
+class I10 {
+}
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export { I1 as _auto_I1 };
+export { I10 as _auto_I10 };
+export { I2 as _auto_I2 };
+export { I3 as _auto_I3 };
+export { I4 as _auto_I4 };
+export { I5 as _auto_I5 };
+export { I6 as _auto_I6 };
+export { I7 as _auto_I7 };
+export { I8 as _auto_I8 };
+export { I9 as _auto_I9 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AAIzD,OAAO,MAAM,oBAAM,0FAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,KAAK;AACX,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,KAAK,CAAC;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,wGAQjB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
+import { _auto_I1 as I1 } from "./test";
+import { _auto_I2 as I2 } from "./test";
+import { _auto_I3 as I3 } from "./test";
+import { _auto_I4 as I4 } from "./test";
+import { _auto_I5 as I5 } from "./test";
+import { _auto_I6 as I6 } from "./test";
+import { _auto_I7 as I7 } from "./test";
+import { _auto_I8 as I8 } from "./test";
+import { _auto_I9 as I9 } from "./test";
 import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
+    return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAQ8B,SAAa;IACvC,QAAQ,GAAG,CAAC,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI;IAC5C,QAAQ,GAAG,CAAC,OAAO,IAAI,IAAI,IAAI;IAC/B;AAKJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;yCAQ8B,SAAa;IACvC,QAAQ,GAAG,CAAC,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI;IAC5C,QAAQ,GAAG,CAAC,OAAO,IAAI,IAAI,IAAI;IAC/B;AAKJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -63,14 +86,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _auto_I10 as I10 } from "./test";
+import { _jsxC } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
-    return /*#__PURE__*/ _jsx(I10, {}, "u6_0");
+    return /*#__PURE__*/ _jsxC(I10, null, 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAWa,IAAM;IACX,qBACI,KAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAWa,IAAM;IACX,qBACI,MAAC;AAET\"}")
 /*
 {
   "origin": "test.tsx",
@@ -92,185 +116,4 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I10'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 153,
-        "hi": 156,
-        "startLine": 7,
-        "startCol": 7,
-        "endLine": 7,
-        "endCol": 9
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I1'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 59,
-        "hi": 61,
-        "startLine": 4,
-        "startCol": 7,
-        "endLine": 4,
-        "endCol": 8
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I2'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 75,
-        "hi": 77,
-        "startLine": 5,
-        "startCol": 8,
-        "endLine": 5,
-        "endCol": 9
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I3'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 80,
-        "hi": 82,
-        "startLine": 5,
-        "startCol": 13,
-        "endLine": 5,
-        "endCol": 14
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I4'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 89,
-        "hi": 91,
-        "startLine": 5,
-        "startCol": 22,
-        "endLine": 5,
-        "endCol": 23
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I5'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 94,
-        "hi": 96,
-        "startLine": 5,
-        "startCol": 27,
-        "endLine": 5,
-        "endCol": 28
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I6'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 104,
-        "hi": 106,
-        "startLine": 5,
-        "startCol": 37,
-        "endLine": 5,
-        "endCol": 38
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I7'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 109,
-        "hi": 111,
-        "startLine": 5,
-        "startCol": 42,
-        "endLine": 5,
-        "endCol": 43
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I8'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 119,
-        "hi": 121,
-        "startLine": 5,
-        "startCol": 52,
-        "endLine": 5,
-        "endCol": 53
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C01",
-    "file": "test.tsx",
-    "message": "Reference to identifier declared at the root 'I9'. It needs to be exported in order to be used inside a Qrl($) scope.",
-    "highlights": [
-      {
-        "lo": 139,
-        "hi": 141,
-        "startLine": 6,
-        "startCol": 10,
-        "endLine": 6,
-        "endCol": 11
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  }
-]
+[]

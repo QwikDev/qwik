@@ -29,6 +29,7 @@ export interface FsUpdates {
     type: 'create' | 'overwrite' | 'modify';
   }[];
   installedDeps: { [dep: string]: string };
+  installedScripts: string[];
 }
 
 export interface IntegrationData {
@@ -42,7 +43,7 @@ export interface IntegrationData {
   viteConfig?: ViteConfigUpdates;
 }
 
-export type IntegrationType = 'app' | 'feature' | 'adaptor';
+export type IntegrationType = 'app' | 'feature' | 'adapter';
 
 export interface Feature {
   id: string;

@@ -6,6 +6,10 @@ test.describe('Qwik City Page', () => {
     test.use({ javaScriptEnabled: false });
     tests();
   });
+  test.describe('spa', () => {
+    test.use({ javaScriptEnabled: true });
+    tests();
+  });
 });
 
 function tests() {
@@ -137,7 +141,7 @@ function tests() {
     if (javaScriptEnabled) {
       // TODO!!
     } else {
-      // no useClientEffect()
+      // no useBrowserVisibleTask()
       expect(await nodeVersion.innerText()).toBe('');
     }
 

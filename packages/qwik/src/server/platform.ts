@@ -1,11 +1,11 @@
 import type { SerializeDocumentOptions } from './types';
-import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
-import type { ResolvedManifest } from './prefetch-strategy';
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { CorePlatformServer } from '../core/platform/types';
 
 declare const require: (module: string) => Record<string, any>;
 
-function createPlatform(
+export function createPlatform(
   opts: SerializeDocumentOptions,
   resolvedManifest: ResolvedManifest | undefined
 ) {
@@ -17,15 +17,25 @@ function createPlatform(
           const hash = getSymbolHash(symbolName);
           const result = mapper[hash];
           if (!result) {
+            const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
+            if (isRegistered) {
+              return [symbolName, '_'] as const;
+            }
             console.error('Cannot resolve symbol', symbolName, 'in', mapper);
           }
           return result;
         }
       };
 
-  const serverPlatform: CorePlatform = {
+  const serverPlatform: CorePlatformServer = {
     isServer: true,
     async importSymbol(_containerEl, url, symbolName) {
+      const hash = getSymbolHash(symbolName);
+      const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+      if (regSym) {
+        return regSym;
+      }
+
       let modulePath = String(url);
       if (!modulePath.endsWith('.js')) {
         modulePath += '.js';
@@ -34,8 +44,7 @@ function createPlatform(
       if (!(symbolName in module)) {
         throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
       }
-      const symbol = module[symbolName];
-      return symbol;
+      return module[symbolName];
     },
     raf: () => {
       console.error('server can not rerender');

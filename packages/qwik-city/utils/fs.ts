@@ -67,8 +67,10 @@ export function removeExtension(fileName: string) {
 }
 
 export function normalizePath(path: string) {
-  path = normalize(path);
+  return normalizePathSlash(normalize(path));
+}
 
+export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
   const isExtendedLengthPath = /^\\\\\?\\/.test(path);
@@ -184,7 +186,7 @@ export function isGroupedLayoutName(dirName: string, warn = true) {
       console.warn(
         `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
           2
-        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future verions.`
+        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`
       );
     }
     return true;

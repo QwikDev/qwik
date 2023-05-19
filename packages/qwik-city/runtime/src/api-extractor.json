@@ -11,5 +11,9 @@
   "dtsRollup": {
     "enabled": true,
     "untrimmedFilePath": "<projectFolder>/packages/qwik-city/lib/index.d.ts"
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/core/docs.api.json"
   }
 }

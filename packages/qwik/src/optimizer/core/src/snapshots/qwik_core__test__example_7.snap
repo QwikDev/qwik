@@ -25,7 +25,7 @@ const App = component$(() => {
 import { qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
-    return <div onClick={qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
 };
 
 
@@ -53,16 +53,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
-/*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,uBAAS,gGAKjB;cAEO\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,uBAAS,8GAKjB;cAEO\"}")
 ============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
 export const App_component_ckEPmXZlub0 = ()=>{
-    return <Header />;
+    return <Header/>;
 };
 
 

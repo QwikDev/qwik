@@ -1,41 +1,51 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
+import { QWIK_MODEL } from '../../constants';
 
 export default component$<{
-  html?: any;
   apiKey: string;
   model: string;
   tag: 'main' | 'div';
 }>((props) => {
   const location = useLocation();
-  const query = location.query;
-  const render =
-    typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
-  const isSDK = render === 'sdk';
   const builderContentRsrc = useResource$<any>(({ cache }) => {
+    const query = location.url.searchParams;
+    // This helper function is needed because CF Workers don't support URLSearchParams.get
+    const queryGet = (name: string) =>
+      typeof query.get === 'function'
+        ? query.get(name)
+        : (query as unknown as Record<string, string>)[name];
+
+    const render = queryGet('render');
+    const contentId = props.model === QWIK_MODEL ? queryGet('content') : undefined;
+    const isSDK = render === 'sdk';
     cache('immutable');
     if (isSDK) {
       return getCachedValue(
         {
           model: props.model!,
           apiKey: props.apiKey!,
-          options: getBuilderSearchParams(location.query),
+          options: getBuilderSearchParams(query),
           userAttributes: {
-            urlPath: location.pathname,
+            urlPath: location.url.pathname,
+            site: 'qwik.builder.io',
           },
+          ...(contentId && {
+            query: {
+              id: contentId,
+            },
+          }),
         },
         getContent
       );
-    } else if (props.html) {
-      return { html: props.html };
     } else {
       return getCachedValue(
         {
           apiKey: props.apiKey,
           model: props.model,
-          urlPath: location.pathname,
-          cacheBust: true,
+          urlPath: location.url.pathname,
+          contentId: contentId,
         },
         getBuilderContent
       );
@@ -74,12 +84,8 @@ export function getCachedValue<T>(
   });
   const cacheValue = CACHE.get(keyString);
   if (cacheValue && cacheValue.timestamp + cacheTime > now) {
-    // eslint-disable-next-line no-console
-    isDev && console.log('cache hit', keyString);
     return cacheValue.content;
   } else {
-    // eslint-disable-next-line no-console
-    isDev && console.log('cache miss', keyString);
     const content = factory(key);
     CACHE.set(keyString, { timestamp: now, content });
     return content;
@@ -94,14 +100,18 @@ export async function getBuilderContent({
   apiKey,
   model,
   urlPath,
+  contentId,
   cacheBust = false,
 }: {
   apiKey: string;
   model: string;
   urlPath: string;
+  contentId?: string | null;
   cacheBust?: boolean;
 }): Promise<BuilderContent> {
-  const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/' + model);
+  const qwikUrl = new URL(
+    'https://cdn.builder.io/api/v1/qwik/' + model + (contentId ? '/' + contentId : '')
+  );
   qwikUrl.searchParams.set('apiKey', apiKey);
   qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
   qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');
@@ -114,5 +124,5 @@ export async function getBuilderContent({
     const content: BuilderContent = JSON.parse(await response.text());
     return content;
   }
-  throw new Error('Unable to load Builder content');
+  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
 }

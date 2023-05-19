@@ -1,27 +1,36 @@
-import { assertTrue } from '../error/assert';
+import { assertFail, assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
-import { isDocument, isQwikElement } from '../util/element';
+import { isNode } from '../util/element';
 import { seal } from '../util/qdev';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
-import { isSubscriberDescriptor, SubscriberEffect, SubscriberHost } from '../use/use-task';
+import {
+  isSubscriberDescriptor,
+  type SubscriberEffect,
+  type SubscriberHost,
+} from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
 import { createError, logError } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
+import type { Signal } from './signal';
 
 export interface SubscriptionManager {
+  $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
-  $clearSub$: (sub: SubscriberEffect | SubscriberHost) => void;
+  $clearSub$: (sub: SubscriberEffect | SubscriberHost | Node) => void;
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
+/**
+ * @internal
+ */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
   return _verifySerializable(value, seen, '_', preMessage);
@@ -43,9 +52,12 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
     const typeObj = typeof unwrapped;
     switch (typeObj) {
       case 'object':
-        if (isPromise(unwrapped)) return value;
-        if (isQwikElement(unwrapped)) return value;
-        if (isDocument(unwrapped)) return value;
+        if (isPromise(unwrapped)) {
+          return value;
+        }
+        if (isNode(unwrapped)) {
+          return value;
+        }
         if (isArray(unwrapped)) {
           let expectIndex = 0;
           // Make sure the array has no holes
@@ -93,6 +105,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
   return value;
 };
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
+const weakSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
 export const shouldSerialize = (obj: any): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -101,8 +114,12 @@ export const shouldSerialize = (obj: any): boolean => {
   return true;
 };
 
-export const fastShouldSerialize = (obj: any): boolean => {
-  return !noSerializeSet.has(obj);
+export const fastSkipSerialize = (obj: any): boolean => {
+  return noSerializeSet.has(obj);
+};
+
+export const fastWeakSerialize = (obj: any): boolean => {
+  return weakSerializeSet.has(obj);
 };
 
 /**
@@ -141,32 +158,23 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
 };
 
 /**
- * @alpha
- * @deprecated Remove it, not needed anymore
+ * @internal
  */
-export const mutable = <T>(v: T): T => {
-  console.warn(
-    'mutable() is deprecated, you can safely remove all usages of mutable() in your code'
-  );
-  return v;
+export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial<T> => {
+  weakSerializeSet.add(input);
+  return input as any;
 };
 
-/**
- * @internal
- * @deprecated Remove it, not needed anymore
- */
-export const _useMutableProps = () => {};
-
 export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
-  if (isQwikElement(sub)) {
-    return !!tryGetContext(sub) || sub.isConnected;
-  } else {
+  if (isSubscriberDescriptor(sub)) {
     return isConnected(sub.$el$);
+  } else {
+    return !!tryGetContext(sub) || sub.isConnected;
   }
 };
 
 /**
- * @alpha
+ * @public
  */
 export const unwrapProxy = <T>(proxy: T): T => {
   return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
@@ -184,48 +192,61 @@ export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefin
   return (obj as any)[QObjectFlagsSymbol];
 };
 
-type A = [type: 0, subscriber: SubscriberEffect | SubscriberHost, key: string | undefined];
+type SubscriberA = readonly [type: 0, host: SubscriberEffect | SubscriberHost];
 
-type B = [
-  type: 1,
-  subscriber: SubscriberHost,
-  signal: Record<string, any>,
+type SubscriberB = readonly [
+  type: 1 | 2,
+  host: SubscriberHost,
+  signal: Signal,
   elm: QwikElement,
-  prop: string,
-  key: string | undefined
+  prop: string
 ];
 
-type C = [
-  type: 2,
-  subscriber: SubscriberHost,
-  signal: Record<string, any>,
-  elm: Node,
-  attribute: string,
-  key: string | undefined
+type SubscriberC = readonly [
+  type: 3 | 4,
+  host: SubscriberHost | Text,
+  signal: Signal,
+  elm: Node | string | QwikElement
 ];
+
+export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
+
+type A = [type: 0, host: SubscriberEffect | SubscriberHost, key: string | undefined];
+type B = [type: 1 | 2, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
+type C = [type: 3 | 4, host: SubscriberHost | Text, signal: Signal, elm: Node | QwikElement];
 
 export type SubscriberSignal = B | C;
 
 export type Subscriptions = A | SubscriberSignal;
 
-export type GroupToManagersMap = Map<SubscriberHost | SubscriberEffect, LocalSubscriptionManager[]>;
+export type GroupToManagersMap = Map<
+  SubscriberHost | SubscriberEffect | Node,
+  LocalSubscriptionManager[]
+>;
 
 export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
   const type = sub[0];
-  const host = getObjId(sub[1]);
+  const host = typeof sub[1] === 'string' ? sub[1] : getObjId(sub[1]);
   if (!host) {
     return undefined;
   }
   let base = type + ' ' + host;
-  if (sub[0] === 0) {
+  if (type === 0) {
     if (sub[2]) {
-      base += ' ' + sub[2];
+      base += ' ' + encodeURI(sub[2]);
     }
   } else {
-    const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
-    base += ` ${must(getObjId(sub[2]))} ${nodeID} ${sub[4]}`;
-    if (sub[5]) {
-      base += ` ${sub[5]}`;
+    const signalID = getObjId(sub[2]);
+    if (!signalID) {
+      return undefined;
+    }
+    if (type <= 2) {
+      base += ` ${signalID} ${must(getObjId(sub[3]))} ${sub[4]}`;
+    } else if (type <= 4) {
+      const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
+      base += ` ${signalID} ${nodeID}`;
+    } else {
+      assertFail('Should not get here');
     }
   }
   return base;
@@ -245,10 +266,13 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   const subscription = [type, host];
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
-    subscription.push(parts[2]);
-  } else {
-    assertTrue(parts.length === 5 || parts.length === 6, 'Max 5 parts');
+    subscription.push(parts.length === 3 ? decodeURI(parts[parts.length - 1]) : undefined);
+  } else if (type <= 2) {
+    assertTrue(parts.length === 5, 'Type 1 has 5');
     subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], parts[5]);
+  } else if (type <= 4) {
+    assertTrue(parts.length === 4, 'Type 2 has 4');
+    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4]);
   }
   return subscription as any;
 };
@@ -256,10 +280,11 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
   const groupToManagers: GroupToManagersMap = new Map();
   const manager: SubscriptionManager = {
+    $groupToManagers$: groupToManagers,
     $createManager$: (initialMap?: Subscriptions[]) => {
       return new LocalSubscriptionManager(groupToManagers, containerState, initialMap);
     },
-    $clearSub$: (group: SubscriberHost | SubscriberEffect) => {
+    $clearSub$: (group: SubscriberHost | SubscriberEffect | Node) => {
       const managers = groupToManagers.get(group);
       if (managers) {
         for (const manager of managers) {
@@ -297,7 +322,7 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $addToGroup$(group: SubscriberHost | SubscriberEffect, manager: LocalSubscriptionManager) {
+  $addToGroup$(group: SubscriberHost | SubscriberEffect | Node, manager: LocalSubscriptionManager) {
     let managers = this.$groupToManagers$.get(group);
     if (!managers) {
       this.$groupToManagers$.set(group, (managers = []));
@@ -307,7 +332,7 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $unsubGroup$(group: SubscriberEffect | SubscriberHost) {
+  $unsubGroup$(group: SubscriberEffect | SubscriberHost | Node) {
     const subs = this.$subs$;
     for (let i = 0; i < subs.length; i++) {
       const found = subs[i][1] === group;
@@ -318,14 +343,16 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $addSub$(sub: Subscriptions) {
+  $addSub$(sub: Subscriber, key?: string) {
     const subs = this.$subs$;
     const group = sub[1];
-    const key = sub[sub.length - 1] as string | undefined;
-    if (subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)) {
+    if (
+      sub[0] === 0 &&
+      subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)
+    ) {
       return;
     }
-    subs.push(sub);
+    subs.push([...sub, key] as any);
     this.$addToGroup$(group, this);
   }
 

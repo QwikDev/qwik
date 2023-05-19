@@ -1,12 +1,12 @@
 import { component$, useStore } from '@builder.io/qwik';
-import { Link, useLocation, DocumentHead, loader$ } from '@builder.io/qwik-city';
+import { Link, useLocation, type DocumentHead, routeLoader$ } from '@builder.io/qwik-city';
 import os from 'node:os';
 
 export default component$(() => {
-  const { params, pathname } = useLocation();
+  const { params, url } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const product = productLoader.use();
+  const product = useProductLoader();
 
   return (
     <div>
@@ -25,7 +25,7 @@ export default component$(() => {
       <p>
         <button
           onClick$={async () => {
-            const rsp = await fetch(pathname, {
+            const rsp = await fetch(url.pathname, {
               headers: {
                 accept: 'application/json',
               },
@@ -33,7 +33,7 @@ export default component$(() => {
             store.productFetchData = JSON.stringify(await rsp.json(), null, 2);
           }}
         >
-          fetch("{pathname}") data
+          fetch("{url.pathname}") data
         </button>
       </p>
 
@@ -91,7 +91,7 @@ export const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-export const productLoader = loader$(
+export const useProductLoader = routeLoader$(
   async ({ headers, json, error, params, query, redirect, status }) => {
     // Serverside Endpoint
     // During SSR, this method is called directly on the server and returns the data object

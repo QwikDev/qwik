@@ -1,13 +1,37 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Http2ServerRequest } from 'node:http2';
 import type {
   ServerRequestMode,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
-export function getUrl(req: IncomingMessage) {
+function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
+  const headers = req.headers;
   const protocol =
-    (req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http';
-  return new URL(req.url || '/', `${protocol}://${req.headers.host}`);
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const hostHeader = HOST_HEADER ?? (req instanceof Http2ServerRequest ? ':authority' : 'host');
+  const host = headers[hostHeader];
+
+  return `${protocol}://${host}`;
+}
+
+export function getUrl(
+  req: IncomingMessage,
+  origin: string = process.env.ORIGIN ?? getOrigin(req)
+) {
+  return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
+}
+
+const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
+
+export function normalizeUrl(url: string, base: string) {
+  // do not allow the url to have a relative protocol url
+  // which could bypass of CSRF protections
+  // for example: new URL("//attacker.com", "https://qwik.build.io")
+  // would return "https://attacker.com" when it should be "https://qwik.build.io/attacker.com"
+  return new URL(url.replace(DOUBLE_SLASH_REG, '/'), base);
 }
 
 export async function fromNodeHttp(
@@ -46,6 +70,11 @@ export async function fromNodeHttp(
     mode,
     url,
     request: new Request(url.href, options as any),
+    env: {
+      get(key) {
+        return process.env[key];
+      },
+    },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
@@ -53,18 +82,29 @@ export async function fromNodeHttp(
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      const stream = new WritableStream<Uint8Array>({
+      return new WritableStream<Uint8Array>({
+        start(controller) {
+          res.on('close', () => controller.error());
+        },
         write(chunk) {
-          res.write(chunk);
+          return new Promise((resolve, reject) =>
+            res.write(chunk, (cb) => {
+              if (cb) {
+                reject(cb);
+              } else {
+                resolve();
+              }
+            })
+          );
         },
         close() {
-          return new Promise((resolve) => res.end(resolve));
+          res.end();
         },
       });
-      return stream;
     },
     platform: {
       ssr: true,
+      incomingMessage: req,
       node: process.versions.node,
     },
     locale: undefined,

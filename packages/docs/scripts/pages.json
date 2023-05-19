@@ -1,11 +1,23 @@
 [
   {
+    "href": "https://wope.com/",
+    "tags": "sass"
+  },
+  {
     "href": "https://www.builder.io/",
     "tags": "saas"
   },
   {
+    "href": "https://jose-aguilar.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
     "href": "https://shaunchander.me",
     "tags": "portfolio"
+  },
+  {
+    "href": "https://reflect.app/",
+    "tags": "saas"
   },
   {
     "href": "https://img-models.vercel.app/",
@@ -71,6 +83,10 @@
     "tags": "portfolio"
   },
   {
+    "href": "https://www.blackflag.dev/",
+    "tags": "site"
+  },
+  {
     "href": "https://qwik.builder.io",
     "tags": "site",
     "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
@@ -84,11 +100,52 @@
     "tags": "investing"
   },
   {
+    "href": "https://promptle.art/",
+    "tags": "game"
+  },
+  {
     "href": "https://abdhashem.com",
     "tags": "portfolio"
   },
   {
     "href": "https://amirhbeigi.ir",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://puzzledbycsharp.com/",
+    "tags": "site"
+  },
+  {
+    "href": "https://necatikcl.dev/",
+    "tags": "personal",
+    "size": "large"
+  },
+  {
+    "href": "https://tatbiqit.com/",
+    "tags": "company"
+  },
+  {
+    "href": "https://keyboardz.co/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://travelcalc.pages.dev",
+    "tags": "app"
+  },
+  {
+    "href": "https://upester.com",
+    "tags": "app"
+  },
+  {
+    "href": "https://pay4me.app",
+    "tags": "sass"
+  },
+  {
+    "href": "https://qwik-osm-poc.netlify.app/",
+    "tags": "site"
+  },
+  {
+    "href": "https://leonerd.blog",
     "tags": "portfolio"
   }
 ]

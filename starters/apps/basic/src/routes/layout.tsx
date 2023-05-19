@@ -1,20 +1,26 @@
-import { component$, Slot } from '@builder.io/qwik';
-import Header from '../components/header/header';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+import Header from '~/components/starter/header/header';
+import Footer from '~/components/starter/footer/footer';
+
+import styles from './styles.css?inline';
+
+export const useServerTimeLoader = routeLoader$(() => {
+  return {
+    date: new Date().toISOString(),
+  };
+});
 
 export default component$(() => {
+  useStyles$(styles);
   return (
     <>
+      <Header />
       <main>
-        <Header />
-        <section>
-          <Slot />
-        </section>
+        <Slot />
       </main>
-      <footer>
-        <a href="https://www.builder.io/" target="_blank">
-          Made with ♡ by Builder.io
-        </a>
-      </footer>
+      <Footer />
     </>
   );
 });

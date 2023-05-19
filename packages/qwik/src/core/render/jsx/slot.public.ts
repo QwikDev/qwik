@@ -1,6 +1,5 @@
 import { QSlotS } from '../../util/markers';
-import { Virtual } from './utils.public';
-import { jsx } from './jsx-runtime';
+import { Virtual, _jsxC, _jsxQ } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 
 /**
@@ -11,12 +10,12 @@ import type { FunctionComponent } from './types/jsx-node';
 export const Slot: FunctionComponent<{
   name?: string;
 }> = (props) => {
-  const name = props.name ?? '';
-  return jsx(
+  return _jsxC(
     Virtual,
     {
       [QSlotS]: '',
     },
-    name
+    0,
+    props.name ?? ''
   );
 };

@@ -1,4 +1,4 @@
-import { defineConfig, UserConfigExport } from 'vite';
+import { defineConfig, type UserConfigExport } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 
 export default defineConfig(() => {
@@ -13,7 +13,7 @@ export default defineConfig(() => {
       },
       minify: false,
       rollupOptions: {
-        external: ['@qwik-city-sw-register', '@qwik-city-plan'],
+        external: ['zod', '@qwik-city-sw-register', '@qwik-city-plan'],
       },
     },
     plugins: [qwikVite()],

@@ -1,0 +1,23 @@
+{
+  "description": "Authentication plugin for using battle-tested Auth.js (aka NextAuth)",
+  "devDependencies": {
+    "@auth/core": "^0.7.1",
+    "@builder.io/qwik-auth": "~0.1.0"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Auth.js (authentication)",
+    "priority": -10,
+    "docs": [
+      "https://qwik.builder.io/docs/integrations/authjs/",
+      "https://authjs.dev/"
+    ],
+    "nextSteps": {
+      "lines": [
+        " Please add `optimizeDeps: { include: ['@auth/core'] }`",
+        " to your vite.config.ts file.",
+        " Have a look at the docs for more info: ",
+        " https://qwik.builder.io/docs/integrations/authjs/"
+      ]
+    }
+  }
+}

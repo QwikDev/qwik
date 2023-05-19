@@ -1,9 +1,13 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
-import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { ResolvedManifest } from './prefetch-strategy';
+import type {
+  QwikManifest,
+  SymbolMapperFn,
+  SymbolMapper,
+  ResolvedManifest,
+} from '@builder.io/qwik/optimizer';
 
 /**
- * @alpha
+ * @public
  */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest | ResolvedManifest;
@@ -12,15 +16,15 @@ export interface SerializeDocumentOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PrefetchStrategy {
-  implementation?: PrefetchImplementation | DeprecatedPrefetchImplementation;
+  implementation?: PrefetchImplementation;
   symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PrefetchImplementation {
   /**
@@ -59,44 +63,14 @@ export interface PrefetchImplementation {
 }
 
 /**
- * `link-prefetch-html`: Render link rel=prefetch within the html
- *
- * `link-prefetch`: Use JS to add link rel=prefetch, add worker-fetch if not supported
- *
- * `link-preload-html`: Render link rel=preload within the html
- *
- * `link-preload`: Use JS to add link rel=preload, add worker-fetch if not supported
- *
- * `link-modulepreload-html`: Render link rel=modulepreload within the html
- *
- * `link-modulepreload`: Use JS to add link rel=modulepreload, add worker-fetch if not supported
- *
- * `worker-fetch`: Add worker-fetch JS
- *
- * `none`: Do not add any prefetch links
- *
- * @deprecated Use the `PrefetchImplementation` object options instead.
- * @alpha
- */
-export type DeprecatedPrefetchImplementation =
-  | 'link-prefetch-html'
-  | 'link-prefetch'
-  | 'link-preload-html'
-  | 'link-preload'
-  | 'link-modulepreload-html'
-  | 'link-modulepreload'
-  | 'worker-fetch'
-  | 'none';
-
-/**
  * auto: Prefetch all possible QRLs used by the document. Default
  *
- * @alpha
+ * @public
  */
 export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 
 /**
- * @alpha
+ * @public
  */
 export interface PrefetchResource {
   url: string;
@@ -104,7 +78,7 @@ export interface PrefetchResource {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStreamResult extends RenderResult {
   flushes: number;
@@ -117,7 +91,7 @@ export interface RenderToStreamResult extends RenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStringResult extends RenderResult {
   html: string;
@@ -128,7 +102,7 @@ export interface RenderToStringResult extends RenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
@@ -140,7 +114,7 @@ export interface RenderResult {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikLoaderOptions {
   events?: string[];
@@ -149,7 +123,7 @@ export interface QwikLoaderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderOptions extends SerializeDocumentOptions {
   /**
@@ -182,19 +156,15 @@ export interface RenderOptions extends SerializeDocumentOptions {
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
   serverData?: Record<string, any>;
-  /**
-   * @deprecated - use `serverData`
-   */
-  envData?: Record<string, any>;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface InOrderAuto {
   strategy: 'auto';
@@ -203,33 +173,33 @@ export interface InOrderAuto {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface InOrderDisabled {
   strategy: 'disabled';
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface InOrderDirect {
   strategy: 'direct';
 }
 
 /**
- * @alpha
+ * @public
  */
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /**
- * @alpha
+ * @public
  */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
@@ -237,18 +207,18 @@ export interface RenderToStreamOptions extends RenderOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
 /**
- * @alpha
+ * @public
  */
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
 /**
- * @alpha
+ * @public
  */
 export type Render = RenderToString | RenderToStream;
 
-export { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };

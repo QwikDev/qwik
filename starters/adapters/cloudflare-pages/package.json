@@ -1,0 +1,28 @@
+{
+  "description": "Cloudflare Pages",
+  "scripts": {
+    "build.server": "vite build -c adapters/cloudflare-pages/vite.config.ts",
+    "deploy": "wrangler pages publish ./dist",
+    "serve": "wrangler pages dev ./dist"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "__qwik__": {
+    "priority": 40,
+    "displayName": "Adapter: Cloudflare Pages",
+    "docs": [
+      "https://qwik.builder.io/deployments/cloudflare-pages/",
+      "https://developers.cloudflare.com/pages"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build and deploy to Cloudflare Pages with:",
+        "",
+        "  - pnpm run build: production build for Cloudflare",
+        "  - pnpm run deploy: it will use the Cloudflare CLI to deploy your site"
+      ]
+    }
+  }
+}

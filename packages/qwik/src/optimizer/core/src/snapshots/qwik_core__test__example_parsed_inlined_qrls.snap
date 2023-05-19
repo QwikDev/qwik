@@ -8,6 +8,9 @@ expression: output
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+    useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+
     const store = useStore({
         count: 0
     });
@@ -34,39 +37,41 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     });
 }, "App_component_Fh88JClhbC0"));
 
+export const STYLES = ".red { color: red; }";
+
 
 ============================= test.tsx ==
 
-import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
-export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { componentQrl, inlinedQrl, useStore, useLexicalScope } from '@builder.io/qwik';
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+    useStyles$(/*#__PURE__*/ inlinedQrl(STYLES, "s_odz7dfdfdM"));
+    useStyles$(/*#__PURE__*/ inlinedQrl(STYLES, "s_odzdfdfdM"));
     const store = useStore({
         count: 0
     });
-    return /*#__PURE__*/ jsxs("div", {
-        children: [
-            /*#__PURE__*/ jsxs("p", {
-                children: [
-                    "Count: ",
-                    store.count
-                ]
-            }),
-            /*#__PURE__*/ jsx("p", {
-                children: /*#__PURE__*/ jsx("button", {
-                    onClick$: inlinedQrl(()=>{
-                        const [store] = useLexicalScope();
-                        return store.count++;
-                    }, "s_odz7eidI4GM", [
-                        store
-                    ]),
-                    children: "Click"
-                })
-            })
-        ]
-    });
+    return /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxQ("p", null, null, [
+            "Count: ",
+            _fnSignal((p0)=>p0.count, [
+                store
+            ], "p0.count")
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", {
+            onClick$: /*#__PURE__*/ inlinedQrl(()=>{
+                const [store] = useLexicalScope();
+                return store.count++;
+            }, "s_odz7eidI4GM", [
+                store
+            ])
+        }, null, "Click", 2, null), 1, null)
+    ], 1, "u6_0");
 }, "s_Fh88JClhbC0"));
+export const STYLES = ".red { color: red; }";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAE,IAAI,EAAE,GAAG,EAAE,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,wBAAwB,IAAI;IACzD,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IACA,OAAO,WAAW,GAAG,KAAK,OAAO;QAC7B,UAAU;YACN,WAAW,GAAG,KAAK,KAAK;gBACpB,UAAU;oBACN;oBACA,MAAM,KAAK;iBACd;YACL;YACA,WAAW,GAAG,IAAI,KAAK;gBACnB,UAAU,WAAW,GAAG,IAAI,UAAU;oBAClC,QAAQ,aAAa,IAAI;wBACrB,MAAM,CAAC,MAAM,GAAG;wBAChB,OAAO,MAAM,KAAK;oBACtB;;;oBAGA,UAAU;gBACd;YACJ;SACH;IACL;AACJ,qBAAiC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB,IAAI;IACzD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IACA,OAAO,WAAW,GAAG,MAAK,mBACZ;QACN,WAAW,GAAG,MAAK,iBACL;YACN;4BACA,GAAM,KAAK;;;SACd;QAEL,WAAW,GAAG,MAAI,iBACJ,WAAW,GAAG,MAAI;YACxB,QAAQ,2BAAa,IAAI;gBACrB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACtB;;;iBAGU;KAGrB;AAET,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
 == DIAGNOSTICS ==
 
 []

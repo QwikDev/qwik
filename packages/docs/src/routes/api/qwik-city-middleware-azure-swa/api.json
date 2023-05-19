@@ -1,0 +1,48 @@
+{
+  "id": "qwik-city-middleware-azure-swa",
+  "package": "@builder.io/qwik-city/middleware/azure-swa",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityAzureOptions): AzureFunction;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityAzureOptions](#qwikcityazureoptions) |  |\n\n**Returns:**\n\nAzureFunction",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts",
+      "mdFile": "qwik-city.createqwikcity.md"
+    },
+    {
+      "name": "PlatformAzure",
+      "id": "platformazure",
+      "hierarchy": [
+        {
+          "name": "PlatformAzure",
+          "id": "platformazure"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformAzure extends Partial<Context> \n```\n**Extends:** Partial&lt;Context&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts",
+      "mdFile": "qwik-city.platformazure.md"
+    },
+    {
+      "name": "QwikCityAzureOptions",
+      "id": "qwikcityazureoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityAzureOptions",
+          "id": "qwikcityazureoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityAzureOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts",
+      "mdFile": "qwik-city.qwikcityazureoptions.md"
+    }
+  ]
+}

@@ -86,6 +86,15 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/resuming">Resuming</a>
       </p>
+      <p>
+        <a href="/e2e/computed">Computed</a>
+      </p>
+      <p>
+        <a href="/e2e/slot-cleanup">Slot cleanup</a>
+      </p>
+      <p>
+        <a href="/e2e/build-variables">Build Variables</a>
+      </p>
     </section>
   );
 });

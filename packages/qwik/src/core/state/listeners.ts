@@ -1,5 +1,5 @@
 import { inflateQrl, parseQRL } from '../qrl/qrl';
-import { assertQrl, isQrl, QRLInternal } from '../qrl/qrl-class';
+import { assertQrl, isQrl, type QRLInternal } from '../qrl/qrl-class';
 import { $ } from '../qrl/qrl.public';
 import { isArray } from '../util/types';
 import { assertTrue } from '../error/assert';
@@ -49,7 +49,11 @@ export const setEvent = (
   prop = normalizeOnProp(prop.slice(0, -1));
   if (input) {
     if (isArray(input)) {
-      existingListeners.push(...input.map((q) => [prop, ensureQrl(q, containerEl)] as Listener));
+      const processed = input
+        .flat(Infinity)
+        .filter((q) => q != null)
+        .map((q) => [prop, ensureQrl(q, containerEl)] as Listener);
+      existingListeners.push(...processed);
     } else {
       existingListeners.push([prop, ensureQrl(input, containerEl)]);
     }

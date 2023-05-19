@@ -1,0 +1,30 @@
+{
+  "description": "Fastify server",
+  "scripts": {
+    "build.server": "vite build -c adapters/fastify/vite.config.ts",
+    "serve": "node server/entry.fastify"
+  },
+  "devDependencies": {
+    "@fastify/compress": "^6.2.1",
+    "@fastify/static": "^6.10.1",
+    "fastify": "^4.17.0",
+    "fastify-plugin": "^4.5.0"
+  },
+  "__qwik__": {
+    "priority": 20,
+    "displayName": "Adapter: Node.js Fastify Server",
+    "docs": [
+      "https://qwik.builder.io/integrations/deployments/node/",
+      "https://www.fastify.io/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build a production-ready Fastify app:",
+        "",
+        "  - pnpm run build: production build for Fastify",
+        "  - pnpm run serve: runs the production server locally"
+      ]
+    }
+  }
+}

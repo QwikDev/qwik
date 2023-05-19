@@ -12,7 +12,7 @@ export interface TestData {
 
 test('parses cookie', () => {
   const cookieValues = {
-    a: 'hello',
+    a: 'hello=world',
     b: '25',
     c: '{"hello": "world"}',
   };
@@ -29,7 +29,7 @@ test('parses cookie', () => {
     equal(cookie.get(key)?.value, value);
   });
   equal(Object.keys(cookie.getAll()).length, 3);
-  equal(cookie.getAll().a.value, 'hello');
+  equal(cookie.getAll().a.value, 'hello=world');
   equal(cookie.getAll().b.number(), 25);
   equal(cookie.getAll().c.json(), { hello: 'world' });
 });
@@ -95,3 +95,5 @@ test('creates correct headers', () => {
     equal(actual, expected);
   }
 });
+
+test.run();

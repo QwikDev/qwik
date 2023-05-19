@@ -1,8 +1,7 @@
-import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
+import type { QwikVitePlugin, QwikManifest } from '@builder.io/qwik/optimizer';
 import type { BuildContext, BuildRoute } from '../types';
 import { isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
 import { getImportPath } from './utils';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
 
 export function createRoutes(
   ctx: BuildContext,
@@ -50,6 +49,9 @@ export function createRoutes(
       // include endpoints, and this is a module
       const importPath = getImportPath(route.filePath);
       esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
+      for (const layout of route.layouts) {
+        loaders.push(layout.id);
+      }
       loaders.push(`()=>${route.id}`);
     }
 

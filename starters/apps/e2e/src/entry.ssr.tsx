@@ -1,5 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { UseId } from './components/useid/useid';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
@@ -29,6 +29,8 @@ import { EventsClient } from './components/events/events-client';
 import { NoResume } from './components/no-resume/no-resume';
 import { Resuming1 } from './components/resuming/resuming';
 import { ResourceFn } from './components/resource/resource-fn';
+import { ComputedRoot } from './components/computed/computed';
+import { BuildVariables } from './components/build-variables/build';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -66,6 +68,8 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/events-client': () => <EventsClient />,
     '/e2e/no-resume': () => <NoResume />,
     '/e2e/resuming': () => <Resuming1 />,
+    '/e2e/computed': () => <ComputedRoot />,
+    '/e2e/build-variables': () => <BuildVariables />,
   };
 
   const url = new URL(opts.serverData!.url);

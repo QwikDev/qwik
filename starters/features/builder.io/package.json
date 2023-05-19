@@ -1,0 +1,26 @@
+{
+  "description": "Visual headless CMS",
+  "devDependencies": {
+    "@builder.io/sdk-qwik": "^0.3.0"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Builder.io",
+    "priority": -1,
+    "docs": [
+      "https://www.builder.io/c/docs/quickstart"
+    ],
+    "nextSteps": {
+      "title": "REQUIRED ACTIONS",
+      "lines": [
+        "1. Sign-up in builder.io to get your BUILDER_KEY and paste it in .env:",
+        "  https://builder.io/login",
+        "",
+        "2. Set your preview URL to http://localhost:5137",
+        "  https://www.builder.io/c/docs/guides/preview-url",
+        "",
+        "3. Create a new page in the CMS:",
+        "  https://www.builder.io/c/docs/integrating-builder-pages#creating-a-builder-page"
+      ]
+    }
+  }
+}

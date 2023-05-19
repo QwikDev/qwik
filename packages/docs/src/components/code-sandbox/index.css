@@ -1,0 +1,74 @@
+.browser iframe {
+  margin: 0;
+  padding: 8px;
+  border: none;
+}
+
+:global(:root[data-theme='dark']) .browser iframe {
+  border: 1px solid #333;
+  border-top: none;
+}
+
+:global(:root[data-theme='dark']) .browser .bar {
+  background-color: #1f1f1f;
+}
+
+:global(:root[data-theme='dark']) .browser .url {
+  background-color: #161616;
+}
+
+.browser .bar > ul {
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.browser .bar > ul > li {
+  margin: 0;
+  padding: 0;
+}
+
+.browser .bar > ul > li.edit {
+  position: relative;
+  top: -2px;
+}
+.browser .bar > ul > li.edit > a {
+  color: #666;
+}
+.browser .bar > ul > li.edit > a:hover {
+  color: #222;
+}
+:global(:root[data-theme='dark']) .browser .bar > ul > li.edit > a:hover {
+  color: #aaa;
+}
+
+.browser .url .url-link {
+  text-decoration: none;
+  color: #666;
+}
+
+.slot-container {
+  border-radius: 8px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.tab.active {
+  border-radius: 8px 8px 0 0;
+  background-color: var(--repl-tab-bg-color);
+  border-bottom: 2px solid blue;
+}

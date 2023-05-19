@@ -9,6 +9,7 @@ test.describe('Qwik City API', () => {
     const data = await rsp.json();
     expect(data.method).toBe('GET');
     expect(data.node).toBe(process.versions.node);
+    expect(data.shared).toBe('from root');
   });
 
   test('Qwik City API, params', async ({ page: api }) => {
@@ -60,5 +61,33 @@ test.describe('Qwik City API', () => {
   test('redirect from product page because of "querystring-test" exists', async ({ page }) => {
     const rsp = (await page.goto('/qwikcity-test/products/hat/?querystring-test=true'))!;
     expect(new URL(rsp.url()).pathname).toBe('/qwikcity-test/');
+  });
+
+  test('endpoint with a dot in the pathname, with a trailing slash', async ({ page }) => {
+    const rsp = (await page.goto('/qwikcity-test/issue2441/abc.endpoint/'))!;
+    expect(rsp.status()).toBe(200);
+    const clientData = await rsp.json();
+    expect(clientData.issue).toBe(2441);
+  });
+
+  test('endpoint with a dot in the pathname, without a trailing slash', async ({ page }) => {
+    const rsp = (await page.goto('/qwikcity-test/issue2441/abc.endpoint'))!;
+    expect(rsp.status()).toBe(200);
+    const clientData = await rsp.json();
+    expect(clientData.issue).toBe(2441);
+  });
+
+  test('page with a dot in the pathname, with a trailing slash', async ({ page }) => {
+    const rsp = (await page.goto('/qwikcity-test/issue2441/abc.page/'))!;
+    expect(rsp.status()).toBe(200);
+    const h1 = page.locator('#issue2441');
+    expect(await h1.textContent()).toBe('Issue 2441');
+  });
+
+  test('page with a dot in the pathname, without a trailing slash', async ({ page }) => {
+    const rsp = (await page.goto('/qwikcity-test/issue2441/abc.page'))!;
+    expect(rsp.status()).toBe(200);
+    const h1 = page.locator('#issue2441');
+    expect(await h1.textContent()).toBe('Issue 2441');
   });
 });

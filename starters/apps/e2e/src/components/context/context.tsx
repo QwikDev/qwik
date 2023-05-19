@@ -1,12 +1,12 @@
 import {
   useStore,
   component$,
-  createContext,
+  createContextId,
   useContextProvider,
   useContext,
   Slot,
   useSignal,
-  useClientEffect$,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 
 export interface ContextI {
@@ -14,13 +14,25 @@ export interface ContextI {
   count: number;
 }
 
-export const Context1 = createContext<ContextI>('ctx');
-export const Context2 = createContext<ContextI>('ctx1');
-export const Context3 = createContext<ContextI>('ctx2');
-export const ContextSlot = createContext<ContextI>('slot');
-export const Unset = createContext<ContextI>('unset');
+export const Context1 = createContextId<ContextI>('ctx');
+export const Context2 = createContextId<ContextI>('ctx1');
+export const Context3 = createContextId<ContextI>('ctx2');
+export const ContextSlot = createContextId<ContextI>('slot');
+export const Unset = createContextId<ContextI>('unset');
 
 export const ContextRoot = component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <button id="btn-rerender" onClick$={() => count.value++}>
+        Client Rerender
+      </button>
+      <ContextApp key={count.value} />
+    </div>
+  );
+});
+
+export const ContextApp = component$(() => {
   const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
   const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
 
@@ -43,6 +55,7 @@ export const ContextRoot = component$(() => {
 
       <Issue1971 />
       <Issue2087 />
+      <Issue2894 />
     </div>
   );
 });
@@ -129,7 +142,7 @@ export const Issue1971 = component$(() => {
   );
 });
 
-export const Issue1971Context = createContext<any>('issue-1971');
+export const Issue1971Context = createContextId<any>('issue-1971');
 
 export const Issue1971Provider = component$(() => {
   useContextProvider(Issue1971Context, {
@@ -141,7 +154,7 @@ export const Issue1971Provider = component$(() => {
 
 export const Issue1971Child = component$(() => {
   const show = useSignal(false);
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     show.value = true;
   });
   return (
@@ -156,7 +169,7 @@ export const Issue1971Consumer = component$(() => {
   return <div id="issue1971-value">Value: {ctx.value}</div>;
 });
 
-export const Ctx = createContext<{ t: string }>('issue-2087');
+export const Ctx = createContextId<{ t: string }>('issue-2087');
 
 export const Issue2087 = component$(() => {
   return (
@@ -206,4 +219,39 @@ export const Provider = component$(() => {
   const s = useStore({ t: 'yes' });
   useContextProvider(Ctx, s);
   return <Slot />;
+});
+
+export const CTX_2894 = createContextId<{ foo: string }>('issue-2894');
+export const Issue2894 = component$(() => {
+  useContextProvider(CTX_2894, { foo: 'bar' });
+  return (
+    <>
+      <Issue2894_Projector>
+        <Issue2894_Consumer />
+      </Issue2894_Projector>
+    </>
+  );
+});
+
+export const Issue2894_Projector = component$(() => {
+  const signal = useSignal(false);
+  if (!signal.value) {
+    return (
+      <>
+        <button id="issue2894-button" onClick$={() => (signal.value = true)}>
+          Toggle visibility
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <Slot />
+    </>
+  );
+});
+
+export const Issue2894_Consumer = component$(() => {
+  const ctx = useContext(CTX_2894);
+  return <div id="issue2894-value">Value: {ctx.foo}</div>;
 });

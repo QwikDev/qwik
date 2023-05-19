@@ -3,8 +3,9 @@
 // DO NOT USE FOR PRODUCTION!!!
 /* eslint-disable no-console */
 
-import express, { NextFunction, Request, Response } from 'express';
-import { build, InlineConfig, PluginOption } from 'vite';
+import type { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { build, type InlineConfig, type PluginOption } from 'vite';
 import { join, resolve } from 'node:path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'node:fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
@@ -87,7 +88,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
-  const baseUrl = `/${appName}/`;
+  const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
 
   // always clean the build directory
@@ -99,7 +100,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   if (enableCityServer) {
     // ssr entry existed in service folder, use dev plugin to
     // 1. export router
-    // 2. set baseUrl
+    // 2. set basePath
     plugins.push({
       name: 'devPlugin',
       resolveId(id) {
@@ -113,12 +114,12 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
           return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-import render from '${resolve(appSrcDir, 'entry.ssr')}';
 import qwikCityPlan from '@qwik-city-plan';
+import render from '${resolve(appSrcDir, 'entry.ssr')}';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
-  base: '${baseUrl}build/',
+  base: '${basePath}build/',
 });
 export {
   router,
@@ -138,19 +139,18 @@ export {
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(
-      qwikCityVite.qwikCity({
-        basePathname: '/qwikcity-test/',
-      })
-    );
+
+    plugins.push(qwikCityVite.qwikCity());
   }
+
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
     mode: 'development',
     configFile: false,
-    base: baseUrl,
+    base: basePath,
     ...extra,
     resolve: {
+      conditions: ['development'],
       alias: {
         '@builder.io/qwik': qwikDistDir,
         '@builder.io/qwik-city': qwikCityDistDir,
@@ -306,7 +306,7 @@ async function main() {
   app.use(`/~partytown`, express.static(partytownPath));
 
   appNames.forEach((appName) => {
-    const buildPath = join(startersAppsDir, appName, 'dist', 'build');
+    const buildPath = join(startersAppsDir, appName, 'dist', appName, 'build');
     app.use(`/${appName}/build`, express.static(buildPath));
 
     const publicPath = join(startersAppsDir, appName, 'public');

@@ -1,0 +1,33 @@
+---
+title: Qwik and Cypress
+keywords: 'e2e, testing'
+contributors:
+  - shairez
+---
+
+# Cypress 
+
+With [Cypress](https://www.cypress.io), you can easily create tests for your modern web applications, debug them visually, and automatically run them in your continuous integration builds.
+
+
+## Component testing
+
+Cypress enables you to test your Qwik components 
+in isolation with the help of the [cypress-ct-qwik](https://github.com/qwikifiers/cypress-qwik) community plugin.
+
+
+
+
+## Usage
+
+You can add Cypress easily by using the following Qwik starter script:
+
+```shell
+npm run qwik add cypress
+```
+
+This command adds `cypress` and `cypress-ct-qwik` to your dependencies, appends testing commands to your `package.json` 
+scripts section and creates the configuration files needed to run component testing with Cypress.
+
+
+For further reference, please check the [Cypress documentation](https://docs.cypress.io/guides/overview/why-cypress) and the [cypress-qwik documentation](https://github.com/qwikifiers/cypress-qwik).

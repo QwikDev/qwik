@@ -1,13 +1,13 @@
-import { BuildConfig, copyFile, emptyDir, ensureDir } from './util';
+import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util';
 import spawn from 'cross-spawn';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {
-  const srcWasmDir = join(config.srcDir, `wasm`);
+  const srcWasmDir = join(config.srcQwikDir, `wasm`);
   const tmpBuildDir = join(config.tmpDir, `wasm-out`);
 
-  ensureDir(config.distPkgDir);
+  ensureDir(config.distQwikPkgDir);
   ensureDir(config.distBindingsDir);
   emptyDir(tmpBuildDir);
 

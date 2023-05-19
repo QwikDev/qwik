@@ -80,7 +80,7 @@ async function runCommand(app: AppCommand) {
       return;
     }
     case 'help': {
-      printHelp();
+      printHelp(app);
       return;
     }
     case 'new': {

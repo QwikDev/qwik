@@ -177,6 +177,9 @@ export async function getFilesDeep(root: string) {
       }
     }
   }
+
+  await getFiles(root);
+  return files;
 }
 
 // Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts

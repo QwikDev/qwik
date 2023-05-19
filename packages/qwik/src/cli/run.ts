@@ -35,6 +35,7 @@ const COMMANDS = [
     label: 'new',
     hint: 'Create a new component or route',
     run: (app: AppCommand) => runNewCommand(app),
+    showInHelp: true,
   },
   {
     value: 'help',

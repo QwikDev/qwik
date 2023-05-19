@@ -53,7 +53,7 @@ export async function submoduleCli(config: BuildConfig) {
   await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);
 
   const tmplSrc = join(config.startersDir, 'templates');
-  const tmplDist = join(config.distPkgDir, 'templates');
+  const tmplDist = join(config.distQwikPkgDir, 'templates');
 
   if (existsSync(tmplDist)) {
     rmdirSync(tmplDist, { recursive: true });

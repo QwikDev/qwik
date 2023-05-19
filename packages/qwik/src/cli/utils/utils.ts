@@ -159,6 +159,27 @@ export function printHeader() {
   );
 }
 
+export async function getFilesDeep(root: string) {
+  const files: string[] = [];
+
+  async function getFiles(directory: string) {
+    if (!fs.existsSync(directory)) {
+      return;
+    }
+
+    const filesInDirectory = await fs.promises.readdir(directory);
+    for (const file of filesInDirectory) {
+      const absolute = join(directory, file);
+
+      if (fs.statSync(absolute).isDirectory()) {
+        await getFiles(absolute);
+      } else {
+        files.push(absolute);
+      }
+    }
+  }
+}
+
 // Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts
 function ansiRegex() {
   const pattern = [

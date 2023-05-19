@@ -19,7 +19,7 @@ import {
   SignalImpl,
   SignalWrapper,
 } from '../state/signal';
-import { type Collector, collectSubscriptions, collectValue } from './pause';
+import { type Collector, collectSubscriptions, collectValue, mapJoin } from './pause';
 import {
   fastWeakSerialize,
   getProxyManager,
@@ -260,8 +260,7 @@ const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
       collector.$inlinedFunctions$.push(serialized);
       index = collector.$inlinedFunctions$.length - 1;
     }
-    const parts = signal.$args$.map(getObjID);
-    return parts.join(' ') + ' @' + intToStr(index);
+    return mapJoin(signal.$args$, getObjID, ' ') + ' @' + intToStr(index);
   },
   $prepare$: (data) => {
     const ids = data.split(' ');

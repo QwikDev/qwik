@@ -19,7 +19,7 @@ import {
   SignalImpl,
   SignalWrapper,
 } from '../state/signal';
-import { type Collector, collectSubscriptions, collectValue } from './pause';
+import { type Collector, collectSubscriptions, collectValue, mapJoin } from './pause';
 import {
   fastWeakSerialize,
   getProxyManager,
@@ -243,7 +243,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
   $prefix$: '\u0011',
   $test$: (obj) => obj instanceof SignalDerived,
   $collect$: (obj, collector, leaks) => {
@@ -260,8 +260,7 @@ const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
       collector.$inlinedFunctions$.push(serialized);
       index = collector.$inlinedFunctions$.length - 1;
     }
-    const parts = signal.$args$.map(getObjID);
-    return parts.join(' ') + ' @' + intToStr(index);
+    return mapJoin(signal.$args$, getObjID, ' ') + ' @' + intToStr(index);
   },
   $prepare$: (data) => {
     const ids = data.split(' ');
@@ -438,14 +437,14 @@ const serializers: Serializer<any>[] = [
   DateSerializer, ///////////// \u0006
   RegexSerializer, //////////// \u0007
   ErrorSerializer, //////////// \u000E
-  DocumentSerializer, ///////// \u000F
-  ComponentSerializer, //////// \u0010
   DerivedSignalSerializer, //// \u0011
-  NoFiniteNumberSerializer, /// \u0014
-  URLSearchParamsSerializer, // \u0015
   FormDataSerializer, ///////// \u0016
+  URLSearchParamsSerializer, // \u0015
+  ComponentSerializer, //////// \u0010
+  NoFiniteNumberSerializer, /// \u0014
   JSXNodeSerializer, ////////// \u0017
   BigIntSerializer, /////////// \u0018
+  DocumentSerializer, ///////// \u000F
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.$collect$);

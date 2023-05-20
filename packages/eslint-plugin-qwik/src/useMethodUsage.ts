@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
+import type { QwikEslintExamples } from '../examples';
 
 export const useMethodUsage: Rule.RuleModule = {
   meta: {
@@ -9,7 +10,7 @@ export const useMethodUsage: Rule.RuleModule = {
       description: 'Object destructuring is not recommended for component$',
       category: 'Variables',
       recommended: true,
-      url: 'https://github.com/BuilderIO/qwik',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#use-method-usage',
     },
     messages: {
       'use-after-await': 'Calling use* methods after await is not safe.',
@@ -107,5 +108,125 @@ export const useMethodUsage: Rule.RuleModule = {
         }
       },
     };
+  },
+};
+
+const useAfterAwaitGood = `
+export const HelloWorld = component$(async () => {
+  useMethod();
+  await something();
+  return $(() => {
+    return (
+      <h1>Hello World</h1>
+    );
+  });
+});`.trim();
+
+const useAfterAwaitBad = `
+export const HelloWorld = component$(async () => {
+  await something();
+  useMethod();
+  return $(() => {
+    return (
+      <h1>Hello World</h1>
+    );
+  });
+});`.trim();
+
+const useAfterAwaitBad2 = `
+export const HelloWorld = component$(async () => {
+  if (stuff) {
+    await something();
+  }
+  useMethod();
+  return $(() => {
+    return (
+      <h1>Hello World</h1>
+    );
+  });
+});`.trim();
+
+const useWrongFunctionGood = `
+export const Counter = component$(async () => {
+  const count = useSignal(0);
+});
+`.trim();
+
+const useWrongFunctionBad = `
+export const Counter = (async () => {
+  const count = useSignal(0);
+});
+`.trim();
+
+const useWrongFunctionBad2 = `
+export const Counter = (() => {
+  const count = useSignal(0);
+});
+`.trim();
+
+const useNotRootGood = useWrongFunctionGood;
+const useNotRootBad = useWrongFunctionBad;
+const useNotRootBad2 = useWrongFunctionBad2;
+
+export const useMethodUsageExamples: QwikEslintExamples = {
+  'use-after-await': {
+    good: [
+      {
+        codeHighlight: '{2-3} /await/#a /use/#b',
+        code: useAfterAwaitGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{2-3} /await/#a /use/#b',
+        code: useAfterAwaitBad,
+        description: '`useMethod()` is called after `await`.',
+      },
+      {
+        codeHighlight: '{3,5} /await/#a /use/#b',
+        code: useAfterAwaitBad2,
+        description: '`useMethod()` is called after a condition.',
+      },
+    ],
+  },
+  'use-wrong-function': {
+    good: [
+      {
+        codeHighlight: '{2} /component$/#a',
+        code: useWrongFunctionGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{2} /component$/#a',
+        code: useWrongFunctionBad,
+        description: '`use*` methods can just be used in `component$` functions.',
+      },
+      {
+        codeHighlight: '{2} /component$/#a',
+        code: useWrongFunctionBad2,
+        description: '`use*` methods can just be used in `component$` functions.',
+      },
+    ],
+  },
+  'use-not-root': {
+    good: [
+      {
+        codeHighlight: '{2} /component$/#a',
+        code: useNotRootGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{2} /component$/#a',
+        code: useNotRootBad,
+        description: '`use*` methods can just be used in `component$` functions.',
+      },
+      {
+        codeHighlight: '{2} /component$/#a',
+        code: useNotRootBad2,
+        description: '`use*` methods can just be used in `component$` functions.',
+      },
+    ],
   },
 };

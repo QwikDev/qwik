@@ -5,6 +5,7 @@ import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
 import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
+import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
 
@@ -24,6 +25,7 @@ export const validLexicalScope = createRule({
       description:
         'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
       recommended: 'error',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#valid-lexical-scope',
     },
 
     schema: [
@@ -479,4 +481,134 @@ const ALLOWED_CLASSES = {
   FormData: true,
   URLSearchParams: true,
   Error: true,
+};
+
+const referencesOutsideGood = `
+import { component$, useTask$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = $((msg: string) => {
+    console.log(msg);
+  });
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
+
+const referencesOutsideBad = `
+import { component$, useTask$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = (msg: string) => {
+    console.log(msg);
+  };
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
+
+const invalidJsxDollarGood = `
+import { component$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = $(() => console.log());
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
+
+const invalidJsxDollarBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = () => console.log();
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
+
+const mutableIdentifierGood = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const person = { name: 'Bob' };
+
+  return (
+    <button onClick$={() => {
+      person.name = 'Alice';
+    }}>
+      {person.name}
+    </button>
+  );
+});`.trim();
+
+const mutableIdentifierBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  let personName = 'Bob';
+
+  return (
+    <button onClick$={() => {
+      personName = 'Alice';
+    }}>
+      {personName}
+    </button>
+  );
+});`.trim();
+
+export const validLexicalScopeExamples: QwikEslintExamples = {
+  referencesOutside: {
+    good: [
+      {
+        codeHighlight: `{1,4} /print/#a /$((msg: string)/#b)`,
+        code: referencesOutsideGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: `{1,4} /print/#a /(msg: string)/#b)`,
+        code: referencesOutsideBad,
+        description:
+          'Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.',
+      },
+    ],
+  },
+  invalidJsxDollar: {
+    good: [
+      {
+        codeHighlight: '{1} /click/#a',
+        code: invalidJsxDollarGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{1} /click/#a',
+        code: invalidJsxDollarBad,
+        description: 'Event handler must be wrapped with `${ ... }`.',
+      },
+    ],
+  },
+  mutableIdentifier: {
+    good: [
+      {
+        codeHighlight: '{4} /person/#a',
+        code: mutableIdentifierGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{4} /personName/#a',
+        code: mutableIdentifierBad,
+        description:
+          'Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.',
+      },
+    ],
+  },
 };

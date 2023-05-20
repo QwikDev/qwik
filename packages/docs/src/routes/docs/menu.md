@@ -96,6 +96,7 @@
 - [Menus](/docs/(qwikcity)/advanced/menu/index.mdx)
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
+- [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 
 ## Reference
 

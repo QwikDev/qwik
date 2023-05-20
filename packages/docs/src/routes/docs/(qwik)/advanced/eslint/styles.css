@@ -1,0 +1,130 @@
+.docs .panel {
+  @apply rounded-md;
+  @apply mt-4;
+  @apply bg-slate-50;
+  @apply border;
+  @apply border-slate-100;
+  text-decoration: none;
+}
+
+[data-theme='dark'] .docs .panel {
+  background: #373737;
+  border-color: #575757;
+  color: var(--color-text);
+}
+
+.docs .ruleset-legend {
+  @apply grid;
+  @apply grid-cols-4;
+  @apply text-sm;
+}
+.docs .ruleset-legend > div {
+  @apply list-none;
+  @apply my-6;
+  @apply px-6;
+}
+.docs .ruleset-legend > div.panel-border {
+  @apply border-r;
+  @apply border-slate-200;
+}
+
+.icon {
+  @apply mb-2;
+  @apply block;
+}
+.icon.icon-inactive {
+  opacity: 0.5;
+}
+
+.docs .panel p {
+  margin: 0 !important;
+}
+
+[data-theme='dark'] .docs .panel .panel-border {
+  border-color: #575757;
+}
+
+.docs .rule-wrapper {
+  @apply mb-14;
+  @apply pb-14;
+  @apply border-b;
+}
+.docs .rule-wrapper:last-child {
+  @apply border-b-0;
+}
+
+[data-theme='dark'] .docs .rule-wrapper {
+  border-color: #575757;
+}
+
+.docs .rule-description {
+  @apply text-xs;
+  @apply block;
+  @apply mt-2;
+  @apply max-w-[90%];
+  @apply leading-5;
+}
+
+.docs .code-wrapper {
+  @apply relative;
+}
+
+.docs .badge {
+  @apply absolute;
+  @apply flex;
+  @apply rounded-full;
+  @apply text-lg;
+  @apply text-white;
+  @apply top-0;
+  @apply right-0;
+  @apply items-center;
+  @apply justify-center;
+  transform: translate(50%, -50%);
+  height: 40px;
+  width: 40px;
+}
+
+.docs .badge.good {
+  @apply text-green-500;
+  @apply bg-green-200;
+}
+[data-theme='dark'] .docs .badge.good {
+  @apply bg-green-900;
+}
+
+.docs .badge.bad {
+  @apply text-red-500;
+  @apply bg-red-200;
+}
+[data-theme='dark'] .docs .badge.bad {
+  @apply bg-red-900;
+}
+
+.docs .code-description {
+  @apply text-sm;
+  @apply px-4;
+  @apply mt-2;
+  @apply mb-10;
+}
+
+.docs .edit-examples-wrapper {
+  text-align: right;
+}
+
+.docs .edit-examples-wrapper .edit-btn {
+  @apply bg-slate-50;
+  @apply border;
+  @apply border-slate-200;
+  @apply text-black;
+  @apply no-underline;
+  @apply px-2;
+  @apply py-1;
+  @apply rounded-md;
+  @apply inline-block;
+  @apply text-sm;
+}
+[data-theme='dark'] .docs .edit-examples-wrapper .edit-btn {
+  background: #373737;
+  border-color: #575757;
+  color: var(--color-text);
+}

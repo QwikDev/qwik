@@ -526,7 +526,7 @@ export const _pauseFromContexts = async (
 
     if (ref.length > 0) {
       assertElement(node);
-      const value = mapJoin(ref, mustGetObjId, ' ')
+      const value = mapJoin(ref, mustGetObjId, ' ');
       if (value) {
         refs[elementID] = value;
       }
@@ -554,7 +554,7 @@ export const _pauseFromContexts = async (
       }
 
       if (elementCaptured && seq && seq.length > 0) {
-        const value = mapJoin(seq, mustGetObjId, ' ')
+        const value = mapJoin(seq, mustGetObjId, ' ');
         metaValue.s = value;
         add = true;
       }
@@ -603,7 +603,7 @@ export const _pauseFromContexts = async (
   };
 };
 
-export const mapJoin = (objects: any[], getObjectId: GetObjID, sep: string): string =>{
+export const mapJoin = (objects: any[], getObjectId: GetObjID, sep: string): string => {
   let output = '';
   for (const obj of objects) {
     const id = getObjectId(obj);
@@ -615,7 +615,7 @@ export const mapJoin = (objects: any[], getObjectId: GetObjID, sep: string): str
     }
   }
   return output;
-}
+};
 
 export const getNodesInScope = <T>(
   parent: Element,

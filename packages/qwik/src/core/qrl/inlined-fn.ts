@@ -18,7 +18,7 @@ export const serializeDerivedSignalFunc = (signal: SignalDerived) => {
   assertDefined(fnBody, 'If qSerialize is true then fnStr must be provided.');
   let args = '';
   for (let i = 0; i < signal.$args$.length; i++) {
-    args+= `p${i},`
+    args += `p${i},`;
   }
   return `(${args})=>(${fnBody})`;
 };

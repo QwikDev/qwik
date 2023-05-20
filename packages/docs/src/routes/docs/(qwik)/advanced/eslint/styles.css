@@ -15,17 +15,27 @@
 
 .docs .ruleset-legend {
   @apply grid;
-  @apply grid-cols-4;
+  @apply grid-cols-1;
   @apply text-sm;
 }
 .docs .ruleset-legend > div {
   @apply list-none;
-  @apply my-6;
+  @apply my-3;
   @apply px-6;
 }
-.docs .ruleset-legend > div.panel-border {
-  @apply border-r;
-  @apply border-slate-200;
+@media screen and (min-width: 768px) {
+  .docs .ruleset-legend {
+    @apply grid-cols-4;
+  }
+  .docs .ruleset-legend > div {
+    @apply list-none;
+    @apply my-6;
+    @apply px-6;
+  }
+  .docs .ruleset-legend > div.panel-border {
+    @apply border-r;
+    @apply border-slate-200;
+  }
 }
 
 .icon {

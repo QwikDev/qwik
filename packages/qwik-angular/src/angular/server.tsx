@@ -11,7 +11,12 @@ import {
   type Injector,
   type Type,
 } from '@angular/core';
-import { BEFORE_APP_SERIALIZED, renderApplication } from '@angular/platform-server';
+import {
+  BEFORE_APP_SERIALIZED,
+  renderApplication,
+  provideServerRendering,
+} from '@angular/platform-server';
+import { bootstrapApplication } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 import { getHostProps } from './slot';
 
@@ -63,7 +68,7 @@ const STATIC_PROPS_HOOK_PROVIDER: Provider = {
         for (const [key, value] of Object.entries(props)) {
           if (
             // we double-check inputs on ComponentMirror
-            // because Astro might add additional props
+            // because there might be additional props
             // that aren't actually Input defined on the Component
             mirror.inputs.some(
               ({ templateName, propName }) => templateName === key || propName === key
@@ -85,7 +90,7 @@ export async function renderFromServer(
   angularCmp$: QRL<Type<unknown>>,
   hostRef: Signal<Element | undefined>,
   slotRef: Signal<Element | undefined>,
-  props: Record<string, unknown>,
+  props: Record<string, unknown>
 ) {
   if (isServer) {
     const component = await angularCmp$.resolve();
@@ -98,16 +103,19 @@ export async function renderFromServer(
     const appId = mirror?.selector || component.name.toString().toLowerCase();
     const document = `<${appId}></${appId}>`;
 
-    const html = await renderApplication(component, {
-      appId,
+    const bootstrap = () =>
+      bootstrapApplication(component, {
+        providers: [
+          {
+            provide: QWIK_ANGULAR_STATIC_PROPS,
+            useValue: { props, mirror },
+          },
+          STATIC_PROPS_HOOK_PROVIDER,
+          provideServerRendering(),
+        ],
+      });
+    const html = await renderApplication(bootstrap, {
       document,
-      providers: [
-        {
-          provide: QWIK_ANGULAR_STATIC_PROPS,
-          useValue: { props, mirror },
-        },
-        STATIC_PROPS_HOOK_PROVIDER,
-      ],
     });
     const index = html.indexOf(SLOT_COMMENT);
 

@@ -13,7 +13,7 @@
   },
   "__qwik__": {
     "displayName": "Framework: React",
-    "priority": -20,
+    "priority": -25,
     "docs": [
       "https://qwik.builder.io/integrations/integration/react/"
     ],

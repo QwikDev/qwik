@@ -63,7 +63,13 @@ export function qwikifyQrl<PROPS extends {}>(
     });
 
     if (isServer && !isClientOnly) {
-      const jsx = renderFromServer(TagName, angularCmp$, hostRef, slotRef, props as Record<string, any>);
+      const jsx = renderFromServer(
+        TagName,
+        angularCmp$,
+        hostRef,
+        slotRef,
+        props as Record<string, any>
+      );
       return <RenderOnce>{jsx}</RenderOnce>;
     }
 

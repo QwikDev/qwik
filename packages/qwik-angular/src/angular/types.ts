@@ -89,13 +89,82 @@ export interface QwikifyOptions {
 type TransformKey<K> = K extends string ? `${K}$` : K;
 
 type QwikifiedOutputs<ComponentType, Props extends keyof ComponentType> = {
-  [K in keyof Pick<ComponentType, Props> as TransformKey<K>]: ComponentType[K] extends EventEmitter<infer V> ? (value: V) => void : never;
-}
+  [K in keyof Pick<ComponentType, Props> as TransformKey<K>]: ComponentType[K] extends EventEmitter<
+    infer V
+  >
+    ? (value: V) => void
+    : never;
+};
 
+// using "/@" instead of "@" in JSDoc because it's not rendering properly https://github.com/microsoft/TypeScript/issues/47679
+/**
+ * Assembles a type object for qwikified Angular component
+ *
+ * @example
+ * ```
+ * /@Component({..})
+ * export class InputComponent {
+ *   /@Input() theme: 'primary' | 'accent' | 'warn' = 'primary';
+ *   /@Input() placeholder: string;
+ *   /@Output() changed = new EventEmitter<string>();
+ * }
+ *
+ * type InputComponentInputs = 'theme' | 'placeholder';
+ *
+ * type InputComponentOutputs = 'changed';
+ *
+ * // InputComponentProps is the interface that you can export along with your qwikified component to be used elsewhere
+ * export type InputComponentProps = QwikifiedComponentProps<
+ *   InputComponent,
+ *   InputComponentInputs, // inputs of the "InputComponent"
+ *   InputComponentProps // outputs of the "InputComponent"
+ * >;
+ *
+ * // The final type will look like
+ * interface FinalInputTypeSample {
+ *   theme?: 'primary' | 'accent' | 'warn';
+ *   placeholder?: string;
+ *   changed$?: (value: string) => void; // notice that "changed" output got a "$" suffix!
+ * }
+ * // qwikify it later as follows
+ * export const MyNgInput = qwikify$<InputComponentProps>(InputComponent);
+ *
+ * // additionally you can mark types as required
+ * type RequiredInputProps = 'theme';
+ * export type RequiredInputComponentProps = WithRequiredProps<InputComponentProps, RequiredInputProps>;
+ *
+ * // The assembled type will have "theme" as a required property this time
+ * interface FinalInputTypeRequiredSample {
+ *   theme: 'primary' | 'accent' | 'warn'; // <= became required!
+ *   placeholder?: string;
+ *   changed$?: (value: string) => void;
+ * }
+ * ```
+ */
 export type QwikifiedComponentProps<
-  ComponentType, 
+  ComponentType,
   Inputs extends keyof ComponentType = never,
-  Outputs extends keyof ComponentType = never, 
+  Outputs extends keyof ComponentType = never
 > = Partial<Pick<ComponentType, Inputs> & QwikifiedOutputs<ComponentType, Outputs>>;
 
-export type WithRequiredProps<T, K extends keyof T> = Omit<T,K> & Required<Pick<T, K>>;
+/**
+ * Marks provided keys `K` of type `T` as required
+ * @example
+ * ```
+ * interface MyOptionalType {
+ *   propOne?: string;
+ *   propTwo?: number
+ *   propThree?: string[]
+ * }
+ * type RequiredProps = 'propOne' | 'propThree';
+ * type MyRequiredType = WithRequiredProps<MyOptionalType, RequiredProps>;
+ *
+ * // final type will look like this
+ * interface FinalInterface {
+ *   propOne: string; // <= became required
+ *   propTwo?: number;
+ *   propThree: string[]; // <= became required
+ * }
+ * ```
+ */
+export type WithRequiredProps<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;

@@ -29,7 +29,7 @@ export default defineConfig(() => {
           'rxjs/operators',
           'zone.js/bundles/zone-node.umd.js',
           'domino',
-          'sass'
+          'sass',
         ],
       },
     },

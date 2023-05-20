@@ -1,10 +1,10 @@
-import {type AfterViewInit, Component, ViewChild, Input} from '@angular/core';
+import { type AfterViewInit, Component, ViewChild, Input } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
-import {MatSort, MatSortModule} from '@angular/material/sort';
-import {MatTableDataSource, MatTableModule} from '@angular/material/table';
-import {MatInputModule} from '@angular/material/input'
-import type  { QwikifiedComponentProps } from '@builder.io/qwik-angular';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatInputModule } from '@angular/material/input';
+import type { QwikifiedComponentProps } from '@builder.io/qwik-angular';
 
 export interface TableUserData {
   id: string;
@@ -14,14 +14,14 @@ export interface TableUserData {
 }
 
 type TableComponentInputs = 'users';
-export type TableComponentProps = QwikifiedComponentProps<TableComponent, TableComponentInputs>
+export type TableComponentProps = QwikifiedComponentProps<TableComponent, TableComponentInputs>;
 
 @Component({
   selector: 'app-table-component',
   styleUrls: ['table.component.scss'],
   templateUrl: 'table.component.html',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatPaginatorModule, MatFormFieldModule, MatInputModule]
+  imports: [MatTableModule, MatSortModule, MatPaginatorModule, MatFormFieldModule, MatInputModule],
 })
 export class TableComponent implements AfterViewInit {
   displayedColumns: string[] = ['id', 'name', 'progress', 'fruit'];
@@ -32,7 +32,7 @@ export class TableComponent implements AfterViewInit {
 
   @Input()
   set users(users: TableUserData[]) {
-    this.dataSource= new MatTableDataSource(users);
+    this.dataSource = new MatTableDataSource(users);
   }
 
   ngAfterViewInit() {

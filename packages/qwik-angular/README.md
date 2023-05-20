@@ -58,6 +58,59 @@ export class HelloComponent {
 }
 ```
 
+### Adding types
+
+Angular defines inputs and outputs of the component using decorators, so it's not possible to deduce them as interface properties for the qwikified component to be used as JSX element. This package provides utility types `QwikifiedComponentProps` and `WithRequiredProps` to simplify the creation of typed qwikified components.
+
+`QwikifiedComponentProps` utility expects the list of keys that represent inputs and outputs of your component. It does the following:
+
+- validates that provided keys exist within the component
+- extracts types of the provided keys for inputs
+- converts outputs to the handlers that can be used with JSX syntax (e.g. `EventEmitter<string>` is converted to `(value: string) => void`)
+- adds `$` suffix for outputs, which basically [lets Qwik treat them as QRLs](https://qwik.builder.io/docs/advanced/dollar)
+
+Here's an example of how it works:
+
+```ts
+@Component({..})
+export class InputComponent {
+  @Input() theme: 'primary' | 'accent' | 'warn' = 'primary';
+  @Input() placeholder: string;
+  @Output() changed = new EventEmitter<string>();
+}
+
+type InputComponentInputs = 'theme' | 'placeholder';
+
+type InputComponentOutputs = 'changed';
+
+// InputComponentProps is the interface that you can export along with your qwikified component to be used elsewhere
+export type InputComponentProps = QwikifiedComponentProps<
+  InputComponent,
+  InputComponentInputs, // inputs of the "InputComponent"
+  InputComponentProps // outputs of the "InputComponent"
+>;
+
+// The final type will look like
+interface FinalInputTypeSample {
+  theme?: 'primary' | 'accent' | 'warn';
+  placeholder?: string;
+  changed$?: (value: string) => void; // notice that "changed" output got a "$" suffix!
+}
+// qwikify it later as follows
+export const MyNgInput = qwikify$<InputComponentProps>(InputComponent);
+
+// additionally you can mark types as required using "WithRequiredProps" util
+type RequiredInputProps = 'theme';
+export type RequiredInputComponentProps = WithRequiredProps<InputComponentProps, RequiredInputProps>;
+
+// The assembled type will have "theme" as a required property this time
+interface FinalInputTypeRequiredSample {
+  theme: 'primary' | 'accent' | 'warn'; // <= became required!
+  placeholder?: string;
+  changed$?: (value: string) => void;
+}
+```
+
 ### Every qwikified Angular component is isolated
 
 Each instance of a qwikified Angular component becomes an independent Angular app. Fully isolated.

@@ -39,7 +39,7 @@ export class ClientRenderer {
     await this.loadZoneJs();
     try {
       this.appRef = await createApplication({
-        providers: [provideAnimations()]
+        providers: [provideAnimations()],
       });
     } catch (error) {
       console.error('Failed to qwikify Angular component', error);

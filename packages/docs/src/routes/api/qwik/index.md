@@ -1486,7 +1486,6 @@ export interface RenderSSROptions
 | [containerTagName](#)    |           | string                                                                                                                                                            |              |
 | [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                                                         | _(Optional)_ |
 | [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                     |              |
-| [url?](#)                |           | string                                                                                                                                                            | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 

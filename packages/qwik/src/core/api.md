@@ -740,8 +740,6 @@ export interface RenderSSROptions {
     serverData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
-    // (undocumented)
-    url?: string;
 }
 
 // @public

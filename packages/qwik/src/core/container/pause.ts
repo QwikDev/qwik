@@ -402,10 +402,10 @@ export const _pauseFromContexts = async (
 
   // Compute subscriptions
   const subsMap = new Map<any, (Subscriptions | number)[]>();
-  objs.forEach((obj) => {
+  for (const obj of objs) {
     const subs = getManager(obj, containerState)?.$subs$;
     if (!subs) {
-      return null;
+      continue;
     }
     const flags = getProxyFlags(obj) ?? 0;
     const converted: (Subscriptions | number)[] = [];
@@ -424,7 +424,7 @@ export const _pauseFromContexts = async (
     if (converted.length > 0) {
       subsMap.set(obj, converted);
     }
-  });
+  }
 
   // Sort objects: the ones with subscriptions go first
   objs.sort((a, b) => {
@@ -511,7 +511,7 @@ export const _pauseFromContexts = async (
   const refs: Record<string, string> = {};
 
   // Write back to the dom
-  allContexts.forEach((ctx) => {
+  for (const ctx of allContexts) {
     const node = ctx.$element$;
     const elementID = ctx.$id$;
     const ref = ctx.$refMap$;
@@ -526,7 +526,7 @@ export const _pauseFromContexts = async (
 
     if (ref.length > 0) {
       assertElement(node);
-      const value = ref.map(mustGetObjId).join(' ');
+      const value = mapJoin(ref, mustGetObjId, ' ');
       if (value) {
         refs[elementID] = value;
       }
@@ -546,7 +546,7 @@ export const _pauseFromContexts = async (
       }
 
       if (watches && watches.length > 0) {
-        const value = watches.map(getObjId).filter(isNotNullable).join(' ');
+        const value = mapJoin(watches, getObjId, ' ');
         if (value) {
           metaValue.w = value;
           add = true;
@@ -554,7 +554,7 @@ export const _pauseFromContexts = async (
       }
 
       if (elementCaptured && seq && seq.length > 0) {
-        const value = seq.map(mustGetObjId).join(' ');
+        const value = mapJoin(seq, mustGetObjId, ' ');
         metaValue.s = value;
         add = true;
       }
@@ -577,7 +577,7 @@ export const _pauseFromContexts = async (
         meta[elementID] = metaValue;
       }
     }
-  });
+  }
 
   // Sanity check of serialized element
   if (qDev) {
@@ -601,6 +601,20 @@ export const _pauseFromContexts = async (
     qrls: collector.$qrls$,
     mode: canRender ? 'render' : 'listeners',
   };
+};
+
+export const mapJoin = (objects: any[], getObjectId: GetObjID, sep: string): string => {
+  let output = '';
+  for (const obj of objects) {
+    const id = getObjectId(obj);
+    if (id !== null) {
+      if (output !== '') {
+        output += sep;
+      }
+      output += id;
+    }
+  }
+  return output;
 };
 
 export const getNodesInScope = <T>(

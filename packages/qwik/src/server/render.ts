@@ -61,8 +61,9 @@ export async function renderToStream(
     }
   }
   function enqueue(chunk: string) {
-    bufferSize += chunk.length;
-    totalSize += chunk.length;
+    const len = chunk.length;
+    bufferSize += len;
+    totalSize += len;
     buffer += chunk;
   }
   switch (inOrderStreaming.strategy) {

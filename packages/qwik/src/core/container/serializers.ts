@@ -437,11 +437,11 @@ const serializers: Serializer<any>[] = [
   DateSerializer, ///////////// \u0006
   RegexSerializer, //////////// \u0007
   ErrorSerializer, //////////// \u000E
-  ComponentSerializer, //////// \u0010
   DerivedSignalSerializer, //// \u0011
-  NoFiniteNumberSerializer, /// \u0014
-  URLSearchParamsSerializer, // \u0015
   FormDataSerializer, ///////// \u0016
+  URLSearchParamsSerializer, // \u0015
+  ComponentSerializer, //////// \u0010
+  NoFiniteNumberSerializer, /// \u0014
   JSXNodeSerializer, ////////// \u0017
   BigIntSerializer, /////////// \u0018
   DocumentSerializer, ///////// \u000F

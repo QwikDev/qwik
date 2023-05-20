@@ -188,9 +188,9 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const captureRef = qrl.$captureRef$;
   if (captureRef && captureRef.length) {
     if (opts.$getObjId$) {
-      output += mapJoin(captureRef, opts.$getObjId$, ' ');
+      output += `[${mapJoin(captureRef, opts.$getObjId$, ' ')}]`;
     } else if (opts.$addRefMap$) {
-      output += mapJoin(captureRef, opts.$addRefMap$, ' ');
+      output += `[${mapJoin(captureRef, opts.$addRefMap$, ' ')}]`;
     }
   } else if (capture && capture.length > 0) {
     output += `[${capture.join(' ')}]`;

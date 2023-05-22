@@ -147,5 +147,9 @@
   {
     "href": "https://leonerd.blog",
     "tags": "portfolio"
+  },
+  {
+    "href": "https://seifen.vercel.app/",
+    "tags": "site"
   }
 ]

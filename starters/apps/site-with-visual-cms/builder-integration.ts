@@ -1,8 +1,9 @@
 import type { Logger, Plugin } from 'vite';
-import fs from 'node:fs';
-import { join } from 'node:path';
-import { hostname } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { homedir, hostname } from 'node:os';
 import { request } from 'node:https';
+import { IncomingMessage } from 'node:http';
 
 function html(content: string) {
   return `
@@ -67,8 +68,9 @@ function html(content: string) {
 /**
  * First step in the setup process. Show all the steps and explain what's going on.
  */
-function setupOverviewStep(ctx: BuilderSetupContext) {
-  const nextStepUrl = getAuthConnectUrl(ctx);
+function setupOverviewStep(ctx: BuilderSetupContext, url: URL) {
+  debug(`show overview step`);
+  const nextStepUrl = getAuthConnectUrl(ctx, url);
 
   return html(`
     <aside>
@@ -77,12 +79,10 @@ function setupOverviewStep(ctx: BuilderSetupContext) {
           Overview
         </li>
         <li>
-          <a href="${nextStepUrl}">
-            Connect Builder.io
-          </a>
+          Connect Builder.io
         </li>
         <li>
-          Setup content page
+          Setup Content Page
         </li>
       </ul>
     </aside>
@@ -105,95 +105,207 @@ function setupOverviewStep(ctx: BuilderSetupContext) {
   `);
 }
 
-function getDefaultHomepage(publicApiKey: string, urlPath: string) {
-  return {
+/**
+ * Returning from the builder.io auth flow, show the next step in the setup process.
+ */
+function connectedToBuilderStep(ctx: BuilderSetupContext, url: URL, backgroundUpdate: boolean) {
+  debug(`show connected to builder step (background update: ${backgroundUpdate})`);
+  const appBaseUrl = getAppBaseUrl(ctx, url).pathname;
+  const connectedStepUrl = getConnectedStepUrl(ctx, url);
+  const backgroundUpdateUrl = getBackgroundUpdateUrl(ctx, url);
+
+  return html(`
+    <aside>
+      <ul>
+        <li class="completed">
+          Overview
+        </li>
+        <li class="active">
+          Connect Builder.io
+        </li>
+        <li>
+          Setup Content Page
+        </li>
+      </ul>
+    </aside>
+    <section>
+      <h1>
+        Visual CMS Connected
+      </h1>
+      <p>
+        Great! Your ${ctx.framework} app has been connected to the Builder.io Visual CMS.
+      </p>
+      <p>
+        Next let's connect Builder.io so you can start editing and publishing content.
+      </p>
+      <nav>
+        <p>
+          <a id="next" disabled href="${appBaseUrl}">Next</a>
+        </p>
+      </nav>
+    </section>
+    ${
+      backgroundUpdate
+        ? `
+          <script>
+            history.replaceState({}, "", "${connectedStepUrl}");
+            fetch("${backgroundUpdateUrl}").then((rsp) => {
+              if (rsp.ok) {
+                document.getElementById("next").removeAttribute("disabled");
+              } else {
+                console.error("Failed to update Builder.io page", rsp.status);
+                rsp.text().then((text) => {
+                  console.error(text);
+                });
+              }
+            }).catch((err) => {
+              console.error(err);
+            });
+          </script>
+          `
+        : ``
+    }
+  `);
+}
+
+function getDefaultHomepage(ctx: BuilderSetupContext) {
+  return JSON.stringify({
     '@version': 4,
     name: DEFAULT_HOMEPAGE_PAGE_NAME,
-    ownerId: publicApiKey,
+    ownerId: ctx.credentials.publicApiKey,
     published: 'published',
     query: [
       {
         '@type': '@builder.io/core:Query',
         property: 'urlPath',
-        value: urlPath,
+        value: ctx.appBasePathname,
         operator: 'is',
       },
     ],
     data: {
       blocksString: DEFAULT_HOMEPAGE_BLOCK,
       title: DEFAULT_HOMEPAGE_PAGE_NAME,
-      url: urlPath,
+      url: ctx.appBasePathname,
     },
-  };
+  });
 }
 
 const DEFAULT_HOMEPAGE_PAGE_NAME = `Homepage`;
 const DEFAULT_HOMEPAGE_BLOCK = `[{"@type":"@builder.io/sdk:Element","@version":2,"id":"builder-b3e7bacb8fc740109a8154507ad3f39b","component":{"name":"Text","options":{"text":"<h1>Hello Qwik!</h1>"}},"responsiveStyles":{"large":{"display":"flex","flexDirection":"column","position":"relative","flexShrink":"0","boxSizing":"border-box","marginTop":"20px","lineHeight":"normal","height":"auto","marginLeft":"auto","marginRight":"auto"}}},{"@type":"@builder.io/sdk:Element","@version":2,"id":"builder-15627179727f4fcba1246a6da5e8ae67","component":{"name":"Image","options":{"image":"https://cdn.builder.io/api/v1/image/assets%2F4025e37ed968472fac153d65c579ca46%2Fb2a221368b714e8991e94790bb3a0068","backgroundSize":"cover","backgroundPosition":"center","lazy":false,"fitContent":true,"aspectRatio":1.333,"lockAspectRatio":false,"height":1300,"width":975}},"responsiveStyles":{"large":{"display":"flex","flexDirection":"column","position":"relative","flexShrink":"0","boxSizing":"border-box","marginTop":"20px","width":"100%","minHeight":"20px","minWidth":"20px","overflow":"hidden"}}}]`;
 
-async function validateBuilderSetup(
+async function validateBuilderIntegration(
   ctx: BuilderSetupContext,
-  url: URL | null | undefined
-): Promise<BuilderSetupResult> {
-  const result: BuilderSetupResult = {};
+  url: URL
+): Promise<BuilderIntegrationResult> {
+  const result: BuilderIntegrationResult = {};
 
   try {
-    if (ctx.isValid || !url || !isPageRequest(url)) {
+    if (ctx.isValid || !isPageRequest(url)) {
       // all good, already validated
       // or this is not a page request so don't bother
       return result;
     }
 
-    // remember the dev server url we're currently at
-    ctx.url = url;
-
     // get the keys from the querystring (if they exist)
-    const qsApiKey = url.searchParams.get(BUILDER_AUTH_API_KEY_QS);
-    const qsPrivateKey = url.searchParams.get(BUILDER_AUTH_PRIVATE_KEY_QS);
+    const qsPublicApiKey = url.searchParams.get(BUILDER_PUBLIC_API_KEY_QS);
+    const qsPrivateAuthKey = url.searchParams.get(BUILDER_PRIVATE_AUTH_KEY_QS);
 
     // check if we're returning from the builder.io auth flow
-    if (qsApiKey && qsPrivateKey) {
+    if (qsPublicApiKey && qsPrivateAuthKey) {
+      debug(`url has auth keys`);
       // we've returned from the builder.io auth flow
-      // and have the auth keys in the querystirng
+      // and have the auth keys in the querystring
+      ctx.credentials = {
+        publicApiKey: qsPublicApiKey,
+        privateAuthKey: qsPrivateAuthKey,
+      };
 
-      // querystring has the public api key
-      // save it to the .env file
-      await setBuilderPublicApiKey(ctx, qsApiKey);
+      if (url.searchParams.get(BUILDER_SETUP_STEP_QS) === BUILDER_UPDATE_STEP) {
+        debug(`step: ${BUILDER_UPDATE_STEP}`);
+        // handle the background fetch() request that should:
+        // - create the homepage
+        // - write the private auth key to the user's home directory
+        // - update the .env file with the public api key
 
-      // see if this builder account already has a homepage created
-      const hasHomepage = await hasBuilderHomepage(ctx, qsApiKey);
-      if (!hasHomepage) {
-        // there is no homepage content created yet
-        // create the default homepage for them
-        await createBuilderHomepage(ctx, qsApiKey, qsPrivateKey);
+        // see if this builder account already has a homepage created
+        const hasHomepage = await hasBuilderHomepage(ctx);
+        if (!hasHomepage) {
+          // there is no homepage content created yet
+          // create the default homepage for them
+          await createBuilderHomepage(ctx);
+        }
+
+        // write the app credientials to the user's home directory builder config
+        setBuilderAppCredentials(ctx);
+
+        // write the api key it to the app's .env file
+        // writing to the .env file will trigger a server restart
+        setBuilderPublicApiKey(ctx);
+
+        // set the result to show the connected to builder step
+        result.html = `set public api key: ${ctx.credentials.publicApiKey}`;
+        return result;
       }
 
-      // let's redirect to the app base url
-      // but without the keys in the querystring
-      const nextUrl = getAppBaseUrl(ctx);
-
-      // set the redirect url the server should 302 to next
-      result.redirectUrl = nextUrl.href;
+      // returning from auth flow then redirected to this page
+      // show that we're connected to builder
+      // In the background we'll fire off a fetch() that will:
+      // - create the homepage
+      // - write the private auth key to the user's home directory
+      // - update the .env file with the public api key
+      // - updating the .env file will trigger a server restart
+      result.html = connectedToBuilderStep(ctx, url, true);
       return result;
     }
 
     // get the builder public api key from the .env file
-    const envApiKey = await getValidBuilderApiKey(ctx);
+    const envApiKey = getBuilderApiKey(ctx);
     if (!envApiKey) {
+      debug(`invalid api key in .env file`);
       // we don't have a valid api key saved in the .env file
       // respond with the first step of setup UI
-      result.setupHtml = setupOverviewStep(ctx);
+      result.html = setupOverviewStep(ctx, url);
       return result;
     }
 
-    // it's possible that .env is setup, but they still don't have a homepage somehow
+    debug(`public api key from the .env file: ${envApiKey}`);
+
+    // set the public api key in the process.env
+    // dotenv will normally do this on a fresh server start
+    process.env[BUILDER_API_KEY_ENV] = envApiKey;
+
+    // get the private api key from the user home dir builder config file
+    const appCredentials = getBuilderAppCredentials(ctx, envApiKey);
+    if (!appCredentials) {
+      debug(`invalid app credentials in user home dir`);
+      // we don't have a valid private key saved in the user home dir config
+      // respond with the first step of setup UI
+      result.html = setupOverviewStep(ctx, url);
+      return result;
+    }
+
+    // remember the valid app credentials
+    ctx.credentials = appCredentials;
+
+    if (url.searchParams.get(BUILDER_SETUP_STEP_QS) === BUILDER_CONNECTED_STEP) {
+      debug(`step: ${BUILDER_CONNECTED_STEP}`);
+      // continue showing the connected step
+      // we may have reloaded the page and forgetten the context
+      // at this point don't do a background fetch() update
+      result.html = connectedToBuilderStep(ctx, url, false);
+      return result;
+    }
+
+    // it's possible that the builder auth is setup, but they still don't have a homepage somehow
     // double check if this builder account already has a homepage created
-    const hasHomepage = await hasBuilderHomepage(ctx, envApiKey);
+    const hasHomepage = await hasBuilderHomepage(ctx);
     if (!hasHomepage) {
+      debug(`no homepage created yet`);
       // there is no homepage content created yet for the valid public api key
       // we don't have their private key, so let's redirect to the auth flow
       // so we can get their private key and create the homepage for them
       // respond with the first step of setup UI
-      result.setupHtml = setupOverviewStep(ctx);
+      result.html = setupOverviewStep(ctx, url);
       return result;
     }
 
@@ -202,6 +314,7 @@ async function validateBuilderSetup(
     // and they have a homepage created
     // no need to respond with the setup UI
     // set isValid to true so we don't have to validate again
+    debug(`set is valid`);
     ctx.isValid = true;
   } catch (e: any) {
     // collect the error and let the build decide how to handle it
@@ -211,10 +324,10 @@ async function validateBuilderSetup(
   return result;
 }
 
-async function hasBuilderHomepage(ctx: BuilderSetupContext, apiKey: string) {
+async function hasBuilderHomepage(ctx: BuilderSetupContext) {
   try {
     const url = new URL(`https://cdn.builder.io/api/v3/content/page`);
-    url.searchParams.set(`apiKey`, apiKey);
+    url.searchParams.set(`apiKey`, ctx.credentials.publicApiKey);
     url.searchParams.set(`url`, ctx.appBasePathname);
     url.searchParams.set(`cachebust`, Math.random().toString());
 
@@ -223,32 +336,336 @@ async function hasBuilderHomepage(ctx: BuilderSetupContext, apiKey: string) {
       method: 'GET',
     });
 
-    return res.results.length > 0;
+    const hasHomepage = res.results.length > 0;
+    debug(`has homepage: ${hasHomepage}`);
+    return hasHomepage;
   } catch (e) {
     console.error(e);
     return false;
   }
 }
 
-async function createBuilderHomepage(
-  ctx: BuilderSetupContext,
-  publicApiKey: string,
-  privateKey: string
-) {
+async function createBuilderHomepage(ctx: BuilderSetupContext) {
+  debug(`create homepage`);
   const url = new URL(`https://cdn.builder.io/api/v1/write/page`);
 
-  const homepage = getDefaultHomepage(publicApiKey, ctx.appBasePathname);
-  homepage.query[0].value = ctx.appBasePathname;
-  homepage.data.url = ctx.appBasePathname;
+  const body = getDefaultHomepage(ctx);
 
   await requestJSON({
     url,
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${privateKey}`,
+      Authorization: `Bearer ${ctx.credentials.privateAuthKey}`,
     },
-    body: JSON.stringify(homepage),
+    body,
   });
+}
+
+function setBuilderPublicApiKey(ctx: BuilderSetupContext) {
+  const comment = `# https://www.builder.io/c/docs/using-your-api-key`;
+
+  // check if we already have an .env file
+  if (existsSync(ctx.envFilePath)) {
+    // read the existing .env file
+    let envContent = readFileSync(ctx.envFilePath, 'utf-8');
+    if (envContent.includes(BUILDER_API_KEY_ENV)) {
+      // existing .env has a builder api key already, update its value
+      if (!envContent.includes(ctx.credentials.publicApiKey)) {
+        // existing .env has a builder api key, but it's not the same as the one we have
+        debug(`update public api key in existing .env file`);
+        envContent = envContent.replace(
+          new RegExp(`${BUILDER_API_KEY_ENV}=.*`),
+          `${BUILDER_API_KEY_ENV}=${ctx.credentials.publicApiKey}`
+        );
+        writeFileSync(ctx.envFilePath, envContent);
+      } else {
+        debug(`public api key already in existing .env file`);
+      }
+    } else {
+      // existing .env does not have a builder api key, append the key/value
+      debug(`append public api key to existing .env file`);
+      envContent += `\n\n${comment}\n${BUILDER_API_KEY_ENV}=${ctx.credentials.publicApiKey}\n\n`;
+      writeFileSync(ctx.envFilePath, envContent);
+    }
+  } else {
+    // create a new .env file since it doesn't exist yet
+    debug(`create .env file with public api key`);
+    const newEnv = [comment, `${BUILDER_API_KEY_ENV}=${ctx.credentials.publicApiKey}`, ``];
+    writeFileSync(ctx.envFilePath, newEnv.join('\n'));
+  }
+}
+
+function getBuilderApiKey(ctx: BuilderSetupContext) {
+  if (existsSync(ctx.envFilePath)) {
+    const envContent = readFileSync(ctx.envFilePath, 'utf-8');
+
+    const envs = envContent
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0)
+      .filter((l) => !l.startsWith('#'))
+      .filter((l) => l.includes('='))
+      .map((l) => {
+        const [key, value] = l.split('=');
+        return { key, value };
+      });
+
+    const builderApiKey = envs.find((e) => e.key === BUILDER_API_KEY_ENV);
+    if (typeof builderApiKey?.value === 'string' && builderApiKey.value.length > 0) {
+      if (builderApiKey.value !== 'YOUR_API_KEY') {
+        return builderApiKey.value;
+      }
+    }
+  }
+  return null;
+}
+
+function getBuilderAppCredentials(ctx: BuilderSetupContext, publicApiKey: string) {
+  try {
+    const credintialsFilePath = getCredentialsFilePath(ctx, publicApiKey);
+    const config = readFileSync(credintialsFilePath, 'utf-8');
+    return JSON.parse(config) as BuilderAppCredentials;
+  } catch (e: any) {
+    if (e.code === 'ENOENT') {
+      return null;
+    }
+    throw e;
+  }
+}
+
+function setBuilderAppCredentials(ctx: BuilderSetupContext) {
+  debug(`set credentials`);
+  const credintialsFilePath = getCredentialsFilePath(ctx, ctx.credentials.publicApiKey);
+  mkdirSync(dirname(credintialsFilePath), { recursive: true });
+  writeFileSync(credintialsFilePath, JSON.stringify(ctx.credentials, null, 2));
+}
+
+function getCredentialsFilePath(ctx: BuilderSetupContext, publicApiKey: string) {
+  return join(ctx.credentialsDirPath, `${publicApiKey}.json`);
+}
+
+function isPageRequest(url: URL) {
+  if (url.pathname.endsWith('/')) {
+    return true;
+  }
+
+  const filename = url.pathname.split('/').pop();
+  if (filename) {
+    if (!filename.includes('.')) {
+      return true;
+    }
+
+    const ext = filename.split('.').pop();
+    if (ext === 'html') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function interceptPageRequest(ctx: BuilderSetupContext) {
+  const result: BuilderIntegrationResult = {};
+
+  if (ctx.isValid) {
+    try {
+      result.html = `<script id="builder-dev-tools">(function(){\n${getBuilderDevToolsRuntime()}\n})();</script>
+    `;
+    } catch (e: any) {
+      result.errors = [e.message];
+    }
+  }
+
+  return result;
+}
+
+function getBuilderDevToolsRuntime() {
+  return `
+  try {
+    const editButton = document.createElement('builder-dev-tools-edit-button');
+    editButton.style.display = 'none';
+    editButton.setAttribute('aria-hidden', 'true');
+
+    function onPointerOver(ev) {
+      const hoverElm = ev.target;
+      if (!hoverElm) {
+        hideEditButton();
+        return;
+      }
+
+      if (hoverElm.closest('builder-dev-tools-edit-button')) {
+        return;
+      }
+
+      const contentElm = hoverElm.closest('[builder-content-id]');
+      const builderElm = hoverElm.closest('[builder-id]');
+      if (!contentElm || !builderElm) {
+        hideEditButton();
+        return;
+      }
+
+      const contentId = contentElm.getAttribute('builder-content-id');
+      const builderId = builderElm.getAttribute('builder-id');
+      if (!contentId || !builderId) {
+        hideEditButton();
+        return;
+      }
+
+      const rect = builderElm.getBoundingClientRect();
+      editButton.style.display = 'block';
+      editButton.style.top = (builderElm.offsetTop - 1) + 'px';
+      editButton.style.left = (builderElm.offsetLeft) + 'px';
+      editButton.style.width = (rect.width - 2) + 'px';
+      editButton.style.height = (rect.height - 2) + 'px';
+      editButton.setEditUrl(contentId, builderId);
+    }
+
+    function hideEditButton() {
+      editButton.style.display = 'none';
+    }
+
+    class BuilderDevToolsEditButton extends HTMLElement {
+      constructor() {
+        super();
+        this.shadow = this.attachShadow({ mode: 'open' });
+      }
+
+      connectedCallback() {
+        this.shadow.innerHTML = \`
+        <style>
+          :host { 
+            --builder-blue: rgb(26, 115, 232);
+            box-sizing: border-box;
+            position: absolute;
+            z-index: 100;
+            user-select: none;
+          }
+          a {
+            display: inline-block;
+            box-sizing: border-box;
+            padding: 4px;
+          }
+          a span {
+            display: inline-block;
+            box-sizing: border-box;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            background-color: var(--builder-blue);
+            border: 1px solid transparent;
+            border-radius: 3px;
+            text-align: center;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px, rgba(0, 0, 0, 0.14) 0px 1px 1px 0px, rgba(0, 0, 0, 0.12) 0px 2px 1px -1px;
+            text-decoration: none;
+            pointer-events: none;
+          }
+          a:hover span {
+            border-color: var(--builder-blue);
+            color: var(--builder-blue);
+            background: white;
+          }
+          .outline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border: 1px solid var(--builder-blue);
+          }
+        </style>
+        <a id="edit" target="_blank"><span>Edit</span></a>
+        <div class="outline"></div>
+        \`;
+
+        this.editButton = this.shadow.getElementById('edit');
+      }
+
+      setEditUrl(contentId, builderId) {
+        const pathname = '/content/' + contentId + '/edit';
+        const url = new URL(pathname, 'https://builder.io');
+        url.searchParams.set('selectedBlock', builderId);
+        this.editButton.href = url.href;
+      }
+    }
+
+    customElements.define('builder-dev-tools-edit-button', BuilderDevToolsEditButton);
+    document.body.appendChild(editButton);
+
+    document.addEventListener('pointerover', onPointerOver, { passive: true });
+    document.addEventListener('pointerleave', hideEditButton, { passive: true });
+    document.addEventListener('pointercancel', hideEditButton, { passive: true });
+    document.addEventListener('visibilitychange', hideEditButton, { passive: true });
+
+    window.addEventListener('popstate', hideEditButton, { passive: true });
+
+    const originalPushState = history.pushState;
+    history.pushState = function () {
+      hideEditButton();
+      originalPushState.apply(this, arguments);
+    };
+
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function () {
+      hideEditButton();
+      originalReplaceState.apply(this, arguments);
+    };
+  } catch (e) {
+    console.error(e);
+  }
+  `;
+}
+
+function createBuilderSetup(opts: CreateSetupOptions) {
+  const ctx: BuilderSetupContext = {
+    ...opts,
+    credentials: {
+      publicApiKey: '',
+      privateAuthKey: '',
+    },
+    isValid: false,
+  };
+
+  const builder: BuilderIntegration = {
+    intercept: () => interceptPageRequest(ctx),
+    validate: (url) => validateBuilderIntegration(ctx, url),
+  };
+  return builder;
+}
+
+/**
+ * Get the auth url to connect to builder, and the url to redirect to after connecting
+ */
+function getAuthConnectUrl(ctx: BuilderSetupContext, url: URL) {
+  const authUrl = new URL(`/cli-auth`, `https://builder.io`);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('cli', 'true');
+  authUrl.searchParams.set('client_id', ctx.clientId);
+  authUrl.searchParams.set('host', ctx.clientHostname);
+
+  const returnUrl = getAppBaseUrl(ctx, url).href;
+  authUrl.searchParams.set('redirect_url', returnUrl);
+
+  return authUrl.href;
+}
+
+function getAppBaseUrl(ctx: BuilderSetupContext, url: URL) {
+  return new URL(ctx.appBasePathname, url.origin);
+}
+
+function getConnectedStepUrl(ctx: BuilderSetupContext, url: URL) {
+  const appBaseUrl = getAppBaseUrl(ctx, url);
+  appBaseUrl.searchParams.set(BUILDER_SETUP_STEP_QS, BUILDER_CONNECTED_STEP);
+  return appBaseUrl.pathname + appBaseUrl.search;
+}
+
+function getBackgroundUpdateUrl(ctx: BuilderSetupContext, url: URL) {
+  const appBaseUrl = getAppBaseUrl(ctx, url);
+  appBaseUrl.searchParams.set(BUILDER_SETUP_STEP_QS, BUILDER_UPDATE_STEP);
+  appBaseUrl.searchParams.set(BUILDER_PUBLIC_API_KEY_QS, ctx.credentials.publicApiKey);
+  appBaseUrl.searchParams.set(BUILDER_PRIVATE_AUTH_KEY_QS, ctx.credentials.privateAuthKey);
+  return appBaseUrl.pathname + appBaseUrl.search;
 }
 
 function requestJSON<T>(opts: RequestOptions) {
@@ -298,184 +715,64 @@ function requestJSON<T>(opts: RequestOptions) {
   });
 }
 
-interface RequestOptions {
-  url: URL;
-  headers?: Record<string, string>;
-  method?: string;
-  body?: any;
-}
-
-async function setBuilderPublicApiKey(ctx: BuilderSetupContext, publicApiKey: string) {
-  const comment = `# https://www.builder.io/c/docs/using-your-api-key`;
-
-  // check if we already have an .env file
-  if (fs.existsSync(ctx.envFilePath)) {
-    // read the existing .env file
-    let envContent = await fs.promises.readFile(ctx.envFilePath, 'utf-8');
-    if (envContent.includes(BUILDER_API_KEY_ENV)) {
-      // existing .env has a builder api key already, update its value
-      envContent = envContent.replace(
-        new RegExp(`${BUILDER_API_KEY_ENV}=.*`),
-        `${BUILDER_API_KEY_ENV}=${publicApiKey}`
-      );
-    } else {
-      // existing .env does not have a builder api key, append the key/value
-      envContent += `\n\n${comment}\n${BUILDER_API_KEY_ENV}=${publicApiKey}\n\n`;
-    }
-
-    // update the .env file
-    await fs.promises.writeFile(ctx.envFilePath, envContent);
-  } else {
-    // create a new .env file since it doesn't exist yet
-    const newEnv = [comment, `${BUILDER_API_KEY_ENV}=${publicApiKey}`, ``];
-    await fs.promises.writeFile(ctx.envFilePath, newEnv.join('\n'));
-  }
-}
-
-async function getValidBuilderApiKey(ctx: BuilderSetupContext): Promise<string | null> {
-  if (fs.existsSync(ctx.envFilePath)) {
-    const envContent = await fs.promises.readFile(ctx.envFilePath, 'utf-8');
-
-    const envs = envContent
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
-      .filter((l) => !l.startsWith('#'))
-      .filter((l) => l.includes('='))
-      .map((l) => {
-        const [key, value] = l.split('=');
-        return { key, value };
-      });
-
-    const builderApiKey = envs.find((e) => e.key === BUILDER_API_KEY_ENV);
-    if (typeof builderApiKey?.value === 'string' && builderApiKey.value.length > 0) {
-      if (builderApiKey.value !== 'YOUR_API_KEY') {
-        return builderApiKey.value;
-      }
-    }
-  }
-  return null;
-}
-
-function isPageRequest(url: URL) {
-  if (url.pathname.endsWith('/')) {
-    return true;
-  }
-
-  const filename = url.pathname.split('/').pop();
-  if (filename) {
-    if (!filename.includes('.')) {
-      return true;
-    }
-
-    const ext = filename.split('.').pop();
-    if (ext === 'html') {
-      return true;
-    }
-  }
-  return false;
-}
-
-function createBuilderSetup(opts: CreateSetupOptions) {
-  const ctx: BuilderSetupContext = {
-    ...opts,
-    isValid: false,
-    url: null,
-  };
-
-  const builder: BuilderSetup = {
-    validate: (url) => validateBuilderSetup(ctx, url),
-    getEnvFilePath: () => ctx.envFilePath,
-  };
-  return builder;
-}
-
-/**
- * Get the auth url to connect to builder, and the url to redirect to after connecting
- */
-function getAuthConnectUrl(ctx: BuilderSetupContext) {
-  const authUrl = new URL(`/cli-auth`, `https://builder.io`);
-  authUrl.searchParams.set('response_type', 'code');
-  authUrl.searchParams.set('cli', 'true');
-  authUrl.searchParams.set('client_id', ctx.clientId);
-  authUrl.searchParams.set('host', ctx.clientHostname);
-
-  const returnUrl = getAppBaseUrl(ctx).href;
-  authUrl.searchParams.set('redirect_url', returnUrl);
-
-  return authUrl.href;
-}
-
-function getAppBaseUrl(ctx: BuilderSetupContext) {
-  return new URL(ctx.appBasePathname, ctx.url!.origin);
-}
-
-interface CreateSetupOptions {
-  appBasePathname: string;
-  clientId: string;
-  clientHostname: string;
-  envFilePath: string;
-  framework: string;
-}
-
-interface BuilderSetupContext extends CreateSetupOptions {
-  isValid: boolean;
-  url: URL | null;
-}
-
-interface BuilderSetup {
-  validate: (url: URL | null | undefined) => Promise<BuilderSetupResult>;
-  getEnvFilePath: () => string;
-}
-
-interface BuilderSetupResult {
-  setupHtml?: string;
-  redirectUrl?: string;
-  errors?: string[];
-}
-
 const BUILDER_API_KEY_ENV = `PUBLIC_BUILDER_API_KEY`;
-const BUILDER_AUTH_API_KEY_QS = `api-key`;
-const BUILDER_AUTH_PRIVATE_KEY_QS = `p-key`;
+const BUILDER_PUBLIC_API_KEY_QS = `api-key`;
+const BUILDER_PRIVATE_AUTH_KEY_QS = `p-key`;
+const BUILDER_SETUP_STEP_QS = `builder-connect`;
+const BUILDER_UPDATE_STEP = `update`;
+const BUILDER_CONNECTED_STEP = `connected`;
 
 /**
  * Vite plugin that adds builder.io setup UI
  */
-export function builderio(opts: BuilderioOptions = {}): Plugin {
-  let builder: BuilderSetup | null;
-  let logger: Logger | null;
+export function builderDevTools(opts: BuilderioOptions = {}): Plugin {
+  let builder: BuilderIntegration | undefined;
+  let logger: Logger | undefined;
+  let port: number | undefined;
 
   return {
-    name: 'builderioDevTools',
+    name: 'builderDevTools',
 
     configResolved(config) {
       logger = config.logger;
+      port = config.server.port;
       builder = createBuilderSetup({
         appBasePathname: config.base,
-        envFilePath: opts.envFilePath || join(config.root, '.env'),
-        framework: 'Qwik',
-        clientId: 'create-qwik-app',
         clientHostname: hostname(),
+        clientId: 'create-qwik-app',
+        credentialsDirPath: join(homedir(), `.config`, `builder`),
+        envFilePath: opts.envFilePath || join(config.root, `.env`),
+        framework: 'Qwik',
       });
     },
 
     configureServer(server) {
-      if (builder) {
-        // do not watch the .env file since we don't want to restart the server on changes
-        server.watcher.unwatch(builder.getEnvFilePath());
-      }
-
       server.middlewares.use(async (req, res, next) => {
+        req.socket.address();
+
+        const orgResponseEnd = res.end;
+        res.end = function (...args: any[]) {
+          if (builder) {
+            const contentType = (res.getHeader('Content-Type') || '').toString();
+
+            if (contentType.includes('text/html')) {
+              const result = builder.intercept();
+              if (result.errors && logger) {
+                result.errors.map((e) => logger!.error(e));
+              }
+              if (result.html) {
+                res.write(result.html);
+              }
+            }
+          }
+
+          return orgResponseEnd.apply(this, args);
+        };
+
         // add Vite dev server middleware that
         // shows builder setup UI if needed
-        if (builder && server.httpServer && req.url) {
-          const address = server.httpServer.address();
-          let url: URL | null = null;
-          if (typeof address === 'string') {
-            url = new URL(req.url!, address);
-          } else if (address) {
-            url = new URL(req.url!, `http://${address.address}:${address.port}`);
-          }
+        if (builder) {
+          const url = getNodeHttpUrl(port, req);
 
           const result = await builder.validate(url);
 
@@ -483,19 +780,11 @@ export function builderio(opts: BuilderioOptions = {}): Plugin {
             result.errors.map((e) => logger!.error(e));
           }
 
-          if (result.redirectUrl) {
-            res.writeHead(302, {
-              Location: result.redirectUrl,
-            });
-            res.end();
-            return;
-          }
-
-          if (result.setupHtml) {
+          if (result.html) {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store');
             res.setHeader('X-Builderio-Vite-Dev-Server', 'true');
-            res.end(result.setupHtml);
+            res.end(result.html);
             return;
           }
         }
@@ -505,9 +794,60 @@ export function builderio(opts: BuilderioOptions = {}): Plugin {
   };
 }
 
+function getNodeHttpUrl(port: number | undefined, req: IncomingMessage) {
+  const a = req.socket.address();
+  const address = 'address' in a && typeof a.address === 'string' ? a.address : 'localhost';
+  port = 'port' in a && typeof a.port === 'number' ? a.port : port;
+
+  return new URL(req.url || '/', `http://${address}:${port}`);
+}
+
+function debug(...args: any[]) {
+  if (process.env.DEBUG) {
+    // eslint-disable-next-line no-console
+    console.debug('[builder.io]', ...args);
+  }
+}
+
 export interface BuilderioOptions {
   /**
    * Absolute path to the project's `.env` file.
    */
   envFilePath?: string;
+}
+
+interface CreateSetupOptions {
+  appBasePathname: string;
+  clientHostname: string;
+  clientId: string;
+  credentialsDirPath: string;
+  envFilePath: string;
+  framework: string;
+}
+
+interface BuilderSetupContext extends CreateSetupOptions {
+  isValid: boolean;
+  credentials: BuilderAppCredentials;
+}
+
+interface BuilderIntegration {
+  intercept: () => BuilderIntegrationResult;
+  validate: (url: URL) => Promise<BuilderIntegrationResult>;
+}
+
+interface BuilderIntegrationResult {
+  html?: string;
+  errors?: string[];
+}
+
+interface BuilderAppCredentials {
+  publicApiKey: string;
+  privateAuthKey: string;
+}
+
+interface RequestOptions {
+  url: URL;
+  headers?: Record<string, string>;
+  method?: string;
+  body?: any;
 }

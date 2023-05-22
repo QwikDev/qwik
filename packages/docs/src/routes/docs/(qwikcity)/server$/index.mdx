@@ -13,6 +13,12 @@ contributors:
 
 `server$` is a form of RPC (Remote Procedure Call) mechanism between the client and server, just like a traditional HTTP endpoint but strongly typed thanks to Typescript, and easier to maintain.
 
+Your new function will have the following signature:
+`([AbortSignal, ] ...): Promise<T>`
+
+`AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.
+Please note that depending on your server runtime, the function on the server may or may not terminate immediately as it depends on how client disconnections are handled by said runtime.
+
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
@@ -77,6 +83,9 @@ const addUser = server$(async function(id: number, fullName: string, address: Ad
 ## Streaming responses
 
 `server$` can return a stream of data by using an async generator. This is useful for streaming data from the server to the client.
+
+Terminating the generator on the client side (e.g. by calling `return()` on the generator, or by breaking out from your async for-loop) will terminate the connection. As with `AbortSignal` -
+how the generator will terminate on the server side depends on the server runtime and how client disconnects are handled.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';

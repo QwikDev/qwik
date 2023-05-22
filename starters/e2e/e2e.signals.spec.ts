@@ -432,6 +432,24 @@ test.describe('signals', () => {
       const result = page.locator('#issue-4174-result');
       await expect(result).toHaveText('Store: visible-task');
     });
+
+    test('issue 4249', async ({ page }) => {
+      const first = page.locator('#issue-4249-first');
+      const second = page.locator('#issue-4249-second');
+      const result = page.locator('#issue-4249-result');
+
+      await expect(result).toHaveText('Status: No collision');
+      await expect(result).toHaveAttribute('data-value', 'no-collision');
+      await second.fill('bar');
+      await first.fill('bar');
+      await expect(result).toHaveText('Status: Collision detected');
+      await expect(result).toHaveAttribute('data-value', 'collision');
+
+      await first.fill('foo');
+      await second.fill('foo');
+      await expect(result).toHaveText('Status: Collision detected');
+      await expect(result).toHaveAttribute('data-value', 'collision');
+    });
   }
 
   tests();

@@ -183,6 +183,11 @@
       "title": "Amsterdam",
       "href": "https://www.meetup.com/qwik-amsterdam-meetup-group/",
       "imgSrc": "/ecosystem/qwik-amsterdam.svg"
+    },
+    {
+      "title": "India",
+      "href": "https://www.meetup.com/qwik-india/",
+      "imgSrc": "/ecosystem/qwik-india.svg"
     }
   ],
   "social": [

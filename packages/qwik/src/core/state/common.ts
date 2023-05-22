@@ -22,6 +22,7 @@ export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
   $clearSub$: (sub: SubscriberEffect | SubscriberHost | Node) => void;
+  $clearSignal$: (sub: SubscriberSignal) => void;
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -294,6 +295,14 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
         managers.length = 0;
       }
     },
+    $clearSignal$: (signal: SubscriberSignal) => {
+      const managers = groupToManagers.get(signal[1]);
+      if (managers) {
+        for (const manager of managers) {
+          manager.$unsubEntry$(signal);
+        }
+      }
+    },
   };
   seal(manager);
   return manager;
@@ -339,6 +348,16 @@ export class LocalSubscriptionManager {
       if (found) {
         subs.splice(i, 1);
         i--;
+      }
+    }
+  }
+
+  $unsubEntry$(entry: Subscriptions) {
+    const subs = this.$subs$;
+    for (let i = 0; i < subs.length; i++) {
+      if (subs[i] === entry) {
+        subs.splice(i, 1);
+        return;
       }
     }
   }

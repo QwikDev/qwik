@@ -10,7 +10,6 @@ import {
   _jsxBranch,
   jsx,
   type JSXNode,
-  useVisibleTask$,
 } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
@@ -406,58 +405,5 @@ export const Issue4215 = component$(() => {
         </QwikSvgWithSlot>
       </div>
     </>
-  );
-});
-
-export const Content = component$(() => {
-  return (
-    <HideUntilVisible>
-      <p>Content</p>
-      <Slot />
-    </HideUntilVisible>
-  );
-});
-
-export const HideUntilVisible = component$(() => {
-  const visible = useSignal(false);
-
-  useVisibleTask$(() => {
-    visible.value = true;
-  });
-
-  return (
-    <div style={{ outline: '1px solid blue' }}>
-      <button
-        onClick$={() => {
-          visible.value = !visible.value;
-        }}
-      >
-        toggle
-      </button>
-
-      {visible.value && (
-        <>
-          <p>Hide until visible</p>
-          <Slot />
-        </>
-      )}
-    </div>
-  );
-});
-
-export default component$(() => {
-  return (
-    <main>
-      <p>This one has the problem</p>
-      <Content>
-        <p>index page</p>
-      </Content>
-
-      <p>This one doesn't</p>
-      <HideUntilVisible>
-        <p>Content</p>
-        <p>index page</p>
-      </HideUntilVisible>
-    </main>
   );
 });

@@ -1,6 +1,6 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug, renameClassname } from './rehype';
+import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
@@ -63,6 +63,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       ...coreRehypePlugins,
       [rehypePage, ctx],
       renameClassname,
+      wrapTableWithDiv,
     ],
   };
 

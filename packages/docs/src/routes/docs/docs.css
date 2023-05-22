@@ -203,6 +203,7 @@ h6 a:hover .icon {
 
 .docs article pre {
   padding: 18px 15px;
+  overflow: auto;
 }
 
 :root {

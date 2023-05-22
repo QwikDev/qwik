@@ -70,6 +70,7 @@
   margin: 10px auto;
   padding: 80px 30px 0;
   max-width: 1060px;
+  overflow: hidden;
 }
 
 .docs.api .section-title {
@@ -216,4 +217,7 @@
 .docs.api [data-kind-label="N"]:before {
     content: 'N';
     background: #5cb85c;
+}
+.docs.api .table-wrapper {
+  overflow-x: auto;
 }

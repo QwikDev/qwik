@@ -8,9 +8,11 @@ contributors:
 
 Caching responses is critical for keeping your site as fast as possible, both for [pages](/docs/(qwikcity)/pages/index.mdx) as well as [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
 
-A good default is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. For instance, we can add an `onGet` export to our root [layout](/docs/(qwikcity)/layout/index.mdx) (`src/routes/layout.tsx`) like so:
+A good default is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. 
 
-```tsx
+For instance, we can add an `onGet` export to our root [layout](/docs/(qwikcity)/layout/index.mdx) (`src/routes/layout.tsx`) like so, to apply good caching defaults site-wide:
+
+```tsx title="src/routes/layout.tsx"
 import { component$, Slot } from "@builder.io/qwik";
 import type { RequestHandler } from "@builder.io/qwik-city";
 
@@ -38,7 +40,7 @@ With the above setup we will not only have better performance (pages are always 
 
 Any method that takes a [request event](https://qwik.builder.io/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
 
-```tsx
+```tsx title="src/routes/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";
 
 export const onGet: RequestHandler = async (request) => {
@@ -51,6 +53,23 @@ export const onGet: RequestHandler = async (request) => {
 };
 ```
 
+You can also override this as well. For instance, perhaps you have a defualt caching at the root, but want to disable caching for a specific page, you can override this with nested layouts
+
+```tsx title="src/routes/dashboard/layout.tsx"
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+// Override caching for /dashboard pages to not cache as they are unique per visitor
+export const onGet: RequestHandler = async (request) => {
+  request.cacheControl({
+    public: false,
+    maxAge: 0,
+    sMaxAge: 0,
+    staleWhileRevalidate: 0,
+  });
+};
+
+```
+
 You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
 
 ## When not to cache
@@ -61,7 +80,7 @@ For high traffic pages that look the same to everyone, such as a homepage, cachi
 
 You can conditionally change cache behaviors with any logic you like:
 
-```tsx
+```tsx title="src/routes/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";
 
 export const onGet: RequestHandler = async (request) => {

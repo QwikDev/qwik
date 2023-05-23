@@ -1,109 +1,135 @@
 export default (props: RealMetricsOptimizationProps) => (
   <script
-    dangerouslySetInnerHTML={`
-  ((d, sentStats) => {
-    const id = () => Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-    const pageId = id();
-    const sessionId = (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id());
-    const now = Date.now();
-    const sessionStart = parseInt((sessionStorage["q:sTs"] = sessionStorage["q:sTs"] || now), 10);
-    const sessionOffset = now - sessionStart;
-    const visitorId = (localStorage["q:vId"] = localStorage["q:vId"] || id());
-    const qEvents = [];
-    const loggedQrls = new Set();
+    dangerouslySetInnerHTML={`(${collectRealMetricsOptimization.toString()})(document, ${JSON.stringify(
+      props.builderApiKey
+    )});`}
+  />
+);
 
-    const send = () => {
-      if (qEvents.length > 0) {
-        fetch("https://cdn.builder.io/api/v1/track", {
-          method: "POST",
-          body: JSON.stringify({ events: qEvents }),
-          keepalive: true,
-        });
-        qEvents.length = 0;
-      }
+interface QSymbolEventDetail {
+  symbol: string;
+  element: HTMLElement;
+  reqTime: number;
+}
 
+interface QSymbolEventPayload {
+  type: string;
+  data: {
+    metadata: {
+      url: string;
+      pageId: string;
+      sessionOffset: number;
+      ///
+      [key: string]: any;
     };
+    ownerId: string;
+    sessionId: string;
+    visitorId: string;
+  };
+}
 
-    const queue = (type, metadata) => {
-      qEvents.push({
-        type: type,
-        data: {
-          metadata: {
-            url: location.href,
-            pageId: pageId,
-            sessionOffset: sessionOffset,
-            ...metadata
-          },
-          ownerId: ${JSON.stringify(props.builderApiKey)},
-          sessionId: sessionId,
-          visitorId: visitorId
-        },
+function collectRealMetricsOptimization(d: Document, builderApiKey: string, sentStats?: boolean) {
+  const id = () => Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+  const pageId = id();
+  const sessionId = (sessionStorage['q:sId'] = sessionStorage['q:sId'] || id());
+  const now = Date.now();
+  const sessionStart = parseInt((sessionStorage['q:sTs'] = sessionStorage['q:sTs'] || now), 10);
+  const sessionOffset = now - sessionStart;
+  const visitorId = (localStorage['q:vId'] = localStorage['q:vId'] || id());
+  const qEvents: QSymbolEventPayload[] = [];
+  const loggedQrls = new Set();
+
+  const send = () => {
+    if (qEvents.length > 0) {
+      fetch('https://cdn.builder.io/api/v1/track', {
+        method: 'POST',
+        body: JSON.stringify({ events: qEvents }),
+        keepalive: true,
       });
-    };
+      qEvents.length = 0;
+    }
+  };
 
-    d.addEventListener("qsymbol", (ev) => {
-      try {
-        const detail = ev.detail;
-        const qsymbol = detail?.symbol;
-        console.debug('Symbol', qsymbol);
-        if (qsymbol && !loggedQrls.has(qsymbol)) {
-          loggedQrls.add(qsymbol);
+  const queue = (type: string, metadata: Record<string, any>) => {
+    qEvents.push({
+      type: type,
+      data: {
+        metadata: {
+          url: location.href,
+          pageId: pageId,
+          sessionOffset: sessionOffset,
+          ...metadata,
+        },
+        ownerId: builderApiKey,
+        sessionId: sessionId,
+        visitorId: visitorId,
+      },
+    });
+  };
 
-          queue("qrl", {
-            reqTime: Math.round(detail?.reqTime ?? -1),
-            execTime: Math.round(performance.now()),
-            qsymbol: qsymbol,
-          });
+  d.addEventListener('qsymbol', (ev: Event) => {
+    try {
+      const detail = (ev as any).detail as QSymbolEventDetail | undefined;
+      const qsymbol = detail?.symbol;
+      /* eslint-disable no-console */
+      console.debug('Symbol', qsymbol);
+      if (qsymbol && !loggedQrls.has(qsymbol)) {
+        loggedQrls.add(qsymbol);
 
-          if (qEvents.length > 9) {
-            send();
-          }
+        queue('qrl', {
+          reqTime: Math.round(detail?.reqTime ?? -1),
+          execTime: Math.round(performance.now()),
+          qsymbol: qsymbol,
+        });
+
+        if (qEvents.length > 9) {
+          send();
         }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  d.addEventListener('visibilitychange', () => {
+    if (d.visibilityState === 'hidden') {
+      try {
+        if (!sentStats) {
+          sentStats = true;
+
+          const metadata = {
+            perf: [] as any[],
+            ua: navigator.userAgent,
+            conn: {} as Record<string, any>,
+          };
+          const entryTypes = ['navigation', 'paint', 'longtask'];
+
+          if (performance.getEntriesByType) {
+            for (const entryTypeName of entryTypes) {
+              for (const entry of performance.getEntriesByType(entryTypeName)) {
+                metadata.perf.push(entry.toJSON());
+              }
+            }
+          }
+
+          if ('connection' in navigator && navigator.connection) {
+            metadata.conn = {};
+            const connection: Record<string, any> = navigator.connection;
+            for (const n in navigator.connection) {
+              if (connection[n] && typeof connection[n] !== 'function') {
+                metadata.conn[n] = connection[n];
+              }
+            }
+          }
+          queue('qstats', metadata);
+        }
+        send();
       } catch (e) {
         console.error(e);
       }
-    });
-
-    d.addEventListener("visibilitychange", () => {
-      if (d.visibilityState === "hidden") {
-        try {
-          if (!sentStats) {
-            sentStats = true;
-
-            const metadata = {
-              perf: [],
-              ua: navigator.userAgent,
-            };
-            const entryTypes = ["navigation", "paint", "longtask"];
-
-            if (performance.getEntriesByType) {
-              for (const entryTypeName of entryTypes) {
-                for (const entry of performance.getEntriesByType(entryTypeName)) {
-                  metadata.perf.push(entry.toJSON());
-                }
-              }
-            }
-
-            if (navigator.connection) {
-              metadata.conn = {};
-              for (const n in navigator.connection) {
-                if (navigator.connection[n] && typeof navigator.connection[n] !== "function") {
-                  metadata.conn[n] = navigator.connection[n];
-                }
-              }
-            }
-            queue('qstats', metadata);
-          }
-          send();
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    });
-  })(document);
-`}
-  />
-);
+    }
+  });
+}
 
 interface RealMetricsOptimizationProps {
   builderApiKey: string;

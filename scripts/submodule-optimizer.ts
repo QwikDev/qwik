@@ -36,6 +36,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       external: [
         /* no Node.js built-in externals allowed! */
         'espree',
+        'image-size',
       ],
       incremental: config.watch,
     };

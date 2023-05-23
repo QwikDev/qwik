@@ -1,7 +1,7 @@
 [
   {
     "href": "https://wope.com/",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "href": "https://www.builder.io/",
@@ -138,7 +138,7 @@
   },
   {
     "href": "https://pay4me.app",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "href": "https://qwik-osm-poc.netlify.app/",
@@ -147,5 +147,13 @@
   {
     "href": "https://leonerd.blog",
     "tags": "portfolio"
+  }, 
+  {
+    "href": "https://orchard.com/",
+    "tags": "app"
+  }, 
+  {
+    "href": "https://www.simplymc.art/",
+    "tags": "game"
   }
 ]

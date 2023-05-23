@@ -1081,6 +1081,24 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
+## QPrefetchEventDetails
+
+`qprefetch` custom event details.
+
+`qprefetch` event is fired when a new code path is exposed to the user by rendering new application view. (For example rendering new model dialog will have a new button. We would like the ensure tha the new button code is prefetch so that if the user interacts with the button there will be no delay.)
+
+Usually a service worker listens to `qprefetch` event and loads the symbol into the cache. The service worker has a map of symbols to bundles.
+
+```typescript
+export interface QPrefetchDetail
+```
+
+| Property     | Modifiers | Type       | Description                    |
+| ------------ | --------- | ---------- | ------------------------------ |
+| [symbols](#) |           | string\[\] | A list of symbols to prefetch. |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
 ## qrl
 
 Used by Qwik Optimizer to point to lazy-loaded resources.
@@ -1112,6 +1130,24 @@ qrl: <T = any>(
   stackOffset?: number
 ) => QRL<T>;
 ```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## QSymbolEventDetails
+
+`qsymbol` custom event details.
+
+`qsymbol` event is fired every time a Qwik needs to resolve a symbol. Listening to this event can give you insight into when different symbols are loaded by your application. The information can than be used to better optimize your bundles by putting symbols which are needed together in the same bundle.
+
+```typescript
+export interface QSymbolDetail
+```
+
+| Property     | Modifiers | Type                 | Description                                               |
+| ------------ | --------- | -------------------- | --------------------------------------------------------- |
+| [element](#) |           | Element \| undefined | Optional DOM event which triggered the symbol resolution. |
+| [reqTime](#) |           | number               | Request time when the symbol was resolved.                |
+| [symbol](#)  |           | string               | Symbol being resolved.                                    |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 

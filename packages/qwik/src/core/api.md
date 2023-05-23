@@ -444,6 +444,11 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
 export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // @public
+export interface QPrefetchEventDetails {
+    symbols: string[];
+}
+
+// @public
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
@@ -467,6 +472,13 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 //
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
+// @public
+export interface QSymbolEventDetails {
+    element: Element | undefined;
+    reqTime: number;
+    symbol: string;
+}
 
 // Warning: (ae-forgotten-export) The symbol "SyntheticEvent" needs to be exported by the entry point index.d.ts
 //

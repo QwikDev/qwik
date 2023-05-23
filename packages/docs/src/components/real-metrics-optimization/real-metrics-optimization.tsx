@@ -6,12 +6,6 @@ export default (props: RealMetricsOptimizationProps) => (
   />
 );
 
-interface QSymbolEventDetail {
-  symbol: string;
-  element: HTMLElement;
-  reqTime: number;
-}
-
 interface QSymbolEventPayload {
   type: string;
   data: {
@@ -67,9 +61,9 @@ function collectRealMetricsOptimization(d: Document, builderApiKey: string, sent
     });
   };
 
-  d.addEventListener('qsymbol', (ev: Event) => {
+  d.addEventListener('qsymbol', (ev) => {
     try {
-      const detail = (ev as any).detail as QSymbolEventDetail | undefined;
+      const detail = ev.detail;
       const qsymbol = detail?.symbol;
       /* eslint-disable no-console */
       console.debug('Symbol', qsymbol);

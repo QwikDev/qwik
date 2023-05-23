@@ -1,3 +1,4 @@
+import type { QSymbolDetail } from './core/qrl/qrl.public';
 import type { QContext } from './core/state/context';
 
 /**
@@ -91,7 +92,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
   };
 
-  const emitEvent = (eventName: string, detail?: any) => {
+  const emitEvent = <T extends keyof DocumentEventMap>(
+    eventName: T,
+    detail?: DocumentEventMap[T] extends CustomEvent<infer DETAIL> ? DETAIL : undefined
+  ) => {
     doc.dispatchEvent(createEvent(eventName, detail));
   };
 
@@ -168,13 +172,18 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
 
   if (!(doc as any).qR) {
     const qwikevents = win.qwikevents;
+    const qSymbols: Array<QSymbolDetail> = [];
     if (Array.isArray(qwikevents)) {
       push(qwikevents);
     }
     win.qwikevents = {
       push: (...e: string[]) => push(e),
+      qSymbols: qSymbols,
     };
     addEventListener(doc, 'readystatechange', processReadyStateChange);
+    addEventListener(doc, 'qsymbol', (e) =>
+      qSymbols.push((e as DocumentEventMap['qsymbol']).detail)
+    );
     processReadyStateChange();
   }
 };

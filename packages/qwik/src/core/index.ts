@@ -29,7 +29,13 @@ export { $ } from './qrl/qrl.public';
 export { event$, eventQrl } from './qrl/qrl.public';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
-export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
+export type {
+  QRL,
+  PropFunction,
+  PropFnInterface,
+  QSymbolDetail as QSymbolEventDetails,
+  QPrefetchDetail as QPrefetchEventDetails,
+} from './qrl/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////////////////////////////////////

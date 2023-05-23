@@ -923,6 +923,20 @@
       "mdFile": "qwik.publicprops.md"
     },
     {
+      "name": "QPrefetchEventDetails",
+      "id": "qprefetcheventdetails",
+      "hierarchy": [
+        {
+          "name": "QPrefetchEventDetails",
+          "id": "qprefetcheventdetails"
+        }
+      ],
+      "kind": "Interface",
+      "content": "`qprefetch` custom event details.\n\n`qprefetch` event is fired when a new code path is exposed to the user by rendering new application view. (For example rendering new model dialog will have a new button. We would like the ensure tha the new button code is prefetch so that if the user interacts with the button there will be no delay.)\n\nUsually a service worker listens to `qprefetch` event and loads the symbol into the cache. The service worker has a map of symbols to bundles.\n\n\n```typescript\nexport interface QPrefetchDetail \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [symbols](#) |  | string\\[\\] | A list of symbols to prefetch. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
+      "mdFile": "qwik.qprefetcheventdetails.md"
+    },
+    {
       "name": "qrl",
       "id": "qrl",
       "hierarchy": [
@@ -949,6 +963,20 @@
       "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.qrl.md"
+    },
+    {
+      "name": "QSymbolEventDetails",
+      "id": "qsymboleventdetails",
+      "hierarchy": [
+        {
+          "name": "QSymbolEventDetails",
+          "id": "qsymboleventdetails"
+        }
+      ],
+      "kind": "Interface",
+      "content": "`qsymbol` custom event details.\n\n`qsymbol` event is fired every time a Qwik needs to resolve a symbol. Listening to this event can give you insight into when different symbols are loaded by your application. The information can than be used to better optimize your bundles by putting symbols which are needed together in the same bundle.\n\n\n```typescript\nexport interface QSymbolDetail \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [element](#) |  | Element \\| undefined | Optional DOM event which triggered the symbol resolution. |\n|  [reqTime](#) |  | number | Request time when the symbol was resolved. |\n|  [symbol](#) |  | string | Symbol being resolved. |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
+      "mdFile": "qwik.qsymboleventdetails.md"
     },
     {
       "name": "QwikAnimationEvent",

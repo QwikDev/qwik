@@ -64,16 +64,27 @@ export const requestHandler = async (ev: any) => {
 };
 
 const injectDevHtml = (clientId: string, html?: string) => {
-  const s = `
-(() => {
-  const sendToServerWindow = (data) => {
+  return `<script>(${injectDevCode})();</script>${html || ''}`;
+};
+
+function injectDevCode() {
+  const sendToServerWindow = (data: {
+    kind: string;
+    scope: string;
+    message: any;
+    start: number;
+  }) => {
     try {
-      parent.postMessage(JSON.stringify({
-        type: 'event',
-        clientId: '${clientId}',
-        event: data
-      }));
-    } catch {}
+      parent.postMessage(
+        JSON.stringify({
+          type: 'event',
+          clientId: '${clientId}',
+          event: data,
+        })
+      );
+    } catch {
+      // eslint: ignore
+    }
   };
 
   const log = console.log;
@@ -84,7 +95,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
     sendToServerWindow({
       kind: 'console-log',
       scope: 'client',
-      message: args.map(a => String(a)),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
     log(...args);
@@ -94,7 +105,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
     sendToServerWindow({
       kind: 'console-warn',
       scope: 'client',
-      message: args.map(a => String(a)),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
     warn(...args);
@@ -104,7 +115,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
     sendToServerWindow({
       kind: 'console-error',
       scope: 'client',
-      message: args.map(a => String(a)),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
     error(...args);
@@ -138,23 +149,24 @@ const injectDevHtml = (clientId: string, html?: string) => {
     });
   });
 
-  document.addEventListener('click', (ev) => {
-    try {
-      if (ev.target && ev.target.tagName === 'A') {
-        const anchor = ev.target;
-        const href = anchor.href;
-        if (href && href !== '#') {
-          const url = new URL(anchor.href, origin);
-          if (url.origin !== origin) {
-            anchor.setAttribute('target', '_blank');
+  document.addEventListener(
+    'click',
+    (ev: Event) => {
+      try {
+        if (ev.target && (ev.target as Element).tagName === 'A') {
+          const anchor = ev.target as HTMLAnchorElement;
+          const href = anchor.href;
+          if (href && href !== '#') {
+            const url = new URL(anchor.href, origin);
+            if (url.origin !== origin) {
+              anchor.setAttribute('target', '_blank');
+            }
           }
         }
+      } catch (e) {
+        console.error('repl-request-handler', e);
       }
-    } catch (e) {
-      console.error('repl-request-handler', e);
-    }
-  }, true);
-})();`;
-
-  return `<script>${s}</script>${html || ''}`;
-};
+    },
+    true
+  );
+}

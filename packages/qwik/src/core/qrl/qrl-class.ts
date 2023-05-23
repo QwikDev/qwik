@@ -1,3 +1,4 @@
+import type { QPrefetchData } from 'packages/qwik-city/runtime/src/service-worker/types';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
@@ -14,7 +15,7 @@ import { then } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
-import type { QRL } from './qrl.public';
+import type { QRL, QSymbolDetail } from './qrl.public';
 
 export const isQrl = (value: any): value is QRLInternal => {
   return typeof value === 'function' && typeof value.getSymbol === 'function';
@@ -201,7 +202,9 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
   }
 };
 
-export const emitEvent = (eventName: string, detail: any) => {
+export function emitEvent(eventName: 'qsymbol', detail: QSymbolDetail): void;
+export function emitEvent(eventName: 'qprefetch', detail: QPrefetchData): void;
+export function emitEvent(eventName: string, detail: any): void {
   if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
@@ -210,7 +213,7 @@ export const emitEvent = (eventName: string, detail: any) => {
       })
     );
   }
-};
+}
 
 const now = () => {
   if (qTest || isServerPlatform()) {

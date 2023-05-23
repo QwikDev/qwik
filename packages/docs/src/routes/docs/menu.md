@@ -28,6 +28,7 @@
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
+- [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 

@@ -1,0 +1,54 @@
+---
+title: Qwik City - Caching
+contributors:
+  - steve8708
+---
+
+# Caching Responses
+
+Caching responses is critical for keeping your site as fast as possible, both for [pages](/docs/(qwikcity)/pages/index.mdx) as well as [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
+
+A good default is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. For instance, we can add an `onGet` export to our root [layout](/docs/(qwikcity)/layout/index.mdx) (`src/routes/layout.tsx`) like so:
+
+```tsx
+import { component$, Slot } from "@builder.io/qwik";
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async (request) => {
+  request.cacheControl({
+    // Always serve a cached response by default, up to a week stale
+    staleWhileRevalidate: 60 * 60 * 24 * 7,
+    // Max once every 5 seconds, revalidate on the server to get a fresh version of this page
+    maxAge: 5,
+  });
+};
+
+export default component$(() => {
+  return (
+    <main class="mx-auto max-w-[2200px] relative">
+      <Slot />
+    </main>
+  );
+});
+```
+
+With the above setup we will not only have better performance (pages are always served instantly from cache), but can have significantly decreased hosting costs, as our server (or edge functions) only need to run max once every 5 seconds per page.
+
+## `Request.cacheControl`
+
+Any method that takes a [request event](https://qwik.builder.io/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
+
+```tsx
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async (request) => {
+  request.cacheControl({
+    public: true,
+    maxAge: 5,
+    sMaxAge: 10,
+    staleWhileRevalidate: 60 * 60 * 24 * 365,
+  });
+};
+```
+
+You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.

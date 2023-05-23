@@ -34,7 +34,7 @@ export default component$(() => {
 
 With the above setup we will not only have better performance (pages are always served instantly from cache), but can have significantly decreased hosting costs, as our server (or edge functions) only need to run max once every 5 seconds per page.
 
-## `Request.cacheControl`
+## `request.cacheControl`
 
 Any method that takes a [request event](https://qwik.builder.io/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
 
@@ -52,3 +52,26 @@ export const onGet: RequestHandler = async (request) => {
 ```
 
 You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
+
+## When not to cache
+
+Caching is a good default, but not right for every page all the time. If you have URLs on your site that will show different content to different people - such as pages only for logged in users, or pages that show different content based on the user's location, you should not cache those pages using cache-control headers in the response, and server side render the contents of those pages on a per-visitor basis.
+
+For high traffic pages that look the same to everyone, such as a homepage, caching is the best thing to do for performance and cost. But for pages only for loggeed in users, and as a result probably have some degree less traffic, disabling caching may be wise.
+
+You can conditionally change cache behaviors with any logic you like:
+
+```tsx
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async (request) => {
+  // Only our homepage is public and should be cached. Other pages are unique per visitor
+  if (request.url.pathname === '/') {
+    request.cacheControl({
+      public: true,
+      maxAge: 5,
+      staleWhileRevalidate: 60 * 60 * 24 * 365,
+    });
+  }
+};
+```

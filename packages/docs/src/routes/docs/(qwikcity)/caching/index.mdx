@@ -84,7 +84,7 @@ You can conditionally change cache behaviors with any logic you like:
 import type { RequestHandler } from "@builder.io/qwik-city";
 
 export const onGet: RequestHandler = async (request) => {
-  // Only our homepage is public and should be cached. Other pages are unique per visitor
+  // Only our homepage is public and should be CDN cached. Other pages are unique per visitor
   if (request.url.pathname === '/') {
     request.cacheControl({
       public: true,

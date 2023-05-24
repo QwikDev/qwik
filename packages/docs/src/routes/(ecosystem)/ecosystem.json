@@ -188,6 +188,16 @@
       "title": "India",
       "href": "https://www.meetup.com/qwik-india/",
       "imgSrc": "/ecosystem/qwik-india.svg"
+    },
+    {
+      "title": "Uruguay",
+      "href": "https://www.meetup.com/qwik-uruguay/",
+      "imgSrc": "/ecosystem/qwik-uruguay.svg"
+    },
+    {
+      "title": "Argentina",
+      "href": "https://www.meetup.com/qwik-argentina/",
+      "imgSrc": "/ecosystem/qwik-argentina.svg"
     }
   ],
   "social": [

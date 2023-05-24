@@ -65,3 +65,4 @@
 /integrations/* /docs/integrations/:splat 308
 /deployments/* /docs/deployments/:splat 308
 /docs/advanced/i18n/ /docs/integrations/i18n/ 308
+/docs/components/inline-components/ /docs/components/overview/ 308

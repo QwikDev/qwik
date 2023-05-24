@@ -151,7 +151,8 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     if (!containerState.$styleMoved$ && renderingQueue.length > 0) {
       containerState.$styleMoved$ = true;
-      containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
+      const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+      parentJSON.querySelectorAll('style[q\\:style]').forEach((el) => {
         containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
         appendChild(staticCtx, doc.head, el);
       });

@@ -208,7 +208,6 @@ export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
   elCtx.$id$ = id;
 };
 
-
 export const jsxToString = (data: any): string => {
   if (isSignal(data)) {
     return jsxToString(data.value);

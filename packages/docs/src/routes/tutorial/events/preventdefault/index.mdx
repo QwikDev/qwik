@@ -10,7 +10,7 @@ For some events browsers have default behavior. For example, when you click a li
 
 Browser events are synchronous, but because Qwik is fine-grained the loadable Qwik execution model is asynchronous. This means that at the time the event is triggered, the event handler is not yet loaded. By the time the event handler is loaded the event has already been processed by the browser and calling `preventDefault()` will have no effect.
 
-To solve this Qwik provides a declarative API to automatically call `preventDefault()` when the event handler is triggered. This is achieved by adding the `preventdefault:<event-name>` attribute to the element. This allows Qwikloader to synchronously call `preventDefault()` when the event handler is triggered.
+To solve this Qwik provides a declarative API to automatically call `preventDefault()` when the event is triggered. This is achieved by adding the `preventdefault:<event-name>` attribute to the element. This allows Qwikloader to synchronously call `preventDefault()` when the event is triggered.
 
 ### Example
 

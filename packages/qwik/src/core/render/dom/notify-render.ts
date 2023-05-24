@@ -20,13 +20,15 @@ import type { RenderContext } from '../types';
 import { type ContainerState, _getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, type QwikElement } from './virtual-element';
-import { printRenderStats } from './operations';
+import { appendChild, printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
 import { resumeIfNeeded } from '../../container/resume';
 import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
+import { directGetAttribute } from '../fast-calls';
+import { QStyle } from '../../util/markers';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
@@ -126,7 +128,8 @@ export const _hW = () => {
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
-  const doc = getDocument(containerState.$containerEl$);
+  const containerEl = containerState.$containerEl$;
+  const doc = getDocument(containerEl);
 
   try {
     const rCtx = createRenderContext(doc, containerState);
@@ -145,6 +148,15 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     const renderingQueue = Array.from(hostsRendering);
     sortNodes(renderingQueue);
+
+    if (!containerState.$styleMoved$ && renderingQueue.length > 0) {
+      containerState.$styleMoved$ = true;
+      const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+      parentJSON.querySelectorAll('style[q\\:style]').forEach((el) => {
+        containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
+        appendChild(staticCtx, doc.head, el);
+      });
+    }
 
     for (const elCtx of renderingQueue) {
       const el = elCtx.$element$;

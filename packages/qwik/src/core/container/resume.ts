@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr, QStyle } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -115,7 +115,6 @@ export const resumeContainer = (containerEl: Element) => {
 
   const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
   const containerState = _getContainerState(containerEl);
-  moveStyles(containerEl, containerState);
 
   // Collect all elements
   const elements = new Map<number, Node>();
@@ -314,14 +313,6 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
       }
     }
   }
-};
-
-export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
-  const head = containerEl.ownerDocument.head;
-  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
-    head.appendChild(el);
-  });
 };
 
 const unescapeText = (str: string) => {

@@ -77,6 +77,7 @@ export const render = async (
   }
   const rCtx = createRenderContext(doc, containerState);
   containerState.$hostsRendering$ = new Set();
+  containerState.$styleMoved$ = true;
   await renderRoot(rCtx, containerEl, jsxNode, doc, containerState, containerEl);
 
   await postRendering(containerState, rCtx);

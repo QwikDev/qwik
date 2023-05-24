@@ -101,6 +101,7 @@ export interface ContainerState {
   $elementIndex$: number;
 
   $pauseCtx$: PauseContext | undefined;
+  $styleMoved$: boolean;
   readonly $styleIds$: Set<string>;
   readonly $events$: Set<string>;
 }
@@ -126,6 +127,7 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $containerEl$: containerEl,
 
     $elementIndex$: 0,
+    $styleMoved$: false,
 
     $proxyMap$: new WeakMap(),
 

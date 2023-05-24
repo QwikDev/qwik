@@ -1,4 +1,4 @@
-import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS } from '../../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
 import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
@@ -332,6 +332,9 @@ export const isChildComponent = (node: Node | VirtualElement): boolean => {
   }
   if (nodeName === 'HEAD') {
     return (node as Element).hasAttribute('q:head');
+  }
+  if (nodeName === 'STYLE') {
+    return !(node as Element).hasAttribute(QStyle);
   }
   return true;
 };

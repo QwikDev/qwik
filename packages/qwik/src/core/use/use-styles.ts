@@ -2,7 +2,6 @@ import { styleContent, styleKey } from '../style/qrl-styles';
 import type { QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
-import { hasStyle } from '../render/execute-component';
 import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../qrl/qrl-class';
 import { isPromise } from '../util/promises';
@@ -150,7 +149,7 @@ const _useStyles = (
   if (scoped) {
     elCtx.$scopeIds$.push(styleContent(styleId));
   }
-  if (hasStyle(containerState, styleId)) {
+  if (containerState.$styleIds$.has(styleId)) {
     return styleId;
   }
   containerState.$styleIds$.add(styleId);

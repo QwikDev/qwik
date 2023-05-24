@@ -82,10 +82,10 @@ export const Child = component$<ChildProps>(({ userData }) => {
 
 ```tsx
 export const Parent = (() => {
-  const [ count, setCount ] = useState(0);
+  const [ count, setCount ] = useState<number>(0);
   
   const increment = (() => {
-    setCount(count + 1)
+    setCount((prev) => prev + 1)
   })
   return <Child count={count} increment={increment} />;
 })
@@ -98,7 +98,7 @@ interface ChildProps {
 export const Child = ((props: ChildProps) => {
   return (
     <>
-      <button onClick={() => props.increment}>Increment</button>
+      <button onClick={props.increment}>Increment</button>
       <p>Count: {props.count}</p>
     </>
   );

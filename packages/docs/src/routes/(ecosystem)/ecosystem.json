@@ -183,6 +183,21 @@
       "title": "Amsterdam",
       "href": "https://www.meetup.com/qwik-amsterdam-meetup-group/",
       "imgSrc": "/ecosystem/qwik-amsterdam.svg"
+    },
+    {
+      "title": "India",
+      "href": "https://www.meetup.com/qwik-india/",
+      "imgSrc": "/ecosystem/qwik-india.svg"
+    },
+    {
+      "title": "Uruguay",
+      "href": "https://www.meetup.com/qwik-uruguay/",
+      "imgSrc": "/ecosystem/qwik-uruguay.svg"
+    },
+    {
+      "title": "Argentina",
+      "href": "https://www.meetup.com/qwik-argentina/",
+      "imgSrc": "/ecosystem/qwik-argentina.svg"
     }
   ],
   "social": [

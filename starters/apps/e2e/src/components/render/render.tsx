@@ -12,6 +12,8 @@ import {
   SkipRender,
   SSRRaw,
   HTMLFragment,
+  type QwikIntrinsicElements,
+  Slot,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 import { isServer } from '@builder.io/qwik/build';
@@ -780,5 +782,47 @@ export const HTMLFragmentTest = component$(() => {
     <div id="html-fragment-test-result" data-mounted={isServer ? 'server' : 'browser'}>
       <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
     </div>
+  );
+});
+
+type A = QwikIntrinsicElements['button'];
+
+export interface TestAProps extends A {}
+
+export const TestA = component$<TestAProps>((props) => {
+  return (
+    <button type="button" {...props}>
+      <Slot />
+    </button>
+  );
+});
+
+export interface TestBProps extends TestAProps {}
+
+export const TestB = component$<TestBProps>((props) => {
+  return (
+    <TestA {...props}>
+      <Slot />
+    </TestA>
+  );
+});
+
+export const Issue4292 = component$(() => {
+  const $toggled = useSignal<boolean>(false);
+
+  return (
+    <>
+      <h1>Playground</h1>
+
+      <TestB
+        aria-label={$toggled.value ? 'a' : 'a1'}
+        title={$toggled.value ? 'a' : 'a1'}
+        onClick$={() => {
+          $toggled.value = !$toggled.value;
+        }}
+      >
+        <div>Hello, World!</div>
+      </TestB>
+    </>
   );
 });

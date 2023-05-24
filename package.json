@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "1.1.2",
+  "version": "1.1.4",
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --platform-binding-wasm-copy",
@@ -21,6 +21,7 @@
     "cli.validate": "tsm scripts/validate-cli.ts",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
+    "eslint.update": "tsm scripts/eslint-docs.ts",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",

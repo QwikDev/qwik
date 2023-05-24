@@ -3,13 +3,14 @@ title: Event Prevent Default
 contributors:
   - manucorporat
   - adamdbradley
+  - neonpie
 ---
 
-For some events browsers have default behavior. For example, when you click a link, the browser will usually navigate to the link's `href`. There are times when we would like to prevent that. For this reason `Event` API contains `preventDefault()` method.
+For some events browsers have default behavior. For example, when you click a link, the browser will usually navigate to the link's `href`. There are times when we would like to prevent that. For this reason the `Event` API contains the `preventDefault()` method.
 
-Browser events are synchronous, but because Qwik is fine-grained the loadable Qwik execution model is asynchronous. This means that at the time the event is triggered, the event handler is not yet loaded. By the time the event is loaded the event has already been processed by the browser and calling `preventDefault()` will have no effect.
+Browser events are synchronous, but because Qwik is fine-grained the loadable Qwik execution model is asynchronous. This means that at the time the event is triggered, the event handler is not yet loaded. By the time the event handler is loaded the event has already been processed by the browser and calling `preventDefault()` will have no effect.
 
-To solve this Qwik provides a declarative API to automatically call `preventDefault()` when the event is triggered. This is achieved by adding `preventdefault:<event-name>` attribute to the element. This allows the Qwikloader to synchronously call `preventDefault()` when the event is triggered.
+To solve this Qwik provides a declarative API to automatically call `preventDefault()` when the event is triggered. This is achieved by adding the `preventdefault:<event-name>` attribute to the element. This allows Qwikloader to synchronously call `preventDefault()` when the event is triggered.
 
 ### Example
 

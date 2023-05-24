@@ -374,6 +374,11 @@ export interface CacheControlOptions {
   staleWhileRevalidate?: number;
 
   /**
+   * The stale-if-error response directive that indicates if a stale response can be used when there's an error from the origin.
+   */
+  staleIfError?: number;
+
+  /**
    * The no-store response directive indicates that any caches of any kind (private or shared) should not store this response.
    */
   noStore?: boolean;

@@ -21,11 +21,12 @@ export const Link = component$<LinkProps>((props) => {
           prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
         )
       : undefined;
-  const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
-    if (elm.href) {
+  const handleClick = event$(async (event: any, elm: HTMLAnchorElement) => {
+    if (elm.href && !event._qwik_nav_handled) {
       elm.setAttribute('aria-pressed', 'true');
       await nav(elm.href, reload);
       elm.removeAttribute('aria-pressed');
+      event._qwik_nav_handled = true;
     }
   });
   return (

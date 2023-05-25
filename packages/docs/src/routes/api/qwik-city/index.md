@@ -195,6 +195,7 @@ export interface DocumentMeta
 | [httpEquiv?](#) | <code>readonly</code> | string | _(Optional)_ |
 | [itemprop?](#)  | <code>readonly</code> | string | _(Optional)_ |
 | [key?](#)       | <code>readonly</code> | string | _(Optional)_ |
+| [media?](#)     | <code>readonly</code> | string | _(Optional)_ |
 | [name?](#)      | <code>readonly</code> | string | _(Optional)_ |
 | [property?](#)  | <code>readonly</code> | string | _(Optional)_ |
 

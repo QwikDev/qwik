@@ -174,6 +174,8 @@ export interface DocumentMeta {
     // (undocumented)
     readonly key?: string;
     // (undocumented)
+    readonly media?: string;
+    // (undocumented)
     readonly name?: string;
     // (undocumented)
     readonly property?: string;

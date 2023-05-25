@@ -330,7 +330,7 @@ declare global {
   }
 }
 
-const IMG_INSPECT = () => {
+export const IMG_INSPECT = () => {
   return `
   <style>
   .image-overlay {
@@ -354,6 +354,7 @@ const IMG_INSPECT = () => {
   (function() {
 
     const visibleNodes = new Map();
+
 
 
     function doImg(overlay, node) {
@@ -630,7 +631,6 @@ const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
-${IMG_INSPECT()}
 ${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
 `;
 

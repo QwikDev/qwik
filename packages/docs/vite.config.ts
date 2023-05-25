@@ -14,6 +14,8 @@ export default defineConfig(() => {
   return {
     ssr: {
       noExternal: [
+        '@mui/material',
+        '@emotion/react',
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
         '@algolia/autocomplete-shared',
@@ -115,32 +117,44 @@ const menus = {
   '5wL0DAwmu0A': 'left',
 };
 
-const algoliaSearch = {
-  I5CyQjO9FjQ: 'algoliasearch',
-  NsnidK2eXPg: 'algoliasearch',
-  kDw0latGeM0: 'algoliasearch',
-  '9dP8xDD36tk': 'algoliasearch',
-  '7YcOLMha9lM': 'algoliasearch',
-  Ly5oFWTkofs: 'algoliasearch',
-  fTU5LQ1VhcU: 'algoliasearch',
-  X3ZkFa9P7Dc: 'algoliasearch',
-  cGb8pS0shrs: 'algoliasearch',
-  '0TG0b0n4wNg': 'algoliasearch',
-  qQlSSnFvEvs: 'algoliasearch',
-  '01FQcGhldRU': 'algoliasearch',
-  qolFAthnlPo: 'algoliasearch',
-  J3Nim3Y9sio: 'algoliasearch',
-};
+const algoliaSearch = colocate('algoliasearch', [
+  's_I5CyQjO9FjQ',
+  's_NsnidK2eXPg',
+  's_kDw0latGeM0',
+  's_Ly5oFWTkofs',
+  's_X3ZkFa9P7Dc',
+  's_7YcOLMha9lM',
+  's_NCpn2iO0Vo0',
+  's_cGb8pS0shrs',
+  's_0TG0b0n4wNg',
+  's_qQlSSnFvEvs',
+  's_qolFAthnlPo',
+  's_vXb90XKAnjE',
+  's_hYpp40gCb60',
+  's_J3Nim3Y9sio',
+  's_aWt0AqHIkGQ',
+  's_H7LftCVcX8A',
+  's_I5CyQjO9FjQ',
+  's_S0wV0vUzzSo',
+  's_S0wV0vUzzSo',
+]);
 
-const repl = {
-  XoQB11UZ1S0: 'repl',
-  AqHBIVNKf34: 'repl',
-  IRhp4u7HN3o: 'repl',
-  Qf2nEuUdHpM: 'repl',
-  oEksvFPgMEM: 'repl',
-  eePwnt3YTI8: 'repl',
-  iw211Du0bw8: 'repl',
-  lWGaPPYlcvs: 'repl',
-  uCl5Lf0Typ8: 'repl',
-  IW29huCoDkc: 'repl',
-};
+const repl = colocate('repl', [
+  's_XoQB11UZ1S0',
+  's_AqHBIVNKf34',
+  's_IRhp4u7HN3o',
+  's_Qf2nEuUdHpM',
+  's_oEksvFPgMEM',
+  's_eePwnt3YTI8',
+  's_iw211Du0bw8',
+  's_lWGaPPYlcvs',
+  's_uCl5Lf0Typ8',
+  's_IW29huCoDkc',
+]);
+
+function colocate(value: string, keys: string[]) {
+  return keys.reduce((obj, key) => {
+    obj[key.replace('s_', '')] = obj[key] = value;
+    return obj;
+  }, {} as Record<string, string>);
+}

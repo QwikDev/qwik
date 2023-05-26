@@ -447,6 +447,21 @@ test.describe('render', () => {
         throw new Error('Unexpected mounted value');
       }
     });
+
+    test('issue4292', async ({ page }) => {
+      const button = page.locator('#issue-4292-result');
+      await expect(button).toHaveText('Hello, World!');
+      await expect(button).toHaveAttribute('aria-label', 'a1');
+      await expect(button).toHaveAttribute('title', 'a1');
+
+      await button.click();
+      await expect(button).toHaveAttribute('aria-label', 'a');
+      await expect(button).toHaveAttribute('title', 'a');
+
+      await button.click();
+      await expect(button).toHaveAttribute('aria-label', 'a1');
+      await expect(button).toHaveAttribute('title', 'a1');
+    });
   }
 
   tests();

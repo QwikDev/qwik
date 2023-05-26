@@ -141,7 +141,6 @@ export const createQRL = <TYPE>(
   const resolvedSymbol = refSymbol ?? symbol;
   const hash = getSymbolHash(resolvedSymbol);
 
-  const QRL: QRLInternal<TYPE> = invokeQRL as any;
   const methods: QRLInternalMethods<TYPE> = {
     getSymbol: () => resolvedSymbol,
     getHash: () => hash,

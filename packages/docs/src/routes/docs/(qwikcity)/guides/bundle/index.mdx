@@ -1,0 +1,184 @@
+---
+title: Qwik City - Bundle Optimization
+contributors:
+  - mhevery
+---
+
+import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+
+
+# Bundle Optimization
+
+Bundle Optimization refers to the process of deciding which symbol goes to which bundle so that the application can co-locate the code that is used together.  Having the symbols co-located can make the application load faster.
+
+## Symbols vs Chunks
+
+Symbols are individual lazy-loadable pieces in Qwik. A symbol is created whenever you use the `__$(__)` in your source code.  
+
+For example, the code below creates two symbols from `component$` and `onClick$`.
+
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
+```tsx /component$/ /onClick$/
+import { component$, useSignal } from '@builder.io/qwik';
+
+export default component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <button onClick$={() => count.value++}>
+      Increment {count.value}
+    </button>
+  );
+});
+```
+</CodeSandbox>
+
+The optimizer rewrites the above code to something like this:
+
+File: `chunk-1.js`
+```tsx
+export default componentQRL(qrl('./chunk-1.js', 's_ABC123'));
+
+export const s_ABC123 = () => {
+  const count = useSignal(0);
+
+  return (
+    <button onClickQRL={qrl('/.chunk-1.js', 's_XYZ342')}>
+      Increment {count.value}
+    </button>
+  );
+};
+
+export const s_XYZ432 = () => {
+  const [count] = useLexicalScop();
+  return count.value++;
+}
+```
+
+In the above example, all of the symbols (`sABC123` and `s_XYZ432`) are co-located in the same chunk (`./chunk-1.js`). 
+
+Chunks are JavaScript bundles that can contain one or more symbols. 
+
+## Optimal Symbol Distribution
+
+You can think of bundle optimization as a slider that allows us to optimize the symbol delivery.
+- On one end of the slider, we have a single chunk that contains all of the symbols. This is equivalent to the application without any sort of lazy loading. (This is how most applications are written today.)
+- On the other extreme of the slider, we have a separate chunk for each symbol. This is how Qwik applications behave during development. Each symbol is in its own chunk.
+
+The problem with a single chunk is:
+- It will contain many symbols which are not needed by the client. (Wasted bandwidth.)
+- The client can't run until any symbol until the whole chunk is loaded.
+
+The problem with a separate chunk for each symbol is:
+- The client will have to make many requests to load all of the chunks often leading to undesirable waterfall requests.
+
+The optimal solution is somewhere in the middle. We want to have a small number of chunks, but we also want to have the symbols that are used together to be co-located in the same chunk. Having a small number of chunks allows us to prioritize the order in which chunks load but at the same time amortize the cost of making HTTP requests. Having symbols co-located allows us to minimize the waterfall.
+
+The good news is that with Qwik you are in full control of which symbol goes into which chunk. Normally breaking up your application for lazy loading requires the developer to write dynamic imports and re-factor the code. In Qwik, all `$()` are potential lazy load locations, all that is needed is to inform the bundler how to distribute the symbols.
+
+## `qwikVite()` Plugin
+
+`qwikVite()` plugin inside your `vite.config.ts` controls the symbol distribution. Normally the `entryStrategy` is set to `smart` which allows the Qwik to make heuristic guesses as to how the symbols should be lazy loaded. But it is possible to override the heuristic by providing `manual` configuration like this in `vite.config.ts` file:
+
+```typescript
+export default defineConfig(() => {
+  const routesDir = resolve('src', 'routes');
+  return {
+    // ...
+    qwikVite({
+      entryStrategy: {
+        type: 'smart',
+        manual: {
+          ...bundle('bundleA', [
+              's_I5CyQjO9FjQ',
+              's_NsnidK2eXPg',
+              's_kDw0latGeM0',
+          ]),
+          ...bundle('bundleB', [
+              's_vXb90XKAnjE',
+              's_hYpp40gCb60',
+          ]),
+          ...bundle('bundleC', [
+              's_AqHBIVNKf34',
+              's_oEksvFPgMEM',
+              's_eePwnt3YTI8',
+          ]),
+        },
+      },
+    }),
+  };
+});
+
+function bundle(bundleName: string, symbols: string[]) {
+  return symbols.reduce((obj, key) => {
+    // Sometimes symbols are prefixed with `s_`, remove it.
+    obj[key.replace('s_', '')] = obj[key] = bundleName;
+    return obj;
+  }, {} as Record<string, string>);
+}
+```
+
+So the question becomes how do you get the symbol names such as `s_I5CyQjO9FjQ`? See the next section Runtime Analytics.
+
+## Runtime analytics
+
+The fundamental problem to solve is that determining the optimal bundles is not statically possible. The ideal bundles will depend on the user's behavior. Only after observing users' behavior can we determine which symbols are used together.
+
+To collect symbol usage from a running application:
+
+1. Insert this code into your app:
+    ```html
+    <script>
+      window.symbols = [];
+      document.addEventListener('qsymbol', (e) => window.symbols.push(e.detail));
+    </script>
+    ```
+2. Perform some set of operations mimicking user behavior.
+3. Open the console and type `symbols` to see the list of symbols used. Used that information to update the `vite.config.ts` file.
+
+
+> **NOTE:** We are looking into creating better ways of collecting this information in the future.
+
+> **NOTE:** Symbols hashes are designed to be stable even across many compilations. However, if the code undergoes complex refactoring it is possible for the hash to change. This will not break the application, but it may cause the symbol to be moved to a different sub-optimal chunk until runtime analytics can be collected again. 
+
+
+## Service worker
+
+Qwik apps employ a service worker to ensure that bundles are prefetched into the browser's cache and that any user interaction would result in a cache hit, hence no delay in interaction.
+
+See [Speculative Module Fetching](/docs/advanced/speculative-module-fetching/index.mdx).
+
+## Events
+
+All information regarding when the symbols are loaded can be observed by listening to the following custom events:
+
+### `qprefetch` custom event details.
+
+`qprefetch` event is fired when a new code path is exposed to the user by rendering a new application view. (For example, rendering a new model dialog will have a new button. We would like the ensure that the new button code is prefetch so that if the user interacts with the button there will be no delay.)
+Usually, a service worker listens to the `qprefetch` event and loads the symbol into the cache. The service worker has a map of symbols to bundles, and it uses this information to determine which bundles to prefetch based on a symbol.
+
+```typescript
+export interface QPrefetchDetail {
+  /// A list of symbols to prefetch.
+  symbols: string[];
+}
+```
+
+### `qsymbol` custom event details.
+
+`qsymbol` event is fired every time a Qwik needs to resolve a symbol. Listening to this event can give you insight into when different symbols are loaded by your application. The information can then be used to better optimize your bundles by putting symbols that are needed together in the same bundle.
+
+```typescript
+export interface QSymbolDetail {
+  /// Optional DOM event which triggered the symbol resolution.
+  element?: Element;
+  /// Request time when the symbol was resolved.
+  reqTime: number;
+  /// Symbol being resolved.
+  symbol: string;
+}
+```
+
+## Waterfall 
+
+The service worker attempts to minimize the waterfall by prefetching the bundles. To be able to do that the service worker has a `manifest` of symbols and chunks. The `manifest` represents a full graph of all of the symbols and their corresponding chunks. It also knows the import graph, so if a symbol is prefetched, the service worker will also prefetch all other symbols which are needed as part of the import graph.

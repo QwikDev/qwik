@@ -73,6 +73,7 @@
 - [SSG](/docs/(qwikcity)/guides/static-site-generation/index.mdx)
 - [React Cheat Sheet](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx)
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
+- [Bundle Optimization](/docs/(qwik)/guides/bundle/index.mdx)
 
 ## Concepts
 

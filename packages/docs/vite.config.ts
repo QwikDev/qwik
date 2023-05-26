@@ -117,29 +117,42 @@ const menus = {
   '5wL0DAwmu0A': 'left',
 };
 
-const algoliaSearch = colocate('algoliasearch', [
-  's_I5CyQjO9FjQ',
-  's_NsnidK2eXPg',
-  's_kDw0latGeM0',
-  's_Ly5oFWTkofs',
-  's_X3ZkFa9P7Dc',
-  's_7YcOLMha9lM',
-  's_NCpn2iO0Vo0',
-  's_cGb8pS0shrs',
-  's_0TG0b0n4wNg',
-  's_qQlSSnFvEvs',
-  's_qolFAthnlPo',
-  's_vXb90XKAnjE',
-  's_hYpp40gCb60',
-  's_J3Nim3Y9sio',
-  's_aWt0AqHIkGQ',
-  's_H7LftCVcX8A',
-  's_I5CyQjO9FjQ',
-  's_S0wV0vUzzSo',
-  's_S0wV0vUzzSo',
+const algoliaSearch = bundle('algoliasearch', [
+  'hW',
+  '9t1uPE4yoLA',
+  'I5CyQjO9FjQ',
+  'NsnidK2eXPg',
+  'kDw0latGeM0',
+  '7YcOLMha9lM',
+  'Ly5oFWTkofs',
+  'NCpn2iO0Vo0',
+  'X3ZkFa9P7Dc',
+  'cGb8pS0shrs',
+  '0TG0b0n4wNg',
+  'qQlSSnFvEvs',
+  'qolFAthnlPo',
+  'vXb90XKAnjE',
+  'hYpp40gCb60',
+  'J3Nim3Y9sio',
+  'aWt0AqHIkGQ',
+  'H7LftCVcX8A',
+  'EhtTJVluy08',
+  'Rtwief4DyrI',
+  'uCl5Lf0Typ8',
+  'DCgB1xiHL28',
+  'VRTvy2D80Ww',
+  'r1y7UDjTtCw',
+  'ZiJmJ6Or9eY',
+  'UyYdc56f0ig',
+  'OmOFy2W4aT4',
+  'mnN5FJ8qddY',
+  '5o2hfyxmyXo',
+  'yqKaTNK0QR0',
+  'S0wV0vUzzSo',
+  'S0wV0vUzzSo',
 ]);
 
-const repl = colocate('repl', [
+const repl = bundle('repl', [
   's_XoQB11UZ1S0',
   's_AqHBIVNKf34',
   's_IRhp4u7HN3o',
@@ -152,9 +165,10 @@ const repl = colocate('repl', [
   's_IW29huCoDkc',
 ]);
 
-function colocate(value: string, keys: string[]) {
-  return keys.reduce((obj, key) => {
-    obj[key.replace('s_', '')] = obj[key] = value;
+function bundle(bundleName: string, symbols: string[]) {
+  return symbols.reduce((obj, key) => {
+    // Sometimes symbols are prefixed with `s_`, remove it.
+    obj[key.replace('s_', '')] = obj[key] = bundleName;
     return obj;
   }, {} as Record<string, string>);
 }

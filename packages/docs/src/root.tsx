@@ -21,6 +21,7 @@ export default component$(() => {
       <head>
         <meta charSet="utf-8" />
         <RouterHead />
+        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
       </head>
       <body
         class={{
@@ -35,3 +36,8 @@ export default component$(() => {
     </QwikCityProvider>
   );
 });
+
+export function collectSymbols() {
+  (window as any).symbols = [];
+  document.addEventListener('qsymbol', (e) => (window as any).symbols.push((e as any).detail));
+}

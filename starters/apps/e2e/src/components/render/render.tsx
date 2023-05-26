@@ -95,6 +95,7 @@ export const RenderChildren = component$(() => {
       <SkipRenderTest />
       <SSRRawTest />
       <HTMLFragmentTest />
+      <Issue4292 />
     </>
   );
 });
@@ -791,7 +792,7 @@ export interface TestAProps extends A {}
 
 export const TestA = component$<TestAProps>((props) => {
   return (
-    <button type="button" {...props}>
+    <button id="issue-4292-result" type="button" {...props}>
       <Slot />
     </button>
   );

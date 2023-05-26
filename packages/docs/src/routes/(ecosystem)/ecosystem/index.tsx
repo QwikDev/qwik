@@ -3,7 +3,7 @@ import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
-import { MEDIA } from '../media/index';
+import { MEDIA, type MediaEntry } from '../media/index';
 import SHOWCASE from '../showcase/generated-pages.json';
 import { EcosystemMenu } from './ecosystem-menu';
 import { QwikPlusLogo } from './qwik-plus-logo';
@@ -11,10 +11,12 @@ import { QwikPlusLogo } from './qwik-plus-logo';
 export default component$(() => {
   useStyles$(styles);
 
-  const courses = MEDIA.courses.slice(0, 6);
-  const videos = MEDIA.videos.slice(0, 6);
-  const podcasts = MEDIA.podcasts.slice(0, 6);
-  const presentations = MEDIA.presentations.slice(0, 6);
+  const mediaFilter = (item: MediaEntry) => item?.promoted;
+
+  const courses = MEDIA.courses.filter(mediaFilter);
+  const videos = MEDIA.videos.filter(mediaFilter);
+  const podcasts = MEDIA.podcasts.filter(mediaFilter);
+  const presentations = MEDIA.presentations.filter(mediaFilter);
   const showcaseSites = SHOWCASE.slice(0, 6);
 
   return (

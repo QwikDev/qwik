@@ -1,0 +1,96 @@
+---
+title: Qwik City - Caching
+contributors:
+  - steve8708
+---
+
+# Caching Responses
+
+Caching responses is critical for keeping your site as fast as possible, both for [pages](/docs/(qwikcity)/pages/index.mdx) as well as [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
+
+A good default is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. 
+
+For instance, we can add an `onGet` export to our root [layout](/docs/(qwikcity)/layout/index.mdx) (`src/routes/layout.tsx`) like so, to apply good caching defaults site-wide:
+
+```tsx title="src/routes/layout.tsx"
+import { component$, Slot } from "@builder.io/qwik";
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async ({ cacheControl }) => {
+  cacheControl({
+    // Always serve a cached response by default, up to a week stale
+    staleWhileRevalidate: 60 * 60 * 24 * 7,
+    // Max once every 5 seconds, revalidate on the server to get a fresh version of this page
+    maxAge: 5,
+  });
+};
+
+export default component$(() => {
+  return (
+    <main class="mx-auto max-w-[2200px] relative">
+      <Slot />
+    </main>
+  );
+});
+```
+
+With the above setup we will not only have better performance (pages are always served instantly from cache), but can have significantly decreased hosting costs, as our server (or edge functions) only need to run max once every 5 seconds per page.
+
+## `cacheControl`
+
+Any method that takes a [request event](https://qwik.builder.io/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
+
+```tsx title="src/routes/layout.tsx"
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 5,
+    sMaxAge: 10,
+    staleWhileRevalidate: 60 * 60 * 24 * 365,
+  });
+};
+```
+
+You can also override this as well. For instance, perhaps you have a defualt caching at the root, but want to disable caching for a specific page, you can override this with nested layouts
+
+```tsx title="src/routes/dashboard/layout.tsx"
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+// Override caching for /dashboard pages to not cache as they are unique per visitor
+export const onGet: RequestHandler = async ({ cacheControl }) => {
+  cacheControl({
+    public: false,
+    maxAge: 0,
+    sMaxAge: 0,
+    staleWhileRevalidate: 0,
+  });
+};
+
+```
+
+You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
+
+## When not to cache
+
+Caching is a good default, but not right for every page all the time. If you have URLs on your site that will show different content to different people - such as pages only for logged in users, or pages that show different content based on the user's location, you should not cache those pages using cache-control headers in the response, and server side render the contents of those pages on a per-visitor basis.
+
+For high traffic pages that look the same to everyone, such as a homepage, caching is the best thing to do for performance and cost. But for pages only for loggeed in users, and as a result probably have some degree less traffic, disabling caching may be wise.
+
+You can conditionally change cache behaviors with any logic you like:
+
+```tsx title="src/routes/layout.tsx"
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async ({ cacheControl, url }) => {
+  // Only our homepage is public and should be CDN cached. Other pages are unique per visitor
+  if (url.pathname === '/') {
+    cacheControl({
+      public: true,
+      maxAge: 5,
+      staleWhileRevalidate: 60 * 60 * 24 * 365,
+    });
+  }
+};
+```

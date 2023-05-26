@@ -125,6 +125,7 @@ export const SignalsChildren = component$(() => {
       <Issue3663 />
       <Issue3440 />
       <Issue4174 />
+      <Issue4249 />
     </div>
   );
 });
@@ -916,5 +917,49 @@ export const Issue4174 = component$(() => {
     <>
       <div id="issue-4174-result">Store: {storeWithoutInit.value}</div>
     </>
+  );
+});
+
+export const Issue4249 = component$(() => {
+  const first = useSignal('');
+  const second = useSignal('');
+
+  return (
+    <main>
+      <div>
+        <label for="first">
+          {'First '}
+          <input
+            id="issue-4249-first"
+            value={first.value}
+            onInput$={(_, e) => (first.value = e.value)}
+            placeholder="type here"
+          />
+        </label>
+      </div>
+      <div>
+        <label for="second">
+          {'Second '}
+          <input
+            id="issue-4249-second"
+            value={second.value}
+            onInput$={(_, e) => (second.value = e.value)}
+            placeholder="type here"
+          />
+        </label>
+      </div>
+
+      <div
+        id="issue-4249-result"
+        data-value={
+          first.value && second.value && first.value === second.value ? 'collision' : 'no-collision'
+        }
+      >
+        {'Status: '}
+        {first.value && second.value && first.value === second.value
+          ? 'Collision detected'
+          : 'No collision'}
+      </div>
+    </main>
   );
 });

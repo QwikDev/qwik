@@ -51,7 +51,7 @@ export async function runCreateInteractiveCli() {
 
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
-  let removeExistingOutDirPromise: Promise<void> | null = null;
+  let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
 
   if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const existingOutDirAnswer = await select({
@@ -61,7 +61,7 @@ export async function runCreateInteractiveCli() {
       )}" already exists and is not empty. What would you like to do?`,
       options: [
         { value: 'exit', label: 'Do not overwrite this directory and exit' },
-        { value: 'replace', label: 'Overwrite and replace this directory' },
+        { value: 'replace', label: 'Remove contents of this directory' },
       ],
     });
 
@@ -71,7 +71,15 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
+      removeExistingOutDirPromise = fs.promises
+        .readdir(outDir)
+        .then((filePaths) =>
+          Promise.all(
+            filePaths.map((pathToFile) =>
+              fs.promises.rm(join(outDir, pathToFile), { recursive: true })
+            )
+          )
+        );
     }
   }
 

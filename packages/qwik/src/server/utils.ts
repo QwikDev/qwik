@@ -18,6 +18,9 @@ export function createTimer() {
 
 export function getBuildBase(opts: RenderToStringOptions) {
   let base = opts.base;
+  if (typeof opts.base === 'function') {
+    base = opts.base(opts);
+  }
   if (typeof base === 'string') {
     if (!base.endsWith('/')) {
       base += '/';

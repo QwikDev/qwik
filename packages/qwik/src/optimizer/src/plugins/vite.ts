@@ -43,6 +43,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
+  let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
 
   let ssrOutDir: string | null = null;
@@ -347,6 +348,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       return updatedViteConfig;
     },
+
+    configResolved(config) {
+      basePathname = config.base;
+    },
+
     async buildStart() {
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file
@@ -430,12 +436,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               });
             } else {
               if (['.css', '.scss', '.sass', '.less'].some((ext) => fileName.endsWith(ext))) {
+                const baseFilename = basePathname + fileName;
                 if (typeof b.source === 'string' && b.source.length < 20000) {
                   injections.push({
                     tag: 'style',
                     location: 'head',
                     attributes: {
-                      'data-src': `/${fileName}`,
+                      'data-src': baseFilename,
                       dangerouslySetInnerHTML: b.source,
                     },
                   });
@@ -445,7 +452,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     location: 'head',
                     attributes: {
                       rel: 'stylesheet',
-                      href: `/${fileName}`,
+                      href: baseFilename,
                     },
                   });
                 }

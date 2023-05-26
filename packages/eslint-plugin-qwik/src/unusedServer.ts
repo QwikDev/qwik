@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
+import { QwikEslintExamples } from '../examples';
 
 export const unusedServer: Rule.RuleModule = {
   meta: {
@@ -7,7 +8,7 @@ export const unusedServer: Rule.RuleModule = {
     docs: {
       description: 'Detect unused server$() functions',
       recommended: true,
-      url: 'https://github.com/BuilderIO/qwik',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#unused-server',
     },
     messages: {
       unusedServer:
@@ -41,5 +42,65 @@ export const unusedServer: Rule.RuleModule = {
         }
       },
     };
+  },
+};
+
+const unusedServerGood = `
+import { component$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+ 
+const serverGreeter = server$((firstName: string, lastName: string) => {
+  const greeting = \`Hello \${firstName} \${lastName}\`;
+  return greeting;
+});
+ 
+export default component$(() => (
+    <button
+      onClick$={async () => {
+        const greeting = await serverGreeter('John', 'Doe');
+        alert(greeting);
+      }}
+    >
+      greet
+    </button>
+  );
+);`.trim();
+
+const unusedServerBad = `
+import { component$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+ 
+const serverGreeter = server$((firstName: string, lastName: string) => {
+  const greeting = \`Hello \${firstName} \${lastName}\`;
+  return greeting;
+});
+ 
+export default component$(() => (
+    <button
+      onClick$={async () => {
+        const greeting = 'not using the server$ function';
+        alert(greeting);
+      }}
+    >
+      greet
+    </button>
+  );
+);`.trim();
+
+export const unusedServerExamples: QwikEslintExamples = {
+  unusedServer: {
+    good: [
+      {
+        codeHighlight: '{4,12} /serverGreeter/#a',
+        code: unusedServerGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{4,12} /serverGreeter/#a',
+        code: unusedServerBad,
+        description: 'A `server$` function is declared, but never used.',
+      },
+    ],
   },
 };

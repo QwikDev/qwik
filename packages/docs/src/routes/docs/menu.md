@@ -28,6 +28,7 @@
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
+- [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 
@@ -37,8 +38,8 @@
 - [Auth.js](integrations/authjs/index.mdx)
 - [Builder.io](integrations/builderio/index.mdx)
 - [Cypress](integrations/cypress/index.mdx)
-- [Image Optimization](integrations/image-optimization/index.mdx)
 - [Icons](integrations/icons/index.mdx)
+- [Image Optimization](integrations/image-optimization/index.mdx)
 - [Internationalization](integrations/i18n/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
@@ -59,11 +60,11 @@
 - [Overview](deployments/index.mdx)
 - [Azure SWA](deployments/azure-swa/index.mdx)
 - [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
+- [Deno](deployments/deno/index.mdx)
 - [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
-- [Deno](deployments/deno/index.mdx)
 
 ## Guides
 
@@ -96,6 +97,7 @@
 - [Menus](/docs/(qwikcity)/advanced/menu/index.mdx)
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
+- [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 
 ## Reference
 

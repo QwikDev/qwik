@@ -13,12 +13,19 @@
   margin: 40px 0;
 }
 
-.media h2 {
+.media h2,
+.media h3 {
   font-size: 24px;
   font-weight: bold;
   margin: 0 0 15px 0;
   padding: 0 0 5px 0;
   border-bottom: 1px solid var(--media-separator-color);
+}
+
+.media h3 {
+  font-size: 18px;
+  margin-top: 30px;
+  padding: 0 0 2px 0;
 }
 
 .media .thumbnails {

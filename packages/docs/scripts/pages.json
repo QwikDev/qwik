@@ -151,5 +151,10 @@
   {
     "href": "https://seifen.vercel.app/",
     "tags": "site"
+  },
+  {
+    "href": "https://builtwith.appwrite.io/",
+    "tags": "site",
+    "repo": "https://github.com/appwrite/builtwith"
   }
 ]

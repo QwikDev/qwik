@@ -45,6 +45,10 @@ export const MEDIA = mediaObj({
       language: 'es',
       promoted: true,
     },
+    youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
+      playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd',
+      language: 'ar',
+    }),
   ],
 
   /*****************************************/

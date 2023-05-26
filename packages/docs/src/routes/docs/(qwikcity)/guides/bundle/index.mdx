@@ -67,10 +67,10 @@ You can think of bundle optimization as a slider that allows us to optimize the 
 
 The problem with a single chunk is:
 - It will contain many symbols which are not needed by the client. (Wasted bandwidth.)
-- The client can't run until any symbol until the whole chunk is loaded.
+- The client can't run any symbols until the whole chunk is loaded.
 
 The problem with a separate chunk for each symbol is:
-- The client will have to make many requests to load all of the chunks often leading to undesirable waterfall requests.
+- The client will have to make many requests to load all of the chunks, often leading to undesirable waterfall requests.
 
 The optimal solution is somewhere in the middle. We want to have a small number of chunks, but we also want to have the symbols that are used together to be co-located in the same chunk. Having a small number of chunks allows us to prioritize the order in which chunks load but at the same time amortize the cost of making HTTP requests. Having symbols co-located allows us to minimize the waterfall.
 
@@ -166,7 +166,7 @@ export interface QPrefetchDetail {
 
 ### `qsymbol` custom event details.
 
-`qsymbol` event is fired every time a Qwik needs to resolve a symbol. Listening to this event can give you insight into when different symbols are loaded by your application. The information can then be used to better optimize your bundles by putting symbols that are needed together in the same bundle.
+`qsymbol` event is fired every time Qwik needs to resolve a symbol. Listening to this event can give you insight into when different symbols are loaded by your application. The information can then be used to better optimize your bundles by putting symbols that are needed together in the same bundle.
 
 ```typescript
 export interface QSymbolDetail {

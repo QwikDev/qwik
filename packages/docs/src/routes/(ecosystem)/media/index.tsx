@@ -45,6 +45,13 @@ export const MEDIA = mediaObj({
       language: 'es',
       promoted: true,
     },
+    youtube('🇪🇸 manuelsanchezweb: Qwik para principiantes', 'X4puVLRTr4k', { language: 'es' }),
+    {
+      href: 'https://www.udemy.com/course/curso-intermedio-qwik-espanol/?referralCode=3D453D600C0CB529D84B',
+      imgSrc: 'https://www.manuelsanchezweb.com/img/qwik-intermedio.png',
+      title: '🇪🇸 manuelsanchezweb: Qwik intermedio-avanzado con proyectos',
+      language: 'es',
+    },
     youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
       playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd',
       language: 'ar',

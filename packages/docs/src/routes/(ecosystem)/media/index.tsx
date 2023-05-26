@@ -15,7 +15,9 @@ export const MEDIA = mediaObj({
   /*****************************************/
   courses: [
     youtube('The Net Ninja', 'W0xjcx4mrkE', { playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw' }),
-    youtube('QwikJS course in Arabic', 'irQDABJZw5c', { playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd' }),
+    youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
+      playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd',
+    }),
     {
       href: 'https://qwikschool.com/',
       imgSrc:

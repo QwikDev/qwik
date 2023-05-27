@@ -92,6 +92,7 @@ export const RenderChildren = component$(() => {
       <Issue3702 />
       <Issue3795 />
       <Issue4029 />
+      <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
       <HTMLFragmentTest />
@@ -823,6 +824,20 @@ export const Issue4292 = component$(() => {
       >
         <div>Hello, World!</div>
       </TestB>
+    </>
+  );
+});
+
+export const Issue4346 = component$(() => {
+  const toggle = useSignal(true);
+  const ref = useSignal<HTMLDivElement>();
+
+  return (
+    <>
+      <div id="issue-4346-result" ref={toggle.value ? ref : undefined}>
+        {toggle.value ? 'Hello' : 'world'}
+      </div>
+      <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
     </>
   );
 });

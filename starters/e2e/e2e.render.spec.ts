@@ -466,4 +466,12 @@ test.describe('render', () => {
     await ref.click();
     await expect(ref).not.toHaveText('data');
   });
+
+  test('issue4346', async ({ page }) => {
+    const result = page.locator('#issue-4346-result');
+    const toggle = page.locator('#issue-4346-toggle');
+    await expect(result).toHaveText('Hello');
+    await toggle.click();
+    await expect(result).toHaveText('world');
+  });
 });

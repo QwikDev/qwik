@@ -450,6 +450,59 @@ test.describe('signals', () => {
       await expect(result).toHaveText('Status: Collision detected');
       await expect(result).toHaveAttribute('data-value', 'collision');
     });
+
+    test('issue 4228', async ({ page }) => {
+      const buttonA = page.locator('#issue-4228-button-a');
+      const buttonB = page.locator('#issue-4228-button-b');
+      const buttonC = page.locator('#issue-4228-button-c');
+      const resultA = page.locator('#issue-4228-result-a');
+      const resultB = page.locator('#issue-4228-result-b');
+      const resultC = page.locator('#issue-4228-result-c');
+      const resultTotal = page.locator('#issue-4228-result-total');
+
+      await page.waitForTimeout(100);
+
+      await expect(resultA).toHaveText('0:0');
+      await expect(resultB).toHaveText('0:0');
+      await expect(resultC).toHaveText('0:0');
+      await expect(resultTotal).toHaveText('0:0');
+
+      await buttonA.click();
+      await expect(resultA).toHaveText('1:1');
+      await expect(resultB).toHaveText('0:0');
+      await expect(resultC).toHaveText('0:0');
+      await expect(resultTotal).toHaveText('1:1');
+
+      await buttonB.click();
+      await expect(resultA).toHaveText('1:1');
+      await expect(resultB).toHaveText('1:1');
+      await expect(resultC).toHaveText('0:0');
+      await expect(resultTotal).toHaveText('2:2');
+
+      await buttonC.click();
+      await expect(resultA).toHaveText('1:1');
+      await expect(resultB).toHaveText('1:1');
+      await expect(resultC).toHaveText('1:1');
+      await expect(resultTotal).toHaveText('3:3');
+
+      await buttonA.click();
+      await expect(resultA).toHaveText('2:2');
+      await expect(resultB).toHaveText('1:1');
+      await expect(resultC).toHaveText('1:1');
+      await expect(resultTotal).toHaveText('4:4');
+
+      await buttonB.click();
+      await expect(resultA).toHaveText('2:2');
+      await expect(resultB).toHaveText('2:2');
+      await expect(resultC).toHaveText('1:1');
+      await expect(resultTotal).toHaveText('5:5');
+
+      await buttonC.click();
+      await expect(resultA).toHaveText('2:2');
+      await expect(resultB).toHaveText('2:2');
+      await expect(resultC).toHaveText('2:2');
+      await expect(resultTotal).toHaveText('6:6');
+    });
   }
 
   tests();

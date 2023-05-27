@@ -14,53 +14,84 @@ export const MEDIA = mediaObj({
   /* Courses
   /*****************************************/
   courses: [
-    youtube('The Net Ninja', 'W0xjcx4mrkE', { playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw' }),
+    youtube('The Net Ninja', 'W0xjcx4mrkE', {
+      playlist: 'PL4cUxeGkcC9gOUlY-uCHurFIpqogsdOnw',
+      promoted: true,
+    }),
     {
       href: 'https://qwikschool.com/',
       imgSrc:
         'https://user-images.githubusercontent.com/1430726/234708569-7a51fe77-3a65-4a28-9617-73ad159aa551.png',
       title: 'QwikSchool.com',
+      language: 'en',
+      promoted: true,
     },
     youtube('Qwik JS - Crash Introduction to Building a Super Fast Application', 'zLHYDY9dAbs', {
       playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
+      promoted: true,
     }),
     {
       href: 'https://frontendmasters.com/courses/qwik/',
       imgSrc: 'https://static.frontendmasters.com/assets/courses/2023-02-28-qwik/posterframe.webp',
       title: 'FrontendMasters: Qwik for Instant-Loading Websites & Apps',
+      language: 'en',
+      promoted: true,
     },
-    youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag'),
+    youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag', { language: 'es', promoted: true }),
     {
       href: 'https://cursos.devtalles.com/courses/qwik-introduccion',
       imgSrc: 'https://fernando-herrera.com/assets/img/cursos/qwik-gratis.png',
-      title: 'Fernando Herrera + DevTalles',
+      title: '🇪🇸 Fernando Herrera + DevTalles',
+      language: 'es',
+      promoted: true,
     },
+    youtube('🇪🇸 manuelsanchezweb: Qwik para principiantes', 'X4puVLRTr4k', { language: 'es' }),
+    {
+      href: 'https://www.udemy.com/course/curso-intermedio-qwik-espanol/?referralCode=3D453D600C0CB529D84B',
+      imgSrc: 'https://www.manuelsanchezweb.com/img/qwik-intermedio.png',
+      title: '🇪🇸 manuelsanchezweb: Qwik intermedio-avanzado con proyectos',
+      language: 'es',
+    },
+    youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
+      playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd',
+      language: 'ar',
+    }),
   ],
 
   /*****************************************/
   /* Videos
   /*****************************************/
   videos: [
-    youtube('Unveiling Qwik 1.0: What You Need to Know!', 'NjKOAbWqOM4'),
-    youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
-    youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
-    youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
-    youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
-    youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),
+    youtube('Unveiling Qwik 1.0: What You Need to Know!', 'NjKOAbWqOM4', { promoted: true }),
+    youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY', {
+      promoted: true,
+    }),
+    youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI', { promoted: true }),
+    youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q', {
+      promoted: true,
+    }),
+    youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o', {
+      promoted: true,
+    }),
+    youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM', { promoted: true }),
     youtube('Building Qwik w/ Misko Hevery', 'lY6e7Hw4uVo'),
     youtube('Qwik, an SSR resumable framework', 'tdEelSqDj0E'),
     youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
     youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'XoeJisRJjlo'),
     youtube('Building resumable websites using Qwik with Manu Almeida', 'umASDvjaKTY'),
     youtube('Breaking Down the Web: SSR with Miško Hevery (Qwik!)', 'fYATmnlxX4A'),
-    youtube('🇪🇸 Qwik - nuevo framework para Js', 'GzUMPnsDopM'),
-    youtube('🇪🇸 Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs'),
-    youtube('Construindo Apps instantâneos com Qwik', 'yrROy1vLwkE'),
-    youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
-    youtube('🇪🇸 Hablemos de Qwik', 'XMLMS2NVC1g'),
-    youtube('🇪🇸 Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw'),
-    youtube('🇪🇸 Introducción a QwikJS', 'fX7bM4iuuUQ'),
-    youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
+    youtube('🇪🇸 Qwik - nuevo framework para Js', 'GzUMPnsDopM', { language: 'es' }),
+    youtube('🇪🇸 Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs', {
+      language: 'es',
+    }),
+    youtube('🇪🇸 Construindo Apps instantâneos com Qwik', 'yrROy1vLwkE', { language: 'es' }),
+    youtube('🇪🇸 Après Angular : place à Qwik!', 'Ts2IWXMYiXk', { language: 'es' }),
+    youtube('🇪🇸 Hablemos de Qwik', 'XMLMS2NVC1g', { language: 'es' }),
+    youtube('🇪🇸 Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw', {
+      language: 'es',
+    }),
+    youtube('🇪🇸 Introducción a QwikJS', 'fX7bM4iuuUQ', { language: 'es' }),
+    youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E', { language: 'es' }),
     youtube('Introduction to Qwik for JS Developers ft. Miško Hevery | JS Drops', 'DxJgXw91cCQ'),
     youtube('Building Performant Applications at Scale with Qwik-City', '_R0-0IWdshE'),
     youtube('Qwik: The Lightest, Fastest Way to Build Web Apps', 'l2mBk9meSvc'),
@@ -82,19 +113,22 @@ export const MEDIA = mediaObj({
   /* Podcasts
   /*****************************************/
   podcasts: [
-    youtube('Qwik City for Resumable, Dynamic Apps', 'cJJdrYnsl6U'),
-    youtube('Qwik + React State (and a new mic!)', 'fa6-Mn0Eybg'),
+    youtube('Qwik City for Resumable, Dynamic Apps', 'cJJdrYnsl6U', { promoted: true }),
+    youtube('Qwik + React State (and a new mic!)', 'fa6-Mn0Eybg', { promoted: true }),
     youtube(
       'Miško Hevery: Qwik, PartyTown, and Lessons from Angular [Swyx Mixtape]',
-      'T3K_DrgLPXM'
+      'T3K_DrgLPXM',
+      { promoted: true }
     ),
-    youtube('Introducing Qwik w/ Misko Hevery & Shai Reznik', 'iJZaT-AvJ-o'),
-    youtube('Resumable Apps in Qwik', 'LbMRs7l4czI'),
-    youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0'),
+    youtube('Introducing Qwik w/ Misko Hevery & Shai Reznik', 'iJZaT-AvJ-o', { promoted: true }),
+    youtube('Resumable Apps in Qwik', 'LbMRs7l4czI', { promoted: true }),
+    youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0', {
+      promoted: true,
+    }),
     youtube('QWIK - Set of great demos by Misko Hevery', '7MgNMIPISY4'),
     youtube('Qwik the HTML First Framework', 'GdIZh42etYk'),
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
-    youtube('Introduction to Qwik – Misko Hevery (English)', 'gYbHdss_y04'),
+    youtube('Introduction to Qwik – Misko Hevery', 'gYbHdss_y04'),
     youtube(
       'Build Performant, Resumable Sites with Qwik and Partytown (with Miško Hevery) | Some Antics',
       'aGuJPcIdX0A'
@@ -126,24 +160,27 @@ export const MEDIA = mediaObj({
   /* Presentations
   /*****************************************/
   presentations: [
-    youtube('Qwik framework overview', 'Jf_E1_19aB4', { startTime: 629 }),
+    youtube('Qwik framework overview', 'Jf_E1_19aB4', { startTime: 629, promoted: true }),
     youtube(
       'Mindblowing Google PageSpeed Scores with Qwik | Misko Hevery | Reliable Web Summit 2021',
-      'sCPLWf2cEY0'
+      'sCPLWf2cEY0',
+      { promoted: true }
     ),
     youtube(
       'WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread',
       '0dC11DMR3fU',
-      { startTime: 154 }
+      { startTime: 154, promoted: true }
     ),
     youtube(
       'Qwik: A holly grail of progressive hydration for ultimate speed by Miško Hevery',
-      'JxYbg7eZNLY'
+      'JxYbg7eZNLY',
+      { promoted: true }
     ),
-    youtube('Qwik: A no hydration instant', 'Zddw6qy5pf0'),
+    youtube('Qwik: A no hydration instant', 'Zddw6qy5pf0', { promoted: true }),
     youtube(
       'Qwik City: Reimangined meta-framework for the edge, Adam Bradley, ViteConf 2022',
-      'dSLWJBGWigs'
+      'dSLWJBGWigs',
+      { promoted: true }
     ),
     youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8'),
     youtube('Qwik: Beta and Beyond', 'Tfd62DiRTKc'),
@@ -277,7 +314,9 @@ export const MEDIA = mediaObj({
 export interface MediaEntry {
   title: string;
   href: string;
+  language?: string;
   imgSrc?: string;
+  promoted?: boolean;
 }
 
 export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?: 'eager' }) => {
@@ -313,6 +352,7 @@ export const Section = component$(
     imgLoading?: 'eager';
   }) => {
     const capitalized = [props.id[0].toUpperCase(), ...props.id.slice(1)].join('');
+    const entriesInOtherLanguages: MediaEntry[] = [];
     return (
       <section id={props.id}>
         <h2>
@@ -320,14 +360,35 @@ export const Section = component$(
         </h2>
 
         <ul class={props.listStyle}>
-          {MEDIA[props.id].map((entry) =>
-            props.listStyle === 'thumbnails' ? (
+          {MEDIA[props.id].map((entry) => {
+            if (entry.language && entry.language !== 'en') {
+              entriesInOtherLanguages.push(entry);
+              return null;
+            }
+
+            return props.listStyle === 'thumbnails' ? (
               <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />
             ) : (
               <BulletLink entry={entry} />
-            )
-          )}
+            );
+          })}
         </ul>
+
+        {(entriesInOtherLanguages.length && (
+          <>
+            <h3>Other languages</h3>
+            <ul class={props.listStyle}>
+              {entriesInOtherLanguages.map((entry) =>
+                props.listStyle === 'thumbnails' ? (
+                  <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />
+                ) : (
+                  <BulletLink entry={entry} />
+                )
+              )}
+            </ul>
+          </>
+        )) ||
+          null}
       </section>
     );
   }
@@ -374,7 +435,12 @@ export default component$(() => {
 export function youtube(
   title: string,
   id: string,
-  { startTime, playlist }: { startTime?: number; playlist?: string } = {}
+  {
+    startTime,
+    playlist,
+    language = 'en',
+    promoted = false,
+  }: { startTime?: number; playlist?: string; language?: string; promoted?: boolean } = {}
 ): MediaEntry {
   const url = new URL('https://www.youtube.com/watch');
   url.searchParams.append('v', id);
@@ -389,6 +455,8 @@ export function youtube(
     href: url.href,
     imgSrc: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
     title,
+    language,
+    promoted,
   };
 }
 

@@ -232,8 +232,8 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       if (hostCtx) {
         const hostElm = hostCtx.$element$;
         if (hostElm.isConnected) {
-          const hasTemplate = Array.from(hostElm.childNodes).some(
-            (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
+          const hasTemplate = getChildren(hostElm, isSlotTemplate).some(
+            (node: any) => directGetAttribute(node, QSlot) === key
           );
 
           if (!hasTemplate) {
@@ -261,12 +261,11 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const template = Array.from(hostElm.childNodes).find((node) => {
-      return isSlotTemplate(node) && node.getAttribute(QSlot) === key;
+    const template = getChildren(hostElm, isSlotTemplate).find((node: any) => {
+      return node.getAttribute(QSlot) === key;
     }) as Element | undefined;
     if (template) {
-      const children = getChildren(template, isChildComponent);
-      children.forEach((child) => {
+      getChildren(template, isChildComponent).forEach((child) => {
         directAppendChild(slotEl, child);
       });
       template.remove();

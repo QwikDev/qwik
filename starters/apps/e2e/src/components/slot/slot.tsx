@@ -10,6 +10,7 @@ import {
   _jsxBranch,
   jsx,
   type JSXNode,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
@@ -58,6 +59,9 @@ export const SlotParent = component$(() => {
           <Issue3607 />
           <Issue3727 />
           <Issue4215 />
+          <Issue4283>
+            <p>index page</p>
+          </Issue4283>
         </>
       )}
       <div>
@@ -251,7 +255,7 @@ export const Bogus = component$(() => {
   );
 });
 
-const Issue3565Model = component$(() => {
+export const Issue3565Model = component$(() => {
   return (
     <div id="issue-3565-result">
       Own content
@@ -405,5 +409,42 @@ export const Issue4215 = component$(() => {
         </QwikSvgWithSlot>
       </div>
     </>
+  );
+});
+
+export const HideUntilVisible = component$(() => {
+  const isNotVisible = useSignal(true);
+
+  useVisibleTask$(
+    () => {
+      if (isNotVisible.value) {
+        isNotVisible.value = false;
+      }
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+
+  // NOTE: if you comment the line below,
+  // there will only be one "Content"
+  if (isNotVisible.value) {
+    return <div></div>;
+  }
+
+  return (
+    <div id="issue-4283-result">
+      <p>Hide until visible</p>
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue4283 = component$(() => {
+  return (
+    <HideUntilVisible>
+      <p>Content</p>
+      <Slot />
+    </HideUntilVisible>
   );
 });

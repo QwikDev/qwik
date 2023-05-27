@@ -299,6 +299,13 @@ test.describe('slot', () => {
       await toggle.click();
       await expect(getNamespaceURI()).resolves.toBe('http://www.w3.org/2000/svg');
     });
+
+    test('issue 4283', async ({ page }) => {
+      const result = page.locator('#issue-4283-result');
+      await expect(result).toHaveText(`Hide until visible\n\nContent\n\nindex page`, {
+        useInnerText: true,
+      });
+    });
   }
 
   test.beforeEach(async ({ page }) => {

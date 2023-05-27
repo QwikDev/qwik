@@ -1492,6 +1492,33 @@ renderSSRSuite('class emoji valid', async () => {
   );
 });
 
+renderSSRSuite('issue 4283', async () => {
+  await testSSR(
+    <body>
+      <Issue4283>
+        <p>index page</p>
+      </Issue4283>
+    </body>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+        <!--qv q:id=1 q:key=sX:-->
+        <div on:qvisible="/runtimeQRL#_[0]" q:id="2"></div>
+        <q:template q:slot hidden aria-hidden="true">
+          <p>Content</p>
+          <!--qv q:s q:sref=0 q:key=-->
+          <p>index page</p>
+          <!--/qv-->
+        </q:template>
+        <!--/qv-->
+        <!--/qv-->
+      </body>
+    </html>
+    `
+  );
+});
+
 // TODO
 // Merge props on host
 // - host events
@@ -1818,6 +1845,38 @@ export const EffectTransparentRoot = component$(() => {
     <EffectTransparent>
       <section>Hello</section>
     </EffectTransparent>
+  );
+});
+
+export const HideUntilVisible = component$(() => {
+  const isNotVisible = useSignal(true);
+
+  useVisibleTask$(() => {
+    if (isNotVisible.value) {
+      isNotVisible.value = false;
+    }
+  });
+
+  // NOTE: if you comment the line below,
+  // there will only be one "Content"
+  if (isNotVisible.value) {
+    return <div></div>;
+  }
+
+  return (
+    <div>
+      <p>Hide until visible</p>
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue4283 = component$(() => {
+  return (
+    <HideUntilVisible>
+      <p>Content</p>
+      <Slot />
+    </HideUntilVisible>
   );
 });
 

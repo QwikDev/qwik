@@ -448,20 +448,28 @@ const renderSSRComponent = (
           renderNodeElementSync('script', attributes, stream);
         }
         if (beforeClose) {
-          return then(renderQTemplates(rCtx, newSSrContext, stream), () => beforeClose(stream));
+          return then(renderQTemplates(rCtx, newSSrContext, ssrCtx, stream), () =>
+            beforeClose(stream)
+          );
         } else {
-          return renderQTemplates(rCtx, newSSrContext, stream);
+          return renderQTemplates(rCtx, newSSrContext, ssrCtx, stream);
         }
       }
     );
   });
 };
 
-const renderQTemplates = (rCtx: RenderContext, ssrContext: SSRContext, stream: StreamWriter) => {
-  const projectedChildren = ssrContext.$projectedChildren$;
+const renderQTemplates = (
+  rCtx: RenderContext,
+  ssrCtx: SSRContext,
+  parentSSRCtx: SSRContext,
+  stream: StreamWriter
+) => {
+  const projectedChildren = ssrCtx.$projectedChildren$;
   if (projectedChildren) {
     const nodes = Object.keys(projectedChildren).map((slotName) => {
       const value = projectedChildren[slotName];
+      // projectedChildren[slotName] = undefined;
       if (value) {
         return _jsxQ(
           'q:template',
@@ -477,7 +485,7 @@ const renderQTemplates = (rCtx: RenderContext, ssrContext: SSRContext, stream: S
         );
       }
     });
-    return processData(nodes, rCtx, ssrContext!, stream, 0, undefined);
+    return processData(nodes, rCtx, parentSSRCtx, stream, 0, undefined);
   }
 };
 

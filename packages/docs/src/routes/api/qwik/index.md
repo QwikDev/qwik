@@ -1224,6 +1224,24 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 | ----------- | --------- | ------------------------------------------------- | ----------- |
 | [script](#) |           | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |             |
 
+The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
+
+```tsx
+import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
+
+type WrapperProps = {
+  attributes?: QwikIntrinsicElements["div"];
+};
+
+const Wrappper = component$<WrapperProps>(({ attributes }) => {
+  return (
+    <div {...attributes} class="p-2">
+      <Slot />
+    </div>
+  );
+});
+```
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
 
 ## QwikInvalidEvent

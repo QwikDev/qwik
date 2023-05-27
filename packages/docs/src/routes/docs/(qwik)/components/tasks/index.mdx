@@ -165,7 +165,7 @@ One unique aspect of Qwik, is that components are mounted only ONCE across the s
 
 ### `track()`
 
-There are times when it is desirable to re-run a task when a component state changes. This is done by using the `track()` function. The `track()` function allows you to set up a dependency on a component state on the server (if initially rendered there) and then re-execute the task when the state changes (always on the browser) on the browser.
+There are times when it is desirable to re-run a task when a component state changes. This is done by using the `track()` function. The `track()` function allows you to set up a dependency on a component state on the server (if initially rendered there) and then re-execute the task when the state changes _on the browser_ (the same task will never be executed twice on the server side).
 
 > **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
 

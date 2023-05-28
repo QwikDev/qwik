@@ -162,5 +162,9 @@
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
     "repo": "https://github.com/appwrite/builtwith"
+  },
+  {
+    "href": "https://radixstream.com/",
+    "tags": "site"
   }
 ]

@@ -18,7 +18,7 @@ export interface QwikIntrinsicAttributes {
 }
 
 /**
- * The interface holds available attributes of both native DOM elements and custom Qwik elements. 
+ * The interface holds available attributes of both native DOM elements and custom Qwik elements.
  * An example showing how to define a customizable wrapper component:
  *
  * ```tsx
@@ -36,7 +36,6 @@ export interface QwikIntrinsicAttributes {
  *   );
  * });
  * ```
- * 
  * @public
  */
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {

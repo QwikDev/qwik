@@ -8,15 +8,47 @@ contributors:
   - the-r3aper7
 ---
 
+Here is the improved documentation:
+
+---
+
 # Static Assets
 
-Use `/public` folder to store all static assets such as images, fonts, etc.
+The `/public` folder is utilized to store all static assets such as images, fonts, etc.
 
-All static assets are served from your server's root (`/` as in `https://example.com/`) folder and superimposed under your routes (routes have priority).
+All static assets are served from your server's root folder (`/` as in `https://example.com/`), and are superimposed under your routes. Note that routes take precedence.
 
-```bash
+```
 public/
 ├── favicon.ico           # https://example.com/favicon.ico
 └── images/
     └── logo.png          # https://example.com/images/logo.png
+```
+
+### Accessing Static Assets within the Application
+
+To access and use static assets within your application, you can use the `useLocation` and `useResource$` functions. Below is an example that fetches a JSON file from the public folder:
+
+```jsx
+export default component$(() => {
+  const loc = useLocation();
+  const list = useResource$(() => {
+    const url = `${loc.url.origin}/parsedFoods.json`;
+    return fetch(url).then((v) => v.json());
+  });
+
+  return (
+    <Resource value={list} onResolved={(items) => (
+      <ul>
+        {items.map((item: { id: string }) => (
+          <li key={item._id}>{item._id}</li>
+        ))}
+      </ul>
+    )}/>
+  );
+});
+```
+In this example, `useLocation` is utilized to obtain the URL of the site, which helps construct the appropriate URL for fetching the JSON file.
+
+This example is provided to assist newcomers to the Qwik framework. Understanding how to use the Qwik API might not be straightforward initially, and this example aims to offer a clearer path towards leveraging the API effectively.
 ```

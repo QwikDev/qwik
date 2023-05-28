@@ -33,7 +33,7 @@ To access and use static assets within your application, you can use the `useLoc
 export default component$(() => {
   const loc = useLocation();
   const list = useResource$(() => {
-    const url = `${loc.url.origin}/parsedFoods.json`;
+    const url = `${loc.url.origin}/myJson.json`;
     return fetch(url).then((v) => v.json());
   });
 

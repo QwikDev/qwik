@@ -53,7 +53,7 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 };
 ```
 
-You can also override this as well. For instance, perhaps you have a defualt caching at the root, but want to disable caching for a specific page, you can override this with nested layouts
+You can also override this as well. For instance, perhaps you have a default caching at the root, but want to disable caching for a specific page, you can override this with nested layouts
 
 ```tsx title="src/routes/dashboard/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";

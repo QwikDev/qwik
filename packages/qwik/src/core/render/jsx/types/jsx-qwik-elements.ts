@@ -28,7 +28,7 @@ export interface QwikIntrinsicAttributes {
  *   attributes?: QwikIntrinsicElements["div"];
  * };
  *
- * const Wrapper = component$<WrapperProps>(({ attributes }) => {
+ * export default component$<WrapperProps>(({ attributes }) => {
  *   return (
  *     <div {...attributes} class="p-2">
  *       <Slot />

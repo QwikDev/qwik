@@ -7,6 +7,7 @@ declare module 'https://deno.land/std/path/mod.ts' {
 declare const Deno: {
   env: any;
   readTextFile(path: string): Promise<string>;
+  readFile(path: string): Promise<Uint8Array>;
   version: {
     deno: string;
   };

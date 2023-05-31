@@ -1,4 +1,5 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
 
@@ -11,6 +12,7 @@ export const jsxImg = createRule({
       description:
         'For performance reasons, always provide width and height attributes for <img> elements, it will help to prevent layout shifts.',
       recommended: 'warn',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-img',
     },
     fixable: 'code',
     schema: [],
@@ -55,3 +57,27 @@ export const jsxImg = createRule({
     };
   },
 });
+
+const noWidthHeightGood = `
+<img width="200" height="600" src="/static/images/portrait-01.webp">`.trim();
+
+const noWidthHeightBad = `
+<img src="/static/images/portrait-01.webp">`.trim();
+
+export const jsxImgExamples: QwikEslintExamples = {
+  noWidthHeight: {
+    good: [
+      {
+        codeHighlight: '/width/#a /height/#b',
+        code: noWidthHeightGood,
+      },
+    ],
+    bad: [
+      {
+        code: noWidthHeightBad,
+        description:
+          'For performance reasons, always provide width and height attributes for `<img>` elements, it will help to prevent layout shifts.',
+      },
+    ],
+  },
+};

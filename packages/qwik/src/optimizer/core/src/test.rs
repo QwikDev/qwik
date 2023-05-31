@@ -2013,6 +2013,7 @@ export const App = component$((props) => {
                 class={styles.foo}
                 document={window.document}
                 onClick$={props.onClick$}
+                onEvent$={() => console.log('stuff')}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{

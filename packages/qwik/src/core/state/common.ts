@@ -22,6 +22,7 @@ export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
   $clearSub$: (sub: SubscriberEffect | SubscriberHost | Node) => void;
+  $clearSignal$: (sub: SubscriberSignal) => void;
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -212,8 +213,21 @@ type SubscriberC = readonly [
 export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
 
 type A = [type: 0, host: SubscriberEffect | SubscriberHost, key: string | undefined];
-type B = [type: 1 | 2, host: SubscriberHost, signal: Signal, elm: QwikElement, prop: string];
-type C = [type: 3 | 4, host: SubscriberHost | Text, signal: Signal, elm: Node | QwikElement];
+type B = [
+  type: 1 | 2,
+  host: SubscriberHost,
+  signal: Signal,
+  elm: QwikElement,
+  prop: string,
+  key: string | undefined
+];
+type C = [
+  type: 3 | 4,
+  host: SubscriberHost | Text,
+  signal: Signal,
+  elm: Node | QwikElement,
+  key: string | undefined
+];
 
 export type SubscriberSignal = B | C;
 
@@ -231,23 +245,27 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
     return undefined;
   }
   let base = type + ' ' + host;
+  let key: string | undefined;
   if (type === 0) {
-    if (sub[2]) {
-      base += ' ' + encodeURI(sub[2]);
-    }
+    key = sub[2];
   } else {
     const signalID = getObjId(sub[2]);
     if (!signalID) {
       return undefined;
     }
     if (type <= 2) {
+      key = sub[5];
       base += ` ${signalID} ${must(getObjId(sub[3]))} ${sub[4]}`;
     } else if (type <= 4) {
+      key = sub[4];
       const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
       base += ` ${signalID} ${nodeID}`;
     } else {
       assertFail('Should not get here');
     }
+  }
+  if (key) {
+    base += ` ${encodeURI(key)}`;
   }
   return base;
 };
@@ -266,15 +284,22 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   const subscription = [type, host];
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
-    subscription.push(parts.length === 3 ? decodeURI(parts[parts.length - 1]) : undefined);
+    subscription.push(safeDecode(parts[2]));
   } else if (type <= 2) {
-    assertTrue(parts.length === 5, 'Type 1 has 5');
-    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], parts[5]);
+    assertTrue(parts.length === 5 || parts.length === 6, 'Type 1 has 5');
+    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], safeDecode(parts[5]));
   } else if (type <= 4) {
-    assertTrue(parts.length === 4, 'Type 2 has 4');
-    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4]);
+    assertTrue(parts.length === 4 || parts.length === 5, 'Type 2 has 4');
+    subscription.push(getObject(parts[2]), getObject(parts[3]), safeDecode(parts[4]));
   }
   return subscription as any;
+};
+
+const safeDecode = (str: string | undefined) => {
+  if (str !== undefined) {
+    return decodeURI(str);
+  }
+  return undefined;
 };
 
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
@@ -292,6 +317,14 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
         }
         groupToManagers.delete(group);
         managers.length = 0;
+      }
+    },
+    $clearSignal$: (signal: SubscriberSignal) => {
+      const managers = groupToManagers.get(signal[1]);
+      if (managers) {
+        for (const manager of managers) {
+          manager.$unsubEntry$(signal);
+        }
       }
     },
   };
@@ -339,6 +372,36 @@ export class LocalSubscriptionManager {
       if (found) {
         subs.splice(i, 1);
         i--;
+      }
+    }
+  }
+
+  $unsubEntry$(entry: SubscriberSignal) {
+    const [type, group, signal, elm] = entry;
+    const subs = this.$subs$;
+    if (type === 1 || type === 2) {
+      const prop = entry[4];
+      for (let i = 0; i < subs.length; i++) {
+        const sub = subs[i];
+        const match =
+          sub[0] === type &&
+          sub[1] === group &&
+          sub[2] === signal &&
+          sub[3] === elm &&
+          sub[4] === prop;
+        if (match) {
+          subs.splice(i, 1);
+          i--;
+        }
+      }
+    } else if (type === 3 || type === 4) {
+      for (let i = 0; i < subs.length; i++) {
+        const sub = subs[i];
+        const match = sub[0] === type && sub[1] === group && sub[2] === signal && sub[3] === elm;
+        if (match) {
+          subs.splice(i, 1);
+          i--;
+        }
       }
     }
   }

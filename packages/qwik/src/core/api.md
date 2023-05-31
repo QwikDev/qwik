@@ -518,7 +518,7 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 
 // Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
@@ -740,8 +740,6 @@ export interface RenderSSROptions {
     serverData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
-    // (undocumented)
-    url?: string;
 }
 
 // @public

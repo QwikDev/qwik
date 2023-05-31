@@ -21,6 +21,7 @@
     "cli.validate": "tsm scripts/validate-cli.ts",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
+    "eslint.update": "tsm scripts/eslint-docs.ts",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",

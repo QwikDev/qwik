@@ -1058,7 +1058,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [script](#) |  | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |  |",
+      "content": "The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:\n\n```tsx\nimport { component$, Slot, type QwikIntrinsicElements } from \"@builder.io/qwik\";\n\ntype WrapperProps = {\n  attributes?: QwikIntrinsicElements[\"div\"];\n};\n\nexport default component$<WrapperProps>(({ attributes }) => {\n  return (\n    <div {...attributes} class=\"p-2\">\n      <Slot />\n    </div>\n  );\n});\n```\n\n\n```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [script](#) |  | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts",
       "mdFile": "qwik.qwikintrinsicelements.md"
     },

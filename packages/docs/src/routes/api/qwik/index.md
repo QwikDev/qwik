@@ -1214,6 +1214,24 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 
 ## QwikIntrinsicElements
 
+The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
+
+```tsx
+import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
+
+type WrapperProps = {
+  attributes?: QwikIntrinsicElements["div"];
+};
+
+export default component$<WrapperProps>(({ attributes }) => {
+  return (
+    <div {...attributes} class="p-2">
+      <Slot />
+    </div>
+  );
+});
+```
+
 ```typescript
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 ```

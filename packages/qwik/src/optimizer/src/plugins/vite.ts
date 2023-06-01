@@ -33,6 +33,7 @@ import { versions } from '../versions';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
+const CSS_EXTENSIONS = ['.css', '.scss', '.sass'];
 /**
  * @public
  */
@@ -575,23 +576,30 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         await configurePreviewServer(server.middlewares, ssrOutDir!, sys, path);
       };
     },
-
     handleHotUpdate(ctx) {
       qwikPlugin.log('handleHotUpdate()', ctx);
 
       for (const mod of ctx.modules) {
         const deps = mod.info?.meta?.qwikdeps;
-        if (deps) {
+        if (deps && deps.length > 0) {
           for (const dep of deps) {
             const mod = ctx.server.moduleGraph.getModuleById(dep);
             if (mod) {
               ctx.server.moduleGraph.invalidateModule(mod);
             }
           }
+        } else if (
+          mod.type === 'js' &&
+          Array.from(mod.importers).every(
+            (m) => m.type === 'css' || CSS_EXTENSIONS.some((ext) => m.file?.endsWith(ext))
+          )
+        ) {
+          // invalidate all modules that import this module
+          ctx.server.moduleGraph.invalidateAll();
         }
       }
 
-      if (['.css', '.scss', '.sass'].some((ext) => ctx.file.endsWith(ext))) {
+      if (CSS_EXTENSIONS.some((ext) => ctx.file.endsWith(ext))) {
         qwikPlugin.log('handleHotUpdate()', 'force css reload');
 
         ctx.server.ws.send({

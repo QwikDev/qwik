@@ -38,7 +38,7 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQ2B;;WAAM,MAAM,KAAK,IAAI,QAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQ2B;;WAAM,MAAM,SAAS,QAAQ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,7 +88,7 @@ export const App_component_ckEPmXZlub0 = ({ count , rest: [I2, { I3 , v1: [I4] ,
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,MAAK,EAAE,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,CAAA,EAAC,GAAK;IAC/F,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,EAAC,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,CAAA,EAAC,GAAG;IACjE;;;;;;;;;;;;;;;;;;AASJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,MAAK,EAAE,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,CAAA,EAAC;IAC1F,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,EAAC,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,CAAA,EAAC,GAAG;IACjE;;;;;;;;;;;;;;;;;;AASJ\"}")
 /*
 {
   "origin": "test.tsx",

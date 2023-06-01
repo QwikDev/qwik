@@ -37,7 +37,7 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -71,7 +71,7 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC,QAAU;IACpC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC;IAC1B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

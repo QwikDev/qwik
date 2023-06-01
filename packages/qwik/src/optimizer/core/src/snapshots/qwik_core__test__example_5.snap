@@ -29,7 +29,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC,IAAM;IACnC,SACM;;YACE,CAAC,IAAI,SAAS,CAAC,MAAQ,QAAQ,GAAG,CAAC,OAAO;;YAC1C,CAAC,IAAI,mIAAwC;;QACjD;AAER\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC;IAC7B,SACM;;YACE,CAAC,IAAI,SAAS,CAAC,MAAQ,QAAQ,IAAI,OAAO;;YAC1C,CAAC,IAAI,mIAAwC;;QACjD;AAER\"}")
 /*
 {
   "origin": "test.tsx",
@@ -63,7 +63,7 @@ export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log("2");
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAM4B,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAM4B,CAAC,MAAQ,QAAQ,IAAI\"}")
 /*
 {
   "origin": "test.tsx",

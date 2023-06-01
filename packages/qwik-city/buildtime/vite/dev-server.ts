@@ -291,9 +291,9 @@ export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
         ${routesAndDistance
           .map(
             ([route, distance], i) =>
-              `<a href="${route.pathname}">${route.pathname} ${
+              `<a href="${route.pathname}">${route.pathname}${
                 i === 0 && distance < 3
-                  ? '<span class="recommended">👈 maybe you meant this?</span>'
+                  ? '<span class="recommended"> 👈 maybe you meant this?</span>'
                   : ''
               } </a>`
           )

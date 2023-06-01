@@ -97,6 +97,7 @@ export const RenderChildren = component$(() => {
       <SSRRawTest />
       <HTMLFragmentTest />
       <Issue4292 />
+      <Issue4386 />
     </>
   );
 });
@@ -841,4 +842,17 @@ export const Issue4346 = component$(() => {
       <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
     </>
   );
+});
+
+export const FOO_MAPPING = {
+  A: 1,
+  B: 2,
+  C: 3,
+};
+
+export const Issue4386 = component$(() => {
+  const key = 'A';
+  const value = FOO_MAPPING[key];
+
+  return <div id="issue-4386-result">{value}</div>;
 });

@@ -311,23 +311,33 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           return arg;
         });
         const hash = qrl.getHash();
-        const path = `?qfunc=${qrl.getHash()}`;
-        const body = await _serializeData([qrl, ...filtered], false);
-        const res = await fetch(path, {
+        const res = await fetch(`?qfunc=${hash}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/qwik-json',
             'X-QRL': hash,
           },
           signal,
-          body,
+          body: await _serializeData([qrl, ...filtered], false),
         });
 
         const contentType = res.headers.get('Content-Type');
-        if (res.ok && contentType === 'text/event-stream') {
-          const { writable, readable } = getSSETransformer();
-          res.body?.pipeTo(writable, { signal });
-          return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
+        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+          return (async function* () {
+            try {
+              for await (const result of deserializeStream(
+                res.body!,
+                ctxElm ?? document.documentElement,
+                signal
+              )) {
+                yield result;
+              }
+            } finally {
+              if (!signal?.aborted) {
+                await res.body!.cancel();
+              }
+            }
+          })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
@@ -382,73 +392,28 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   };
 };
 
-const getSSETransformer = () => {
-  // Convert the stream into a stream of lines
-  let currentLine = '';
-  const encoder = new TextDecoder();
-  const transformer = new TransformStream<Uint8Array, SSEvent>({
-    transform(chunk, controller) {
-      const lines = encoder.decode(chunk).split('\n\n');
-      for (let i = 0; i < lines.length - 1; i++) {
-        const line = currentLine + lines[i];
-        if (line.length === 0) {
-          controller.terminate();
-          break;
-        } else {
-          controller.enqueue(parseEvent(line));
-          currentLine = '';
-        }
-      }
-      currentLine += lines[lines.length - 1];
-    },
-  });
-  return transformer;
-};
-
-interface SSEvent {
-  data: string;
-  [key: string]: string;
-}
-const parseEvent = (message: string): SSEvent => {
-  const lines = message.split('\n');
-  const event: SSEvent = {
-    data: '',
-  };
-  let data = '';
-  for (const line of lines) {
-    if (line.startsWith('data: ')) {
-      data += line.slice(6) + '\n';
-    } else {
-      const [key, value] = line.split(':');
-      if (typeof key === 'string' && typeof value === 'string') {
-        event[key] = value.trim();
-      }
-    }
-  }
-  event.data = data;
-  return event;
-};
-
-async function* streamAsyncIterator(
-  stream: ReadableStream<SSEvent>,
-  ctxElm: unknown
-): AsyncGenerator<unknown> {
-  // Get a lock on the stream
+const deserializeStream = async function* (
+  stream: ReadableStream<Uint8Array>,
+  ctxElm: unknown,
+  signal?: AbortSignal
+) {
   const reader = stream.getReader();
-
   try {
-    while (true) {
-      // Read from the stream
-      const { done, value } = await reader.read();
-      // Exit if we're done
-      if (done) {
-        return;
+    let buffer = '';
+    const decoder = new TextDecoder();
+    while (!signal?.aborted) {
+      const result = await reader.read();
+      if (result.done) {
+        break;
       }
-      // Else yield the chunk
-      const obj = await _deserializeData(value.data, ctxElm);
-      yield obj;
+      buffer += decoder.decode(result.value, { stream: true });
+      const lines = buffer.split(/\n/);
+      buffer = lines.pop()!;
+      for (const line of lines) {
+        yield await _deserializeData(line, ctxElm);
+      }
     }
   } finally {
     reader.releaseLock();
   }
-}
+};

@@ -24,7 +24,7 @@ export const onGet: RequestHandler = async (requestEvent) => {
 };
 ```
 
-Endpoints are useful when you need to expose some external API, for example a RESTful API, or a GraphQL API, by an external entity such as a mobile app or a third-party service.
+Endpoints are useful when you need to expose some external API, for example a RESTful API, or a GraphQL API, for use by an external entity such as a mobile app or a third-party service.
 
 ```ts
 import type { RequestHandler } from '@builder.io/qwik-city';
@@ -49,6 +49,8 @@ export const onDelete: RequestHandler = async (requestEvent) => { ... }
 ```
 
 ## Endpoints vs server$
+
+Endpoint routes expose proper HTTP endpoints that can be accessed externally from any client, whereas `server$` functions are only accessible internally within the Qwik project.
 
 Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
 
@@ -221,6 +223,8 @@ export interface RequestEvent {
   readonly next: () => Promise<void>;
 }
 ```
+
+## Examples
 
 ### JSON GET Endpoint
 

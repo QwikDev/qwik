@@ -25,7 +25,7 @@ Only the directory names are used to match the incoming requests to pages/endpoi
 
 For example, if you have a file at `src/routes/some/path/index.tsx`, it will be mapped to the URL path `https://example.com/some/path`.
 
-```bash
+```bash title="Directory layout"
 src/
 └── routes/
     ├── contact/
@@ -51,13 +51,13 @@ src/
 
 Special named directories with square brackets, such as `[paramName]` and `[...catchAll]` can be used to match route segments which are dynamic:
 
-```
+```bash title="Directory layout"
 src/routes/blog/index.tsx → /blog
 src/routes/user/[username]/index.tsx → /user/:username (/user/foo)
 src/routes/post/[...all]/index.tsx → /post/* (/post/2020/id/title)
 ```
 
-```bash
+```bash title="Directory layout"
 src/
 └── routes/
     ├── blog/
@@ -149,7 +149,7 @@ Instead of repeating the same code in each route, we can use layouts to automati
 
 Take this `src/routes` directory as an example:
 
-```bash
+```bash title="Directory layout"
 src/
 └── routes/
     ├── admin/

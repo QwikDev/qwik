@@ -462,6 +462,11 @@ test.describe('render', () => {
       await expect(button).toHaveAttribute('aria-label', 'a1');
       await expect(button).toHaveAttribute('title', 'a1');
     });
+
+    test('issue 4386', async ({ page }) => {
+      const result = page.locator('#issue-4386-result');
+      await expect(result).toHaveText('1');
+    });
   }
 
   tests();

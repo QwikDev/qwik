@@ -55,6 +55,7 @@ export const routeActionQrl = ((
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
+
     const initialState: Editable<Partial<ActionStore<any, any>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
       isRunning: false,
@@ -62,6 +63,7 @@ export const routeActionQrl = ((
       value: undefined,
       formData: undefined,
     };
+
     const state = useStore<Editable<ActionStore<any, any>>>(() => {
       const value = currentAction.value;
       if (value && value?.id === id) {
@@ -85,14 +87,16 @@ Action.run() can only be called on the browser, for example when a user clicks a
       }
       let data: any;
       let form: HTMLFormElement | undefined;
+
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
         data = new FormData(form);
-        if (
-          (input.submitter instanceof HTMLInputElement ||
-            input.submitter instanceof HTMLButtonElement) &&
-          input.submitter.name
-        ) {
+
+        const isValidSubmitter =
+          input.submitter instanceof HTMLInputElement ||
+          input.submitter instanceof HTMLButtonElement;
+
+        if (isValidSubmitter && input.submitter.name) {
           if (input.submitter.name) {
             data.append(input.submitter.name, input.submitter.value);
           }
@@ -100,6 +104,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
       } else {
         data = input;
       }
+
       return new Promise<RouteActionResolver>((resolve) => {
         if (data instanceof FormData) {
           state.formData = data;
@@ -115,10 +120,12 @@ Action.run() can only be called on the browser, for example when a user clicks a
         state.isRunning = false;
         state.status = status;
         state.value = result;
-        if (form) {
+
+        if (form && status === 200) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
+
           const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
           form.dispatchEvent(
             new CustomEvent('submitcompleted', {
@@ -129,12 +136,14 @@ Action.run() can only be called on the browser, for example when a user clicks a
             })
           );
         }
+
         return {
           status: status,
           value: result,
         };
-      });
+      }); // Promise returns
     });
+
     initialState.submit = submit;
 
     return state;

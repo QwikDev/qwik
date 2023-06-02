@@ -58,8 +58,6 @@ export default component$(() => {
 
 > Since actions are not executed during rendering, they can have side effects such as writing to a database, or sending an email. An action only runs when called explicitly.
 
-> Actions must be declared on top of the route files, so we must declare it either on `layout.tsx` or `index.tsx` otherwise Qwik will not execute them.
-
 ## Using actions with `<Form/>`
 
 The best way to call an action is using the `<Form/>` component exported in `@builder.io/qwik-city`.

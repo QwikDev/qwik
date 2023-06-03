@@ -10,17 +10,17 @@ contributors:
 
 Each `layout.ts` and `index.ts` file inside the `src/routes` directory has the ability to access the current HTTP request, response, and URL. This allows you to retrieve and modify data, and even respond with custom content.
 
-Qwik City implements a middleware system based on the hirarchy of the `src/routes` directory. The middleware system is used to handle HTTP requests and responses, and is available to pages, layouts, and [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
+Qwik City implements a middleware system based on the hirarchy of the `src/routes` directory. The middleware system is used to handle HTTP requests and responses and is available to pages, layouts, and [endpoints](/docs/(qwikcity)/middleware/index.mdx).
 
-Each route has the ability to add HTTP request and response handlers, allowing for developers to retrieve and modify data. The handlers can also be used by [endpoints](/docs/(qwikcity)/endpoints/index.mdx), which only respond with data rather than a page's HTML.
+Each route can add HTTP request and response handlers, allowing developers to retrieve and modify data. The handlers can also be used by [endpoints](/docs/(qwikcity)/middleware/index.mdx), which only respond with data rather than a page's HTML.
 
 This feature enables you to handle any request event, have side effects on the request pipeline, just before you render the component and respond with custom content. It is available to pages, layouts and endpoint routes, but not on regular components.
 
 ## Request and Response Handlers
 
-On pages, layouts, and [endpoints](/docs/(qwikcity)/endpoints/index.mdx), we can access request data by implementing request handler functions such as `onGet`, `onPost`, `onPut`, etc. These functions are executed according to the [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) used for this route.
+On pages, layouts, and [endpoints](/docs/(qwikcity)/middleware/index.mdx), we can access request data by implementing request handler functions such as `onGet`, `onPost`, `onPut`, etc. These functions are executed according to the [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) used for this route.
 
-Additonally, an `onRequest` function can be used to handle any request method, rather than a specific one. For example, if both `onGet` and `onRequest` is provided, for a `GET` request, the `onGet` will be called. However, in this scenario, if a `POST` request method came in, then the `onRequest` handler would be called since an `onPost` was not provided.
+Additionally, an `onRequest` function can be used to handle any request method, rather than a specific one. For example, if both `onGet` and `onRequest` is provided, for a `GET` request, the `onGet` will be called. However, in this scenario, if a `POST` request method came in, then the `onRequest` handler would be called since an `onPost` was not provided.
 The `onRequest` is available as a catch-all to any request methods that do not have a specific method.
 
 ```tsx

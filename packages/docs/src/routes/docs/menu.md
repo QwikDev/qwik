@@ -26,7 +26,7 @@
 - [Form actions](/docs/(qwikcity)/action/index.mdx)
 - [Layouts](/docs/(qwikcity)/layout/index.mdx)
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
-- [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
+- [Middleware](/docs/(qwikcity)/middleware/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
 - [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)

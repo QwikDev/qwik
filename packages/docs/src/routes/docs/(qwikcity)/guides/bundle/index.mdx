@@ -154,7 +154,7 @@ All information regarding when the symbols are loaded can be observed by listeni
 
 ### `qprefetch` custom event details.
 
-`qprefetch` event is fired when a new code path is exposed to the user by rendering a new application view. (For example, rendering a new model dialog will have a new button. We would like the ensure that the new button code is prefetch so that if the user interacts with the button there will be no delay.)
+`qprefetch` event is fired when a new code path is exposed to the user by rendering a new application view. (For example, rendering a new model dialog will have a new button. We would like the ensure that the new button code is prefetched so that if the user interacts with the button there will be no delay.)
 Usually, a service worker listens to the `qprefetch` event and loads the symbol into the cache. The service worker has a map of symbols to bundles, and it uses this information to determine which bundles to prefetch based on a symbol.
 
 ```typescript

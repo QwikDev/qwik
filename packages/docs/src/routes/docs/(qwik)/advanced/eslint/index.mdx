@@ -279,61 +279,13 @@ import './styles.css';
       <span>Object destructuring is not recommended for component$</span>
   
 <h4>use-after-await</h4>
-<p>Examples of <b>correct</b> code for this rule:</p>
-<div class="code-wrapper">
-<span class="badge good">✓</span>
-```tsx {2-3} /await/#a /use/#b
-export const HelloWorld = component$(async () => {
-  useMethod();
-  await something();
-  return $(() => {
-    return (
-      <h1>Hello World</h1>
-    );
-  });
-});
-```
-</div>
-<p>Examples of <b>incorrect</b> code for this rule:</p>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx {2-3} /await/#a /use/#b
-export const HelloWorld = component$(async () => {
-  await something();
-  useMethod();
-  return $(() => {
-    return (
-      <h1>Hello World</h1>
-    );
-  });
-});
-```
-<p class="code-description">`useMethod()` is called after `await`.</p>
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx {3,5} /await/#a /use/#b
-export const HelloWorld = component$(async () => {
-  if (stuff) {
-    await something();
-  }
-  useMethod();
-  return $(() => {
-    return (
-      <h1>Hello World</h1>
-    );
-  });
-});
-```
-<p class="code-description">`useMethod()` is called after a condition.</p>
-</div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>use-wrong-function</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {2} /component$/#a
-export const Counter = component$(async () => {
+export const Counter = component$(() => {
   const count = useSignal(0);
 });
 ```
@@ -342,7 +294,7 @@ export const Counter = component$(async () => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {2} /component$/#a
-export const Counter = (async () => {
+export const Counter = (() => {
   const count = useSignal(0);
 });
 ```
@@ -363,7 +315,7 @@ export const Counter = (() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {2} /component$/#a
-export const Counter = component$(async () => {
+export const Counter = component$(() => {
   const count = useSignal(0);
 });
 ```
@@ -372,7 +324,7 @@ export const Counter = component$(async () => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {2} /component$/#a
-export const Counter = (async () => {
+export const Counter = (() => {
   const count = useSignal(0);
 });
 ```
@@ -1051,14 +1003,14 @@ export default component$(() => (
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx /width/#a /height/#b
-<img width="200" height="600" src="/static/images/portrait-01.webp>
+<img width="200" height="600" src="/static/images/portrait-01.webp">
 ```
 </div>
 <p>Examples of <b>incorrect</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx
-<img src="/static/images/portrait-01.webp>
+<img src="/static/images/portrait-01.webp">
 ```
 <p class="code-description">For performance reasons, always provide width and height attributes for `<img>` elements, it will help to prevent layout shifts.</p>
 </div>

@@ -307,14 +307,16 @@ Thanks to Typescript type discrimination, you can use the `action.value.failed` 
 
 ## Previous form state
 
-When an action is triggered, the previous state is stored in the `action.formData` property. This is useful to display a loading state while the action is running.
+When an action is triggered by form submission without JS enabled, the previous state will be stored in the `action.formData`.
 
 ```tsx {12} /action.formData/
 import { component$ } from '@builder.io/qwik';
-import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(async (user) => {
   // handle action...
+
+  return user
 });
 
 export default component$(() => {

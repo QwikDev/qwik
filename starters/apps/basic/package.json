@@ -4,7 +4,7 @@
   "type": "module",
   "__qwik__": {
     "priority": 2,
-    "displayName": "Basic App (QwikCity)",
+    "displayName": "Basic App",
     "qwikCity": true,
     "docs": [
       "https://qwik.builder.io/docs/getting-started/"

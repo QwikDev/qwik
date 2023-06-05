@@ -7,15 +7,12 @@ provider:
 
 functions:
   hello:
-    handler: handler.qwikApp
+    handler: server/entry-aws-lambda.qwikApp
     events:
       - httpApi: '*'
 
-package:
-  excludeDevDependencies: false
-
+custom:
+  serverless-offline:
+    httpPort: 4000
 plugins:
   - serverless-offline
-  - serverless-plugin-qwik
-  - serverless-plugin-common-excludes
-  - serverless-plugin-include-dependencies

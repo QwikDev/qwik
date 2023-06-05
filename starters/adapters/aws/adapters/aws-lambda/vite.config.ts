@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.aws-lambda.tsx', 'src/entry.ssr.tsx', '@qwik-city-plan'],
+        input: ['src/entry-aws-lambda.tsx', 'src/entry.ssr.tsx', '@qwik-city-plan'],
       },
     },
     plugins: [nodeServerAdapter({ name: 'express' })],

@@ -94,11 +94,11 @@
   "devDependencies": {
     "@azure/functions": "^3.5.1",
     "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.34.9",
+    "@microsoft/api-extractor": "7.35.1",
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.3.0",
     "@types/mdast": "^3.0.11",
-    "@types/node": "^20.1.4",
+    "@types/node": "^20.2.5",
     "@types/refractor": "3.0.2",
     "estree-util-value-to-estree": "3.0.1",
     "github-slugger": "2.0.0",
@@ -116,8 +116,8 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
-    "vite": "4.3.5",
-    "yaml": "2.2.2"
+    "vite": "4.3.9",
+    "yaml": "2.3.1"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

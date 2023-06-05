@@ -1214,6 +1214,24 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 
 ## QwikIntrinsicElements
 
+The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
+
+```tsx
+import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
+
+type WrapperProps = {
+  attributes?: QwikIntrinsicElements["div"];
+};
+
+export default component$<WrapperProps>(({ attributes }) => {
+  return (
+    <div {...attributes} class="p-2">
+      <Slot />
+    </div>
+  );
+});
+```
+
 ```typescript
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 ```
@@ -1263,19 +1281,20 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 
 **Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)&gt;
 
-| Property      | Modifiers | Type    | Description                                                                                                            |
-| ------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| [altKey](#)   |           | boolean |                                                                                                                        |
-| [charCode](#) |           | number  |                                                                                                                        |
-| [ctrlKey](#)  |           | boolean |                                                                                                                        |
-| [key](#)      |           | string  | See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values |
-| [keyCode](#)  |           | number  |                                                                                                                        |
-| [locale](#)   |           | string  |                                                                                                                        |
-| [location](#) |           | number  |                                                                                                                        |
-| [metaKey](#)  |           | boolean |                                                                                                                        |
-| [repeat](#)   |           | boolean |                                                                                                                        |
-| [shiftKey](#) |           | boolean |                                                                                                                        |
-| [which](#)    |           | number  |                                                                                                                        |
+| Property         | Modifiers | Type    | Description                                                                                                            |
+| ---------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [altKey](#)      |           | boolean |                                                                                                                        |
+| [charCode](#)    |           | number  |                                                                                                                        |
+| [ctrlKey](#)     |           | boolean |                                                                                                                        |
+| [isComposing](#) |           | boolean |                                                                                                                        |
+| [key](#)         |           | string  | See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values |
+| [keyCode](#)     |           | number  |                                                                                                                        |
+| [locale](#)      |           | string  |                                                                                                                        |
+| [location](#)    |           | number  |                                                                                                                        |
+| [metaKey](#)     |           | boolean |                                                                                                                        |
+| [repeat](#)      |           | boolean |                                                                                                                        |
+| [shiftKey](#)    |           | boolean |                                                                                                                        |
+| [which](#)       |           | number  |                                                                                                                        |
 
 | Method                                                       | Description                                                                                                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1486,7 +1505,6 @@ export interface RenderSSROptions
 | [containerTagName](#)    |           | string                                                                                                                                                          |              |
 | [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                                                       | _(Optional)_ |
 | [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                   |              |
-| [url?](#)                |           | string                                                                                                                                                          | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 

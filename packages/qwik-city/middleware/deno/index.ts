@@ -109,7 +109,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     }
     return {
       filePath,
-      content: await Deno.readTextFile(filePath),
+      content: await Deno.readFile(filePath),
     };
   };
 

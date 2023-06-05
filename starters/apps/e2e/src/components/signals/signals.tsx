@@ -20,6 +20,7 @@ import {
   TestCStr,
   TestCWithFlag,
 } from './utils/utils';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);
@@ -125,6 +126,8 @@ export const SignalsChildren = component$(() => {
       <Issue3663 />
       <Issue3440 />
       <Issue4174 />
+      <Issue4249 />
+      <Issue4228 />
     </div>
   );
 });
@@ -915,6 +918,153 @@ export const Issue4174 = component$(() => {
   return (
     <>
       <div id="issue-4174-result">Store: {storeWithoutInit.value}</div>
+    </>
+  );
+});
+
+export const Issue4249 = component$(() => {
+  const first = useSignal('');
+  const second = useSignal('');
+
+  return (
+    <main>
+      <div>
+        <label for="first">
+          {'First '}
+          <input
+            id="issue-4249-first"
+            value={first.value}
+            onInput$={(_, e) => (first.value = e.value)}
+            placeholder="type here"
+          />
+        </label>
+      </div>
+      <div>
+        <label for="second">
+          {'Second '}
+          <input
+            id="issue-4249-second"
+            value={second.value}
+            onInput$={(_, e) => (second.value = e.value)}
+            placeholder="type here"
+          />
+        </label>
+      </div>
+
+      <div
+        id="issue-4249-result"
+        data-value={
+          first.value && second.value && first.value === second.value ? 'collision' : 'no-collision'
+        }
+      >
+        {'Status: '}
+        {first.value && second.value && first.value === second.value
+          ? 'Collision detected'
+          : 'No collision'}
+      </div>
+    </main>
+  );
+});
+
+type Counters = {
+  countA: number;
+  countB: number;
+  signal: Signal<number>;
+};
+
+type Props = {
+  counters: Counters;
+};
+
+export const DisplayA = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display A:{' '}
+      <span id="issue-4228-result-a">{`${counters.countA}:${
+        typeof (globalThis as any).countA === 'number' ? (window as any).countA++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplayB = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display B:{' '}
+      <span id="issue-4228-result-b">{`${counters.countB}:${
+        typeof (globalThis as any).countB === 'number' ? (window as any).countB++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplaySignal = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display C:{' '}
+      <span id="issue-4228-result-c">{`${counters.signal.value}:${
+        typeof (globalThis as any).countC === 'number' ? (window as any).countC++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplayTotal = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display Total:{' '}
+      <span id="issue-4228-result-total">{`${
+        counters.countA + counters.countB + counters.signal.value
+      }:${typeof (globalThis as any).countD === 'number' ? (window as any).countD++ : 0}`}</span>
+    </>
+  );
+});
+export const Issue4228 = component$(() => {
+  const signal = useSignal(0);
+  const counter = useStore({
+    countA: 0,
+    countB: 0,
+    signal,
+  });
+  useTask$(() => {
+    if (isBrowser) {
+      (window as any).countA = 0;
+      (window as any).countB = 0;
+      (window as any).countC = 0;
+      (window as any).countD = 0;
+    }
+  });
+  useVisibleTask$(
+    () => {
+      (window as any).countA = 1;
+      (window as any).countB = 1;
+      (window as any).countC = 1;
+      (window as any).countD = 1;
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+  return (
+    <>
+      <p>
+        <button id="issue-4228-button-a" onClick$={() => counter.countA++}>
+          +1 A
+        </button>
+        <DisplayA counters={counter} />
+      </p>
+      <p>
+        <button id="issue-4228-button-b" onClick$={() => counter.countB++}>
+          +1 B
+        </button>
+        <DisplayB counters={counter} />
+      </p>
+      <p>
+        <button id="issue-4228-button-c" onClick$={() => signal.value++}>
+          +1 Signal
+        </button>
+        <DisplaySignal counters={counter} />
+      </p>
+      <p>
+        <DisplayTotal counters={counter} />
+      </p>
     </>
   );
 });

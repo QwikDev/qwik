@@ -43,7 +43,7 @@ export default component$(() => {
   return (
     <div class="container container-purple container-center">
       <h2>
-        Time for a quick
+        Time for a
         <br />
         <span class="highlight">qwik intro</span>?
       </h2>

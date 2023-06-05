@@ -22,15 +22,25 @@
   border-top: 1px solid #373737;
 }
 
+.docs.api article a {
+  text-decoration: underline;
+}
+
+.docs.api h1 a,
+.docs.api table a {
+  text-decoration: none;
+}
+
 .docs.api article a[href*="github.com"] {
   display: inline-block;
   position: relative;
   left: calc(100% - 115px);
   border-radius: 4px;
-  background: #eee;
+  @apply bg-slate-100;
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 0.8rem;
+  text-decoration: none;
 }
 
 [data-theme="dark"] .docs.api article a[href*="github.com"] {
@@ -74,8 +84,8 @@
 }
 
 .docs.api .section-title {
+  @apply bg-slate-100;
   display: flex;
-  background: #eee;
   font-weight: 100;
   font-size: 0.8rem;
   border-radius: 4px;
@@ -127,6 +137,15 @@
     color: inherit;
 }
 
+.docs.api a {
+  display: inline-block;
+  color: black;
+  text-decoration: none;
+}
+[data-theme="dark"] .docs.api a {
+  color: inherit;
+}
+
 .docs.api ul {
   margin: 0;
 }
@@ -161,7 +180,7 @@
 }
 
 .docs.api .filter-item {
-  background: #eee;
+  @apply bg-slate-100;
   line-height: 2;
 }
 [data-theme="dark"] .docs.api .filter-item {

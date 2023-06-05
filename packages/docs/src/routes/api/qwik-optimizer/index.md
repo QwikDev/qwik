@@ -51,10 +51,10 @@ export interface Diagnostic
 | [category](#)    |           | [DiagnosticCategory](#diagnosticcategory) |             |
 | [code](#)        |           | string \| null                            |             |
 | [file](#)        |           | string                                    |             |
-| [highlights](#)  |           | [SourceLocation](#sourcelocation)\[\]     |             |
+| [highlights](#)  |           | [SourceLocation](#sourcelocation)[]       |             |
 | [message](#)     |           | string                                    |             |
 | [scope](#)       |           | string                                    |             |
-| [suggestions](#) |           | string\[\] \| null                        |             |
+| [suggestions](#) |           | string[] \| null                          |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -136,11 +136,11 @@ string
 export interface GlobalInjections
 ```
 
-| Property         | Modifiers | Type                         | Description  |
-| ---------------- | --------- | ---------------------------- | ------------ |
-| [attributes?](#) |           | { \[key: string\]: string; } | _(Optional)_ |
-| [location](#)    |           | 'head' \| 'body'             |              |
-| [tag](#)         |           | string                       |              |
+| Property         | Modifiers | Type                       | Description  |
+| ---------------- | --------- | -------------------------- | ------------ |
+| [attributes?](#) |           | { [key: string]: string; } | _(Optional)_ |
+| [location](#)    |           | 'head' \| 'body'           |              |
+| [tag](#)         |           | string                     |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -210,9 +210,9 @@ boolean
 join(...paths: string[]): string;
 ```
 
-| Parameter | Type       | Description |
-| --------- | ---------- | ----------- |
-| paths     | string\[\] |             |
+| Parameter | Type     | Description |
+| --------- | -------- | ----------- |
+| paths     | string[] |             |
 
 **Returns:**
 
@@ -278,15 +278,15 @@ export interface OptimizerOptions
 export interface OptimizerSystem
 ```
 
-| Property                 | Modifiers | Type                                                                                     | Description  |
-| ------------------------ | --------- | ---------------------------------------------------------------------------------------- | ------------ |
-| [cwd](#)                 |           | () =&gt; string                                                                          |              |
-| [dynamicImport](#)       |           | (path: string) =&gt; Promise&lt;any&gt;                                                  |              |
-| [env](#)                 |           | [SystemEnvironment](#systemenvironment)                                                  |              |
-| [getInputFiles?](#)      |           | (rootDir: string) =&gt; Promise&lt;[TransformModuleInput](#transformmoduleinput)\[\]&gt; | _(Optional)_ |
-| [os](#)                  |           | string                                                                                   |              |
-| [path](#)                |           | [Path](#path)                                                                            |              |
-| [strictDynamicImport](#) |           | (path: string) =&gt; Promise&lt;any&gt;                                                  |              |
+| Property                 | Modifiers | Type                                                                                   | Description  |
+| ------------------------ | --------- | -------------------------------------------------------------------------------------- | ------------ |
+| [cwd](#)                 |           | () =&gt; string                                                                        |              |
+| [dynamicImport](#)       |           | (path: string) =&gt; Promise&lt;any&gt;                                                |              |
+| [env](#)                 |           | [SystemEnvironment](#systemenvironment)                                                |              |
+| [getInputFiles?](#)      |           | (rootDir: string) =&gt; Promise&lt;[TransformModuleInput](#transformmoduleinput)[]&gt; | _(Optional)_ |
+| [os](#)                  |           | string                                                                                 |              |
+| [path](#)                |           | [Path](#path)                                                                          |              |
+| [strictDynamicImport](#) |           | (path: string) =&gt; Promise&lt;any&gt;                                                |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -360,13 +360,13 @@ export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
 export interface QwikBundle
 ```
 
-| Property             | Modifiers | Type       | Description  |
-| -------------------- | --------- | ---------- | ------------ |
-| [dynamicImports?](#) |           | string\[\] | _(Optional)_ |
-| [imports?](#)        |           | string\[\] | _(Optional)_ |
-| [origins?](#)        |           | string\[\] | _(Optional)_ |
-| [size](#)            |           | number     |              |
-| [symbols?](#)        |           | string\[\] | _(Optional)_ |
+| Property             | Modifiers | Type     | Description  |
+| -------------------- | --------- | -------- | ------------ |
+| [dynamicImports?](#) |           | string[] | _(Optional)_ |
+| [imports?](#)        |           | string[] | _(Optional)_ |
+| [origins?](#)        |           | string[] | _(Optional)_ |
+| [size](#)            |           | number   |              |
+| [symbols?](#)        |           | string[] | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -376,15 +376,15 @@ export interface QwikBundle
 export interface QwikManifest
 ```
 
-| Property         | Modifiers | Type                                                                                                          | Description  |
-| ---------------- | --------- | ------------------------------------------------------------------------------------------------------------- | ------------ |
-| [bundles](#)     |           | { \[fileName: string\]: [QwikBundle](#qwikbundle); }                                                          |              |
-| [injections?](#) |           | [GlobalInjections](#globalinjections)\[\]                                                                     | _(Optional)_ |
-| [mapping](#)     |           | { \[symbolName: string\]: string; }                                                                           |              |
-| [options?](#)    |           | { target?: string; buildMode?: string; forceFullBuild?: boolean; entryStrategy?: { \[key: string\]: any; }; } | _(Optional)_ |
-| [platform?](#)   |           | { \[name: string\]: string; }                                                                                 | _(Optional)_ |
-| [symbols](#)     |           | { \[symbolName: string\]: [QwikSymbol](#qwiksymbol); }                                                        |              |
-| [version](#)     |           | string                                                                                                        |              |
+| Property         | Modifiers | Type                                                                                                        | Description  |
+| ---------------- | --------- | ----------------------------------------------------------------------------------------------------------- | ------------ |
+| [bundles](#)     |           | { [fileName: string]: [QwikBundle](#qwikbundle); }                                                          |              |
+| [injections?](#) |           | [GlobalInjections](#globalinjections)[]                                                                     | _(Optional)_ |
+| [mapping](#)     |           | { [symbolName: string]: string; }                                                                           |              |
+| [options?](#)    |           | { target?: string; buildMode?: string; forceFullBuild?: boolean; entryStrategy?: { [key: string]: any; }; } | _(Optional)_ |
+| [platform?](#)   |           | { [name: string]: string; }                                                                                 | _(Optional)_ |
+| [symbols](#)     |           | { [symbolName: string]: [QwikSymbol](#qwiksymbol); }                                                        |              |
+| [version](#)     |           | string                                                                                                      |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -412,20 +412,20 @@ any
 export interface QwikRollupPluginOptions
 ```
 
-| Property                      | Modifiers | Type                                                                                                      | Description                                                                                                                                                                                                                          |
-| ----------------------------- | --------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [buildMode?](#)               |           | [QwikBuildMode](#qwikbuildmode)                                                                           | _(Optional)_ Build <code>production</code> or <code>development</code>. Default <code>development</code>                                                                                                                             |
-| [debug?](#)                   |           | boolean                                                                                                   | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code>                                                                                                                                                       |
-| [entryStrategy?](#)           |           | [EntryStrategy](#entrystrategy)                                                                           | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>)                                                |
-| [forceFullBuild?](#)          |           | boolean                                                                                                   | _(Optional)_                                                                                                                                                                                                                         |
-| [manifestInput?](#)           |           | [QwikManifest](#qwikmanifest)                                                                             | _(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest. Default <code>undefined</code>                                 |
-| [manifestOutput?](#)          |           | (manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void                               | _(Optional)_ The client build will create a manifest and this hook is called with the generated build data. Default <code>undefined</code>                                                                                           |
-| [optimizerOptions?](#)        |           | [OptimizerOptions](#optimizeroptions)                                                                     | _(Optional)_                                                                                                                                                                                                                         |
-| [rootDir?](#)                 |           | string                                                                                                    | _(Optional)_ The root of the application, which is commonly the same directory as <code>package.json</code> and <code>rollup.config.js</code>. Default <code>process.cwd()</code>                                                    |
-| [srcDir?](#)                  |           | string                                                                                                    | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code>                                 |
-| [srcInputs?](#)               |           | [TransformModuleInput](#transformmoduleinput)\[\] \| null                                                 | _(Optional)_ Alternative to <code>srcDir</code>, where <code>srcInputs</code> is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker. Default: <code>null</code> |
-| [target?](#)                  |           | [QwikBuildTarget](#qwikbuildtarget)                                                                       | _(Optional)_ Target <code>client</code> or <code>ssr</code>. Default <code>client</code>                                                                                                                                             |
-| [transformedModuleOutput?](#) |           | ((transformedModules: [TransformModule](#transformmodule)\[\]) =&gt; Promise&lt;void&gt; \| void) \| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.                                                                                                          |
+| Property                      | Modifiers | Type                                                                                                    | Description                                                                                                                                                                                                                          |
+| ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [buildMode?](#)               |           | [QwikBuildMode](#qwikbuildmode)                                                                         | _(Optional)_ Build <code>production</code> or <code>development</code>. Default <code>development</code>                                                                                                                             |
+| [debug?](#)                   |           | boolean                                                                                                 | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code>                                                                                                                                                       |
+| [entryStrategy?](#)           |           | [EntryStrategy](#entrystrategy)                                                                         | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>)                                                |
+| [forceFullBuild?](#)          |           | boolean                                                                                                 | _(Optional)_                                                                                                                                                                                                                         |
+| [manifestInput?](#)           |           | [QwikManifest](#qwikmanifest)                                                                           | _(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest. Default <code>undefined</code>                                 |
+| [manifestOutput?](#)          |           | (manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void                             | _(Optional)_ The client build will create a manifest and this hook is called with the generated build data. Default <code>undefined</code>                                                                                           |
+| [optimizerOptions?](#)        |           | [OptimizerOptions](#optimizeroptions)                                                                   | _(Optional)_                                                                                                                                                                                                                         |
+| [rootDir?](#)                 |           | string                                                                                                  | _(Optional)_ The root of the application, which is commonly the same directory as <code>package.json</code> and <code>rollup.config.js</code>. Default <code>process.cwd()</code>                                                    |
+| [srcDir?](#)                  |           | string                                                                                                  | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code>                                 |
+| [srcInputs?](#)               |           | [TransformModuleInput](#transformmoduleinput)[] \| null                                                 | _(Optional)_ Alternative to <code>srcDir</code>, where <code>srcInputs</code> is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker. Default: <code>null</code> |
+| [target?](#)                  |           | [QwikBuildTarget](#qwikbuildtarget)                                                                     | _(Optional)_ Target <code>client</code> or <code>ssr</code>. Default <code>client</code>                                                                                                                                             |
+| [transformedModuleOutput?](#) |           | ((transformedModules: [TransformModule](#transformmodule)[]) =&gt; Promise&lt;void&gt; \| void) \| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.                                                                                                          |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
 
@@ -513,17 +513,17 @@ export interface QwikVitePluginApi
 export interface QwikVitePluginOptions
 ```
 
-| Property                      | Modifiers | Type                                                                                                                                                                | Description                                                                                                                                                                                          |
-| ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [client?](#)                  |           | { input?: string\[\] \| string; devInput?: string; outDir?: string; manifestOutput?: (manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void; } | _(Optional)_                                                                                                                                                                                         |
-| [debug?](#)                   |           | boolean                                                                                                                                                             | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code>                                                                                                                       |
-| [devTools?](#)                |           | { clickToSource: string\[\] \| false; }                                                                                                                             | _(Optional)_                                                                                                                                                                                         |
-| [entryStrategy?](#)           |           | [EntryStrategy](#entrystrategy)                                                                                                                                     | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>)                |
-| [optimizerOptions?](#)        |           | [OptimizerOptions](#optimizeroptions)                                                                                                                               | _(Optional)_ Options for the Qwik optimizer. Default <code>undefined</code>                                                                                                                          |
-| [srcDir?](#)                  |           | string                                                                                                                                                              | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |
-| [ssr?](#)                     |           | { input?: string; outDir?: string; manifestInput?: [QwikManifest](#qwikmanifest); }                                                                                 | _(Optional)_                                                                                                                                                                                         |
-| [transformedModuleOutput?](#) |           | ((transformedModules: [TransformModule](#transformmodule)\[\]) =&gt; Promise&lt;void&gt; \| void) \| null                                                           | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.                                                                          |
-| [vendorRoots?](#)             |           | string\[\]                                                                                                                                                          | _(Optional)_ List of directories to recursively search for Qwik components or Vendors. Default <code>[]</code>                                                                                       |
+| Property                      | Modifiers | Type                                                                                                                                                              | Description                                                                                                                                                                                          |
+| ----------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [client?](#)                  |           | { input?: string[] \| string; devInput?: string; outDir?: string; manifestOutput?: (manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void; } | _(Optional)_                                                                                                                                                                                         |
+| [debug?](#)                   |           | boolean                                                                                                                                                           | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code>                                                                                                                       |
+| [devTools?](#)                |           | { clickToSource: string[] \| false; }                                                                                                                             | _(Optional)_                                                                                                                                                                                         |
+| [entryStrategy?](#)           |           | [EntryStrategy](#entrystrategy)                                                                                                                                   | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>)                |
+| [optimizerOptions?](#)        |           | [OptimizerOptions](#optimizeroptions)                                                                                                                             | _(Optional)_ Options for the Qwik optimizer. Default <code>undefined</code>                                                                                                                          |
+| [srcDir?](#)                  |           | string                                                                                                                                                            | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |
+| [ssr?](#)                     |           | { input?: string; outDir?: string; manifestInput?: [QwikManifest](#qwikmanifest); }                                                                               | _(Optional)_                                                                                                                                                                                         |
+| [transformedModuleOutput?](#) |           | ((transformedModules: [TransformModule](#transformmodule)[]) =&gt; Promise&lt;void&gt; \| void) \| null                                                           | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.                                                                          |
+| [vendorRoots?](#)             |           | string[]                                                                                                                                                          | _(Optional)_ List of directories to recursively search for Qwik components or Vendors. Default <code>[]</code>                                                                                       |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
@@ -548,9 +548,9 @@ string
 resolve(...paths: string[]): string;
 ```
 
-| Parameter | Type       | Description |
-| --------- | ---------- | ----------- |
-| paths     | string\[\] |             |
+| Parameter | Type     | Description |
+| --------- | -------- | ----------- |
+| paths     | string[] |             |
 
 **Returns:**
 
@@ -681,9 +681,9 @@ export interface TransformFsOptions extends TransformOptions
 
 **Extends:** [TransformOptions](#transformoptions)
 
-| Property         | Modifiers | Type       | Description |
-| ---------------- | --------- | ---------- | ----------- |
-| [vendorRoots](#) |           | string\[\] |             |
+| Property         | Modifiers | Type     | Description |
+| ---------------- | --------- | -------- | ----------- |
+| [vendorRoots](#) |           | string[] |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -756,9 +756,9 @@ export interface TransformModulesOptions extends TransformOptions
 
 **Extends:** [TransformOptions](#transformoptions)
 
-| Property   | Modifiers | Type                                              | Description |
-| ---------- | --------- | ------------------------------------------------- | ----------- |
-| [input](#) |           | [TransformModuleInput](#transformmoduleinput)\[\] |             |
+| Property   | Modifiers | Type                                            | Description |
+| ---------- | --------- | ----------------------------------------------- | ----------- |
+| [input](#) |           | [TransformModuleInput](#transformmoduleinput)[] |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -792,14 +792,14 @@ export interface TransformOptions
 | [minify?](#)             |           | [MinifyMode](#minifymode)       | _(Optional)_ |
 | [mode?](#)               |           | EmitMode                        | _(Optional)_ |
 | [preserveFilenames?](#)  |           | boolean                         | _(Optional)_ |
-| [regCtxName?](#)         |           | string\[\]                      | _(Optional)_ |
+| [regCtxName?](#)         |           | string[]                        | _(Optional)_ |
 | [rootDir?](#)            |           | string                          | _(Optional)_ |
 | [scope?](#)              |           | string                          | _(Optional)_ |
 | [sourceMaps?](#)         |           | boolean                         | _(Optional)_ |
 | [srcDir](#)              |           | string                          |              |
-| [stripCtxName?](#)       |           | string\[\]                      | _(Optional)_ |
+| [stripCtxName?](#)       |           | string[]                        | _(Optional)_ |
 | [stripEventHandlers?](#) |           | boolean                         | _(Optional)_ |
-| [stripExports?](#)       |           | string\[\]                      | _(Optional)_ |
+| [stripExports?](#)       |           | string[]                        | _(Optional)_ |
 | [transpileJsx?](#)       |           | boolean                         | _(Optional)_ |
 | [transpileTs?](#)        |           | boolean                         | _(Optional)_ |
 
@@ -811,12 +811,12 @@ export interface TransformOptions
 export interface TransformOutput
 ```
 
-| Property          | Modifiers | Type                                    | Description |
-| ----------------- | --------- | --------------------------------------- | ----------- |
-| [diagnostics](#)  |           | [Diagnostic](#diagnostic)\[\]           |             |
-| [isJsx](#)        |           | boolean                                 |             |
-| [isTypeScript](#) |           | boolean                                 |             |
-| [modules](#)      |           | [TransformModule](#transformmodule)\[\] |             |
+| Property          | Modifiers | Type                                  | Description |
+| ----------------- | --------- | ------------------------------------- | ----------- |
+| [diagnostics](#)  |           | [Diagnostic](#diagnostic)[]           |             |
+| [isJsx](#)        |           | boolean                               |             |
+| [isTypeScript](#) |           | boolean                               |             |
+| [modules](#)      |           | [TransformModule](#transformmodule)[] |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 

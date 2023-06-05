@@ -39,7 +39,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAE1B;;;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,SAAW;IAErC;;;AAQJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -78,7 +78,7 @@ export const Bar_component_L80pS8Hxf1Y = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B;IAC1B;;;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,SAAW;IACrC;;;AAOJ\"}")
 /*
 {
   "origin": "test.tsx",

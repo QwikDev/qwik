@@ -50,7 +50,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM;IAExB,OAAO;IACpB;IACU,QAAS;IACT,QAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACF,OAAO,OAAO;QACd,SAAS;YACL,OAAO;QACX;IACJ;IAEA,QACK,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAEhE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAE7B,OAAO,EAAE;IACtB;IACU,QAAS,MAAM;IACf,QAAS,MAAM;IACzB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACF,OAAO,OAAO;QACd,SAAS;YACL,OAAO;QACX;IACJ;IAEA,QACK,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU,KAAK;AAErE\"}")
 /*
 {
   "origin": "project/test.tsx",

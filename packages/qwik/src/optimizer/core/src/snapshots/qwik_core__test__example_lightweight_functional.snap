@@ -45,7 +45,7 @@ export const Foo_component_HTDRsvUbLiE = (props1)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC1B,QACK,IAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,UAAa;IACvC,QACK,IAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,7 +74,7 @@ export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,QAAQ,IAAI,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -103,7 +103,7 @@ export const Button_button_onClick_NsM0JYV00Jw = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,QAAQ,IAAI,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -144,7 +144,7 @@ export const ButtonArrow = ({ text , color  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC;IAChC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF;AAEA,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC;IACrC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC,EAAE;IAClC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,CAAC;AAED,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC,GAAK;IAC1C,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

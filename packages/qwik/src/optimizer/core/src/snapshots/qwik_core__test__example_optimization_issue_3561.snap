@@ -46,7 +46,7 @@ export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
 }, "Issue3561_component_hHTw654BZB8"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACrB,SAAS;YACP,gBAAgB;gBACd,cAAc;gBACd,eAAe;gBACf,aAAa;YACf;QACF;IACF;IACA,MAAM,EACJ,gBAAgB,EAAE,aAAY,EAAE,cAAa,EAAE,YAAW,EAAE,GAAG,CAAC,CAAC,CAAA,EAClE,GAAG,MAAM;IAEV,QAAQ,IAAI,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACd,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACtC,MAAM,QAAQ,SAAS;QACrB,SAAS;YACP,gBAAgB;gBACd,cAAc;gBACd,eAAe;gBACf,aAAa;YACf;QACF;IACF;IACA,MAAM,EACJ,gBAAgB,EAAE,aAAY,EAAE,cAAa,EAAE,YAAW,EAAE,GAAG,CAAC,CAAC,CAAA,EAClE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACd,uCAAG\"}")
 == DIAGNOSTICS ==
 
 []

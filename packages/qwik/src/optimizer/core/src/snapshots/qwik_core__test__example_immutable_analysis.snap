@@ -68,7 +68,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component__Fragment_Div_onEvent_p0vWsfvWP1k = ()=>console.log('stuff');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAsB0B,IAAM,QAAQ,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAsB0B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -97,7 +97,7 @@ export const App_component__Fragment_Div_immutable4_QT1DNo4IZXo = (ev)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEA8B6B,CAAC;;WAAO,QAAQ,IAAI,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEA8B6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -209,7 +209,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                             baz: p0.count ? true : false
                         }), [
                         state
-                    ], '{foo:"bar"baz:p0.count?true:false}'),
+                    ], '{foo:"bar",baz:p0.count?true:false}'),
                     mutable3: _IMMUTABLE
                 }
             }, 3, "u6_1"),
@@ -219,7 +219,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B,CAAC;IAE3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM;;gBAA9B,OAAM;eAAkC;0BAC3C,MAAC;oBACG;2BAAO,OAAO;;oBACd;2BAAU,OAAO;;gBACjB,UAAU,MAAM;gBAChB,QAAQ;gBACR,YAAY;gBACZ,YAAW;oBACX;2BAAY;wBACR,KAAK;wBACL,KAAK,gBAAgB,OAAO;oBAChC;;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe;oBAAM,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAdH,KAAK;oBACL,QAAQ;oBAER,QAAQ;oBACR,YAAY;oBACZ,UAAU;oBACV,UAAU;oBAIV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MA9BI,MAAT;gBA+BS,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,QAAQ,OAAO;oBAC9B;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,IAAI,MAAM,MAAK;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO;oBAAM,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,QAAQ,OAAO;wBAC9B,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B,CAAC,QAAU;IAErC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;oBACG;2BAAO,OAAO,GAAG;;oBACjB;2BAAU,OAAO,QAAQ;;gBACzB,UAAU,MAAM,QAAQ;gBACxB,QAAQ;gBACR,YAAY;gBACZ,YAAW;oBACX;2BAAY;wBACR,KAAK;wBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;oBACrC;;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAdH,KAAK;oBACL,QAAQ;oBAER,QAAQ;oBACR,YAAY;oBACZ,UAAU;oBACV,UAAU;oBAIV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MA9BI,MAAT;gBA+BS,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;wBACnC,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -250,7 +250,7 @@ export const App_component_remove_pU6yOC5P6sY = (id)=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQqB,CAAC;;IACd,MAAM,IAAI,MAAM;IAChB,EAAE,OACA,EAAE,UAAU,CAAC,IAAM,EAAE,OAAO,KAC5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQqB,CAAC;;IACd,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACN,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -277,7 +277,7 @@ export const App_component__Fragment_Div_transparent_jTD8SCTNDsg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAuB8B;IAAO,QAAQ,IAAI;AAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAuB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
 /*
 {
   "origin": "test.tsx",

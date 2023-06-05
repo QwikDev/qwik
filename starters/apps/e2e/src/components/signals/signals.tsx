@@ -7,6 +7,9 @@ import {
   useTask$,
   Slot,
   useStyles$,
+  useResource$,
+  type QwikIntrinsicElements,
+  Resource,
 } from '@builder.io/qwik';
 import { delay } from '../resource/resource';
 import {
@@ -128,6 +131,7 @@ export const SignalsChildren = component$(() => {
       <Issue4174 />
       <Issue4249 />
       <Issue4228 />
+      <Issue4368 />
     </div>
   );
 });
@@ -1025,10 +1029,10 @@ export const Issue4228 = component$(() => {
   });
   useTask$(() => {
     if (isBrowser) {
-      (window as any).countA = 0;
-      (window as any).countB = 0;
-      (window as any).countC = 0;
-      (window as any).countD = 0;
+      (window as any).countA = -1;
+      (window as any).countB = -1;
+      (window as any).countC = -1;
+      (window as any).countD = -1;
     }
   });
   useVisibleTask$(
@@ -1065,6 +1069,45 @@ export const Issue4228 = component$(() => {
       <p>
         <DisplayTotal counters={counter} />
       </p>
+    </>
+  );
+});
+
+const MyButton = component$<QwikIntrinsicElements['button']>(({ type, ...rest }) => {
+  return (
+    <button id="issue-4368-button" type={type || 'button'} {...rest}>
+      <Slot />
+    </button>
+  );
+});
+
+const MyTextButton = component$<{ text: string }>((props) => {
+  return (
+    <MyButton disabled={!props.text}>{props.text ? 'Example button' : 'Text is empty'}</MyButton>
+  );
+});
+
+export const Issue4368 = component$(() => {
+  const text = useSignal('');
+
+  const textResource = useResource$(async (ctx) => {
+    return ctx.track(() => text.value);
+  });
+
+  return (
+    <>
+      <input id="issue-4368-input" bind:value={text} placeholder="type something here" />
+
+      <Resource
+        value={textResource}
+        onRejected={() => <p>Error</p>}
+        onPending={() => <p>Loading</p>}
+        onResolved={(resolved) => (
+          <>
+            <MyTextButton text={resolved} />
+          </>
+        )}
+      />
     </>
   );
 });

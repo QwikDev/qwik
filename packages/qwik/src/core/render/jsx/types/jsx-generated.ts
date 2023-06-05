@@ -821,6 +821,7 @@ export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
   cols?: number | undefined;
   dirName?: string | undefined;
   disabled?: boolean | undefined;
+  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
   form?: string | undefined;
   maxLength?: number | undefined;
   minLength?: number | undefined;

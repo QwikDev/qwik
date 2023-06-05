@@ -566,6 +566,8 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
     // (undocumented)
     ctrlKey: boolean;
     getModifierState(key: string): boolean;
+    // (undocumented)
+    isComposing: boolean;
     key: string;
     // (undocumented)
     keyCode: number;

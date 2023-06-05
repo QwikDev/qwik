@@ -503,6 +503,19 @@ test.describe('signals', () => {
       await expect(resultC).toHaveText('2:2');
       await expect(resultTotal).toHaveText('6:6');
     });
+
+    test('issue 4368', async ({ page }) => {
+      const input = page.locator('#issue-4368-input');
+      const button = page.locator('#issue-4368-button');
+
+      await expect(button).toHaveText('Text is empty');
+      await expect(button).toBeDisabled();
+
+      await input.fill('foo');
+
+      await expect(button).toHaveText('Example button');
+      await expect(button).not.toBeDisabled();
+    });
   }
 
   tests();
@@ -511,7 +524,7 @@ test.describe('signals', () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator('#rerender');
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
     });
     tests();
   });

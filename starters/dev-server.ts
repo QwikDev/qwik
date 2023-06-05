@@ -26,6 +26,7 @@ const appNames = readdirSync(startersAppsDir).filter(
 
 const packagesDir = resolve(__dirname, '..', 'packages');
 const qwikDistDir = join(packagesDir, 'qwik', 'dist');
+const qwikDistMjs = join(qwikDistDir, 'core.mjs');
 const qwikCityDistDir = join(packagesDir, 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
@@ -151,10 +152,21 @@ export {
     ...extra,
     resolve: {
       conditions: ['development'],
-      alias: {
-        '@builder.io/qwik': qwikDistDir,
-        '@builder.io/qwik-city': qwikCityDistDir,
-      },
+      mainFields: [],
+      alias: [
+        {
+          find: /^@builder\.io\/qwik-city/,
+          replacement: qwikCityDistDir,
+        },
+        {
+          find: /^@builder\.io\/qwik$/,
+          replacement: qwikDistMjs,
+        },
+        {
+          find: /^@builder\.io\/qwik/,
+          replacement: qwikDistDir,
+        },
+      ],
     },
   });
 

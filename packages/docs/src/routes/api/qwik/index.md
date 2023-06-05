@@ -400,7 +400,7 @@ export interface CorePlatform
 
 | Property            | Modifiers | Type                                                                                                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [chunkForSymbol](#) |           | (symbolName: string, chunk: string \| null) =&gt; readonly \[symbol: string, chunk: string\] \| undefined                                       | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p>                                                                                                                                    |
+| [chunkForSymbol](#) |           | (symbolName: string, chunk: string \| null) =&gt; readonly [symbol: string, chunk: string] \| undefined                                         | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p>                                                                                                                                    |
 | [importSymbol](#)   |           | (containerEl: Element \| undefined, url: string \| URL \| undefined \| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |
 | [isServer](#)       |           | boolean                                                                                                                                         | True of running on the server platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | [nextTick](#)       |           | (fn: () =&gt; any) =&gt; Promise&lt;any&gt;                                                                                                     | Perform operation on next tick.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -554,7 +554,7 @@ getCaptured(): any[] | null;
 
 **Returns:**
 
-any\[\] \| null
+any[] \| null
 
 ## getHash
 
@@ -568,7 +568,7 @@ string
 
 ## getModifierState
 
-See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
+See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
 
 ```typescript
 getModifierState(key: string): boolean;
@@ -960,7 +960,7 @@ At times it is necessary to store values on a store that are non-serializable. N
 
 You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
 
-See: \[noSerialize Tutorial\](http://qwik.builder.io/tutorial/store/no-serialize)
+See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
 
 ```typescript
 noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
@@ -976,7 +976,7 @@ At times it is necessary to store values on a store that are non-serializable. N
 
 You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
 
-See: \[noSerialize Tutorial\](http://qwik.builder.io/tutorial/store/no-serialize)
+See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
 
 ```typescript
 noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
@@ -1281,24 +1281,24 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 
 **Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)&gt;
 
-| Property         | Modifiers | Type    | Description                                                                                                               |
-| ---------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [altKey](#)      |           | boolean |                                                                                                                           |
-| [charCode](#)    |           | number  |                                                                                                                           |
-| [ctrlKey](#)     |           | boolean |                                                                                                                           |
-| [isComposing](#) |           | boolean |                                                                                                                           |
-| [key](#)         |           | string  | See the \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#named-key-attribute-values). for possible values |
-| [keyCode](#)     |           | number  |                                                                                                                           |
-| [locale](#)      |           | string  |                                                                                                                           |
-| [location](#)    |           | number  |                                                                                                                           |
-| [metaKey](#)     |           | boolean |                                                                                                                           |
-| [repeat](#)      |           | boolean |                                                                                                                           |
-| [shiftKey](#)    |           | boolean |                                                                                                                           |
-| [which](#)       |           | number  |                                                                                                                           |
+| Property         | Modifiers | Type    | Description                                                                                                            |
+| ---------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [altKey](#)      |           | boolean |                                                                                                                        |
+| [charCode](#)    |           | number  |                                                                                                                        |
+| [ctrlKey](#)     |           | boolean |                                                                                                                        |
+| [isComposing](#) |           | boolean |                                                                                                                        |
+| [key](#)         |           | string  | See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values |
+| [keyCode](#)     |           | number  |                                                                                                                        |
+| [locale](#)      |           | string  |                                                                                                                        |
+| [location](#)    |           | number  |                                                                                                                        |
+| [metaKey](#)     |           | boolean |                                                                                                                        |
+| [repeat](#)      |           | boolean |                                                                                                                        |
+| [shiftKey](#)    |           | boolean |                                                                                                                        |
+| [which](#)       |           | number  |                                                                                                                        |
 
-| Method                                                       | Description                                                                                                                                         |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+| Method                                                       | Description                                                                                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -1330,9 +1330,9 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
 | [x](#)             |           | number              |             |
 | [y](#)             |           | number              |             |
 
-| Method                     | Description                                                                                                                                         |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [getModifierState(key)](#) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+| Method                     | Description                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [getModifierState(key)](#) | See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -1385,9 +1385,9 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
 | [targetTouches](#)  |           | TouchList |             |
 | [touches](#)        |           | TouchList |             |
 
-| Method                     | Description                                                                                                                                         |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [getModifierState(key)](#) | See \[DOM Level 3 Events spec\](https://www.w3.org/TR/uievents-key/\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+| Method                     | Description                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [getModifierState(key)](#) | See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -1496,15 +1496,15 @@ export interface RenderResult
 export interface RenderSSROptions
 ```
 
-| Property                 | Modifiers | Type                                                                                                                                                              | Description  |
-| ------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| [base?](#)               |           | string                                                                                                                                                            | _(Optional)_ |
-| [beforeClose?](#)        |           | (contexts: QContext\[\], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
-| [beforeContent?](#)      |           | [JSXNode](#jsxnode)&lt;string&gt;\[\]                                                                                                                             | _(Optional)_ |
-| [containerAttributes](#) |           | Record&lt;string, string&gt;                                                                                                                                      |              |
-| [containerTagName](#)    |           | string                                                                                                                                                            |              |
-| [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                                                         | _(Optional)_ |
-| [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                     |              |
+| Property                 | Modifiers | Type                                                                                                                                                            | Description  |
+| ------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| [base?](#)               |           | string                                                                                                                                                          | _(Optional)_ |
+| [beforeClose?](#)        |           | (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt; | _(Optional)_ |
+| [beforeContent?](#)      |           | [JSXNode](#jsxnode)&lt;string&gt;[]                                                                                                                             | _(Optional)_ |
+| [containerAttributes](#) |           | Record&lt;string, string&gt;                                                                                                                                    |              |
+| [containerTagName](#)    |           | string                                                                                                                                                          |              |
+| [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                                                       | _(Optional)_ |
+| [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                   |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
@@ -1772,14 +1772,14 @@ export interface SnapshotMetaValue
 export interface SnapshotResult
 ```
 
-| Property       | Modifiers | Type                                  | Description |
-| -------------- | --------- | ------------------------------------- | ----------- |
-| [funcs](#)     |           | string\[\]                            |             |
-| [mode](#)      |           | 'render' \| 'listeners' \| 'static'   |             |
-| [objs](#)      |           | any\[\]                               |             |
-| [qrls](#)      |           | [QRL](#qrl)\[\]                       |             |
-| [resources](#) |           | ResourceReturnInternal&lt;any&gt;\[\] |             |
-| [state](#)     |           | [SnapshotState](#snapshotstate)       |             |
+| Property       | Modifiers | Type                                | Description |
+| -------------- | --------- | ----------------------------------- | ----------- |
+| [funcs](#)     |           | string[]                            |             |
+| [mode](#)      |           | 'render' \| 'listeners' \| 'static' |             |
+| [objs](#)      |           | any[]                               |             |
+| [qrls](#)      |           | [QRL](#qrl)[]                       |             |
+| [resources](#) |           | ResourceReturnInternal&lt;any&gt;[] |             |
+| [state](#)     |           | [SnapshotState](#snapshotstate)     |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
@@ -1792,9 +1792,9 @@ export interface SnapshotState
 | Property  | Modifiers | Type                          | Description |
 | --------- | --------- | ----------------------------- | ----------- |
 | [ctx](#)  |           | [SnapshotMeta](#snapshotmeta) |             |
-| [objs](#) |           | any\[\]                       |             |
+| [objs](#) |           | any[]                         |             |
 | [refs](#) |           | Record&lt;string, string&gt;  |             |
-| [subs](#) |           | any\[\]                       |             |
+| [subs](#) |           | any[]                         |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 

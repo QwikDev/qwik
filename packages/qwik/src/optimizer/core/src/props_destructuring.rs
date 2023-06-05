@@ -316,15 +316,47 @@ fn transform_pat(
             }
             ast::ObjectPatProp::KeyValue(ref v) => {
                 if let ast::PropName::Ident(ref key) = v.key {
-                    if let ast::Pat::Ident(ref ident) = *v.value {
-                        let access = ast::Expr::Member(ast::MemberExpr {
-                            obj: Box::new(new_ident.clone()),
-                            prop: ast::MemberProp::Ident(key.clone()),
-                            span: DUMMY_SP,
-                        });
-                        local.push((id!(ident), key.sym.clone(), access));
-                    } else {
-                        skip = true;
+                    match &v.value {
+                        box ast::Pat::Ident(ref ident) => {
+                            let access = ast::Expr::Member(ast::MemberExpr {
+                                obj: Box::new(new_ident.clone()),
+                                prop: ast::MemberProp::Ident(key.clone()),
+                                span: DUMMY_SP,
+                            });
+                            local.push((id!(ident), key.sym.clone(), access));
+                        }
+                        box ast::Pat::Assign(ast::AssignPat {
+                            left: box ast::Pat::Ident(ident),
+                            right: value,
+                            ..
+                        }) => {
+                            if is_immutable_expr(
+                                value.as_ref(),
+                                props_transform.global_collect,
+                                None,
+                            ) {
+                                let access = ast::Expr::Member(ast::MemberExpr {
+                                    obj: Box::new(new_ident.clone()),
+                                    prop: ast::MemberProp::Ident(key.clone()),
+                                    span: DUMMY_SP,
+                                });
+                                local.push((
+                                    id!(ident.id),
+                                    ident.sym.clone(),
+                                    ast::Expr::Bin(ast::BinExpr {
+                                        span: DUMMY_SP,
+                                        op: ast::BinaryOp::NullishCoalescing,
+                                        left: Box::new(access),
+                                        right: value.clone(),
+                                    }),
+                                ));
+                            } else {
+                                skip = true;
+                            }
+                        }
+                        _ => {
+                            skip = true;
+                        }
                     }
                 } else {
                     skip = true;

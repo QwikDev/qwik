@@ -92,9 +92,12 @@ export const RenderChildren = component$(() => {
       <Issue3702 />
       <Issue3795 />
       <Issue4029 />
+      <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
       <HTMLFragmentTest />
+      <Issue4292 />
+      <Issue4386 />
     </>
   );
 });
@@ -791,7 +794,7 @@ export interface TestAProps extends A {}
 
 export const TestA = component$<TestAProps>((props) => {
   return (
-    <button type="button" {...props}>
+    <button id="issue-4292-result" type="button" {...props}>
       <Slot />
     </button>
   );
@@ -825,4 +828,31 @@ export const Issue4292 = component$(() => {
       </TestB>
     </>
   );
+});
+
+export const Issue4346 = component$(() => {
+  const toggle = useSignal(true);
+  const ref = useSignal<HTMLDivElement>();
+
+  return (
+    <>
+      <div id="issue-4346-result" ref={toggle.value ? ref : undefined}>
+        {toggle.value ? 'Hello' : 'world'}
+      </div>
+      <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
+    </>
+  );
+});
+
+export const FOO_MAPPING = {
+  A: 1,
+  B: 2,
+  C: 3,
+};
+
+export const Issue4386 = component$(() => {
+  const key = 'A';
+  const value = FOO_MAPPING[key];
+
+  return <div id="issue-4386-result">{value}</div>;
 });

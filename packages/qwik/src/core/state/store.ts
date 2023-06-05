@@ -123,7 +123,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const immutable = (flags & QObjectImmutable) !== 0;
     const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
     let subscriber: Subscriber | undefined | null;
-    let value = target[prop];
+    let value;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
@@ -134,6 +134,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
       value = hiddenSignal.value;
       subscriber = null;
+    } else {
+      value = target[prop];
     }
     if (subscriber) {
       const isA = isArray(target);

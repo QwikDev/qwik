@@ -59,10 +59,10 @@ export const jsxImg = createRule({
 });
 
 const noWidthHeightGood = `
-<img width="200" height="600" src="/static/images/portrait-01.webp>`.trim();
+<img width="200" height="600" src="/static/images/portrait-01.webp">`.trim();
 
 const noWidthHeightBad = `
-<img src="/static/images/portrait-01.webp>`.trim();
+<img src="/static/images/portrait-01.webp">`.trim();
 
 export const jsxImgExamples: QwikEslintExamples = {
   noWidthHeight: {

@@ -7,6 +7,9 @@ import {
   useTask$,
   Slot,
   useStyles$,
+  useResource$,
+  type QwikIntrinsicElements,
+  Resource,
 } from '@builder.io/qwik';
 import { delay } from '../resource/resource';
 import {
@@ -20,6 +23,7 @@ import {
   TestCStr,
   TestCWithFlag,
 } from './utils/utils';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);
@@ -126,6 +130,8 @@ export const SignalsChildren = component$(() => {
       <Issue3440 />
       <Issue4174 />
       <Issue4249 />
+      <Issue4228 />
+      <Issue4368 />
     </div>
   );
 });
@@ -961,5 +967,147 @@ export const Issue4249 = component$(() => {
           : 'No collision'}
       </div>
     </main>
+  );
+});
+
+type Counters = {
+  countA: number;
+  countB: number;
+  signal: Signal<number>;
+};
+
+type Props = {
+  counters: Counters;
+};
+
+export const DisplayA = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display A:{' '}
+      <span id="issue-4228-result-a">{`${counters.countA}:${
+        typeof (globalThis as any).countA === 'number' ? (window as any).countA++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplayB = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display B:{' '}
+      <span id="issue-4228-result-b">{`${counters.countB}:${
+        typeof (globalThis as any).countB === 'number' ? (window as any).countB++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplaySignal = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display C:{' '}
+      <span id="issue-4228-result-c">{`${counters.signal.value}:${
+        typeof (globalThis as any).countC === 'number' ? (window as any).countC++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplayTotal = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display Total:{' '}
+      <span id="issue-4228-result-total">{`${
+        counters.countA + counters.countB + counters.signal.value
+      }:${typeof (globalThis as any).countD === 'number' ? (window as any).countD++ : 0}`}</span>
+    </>
+  );
+});
+export const Issue4228 = component$(() => {
+  const signal = useSignal(0);
+  const counter = useStore({
+    countA: 0,
+    countB: 0,
+    signal,
+  });
+  useTask$(() => {
+    if (isBrowser) {
+      (window as any).countA = -1;
+      (window as any).countB = -1;
+      (window as any).countC = -1;
+      (window as any).countD = -1;
+    }
+  });
+  useVisibleTask$(
+    () => {
+      (window as any).countA = 1;
+      (window as any).countB = 1;
+      (window as any).countC = 1;
+      (window as any).countD = 1;
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+  return (
+    <>
+      <p>
+        <button id="issue-4228-button-a" onClick$={() => counter.countA++}>
+          +1 A
+        </button>
+        <DisplayA counters={counter} />
+      </p>
+      <p>
+        <button id="issue-4228-button-b" onClick$={() => counter.countB++}>
+          +1 B
+        </button>
+        <DisplayB counters={counter} />
+      </p>
+      <p>
+        <button id="issue-4228-button-c" onClick$={() => signal.value++}>
+          +1 Signal
+        </button>
+        <DisplaySignal counters={counter} />
+      </p>
+      <p>
+        <DisplayTotal counters={counter} />
+      </p>
+    </>
+  );
+});
+
+const MyButton = component$<QwikIntrinsicElements['button']>(({ type, ...rest }) => {
+  return (
+    <button id="issue-4368-button" type={type || 'button'} {...rest}>
+      <Slot />
+    </button>
+  );
+});
+
+const MyTextButton = component$<{ text: string }>((props) => {
+  return (
+    <MyButton disabled={!props.text}>{props.text ? 'Example button' : 'Text is empty'}</MyButton>
+  );
+});
+
+export const Issue4368 = component$(() => {
+  const text = useSignal('');
+
+  const textResource = useResource$(async (ctx) => {
+    return ctx.track(() => text.value);
+  });
+
+  return (
+    <>
+      <input id="issue-4368-input" bind:value={text} placeholder="type something here" />
+
+      <Resource
+        value={textResource}
+        onRejected={() => <p>Error</p>}
+        onPending={() => <p>Loading</p>}
+        onResolved={(resolved) => (
+          <>
+            <MyTextButton text={resolved} />
+          </>
+        )}
+      />
+    </>
   );
 });

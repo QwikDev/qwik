@@ -52,7 +52,7 @@ pub fn convert_inlined_fn(
         return (None, false);
     }
 
-    let rendered_expr = render_expr(expr.clone());
+    let rendered_expr = render_expr(&expr);
     if rendered_expr.len() > 150 {
         return (None, false);
     }
@@ -177,7 +177,8 @@ impl VisitMut for ReplaceIdentifiers {
     }
 }
 
-fn render_expr(mut expr: ast::Expr) -> String {
+fn render_expr(expr: &ast::Expr) -> String {
+    let mut expr = expr.clone();
     let mut buf = Vec::new();
     let source_map = Lrc::new(SourceMap::default());
     let writer = Box::new(JsWriter::new(Lrc::clone(&source_map), "\n", &mut buf, None));
@@ -185,7 +186,7 @@ fn render_expr(mut expr: ast::Expr) -> String {
         minify: true,
         target: ast::EsVersion::latest(),
         ascii_only: false,
-        omit_last_semi: true,
+        omit_last_semi: false,
     };
     let mut emitter = swc_ecmascript::codegen::Emitter {
         cfg: config,
@@ -196,18 +197,14 @@ fn render_expr(mut expr: ast::Expr) -> String {
     expr.visit_mut_with(&mut hygiene_with_config(Default::default()));
     expr.visit_mut_with(&mut fixer(None));
     emitter
-        .emit_script(&ast::Script {
-            body: vec![ast::Stmt::Expr(ast::ExprStmt {
-                span: DUMMY_SP,
-                expr: Box::new(expr),
-            })],
-            shebang: None,
+        .emit_module_item(&ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
             span: DUMMY_SP,
-        })
+            expr: Box::new(expr),
+        })))
         .expect("Should emit");
-    unsafe {
-        str::from_utf8_unchecked(&buf)
-            .trim_end_matches(';')
-            .to_string()
-    }
+
+    str::from_utf8(&buf)
+        .expect("should be utf8")
+        .trim_end_matches(';')
+        .to_string()
 }

@@ -55,7 +55,13 @@
   },
   {
     "href": "https://www.burgersonfleek.ca/",
-    "tags": "site"
+    "tags": "site",
+    "repo": "https://github.com/saboooor/burgersonfleek"
+  },
+  {
+    "href": "https://simplymc.art/",
+    "tags": "site",
+    "repo": "https://github.com/LuminescentDev/SimplyMC"
   },
   {
     "href": "https://goshi.dev/",
@@ -150,6 +156,15 @@
   },
   {
     "href": "https://seifen.vercel.app/",
+    "tags": "site"
+  },
+  {
+    "href": "https://builtwith.appwrite.io/",
+    "tags": "site",
+    "repo": "https://github.com/appwrite/builtwith"
+  },
+  {
+    "href": "https://radixstream.com/",
     "tags": "site"
   }
 ]

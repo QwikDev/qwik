@@ -14,6 +14,8 @@ export default defineConfig(() => {
   return {
     ssr: {
       noExternal: [
+        '@mui/material',
+        '@emotion/react',
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
         '@algolia/autocomplete-shared',
@@ -115,32 +117,58 @@ const menus = {
   '5wL0DAwmu0A': 'left',
 };
 
-const algoliaSearch = {
-  I5CyQjO9FjQ: 'algoliasearch',
-  NsnidK2eXPg: 'algoliasearch',
-  kDw0latGeM0: 'algoliasearch',
-  '9dP8xDD36tk': 'algoliasearch',
-  '7YcOLMha9lM': 'algoliasearch',
-  Ly5oFWTkofs: 'algoliasearch',
-  fTU5LQ1VhcU: 'algoliasearch',
-  X3ZkFa9P7Dc: 'algoliasearch',
-  cGb8pS0shrs: 'algoliasearch',
-  '0TG0b0n4wNg': 'algoliasearch',
-  qQlSSnFvEvs: 'algoliasearch',
-  '01FQcGhldRU': 'algoliasearch',
-  qolFAthnlPo: 'algoliasearch',
-  J3Nim3Y9sio: 'algoliasearch',
-};
+const algoliaSearch = bundle('algoliasearch', [
+  'hW',
+  '9t1uPE4yoLA',
+  'I5CyQjO9FjQ',
+  'NsnidK2eXPg',
+  'kDw0latGeM0',
+  '7YcOLMha9lM',
+  'Ly5oFWTkofs',
+  'NCpn2iO0Vo0',
+  'X3ZkFa9P7Dc',
+  'cGb8pS0shrs',
+  '0TG0b0n4wNg',
+  'qQlSSnFvEvs',
+  'qolFAthnlPo',
+  'vXb90XKAnjE',
+  'hYpp40gCb60',
+  'J3Nim3Y9sio',
+  'aWt0AqHIkGQ',
+  'H7LftCVcX8A',
+  'EhtTJVluy08',
+  'Rtwief4DyrI',
+  'uCl5Lf0Typ8',
+  'DCgB1xiHL28',
+  'VRTvy2D80Ww',
+  'r1y7UDjTtCw',
+  'ZiJmJ6Or9eY',
+  'UyYdc56f0ig',
+  'OmOFy2W4aT4',
+  'mnN5FJ8qddY',
+  '5o2hfyxmyXo',
+  'yqKaTNK0QR0',
+  'S0wV0vUzzSo',
+  'S0wV0vUzzSo',
+]);
 
-const repl = {
-  XoQB11UZ1S0: 'repl',
-  AqHBIVNKf34: 'repl',
-  IRhp4u7HN3o: 'repl',
-  Qf2nEuUdHpM: 'repl',
-  oEksvFPgMEM: 'repl',
-  eePwnt3YTI8: 'repl',
-  iw211Du0bw8: 'repl',
-  lWGaPPYlcvs: 'repl',
-  uCl5Lf0Typ8: 'repl',
-  IW29huCoDkc: 'repl',
-};
+const repl = bundle('repl', [
+  's_XoQB11UZ1S0',
+  's_AqHBIVNKf34',
+  's_IRhp4u7HN3o',
+  's_Qf2nEuUdHpM',
+  's_oEksvFPgMEM',
+  's_eePwnt3YTI8',
+  's_iw211Du0bw8',
+  's_lWGaPPYlcvs',
+  's_uCl5Lf0Typ8',
+  's_IW29huCoDkc',
+]);
+
+function bundle(bundleName: string, symbols: string[]) {
+  return symbols.reduce((obj, key) => {
+    // Sometimes symbols are prefixed with `s_`, remove it.
+    obj[key.replace('s_', '')] = obj[key] = bundleName;
+    return obj;
+  }, {} as Record<string, string>);
+}

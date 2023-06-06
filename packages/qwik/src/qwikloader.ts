@@ -153,7 +153,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     handler: (ev: Event) => void,
     capture = false
   ) => {
-    return el.addEventListener(eventName, handler, { capture });
+    return el.addEventListener(eventName, handler, { capture, passive: false });
   };
 
   const push = (eventNames: string[]) => {

@@ -95,33 +95,37 @@ Because [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) tracks 
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const store = useStore(
-    {
-      nested: {
-        fields: { are: 'also tracked' }
-      },
-      list: [],
+  const store = useStore({
+    nested: {
+      fields: { are: 'also tracked' },
     },
-  );
+    list: ['Item 1'],
+  });
 
   return (
     <>
       <p>{store.nested.fields.are}</p>
-      <button onClick$={() => {
-        // Even though we are mutating a nested object, this will trigger a re-render
-        store.nested.fields.are = 'tracked'
-      }}>
+      <button
+        onClick$={() => {
+          // Even though we are mutating a nested object, this will trigger a re-render
+          store.nested.fields.are = 'tracked';
+        }}
+      >
         Clicking me works because store is deep watched
       </button>
       <br />
-      <button onClick$={() => {
-        // Because store is deep watched, this will trigger a re-render
-        store.list.push(`Item ${store.list.length}`);
-      }}>
+      <button
+        onClick$={() => {
+          // Because store is deep watched, this will trigger a re-render
+          store.list.push(`Item ${store.list.length}`);
+        }}
+      >
         Add to list
       </button>
       <ul>
-        {store.list.map((item) => <li>{item}</li>)}
+        {store.list.map((item) => (
+          <li>{item}</li>
+        ))}
       </ul>
     </>
   );
@@ -137,9 +141,9 @@ const shallowStore = useStore(
     nested: {
       fields: { are: 'also tracked' }
     },
-    list: [],
+    list: ['Item 1'],
   },
-  { deep: false}
+  { deep: false }
 );
 ```
 
@@ -314,6 +318,7 @@ export default component$(() => {
       <label>
         Query: <input bind:value={query} />
       </label>
+      <button>search</button>
       <Resource
         value={jokes}
         onPending={() => <>loading...</>}

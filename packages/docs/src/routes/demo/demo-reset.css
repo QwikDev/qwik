@@ -8,7 +8,8 @@ demo h1 {
   font-weight: bolder;
 }
 
-demo button {
+demo button,
+demo button[type='submit'] {
   display: inline-block;
   border: 1px solid #ccc;
   padding: 0.5rem 1rem;

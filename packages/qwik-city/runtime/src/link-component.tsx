@@ -24,7 +24,7 @@ export const Link = component$<LinkProps>((props) => {
   const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
     if (elm.href) {
       elm.setAttribute('aria-pressed', 'true');
-      await nav(elm.href, reload);
+      await nav(elm.href, { forceReload: reload });
       elm.removeAttribute('aria-pressed');
     }
   });

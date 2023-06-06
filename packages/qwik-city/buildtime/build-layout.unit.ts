@@ -4,7 +4,7 @@ import { testAppSuite } from '../utils/test-suite';
 const test = testAppSuite('Build Layout');
 
 test('total layouts', ({ layouts }) => {
-  equal(layouts.length, 7, JSON.stringify(layouts, null, 2));
+  equal(layouts.length, 8, JSON.stringify(layouts, null, 2));
 });
 
 test('nested named layout', ({ assertLayout }) => {

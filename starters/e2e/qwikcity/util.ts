@@ -1,5 +1,5 @@
 /* eslint-disable */
-import type { BrowserContext, Response } from '@playwright/test';
+import type { BrowserContext, Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 export async function assertPage(ctx: TestContext, test: AssertPage) {
@@ -101,6 +101,27 @@ export async function linkNavigate(ctx: TestContext, linkSelector: string, respo
       expect(rspStatus, `${href} (${rspStatus})\n${content}`).toBe(responseStatus);
     }
   }
+}
+
+export async function getScrollHeight(page: Page) {
+  return await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+}
+
+export async function getWindowScrollXY(page: Page) {
+  return await page.evaluate<[number, number]>(() => [window.scrollX, window.scrollY]);
+}
+
+export async function scrollTo(page: Page, x: number, y: number) {
+  return await page.evaluate<void, [number, number]>(([x, y]) => window.scrollTo(x, y), [x, y]);
+}
+
+export async function scrollDetector(page: Page) {
+  return page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        document.addEventListener('scroll', () => resolve(), { once: true })
+      )
+  );
 }
 
 export function locator(ctx: TestContext, selector: string) {

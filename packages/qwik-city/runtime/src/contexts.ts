@@ -6,6 +6,7 @@ import type {
   RouteAction,
   RouteLocation,
   RouteNavigate,
+  RouteStateInternal,
 } from './types';
 
 export const RouteStateContext = /*#__PURE__*/ createContextId<Record<string, any>>('qc-s');
@@ -21,3 +22,6 @@ export const RouteLocationContext = /*#__PURE__*/ createContextId<RouteLocation>
 export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>('qc-n');
 
 export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qc-a');
+
+export const RouteInternalContext =
+  /*#__PURE__*/ createContextId<Signal<RouteStateInternal>>('qc-ir');

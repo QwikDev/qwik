@@ -3,16 +3,22 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs16.x
+  runtime: nodejs18.x
 
 functions:
   hello:
-    handler: server/entry-aws-lambda.qwikApp
+    handler: server/aws.qwikApp
     events:
       - httpApi: '*'
 
 custom:
   serverless-offline:
     httpPort: 4000
+
+package:
+  excludeDevDependencies: false
+
 plugins:
   - serverless-offline
+  - serverless-plugin-common-excludes
+  - serverless-plugin-include-dependencies

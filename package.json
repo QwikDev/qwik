@@ -142,5 +142,8 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "esbuild-plugin-raw": "^0.1.7"
+  }
 }

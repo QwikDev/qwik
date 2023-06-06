@@ -126,7 +126,14 @@ export const processNode = (
       return vnode;
     });
   } else {
-    const vnode = new ProcessedJSXNodeImpl(textType, props, immutableProps, convertedChildren, flags, key);
+    const vnode = new ProcessedJSXNodeImpl(
+      textType,
+      props,
+      immutableProps,
+      convertedChildren,
+      flags,
+      key
+    );
     if (qDev && qInspector) {
       vnode.$dev$ = node.dev;
     }

@@ -691,7 +691,7 @@ const createElm = (
         directSetAttribute(
           elm,
           'data-qwik-inspector',
-          `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+          `${dev.fileName}:${dev.lineNumber}:${dev.columnNumber}`
         );
       }
     }

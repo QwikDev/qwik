@@ -51,43 +51,46 @@ export const getImageSizeServer = (sys: OptimizerSystem, srcDir: string) => {
       res.end();
       return;
     } else if (req.method === 'POST' && url.pathname === '/__image_fix') {
-      const loc = url.searchParams.get('loc') as string;
-      const width = url.searchParams.get('width');
-      const height = url.searchParams.get('height');
-      const locParts = loc.split(':');
-      let column = parseInt(locParts[locParts.length - 1], 10) - 1;
-      let line = parseInt(locParts[locParts.length - 2], 10) - 1;
-      const filePath = path.resolve(srcDir, locParts.slice(0, locParts.length-2).join(':'));
-      console.log(filePath);
-      const buffer = fs.readFileSync(filePath);
-      let text = buffer.toString('utf-8');
-      debugger;
+      try {
 
-      let offset = 0;
-      for (; offset < text.length; offset++) {
-        if (line === 0) {
-          offset += column;
-          break;
-        } else if (text[offset] === '\n') {
-          line--;
-          continue;
+        const loc = url.searchParams.get('loc') as string;
+        const width = url.searchParams.get('width');
+        const height = url.searchParams.get('height');
+        const locParts = loc.split(':');
+        const column = parseInt(locParts[locParts.length - 1], 10) - 1;
+        let line = parseInt(locParts[locParts.length - 2], 10) - 1;
+        const filePath = path.resolve(srcDir, locParts.slice(0, locParts.length-2).join(':'));
+        const buffer = fs.readFileSync(filePath);
+        let text = buffer.toString('utf-8');
+
+        let offset = 0;
+        for (; offset < text.length; offset++) {
+          if (line === 0) {
+            offset += column;
+            break;
+          } else if (text[offset] === '\n') {
+            line--;
+            continue;
+          }
         }
+
+          if (text.slice(offset, offset + 4) === '<img') {
+            const end = text.indexOf('>', offset);
+            let imgTag = text.slice(offset, end);
+            imgTag = imgTag.replace(/width=({|'|").*(}|'|")/, `width="${width}"`);
+            imgTag = imgTag.replace(/height=({|'|").*(}|'|")/, `height="${height}"`);
+            if (!imgTag.includes('height=')) {
+              imgTag = imgTag.replace(/<img/, `<img height="${height}"`);
+            }
+            if (!imgTag.includes('width=')) {
+              imgTag = imgTag.replace(/<img/, `<img width="${width}"`);
+            }
+            text = text.slice(0, offset) + imgTag + text.slice(end);
+            fs.writeFileSync(filePath, text);
+          }
+      } catch (e) {
+        console.error('Error auto fixing image', e, url);
       }
-
-        if (text.slice(offset, offset + 4) === '<img') {
-          const end = text.indexOf('>', offset);
-          let imgTag = text.slice(offset, end);
-          imgTag = imgTag.replace(/width=({|'|").*(}|'|")/, `width="${width}"`);
-          imgTag = imgTag.replace(/height=({|'|").*(}|'|")/, `height="${height}"`);
-          if (!imgTag.includes('height=')) {
-            imgTag = imgTag.replace(/<img/, `<img height="${height}"`);
-          }
-          if (!imgTag.includes('width=')) {
-            imgTag = imgTag.replace(/<img/, `<img width="${width}"`);
-          }
-          text = text.slice(0, offset) + imgTag + text.slice(end);
-          fs.writeFileSync(filePath, text);
-        }
 
     } else {
       next();

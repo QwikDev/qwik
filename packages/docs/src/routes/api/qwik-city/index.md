@@ -362,6 +362,14 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## NavigationType
+
+```typescript
+export type NavigationType = "initial" | "form" | "link" | "popstate";
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## PageModule
 
 ```typescript
@@ -386,6 +394,19 @@ export declare type PathParams = Record<string, string>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
+## QwikCityMockProps
+
+```typescript
+export interface QwikCityMockProps
+```
+
+| Property     | Modifiers | Type                         | Description  |
+| ------------ | --------- | ---------------------------- | ------------ |
+| [params?](#) |           | Record&lt;string, string&gt; | _(Optional)_ |
+| [url?](#)    |           | string                       | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityMockProvider
 
@@ -418,9 +439,10 @@ export interface QwikCityPlan
 export interface QwikCityProps
 ```
 
-| Property             | Modifiers | Type    | Description                                                                        |
-| -------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
-| [viewTransition?](#) |           | boolean | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
+| Property             | Modifiers | Type                              | Description                                                                        |
+| -------------------- | --------- | --------------------------------- | ---------------------------------------------------------------------------------- |
+| [restoreScroll$?](#) |           | PropFunction&lt;RestoreScroll&gt; | _(Optional)_                                                                       |
+| [viewTransition?](#) |           | boolean                           | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
@@ -510,9 +532,19 @@ export interface RouteLocation
 
 ```typescript
 export type RouteNavigate = QRL<
-  (path?: string, forceReload?: boolean) => Promise<void>
+  (
+    path?: string,
+    options?:
+      | {
+          type?: Exclude<NavigationType, "initial">;
+          forceReload?: boolean;
+        }
+      | boolean
+  ) => Promise<void>
 >;
 ```
+
+**References:** [NavigationType](#navigationtype)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 

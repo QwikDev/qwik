@@ -101,6 +101,12 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const urlSearchParams = new URLSearchParams('mph=88');
   const bigint = BigInt('200000000000000000');
 
+  const set = new Set(['hola', 12, { a: date }]);
+  const map = new Map<any, any>([
+    [formData, set],
+    ['mapkey', url],
+  ]);
+
   const onclick = $(async () => {
     // eslint-disable-next-line
     console.assert(infinite === Infinity);
@@ -142,6 +148,8 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           formData.get('name'),
           formData.getAll('age'),
           String(bigint),
+          JSON.stringify([...set.keys()]),
+          JSON.stringify([...map.entries()]),
         ]);
         state.count++;
       });

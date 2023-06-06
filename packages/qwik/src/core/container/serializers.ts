@@ -31,7 +31,7 @@ import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
 import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { assertString } from '../error/assert';
+import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
@@ -427,6 +427,64 @@ const BigIntSerializer: Serializer<bigint> = {
   $fill$: undefined,
 };
 
+const DATA = Symbol();
+const SetSerializer: Serializer<Set<any>> = {
+  $prefix$: '\u0019',
+  $test$: (v) => v instanceof Set,
+  $collect$: (set, collector, leaks) => {
+    set.forEach((value) => collectValue(value, collector, leaks));
+  },
+  $serialize$: (v, getObjID) => {
+    return Array.from(v).map(getObjID).join(' ');
+  },
+  $prepare$: (data) => {
+    const set = new Set();
+    (set as any)[DATA] = data;
+    return set;
+  },
+  $fill$: (set, getObject) => {
+    const data = (set as any)[DATA];
+    (set as any)[DATA] = undefined;
+    assertString(data, 'SetSerializer should be defined');
+    for (const id of data.split(' ')) {
+      set.add(getObject(id));
+    }
+  },
+};
+
+const MapSerializer: Serializer<Map<any, any>> = {
+  $prefix$: '\u001a',
+  $test$: (v) => v instanceof Map,
+  $collect$: (map, collector, leaks) => {
+    map.forEach((value, key) => {
+      collectValue(value, collector, leaks);
+      collectValue(key, collector, leaks);
+    });
+  },
+  $serialize$: (map, getObjID) => {
+    const result: string[] = [];
+    map.forEach((value, key) => {
+      result.push(getObjID(key) + ' ' + getObjID(value));
+    });
+    return result.join(' ');
+  },
+  $prepare$: (data) => {
+    const set = new Map();
+    (set as any)[DATA] = data;
+    return set;
+  },
+  $fill$: (set, getObject) => {
+    const data = (set as any)[DATA];
+    (set as any)[DATA] = undefined;
+    assertString(data, 'SetSerializer should be defined');
+    const items = data.split(' ');
+    assertTrue(items.length % 2 === 0, 'MapSerializer should have even number of items');
+    for (let i = 0; i < items.length; i += 2) {
+      set.set(getObject(items[i]), getObject(items[i + 1]));
+    }
+  },
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
@@ -444,6 +502,8 @@ const serializers: Serializer<any>[] = [
   NoFiniteNumberSerializer, /// \u0014
   JSXNodeSerializer, ////////// \u0017
   BigIntSerializer, /////////// \u0018
+  SetSerializer, ////////////// \u0019
+  MapSerializer, ////////////// \u001a
   DocumentSerializer, ///////// \u000F
 ];
 

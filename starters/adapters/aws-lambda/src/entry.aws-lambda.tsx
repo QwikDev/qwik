@@ -1,4 +1,3 @@
-
 /*
  * WHAT IS THIS FILE?
  *
@@ -8,18 +7,18 @@
  * - https://qwik.builder.io/docs/deployments/node/
  *
  */
-import "source-map-support/register";
+import 'source-map-support/register';
 import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import { manifest } from '@qwik-client-manifest';
-import serverlessExpress from "@vendia/serverless-express"
+import serverlessExpress from '@vendia/serverless-express';
 import render from './entry.ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode { }
+  interface QwikCityPlatform extends PlatformNode {}
 }
 
 // import compression from 'compression';

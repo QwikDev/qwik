@@ -1,6 +1,6 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
-import type { BuildContext } from '../types';
+import type { BuildContext, BuildRoute } from '../types';
 import type {
   ContentMenu,
   LoadedRoute,
@@ -263,6 +263,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
 export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
   const blue = '#006ce9';
+  const routesAndDistance = sortRoutesByDistance(ctx.routes, url);
   return `
   <html>
     <head>
@@ -278,19 +279,61 @@ export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
         span { display: inline-block; padding: 15px; }
         a { padding: 15px; }
         a:hover { background-color: rgba(0, 108, 233, 0.125); }
+        .recommended { font-size: 0.8em; font-weight: 700; padding: 10px; }
       </style>
     </head>
     <body>
       <p><strong>404</strong> <span>${url.pathname} not found.</span></p>
-    
+
       <div>
         <strong>Available Routes</strong>
-        
-        ${ctx.routes.map((route) => `<a href="${route.pathname}">${route.pathname}</a>`).join('')}
+
+        ${routesAndDistance
+          .map(
+            ([route, distance], i) =>
+              `<a href="${route.pathname}">${route.pathname}${
+                i === 0 && distance < 3
+                  ? '<span class="recommended"> 👈 maybe you meant this?</span>'
+                  : ''
+              } </a>`
+          )
+          .join('')}
       </div>
     </body>
   </html>`;
 }
+
+const sortRoutesByDistance = (routes: BuildRoute[], url: URL) => {
+  const pathname = url.pathname;
+  const routesWithDistance = routes.map(
+    (route) => [route, levenshteinDistance(pathname, route.pathname)] as const
+  );
+  return routesWithDistance.sort((a, b) => a[1] - b[1]);
+};
+
+const levenshteinDistance = (s: string, t: string) => {
+  if (!s.endsWith('/')) {
+    s = s + '/';
+  }
+  if (!t.endsWith('/')) {
+    t = t + '/';
+  }
+  const arr = [];
+  for (let i = 0; i <= t.length; i++) {
+    arr[i] = [i];
+    for (let j = 1; j <= s.length; j++) {
+      arr[i][j] =
+        i === 0
+          ? j
+          : Math.min(
+              arr[i - 1][j] + 1,
+              arr[i][j - 1] + 1,
+              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+            );
+    }
+  }
+  return arr[t.length][s.length];
+};
 
 /**
  * Static file server for files written directly to the 'dist' dir.

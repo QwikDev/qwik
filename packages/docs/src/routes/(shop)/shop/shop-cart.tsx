@@ -1,5 +1,5 @@
 import { $, component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
-import { COOKIE_CART_ID_KEY, SHOP_CONTEXT, deleteCookie, formatPrice, setCookie } from '../utils';
+import { COOKIE_CART_ID_KEY, SHOP_CONTEXT, deleteCookie, formatPrice } from '../utils';
 import { ShopCartRows } from './shop-cart-rows';
 
 export const ShopCart = component$(() => {

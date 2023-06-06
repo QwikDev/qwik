@@ -27,7 +27,7 @@
 }
 
 .shop .product {
-  @apply relative flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-gray-100 shadow-md;
+  @apply relative flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-slate-600 shadow-md;
   background-color: var(--bg-color);
   color: var(--text-color);
 }

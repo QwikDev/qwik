@@ -23,7 +23,7 @@ export const ShopCart = component$(() => {
           <button
             name="Cart"
             aria-label={`${totalQuantitySignal.value} items in cart`}
-            class="relative flex border-2 border-gray-300 rounded-xl p-3 text-[color:var(--text-color)] bg-[color:var(--bg-color)]"
+            class="relative flex border-2 border-slate-600 rounded-xl p-3 text-[color:var(--text-color)] bg-[color:var(--bg-color)]"
             onClick$={() => {
               showCartSignal.value = true;
             }}

@@ -43,6 +43,10 @@ export const setCookie = (name: string, value: string, days: number) => {
     `; Secure; SameSite=Strict; path=/`;
 };
 
+export const deleteCookie = (name: string) => {
+  document.cookie = `${name}=; expires=-1; Secure; SameSite=Strict; path=/`;
+};
+
 export const getCookie = (name: string) => {
   const keyValues = document.cookie.split(';');
   let result = '';

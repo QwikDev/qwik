@@ -1,5 +1,5 @@
-import { component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
-import { SHOP_CONTEXT, formatPrice } from '../utils';
+import { $, component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
+import { COOKIE_CART_ID_KEY, SHOP_CONTEXT, deleteCookie, formatPrice, setCookie } from '../utils';
 import { ShopCartRows } from './shop-cart-rows';
 
 export const ShopCart = component$(() => {
@@ -111,6 +111,9 @@ export const ShopCart = component$(() => {
                             rel="noopener noreferrer"
                             href={appShop.cart.webUrl}
                             class="button_primary mt-6"
+                            onClick$={$(() => {
+                              deleteCookie(COOKIE_CART_ID_KEY);
+                            })}
                           >
                             Checkout
                           </a>

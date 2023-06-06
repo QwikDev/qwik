@@ -52,7 +52,6 @@
       pointer-events: all;
     }
 
-
     :host(.visible) .warn {
       display: block;
       /* opacity: 1.0; */
@@ -65,7 +64,6 @@
       border-radius: 3px;
       user-select: none;
     }
-
 
     pre span {
       user-select: all;
@@ -92,28 +90,36 @@
 
     h2 {
       font-weight: 900;
+      margin: 10px 0;
     }
   </style>
   <div class="icon">
-    <svg width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"/></svg>
+    <svg width="32" height="32" viewBox="0 0 24 24">
+      <path
+        fill="currentColor"
+        d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"
+      />
+    </svg>
   </div>
   <div class="warn">
     <div class="loc"></div>
     <div class="content">
       <h2 id="title"></h2>
       <p id="message"></p>
-      <p class="autofix">
-      </p>
+      <p class="autofix"></p>
     </div>
+  </div>
 </template>
 <script>
-  (function(){
+  (function () {
     class ImageWarning extends HTMLElement {
       #autofix = null;
       constructor() {
         super();
-        this.attachShadow({mode: 'open'});
-        this.shadowRoot.appendChild(document.importNode(document.getElementById('image-warning-template').content, true));
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(
+          document.importNode(document.getElementById('image-warning-template').content, true)
+        );
 
         this.shadowRoot.addEventListener('click', async (ev) => {
           const target = ev.target;
@@ -142,7 +148,7 @@
       set autofix(value) {
         this.#autofix = value;
         if (value) {
-          this.shadowRoot.querySelector('.autofix').innerHTML = '<button>Auto fix</button>'
+          this.shadowRoot.querySelector('.autofix').innerHTML = '<button>Auto fix</button>';
         }
       }
     }
@@ -176,7 +182,7 @@
       const originalSrc = node.currentSrc;
       const info = await getInfo(originalSrc);
       if (info) {
-        const browserArea = rect.width*rect.height;
+        const browserArea = rect.width * rect.height;
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
         const loc = node.getAttribute('data-qwik-inspector');
@@ -184,7 +190,11 @@
         node.src = '';
         const rect2 = node.getBoundingClientRect();
         const tooBig = browserArea < threshholdArea;
-        const layoutInvalidation = rect.x !== rect2.x || rect.y !== rect2.y || rect.width !== rect2.width || rect.height !== rect2.height;
+        const layoutInvalidation =
+          rect.x !== rect2.x ||
+          rect.y !== rect2.y ||
+          rect.width !== rect2.width ||
+          rect.height !== rect2.height;
 
         node.src = originalSrc;
         skip = false;
@@ -203,7 +213,12 @@
           overlay.loc = loc;
           if (layoutInvalidation) {
             overlay.header = 'Perf: layout shift';
-            overlay.message = 'Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>width="' + info.width +'" height="' +info.height + '"</span></pre>';
+            overlay.message =
+              'Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>width="' +
+              info.width +
+              '" height="' +
+              info.height +
+              '"</span></pre>';
             if (loc && info) {
               overlay.autofix = async () => {
                 const url = new URL('/__image_fix', location.href);
@@ -218,7 +233,7 @@
             }
           } else if (tooBig) {
             overlay.header = 'Perf: properly size image';
-            overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it\'s displayed at. The image dimmensions are ${info.width} x ${info.height} but it\'s displayed at ${rect.width}x${rect.height}.</p>`
+            overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it\'s displayed at. The image dimmensions are ${info.width} x ${info.height} but it\'s displayed at ${rect.width}x${rect.height}.</p>`;
           }
         } else if (overlay) {
           overlay.remove();
@@ -227,59 +242,58 @@
       }
     }
 
-      async function updateImg(node) {
-        const overlay = visibleNodes.get(node);
-        if (!node.isConnected) {
-          if (overlay) {
-            overlay.remove();
-            visibleNodes.delete(node);
-          }
-        } else if (node.complete) {
-          doImg(node);
+    async function updateImg(node) {
+      const overlay = visibleNodes.get(node);
+      if (!node.isConnected) {
+        if (overlay) {
+          overlay.remove();
+          visibleNodes.delete(node);
+        }
+      } else if (node.complete) {
+        doImg(node);
+      }
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!skip) {
+        for (const entry of entries) {
+          updateImg(entry.target);
         }
       }
+    });
 
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (!skip) {
-          for (const entry of entries) {
-            updateImg(entry.target);
-          }
-        }
-      });
-
-      const observer = new MutationObserver((entry) => {
-        for (const mutation of entry) {
-          for (const node of mutation.addedNodes) {
-            if (node.nodeName === 'IMG') {
+    const observer = new MutationObserver((entry) => {
+      for (const mutation of entry) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeName === 'IMG') {
+            resizeObserver.observe(img);
+          } else if (node.nodeType === 1) {
+            node.querySelectorAll('img').forEach((img) => {
               resizeObserver.observe(img);
-            } else if (node.nodeType === 1) {
-              node.querySelectorAll('img').forEach((img) => {
-                resizeObserver.observe(img);
-              });
-            }
-          }
-          for (const node of mutation.removedNodes) {
-            if (node.nodeName === 'IMG') {
-              updateImg(node);
-              resizeObserver.unobserve(node);
-
-            }
+            });
           }
         }
-      });
-      const activate = () => {
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-        });
-        document.body.querySelectorAll('img').forEach((node) => {
-          resizeObserver.observe(node);
-        });
-      };
-      if (document.readyState === 'complete') {
-        activate();
-      } else {
-        window.addEventListener('load', activate);
+        for (const node of mutation.removedNodes) {
+          if (node.nodeName === 'IMG') {
+            updateImg(node);
+            resizeObserver.unobserve(node);
+          }
+        }
       }
-    })();
+    });
+    const activate = () => {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+      document.body.querySelectorAll('img').forEach((node) => {
+        resizeObserver.observe(node);
+      });
+    };
+    if (document.readyState === 'complete') {
+      activate();
+    } else {
+      window.addEventListener('load', activate);
+    }
+  })();
 </script>

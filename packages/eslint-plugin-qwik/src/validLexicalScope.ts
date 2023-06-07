@@ -390,7 +390,7 @@ function _isTypeCapturable(
     if (type.getProperty('activeElement')) {
       return;
     }
-    if (ALLOWED_CLASSES[symbolName]) {
+    if (symbolName in ALLOWED_CLASSES) {
       return;
     }
     if (type.isClass()) {
@@ -481,6 +481,8 @@ const ALLOWED_CLASSES = {
   FormData: true,
   URLSearchParams: true,
   Error: true,
+  Set: true,
+  Map: true,
 };
 
 const referencesOutsideGood = `

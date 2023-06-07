@@ -667,9 +667,11 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
       for (const sub of subs) {
-        if (sub[0] === 0 && sub[1] === el) {
-          collectElement(el, collector);
-          return;
+        if (sub[0] === 0) {
+          if (sub[1] !== el) {
+            collectSubscriptions(getProxyManager(props)!, collector, false);
+          }
+          collectElement(sub[1] as VirtualElement, collector);
         } else {
           collectValue(props, collector, false);
           collectSubscriptions(getProxyManager(props)!, collector, false);

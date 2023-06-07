@@ -9,6 +9,9 @@ export interface EnvGetter {
   get(key: string): string | undefined;
 }
 
+/**
+ * @public
+ */
 export interface ClientInfo {
   ip?: string | undefined | null;
   country?: string | undefined | null;

@@ -153,3 +153,5 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
  */ export interface NodeRequestNextFunction {
   (err?: any): void;
 }
+
+export type { ClientInfo };

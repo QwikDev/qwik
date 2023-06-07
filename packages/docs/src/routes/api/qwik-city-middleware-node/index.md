@@ -4,6 +4,19 @@ title: \@builder.io/qwik-city/middleware/node API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik-city/middleware/node
 
+## ClientInfo
+
+```typescript
+export interface ClientInfo
+```
+
+| Property      | Modifiers | Type                        | Description  |
+| ------------- | --------- | --------------------------- | ------------ |
+| [country?](#) |           | string \| undefined \| null | _(Optional)_ |
+| [ip?](#)      |           | string \| undefined \| null | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+
 ## createQwikCity
 
 ```typescript
@@ -66,10 +79,10 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-| Property            | Modifiers | Type                                      | Description                                                                                                                                                                                                                                                        |
-| ------------------- | --------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [getClientInfo?](#) |           | (req: IncomingMessage) =&gt; ClientInfo   | _(Optional)_                                                                                                                                                                                                                                                       |
-| [origin?](#)        |           | string                                    | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |
-| [static?](#)        |           | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files                                                                                                                                                                                                                      |
+| Property            | Modifiers | Type                                                   | Description                                                                                                                                                                                                                                                        |
+| ------------------- | --------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [getClientInfo?](#) |           | (req: IncomingMessage) =&gt; [ClientInfo](#clientinfo) | _(Optional)_                                                                                                                                                                                                                                                       |
+| [origin?](#)        |           | string                                                 | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |
+| [static?](#)        |           | { root?: string; cacheControl?: string; }              | _(Optional)_ Options for serving static files                                                                                                                                                                                                                      |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts)

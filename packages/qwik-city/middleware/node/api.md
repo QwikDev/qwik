@@ -11,6 +11,14 @@ import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/reque
 import type { ServerResponse } from 'node:http';
 
 // @public (undocumented)
+export interface ClientInfo {
+    // (undocumented)
+    country?: string | undefined | null;
+    // (undocumented)
+    ip?: string | undefined | null;
+}
+
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {
     router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
@@ -35,8 +43,6 @@ export interface PlatformNode {
 
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
-    // Warning: (ae-forgotten-export) The symbol "ClientInfo" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     getClientInfo?: (req: IncomingMessage) => ClientInfo;
     origin?: string;

@@ -44,7 +44,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         req,
         res,
         'server',
-        opts
+        opts.getClientInfo
       );
       const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
@@ -139,13 +139,13 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
-  getClientInfo?: (req: IncomingMessage) => ClientInfo;
   /**
    * Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.
    *
    * When not specified, it defaults to the `ORIGIN` environment variable (if set) or derived from the incoming request.
    */
   origin?: string;
+  getClientInfo?: (req: IncomingMessage) => ClientInfo;
 }
 
 /**

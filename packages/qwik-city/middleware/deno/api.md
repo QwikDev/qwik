@@ -8,18 +8,26 @@ import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/reque
 
 // @public (undocumented)
 export function createQwikCity(opts: QwikCityDenoOptions): {
-    router: (request: Request) => Promise<Response | null>;
+    router: (request: Request, conn: ConnInfo) => Promise<Response | null>;
     notFound: (request: Request) => Promise<Response>;
     staticFile: (request: Request) => Promise<Response | null>;
 };
 
 // @public (undocumented)
 export interface QwikCityDenoOptions extends ServerRenderOptions {
+    // Warning: (ae-forgotten-export) The symbol "ClientInfo" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
     static?: {
         root?: string;
         cacheControl?: string;
     };
 }
+
+// Warnings were encountered during analysis:
+//
+// /Users/manualmeida/repos/builderio/qwik/dist-dev/dts-out/packages/qwik-city/middleware/deno/index.d.ts:16:5 - (ae-forgotten-export) The symbol "ConnInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

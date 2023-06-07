@@ -4,7 +4,7 @@ import type {
   ServerRequestMode,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { QwikCityNodeRequestOptions } from '.';
+import type { ClientInfo } from '../request-handler/types';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -40,7 +40,7 @@ export async function fromNodeHttp(
   req: IncomingMessage,
   res: ServerResponse,
   mode: ServerRequestMode,
-  opts: QwikCityNodeRequestOptions
+  getClientInfo?: (req: IncomingMessage) => ClientInfo
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
@@ -103,8 +103,8 @@ export async function fromNodeHttp(
       });
     },
     getClientInfo: () => {
-      return opts.getClientInfo
-        ? opts.getClientInfo(req)
+      return getClientInfo
+        ? getClientInfo(req)
         : {
             ip: req.socket.remoteAddress,
           };

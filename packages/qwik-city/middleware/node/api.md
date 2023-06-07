@@ -35,6 +35,10 @@ export interface PlatformNode {
 
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
+    // Warning: (ae-forgotten-export) The symbol "ClientInfo" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getClientInfo?: (req: IncomingMessage) => ClientInfo;
     origin?: string;
     static?: {
         root?: string;

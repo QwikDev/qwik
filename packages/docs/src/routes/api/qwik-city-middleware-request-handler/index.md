@@ -356,6 +356,7 @@ export interface ServerRequestEvent<T = any>
 | Property               | Modifiers | Type                                                     | Description |
 | ---------------------- | --------- | -------------------------------------------------------- | ----------- |
 | [env](#)               |           | EnvGetter                                                |             |
+| [getClientInfo](#)     |           | () =&gt; ClientInfo                                      |             |
 | [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
 | [locale](#)            |           | string \| undefined                                      |             |
 | [mode](#)              |           | [ServerRequestMode](#serverrequestmode)                  |             |

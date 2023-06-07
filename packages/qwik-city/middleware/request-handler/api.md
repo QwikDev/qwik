@@ -172,6 +172,10 @@ export interface ServerRenderOptions extends RenderOptions {
 export interface ServerRequestEvent<T = any> {
     // (undocumented)
     env: EnvGetter;
+    // Warning: (ae-forgotten-export) The symbol "ClientInfo" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getClientInfo: () => ClientInfo;
     // (undocumented)
     getWritableStream: ServerResponseHandler<T>;
     // (undocumented)

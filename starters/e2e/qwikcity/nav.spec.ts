@@ -56,9 +56,9 @@ test.describe('actions', () => {
         const link = page.locator('#hash-1');
         await link.click();
 
-        await page.waitForTimeout(50);
+        await page.waitForTimeout(400);
         expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/hash/#hash-2');
-        await page.waitForTimeout(50);
+        await page.waitForTimeout(400);
         const scrollY1 = (await getWindowScrollXY(page))[1];
         expect(scrollY1).toBeGreaterThan(1090);
         expect(scrollY1).toBeLessThan(1110);

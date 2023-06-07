@@ -29,6 +29,19 @@ export type CacheControl =
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
+## ClientInfo
+
+```typescript
+export interface ClientInfo
+```
+
+| Property      | Modifiers | Type                        | Description  |
+| ------------- | --------- | --------------------------- | ------------ |
+| [country?](#) |           | string \| undefined \| null | _(Optional)_ |
+| [ip?](#)      |           | string \| undefined \| null | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+
 ## Cookie
 
 ```typescript
@@ -356,7 +369,7 @@ export interface ServerRequestEvent<T = any>
 | Property               | Modifiers | Type                                                     | Description |
 | ---------------------- | --------- | -------------------------------------------------------- | ----------- |
 | [env](#)               |           | EnvGetter                                                |             |
-| [getClientInfo](#)     |           | () =&gt; ClientInfo                                      |             |
+| [getClientInfo](#)     |           | () =&gt; [ClientInfo](#clientinfo)                       |             |
 | [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
 | [locale](#)            |           | string \| undefined                                      |             |
 | [mode](#)              |           | [ServerRequestMode](#serverrequestmode)                  |             |

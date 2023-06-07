@@ -28,6 +28,14 @@ export class AbortMessage {
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
 
 // @public (undocumented)
+export interface ClientInfo {
+    // (undocumented)
+    country?: string | undefined | null;
+    // (undocumented)
+    ip?: string | undefined | null;
+}
+
+// @public (undocumented)
 export interface Cookie {
     delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
     get(name: string): CookieValue | null;
@@ -172,8 +180,6 @@ export interface ServerRenderOptions extends RenderOptions {
 export interface ServerRequestEvent<T = any> {
     // (undocumented)
     env: EnvGetter;
-    // Warning: (ae-forgotten-export) The symbol "ClientInfo" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     getClientInfo: () => ClientInfo;
     // (undocumented)

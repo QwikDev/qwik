@@ -1,6 +1,7 @@
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
+  ClientInfo,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import {
   mergeHeadersCookies,
@@ -12,7 +13,6 @@ import { _deserializeData, _serializeData, _verifySerializable } from '@builder.
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
-import type { ClientInfo } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/deno
 

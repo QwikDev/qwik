@@ -20,4 +20,5 @@ export type {
   ServerResponseHandler,
   DeferReturn,
   RequestEventBase,
+  ClientInfo,
 } from './types';

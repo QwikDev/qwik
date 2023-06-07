@@ -10,6 +10,7 @@ import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import imageDevTools from './image-size-runtime.html?raw';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -285,7 +286,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
     // has extension
     return false;
   }
-  if (pathname.includes('__vite_ping')) {
+  if (pathname.includes('_-vite-ping')) {
     return false;
   }
   if (pathname.includes('__open-in-editor')) {
@@ -330,6 +331,118 @@ declare global {
   }
 }
 
+export const IMG_INSPECT = () => {
+  return `
+  <style>
+  .image-overlay {
+    position: absolute;
+    border: 4px solid red;
+  }
+
+  .image-overlay .warn {
+    background: yellow;
+    color: black;
+    width: 100%;
+    opacity: 0;
+    font-size: 11px;
+  }
+
+  .image-overlay:hover .warn {
+    opacity: 1.0;
+  }
+  </style>
+  <script>
+  (function() {
+
+    const visibleNodes = new Map();
+
+
+
+    function doImg(overlay, node) {
+      requestAnimationFrame(async () => {
+
+        const rect = node.getBoundingClientRect();
+        const originalSrc = node.src;
+        const url = new URL('/__image_info', location.href);
+        url.searchParams.set('url', originalSrc);
+        const res = await fetch(url);
+        if (res.ok) {
+          const info = await res.json();
+          const browserArea = rect.width*rect.height;
+          const realArea = info.width && info.height;
+          const threshholdArea = realArea * 0.5;
+          node.src = '';
+          const rect2 = node.getBoundingClientRect();
+          const tooBig = browserArea < threshholdArea;
+          const layoutInvalidation = rect.x !== rect2.x || rect.y !== rect2.y || rect.width !== rect2.width || rect.height !== rect2.height;
+
+          node.src = originalSrc;
+          if (layoutInvalidation || tooBig) {
+
+            if (!overlay) {
+              overlay = document.createElement('img-overlay');
+              document.body.appendChild(overlay);
+              visibleNodes.set(node, overlay);
+            }
+            overlay.className = 'image-overlay';
+            overlay.style.top = rect.top + 'px';
+            overlay.style.left = rect.left + 'px';
+            overlay.style.width = rect.width + 'px';
+            overlay.style.height = rect.height + 'px';
+            let innerHTML = '';
+            if (layoutInvalidation) {
+              innerHTML += '<div class="warn">Intrict size is not assigned, causing layout reflow. Set the width/height:<pre>width="' + info.width +'" height="' +info.height + '"</div>'
+            }
+            if (tooBig) {
+              innerHTML = '<div class="warn">Original image is too big.</div>'
+            }
+            overlay.innerHTML = innerHTML;
+          } else if (overlay) {
+            overlay.remove();
+            visibleNodes.delete(node);
+          }
+        }
+      });
+    }
+
+    async function updateImg(node) {
+      let overlay = visibleNodes.get(node);
+      if (!node.isConnected) {
+        if (overlay) {
+          overlay.remove();
+          visibleNodes.delete(node);
+        }
+      } else if (node.complete) {
+        doImg(overlay, node);
+      } else {
+        node.addEventListener('load', () => doImg(overlay, node), {once: true});
+      }
+    }
+
+    const observer = new MutationObserver((entry) => {
+      for (const mutation of entry) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeName === 'IMG') {
+            updateImg(node);
+          }
+        }
+        for (const node of mutation.removedNodes) {
+          if (node.nodeName === 'IMG') {
+            updateImg(node);
+          }
+        }
+      }
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+    document.body.querySelectorAll('img').forEach(updateImg);
+  })()
+  </script>
+  `;
+};
+
 const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
   if (!opts.clickToSource) {
     // click to source set to false means no inspector
@@ -338,7 +451,9 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
 
   const hotKeys: string[] = opts.clickToSource;
 
-  return `
+  return (
+    imageDevTools +
+    `
 <style>
 #qwik-inspector-overlay {
   position: fixed;
@@ -384,8 +499,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
   console.debug("%c🔍 Qwik Click-To-Source","background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Hold-press the '${hotKeys.join(
     ' + '
   )}' key${
-    (hotKeys.length > 1 && 's') || ''
-  } and click a component to jump directly to the source code in your IDE!");
+      (hotKeys.length > 1 && 's') || ''
+    } and click a component to jump directly to the source code in your IDE!");
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
@@ -502,7 +617,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
 })();
 </script>
 <div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(' + ')}</div>
-`;
+`
+  );
 };
 
 const PERF_WARNING = `

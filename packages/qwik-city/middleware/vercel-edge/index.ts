@@ -40,6 +40,8 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         });
       }
 
+      const p = (() => globalThis.process)();
+
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
@@ -47,7 +49,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         request,
         env: {
           get(key) {
-            return process.env[key];
+            return p.env[key];
           },
         },
         getWritableStream: (status, headers, cookies, resolve) => {

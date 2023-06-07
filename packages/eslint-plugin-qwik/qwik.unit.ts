@@ -104,6 +104,11 @@ export const HelloWorld = component$(async () => {
             return <div></div>
           });
         });`,
+      `export const HelloWorld = component$(async () => {
+          const test = useFunction() as string;
+        
+          });
+          `,
     ],
     invalid: [
       {
@@ -577,6 +582,34 @@ export default component$(() => {
           );
         });`,
         errors: [{ messageId: 'referencesOutside' }],
+      },
+    ],
+  });
+});
+
+test('jsx-img', () => {
+  ruleTester.run('jsx-img', rules['jsx-img'], {
+    valid: [
+      `<img width={200} height={200} />`,
+      `<img width="200" height="200" />`,
+      `<img {...props}/>`,
+    ],
+    invalid: [
+      {
+        code: `<img height={200} />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img width={200} />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img src='./file.png' />`,
+        errors: [{ messageId: 'noWidthHeight' }],
       },
     ],
   });

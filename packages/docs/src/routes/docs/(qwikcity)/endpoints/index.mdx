@@ -24,33 +24,35 @@ export const onGet: RequestHandler = async (requestEvent) => {
 };
 ```
 
-Endpoints are useful when you need to expose some external API, for example a RESTful API, or a GraphQL API, by an external entity such as a mobile app or a third-party service.
+Endpoints are useful when you need to expose some external API, for example a RESTful API, or a GraphQL API, for use by an external entity such as a mobile app or a third-party service.
 
 ```ts
 import type { RequestHandler } from '@builder.io/qwik-city';
 
 // Called with every HTTP request (regardless of method)
 export const onRequest: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is GET
 export const onGet: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is POST
 export const onPost: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is PUT
 export const onPut: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is PATCH
 export const onPatch: RequestHandler = async (requestEvent) => { ... }
- 
+
 // Called when the HTTP method is DELETE
 export const onDelete: RequestHandler = async (requestEvent) => { ... }
 ```
 
 ## Endpoints vs server$
 
-Endpoints are low level APIs that give developers full control over the HTTP response. The are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
+Endpoint routes expose proper HTTP endpoints that can be accessed externally from any client, whereas `server$` functions are only accessible internally within the Qwik project.
+
+Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
 
 The `server$` functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` are strongly typed and provide a more convenient API for returning data.
 
@@ -222,6 +224,8 @@ export interface RequestEvent {
 }
 ```
 
+## Examples
+
 ### JSON GET Endpoint
 
 Creating a JSON endpoint is as simple as calling the `json(status, object)` method. The `json()` method will automatically set the `Content-Type` header to `application/json; charset=utf-8` and JSON stringify the data.
@@ -339,7 +343,7 @@ export const onGet: RequestHandler = async (requestEvent) => {
   const writableStream = requestEvent.getWritableStream();
   const writer = writableStream.getWriter();
   const encoder = new TextEncoder();
-  
+
   writer.write(encoder.encode('Hello World'));
   await wait(100);
   writer.write(encoder.encode('After 100ms'));
@@ -351,4 +355,16 @@ export const onGet: RequestHandler = async (requestEvent) => {
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+```
+
+### Redirecting to another URL
+
+Endpoints can redirect to another URL, by throwing the `redirect(status, url)` method. The `redirect()` method will automatically set the `Location` header to the redirect URL.
+
+```tsx
+import type { RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async (requestEvent) => {
+  throw requestEvent.redirect(302,'/auth/login');
+};
 ```

@@ -1,6 +1,6 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
-import type { BuildContext } from '../types';
+import type { BuildContext, BuildRoute } from '../types';
 import type {
   ContentMenu,
   LoadedRoute,
@@ -11,7 +11,7 @@ import type {
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
-import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
@@ -21,7 +21,6 @@ import {
 } from '../../middleware/request-handler/user-response';
 import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
-import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp, getUrl } from '../../middleware/node/http';
@@ -125,6 +124,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
 
+            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+              | [string, number][]
+              | undefined;
+            if (serverTiming) {
+              res.setHeader(
+                'Server-Timing',
+                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+              );
+            }
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
               ...serverData,
@@ -164,19 +172,26 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           serverPlugins,
           loadedRoute,
           req.method ?? 'GET',
+          false,
           renderFn
         );
 
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
-          if (ctx.opts.platform) {
-            serverRequestEv.platform = ctx.opts.platform;
-          }
+          Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
+          const manifest: QwikManifest = {
+            symbols: {},
+            mapping: {},
+            bundles: {},
+            injections: [],
+            version: '1',
+          };
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
+            manifest,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer
@@ -232,7 +247,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         //       there's two ways handling HMR for page endpoint with error
         // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
         // 2. watcher, diff previous & current file content, a bit expensive
-        const html = getErrorHtml(404, new Error('not found'));
+        const html = getUnmatchedRouteHtml(url, ctx);
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.end(html);
@@ -245,6 +260,80 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     }
   };
 }
+
+export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
+  const blue = '#006ce9';
+  const routesAndDistance = sortRoutesByDistance(ctx.routes, url);
+  return `
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <meta http-equiv="Status" content="404">
+      <title>404 Not Found</title>
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <style>
+        body { color: ${blue}; background-color: #fafafa; padding: 30px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        div, p { max-width: 70vw; margin: 60px auto 30px auto; background: white; border-radius: 4px; box-shadow: 0px 0px 50px -20px ${blue}; word-break: break-word; }
+        div { display: flex; flex-direction: column; }
+        strong { display: inline-block; padding: 15px; background: ${blue}; color: white; }
+        span { display: inline-block; padding: 15px; }
+        a { padding: 15px; }
+        a:hover { background-color: rgba(0, 108, 233, 0.125); }
+        .recommended { font-size: 0.8em; font-weight: 700; padding: 10px; }
+      </style>
+    </head>
+    <body>
+      <p><strong>404</strong> <span>${url.pathname} not found.</span></p>
+
+      <div>
+        <strong>Available Routes</strong>
+
+        ${routesAndDistance
+          .map(
+            ([route, distance], i) =>
+              `<a href="${route.pathname}">${route.pathname}${
+                i === 0 && distance < 3
+                  ? '<span class="recommended"> 👈 maybe you meant this?</span>'
+                  : ''
+              } </a>`
+          )
+          .join('')}
+      </div>
+    </body>
+  </html>`;
+}
+
+const sortRoutesByDistance = (routes: BuildRoute[], url: URL) => {
+  const pathname = url.pathname;
+  const routesWithDistance = routes.map(
+    (route) => [route, levenshteinDistance(pathname, route.pathname)] as const
+  );
+  return routesWithDistance.sort((a, b) => a[1] - b[1]);
+};
+
+const levenshteinDistance = (s: string, t: string) => {
+  if (!s.endsWith('/')) {
+    s = s + '/';
+  }
+  if (!t.endsWith('/')) {
+    t = t + '/';
+  }
+  const arr = [];
+  for (let i = 0; i <= t.length; i++) {
+    arr[i] = [i];
+    for (let j = 1; j <= s.length; j++) {
+      arr[i][j] =
+        i === 0
+          ? j
+          : Math.min(
+              arr[i - 1][j] + 1,
+              arr[i][j - 1] + 1,
+              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+            );
+    }
+  }
+  return arr[t.length][s.length];
+};
 
 /**
  * Static file server for files written directly to the 'dist' dir.

@@ -284,6 +284,28 @@ test.describe('slot', () => {
       await add.click();
       await expect(results).toHaveText(['item 0', 'item 1']);
     });
+
+    test('issue 4215', async ({ page }) => {
+      const svg = page.locator('#issue-4215-svg');
+      const toggle = page.locator('#issue-4215-toggle');
+      async function getNamespaceURI() {
+        return (
+          await (await svg.locator('path').elementHandle())?.getProperty('namespaceURI')
+        )?.jsonValue();
+      }
+
+      await expect(getNamespaceURI()).resolves.toBe('http://www.w3.org/2000/svg');
+      await toggle.click();
+      await toggle.click();
+      await expect(getNamespaceURI()).resolves.toBe('http://www.w3.org/2000/svg');
+    });
+
+    test('issue 4283', async ({ page }) => {
+      const result = page.locator('#issue-4283-result');
+      await expect(result).toHaveText(`Hide until visible\n\nContent\n\nindex page`, {
+        useInnerText: true,
+      });
+    });
   }
 
   test.beforeEach(async ({ page }) => {

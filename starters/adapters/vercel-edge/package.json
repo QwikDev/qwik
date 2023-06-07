@@ -5,7 +5,7 @@
     "deploy": "vercel deploy"
   },
   "devDependencies": {
-    "vercel": "^28.19.0"
+    "vercel": "^29.1.1"
   },
   "__qwik__": {
     "priority": 30,

@@ -75,7 +75,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -142,7 +142,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -236,7 +236,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -324,7 +324,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -408,7 +408,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -443,14 +443,14 @@ jobs:
           QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
         run: pnpm run qwik-save-artifacts
 
-      - name: Dry-Run Publish @builder.io/qwik
+      - name: Dry-Run Publish
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @builder.io/qwik
+      - name: Publish
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release
         env:
@@ -469,10 +469,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 16.x
+            node: 18.x
           - host: macos-latest
             browser: webkit
-            node: 16.x
+            node: 18.x
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -544,7 +544,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -634,7 +634,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

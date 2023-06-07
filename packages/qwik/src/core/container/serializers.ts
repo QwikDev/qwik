@@ -12,8 +12,14 @@ import {
   type SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
-import { SignalDerived, SignalImpl, SignalWrapper } from '../state/signal';
-import { type Collector, collectSubscriptions, collectValue } from './pause';
+import {
+  QObjectSignalFlags,
+  SIGNAL_IMMUTABLE,
+  SignalDerived,
+  SignalImpl,
+  SignalWrapper,
+} from '../state/signal';
+import { type Collector, collectSubscriptions, collectValue, mapJoin } from './pause';
 import {
   fastWeakSerialize,
   getProxyManager,
@@ -25,7 +31,7 @@ import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
 import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { assertString } from '../error/assert';
+import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
@@ -112,13 +118,16 @@ const QRLSerializer: Serializer<QRLInternal> = {
   },
 };
 
-const WatchSerializer: Serializer<SubscriberEffect> = {
+const TaskSerializer: Serializer<SubscriberEffect> = {
   $prefix$: '\u0003',
   $test$: (v) => isSubscriberDescriptor(v),
   $collect$: (v, collector, leaks) => {
     collectValue(v.$qrl$, collector, leaks);
     if (v.$state$) {
       collectValue(v.$state$, collector, leaks);
+      if (leaks === true && v.$state$ instanceof SignalImpl) {
+        collectSubscriptions(v.$state$[QObjectManagerSymbol], collector, true);
+      }
     }
   },
   $serialize$: (obj, getObjId) => serializeWatch(obj, getObjId),
@@ -234,7 +243,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
   $prefix$: '\u0011',
   $test$: (obj) => obj instanceof SignalDerived,
   $collect$: (obj, collector, leaks) => {
@@ -251,8 +260,7 @@ const DerivedSignalSerializer: Serializer<SignalDerived<any, any>> = {
       collector.$inlinedFunctions$.push(serialized);
       index = collector.$inlinedFunctions$.length - 1;
     }
-    const parts = signal.$args$.map(getObjID);
-    return parts.join(' ') + ' @' + intToStr(index);
+    return mapJoin(signal.$args$, getObjID, ' ') + ' @' + intToStr(index);
   },
   $prepare$: (data) => {
     const ids = data.split(' ');
@@ -272,8 +280,9 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   $test$: (v) => v instanceof SignalImpl,
   $collect$: (obj, collector, leaks) => {
     collectValue(obj.untrackedValue, collector, leaks);
-    if (leaks === true) {
-      collectSubscriptions(obj[QObjectManagerSymbol], collector, leaks);
+    const mutable = (obj[QObjectSignalFlags] & SIGNAL_IMMUTABLE) === 0;
+    if (leaks === true && mutable) {
+      collectSubscriptions(obj[QObjectManagerSymbol], collector, true);
     }
     return obj;
   },
@@ -418,24 +427,84 @@ const BigIntSerializer: Serializer<bigint> = {
   $fill$: undefined,
 };
 
+const DATA = Symbol();
+const SetSerializer: Serializer<Set<any>> = {
+  $prefix$: '\u0019',
+  $test$: (v) => v instanceof Set,
+  $collect$: (set, collector, leaks) => {
+    set.forEach((value) => collectValue(value, collector, leaks));
+  },
+  $serialize$: (v, getObjID) => {
+    return Array.from(v).map(getObjID).join(' ');
+  },
+  $prepare$: (data) => {
+    const set = new Set();
+    (set as any)[DATA] = data;
+    return set;
+  },
+  $fill$: (set, getObject) => {
+    const data = (set as any)[DATA];
+    (set as any)[DATA] = undefined;
+    assertString(data, 'SetSerializer should be defined');
+    for (const id of data.split(' ')) {
+      set.add(getObject(id));
+    }
+  },
+};
+
+const MapSerializer: Serializer<Map<any, any>> = {
+  $prefix$: '\u001a',
+  $test$: (v) => v instanceof Map,
+  $collect$: (map, collector, leaks) => {
+    map.forEach((value, key) => {
+      collectValue(value, collector, leaks);
+      collectValue(key, collector, leaks);
+    });
+  },
+  $serialize$: (map, getObjID) => {
+    const result: string[] = [];
+    map.forEach((value, key) => {
+      result.push(getObjID(key) + ' ' + getObjID(value));
+    });
+    return result.join(' ');
+  },
+  $prepare$: (data) => {
+    const set = new Map();
+    (set as any)[DATA] = data;
+    return set;
+  },
+  $fill$: (set, getObject) => {
+    const data = (set as any)[DATA];
+    (set as any)[DATA] = undefined;
+    assertString(data, 'SetSerializer should be defined');
+    const items = data.split(' ');
+    assertTrue(items.length % 2 === 0, 'MapSerializer should have even number of items');
+    for (let i = 0; i < items.length; i += 2) {
+      set.set(getObject(items[i]), getObject(items[i + 1]));
+    }
+  },
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
   SignalWrapperSerializer, //// \u0013
-  WatchSerializer, //////////// \u0003
+  TaskSerializer, //////////// \u0003
   ResourceSerializer, ///////// \u0004
   URLSerializer, ////////////// \u0005
   DateSerializer, ///////////// \u0006
   RegexSerializer, //////////// \u0007
   ErrorSerializer, //////////// \u000E
-  DocumentSerializer, ///////// \u000F
-  ComponentSerializer, //////// \u0010
   DerivedSignalSerializer, //// \u0011
-  NoFiniteNumberSerializer, /// \u0014
-  URLSearchParamsSerializer, // \u0015
   FormDataSerializer, ///////// \u0016
+  URLSearchParamsSerializer, // \u0015
+  ComponentSerializer, //////// \u0010
+  NoFiniteNumberSerializer, /// \u0014
   JSXNodeSerializer, ////////// \u0017
   BigIntSerializer, /////////// \u0018
+  SetSerializer, ////////////// \u0019
+  MapSerializer, ////////////// \u001a
+  DocumentSerializer, ///////// \u000F
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.$collect$);

@@ -520,11 +520,12 @@ export const Works = component$(({
     some = 1+2,
     hello = CONST,
     stuff: hey,
+    stuffDefault: hey2 = 123,
     ...rest}) => {
     console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey, some);
+        console.log(count, rest, hey, some, hey2);
     });
     return (
         <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
@@ -612,6 +613,34 @@ export const Issue3561 = component$(() => {
     console.log(variantImage, variantNumber, setContents)
 
     return <p></p>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_4386() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const FOO_MAPPING = {
+    A: 1,
+    B: 2,
+    C: 3,
+  };
+
+  export default component$(() => {
+    const key = 'A';
+    const value = FOO_MAPPING[key];
+
+    return <>{value}</>;
   });
 "#
         .to_string(),
@@ -1994,6 +2023,7 @@ fn example_immutable_analysis() {
         code: r#"
 import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
+import styles from './styles.module.css';
 
 export const App = component$((props) => {
     const {Model} = props;
@@ -2009,7 +2039,10 @@ export const App = component$((props) => {
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                class={styles.foo}
+                document={window.document}
                 onClick$={props.onClick$}
+                onEvent$={() => console.log('stuff')}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
@@ -2584,6 +2617,7 @@ fn example_derived_signals_div() {
 import { component$, useStore, mutable } from '@builder.io/qwik';
 
 import {dep} from './file';
+import styles from './styles.module.css';
 
 export const App = component$(() => {
     const signal = useSignal(0);
@@ -2598,6 +2632,8 @@ export const App = component$(() => {
                 stable0: true,
                 hidden: false,
             }}
+            staticClass={styles.foo}
+            staticDocument={window.document}
             staticText="text"
             staticText2={`text`}
             staticNumber={1}

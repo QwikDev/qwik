@@ -20,6 +20,7 @@ import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
 import type { ValueOrPromise } from '@builder.io/qwik';
+import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -34,8 +35,9 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  trailingSlash = true,
-  basePathname = '/',
+  manifest: QwikManifest | ResolvedManifest | undefined,
+  trailingSlash: boolean,
+  basePathname: string,
   qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
@@ -100,6 +102,7 @@ export function createRequestEvent(
   const loaders: Record<string, Promise<any>> = {};
 
   const sharedMap = new Map();
+  sharedMap.set('@manifest', manifest);
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,
@@ -228,6 +231,12 @@ export function createRequestEvent(
 
     getWritableStream: () => {
       if (writableStream === null) {
+        if (serverRequestEv.mode === 'dev') {
+          const serverTiming = sharedMap.get('@serverTiming') as [string, number][] | undefined;
+          if (serverTiming) {
+            headers.set('Server-Timing', serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(','));
+          }
+        }
         writableStream = serverRequestEv.getWritableStream(
           status,
           headers,
@@ -321,8 +330,3 @@ const formToObj = (formData: FormData): Record<string, any> => {
   });
   return obj;
 };
-
-export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
-  return types.includes(type);
-}

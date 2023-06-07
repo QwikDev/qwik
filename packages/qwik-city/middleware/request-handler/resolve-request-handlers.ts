@@ -9,7 +9,7 @@ import type {
   ValidatorReturn,
   DataValidator,
 } from '../../runtime/src/types';
-import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
+import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import {
   getRequestLoaders,
   getRequestMode,
@@ -30,6 +30,7 @@ export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
+  checkOrigin: boolean,
   renderHandler: RequestHandler
 ) => {
   const routeLoaders: LoaderInternal[] = [];
@@ -49,9 +50,14 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
+    if (
+      checkOrigin &&
+      (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
+    ) {
+      requestHandlers.unshift(csrfCheckMiddleware);
+    }
     if (isPageRoute) {
       if (method === 'POST') {
-        requestHandlers.unshift(securityMiddleware);
         requestHandlers.push(pureServerFunction);
       }
       requestHandlers.push(fixTrailingSlash);
@@ -178,11 +184,15 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
           if (!data || typeof data !== 'object') {
             throw new Error('Expected request data to be an object');
           }
-          const result = await runValidators(requestEv, action.__validators, data);
+          const result = await runValidators(requestEv, action.__validators, data, isDev);
           if (!result.success) {
             loaders[selectedAction] = requestEv.fail(result.status ?? 500, result.error);
           } else {
-            const actionResolved = await action.__qrl(result.data as JSONObject, requestEv);
+            const actionResolved = isDev
+              ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
+                  action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
+                )
+              : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
             if (isDev) {
               verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
@@ -203,10 +213,21 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
               );
             }
           }
-          return (loaders[loaderId] = runValidators(requestEv, loader.__validators, undefined)
+          return (loaders[loaderId] = runValidators(
+            requestEv,
+            loader.__validators,
+            undefined,
+            isDev
+          )
             .then((res) => {
               if (res.success) {
-                return loader.__qrl(requestEv as any);
+                if (isDev) {
+                  return measure(requestEv, loader.__qrl.getSymbol().split('_', 1)[0], () =>
+                    loader.__qrl.call(requestEv, requestEv as any)
+                  );
+                } else {
+                  return loader.__qrl.call(requestEv, requestEv as any);
+                }
               } else {
                 return requestEv.fail(res.status ?? 500, res.error);
               }
@@ -231,7 +252,8 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
 async function runValidators(
   requestEv: RequestEvent,
   validators: DataValidator[] | undefined,
-  data: unknown
+  data: unknown,
+  isDev: boolean
 ) {
   let lastResult: ValidatorReturn = {
     success: true,
@@ -239,7 +261,13 @@ async function runValidators(
   };
   if (validators) {
     for (const validator of validators) {
-      lastResult = await validator.validate(requestEv, data);
+      if (isDev) {
+        lastResult = await measure(requestEv, `validator$`, () =>
+          validator.validate(requestEv, data)
+        );
+      } else {
+        lastResult = await validator.validate(requestEv, data);
+      }
       if (!lastResult.success) {
         return lastResult;
       } else {
@@ -270,22 +298,25 @@ async function pureServerFunction(ev: RequestEvent) {
       if (isQrl(qrl) && qrl.getHash() === fn) {
         let result: unknown;
         try {
-          result = await qrl.apply(ev, args);
+          if (isDev) {
+            result = await measure(ev, `server_${qrl.getSymbol()}`, () => qrl.apply(ev, args));
+          } else {
+            result = await qrl.apply(ev, args);
+          }
         } catch (err) {
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(500, await qwikSerializer._serializeData(err, true));
           return;
         }
         if (isAsyncIterator(result)) {
-          ev.headers.set('Content-Type', 'text/event-stream');
+          ev.headers.set('Content-Type', 'text/qwik-json-stream');
           const stream = ev.getWritableStream().getWriter();
           for await (const item of result) {
             if (isDev) {
               verifySerializable(qwikSerializer, item, qrl);
             }
-            ev.headers.set('Content-Type', 'application/qwik-json');
             const message = await qwikSerializer._serializeData(item, true);
-            stream.write(encoder.encode(`event: qwik\ndata: ${message}\n\n`));
+            await stream.write(encoder.encode(`${message}\n`));
           }
           stream.close();
         } else {
@@ -351,21 +382,24 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*#__PURE__*/ new TextEncoder();
 
-export function securityMiddleware(requestEv: RequestEvent) {
-  const isDev = getRequestMode(requestEv) === 'dev';
-  let inputOrigin = requestEv.request.headers.get('origin');
-  let origin = requestEv.url.origin;
-  if (isDev) {
-    // In development, we compare the host instead of the origin.
-    inputOrigin = inputOrigin ? new URL(inputOrigin).host : null;
-    origin = requestEv.url.host;
-  }
-  const forbidden = inputOrigin !== origin;
-  if (forbidden) {
-    throw requestEv.error(
-      403,
-      `Cross-site ${requestEv.request.method} form submissions are forbidden`
-    );
+function csrfCheckMiddleware(requestEv: RequestEvent) {
+  const isForm = isContentType(
+    requestEv.request.headers,
+    'application/x-www-form-urlencoded',
+    'multipart/form-data',
+    'text/plain'
+  );
+  if (isForm) {
+    const inputOrigin = requestEv.request.headers.get('origin');
+    const origin = requestEv.url.origin;
+    const forbidden = inputOrigin !== origin;
+    if (forbidden) {
+      throw requestEv.error(
+        403,
+        `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+The request origin "${inputOrigin}" does not match the server origin "${origin}".`
+      );
+    }
   }
 }
 export function renderQwikMiddleware(render: Render) {
@@ -485,4 +519,31 @@ function makeQDataPath(href: string) {
   } else {
     return undefined;
   }
+}
+
+function now() {
+  return typeof performance !== 'undefined' ? performance.now() : 0;
+}
+
+export async function measure<T>(
+  requestEv: RequestEventBase,
+  name: string,
+  fn: () => T
+): Promise<T> {
+  const start = now();
+  try {
+    return await fn();
+  } finally {
+    const duration = now() - start;
+    let measurements = requestEv.sharedMap.get('@serverTiming');
+    if (!measurements) {
+      requestEv.sharedMap.set('@serverTiming', (measurements = []));
+    }
+    measurements.push([name, duration]);
+  }
+}
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  return types.includes(type);
 }

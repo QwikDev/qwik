@@ -6,6 +6,7 @@
     "lib": ["es2021", "DOM", "webworker"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
+    "allowArbitraryExtensions": true,
     "jsxImportSource": "@builder.io/qwik",
     "declaration": true,
     "outDir": "./dist-dev/tsc-out",
@@ -98,5 +99,10 @@
     "packages/qwik-react/vite",
     "@types/deno.d.ts"
   ],
-  "exclude": ["packages/create-qwik/dist", "**/lib", "packages/qwik/**/*.d.ts"]
+  "exclude": [
+    "packages/create-qwik/dist",
+    "**/lib",
+    "packages/qwik/**/*.d.ts",
+    "scripts/eslint-docs.ts"
+  ]
 }

@@ -21,13 +21,13 @@ import { writePackageJson } from './package-json';
  */
 export async function submoduleQwikLoader(config: BuildConfig) {
   const input: InputOptions = {
-    input: join(config.srcDir, 'qwikloader-entry.ts'),
+    input: join(config.srcQwikDir, 'qwikloader-entry.ts'),
     plugins: [
       {
         name: 'qwikloaderTranspile',
         resolveId(id) {
           if (!id.endsWith('.ts')) {
-            return join(config.srcDir, id + '.ts');
+            return join(config.srcQwikDir, id + '.ts');
           }
           return null;
         },
@@ -47,7 +47,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
 
   const defaultMinified: OutputOptions = {
     // QWIK_LOADER_DEFAULT_MINIFIED
-    dir: config.distPkgDir,
+    dir: config.distQwikPkgDir,
     format: 'es',
     entryFileNames: `qwikloader.js`,
     exports: 'none',
@@ -72,7 +72,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
 
   const defaultDebug: OutputOptions = {
     // QWIK_LOADER_DEFAULT_DEBUG
-    dir: config.distPkgDir,
+    dir: config.distQwikPkgDir,
     format: 'es',
     entryFileNames: `qwikloader.debug.js`,
     exports: 'none',
@@ -101,7 +101,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
 
   const optimizeMinified: OutputOptions = {
     // QWIK_LOADER_OPTIMIZE_MINIFIED
-    dir: config.distPkgDir,
+    dir: config.distQwikPkgDir,
     format: 'es',
     entryFileNames: `qwikloader.optimize.js`,
     exports: 'none',
@@ -126,7 +126,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
 
   const optimizeDebug: OutputOptions = {
     // QWIK_LOADER_OPTIMIZE_DEBUG
-    dir: config.distPkgDir,
+    dir: config.distQwikPkgDir,
     format: 'es',
     entryFileNames: `qwikloader.optimize.debug.js`,
     exports: 'none',
@@ -164,7 +164,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
 
   await generateLoaderSubmodule(config);
 
-  const optimizeFileSize = await fileSize(join(config.distPkgDir, 'qwikloader.optimize.js'));
+  const optimizeFileSize = await fileSize(join(config.distQwikPkgDir, 'qwikloader.optimize.js'));
   console.log(`🐸 qwikloader:`, optimizeFileSize);
 }
 
@@ -184,7 +184,7 @@ export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
   await Promise.all(
     variableToFileMap.map(async (varToFile) => {
       const varName = `globalThis.${varToFile[0]}`;
-      const filePath = join(config.distPkgDir, varToFile[1]);
+      const filePath = join(config.distQwikPkgDir, varToFile[1]);
       const content = await readFile(filePath, 'utf-8');
       define[varName] = JSON.stringify(content.trim());
     })
@@ -194,10 +194,13 @@ export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
 }
 
 async function generateLoaderSubmodule(config: BuildConfig) {
-  const loaderDistDir = join(config.distPkgDir, 'loader');
+  const loaderDistDir = join(config.distQwikPkgDir, 'loader');
 
-  const loaderCode = await readFile(join(config.distPkgDir, 'qwikloader.js'), 'utf-8');
-  const loaderDebugCode = await readFile(join(config.distPkgDir, 'qwikloader.debug.js'), 'utf-8');
+  const loaderCode = await readFile(join(config.distQwikPkgDir, 'qwikloader.js'), 'utf-8');
+  const loaderDebugCode = await readFile(
+    join(config.distQwikPkgDir, 'qwikloader.debug.js'),
+    'utf-8'
+  );
 
   const code = [
     `const QWIK_LOADER = ${JSON.stringify(loaderCode.trim())};`,

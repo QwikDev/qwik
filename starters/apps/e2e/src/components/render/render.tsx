@@ -9,8 +9,14 @@ import {
   event$,
   h,
   jsx,
+  SkipRender,
+  SSRRaw,
+  HTMLFragment,
+  type QwikIntrinsicElements,
+  Slot,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
+import { isServer } from '@builder.io/qwik/build';
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
@@ -86,6 +92,12 @@ export const RenderChildren = component$(() => {
       <Issue3702 />
       <Issue3795 />
       <Issue4029 />
+      <Issue4346 />
+      <SkipRenderTest />
+      <SSRRawTest />
+      <HTMLFragmentTest />
+      <Issue4292 />
+      <Issue4386 />
     </>
   );
 });
@@ -743,3 +755,104 @@ export const Issue4029 = component$(() => {
 
 export const CompA = component$(() => <div id="issue-4029-result">CompA</div>);
 export const CompB = component$(() => <div id="issue-4029-result">CompB</div>);
+
+export const SkipRenderTest = component$(() => {
+  const count = useSignal(0);
+  if (count.value % 3 !== 0) {
+    return SkipRender;
+  }
+  const countV = count.value + '';
+  return (
+    <>
+      <button id="skip-render-button" onClick$={() => count.value++}>
+        Increment {countV}
+      </button>
+      <div id="skip-render-result">Number: {count.value}</div>
+    </>
+  );
+});
+
+export const SSRRawTest = component$(() => {
+  return (
+    <div id="ssr-raw-test-result" data-mounted={isServer ? 'server' : 'browser'}>
+      <SSRRaw data="<b>ssr raw test</b>" />
+    </div>
+  );
+});
+
+export const HTMLFragmentTest = component$(() => {
+  return (
+    <div id="html-fragment-test-result" data-mounted={isServer ? 'server' : 'browser'}>
+      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
+    </div>
+  );
+});
+
+type A = QwikIntrinsicElements['button'];
+
+export interface TestAProps extends A {}
+
+export const TestA = component$<TestAProps>((props) => {
+  return (
+    <button id="issue-4292-result" type="button" {...props}>
+      <Slot />
+    </button>
+  );
+});
+
+export interface TestBProps extends TestAProps {}
+
+export const TestB = component$<TestBProps>((props) => {
+  return (
+    <TestA {...props}>
+      <Slot />
+    </TestA>
+  );
+});
+
+export const Issue4292 = component$(() => {
+  const $toggled = useSignal<boolean>(false);
+
+  return (
+    <>
+      <h1>Playground</h1>
+
+      <TestB
+        aria-label={$toggled.value ? 'a' : 'a1'}
+        title={$toggled.value ? 'a' : 'a1'}
+        onClick$={() => {
+          $toggled.value = !$toggled.value;
+        }}
+      >
+        <div>Hello, World!</div>
+      </TestB>
+    </>
+  );
+});
+
+export const Issue4346 = component$(() => {
+  const toggle = useSignal(true);
+  const ref = useSignal<HTMLDivElement>();
+
+  return (
+    <>
+      <div id="issue-4346-result" ref={toggle.value ? ref : undefined}>
+        {toggle.value ? 'Hello' : 'world'}
+      </div>
+      <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
+    </>
+  );
+});
+
+export const FOO_MAPPING = {
+  A: 1,
+  B: 2,
+  C: 3,
+};
+
+export const Issue4386 = component$(() => {
+  const key = 'A';
+  const value = FOO_MAPPING[key];
+
+  return <div id="issue-4386-result">{value}</div>;
+});

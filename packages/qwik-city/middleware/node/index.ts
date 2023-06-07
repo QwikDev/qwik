@@ -39,7 +39,13 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server', opts);
+      const serverRequestEv = await fromNodeHttp(
+        getUrl(req, opts.origin),
+        req,
+        res,
+        'server',
+        opts
+      );
       const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
         const err = await handled.completion;
@@ -60,7 +66,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   const notFound = async (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => {
     try {
       if (!res.headersSent) {
-        const url = getUrl(req);
+        const url = getUrl(req, opts.origin);
         const notFoundHtml = getNotFound(url.pathname);
         res.writeHead(404, {
           'Content-Type': 'text/html; charset=utf-8',
@@ -134,6 +140,12 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     cacheControl?: string;
   };
   getClientInfo?: (req: IncomingMessage) => ClientInfo;
+  /**
+   * Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.
+   *
+   * When not specified, it defaults to the `ORIGIN` environment variable (if set) or derived from the incoming request.
+   */
+  origin?: string;
 }
 
 /**

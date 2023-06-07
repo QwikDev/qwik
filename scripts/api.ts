@@ -1,44 +1,53 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { generateApiMarkdownDocs } from './api-docs';
 import { type BuildConfig, panic } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure
  * the public API has not changed for a production build.
  */
-export function apiExtractor(config: BuildConfig) {
+export async function apiExtractor(config: BuildConfig) {
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
+  rmSync(apiJsonInputDir, { recursive: true, force: true });
+
   // core
   // Run the api extractor for each of the submodules
-  createTypesApi(config, join(config.srcDir, 'core'), join(config.distPkgDir, 'core.d.ts'), '.');
   createTypesApi(
     config,
-    join(config.srcDir, 'jsx-runtime'),
-    join(config.distPkgDir, 'jsx-runtime.d.ts'),
+    join(config.srcQwikDir, 'core'),
+    join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'optimizer'),
-    join(config.distPkgDir, 'optimizer.d.ts'),
+    join(config.srcQwikDir, 'jsx-runtime'),
+    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
     '.'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'server'),
-    join(config.distPkgDir, 'server.d.ts'),
+    join(config.srcQwikDir, 'optimizer'),
+    join(config.distQwikPkgDir, 'optimizer.d.ts'),
     '.'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'testing'),
-    join(config.distPkgDir, 'testing', 'index.d.ts'),
+    join(config.srcQwikDir, 'server'),
+    join(config.distQwikPkgDir, 'server.d.ts'),
+    '.'
+  );
+  createTypesApi(
+    config,
+    join(config.srcQwikDir, 'testing'),
+    join(config.distQwikPkgDir, 'testing', 'index.d.ts'),
     '..'
   );
   createTypesApi(
     config,
-    join(config.srcDir, 'build'),
-    join(config.distPkgDir, 'build', 'index.d.ts'),
+    join(config.srcQwikDir, 'build'),
+    join(config.distQwikPkgDir, 'build', 'index.d.ts'),
     '..'
   );
   generateServerReferenceModules(config);
@@ -154,6 +163,8 @@ export function apiExtractor(config: BuildConfig) {
   );
   generateQwikCityReferenceModules(config);
 
+  await generateApiMarkdownDocs(config, apiJsonInputDir);
+
   console.log('🥶', 'submodule d.ts API files generated');
 }
 
@@ -236,21 +247,23 @@ declare module '@qwik-client-manifest' {
 // MD
 declare module '*.md' {
   const node: FunctionComponent;
+  export const frontmatter: Record<string, any>;
   export default node;
 }
 // MDX
 declare module '*.mdx' {
   const node: FunctionComponent;
+  export const frontmatter: Record<string, any>;
   export default node;
 }
 `;
 
-  const destServerModulesPath = join(config.distPkgDir, 'server-modules.d.ts');
+  const destServerModulesPath = join(config.distQwikPkgDir, 'server-modules.d.ts');
   writeFileSync(destServerModulesPath, referenceDts);
 
   // manually prepend the ts reference since api extractor removes it
   const prependReferenceDts = `/// <reference path="./server-modules.d.ts" />\n\n`;
-  const distServerPath = join(config.distPkgDir, 'server.d.ts');
+  const distServerPath = join(config.distQwikPkgDir, 'server.d.ts');
   let serverDts = readFileSync(distServerPath, 'utf-8');
   serverDts = prependReferenceDts + serverDts;
   writeFileSync(distServerPath, serverDts);

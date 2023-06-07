@@ -145,18 +145,17 @@ export const newInvokeContext = (
   event?: any,
   url?: URL
 ): InvokeContext => {
-  const ctx = {
+  const ctx: InvokeContext = {
     $seq$: 0,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,
     $url$: url,
+    $locale$: locale,
     $qrl$: undefined,
-    $props$: undefined,
     $renderCtx$: undefined,
     $subscriber$: undefined,
     $waitOn$: undefined,
-    $locale$: locale,
   };
   seal(ctx);
   return ctx;
@@ -173,7 +172,7 @@ export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
 
-const trackInvocation = /*@__PURE__*/ newInvokeContext(
+const trackInvocation = /*#__PURE__*/ newInvokeContext(
   undefined,
   undefined,
   undefined,
@@ -197,6 +196,16 @@ export const _getContextElement = (): unknown => {
     return (
       iCtx.$element$ ?? iCtx.$hostElement$ ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined)
     );
+  }
+};
+
+/**
+ * @internal
+ */
+export const _getContextEvent = (): unknown => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return iCtx.$event$;
   }
 };
 

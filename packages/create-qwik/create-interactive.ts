@@ -51,7 +51,7 @@ export async function runCreateInteractiveCli() {
 
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
-  let removeExistingOutDirPromise: Promise<void> | null = null;
+  let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
 
   if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const existingOutDirAnswer = await select({
@@ -61,7 +61,7 @@ export async function runCreateInteractiveCli() {
       )}" already exists and is not empty. What would you like to do?`,
       options: [
         { value: 'exit', label: 'Do not overwrite this directory and exit' },
-        { value: 'replace', label: 'Overwrite and replace this directory' },
+        { value: 'replace', label: 'Remove contents of this directory' },
       ],
     });
 
@@ -71,7 +71,15 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
+      removeExistingOutDirPromise = fs.promises
+        .readdir(outDir)
+        .then((filePaths) =>
+          Promise.all(
+            filePaths.map((pathToFile) =>
+              fs.promises.rm(join(outDir, pathToFile), { recursive: true })
+            )
+          )
+        );
     }
   }
 
@@ -89,18 +97,14 @@ export async function runCreateInteractiveCli() {
 
   const starterId = starterIdAnswer as string;
 
-  const runInstallAnswer = await confirm({
+  const runDepInstallAnswer = await confirm({
     message: `Would you like to install ${pkgManager} dependencies?`,
     initialValue: true,
   });
 
-  if (isCancel(runInstallAnswer)) {
+  if (isCancel(runDepInstallAnswer)) {
     cancel('Operation cancelled.');
     process.exit(0);
-  }
-
-  if (runInstallAnswer === false) {
-    backgroundInstall.abort();
   }
 
   const gitInitAnswer = await confirm({
@@ -112,7 +116,11 @@ export async function runCreateInteractiveCli() {
     await removeExistingOutDirPromise;
   }
 
-  const runInstall: boolean = runInstallAnswer;
+  const runDepInstall: boolean = runDepInstallAnswer;
+
+  if (!runDepInstall) {
+    backgroundInstall.abort();
+  }
 
   const opts: CreateAppOptions = {
     starterId,
@@ -123,7 +131,7 @@ export async function runCreateInteractiveCli() {
 
   s.start('Creating App...');
   const result = await createApp(opts);
-  s.stop('Created App 🐰');
+  s.stop('App Created 🐰');
 
   if (gitInitAnswer) {
     if (fs.existsSync(join(outDir, '.git'))) {
@@ -150,10 +158,12 @@ export async function runCreateInteractiveCli() {
   }
 
   let successfulDepsInstall = false;
-  if (runInstall) {
-    s.start('Installing dependencies');
-    successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
-    s.stop(`${successfulDepsInstall ? 'Installed' : 'Failed to install'} dependencies 📋`);
+  if (runDepInstall) {
+    s.start(`Installing ${pkgManager} dependencies...`);
+    successfulDepsInstall = await backgroundInstall.complete(result.outDir);
+    s.stop(
+      `${successfulDepsInstall ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`
+    );
   }
 
   note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');

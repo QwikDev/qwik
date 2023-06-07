@@ -6,9 +6,8 @@ import type {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { QwikCityNodeRequestOptions } from '.';
 
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
-
 function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
@@ -19,8 +18,10 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-export function getUrl(req: IncomingMessage) {
-  const origin = ORIGIN ?? getOrigin(req);
+export function getUrl(
+  req: IncomingMessage,
+  origin: string = process.env.ORIGIN ?? getOrigin(req)
+) {
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 
@@ -83,15 +84,23 @@ export async function fromNodeHttp(
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      const stream = new WritableStream<Uint8Array>({
-        write(chunk) {
-          res.write(chunk);
+      return new WritableStream<Uint8Array>({
+        start(controller) {
+          res.on('close', () => controller.error());
+        },
+        write(chunk, controller) {
+          res.write(chunk, (error) => {
+            if (error) {
+              // FIXME: Ideally, we would like to inform the writer that this was an error.
+              //        Not all writers seem to handle rejections, though.
+              // controller.error(error);
+            }
+          });
         },
         close() {
           res.end();
         },
       });
-      return stream;
     },
     getClientInfo: () => {
       return opts.getClientInfo

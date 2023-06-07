@@ -5,7 +5,7 @@ import { qDev } from '../util/qdev';
 // Make sure this is always set to `false` in production, but it is useful to set for `true` in development for debugging.
 const DEBUG: boolean = false;
 
-export const STYLE_CACHE = new Map();
+export const STYLE_CACHE = /*#__PURE__*/ new Map();
 
 export const getScopedStyles = (css: string, scopeId: string): string => {
   if (qDev) {

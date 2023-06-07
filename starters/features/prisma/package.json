@@ -1,8 +1,8 @@
 {
   "description": "Next-generation Node.js TypeScript ORM",
   "devDependencies": {
-    "prisma": "^4.13.0",
-    "@prisma/client": "4.13.0"
+    "@prisma/client": "4.15.0",
+    "prisma": "^4.15.0"
   },
   "scripts": {
     "postinstall": "prisma generate",

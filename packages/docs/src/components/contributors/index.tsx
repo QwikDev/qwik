@@ -21,7 +21,7 @@ export default component$(() => {
             <a href={`https://github.com/${contributor}`} target="_blank" rel="noreferrer">
               <img
                 loading="lazy"
-                src={`https://github.com/${contributor}.png`}
+                src={`https://github.com/${contributor}.png?size=80`}
                 width="40"
                 height="40"
                 alt={contributor}

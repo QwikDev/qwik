@@ -13,9 +13,9 @@ import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
 import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
-import { SSRComment } from '../jsx/utils.public';
+import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
-import { jsx } from '../jsx/jsx-runtime';
+import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
 import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
@@ -1385,6 +1385,36 @@ renderSSRSuite('ssr marks', async () => {
   );
 });
 
+renderSSRSuite('ssr raw', async () => {
+  await testSSR(
+    <body>
+      <SSRRaw data="<div>hello</div>" />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
+    <body>
+      <div>hello</div>
+    </body>
+  </html>`
+  );
+});
+
+renderSSRSuite('html fragment', async () => {
+  await testSSR(
+    <body>
+      <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
+    <body>
+      <!--qv-->
+      <div>hello</div>
+      <!--/qv-->
+    </body>
+  </html>`
+  );
+});
+
 renderSSRSuite('html slot', async () => {
   await testSSR(
     <HtmlContext>
@@ -1459,6 +1489,33 @@ renderSSRSuite('class emoji valid', async () => {
   await testSSR(
     <body {...o}></body>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body class="package📦"></body></html>'
+  );
+});
+
+renderSSRSuite('issue 4283', async () => {
+  await testSSR(
+    <body>
+      <Issue4283>
+        <p>index page</p>
+      </Issue4283>
+    </body>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+        <!--qv q:id=1 q:key=sX:-->
+        <div on:qvisible="/runtimeQRL#_[0]" q:id="2"></div>
+        <q:template q:slot hidden aria-hidden="true">
+          <p>Content</p>
+          <!--qv q:s q:sref=0 q:key=-->
+          <p>index page</p>
+          <!--/qv-->
+        </q:template>
+        <!--/qv-->
+        <!--/qv-->
+      </body>
+    </html>
+    `
   );
 });
 
@@ -1788,6 +1845,38 @@ export const EffectTransparentRoot = component$(() => {
     <EffectTransparent>
       <section>Hello</section>
     </EffectTransparent>
+  );
+});
+
+export const HideUntilVisible = component$(() => {
+  const isNotVisible = useSignal(true);
+
+  useVisibleTask$(() => {
+    if (isNotVisible.value) {
+      isNotVisible.value = false;
+    }
+  });
+
+  // NOTE: if you comment the line below,
+  // there will only be one "Content"
+  if (isNotVisible.value) {
+    return <div></div>;
+  }
+
+  return (
+    <div>
+      <p>Hide until visible</p>
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue4283 = component$(() => {
+  return (
+    <HideUntilVisible>
+      <p>Content</p>
+      <Slot />
+    </HideUntilVisible>
   );
 });
 

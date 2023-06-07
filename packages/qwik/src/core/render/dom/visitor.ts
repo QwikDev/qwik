@@ -1,4 +1,4 @@
-import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS } from '../../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
 import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
@@ -25,6 +25,7 @@ import {
 } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
+  dangerouslySetInnerHTML,
   isAriaAttribute,
   jsxToString,
   pushRenderContext,
@@ -105,6 +106,7 @@ export const smartUpdateChildren = (
 
   const ch = newVnode.$children$;
   if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
+    newVnode.$children$ = oldVnode.$children$;
     return;
   }
   const elm = oldVnode.$elm$;
@@ -331,6 +333,9 @@ export const isChildComponent = (node: Node | VirtualElement): boolean => {
   if (nodeName === 'HEAD') {
     return (node as Element).hasAttribute('q:head');
   }
+  if (nodeName === 'STYLE') {
+    return !(node as Element).hasAttribute(QStyle);
+  }
   return true;
 };
 
@@ -411,7 +416,9 @@ export const diffVnode = (
         let newValue = props[prop];
         if (prop === 'ref') {
           assertElement(elm);
-          setRef(newValue, elm);
+          if (newValue !== undefined) {
+            setRef(newValue, elm);
+          }
           continue;
         }
 
@@ -481,6 +488,9 @@ export const diffVnode = (
     assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
     currentComponent.$slots$.push(newVnode);
     return;
+  } else if (dangerouslySetInnerHTML in props) {
+    setProperty(staticCtx, elm, 'innerHTML', props[dangerouslySetInnerHTML]);
+    return;
   }
   if (vnodeFlags & static_subtree) {
     return;
@@ -540,19 +550,24 @@ const renderContentProjection = (
       );
       const oldVdom = getVdom(slotCtx);
       const slotRctx = pushRenderContext(rCtx);
+      const slotEl = slotCtx.$element$ as VirtualElement;
       slotRctx.$slotCtx$ = slotCtx;
       slotCtx.$vdom$ = newVdom;
-      newVdom.$elm$ = slotCtx.$element$;
+      newVdom.$elm$ = slotEl;
+      let newFlags = flags & ~IS_SVG;
+      if (slotEl.isSvg) {
+        newFlags |= IS_SVG;
+      }
 
       // const oldVdom = getVdom(slotCtx.$element$);
       // const slotRctx = pushRenderContext(rCtx);
       // slotRctx.$slotCtx$ = slotCtx;
       // setVdom(slotCtx.$element$, newVdom);
-      const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotCtx.$element$);
+      const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotEl);
       if (index >= 0) {
         staticCtx.$addSlots$.splice(index, 1);
       }
-      return smartUpdateChildren(slotRctx, oldVdom, newVdom, flags);
+      return smartUpdateChildren(slotRctx, oldVdom, newVdom, newFlags);
     })
   ) as any;
 };
@@ -653,7 +668,7 @@ const createElm = (
   const staticCtx = rCtx.$static$;
   const containerState = staticCtx.$containerState$;
   if (isVirtual) {
-    elm = newVirtualElement(doc);
+    elm = newVirtualElement(doc, isSvg);
   } else if (tag === 'head') {
     elm = doc.head;
     flags |= IS_HEAD;
@@ -676,7 +691,7 @@ const createElm = (
         directSetAttribute(
           elm,
           'data-qwik-inspector',
-          `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+          `${dev.fileName}:${dev.lineNumber}:${dev.columnNumber}`
         );
       }
     }
@@ -743,13 +758,6 @@ const createElm = (
     }
     setQId(rCtx, elCtx);
 
-    if (qDev && !qTest) {
-      const symbol = renderQRL.$symbol$;
-      if (symbol) {
-        directSetAttribute(elm, 'data-qrl', symbol);
-      }
-    }
-
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;
 
@@ -768,15 +776,19 @@ const createElm = (
         const newVnode = splittedNewChildren[slotName];
         const slotCtx = getSlotCtx(staticCtx, slotMap, elCtx, slotName, staticCtx.$containerState$);
         const slotRctx = pushRenderContext(rCtx);
+        const slotEl = slotCtx.$element$ as VirtualElement;
         slotRctx.$slotCtx$ = slotCtx;
         slotCtx.$vdom$ = newVnode;
-        newVnode.$elm$ = slotCtx.$element$;
-
+        newVnode.$elm$ = slotEl;
+        let newFlags = flags & ~IS_SVG;
+        if (slotEl.isSvg) {
+          newFlags |= IS_SVG;
+        }
         for (const node of newVnode.$children$) {
-          const nodeElm = createElm(slotRctx, node, flags, p);
+          const nodeElm = createElm(slotRctx, node, newFlags, p);
           assertDefined(node.$elm$, 'vnode elm must be defined');
           assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
-          appendChild(staticCtx, slotCtx.$element$, nodeElm);
+          appendChild(staticCtx, slotEl, nodeElm);
         }
       }
       return promiseAllLazy(p);
@@ -794,6 +806,9 @@ const createElm = (
     directSetAttribute(elm, QSlotS, '');
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
+  } else if (dangerouslySetInnerHTML in props) {
+    setProperty(staticCtx, elm, 'innerHTML', props[dangerouslySetInnerHTML]);
+    return elm;
   }
 
   let children = vnode.$children$;
@@ -886,13 +901,8 @@ const forceAttribute: PropHandler = (ctx, elm, newValue, prop) => {
   return true;
 };
 
-const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';
 const setInnerHTML: PropHandler = (ctx, elm, newValue) => {
-  if (dangerouslySetInnerHTML in elm) {
-    setProperty(ctx, elm, dangerouslySetInnerHTML, newValue);
-  } else if ('innerHTML' in elm) {
-    setProperty(ctx, elm, 'innerHTML', newValue);
-  }
+  setProperty(ctx, elm, 'innerHTML', newValue);
   return true;
 };
 
@@ -910,8 +920,8 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   form: forceAttribute,
   tabIndex: forceAttribute,
   download: forceAttribute,
-  [dangerouslySetInnerHTML]: setInnerHTML,
   innerHTML: noop,
+  [dangerouslySetInnerHTML]: setInnerHTML,
 };
 
 export const smartSetProperty = (
@@ -989,7 +999,9 @@ export const setProperties = (
     let newValue = newProps[prop];
     if (prop === 'ref') {
       assertElement(elm);
-      setRef(newValue, elm);
+      if (newValue !== undefined) {
+        setRef(newValue, elm);
+      }
       continue;
     }
 

@@ -10,6 +10,7 @@ import {
   _jsxBranch,
   jsx,
   type JSXNode,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
@@ -57,6 +58,10 @@ export const SlotParent = component$(() => {
 
           <Issue3607 />
           <Issue3727 />
+          <Issue4215 />
+          <Issue4283>
+            <p>index page</p>
+          </Issue4283>
         </>
       )}
       <div>
@@ -250,7 +255,7 @@ export const Bogus = component$(() => {
   );
 });
 
-const Issue3565Model = component$(() => {
+export const Issue3565Model = component$(() => {
   return (
     <div id="issue-3565-result">
       Own content
@@ -364,5 +369,82 @@ export const Issue3727ChildB = component$(() => {
         ))}
       </ul>
     </article>
+  );
+});
+
+export const QwikSvgWithSlot = component$(() => {
+  return (
+    <svg
+      id="issue-4215-svg"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: '24px', height: '24px' }}
+    >
+      <Slot />
+    </svg>
+  );
+});
+
+export const Issue4215 = component$(() => {
+  const $visible = useSignal<boolean>(true);
+
+  return (
+    <>
+      <button
+        class="cta"
+        id="issue-4215-toggle"
+        onClick$={() => {
+          $visible.value = !$visible.value;
+        }}
+      >
+        Toggle icons
+      </button>
+
+      <div class="svg-container icon1">
+        <p>QwikSvgWithSlot</p>
+        <QwikSvgWithSlot>
+          {$visible.value && (
+            <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z" />
+          )}
+        </QwikSvgWithSlot>
+      </div>
+    </>
+  );
+});
+
+export const HideUntilVisible = component$(() => {
+  const isNotVisible = useSignal(true);
+
+  useVisibleTask$(
+    () => {
+      if (isNotVisible.value) {
+        isNotVisible.value = false;
+      }
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+
+  // NOTE: if you comment the line below,
+  // there will only be one "Content"
+  if (isNotVisible.value) {
+    return <div></div>;
+  }
+
+  return (
+    <div id="issue-4283-result">
+      <p>Hide until visible</p>
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue4283 = component$(() => {
+  return (
+    <HideUntilVisible>
+      <p>Content</p>
+      <Slot />
+    </HideUntilVisible>
   );
 });

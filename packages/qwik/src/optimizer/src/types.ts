@@ -362,3 +362,11 @@ export interface Path {
   readonly win32: null;
   readonly posix: Path;
 }
+
+/**
+ * @public
+ */
+export interface ResolvedManifest {
+  mapper: SymbolMapper;
+  manifest: QwikManifest;
+}

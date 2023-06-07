@@ -25,6 +25,7 @@ contributors:
   - wtlin1228
   - AnthonyPAlicea
   - sreeisalso
+  - wmertens
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -94,33 +95,37 @@ Because [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) tracks 
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const store = useStore(
-    {
-      nested: {
-        fields: { are: 'also tracked' }
-      },
-      list: [],
+  const store = useStore({
+    nested: {
+      fields: { are: 'also tracked' },
     },
-  );
+    list: ['Item 1'],
+  });
 
   return (
     <>
       <p>{store.nested.fields.are}</p>
-      <button onClick$={() => {
-        // Even though we are mutating a nested object, this will trigger a re-render
-        store.nested.fields.are = 'tracked'
-      }}>
+      <button
+        onClick$={() => {
+          // Even though we are mutating a nested object, this will trigger a re-render
+          store.nested.fields.are = 'tracked';
+        }}
+      >
         Clicking me works because store is deep watched
       </button>
       <br />
-      <button onClick$={() => {
-        // Because store is deep watched, this will trigger a re-render
-        store.list.push(`Item ${store.list.length}`);
-      }}>
+      <button
+        onClick$={() => {
+          // Because store is deep watched, this will trigger a re-render
+          store.list.push(`Item ${store.list.length}`);
+        }}
+      >
         Add to list
       </button>
       <ul>
-        {store.list.map((item) => <li>{item}</li>)}
+        {store.list.map((item) => (
+          <li>{item}</li>
+        ))}
       </ul>
     </>
   );
@@ -136,10 +141,36 @@ const shallowStore = useStore(
     nested: {
       fields: { are: 'also tracked' }
     },
-    list: [],
+    list: ['Item 1'],
   },
-  { deep: false}
+  { deep: false }
 );
+```
+
+### Methods
+
+To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
+
+```tsx
+import { component$, useStore, $, type QRL } from "@builder.io/qwik";
+
+type CountStore = { count: number; increment: QRL<(this: CountStore) => void> };
+
+export default component$(() => {
+  const state = useStore<CountStore>({
+    count: 0,
+    increment: $(function (this: CountStore) {
+      this.count++;
+    }),
+  });
+
+  return (
+    <>
+      <button onClick$={() => state.increment()}>Increment</button>
+      <p>Count: {state.count}</p>
+    </>
+  );
+});
 ```
 
 ## Computed state

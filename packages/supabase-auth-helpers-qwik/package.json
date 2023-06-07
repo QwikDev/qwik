@@ -1,6 +1,6 @@
 {
   "name": "supabase-auth-helpers-qwik",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A collection of framework specific Auth utilities for working with Supabase.",
   "publishConfig": {
     "access": "public"
@@ -15,9 +15,9 @@
   ],
   "author": "Qwik Team",
   "devDependencies": {
-    "@builder.io/qwik": "0.103.0",
-    "@builder.io/qwik-city": "0.103.0",
-    "@supabase/supabase-js": "2.21.0"
+    "@builder.io/qwik": "1.1.4",
+    "@builder.io/qwik-city": "1.1.4",
+    "@supabase/supabase-js": "2.24.0"
   },
   "dependencies": {
     "@supabase/auth-helpers-shared": "^0.3.4"

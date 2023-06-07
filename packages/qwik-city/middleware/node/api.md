@@ -35,6 +35,7 @@ export interface PlatformNode {
 
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
+    origin?: string;
     static?: {
         root?: string;
         cacheControl?: string;

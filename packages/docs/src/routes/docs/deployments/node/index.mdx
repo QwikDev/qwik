@@ -41,12 +41,12 @@ To build the application for production, use the `build` command, this command w
 npm run build
 ```
 
-## Dev deploy
+## Dev serve
 
 To deploy the application for development:
 
 ```shell
-npm run deploy
+npm run serve
 ```
 
 ## Production deploy
@@ -57,3 +57,30 @@ Since you are choosing Node, here you are in your own, after running `npm run bu
 - The `server` folder will be created including all node server files.
 
 In order to deploy the server, you need to run the `server/entry.[server].js` file in the server of your choice, where `[server]` can be [express](https://expressjs.com/) or [fastify](https://fastify.io/).
+
+It's *very important to correctly configure the `ORIGIN` env variable*, which is used to check against [CSRF attacks](https://owasp.org/www-community/attacks/csrf). The origin must match the origin of the client application.
+
+> For example, if you plan to deploy your application to `https://example.com/app`, then you need to set the `ORIGIN` environment variable to `https://example.com`.
+>
+> ```shell
+> ORIGIN=https://example.com node server/entry.express
+> ```
+
+### CSRF Protection
+
+By default, all Qwik City applications are protected against [CSRF attacks](https://owasp.org/www-community/attacks/csrf) for all POST, PATCH, DELETE form submits.
+
+This protection is enabled by default and it's the reason why you need to set the `ORIGIN` environment variable when deploying your application for production.
+
+If you want to disable CSRF protection, you can set `checkOrigin: false` in the `createQwikCity()` options in `src/entry.express.tsx`:
+
+```tsx {6} /checkOrigin/ title="entry.express.tsx"
+// ...
+const { router, notFound, staticFile } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  checkOrigin: false,
+});
+// ...
+```

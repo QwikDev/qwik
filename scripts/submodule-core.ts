@@ -43,7 +43,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   };
 
   const esmOutput: OutputOptions = {
-    dir: join(config.distPkgDir),
+    dir: join(config.distQwikPkgDir),
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
@@ -51,7 +51,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   };
 
   const cjsOutput: OutputOptions = {
-    dir: join(config.distPkgDir),
+    dir: join(config.distQwikPkgDir),
     format: 'umd',
     name: 'qwikCore',
     entryFileNames: 'core.cjs',
@@ -66,9 +66,9 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   await Promise.all([build.write(esmOutput), build.write(cjsOutput)]);
 
-  console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
+  console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
 
-  const inputCore = join(config.distPkgDir, 'core.mjs');
+  const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
     input: inputCore,
     onwarn: rollupOnWarn,
@@ -97,7 +97,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   };
   const buildMin = await rollup(inputMin);
   await buildMin.write({
-    dir: join(config.distPkgDir),
+    dir: join(config.distQwikPkgDir),
     format: 'es',
     entryFileNames: 'core.min.mjs',
     plugins: [
@@ -160,15 +160,15 @@ async function submoduleCoreProd(config: BuildConfig) {
     ],
   });
 
-  console.log('🐭 core.min.mjs:', await fileSize(join(config.distPkgDir, 'core.min.mjs')));
+  console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
   // always set the cjs version (probably imported server-side) to dev mode
-  let esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
-  let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
-  await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
+  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
+  let cjsCode = await readFile(join(config.distQwikPkgDir, 'core.cjs'), 'utf-8');
+  await writeFile(join(config.distQwikPkgDir, 'core.cjs'), cjsCode);
 
-  await submoduleCoreProduction(config, esmCode, join(config.distPkgDir, 'core.prod.mjs'));
-  await submoduleCoreProduction(config, cjsCode, join(config.distPkgDir, 'core.prod.cjs'));
+  await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.mjs'));
+  await submoduleCoreProduction(config, cjsCode, join(config.distQwikPkgDir, 'core.prod.cjs'));
 }
 
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
@@ -208,9 +208,9 @@ async function submoduleCoreDev(config: BuildConfig) {
   const submodule = 'core';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
     entryNames: submodule,
-    outdir: config.distPkgDir,
+    outdir: config.distQwikPkgDir,
     bundle: true,
     sourcemap: 'external',
     external: ['@builder.io/qwik/build'],

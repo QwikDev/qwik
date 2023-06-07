@@ -11,8 +11,8 @@ export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
-    outdir: join(config.distPkgDir, submodule),
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    outdir: join(config.distQwikPkgDir, submodule),
     sourcemap: config.dev,
     bundle: true,
     target,
@@ -76,6 +76,6 @@ async function generateTestingPackageJson(config: BuildConfig) {
     private: true,
     type: 'module',
   };
-  const testingDistDir = join(config.distPkgDir, 'testing');
+  const testingDistDir = join(config.distQwikPkgDir, 'testing');
   await writePackageJson(testingDistDir, pkg);
 }

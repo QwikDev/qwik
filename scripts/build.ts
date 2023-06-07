@@ -62,9 +62,9 @@ export async function build(config: BuildConfig) {
 
     if (config.build) {
       if (config.dev) {
-        ensureDir(config.distPkgDir);
+        ensureDir(config.distQwikPkgDir);
       } else {
-        emptyDir(config.distPkgDir);
+        emptyDir(config.distQwikPkgDir);
       }
 
       // create the dist package.json first so we get the version set
@@ -120,7 +120,7 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.api) {
-      apiExtractor(config);
+      await apiExtractor(config);
     }
 
     if (config.validate) {

@@ -65,8 +65,13 @@ export interface AriaAttributes {
 // @public (undocumented)
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
+// Warning: (ae-forgotten-export) The symbol "BaseClassList" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ClassList = BaseClassList | BaseClassList[];
+
 // @public
-export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
+export const component$: <PROPS = unknown, ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}>(onMount: OnRenderFn<ARG>) => Component<PROPS extends {} ? PROPS : ARG>;
 
 // @public
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
@@ -149,6 +154,9 @@ export interface FunctionComponent<P = Record<string, any>> {
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
 
+// @internal (undocumented)
+export const _getContextEvent: () => unknown;
+
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -222,7 +230,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     draggable?: boolean | undefined;
     // (undocumented)
-    hidden?: boolean | undefined;
+    hidden?: boolean | 'hidden' | 'until-found' | undefined;
     // (undocumented)
     id?: string | undefined;
     // (undocumented)
@@ -276,6 +284,11 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     vocab?: string | undefined;
 }
+
+// @public (undocumented)
+export const HTMLFragment: FunctionComponent<{
+    dangerouslySetInnerHTML: string;
+}>;
 
 // @internal
 export const _hW: () => void;
@@ -393,7 +406,7 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
@@ -405,7 +418,7 @@ export interface OnVisibleTaskOptions {
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -414,7 +427,12 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 }
 
 // @public (undocumented)
-export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
+
+// @public (undocumented)
+export type PropFunctionProps<PROPS extends {}> = {
+    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
+};
 
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
@@ -429,6 +447,7 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBas
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
+    (signal: AbortSignal, ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     dev: QRLDev | null;
@@ -499,7 +518,7 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 
 // Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
@@ -547,6 +566,8 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
     // (undocumented)
     ctrlKey: boolean;
     getModifierState(key: string): boolean;
+    // (undocumented)
+    isComposing: boolean;
     key: string;
     // (undocumented)
     keyCode: number;
@@ -710,7 +731,7 @@ export interface RenderSSROptions {
     // (undocumented)
     base?: string;
     // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
+    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean, textNodes: Map<string, string>) => Promise<JSXNode>;
     // (undocumented)
     beforeContent?: JSXNode<string>[];
     // (undocumented)
@@ -721,8 +742,6 @@ export interface RenderSSROptions {
     serverData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
-    // (undocumented)
-    url?: string;
 }
 
 // @public
@@ -870,7 +889,7 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const SSRHint: FunctionComponent<SSRHintProps>;
 
 // @public (undocumented)
@@ -952,14 +971,16 @@ export const useId: () => string;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
+// Warning: (ae-forgotten-export) The symbol "PascalCaseEventLiteralType" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOn: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOnDocument: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
-export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
+export const useOnWindow: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;

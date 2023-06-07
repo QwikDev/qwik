@@ -14,14 +14,14 @@ import { rollup } from 'rollup';
  */
 export async function validateBuild(config: BuildConfig) {
   console.log('🕵️ validating build...');
-  const pkgPath = join(config.distPkgDir, 'package.json');
+  const pkgPath = join(config.distQwikPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];
   const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
-  const expectedFiles = pkgFiles.map((f) => join(config.distPkgDir, f));
+  const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
 
   for (const filePath of expectedFiles) {
     try {
@@ -82,16 +82,16 @@ export async function validateBuild(config: BuildConfig) {
 
   await validatePackageJson(config, pkg, errors);
   await Promise.all([
-    validateModuleTreeshake(config, join(config.distPkgDir, 'core.min.mjs')),
-    validateModuleTreeshake(config, join(config.distPkgDir, 'core.prod.mjs')),
-    validateModuleTreeshake(config, join(config.distPkgDir, 'core.mjs')),
-    validateModuleTreeshake(config, join(config.distPkgDir, 'server.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.min.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.prod.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
   ]);
   if (config.qwikcity) {
     await validateModuleTreeshake(
       config,
       join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod']
+      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@builder.io/qwik/jsx-runtime']
     );
   }
 
@@ -113,7 +113,7 @@ export async function validateBuild(config: BuildConfig) {
         }
       });
   }
-  getFiles(config.distPkgDir);
+  getFiles(config.distQwikPkgDir);
   const unexpectedFiles = allFiles.filter((f) => !expectedFiles.includes(f));
 
   if (unexpectedFiles.length > 0) {
@@ -170,7 +170,7 @@ export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) 
 async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors: string[]) {
   async function validatePath(path: string) {
     try {
-      await access(join(config.distPkgDir, path));
+      await access(join(config.distQwikPkgDir, path));
     } catch (e: any) {
       errors.push(
         `Error loading file "${path}" referenced in package.json: ${String(

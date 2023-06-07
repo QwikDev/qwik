@@ -16,6 +16,7 @@ import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
 import { constants } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import RawPlugin from 'esbuild-plugin-raw';
 
 /**
  * Builds @builder.io/optimizer
@@ -27,15 +28,16 @@ export async function submoduleOptimizer(config: BuildConfig) {
 
   async function buildOptimizer() {
     const opts: BuildOptions = {
-      entryPoints: [join(config.srcDir, submodule, 'src', 'index.ts')],
+      entryPoints: [join(config.srcQwikDir, submodule, 'src', 'index.ts')],
       entryNames: 'optimizer',
-      outdir: config.distPkgDir,
+      outdir: config.distQwikPkgDir,
       bundle: true,
       sourcemap: false,
       target,
       external: [
         /* no Node.js built-in externals allowed! */
         'espree',
+        'image-size',
       ],
       incremental: config.watch,
     };
@@ -53,6 +55,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
+      plugins: [RawPlugin()],
       watch: watcher(config, submodule),
     });
 
@@ -75,13 +78,14 @@ export async function submoduleOptimizer(config: BuildConfig) {
       watch: watcher(config),
       platform: 'node',
       target: nodeTarget,
+      plugins: [RawPlugin()],
     });
 
     const [esm, cjs] = await Promise.all([esmBuild, cjsBuild]);
 
     if (!config.dev) {
-      const esmDist = join(config.distPkgDir, 'optimizer.mjs');
-      const cjsDist = join(config.distPkgDir, 'optimizer.cjs');
+      const esmDist = join(config.distQwikPkgDir, 'optimizer.mjs');
+      const cjsDist = join(config.distQwikPkgDir, 'optimizer.cjs');
 
       await Promise.all(
         [esmDist, cjsDist].map(async (p) => {
@@ -121,7 +125,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     console.log('🐹', submodule);
 
     if (config.watch) {
-      const watcher = watch({ input: join(config.distPkgDir, 'prefetch.debug.js') });
+      const watcher = watch({ input: join(config.distQwikPkgDir, 'prefetch.debug.js') });
       watcher.on('change', () => {
         esm.stop!();
         cjs.stop!();
@@ -178,7 +182,7 @@ async function generatePlatformBindingsData(config: BuildConfig) {
 
   const code = c.join('\n') + '\n';
 
-  const platformBindingPath = join(config.srcDir, 'optimizer', 'src', 'qwik-binding-map.ts');
+  const platformBindingPath = join(config.srcQwikDir, 'optimizer', 'src', 'qwik-binding-map.ts');
   let isWritable;
   try {
     await access(platformBindingPath, constants.W_OK);

@@ -156,6 +156,12 @@
       "github": "https://github.com/qwikifiers/qwik-ui",
       "imgSrc": "/ecosystem/qwik-ui.png",
       "description": "Headless UI library"
+    },
+    {
+      "title": "@qwikbits/headless-ui",
+      "github": "https://github.com/genie-design/qwikbits",
+      "imgSrc": "/ecosystem/qwikbits.svg",
+      "description": "Headless UI components and other helpers"
     }
   ],
   "communities": [

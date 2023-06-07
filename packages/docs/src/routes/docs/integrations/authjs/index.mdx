@@ -230,3 +230,18 @@ AUTH_SECRET=
 
 4. The application is now ready to impliment authentication using Auth.js.
 5. Enjoy!
+
+### Route Protection
+
+Session data can be accessed via the route `event.sharedMap`.  So a route can be protected and redirect using something like this located in a `layout.tsx` or page `index.tsx`:
+
+```tsx
+export const onRequest: RequestHandler = (event) => {
+  const session: Session | null = event.sharedMap.get('session');
+  if (!session || new Date(session.expires) < new Date()) {
+    throw event.redirect(302, `/api/auth/signin?callbackUrl=${event.url.href}`);
+  }
+};
+```
+
+> Note: If placed in a layout.tsx ensure that the redirect destination does not share the same layout.tsx or a redirection loop could occur.

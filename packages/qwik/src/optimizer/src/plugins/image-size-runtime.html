@@ -233,7 +233,7 @@
             }
           } else if (tooBig) {
             overlay.header = 'Perf: properly size image';
-            overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it\'s displayed at. The image dimmensions are ${info.width} x ${info.height} but it\'s displayed at ${rect.width}x${rect.height}.</p>`;
+            overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it\'s displayed at. The image dimensions are ${info.width} x ${info.height} but it\'s displayed at ${rect.width}x${rect.height}.</p>`;
           }
         } else if (overlay) {
           overlay.remove();

@@ -3,20 +3,6 @@
   "package": "@builder.io/qwik-city/middleware/node",
   "members": [
     {
-      "name": "ClientInfo",
-      "id": "clientinfo",
-      "hierarchy": [
-        {
-          "name": "ClientInfo",
-          "id": "clientinfo"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ClientInfo \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [country?](#) |  | string | _(Optional)_ |\n|  [ip?](#) |  | string | _(Optional)_ |",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
-      "mdFile": "qwik-city.clientinfo.md"
-    },
-    {
       "name": "createQwikCity",
       "id": "createqwikcity",
       "hierarchy": [
@@ -68,7 +54,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientInfo?](#) |  | (req: IncomingMessage) =&gt; [ClientInfo](#clientinfo) | _(Optional)_ |\n|  [origin?](#) |  | string | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
+      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientInfo?](#) |  | (req: IncomingMessage) =&gt; ClientInfo | _(Optional)_ |\n|  [origin?](#) |  | string | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.qwikcitynoderequestoptions.md"
     }

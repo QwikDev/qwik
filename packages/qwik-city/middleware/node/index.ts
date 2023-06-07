@@ -1,4 +1,4 @@
-import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ServerRenderOptions, ClientInfo } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
@@ -11,7 +11,6 @@ import { fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { patchGlobalThis } from './node-fetch';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
-import type { ClientInfo } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -153,5 +152,3 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
  */ export interface NodeRequestNextFunction {
   (err?: any): void;
 }
-
-export type { ClientInfo };

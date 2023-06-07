@@ -6,17 +6,10 @@
 
 /// <reference types="node" />
 
+import type { ClientInfo } from '@builder.io/qwik-city/middleware/request-handler';
 import type { IncomingMessage } from 'node:http';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
-
-// @public (undocumented)
-export interface ClientInfo {
-    // (undocumented)
-    country?: string;
-    // (undocumented)
-    ip?: string;
-}
 
 // @public (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {

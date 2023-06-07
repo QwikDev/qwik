@@ -1,4 +1,8 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
+
+settings:
+  autoInstallPeers: false
+  excludeLinksFromLockfile: false
 
 importers:
 
@@ -191,6 +195,9 @@ importers:
 
   packages/docs:
     dependencies:
+      '@modular-forms/qwik':
+        specifier: ^0.12.0
+        version: 0.12.0(@builder.io/qwik-city@1.1.5-dev20230606133659)(@builder.io/qwik@1.1.5)
       '@supabase/supabase-js':
         specifier: ^2.24.0
         version: 2.24.0
@@ -1863,6 +1870,16 @@ packages:
   /@microsoft/tsdoc@0.14.2:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
+
+  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.1.5-dev20230606133659)(@builder.io/qwik@1.1.5):
+    resolution: {integrity: sha512-IJi5Uvm1Z1tJZLOpYM8jWza40Viac6tblnMre0pdrslVv7tW3MnXFgQgO539YksooOsn1Jn1KjVUVmhiMuXXuA==}
+    peerDependencies:
+      '@builder.io/qwik': ^1.0.0
+      '@builder.io/qwik-city': ^1.0.0
+    dependencies:
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/17bb8116003ca9963b4f504f9f8db2dbd84335a6(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/c531d175d1329f55250efdb24c67eda11c54953b
+    dev: false
 
   /@mui/base@5.0.0-beta.0(@types/react@18.2.7)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-ap+juKvt8R8n3cBqd/pGtZydQ4v2I/hgJKnvJRGjpSh3RvsvnDHO4rXov8MHQlH6VqpOekwgilFLGxMZjNTucA==}
@@ -9386,4 +9403,3 @@ packages:
       zod: 3.21.4
     transitivePeerDependencies:
       - supports-color
-    dev: true

@@ -469,10 +469,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 16.x
+            node: 18.x
           - host: macos-latest
             browser: webkit
-            node: 16.x
+            node: 18.x
 
     runs-on: ${{ matrix.settings.host }}
 

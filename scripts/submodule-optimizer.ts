@@ -16,6 +16,7 @@ import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
 import { constants } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import RawPlugin from 'esbuild-plugin-raw';
 
 /**
  * Builds @builder.io/optimizer
@@ -36,6 +37,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       external: [
         /* no Node.js built-in externals allowed! */
         'espree',
+        'image-size',
       ],
       incremental: config.watch,
     };
@@ -53,6 +55,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
+      plugins: [RawPlugin()],
       watch: watcher(config, submodule),
     });
 
@@ -75,6 +78,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       watch: watcher(config),
       platform: 'node',
       target: nodeTarget,
+      plugins: [RawPlugin()],
     });
 
     const [esm, cjs] = await Promise.all([esmBuild, cjsBuild]);

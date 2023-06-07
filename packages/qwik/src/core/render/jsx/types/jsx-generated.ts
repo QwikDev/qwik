@@ -2,7 +2,7 @@ import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
-export type Numberish = number | `${number}`;
+export type Numberish = number | `${number}` | `${number}%`;
 
 /**
  * @public

@@ -6,8 +6,8 @@ provider:
   runtime: nodejs18.x
 
 functions:
-  hello:
-    handler: server/aws.qwikApp
+  qwik:
+    handler: server/entry_aws-lambda.qwikApp
     events:
       - httpApi: '*'
 

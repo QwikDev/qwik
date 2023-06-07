@@ -1,4 +1,7 @@
-import type { ServerRenderOptions, ClientInfo } from '@builder.io/qwik-city/middleware/request-handler';
+import type {
+  ServerRenderOptions,
+  ClientInfo,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';

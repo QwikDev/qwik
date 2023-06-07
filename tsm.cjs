@@ -24,6 +24,9 @@ module.exports = {
     target: 'es2020',
   },
   config: {
+    '.html': {
+      loader: 'text',
+    },
     '.tsx': {
       jsxFactory: 'qwikJsx.h',
       jsxFragment: 'qwikJsx.Fragment',

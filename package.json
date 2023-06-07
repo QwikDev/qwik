@@ -130,7 +130,7 @@
       "url": "https://twitter.com/manucorporat"
     }
   ],
-  "packageManager": "pnpm@8.3.1",
+  "packageManager": "pnpm@8.6.1",
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11",
     "npm": "please-use-pnpm",
@@ -142,5 +142,8 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "esbuild-plugin-raw": "^0.1.7"
+  }
 }

@@ -59,8 +59,12 @@
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik"
   },
+  "packageManager": "pnpm@8.6.1",
   "engines": {
-    "node": ">=16"
+    "node": ">=18.11",
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm",
+    "pnpm": ">=8.0.0"
   },
   "license": "MIT",
   "private": true,

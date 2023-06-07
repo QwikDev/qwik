@@ -175,5 +175,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
-  getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
+  getClientInfo?: (request: Request, conn: any) => ClientInfo;
 }

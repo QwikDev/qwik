@@ -13,9 +13,9 @@ import type { ServerResponse } from 'node:http';
 // @public (undocumented)
 export interface ClientInfo {
     // (undocumented)
-    country?: string | undefined | null;
+    country?: string;
     // (undocumented)
-    ip?: string | undefined | null;
+    ip?: string;
 }
 
 // @public (undocumented)

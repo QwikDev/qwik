@@ -17,7 +17,7 @@ export function createQwikCity(opts: QwikCityDenoOptions): {
 // @public (undocumented)
 export interface QwikCityDenoOptions extends ServerRenderOptions {
     // (undocumented)
-    getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
+    getClientInfo?: (request: Request, conn: any) => ClientInfo;
     static?: {
         root?: string;
         cacheControl?: string;

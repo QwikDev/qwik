@@ -13,8 +13,8 @@ export interface EnvGetter {
  * @public
  */
 export interface ClientInfo {
-  ip?: string | undefined | null;
-  country?: string | undefined | null;
+  ip?: string;
+  country?: string;
 }
 
 /**

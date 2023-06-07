@@ -35,10 +35,10 @@ export type CacheControl =
 export interface ClientInfo
 ```
 
-| Property      | Modifiers | Type                        | Description  |
-| ------------- | --------- | --------------------------- | ------------ |
-| [country?](#) |           | string \| undefined \| null | _(Optional)_ |
-| [ip?](#)      |           | string \| undefined \| null | _(Optional)_ |
+| Property      | Modifiers | Type   | Description  |
+| ------------- | --------- | ------ | ------------ |
+| [country?](#) |           | string | _(Optional)_ |
+| [ip?](#)      |           | string | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 

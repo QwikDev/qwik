@@ -30,6 +30,7 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.13.0",
+    "@mui/system": "^5.4.1",
     "@mui/x-data-grid": "^6.4.0",
     "@types/prismjs": "^1.26.0",
     "@types/react": "18.2.7",
@@ -76,5 +77,8 @@
     "openai": "^3.2.1",
     "qwik-image": "^0.0.4",
     "snarkdown": "^2.0.0"
+  },
+  "peerDependencies": {
+    "@mui/system": "^5.4.1"
   }
 }

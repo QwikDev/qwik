@@ -40,7 +40,7 @@ export const onRequest: RequestHandler = event => {
     `default-src 'self' 'unsafe-inline'`,
     `font-src 'self'`,
     `img-src 'self' 'unsafe-inline' data:`,
-    `script-src 'strict-dynamic' 'unsafe-inline' 'nonce-${nonce}'`,
+    `script-src 'unsafe-inline' 'nonce-${nonce}'`,
     `style-src 'self' 'unsafe-inline'`,
     `frame-src 'self' 'nonce-${nonce}'`,
     `object-src 'none'`,

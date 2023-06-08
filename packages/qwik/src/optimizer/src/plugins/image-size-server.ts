@@ -1,7 +1,86 @@
-import imageSize from 'image-size';
+import bmp_1 from 'image-size/dist/types/bmp.js';
+import cur_1 from 'image-size/dist/types/cur.js';
+import dds_1 from 'image-size/dist/types/dds.js';
+import gif_1 from 'image-size/dist/types/gif.js';
+import icns_1 from 'image-size/dist/types/icns.js';
+import ico_1 from 'image-size/dist/types/ico.js';
+import j2c_1 from 'image-size/dist/types/j2c.js';
+import jp2_1 from 'image-size/dist/types/jp2.js';
+import jpg_1 from 'image-size/dist/types/jpg.js';
+import ktx_1 from 'image-size/dist/types/ktx.js';
+import png_1 from 'image-size/dist/types/png.js';
+import pnm_1 from 'image-size/dist/types/pnm.js';
+import psd_1 from 'image-size/dist/types/psd.js';
+import svg_1 from 'image-size/dist/types/svg.js';
+import tga_1 from 'image-size/dist/types/tga.js';
+import webp_1 from 'image-size/dist/types/webp.js';
+
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../types';
 
+// This map helps avoid validating for every single image type
+const firstBytes = {
+  0x38: 'psd',
+  0x42: 'bmp',
+  0x44: 'dds',
+  0x47: 'gif',
+  0x49: 'tiff',
+  0x4d: 'tiff',
+  0x52: 'webp',
+  0x69: 'icns',
+  0x89: 'png',
+  0xff: 'jpg',
+};
+
+const types = {
+  bmp: bmp_1.BMP,
+  cur: cur_1.CUR,
+  dds: dds_1.DDS,
+  gif: gif_1.GIF,
+  icns: icns_1.ICNS,
+  ico: ico_1.ICO,
+  j2c: j2c_1.J2C,
+  jp2: jp2_1.JP2,
+  jpg: jpg_1.JPG,
+  ktx: ktx_1.KTX,
+  png: png_1.PNG,
+  pnm: pnm_1.PNM,
+  psd: psd_1.PSD,
+  svg: svg_1.SVG,
+  tga: tga_1.TGA,
+  webp: webp_1.WEBP,
+};
+
+const keys = Object.keys(types);
+
+function detector(buffer: Buffer) {
+  const byte = buffer[0];
+  if (byte in firstBytes) {
+    const type = (firstBytes as any)[byte];
+    if (type && (types as any)[type].validate(buffer)) {
+      return type;
+    }
+  }
+  const finder = (key: string) => (types as any)[key].validate(buffer);
+  return keys.find(finder);
+}
+
+function lookup(buffer: Buffer) {
+  // detect the file type.. don't rely on the extension
+  const type = detector(buffer);
+  if (typeof type !== 'undefined') {
+    // find an appropriate handler for this file type
+    if (type in types) {
+      const size = (types as any)[type].calculate(buffer);
+      if (size !== undefined) {
+        size.type = type;
+        return size;
+      }
+    }
+  }
+  // throw up, if we don't understand the file
+  throw new TypeError('unsupported file type: ' + type);
+}
 export async function getInfoForSrc(src: string) {
   try {
     const res = await fetch(src);
@@ -10,7 +89,7 @@ export async function getInfoForSrc(src: string) {
       return undefined;
     }
     const buffer = await res.arrayBuffer();
-    const size = imageSize(Buffer.from(buffer));
+    const size = lookup(Buffer.from(buffer));
     if (size) {
       return {
         width: size.width,

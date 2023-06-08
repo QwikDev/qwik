@@ -61,7 +61,7 @@ The URL `origin`, which is a combination of the scheme (protocol) and hostname (
 
 The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
 
-If the site also starts with a pathname other than `/`, please use the `basePathname` option in the Qwik City config options.
+If the site also starts with a pathname other than `/`, please use the `base` option in the Vite config options (the `basePathname` option in the Qwik City config options is deprecated).
 
 #### `outDir`
 

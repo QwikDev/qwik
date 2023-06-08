@@ -16,15 +16,23 @@ import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 // @builder.io/qwik-city/middleware/deno
 
-interface Addr {
+/**
+ * @public
+ */
+export interface Addr {
   transport: 'tcp' | 'udp';
   hostname: string;
   port: number;
 }
-interface ConnInfo {
+
+/**
+ * @public
+ */
+export interface ConnInfo {
   readonly localAddr: Addr;
   readonly remoteAddr: Addr;
 }
+
 /**
  * @public
  */
@@ -175,5 +183,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
-  getClientInfo?: (request: Request, conn: any) => ClientInfo;
+  getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
 }

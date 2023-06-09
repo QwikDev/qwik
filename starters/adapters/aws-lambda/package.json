@@ -2,7 +2,7 @@
   "description": "AWS Lambda",
   "scripts": {
     "build.server": "vite build -c adapters/aws-lambda/vite.config.ts",
-    "serverless:preview": "serverless offline"
+    "serverless:preview": "qwik build && serverless offline"
   },
   "devDependencies": {
     "express": "4.18.2",

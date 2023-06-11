@@ -1,6 +1,6 @@
 import type {
   ServerRenderOptions,
-  ClientInfo,
+  ClientConn,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { setServerPlatform } from '@builder.io/qwik/server';
@@ -46,7 +46,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         req,
         res,
         'server',
-        opts.getClientInfo
+        opts.getClientConn
       );
       const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
@@ -147,7 +147,7 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
    * When not specified, it defaults to the `ORIGIN` environment variable (if set) or derived from the incoming request.
    */
   origin?: string;
-  getClientInfo?: (req: IncomingMessage) => ClientInfo;
+  getClientConn?: (req: IncomingMessage) => ClientConn;
 }
 
 /**

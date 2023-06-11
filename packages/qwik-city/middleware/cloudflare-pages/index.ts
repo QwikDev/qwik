@@ -73,7 +73,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           resolve(response);
           return writable;
         },
-        getClientInfo: () => {
+        getClientConn: () => {
           return {
             ip: request.headers.get('CF-connecting-ip') || '',
             country: request.headers.get('CF-IPCountry') || '',

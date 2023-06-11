@@ -1,7 +1,7 @@
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-  ClientInfo,
+  ClientConn,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import {
   mergeHeadersCookies,
@@ -70,9 +70,9 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         platform: {
           ssr: true,
         },
-        getClientInfo: () => {
-          return opts.getClientInfo
-            ? opts.getClientInfo(request, conn)
+        getClientConn: () => {
+          return opts.getClientConn
+            ? opts.getClientConn(request, conn)
             : {
                 ip: conn.remoteAddr.hostname,
               };
@@ -183,5 +183,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
-  getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
+  getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
 }

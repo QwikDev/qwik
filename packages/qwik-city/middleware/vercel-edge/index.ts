@@ -62,7 +62,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
           return writable;
         },
         platform: {},
-        getClientInfo: () => {
+        getClientConn: () => {
           return {
             ip: request.headers.get(IP_HEADER_NAME) ?? undefined,
             country: request.headers.get(COUNTRY_HEADER_NAME) ?? undefined,

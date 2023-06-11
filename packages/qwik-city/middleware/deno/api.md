@@ -4,7 +4,7 @@
 
 ```ts
 
-import type { ClientInfo } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ClientConn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public (undocumented)
@@ -35,7 +35,7 @@ export function createQwikCity(opts: QwikCityDenoOptions): {
 // @public (undocumented)
 export interface QwikCityDenoOptions extends ServerRenderOptions {
     // (undocumented)
-    getClientInfo?: (request: Request, conn: ConnInfo) => ClientInfo;
+    getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
     static?: {
         root?: string;
         cacheControl?: string;

@@ -102,7 +102,7 @@ async function workerRender(
         },
       },
       platform: sys.platform,
-      getClientInfo: () => {
+      getClientConn: () => {
         return {};
       },
       getWritableStream: (status, headers, _, _r, requestEv) => {

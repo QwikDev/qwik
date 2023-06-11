@@ -52,7 +52,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
           resolve(response);
           return writable;
         },
-        getClientInfo: () => {
+        getClientConn: () => {
           return {
             ip: context.ip,
             country: context.geo.country?.code,

@@ -5,13 +5,13 @@
 
 # Dependencies
 *.node
+*.log
 /.pnpm-store/
 /.yarn/
 !/.yarn/releases
 /node_modules/
 
 # Application
-*.log
 /dist-dev/
 /etc/
 /lib/

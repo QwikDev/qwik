@@ -3,6 +3,8 @@ import color from 'kleur';
 import fs from 'node:fs';
 import { join } from 'path';
 import prompts from 'prompts';
+import { intro, isCancel, select, text, log, spinner, outro } from '@clack/prompts';
+import { bye, note } from '../utils/utils';
 import type { Template } from '../types';
 import type { AppCommand } from '../utils/app-command';
 import { loadTemplates } from '../utils/templates';
@@ -55,51 +57,38 @@ export async function runNewCommand(app: AppCommand) {
     console.log(`${color.green(`${toPascal([typeArg])} ${name} created!`)}`);
     console.log(``);
   } catch (e) {
-    console.error(`\n❌ ${color.red(String(e))}\n`);
+    log.error(String(e));
     await printNewHelp();
     process.exit(1);
   }
 }
 
 async function selectType() {
-  const answer = await prompts(
-    {
-      type: 'select',
-      name: 'type',
-      message: `What would you like to create?`,
-      choices: [
-        { title: 'Component', value: 'component' },
-        { title: 'Route', value: 'route' },
-      ],
-      hint: '(use ↓↑ arrows, hit enter)',
-    },
-    {
-      onCancel: () => {
-        console.log(``);
-        process.exit(0);
-      },
-    }
-  );
+  const typeAnswer = await select({
+    message: 'What would you like to create?',
+    options: [
+      { value: 'component', label: 'Component' },
+      { value: 'route', label: 'Route' },
+    ],
+  });
 
-  return answer.type as (typeof POSSIBLE_TYPES)[number];
+  if (isCancel(typeAnswer)) {
+    bye();
+  }
+
+  return typeAnswer as (typeof POSSIBLE_TYPES)[number];
 }
 
 async function selectName(type: string) {
-  const answer = await prompts(
-    {
-      type: 'text',
-      name: 'name',
-      message: `Name your ${type}`,
-    },
-    {
-      onCancel: () => {
-        console.log(``);
-        process.exit(0);
-      },
-    }
-  );
+  const nameAnswer = await text({
+    message: `Name your ${type}`,
+  });
 
-  return answer.name as string;
+  if (isCancel(nameAnswer)) {
+    bye();
+  }
+
+  return nameAnswer as string;
 }
 
 async function writeToFile(name: string, slug: string, template: Template, outDir: string) {

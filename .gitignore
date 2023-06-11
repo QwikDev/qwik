@@ -1,31 +1,41 @@
 # Keep "OS" and "IDE and local environment" ignores on your local machine in user home
 # git config --global core.excludesFile ~/.gitignore
 # https://git-scm.com/docs/gitignore
-/.vscode/settings.json
 
-# Dependencies
+# OS
+**/.DS_Store
+etc
+temp
+.history
+*.
+**/*.log
 *.node
-*.log
-/.pnpm-store/
-/.yarn/
-!/.yarn/releases
-/node_modules/
 
 # Application
-/dist-dev/
-/etc/
-/lib/
-/external/
-/packages/qwik/src/napi/package-*
-/qwik-app/
-/server/
-/target/
-/temp/
-/todo-express/
-/tsdoc-metadata.json
+qwik-app/
+**/server/
+todo-express/
+target
+!/packages/docs/src/routes/demo/events/target
+src/napi/package-*
 
-# Tests
+# Node
+node_modules
+
+# Artifacts
+tsc-out
+dist
+dist-dev
+external
+lib
+tsdoc-metadata.json
+
+# IDE and local environment
+.vscode/settings.json
+.idea
 .eslintcache
 
-# Distribution
-/packages/qwik/dist/
+# Package Managers
+.yarn/*
+!.yarn/releases
+.pnpm-store/*

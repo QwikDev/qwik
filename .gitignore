@@ -9,8 +9,7 @@
 /.pnpm-store/
 /.yarn/
 !/.yarn/releases
-node_modules
-dist
+/node_modules/
 
 # Application
 /dist-dev/

@@ -1,29 +1,36 @@
-/* eslint-disable no-console */
-import color from 'kleur';
+import { cyan, magenta, gray } from 'kleur/colors';
 import { loadTemplates } from '../utils/templates';
-import { pmRunCmd } from '../utils/utils';
+import { pmRunCmd, note } from '../utils/utils';
+import { POSSIBLE_TYPES } from './utils';
 
 export async function printNewHelp() {
   const pmRun = pmRunCmd();
   const templates = await loadTemplates();
 
-  console.log(``);
-  console.log(`${color.cyan('Interactive')}`);
-  console.log(`  ${pmRun} qwik ${color.magenta(`new --[template] ...`)}`);
-  console.log(``);
-  console.log(`${color.cyan('Complete command')}`);
-  console.log(`  ${pmRun} qwik ${color.magenta(`new component [name] --[template] ...`)}`);
-  console.log(`  ${pmRun} qwik ${color.magenta(`new route [name] --[template] ...`)}`);
-  console.log(``);
+  const outString = [];
+  outString.push(`${cyan('Interactive')}`);
+  outString.push(`  ${pmRun} qwik ${magenta(`new --[template] ...`)}`);
+  outString.push(``);
 
-  console.log(`  ${color.cyan('Templates')}`);
+  outString.push(`${cyan('Complete command')}`);
+  outString.push(`  ${pmRun} qwik ${magenta(`new [type] [name] --[template] ...`)}`);
+  outString.push(``);
+
+  outString.push(`${cyan('Available types')}`);
+  for (const t of POSSIBLE_TYPES) {
+    outString.push(`  ${t}`);
+  }
+  outString.push(``);
+
+  outString.push(`${cyan('Available templates')}`);
   for (const t of templates) {
-    // ignore the default qwik component/route template
+    let postfix = '';
     if (t.id === 'qwik') {
-      continue;
+      postfix = ' (default)';
     }
 
-    console.log(`    ${t.id}`);
+    outString.push(`  ${t.id}${gray(postfix)}`);
   }
-  console.log(``);
+
+  note(outString.join('\n'), 'Available commands');
 }

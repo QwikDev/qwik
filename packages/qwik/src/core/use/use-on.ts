@@ -22,7 +22,9 @@ import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-ev
 export const useOn = (
   event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
-) => _useOn(`on-${event}`, eventQrl);
+) => {
+  _useOn(createEventName(event, undefined), eventQrl);
+};
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -57,7 +59,9 @@ export const useOn = (
 export const useOnDocument = (
   event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
-) => _useOn(`document:on-${event}`, eventQrl);
+) => {
+  _useOn(createEventName(event, 'document'), eventQrl);
+};
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -93,7 +97,20 @@ export const useOnDocument = (
 export const useOnWindow = (
   event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
   eventQrl: QRL<(ev: Event) => void> | undefined
-) => _useOn(`window:on-${event}`, eventQrl);
+) => {
+  _useOn(createEventName(event, 'window'), eventQrl);
+};
+
+const createEventName = (
+  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
+  eventType: 'window' | 'document' | undefined
+) => {
+  const formattedEventType = eventType !== undefined ? eventType + ':' : '';
+  const res = Array.isArray(event)
+    ? event.map((e) => `${formattedEventType}on-${e}`)
+    : `${formattedEventType}on-${event}`;
+  return res;
+};
 
 const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => {
   if (eventQrl) {

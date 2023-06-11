@@ -13,6 +13,7 @@ import { getPlatform } from '../platform/platform';
 import { assertDefined, assertTrue, assertElement } from '../error/assert';
 import type { MustGetObjID } from '../container/container';
 import type { QContext } from '../state/context';
+import { mapJoin } from '../container/pause';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -151,7 +152,7 @@ export const inlinedQrlDEV = <T = any>(
 
 export interface QRLSerializeOptions {
   $getObjId$?: MustGetObjID;
-  $addRefMap$?: (obj: any) => number;
+  $addRefMap$?: (obj: any) => string;
 }
 
 export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) => {
@@ -182,21 +183,19 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   if (chunk.startsWith('./')) {
     chunk = chunk.slice(2);
   }
-  const parts: string[] = [chunk, '#', symbol];
+  let output = `${chunk}#${symbol}`;
   const capture = qrl.$capture$;
   const captureRef = qrl.$captureRef$;
   if (captureRef && captureRef.length) {
     if (opts.$getObjId$) {
-      const capture = captureRef.map(opts.$getObjId$);
-      parts.push(`[${capture.join(' ')}]`);
+      output += `[${mapJoin(captureRef, opts.$getObjId$, ' ')}]`;
     } else if (opts.$addRefMap$) {
-      const capture = captureRef.map(opts.$addRefMap$);
-      parts.push(`[${capture.join(' ')}]`);
+      output += `[${mapJoin(captureRef, opts.$addRefMap$, ' ')}]`;
     }
   } else if (capture && capture.length > 0) {
-    parts.push(`[${capture.join(' ')}]`);
+    output += `[${capture.join(' ')}]`;
   }
-  return parts.join('');
+  return output;
 };
 
 export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
@@ -204,7 +203,7 @@ export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext)
   const opts: QRLSerializeOptions = {
     $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),
   };
-  return existingQRLs.map((qrl) => serializeQRL(qrl, opts)).join('\n');
+  return mapJoin(existingQRLs, (qrl) => serializeQRL(qrl, opts), '\n');
 };
 
 /**
@@ -247,9 +246,9 @@ const addToArray = (array: any[], obj: any) => {
   const index = array.indexOf(obj);
   if (index === -1) {
     array.push(obj);
-    return array.length - 1;
+    return String(array.length - 1);
   }
-  return index;
+  return String(index);
 };
 
 export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {

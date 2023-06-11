@@ -28,6 +28,7 @@
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
+- [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 
@@ -72,6 +73,7 @@
 - [SSG](/docs/(qwikcity)/guides/static-site-generation/index.mdx)
 - [React Cheat Sheet](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx)
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
+- [Bundle Optimization](/docs/(qwikcity)/guides/bundle/index.mdx)
 
 ## Concepts
 
@@ -96,6 +98,7 @@
 - [Menus](/docs/(qwikcity)/advanced/menu/index.mdx)
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
+- [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 
 ## Reference
 

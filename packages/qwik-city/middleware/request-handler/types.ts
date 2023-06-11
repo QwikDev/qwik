@@ -11,6 +11,14 @@ export interface EnvGetter {
 
 /**
  * @public
+ */
+export interface ClientConn {
+  ip?: string;
+  country?: string;
+}
+
+/**
+ * @public
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = any> {
@@ -20,6 +28,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  getClientConn: () => ClientConn;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -240,6 +249,11 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    */
   readonly send: SendMethod;
 
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
+
   readonly exit: () => AbortMessage;
 }
 
@@ -372,6 +386,11 @@ export interface CacheControlOptions {
    * The stale-while-revalidate response directive indicates that the cache could reuse a stale response while it revalidates it to a cache.
    */
   staleWhileRevalidate?: number;
+
+  /**
+   * The stale-if-error response directive that indicates if a stale response can be used when there's an error from the origin.
+   */
+  staleIfError?: number;
 
   /**
    * The no-store response directive indicates that any caches of any kind (private or shared) should not store this response.

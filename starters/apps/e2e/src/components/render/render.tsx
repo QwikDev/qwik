@@ -12,6 +12,8 @@ import {
   SkipRender,
   SSRRaw,
   HTMLFragment,
+  type QwikIntrinsicElements,
+  Slot,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 import { isServer } from '@builder.io/qwik/build';
@@ -90,9 +92,13 @@ export const RenderChildren = component$(() => {
       <Issue3702 />
       <Issue3795 />
       <Issue4029 />
+      <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
       <HTMLFragmentTest />
+      <Issue4292 />
+      <Issue4386 />
+      <Issue4455 />
     </>
   );
 });
@@ -780,5 +786,83 @@ export const HTMLFragmentTest = component$(() => {
     <div id="html-fragment-test-result" data-mounted={isServer ? 'server' : 'browser'}>
       <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
     </div>
+  );
+});
+
+type A = QwikIntrinsicElements['button'];
+
+export interface TestAProps extends A {}
+
+export const TestA = component$<TestAProps>((props) => {
+  return (
+    <button id="issue-4292-result" type="button" {...props}>
+      <Slot />
+    </button>
+  );
+});
+
+export interface TestBProps extends TestAProps {}
+
+export const TestB = component$<TestBProps>((props) => {
+  return (
+    <TestA {...props}>
+      <Slot />
+    </TestA>
+  );
+});
+
+export const Issue4292 = component$(() => {
+  const $toggled = useSignal<boolean>(false);
+
+  return (
+    <>
+      <h1>Playground</h1>
+
+      <TestB
+        aria-label={$toggled.value ? 'a' : 'a1'}
+        title={$toggled.value ? 'a' : 'a1'}
+        onClick$={() => {
+          $toggled.value = !$toggled.value;
+        }}
+      >
+        <div>Hello, World!</div>
+      </TestB>
+    </>
+  );
+});
+
+export const Issue4346 = component$(() => {
+  const toggle = useSignal(true);
+  const ref = useSignal<HTMLDivElement>();
+
+  return (
+    <>
+      <div id="issue-4346-result" ref={toggle.value ? ref : undefined}>
+        {toggle.value ? 'Hello' : 'world'}
+      </div>
+      <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
+    </>
+  );
+});
+
+export const FOO_MAPPING = {
+  A: 1,
+  B: 2,
+  C: 3,
+};
+
+export const Issue4386 = component$(() => {
+  const key = 'A';
+  const value = FOO_MAPPING[key];
+
+  return <div id="issue-4386-result">{value}</div>;
+});
+
+export const Issue4455 = component$(() => {
+  return (
+    <>
+      <input id="issue-4455-input1" type="range" value="0.5" step="0.1" min="0" max="1" />
+      <input id="issue-4455-input2" type="range" step="0.1" value="0.5" min="0" max="1" />
+    </>
   );
 });

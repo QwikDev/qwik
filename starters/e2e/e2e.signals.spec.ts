@@ -432,6 +432,90 @@ test.describe('signals', () => {
       const result = page.locator('#issue-4174-result');
       await expect(result).toHaveText('Store: visible-task');
     });
+
+    test('issue 4249', async ({ page }) => {
+      const first = page.locator('#issue-4249-first');
+      const second = page.locator('#issue-4249-second');
+      const result = page.locator('#issue-4249-result');
+
+      await expect(result).toHaveText('Status: No collision');
+      await expect(result).toHaveAttribute('data-value', 'no-collision');
+      await second.fill('bar');
+      await first.fill('bar');
+      await expect(result).toHaveText('Status: Collision detected');
+      await expect(result).toHaveAttribute('data-value', 'collision');
+
+      await first.fill('foo');
+      await second.fill('foo');
+      await expect(result).toHaveText('Status: Collision detected');
+      await expect(result).toHaveAttribute('data-value', 'collision');
+    });
+
+    test('issue 4228', async ({ page }) => {
+      const buttonA = page.locator('#issue-4228-button-a');
+      const buttonB = page.locator('#issue-4228-button-b');
+      const buttonC = page.locator('#issue-4228-button-c');
+      const resultA = page.locator('#issue-4228-result-a');
+      const resultB = page.locator('#issue-4228-result-b');
+      const resultC = page.locator('#issue-4228-result-c');
+      const resultTotal = page.locator('#issue-4228-result-total');
+
+      await page.waitForTimeout(100);
+
+      await expect(resultA).toHaveText('0:0');
+      await expect(resultB).toHaveText('0:0');
+      await expect(resultC).toHaveText('0:0');
+      await expect(resultTotal).toHaveText('0:0');
+
+      await buttonA.click();
+      await expect(resultA).toHaveText('1:1');
+      await expect(resultB).toHaveText('0:0');
+      await expect(resultC).toHaveText('0:0');
+      await expect(resultTotal).toHaveText('1:1');
+
+      await buttonB.click();
+      await expect(resultA).toHaveText('1:1');
+      await expect(resultB).toHaveText('1:1');
+      await expect(resultC).toHaveText('0:0');
+      await expect(resultTotal).toHaveText('2:2');
+
+      await buttonC.click();
+      await expect(resultA).toHaveText('1:1');
+      await expect(resultB).toHaveText('1:1');
+      await expect(resultC).toHaveText('1:1');
+      await expect(resultTotal).toHaveText('3:3');
+
+      await buttonA.click();
+      await expect(resultA).toHaveText('2:2');
+      await expect(resultB).toHaveText('1:1');
+      await expect(resultC).toHaveText('1:1');
+      await expect(resultTotal).toHaveText('4:4');
+
+      await buttonB.click();
+      await expect(resultA).toHaveText('2:2');
+      await expect(resultB).toHaveText('2:2');
+      await expect(resultC).toHaveText('1:1');
+      await expect(resultTotal).toHaveText('5:5');
+
+      await buttonC.click();
+      await expect(resultA).toHaveText('2:2');
+      await expect(resultB).toHaveText('2:2');
+      await expect(resultC).toHaveText('2:2');
+      await expect(resultTotal).toHaveText('6:6');
+    });
+
+    test('issue 4368', async ({ page }) => {
+      const input = page.locator('#issue-4368-input');
+      const button = page.locator('#issue-4368-button');
+
+      await expect(button).toHaveText('Text is empty');
+      await expect(button).toBeDisabled();
+
+      await input.fill('foo');
+
+      await expect(button).toHaveText('Example button');
+      await expect(button).not.toBeDisabled();
+    });
   }
 
   tests();
@@ -440,7 +524,7 @@ test.describe('signals', () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator('#rerender');
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
     });
     tests();
   });

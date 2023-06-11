@@ -64,19 +64,19 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
         children: [
             /*#__PURE__*/ _jsxQ("title", null, null, head.title, 1, null),
             /*#__PURE__*/ _jsxQ("link", null, {
-                rel: "canonical",
                 href: _fnSignal((p0)=>p0.href, [
                     loc
-                ], "p0.href")
+                ], "p0.href"),
+                rel: "canonical"
             }, null, 3, null),
             /*#__PURE__*/ _jsxQ("meta", null, {
-                name: "viewport",
-                content: "width=device-width, initial-scale=1.0"
+                content: "width=device-width, initial-scale=1.0",
+                name: "viewport"
             }, null, 3, null),
             /*#__PURE__*/ _jsxQ("link", null, {
+                href: "/favicon.svg",
                 rel: "icon",
-                type: "image/svg+xml",
-                href: "/favicon.svg"
+                type: "image/svg+xml"
             }, null, 3, null),
             head.meta.map((m)=>/*#__PURE__*/ _jsxS("meta", {
                     ...m
@@ -95,7 +95,7 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAOqC,IAAM;IACzC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACE;;0BACE,MAAC,qBAAO,KAAK,KAAK;0BAElB,MAAC;gBAAK,KAAI;gBAAY,IAAI,kBAAE,GAAI,IAAI;;;;0BACpC,MAAC;gBAAK,MAAK;gBAAW,SAAQ;;0BAC9B,MAAC;gBAAK,KAAI;gBAAO,MAAK;gBAAgB,MAAK;;YAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACd,MAAC;oBAAM,GAAG,CAAC;;YAGZ,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBACf,eAAC;oBAAM,GAAG,CAAC;oBAAE,KAAK,EAAE,GAAG;;YAGxB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;oBAAO,GAAG,EAAE,KAAK;oBAAE,yBAAyB,EAAE,KAAK;oBAAE,KAAK,EAAE,GAAG;;;;AAIxE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAOqC,IAAM;IACzC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACE;;0BACE,MAAC,qBAAO,KAAK,KAAK;0BAElB,MAAC;gBAAqB,IAAI,kBAAE,GAAI,IAAI;;;gBAA9B,KAAI;;0BACV,MAAC;gBAAqB,SAAQ;gBAAxB,MAAK;;0BACX,MAAC;gBAAqC,MAAK;gBAArC,KAAI;gBAAO,MAAK;;YAErB,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACd,MAAC;oBAAM,GAAG,CAAC;;YAGZ,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBACf,eAAC;oBAAM,GAAG,CAAC;oBAAE,KAAK,EAAE,GAAG;;YAGxB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;oBAAO,GAAG,EAAE,KAAK;oBAAE,yBAAyB,EAAE,KAAK;oBAAE,KAAK,EAAE,GAAG;;;;AAIxE\"}")
 /*
 {
   "origin": "test.tsx",

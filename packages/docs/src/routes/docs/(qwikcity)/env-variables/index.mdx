@@ -2,6 +2,7 @@
 title: Qwik City - Environment variables
 contributors:
   - manucorporat
+  - the-r3aper7
 ---
 
 # Environment variables
@@ -14,7 +15,7 @@ Qwik apps can read environment variables in two main ways: **build-time variable
 
 Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode.html). They are defined in `.env` files and are available **in the browser and in the server-side code**.
 
-> **IMPORTANT! DO NOT** use `import.meta.env.PUBLIC_*` to store any sensitive information, such as API keys, secrets, passworlds, etc. **Only public data**.
+> **IMPORTANT! DO NOT** use `import.meta.env.PUBLIC_*` to store any sensitive information, such as API keys, secrets, passwords, etc. **Only public data**.
 
 Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
 
@@ -41,7 +42,7 @@ Server-side variables are fundamentally runtime variables that are only availabl
 
 They are not known at build-time and are not available in the browser, so they can be considered as **private**.
 
-Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost, `onRequest, etc.
+Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost`, `onRequest` etc.
 
 ```tsx /DB_PRIVATE_KEY/ title="src/routes/index.tsx"
 import {

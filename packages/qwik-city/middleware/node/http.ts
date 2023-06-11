@@ -4,6 +4,7 @@ import type {
   ServerRequestMode,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ClientConn } from '../request-handler/types';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -38,7 +39,8 @@ export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
-  mode: ServerRequestMode
+  mode: ServerRequestMode,
+  getClientConn?: (req: IncomingMessage) => ClientConn
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
@@ -86,21 +88,26 @@ export async function fromNodeHttp(
         start(controller) {
           res.on('close', () => controller.error());
         },
-        write(chunk) {
-          return new Promise((resolve, reject) =>
-            res.write(chunk, (cb) => {
-              if (cb) {
-                reject(cb);
-              } else {
-                resolve();
-              }
-            })
-          );
+        write(chunk, controller) {
+          res.write(chunk, (error) => {
+            if (error) {
+              // FIXME: Ideally, we would like to inform the writer that this was an error.
+              //        Not all writers seem to handle rejections, though.
+              // controller.error(error);
+            }
+          });
         },
         close() {
           res.end();
         },
       });
+    },
+    getClientConn: () => {
+      return getClientConn
+        ? getClientConn(req)
+        : {
+            ip: req.socket.remoteAddress,
+          };
     },
     platform: {
       ssr: true,

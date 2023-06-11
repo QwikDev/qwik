@@ -2,6 +2,7 @@ import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
+export type Numberish = number | `${number}`;
 
 /**
  * @public
@@ -433,12 +434,12 @@ export interface ButtonHTMLAttributes<T> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
 }
 export interface CanvasHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: number | string | undefined;
-  width?: number | string | undefined;
+  height?: Numberish | undefined;
+  width?: Numberish | undefined;
 }
 export interface ColHTMLAttributes<T> extends HTMLAttributes<T> {
   span?: number | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   children?: undefined;
 }
 export interface ColgroupHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -459,10 +460,10 @@ export interface DialogHTMLAttributes<T> extends HTMLAttributes<T> {
   open?: boolean | undefined;
 }
 export interface EmbedHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   src?: string | undefined;
   type?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   children?: undefined;
 }
 export interface FieldsetHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -489,7 +490,7 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
   allowTransparency?: boolean | undefined;
   /** @deprecated Deprecated */
   frameBorder?: number | string | undefined;
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   loading?: 'eager' | 'lazy' | undefined;
   /** @deprecated Deprecated */
   marginHeight?: number | undefined;
@@ -503,21 +504,29 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
   seamless?: boolean | undefined;
   src?: string | undefined;
   srcDoc?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   children?: undefined;
 }
 export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
   alt?: string | undefined;
   crossOrigin?: HTMLCrossOriginAttribute;
   decoding?: 'async' | 'auto' | 'sync' | undefined;
-  height?: number | string | undefined;
+
+  /**
+   * Intrinsic height of the image in pixels.
+   */
+  height?: Numberish | undefined;
   loading?: 'eager' | 'lazy' | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
   sizes?: string | undefined;
   src?: string | undefined;
   srcSet?: string | undefined;
   useMap?: string | undefined;
-  width?: number | string | undefined;
+
+  /**
+   * Intrinsic width of the image in pixels.
+   */
+  width?: Numberish | undefined;
   children?: undefined;
 }
 
@@ -622,7 +631,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   formMethod?: string | undefined;
   formNoValidate?: boolean | undefined;
   formTarget?: string | undefined;
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   list?: string | undefined;
   max?: number | string | undefined;
   maxLength?: number | undefined;
@@ -640,7 +649,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: HTMLInputTypeAttribute | undefined;
   value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
   'bind:value'?: Signal<string | undefined>;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   children?: undefined;
 }
 export interface InsHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -707,11 +716,11 @@ export interface ObjectHTMLAttributes<T> extends HTMLAttributes<T> {
   classID?: string | undefined;
   data?: string | undefined;
   form?: string | undefined;
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   name?: string | undefined;
   type?: string | undefined;
   useMap?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   wmode?: string | undefined;
 }
 export interface OlHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -779,13 +788,13 @@ export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
   'bind:value'?: Signal<string | undefined>;
 }
 export interface SourceHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   media?: string | undefined;
   sizes?: string | undefined;
   src?: string | undefined;
   srcSet?: string | undefined;
   type?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   children?: undefined;
 }
 export interface StyleHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -799,7 +808,7 @@ export interface TableHTMLAttributes<T> extends HTMLAttributes<T> {
   cellPadding?: number | string | undefined;
   cellSpacing?: number | string | undefined;
   summary?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
 }
 export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
@@ -808,8 +817,8 @@ export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
   rowSpan?: number | undefined;
   scope?: string | undefined;
   abbr?: string | undefined;
-  height?: number | string | undefined;
-  width?: number | string | undefined;
+  height?: Numberish | undefined;
+  width?: Numberish | undefined;
   valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
 }
 export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -821,6 +830,7 @@ export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
   cols?: number | undefined;
   dirName?: string | undefined;
   disabled?: boolean | undefined;
+  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
   form?: string | undefined;
   maxLength?: number | undefined;
   minLength?: number | undefined;
@@ -859,10 +869,10 @@ export interface TrackHTMLAttributes<T> extends HTMLAttributes<T> {
   children?: undefined;
 }
 export interface VideoHTMLAttributes<T> extends MediaHTMLAttributes<T> {
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   playsInline?: boolean | undefined;
   poster?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
   disablePictureInPicture?: boolean | undefined;
   disableRemotePlayback?: boolean | undefined;
 }
@@ -890,7 +900,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   /** @deprecated - Use `class` instead */
   className?: string | undefined;
   color?: string | undefined;
-  height?: number | string | undefined;
+  height?: Numberish | undefined;
   id?: string | undefined;
   lang?: string | undefined;
   max?: number | string | undefined;
@@ -901,7 +911,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   style?: Record<string, string | number> | string | undefined;
   target?: string | undefined;
   type?: string | undefined;
-  width?: number | string | undefined;
+  width?: Numberish | undefined;
 
   role?: string | undefined;
   tabindex?: number | undefined;

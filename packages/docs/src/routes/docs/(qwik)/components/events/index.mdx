@@ -235,7 +235,7 @@ export default component$(() => {
 
 ## `PropFunction`
 
-When creating your components it is often useful to pass what looks like event handlers, (even though they are not DOM events, only callbacks.) Component boundaries in Qwik must be serializable, and functions are not serializable unless they are converted to a QRL using an optimizer. This is done through `$` suffix. QRLs are asynchronous and therefor we need to tell TypeScript that the function can't be called synchronously, we do this through `PropFunction` type..
+When creating your components it is often useful to pass what looks like event handlers, (even though they are not DOM events, only callbacks.) Component boundaries in Qwik must be serializable, and functions are not serializable unless they are converted to a QRL using an optimizer. This is done through `$` suffix. QRLs are asynchronous and therefore we need to tell TypeScript that the function can't be called synchronously, we do this through `PropFunction` type.
 
 ```tsx
 <CmpButton onClick={() => alert('CLICKED!')}>click me!</CmpButton>

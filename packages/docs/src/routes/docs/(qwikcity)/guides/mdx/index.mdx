@@ -174,7 +174,7 @@ import { useDocumentHead } from '@builder.io/qwik-city';
 export const Tags = component$(() => {
   const { frontmatter } = useDocumentHead();
   
-  if (frontmatter.tags.length) {
+  if (frontmatter.tags.length === 0) {
     return;
   }
   

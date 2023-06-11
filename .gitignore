@@ -1,28 +1,29 @@
-.history
-.vscode/settings.json
-dist
-lib
-dist-dev
-node_modules
-tsc-out
-external
-*.
-**/*.log
-etc
-temp
-tsdoc-metadata.json
-**/.DS_Store
-src/napi/package-*
-target
-!/packages/docs/src/routes/demo/events/target
-*.node
-todo-express/
-qwik-app/
-**/server/
-.idea
-.eslintcache
+# Keep "OS" and "IDE and local environment" ignores on your local machine in user home
+# git config --global core.excludesFile ~/.gitignore
+# https://git-scm.com/docs/gitignore
+/.vscode/settings.json
 
-# Yarn
-.yarn/*
-!.yarn/releases
-.pnpm-store/*
+# Dependencies
+*.node
+/.pnpm-store/
+/.yarn/
+!/.yarn/releases
+/node_modules/
+
+# Application
+*.log
+.eslintcache
+/dist-dev/
+/etc/
+/lib/
+/external/
+/packages/qwik/src/napi/package-*
+/qwik-app/
+/server/
+/target/
+/temp/
+/todo-express/
+/tsdoc-metadata.json
+
+# Distribution
+/packages/qwik/dist/

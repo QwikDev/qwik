@@ -6,10 +6,10 @@
 # Dependencies
 *.node
 *.log
-/.pnpm-store/
-/.yarn/
-!/.yarn/releases
-/node_modules/
+.pnpm-store/
+.yarn/
+!.yarn/releases
+node_modules/
 
 # Application
 /dist-dev/
@@ -28,4 +28,4 @@
 .eslintcache
 
 # Distribution
-/packages/qwik/dist/
+dist/

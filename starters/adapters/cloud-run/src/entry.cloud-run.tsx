@@ -58,16 +58,16 @@ const { router, notFound, staticFile } = createQwikCity({
     const xForwardedFor = conn.headers['x-forwarded-for'];
     if (typeof xForwardedFor === 'string') {
       return {
-        ip: xForwardedFor.split(',').shift()?.trim()
-      }
+        ip: xForwardedFor.split(',').shift()?.trim(),
+      };
     } else if (Array.isArray(xForwardedFor)) {
       return {
-        ip: xForwardedFor.shift()?.trim()
-      }
+        ip: xForwardedFor.shift()?.trim(),
+      };
     }
     return {
-      ip: undefined
-    }
+      ip: undefined,
+    };
   },
 });
 

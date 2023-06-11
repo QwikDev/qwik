@@ -1459,6 +1459,10 @@ impl<'a> QwikTransform<'a> {
                 } else {
                     mutable_props.extend(event_handlers.into_iter());
                 }
+
+                mutable_props.sort_by(sort_props);
+                immutable_props.sort_by(sort_props);
+
                 if static_subtree {
                     flags |= 1 << 1;
                 }
@@ -2355,4 +2359,29 @@ fn is_text_only(node: &str) -> bool {
         node,
         "text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
     )
+}
+
+fn sort_props(a: &ast::PropOrSpread, b: &ast::PropOrSpread) -> std::cmp::Ordering {
+    match (a, b) {
+        (
+            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref a)),
+            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref b)),
+        ) => {
+            let a_key = match &a.key {
+                ast::PropName::Ident(ident) => Some(ident.sym.as_ref()),
+                ast::PropName::Str(s) => Some(s.value.as_ref()),
+                _ => None,
+            };
+            let b_key = match b.key {
+                ast::PropName::Ident(ref ident) => Some(ident.sym.as_ref()),
+                ast::PropName::Str(ref s) => Some(s.value.as_ref()),
+                _ => None,
+            };
+            match (a_key, b_key) {
+                (Some(a_key), Some(b_key)) => a_key.cmp(b_key),
+                _ => std::cmp::Ordering::Equal,
+            }
+        }
+        _ => std::cmp::Ordering::Equal,
+    }
 }

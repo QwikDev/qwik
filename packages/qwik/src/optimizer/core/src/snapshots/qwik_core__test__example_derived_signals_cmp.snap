@@ -60,13 +60,13 @@ const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
     return /*#__PURE__*/ _jsxC(Cmp, {
-        staticText: "text",
-        staticText2: `text`,
-        staticNumber: 1,
+        signal: signal,
         staticBoolean: true,
         staticExpr: `text${12}`,
         staticExpr2: typeof `text${12}` === 'string' ? 12 : 43,
-        signal: signal,
+        staticNumber: 1,
+        staticText: "text",
+        staticText2: `text`,
         get signalValue () {
             return signal.value;
         },
@@ -104,25 +104,6 @@ const App_component_ckEPmXZlub0 = ()=>{
         noInline3: mutable(signal),
         noInline4: signal.value + dep,
         [_IMMUTABLE]: {
-            staticText: _IMMUTABLE,
-            staticText2: _IMMUTABLE,
-            staticNumber: _IMMUTABLE,
-            staticBoolean: _IMMUTABLE,
-            staticExpr: _IMMUTABLE,
-            staticExpr2: _IMMUTABLE,
-            signal: _IMMUTABLE,
-            signalValue: _fnSignal((p0)=>p0.value, [
-                signal
-            ], "p0.value"),
-            signalComputedValue: _fnSignal((p0)=>12 + p0.value, [
-                signal
-            ], "12+p0.value"),
-            store: _fnSignal((p0)=>p0.address.city.name, [
-                store
-            ], "p0.address.city.name"),
-            storeComputed: _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
-                store
-            ], 'p0.address.city.name?"true":"false"'),
             dep: _IMMUTABLE,
             depAccess: _IMMUTABLE,
             depComputed: _IMMUTABLE,
@@ -134,14 +115,33 @@ const App_component_ckEPmXZlub0 = ()=>{
             ], "p0.value()"),
             noInline2: _fnSignal((p0)=>p0.value + unknown(), [
                 signal
-            ], "p0.value+unknown()")
+            ], "p0.value+unknown()"),
+            signal: _IMMUTABLE,
+            signalComputedValue: _fnSignal((p0)=>12 + p0.value, [
+                signal
+            ], "12+p0.value"),
+            signalValue: _fnSignal((p0)=>p0.value, [
+                signal
+            ], "p0.value"),
+            staticBoolean: _IMMUTABLE,
+            staticExpr: _IMMUTABLE,
+            staticExpr2: _IMMUTABLE,
+            staticNumber: _IMMUTABLE,
+            staticText: _IMMUTABLE,
+            staticText2: _IMMUTABLE,
+            store: _fnSignal((p0)=>p0.address.city.name, [
+                store
+            ], "p0.address.city.name"),
+            storeComputed: _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
+                store
+            ], 'p0.address.city.name?"true":"false"')
         }
     }, 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI,MAAC;QACG,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;YACR;mBAAa,OAAO,KAAK;;YACzB;mBAAqB,KAAK,OAAO,KAAK;;YAEtC;mBAAO,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;YAC9B;mBAAe,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;QAEzD,KAAK;YACL;mBAAW,IAAI,KAAK;;YACpB;mBAAa,IAAI,KAAK,GAAG;;YAEzB;mBAAQ;;YACR;mBAAc,YAAY,KAAK;;YAC/B;mBAAgB,YAAY,KAAK,GAAG;;YAGpC;mBAAU,OAAO,KAAK;;YACtB;mBAAW,OAAO,KAAK,GAAG;;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;YA1B1B,UAAU;YACV,WAAW;YACX,YAAY;YACZ,aAAa;YACb,UAAU;YACV,WAAW;YAEX,MAAM;YACN,WAAW,kBAAE,GAAO,KAAK;;;YACzB,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;YAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;YAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;YAEzD,GAAG;YACH,SAAS;YACT,WAAW;YAEX,MAAM;YACN,YAAY;YACZ,cAAc;YAGd,QAAQ,kBAAE,GAAO,KAAK;;;YACtB,SAAS,kBAAE,GAAO,KAAK,GAAG;;;;;AAKtC;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI,MAAC;QAQG,QAAQ;QAJR,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAHtD,cAAc;QAFd,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;YAOnB;mBAAa,OAAO,KAAK;;YACzB;mBAAqB,KAAK,OAAO,KAAK;;YAEtC;mBAAO,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;YAC9B;mBAAe,MAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;QAEzD,KAAK;YACL;mBAAW,IAAI,KAAK;;YACpB;mBAAa,IAAI,KAAK,GAAG;;YAEzB;mBAAQ;;YACR;mBAAc,YAAY,KAAK;;YAC/B;mBAAgB,YAAY,KAAK,GAAG;;YAGpC;mBAAU,OAAO,KAAK;;YACtB;mBAAW,OAAO,KAAK,GAAG;;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;YAZ1B,GAAG;YACH,SAAS;YACT,WAAW;YAEX,MAAM;YACN,YAAY;YACZ,cAAc;YAGd,QAAQ,kBAAE,GAAO,KAAK;;;YACtB,SAAS,kBAAE,GAAO,KAAK,GAAG;;;YAjB1B,MAAM;YAEN,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;YADtC,WAAW,kBAAE,GAAO,KAAK;;;YALzB,aAAa;YACb,UAAU;YACV,WAAW;YAHX,YAAY;YAFZ,UAAU;YACV,WAAW;YAUX,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;YAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;;AAiBrE;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
 == DIAGNOSTICS ==
 
 []

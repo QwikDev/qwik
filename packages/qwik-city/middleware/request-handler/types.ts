@@ -11,6 +11,14 @@ export interface EnvGetter {
 
 /**
  * @public
+ */
+export interface ClientConn {
+  ip?: string;
+  country?: string;
+}
+
+/**
+ * @public
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = any> {
@@ -20,6 +28,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  getClientConn: () => ClientConn;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -239,6 +248,11 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * when using `send()` and must be set manually. A `send()` response can only be called once.
    */
   readonly send: SendMethod;
+
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
 
   readonly exit: () => AbortMessage;
 }

@@ -54,6 +54,21 @@ const { router, notFound, staticFile } = createQwikCity({
   static: {
     cacheControl: 'public, max-age=31557600',
   },
+  getClientConn: (conn) => {
+    const xForwardedFor = conn.headers['x-forwarded-for'];
+    if (typeof xForwardedFor === 'string') {
+      return {
+        ip: xForwardedFor.split(',').shift()?.trim(),
+      };
+    } else if (Array.isArray(xForwardedFor)) {
+      return {
+        ip: xForwardedFor.shift()?.trim(),
+      };
+    }
+    return {
+      ip: undefined,
+    };
+  },
 });
 
 const server = createServer();

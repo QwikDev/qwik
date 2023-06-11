@@ -74,6 +74,13 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
             },
           });
         },
+
+        getClientConn: () => {
+          return {
+            ip: req.headers['x-forwarded-client-Ip'],
+            country: undefined,
+          };
+        },
       };
 
       // send request to qwik city request handler

@@ -284,7 +284,7 @@ const renderNodeVirtual = (
       return;
     }
 
-    let promise: ValueOrPromise<void>;
+    let promise: ValueOrPromise<void> | undefined;
     if (isSlot) {
       assertDefined(key, 'key must be defined for a slot');
       const content = ssrCtx.$projectedChildren$?.[key];

@@ -12,6 +12,8 @@ import { _deserializeData, _serializeData, _verifySerializable } from '@builder.
 import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/vercel-edge
+const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';
+const IP_HEADER_NAME = 'x-real-ip';
 
 /**
  * @public
@@ -60,6 +62,12 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
           return writable;
         },
         platform: {},
+        getClientConn: () => {
+          return {
+            ip: request.headers.get(IP_HEADER_NAME) ?? undefined,
+            country: request.headers.get(COUNTRY_HEADER_NAME) ?? undefined,
+          };
+        },
       };
 
       // send request to qwik city request handler

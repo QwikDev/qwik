@@ -127,6 +127,9 @@ export function createRequestEvent(
     get exited() {
       return routeModuleIndex >= ABORT_INDEX;
     },
+    get clientConn() {
+      return serverRequestEv.getClientConn();
+    },
 
     next,
 

@@ -28,6 +28,14 @@ export class AbortMessage {
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
 
 // @public (undocumented)
+export interface ClientConn {
+    // (undocumented)
+    country?: string;
+    // (undocumented)
+    ip?: string;
+}
+
+// @public (undocumented)
 export interface Cookie {
     delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
     get(name: string): CookieValue | null;
@@ -109,6 +117,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 
 // @public (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends RequestEventBase<PLATFORM> {
+    readonly clientConn: ClientConn;
     // Warning: (ae-forgotten-export) The symbol "ErrorCodes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
     readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
@@ -172,6 +181,8 @@ export interface ServerRenderOptions extends RenderOptions {
 export interface ServerRequestEvent<T = any> {
     // (undocumented)
     env: EnvGetter;
+    // (undocumented)
+    getClientConn: () => ClientConn;
     // (undocumented)
     getWritableStream: ServerResponseHandler<T>;
     // (undocumented)

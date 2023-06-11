@@ -11,7 +11,6 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
     origin: env?.ORIGIN ?? env?.URL ?? 'https://your-app-name.run.app',
     ssg: opts.ssg,
     cleanStaticGenerated: true,
-
     config() {
       return {
         build: {

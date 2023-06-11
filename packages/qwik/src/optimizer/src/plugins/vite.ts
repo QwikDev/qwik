@@ -522,8 +522,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             try {
               const bundleFileName = sys.path.basename(bundeName);
               const ext = sys.path.extname(bundleFileName);
+              const isEntryFile =
+                bundleFileName.startsWith('entry.') || bundleFileName.startsWith('entry_');
               if (
-                bundleFileName.startsWith('entry.') &&
+                isEntryFile &&
                 !bundleFileName.includes('preview') &&
                 (ext === '.mjs' || ext === '.cjs')
               ) {

@@ -33,11 +33,7 @@ export const Link = component$<LinkProps>((props) => {
       (loc.url.pathname === props.href ||
         (!props.end &&
           loc.url.pathname.startsWith(props.href!) &&
-          loc.url.pathname.charAt(props.href!.length) === "/") ||
-        loc.prevUrl?.href === props.href ||
-        (!props.end &&
-          loc.prevUrl?.pathname.startsWith(props.href!) &&
-          loc.prevUrl?.pathname.charAt(props.href!.length) === "/"))
+          loc.url.pathname.charAt(props.href!.length) === "/"))
       ? "page"
       : undefined
   )

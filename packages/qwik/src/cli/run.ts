@@ -2,6 +2,7 @@
 import { red, dim, cyan, bgMagenta } from 'kleur/colors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
+import { runNewCommand } from './new/run-new-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
@@ -27,6 +28,13 @@ const COMMANDS = [
     label: 'build preview',
     hint: 'Same as "build", but for preview server',
     run: (app: AppCommand) => runBuildCommand(app),
+    showInHelp: true,
+  },
+  {
+    value: 'new',
+    label: 'new',
+    hint: 'Create a new component or route',
+    run: (app: AppCommand) => runNewCommand(app),
     showInHelp: true,
   },
   {
@@ -62,9 +70,25 @@ export async function runCli() {
 }
 
 async function runCommand(app: AppCommand) {
-  for (const value of COMMANDS) {
-    if (value.value === app.task && typeof value.run === 'function') {
-      await value.run(app);
+  switch (app.task) {
+    case 'add': {
+      await runAddCommand(app);
+      return;
+    }
+    case 'build': {
+      await runBuildCommand(app);
+      return;
+    }
+    case 'help': {
+      printHelp(app);
+      return;
+    }
+    case 'new': {
+      await runNewCommand(app);
+      return;
+    }
+    case 'version': {
+      printVersion();
       return;
     }
   }

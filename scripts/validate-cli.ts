@@ -1,15 +1,15 @@
+import assert from 'assert';
 import {
   accessSync,
-  readFileSync,
-  writeFileSync,
-  rmSync,
-  statSync,
-  mkdirSync,
-  readdirSync,
   copyFileSync,
   existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
 } from 'node:fs';
-import assert from 'assert';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -66,7 +66,6 @@ async function validateStarter(
   console.log(`${emoji} ${appDir}`);
   rmSync(appDir, { force: true, recursive: true });
 
-  api;
   const result = await api.createApp({
     starterId,
     outDir: appDir,

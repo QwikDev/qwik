@@ -1,7 +1,6 @@
-import { cyan, magenta, gray } from 'kleur/colors';
+import { cyan, magenta, gray, dim } from 'kleur/colors';
 import { loadTemplates } from '../utils/templates';
 import { pmRunCmd, note } from '../utils/utils';
-import { POSSIBLE_TYPES } from './utils';
 
 export async function printNewHelp() {
   const pmRun = pmRunCmd();
@@ -13,16 +12,20 @@ export async function printNewHelp() {
   outString.push(``);
 
   outString.push(`${cyan('Complete command')}`);
-  outString.push(`  ${pmRun} qwik ${magenta(`new my-button`)}: Create a new component in src/components/my-button`);
-  outString.push(`  ${pmRun} qwik ${magenta(`new nested/my-button `)}: Create a new component in src/components/nested/my-button`);
-  outString.push(`  ${pmRun} qwik ${magenta(`new /about`)}: Create a new route for /about`);
+  outString.push(
+    `  ${pmRun} qwik ${magenta(`new my-button`)}: ${dim(
+      'Create a new component in src/components/my-button'
+    )}`
+  );
+  outString.push(
+    `  ${pmRun} qwik ${magenta(`new nested/my-button`)}: ${dim(
+      'Create a new component in src/components/nested/my-button'
+    )}`
+  );
+  outString.push(
+    `  ${pmRun} qwik ${magenta(`new /about`)}: ${dim('Create a new route for /about')}`
+  );
 
-  outString.push(``);
-
-  outString.push(`${cyan('Available types')}`);
-  for (const t of POSSIBLE_TYPES) {
-    outString.push(`  ${t}`);
-  }
   outString.push(``);
 
   outString.push(`${cyan('Available templates')}`);

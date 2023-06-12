@@ -45,7 +45,6 @@ export async function runNewCommand(app: AppCommand) {
       templateArg = 'qwik';
     }
 
-
     if (!typeArg) {
       typeArg = await selectType();
     }
@@ -59,7 +58,6 @@ export async function runNewCommand(app: AppCommand) {
     }
 
     const { name, slug } = parseInputName(nameArg);
-
 
     let template: Template | undefined;
     if (!templateArg) {
@@ -85,7 +83,6 @@ export async function runNewCommand(app: AppCommand) {
     }
 
     const fileOutput = await writeToFile(name, slug, template, outDir);
-
 
     log.success(`${green(`${toPascal([typeArg])} "${name}" created!`)}`);
     log.message(`Emitted in ${dim(fileOutput)}`);
@@ -154,7 +151,7 @@ async function writeToFile(name: string, slug: string, template: Template, outDi
   // Exit if the module already exists
   if (fs.existsSync(fileOutput)) {
     const filename = fileOutput.split('/').pop();
-    throw new Error(`"${filename}" already exists in "${fileOutput}"`);
+    throw new Error(`"${filename}" already exists in "${outDir}"`);
   }
 
   // Get the template content

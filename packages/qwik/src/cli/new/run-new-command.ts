@@ -1,4 +1,4 @@
-import { green, bgMagenta } from 'kleur/colors';
+import { green, bgMagenta, dim } from 'kleur/colors';
 import fs from 'node:fs';
 import { join } from 'path';
 import { isCancel, select, text, log, intro } from '@clack/prompts';
@@ -25,12 +25,26 @@ export async function runNewCommand(app: AppCommand) {
 
     const args = app.args.filter((a) => !a.startsWith('--'));
 
-    let typeArg = args[1] as (typeof POSSIBLE_TYPES)[number];
-    let nameArg = args.slice(2).join(' ');
-    const templateArg = app.args
+    const mainInput = args.slice(1).join(' ');
+    let typeArg: 'route' | 'component' | undefined = undefined;
+    let nameArg: string | undefined;
+    let outDir: string | undefined;
+    if (mainInput && mainInput.startsWith('/')) {
+      typeArg = 'route';
+      nameArg = mainInput;
+    } else if (mainInput) {
+      typeArg = 'component';
+      nameArg = mainInput;
+    }
+    let templateArg = app.args
       .filter((a) => a.startsWith('--'))
       .map((a) => a.substring(2))
       .join('');
+
+    if (!templateArg && mainInput) {
+      templateArg = 'qwik';
+    }
+
 
     if (!typeArg) {
       typeArg = await selectType();
@@ -46,7 +60,6 @@ export async function runNewCommand(app: AppCommand) {
 
     const { name, slug } = parseInputName(nameArg);
 
-    const writers: Promise<void>[] = [];
 
     let template: Template | undefined;
     if (!templateArg) {
@@ -54,7 +67,7 @@ export async function runNewCommand(app: AppCommand) {
     } else {
       const allTemplates = await loadTemplates();
       const templates = allTemplates.filter(
-        (i) => i.id === templateArg && i[typeArg] && i[typeArg].length
+        (i) => i.id === templateArg && i[typeArg!] && i[typeArg!].length
       );
 
       if (!templates.length) {
@@ -65,12 +78,17 @@ export async function runNewCommand(app: AppCommand) {
       template = templates[0][typeArg][0];
     }
 
-    const outDir = join(app.rootDir, 'src', `${typeArg}s`);
-    writers.push(writeToFile(name, slug, template as unknown as Template, outDir));
+    if (typeArg === 'route') {
+      outDir = join(app.rootDir, 'src', `routes`, mainInput);
+    } else {
+      outDir = join(app.rootDir, 'src', `components`, nameArg);
+    }
 
-    await Promise.all(writers);
+    const fileOutput = await writeToFile(name, slug, template, outDir);
+
 
     log.success(`${green(`${toPascal([typeArg])} "${name}" created!`)}`);
+    log.message(`Emitted in ${dim(fileOutput)}`);
   } catch (e) {
     log.error(String(e));
     await printNewHelp();
@@ -124,10 +142,6 @@ async function selectTemplate(typeArg: (typeof POSSIBLE_TYPES)[number]) {
 }
 
 async function writeToFile(name: string, slug: string, template: Template, outDir: string) {
-  const relativeDirMatches = template.relative.match(/.+?(?=(\/[^/]+$))/);
-  const relativeDir = relativeDirMatches ? relativeDirMatches[0] : undefined;
-  const fileDir = inject(join(outDir, relativeDir ?? ''), [[SLUG_KEY, slug]]);
-
   // Build the full output file path + name
   const outFile = join(outDir, template.relative);
 
@@ -140,7 +154,7 @@ async function writeToFile(name: string, slug: string, template: Template, outDi
   // Exit if the module already exists
   if (fs.existsSync(fileOutput)) {
     const filename = fileOutput.split('/').pop();
-    throw new Error(`"${filename}" already exists in "${fileDir}"`);
+    throw new Error(`"${filename}" already exists in "${fileOutput}"`);
   }
 
   // Get the template content
@@ -153,17 +167,19 @@ async function writeToFile(name: string, slug: string, template: Template, outDi
   ]);
 
   // Create recursive folders
-  await fs.promises.mkdir(fileDir, { recursive: true });
+  await fs.promises.mkdir(outDir, { recursive: true });
 
   // Write to file
   await fs.promises.writeFile(fileOutput, templateOut, { encoding: 'utf-8' });
+
+  return fileOutput;
 }
 
 function inject(raw: string, vars: string[][]) {
   let output = raw;
 
   for (const v of vars) {
-    output = replaceAll(output, v[0], v[1]);
+    output = output.replaceAll(v[0], v[1]);
   }
 
   return output;
@@ -184,12 +200,4 @@ function toSlug(list: string[]) {
 
 function toPascal(list: string[]) {
   return list.map((p) => p[0].toUpperCase() + p.substring(1).toLowerCase()).join('');
-}
-
-function escapeRegExp(val: string) {
-  return val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function replaceAll(val: string, find: string, replace: string) {
-  return val.replace(new RegExp(escapeRegExp(find), 'g'), replace);
 }

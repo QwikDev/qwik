@@ -1,7 +1,8 @@
 import { build } from 'esbuild';
+import { existsSync, rmdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { type BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
+import { type BuildConfig, copyDir, copyFile, getBanner, nodeTarget, watcher } from './util';
 
 /**
  * Builds @builder.io/qwik/cli
@@ -50,6 +51,15 @@ export async function submoduleCli(config: BuildConfig) {
   );
 
   await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);
+
+  const tmplSrc = join(config.startersDir, 'templates');
+  const tmplDist = join(config.distQwikPkgDir, 'templates');
+
+  if (existsSync(tmplDist)) {
+    rmdirSync(tmplDist, { recursive: true });
+  }
+
+  await copyDir(config, tmplSrc, tmplDist);
 
   console.log('📠', submodule);
 }

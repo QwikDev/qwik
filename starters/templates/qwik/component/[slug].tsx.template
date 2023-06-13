@@ -1,0 +1,9 @@
+import { component$ } from '@builder.io/qwik';
+
+export interface [name]Props {
+
+}
+
+export const [name] = component$<[name]Props>((props) => {
+  return <>[name] component works!</>
+});

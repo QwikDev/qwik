@@ -1,9 +1,0 @@
-import { createDOM } from '@builder.io/qwik/testing';
-import { expect, test } from 'vitest';
-import { [name] } from './[slug]'
-
-test(`[[name] Component]: Should render`, async () => {
-  const { screen, render } = await createDOM();
-  await render(<[name] />);
-  expect(screen.outerHTML).toContain('');
-});

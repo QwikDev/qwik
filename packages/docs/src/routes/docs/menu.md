@@ -33,7 +33,7 @@
 - [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
-- [Deprecated Features](/docs/(qwikcity)/deprecated-features/index.mdx)
+- [Deprecated Features](/docs/(qwikcity)/qwikcity-deprecated-features/index.mdx)
 
 ## Integrations
 

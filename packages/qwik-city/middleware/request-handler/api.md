@@ -81,12 +81,9 @@ export class RedirectMessage extends AbortMessage {
 
 // @public (undocumented)
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
     readonly exited: boolean;
     readonly getWritableStream: () => WritableStream<Uint8Array>;
-    // (undocumented)
     readonly headersSent: boolean;
-    // (undocumented)
     readonly next: () => Promise<void>;
 }
 

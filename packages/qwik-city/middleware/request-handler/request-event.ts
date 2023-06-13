@@ -96,6 +96,11 @@ export function createRequestEvent(
         }
       }
     }
+    return exit();
+  };
+
+  const exit = () => {
+    routeModuleIndex = ABORT_INDEX;
     return new AbortMessage();
   };
 
@@ -133,10 +138,7 @@ export function createRequestEvent(
 
     next,
 
-    exit: () => {
-      routeModuleIndex = ABORT_INDEX;
-      return new AbortMessage();
-    },
+    exit,
 
     cacheControl: (cacheControl) => {
       check();
@@ -285,7 +287,7 @@ export function getRequestMode(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvMode];
 }
 
-const ABORT_INDEX = 999999999;
+const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 
 const parseRequest = async (
   request: Request,

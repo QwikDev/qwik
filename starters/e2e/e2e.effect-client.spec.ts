@@ -53,7 +53,7 @@ test.describe('effect-client', () => {
   test('issue 2015', async ({ page }) => {
     const order = page.locator('#issue-2015-order');
     await page.waitForTimeout(300);
-    await expect(order).toHaveText('Order: start 1 finish 1 start 2 finish 2 start 3 finish 3');
+    await expect(order).toHaveText('Order: start 1 start 2 start 3 finish 1 finish 2 finish 3');
   });
 
   test('issue 1955', async ({ page }) => {

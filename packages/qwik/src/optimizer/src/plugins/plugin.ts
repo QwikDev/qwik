@@ -423,7 +423,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
+    if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
         id: normalizePath(getPath().resolve(opts.rootDir, QWIK_BUILD_ID)),
@@ -570,7 +570,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
-      const strip = opts.target === 'client' || opts.target === 'ssr';
+      const strip = opts.target !== 'lib';
       const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 

@@ -41,7 +41,7 @@ async function serveHttp(conn: any) {
   // Each request sent over the HTTP connection will be yielded as an
   // async iterator from the HTTP connection.
   for await (const requestEvent of httpConn) {
-    const staticResponse = await staticFile(requestEvent.request);
+    const staticResponse = await staticFile(requestEvent.request, conn);
     if (staticResponse) {
       // Serve static file
       requestEvent.respondWith(staticResponse);

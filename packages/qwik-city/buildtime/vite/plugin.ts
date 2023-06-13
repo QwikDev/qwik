@@ -65,7 +65,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
           if (url.searchParams.has('jsx')) {
             return new URLSearchParams({
               format: 'webp',
-              w: '500;900;1200',
+              quality: '75',
+              w: '200;400;800;1200',
               as: 'jsx',
             });
           }
@@ -81,7 +82,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
             /export default.*/g,
             `import { _jsxQ } from '@builder.io/qwik';
           export default function (props, key) {
-            return _jsxQ('img', props, {srcSet, width, height}, undefined, 3, key);
+            return _jsxQ('img', props, {decoding: 'async', loading: 'lazy', srcSet, width, height}, undefined, 3, key);
           }`
           );
         }

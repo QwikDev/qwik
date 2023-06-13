@@ -29,6 +29,11 @@ export const isSamePath = (a: SimpleURL, b: SimpleURL) =>
 export const isSamePathname = (a: SimpleURL, b: SimpleURL) => a.pathname === b.pathname;
 
 /**
+ * Checks only if the search query strings are the same for the URLs
+ */
+export const isSameSearchQuery = (a: SimpleURL, b: SimpleURL) => a.search === b.search;
+
+/**
  * Same origin, but different pathname (doesn't include search and hash)
  */
 export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
@@ -71,7 +76,8 @@ export const getPrefetchDataset = (
 ) => {
   if (props.prefetch === true && clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
-    if (!isSamePathname(prefetchUrl, toUrl('', currentLoc.url))) {
+    const currentUrl = toUrl('', currentLoc.url);
+    if (!isSamePathname(prefetchUrl, currentUrl) || !isSameSearchQuery(prefetchUrl, currentUrl)) {
       return '';
     }
   }

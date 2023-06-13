@@ -256,6 +256,14 @@ declare module '*.mdx' {
   export const frontmatter: Record<string, any>;
   export default node;
 }
+// Image ?jsx
+declare module '*?jsx' {
+  const Cmp: FunctionComponent<Omit<QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
+  export default Cmp;
+  export const width: number;
+  export const height: number;
+  export const srcSet: string;
+}
 `;
 
   const destServerModulesPath = join(config.distQwikPkgDir, 'server-modules.d.ts');

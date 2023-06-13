@@ -89,6 +89,7 @@
     "@types/mdx": "2.0.5",
     "source-map": "0.7.4",
     "vfile": "5.3.7",
+    "vite-imagetools": "^5.0.4",
     "zod": "^3.21.4"
   },
   "devDependencies": {

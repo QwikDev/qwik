@@ -209,7 +209,7 @@ This component will have a button then when clicked, Qwik City will navigate to 
 
 ## `routeLoader$()`
 
-The `routeLoader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the returned custom hook function in order to retrieve the data.
+The `routeLoader$()` function is used to declare a new Server Loader in the given page/middleware or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the returned custom hook function in order to retrieve the data.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -231,7 +231,7 @@ Please refer to the [Route Loader](/docs/(qwikcity)/route-loader/index.mdx) sect
 
 ## `routeAction$()`
 
-The `routeAction$()` function is used to declare a new Server Action in the given page/endpoint or layout. Qwik City will execute only the invoked action after some user interaction (such as a button click or a form submission).
+The `routeAction$()` function is used to declare a new Server Action in the given page/middleware or layout. Qwik City will execute only the invoked action after some user interaction (such as a button click or a form submission).
 
 Please refer to the [Server Actions](/docs/(qwikcity)/action/index.mdx) section for more information.
 

@@ -68,19 +68,17 @@ demo a:active {
 }
 
 demo ul {
-  margin-top: 1em;
-  margin-bottom: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
   margin-left: 0;
   margin-right: 0;
-  padding-left: 40px;
-  list-style-type: square;
 }
 
 demo li {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-left: 0;
-  list-style-type: none;
+  list-style-type: disc;
   margin-left: 1em;
 }
 

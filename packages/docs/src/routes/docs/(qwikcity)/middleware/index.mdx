@@ -1,0 +1,656 @@
+---
+title: Qwik City - Middleware
+contributors:
+  - adamdbradley
+  - manucorporat
+  - mhevery
+---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
+
+# Middleware
+
+Qwik City comes with server middleware that allows you to centralize and chain logic such as authentication, security, caching, redirects, and logging. Middleware can also be used to define endpoints. Endpoints are useful for returning data such as  RESTful API, or GraphQL API.
+
+Middleware consists of a set of functions that are called in a specific order defined by the route. A middleware which returns a response is called an [endpoint](/docs/endpoint/).
+
+## Middleware Function
+
+Middleware is defined by exporting a function called `onRequest` (or `onGet`, `onPost`, `onPut`, `onPatch`, and `onDelete`) in the `layout.tsx` or `index.tsx` file inside of `src/routes` folder. 
+
+This example shows a simple `onRequest` middleware function that logs all requests. 
+
+File: `src/routes/layout.tsx`
+```typescript
+import type { RequestHandler } from '@builder.io/qwik-city';
+ 
+export const onRequest: RequestHandler = async ({next, url}) => {
+  console.log('Before request', url);
+  await next();
+  console.log('After request', url);
+};
+```
+If you want to intercept a specific HTTP method you can use one of these variations. If you use both `onRequest` and `onGet` for example then both will execute but `onRequest` will execute before `onGet` in the chain.
+```typescript
+// Called only with a specific HTTP method
+export const onGet: RequestHandler = async (requestEvent) => { ... }
+export const onPost: RequestHandler = async (requestEvent) => { ... }
+export const onPut: RequestHandler = async (requestEvent) => { ... }
+export const onPatch: RequestHandler = async (requestEvent) => { ... }
+export const onDelete: RequestHandler = async (requestEvent) => { ... }
+```
+
+Each middleware function is passed a [`RequestEvent`](#requestevent) object which allows the middleware to control the response.
+
+
+## Order of invocation
+
+The order middleware function chain is determined by their location. Starting from the topmost `layout.tsx` and ending at the `index.tsx` for a given route. (Same resolution logic as the order of layout and route component as defined by the route path.)
+
+For example, if the request is `/api/greet/` in the following folder structure, the invocation order is as follows:
+
+```bash
+src/
+└── routes/
+    ├── layout.tsx            # Invocation order: 1 (first)
+    └── api/
+        ├── layout.tsx        # Invocation order: 2   
+        └── greet/
+            └── index.ts      # Invocation order: 3 (last)
+```
+
+Qwik City looks into each file in order and checks to see if it has `onRequest` (or `onGet`, `onPost`, `onPut`, `onPatch`, and `onDelete`) exported functions. If found the function gets added into the middleware execution chain in that order. 
+
+`routeLoader$` and `routeAction$` are also considered part of the middleware and they execute after the `on*` functions and before the default exported component.
+
+## Component as an HTML Endpoint
+
+You can think of component rendering as an implicit HTML endpoint. Therefore if `index.tsx` has a default export component, then the component implicitly becomes an endpoint in the middleware chain. Because component rendering is part of the middleware chain this allows you to intercept component rendering, for example as part of authentication, logging or other cross-cutting concerns. 
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/component/index.tsx">
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onRequest: RequestHandler = async ({ redirect }) => {
+  if (!isLoggedIn()) {
+    throw redirect(308, '/login');
+  }
+};
+
+export default component$(() => {
+  return <div>You are logged in.</div>;
+});
+
+function isLoggedIn() {
+  return true; // Mock login as true
+}
+```
+</CodeSandbox>
+
+
+## `RequestEvent`
+
+All middleware functions are passed a `RequestEvent` object which can be used to control the flow of HTTP response. For example, you can read/write cookies, headers, redirect, produce responses and exit the middleware chain early. Middleware functions are executed in the order as described above, from the topmost `layout.tsx` to the last `index.tsx`. 
+
+
+### `next()`
+
+Use the `next()` function to execute the next middleware function in the chain. This is the default behavior when a middleware function returns normally, without an explicit call to `next()`. One can use the `next()` function to achieve a wrapping behavior around the next middleware function.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/next/index.tsx">
+```tsx /next()/
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+// Generic function `onRequest` is executed first
+export const onRequest: RequestHandler = async ({ next, sharedMap, json }) => {
+  const log: string[] = [];
+  sharedMap.set('log', log);
+
+  log.push('onRequest start');
+  await next(); // Execute next middleware function (onGet)
+  log.push('onRequest end');
+
+  json(200, log);
+};
+
+// Specific functions such as `onGet` are executed next
+export const onGet: RequestHandler = async ({ next, sharedMap }) => {
+  const log = sharedMap.get('log') as string[];
+
+  log.push('onGET start');
+  // execute next middleware function
+  // (in our case, there are no more middleware functions nor components.)
+  await next();
+  log.push('onGET end');
+};
+```
+</CodeSandbox>
+
+In general, a normal (non-exception) return of a function will execute the next function in the chain. However, throwing an error from the function will stop the execution chain. This is typically used for authentication or authorization and returning a `401` or `403` HTTP status code. Because the `next()` is implicit, to prevent calling the next middleware function in the chain it is necessary to `throw`.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/throw/index.tsx">
+```tsx /next()/
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onRequest: RequestHandler = async ({ next, sharedMap, json }) => {
+  const log: string[] = [];
+  sharedMap.set('log', log);
+
+  log.push('onRequest');
+  if (isLoggedIn()) {
+    // normal behavior call next middleware
+    await next();
+  } else {
+    // If not logged in throw to prevent implicit call to the next middleware.
+    throw json(404, log);
+  }
+};
+
+export const onGet: RequestHandler = async ({ sharedMap }) => {
+  const log = sharedMap.get('log') as string[];
+  log.push('onGET');
+};
+
+function isLoggedIn() {
+  return false; // always return false as mock example
+}
+```
+</CodeSandbox>
+
+### `sharedMap`
+
+Use `sharedMap` as a way to share data between middleware functions. The `sharedMap` is scoped to HTTP request. A common use case is to use `sharedMap` to store user details so that it can be used by other middleware functions, `routeLoader$()` or components.
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/sharedMap/index.tsx">
+```tsx
+import { component$ } from '@builder.io/qwik';
+import {
+  routeLoader$,
+  type RequestHandler,
+  type Cookie,
+} from '@builder.io/qwik-city';
+
+interface User {
+  username: string;
+  email: string;
+}
+
+export const onRequest: RequestHandler = async ({
+  sharedMap,
+  cookie,
+  send,
+}) => {
+  const user = loadUserFromCookie(cookie);
+  if (user) {
+    sharedMap.set('user', user);
+  } else {
+    throw send(401, 'NOT_AUTHORIZED');
+  }
+};
+
+function loadUserFromCookie(cookie: Cookie): User | null {
+  // this is where you would check cookie for user.
+  if (cookie) {
+    // just return mock user for this demo.
+    return {
+      username: `Mock User`,
+      email: `mock@users.com`,
+    };
+  } else {
+    return null;
+  }
+}
+
+export const useUser = routeLoader$(({ sharedMap }) => {
+  return sharedMap.get('user') as User;
+});
+
+export default component$(() => {
+  const log = useUser();
+  return (
+    <div>
+      {log.value.username} ({log.value.email})
+    </div>
+  );
+});
+```
+</CodeSandbox>
+
+### `headers`
+
+Use `headers` to set response headers associated with the current request.
+(For reading request headers see [`request.headers`](#request).) Middleware can manually add response headers to the response, using the `headers` property.
+
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/headers/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ headers, json }) => {
+  headers.set('X-SRF-TOKEN', Math.random().toString(36).replace('0.', ''));
+  const obj: Record<string, string> = {};
+  headers.forEach((value, key) => (obj[key] = value));
+  json(200, obj);
+};
+```
+</CodeSandbox>
+
+### `cookie`
+
+Use `cookie` to set and retrieve cookie information for a request. Middleware can manually read and set cookies, using the `cookie` function. This might be useful for setting a session cookie, such as a JWT token, or a cookie to track a user.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/cookie/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ cookie, json }) => {
+  let count = cookie.get('Qwik.demo.count')?.number() || 0;
+  count++;
+  cookie.set('Qwik.demo.count', count);
+  json(200, { count });
+};
+```
+</CodeSandbox>
+
+### `method`
+
+Returns current HTTP request method: `GET`, `POST`, `PATCH`, `PUT`, `DELETE`.
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/method/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onRequest: RequestHandler = async ({ method, json }) => {
+  json(200, { method });
+};
+```
+</CodeSandbox>
+
+### `url`
+
+
+Returns current HTTP request URL. (Use `useLocation()` if you need the current URL in a component. The `url` is meant for middleware functions.)
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/url/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ url, json }) => {
+  json(200, { url: url.toString() });
+};
+```
+</CodeSandbox>
+
+
+### `basePathname`
+
+
+Returns the current base pathname URL of where the application is mounted. Typically this is `/` but it can be different if the application is mounted in a sub-path. See vite `qwikCity({root: '/my-sub-path-location'})`.
+
+
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/basePathname/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ basePathname, json }) => {
+  json(200, { basePathname });
+};
+```
+</CodeSandbox>
+
+
+### `params`
+
+Retrieve the "params" of the URL. For example `params.myId` will allow you to retrieve the `myId` from this route definition `/base/[myId]/something`.
+
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/params/[myId]/index.tsx" url="/src/routes/demo/qwikcity/middleware/params/some-id/">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ params, json }) => {
+  json(200, { params });
+};
+```
+</CodeSandbox>
+
+### `query`
+
+Use `query` to retrieve the URL query parameters. (This is a shorthand for `url.searchParams`.) It is provided for the middleware functions, and components should use `useLocation()` API.
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/query/index.tsx" url="/src/routes/demo/qwikcity/middleware/query/?someKey=someValue">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ query, json }) => {
+  const obj: Record<string, string> = {};
+  query.forEach((v, k) => (obj[k] = v));
+  json(200, obj);
+};
+```
+</CodeSandbox>
+
+### `parseBody()`
+
+Use `parseBody()` to parse form data submitted to the URL.
+
+This method will check the request headers for a `Content-Type` header and parse the body accordingly. It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+
+If the `Content-Type` header is not set, it will return `null`.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/parseBody/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ html }) => {
+  html(
+    200,
+    `
+      <form id="myForm" method="POST">
+        <input type="text" name="project" value="Qwik"/>
+        <input type="text" name="url" value="http://qwik.builder.io"/>
+      </form>
+      <script>myForm.submit()</script>`
+  );
+};
+
+export const onPost: RequestHandler = async ({ parseBody, json }) => {
+  json(200, { body: await parseBody() });
+};
+```
+</CodeSandbox>
+
+### `cacheControl`
+
+Convenience API for setting the cache header.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/cacheControl/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({
+  cacheControl,
+  headers,
+  json,
+}) => {
+  cacheControl({ maxAge: 42, public: true });
+  const obj: Record<string, string> = {};
+  headers.forEach((value, key) => (obj[key] = value));
+  json(200, obj);
+};
+```
+</CodeSandbox>
+
+### `platform`
+
+Deployment platform (Azure, Cloudflare, Deno, Google Cloud Run, Netlify, Node.js, Vercel, etc...) specific API.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/platform/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ platform, json }) => {
+  json(200, Object.keys(platform));
+};
+```
+</CodeSandbox>
+
+
+### `locale()`
+
+Set or retrieve the current locale.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/locale/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onRequest: RequestHandler = async ({ locale, request }) => {
+  const acceptLanguage = request.headers.get('accept-language');
+  const [languages] = acceptLanguage?.split(';') || ['?', '?'];
+  const [preferredLanguage] = languages.split(',');
+  locale(preferredLanguage);
+};
+
+export const onGet: RequestHandler = async ({ locale, json }) => {
+  json(200, { locale: locale() });
+};
+```
+</CodeSandbox>
+
+### `status()`
+
+Set the status of the response independently of writing the response, useful for streaming. Endpoints can manually change the HTTP status code of the response, using the `status()` method.
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/status/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ status, getWritableStream }) => {
+  status(200);
+  const stream = getWritableStream();
+  const writer = stream.getWriter();
+  writer.write(new TextEncoder().encode('Hello World!'));
+  writer.close();
+};
+```
+</CodeSandbox>
+
+
+### `redirect()` 
+
+Redirect to a new URL. Notice the importance of throwing to prevent other middleware functions from running. he `redirect()` method will automatically set the `Location` header to the redirect URL.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/redirect/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ redirect, url }) => {
+  throw redirect(
+    308,
+    new URL('/demo/qwikcity/middleware/status/', url).toString()
+  );
+};
+```
+</CodeSandbox>
+
+### `error()`
+
+Set an error response.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/error/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ error }) => {
+  throw error(500, 'ERROR: Demonstration of an error response.');
+};
+```
+</CodeSandbox>
+
+
+### `text()`
+
+Send a text-based response. Creating a text endpoint is as simple as calling the `text(status, string)` method. The `text()` method will automatically set the `Content-Type` header to `text/plain; charset=utf-8`.
+
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/text/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ text }) => {
+  text(200, 'Text based response.');
+};
+```
+</CodeSandbox>
+
+
+
+### `html()`
+
+Send an HTML response.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/html/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ html }) => {
+  html(
+    200,
+    ` 
+      <html>
+        <body>
+          <h1>HTML response</h1>
+        </body>
+      </html>`
+  );
+};
+```
+</CodeSandbox>
+
+
+
+### `json()`
+
+Creating a JSON endpoint is as simple as calling the `json(status, object)` method. The `json()` method will automatically set the `Content-Type` header to `application/json; charset=utf-8` and JSON stringify the data.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/json/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ json }) => {
+  json(200, { hello: 'world' });
+};
+```
+</CodeSandbox>
+
+### `send()`
+
+Creating a raw endpoint is as simple as calling the `send(Response)` method. The `send()` method takes a standard `Response` object, which can be created using the `Response` constructor.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/send/index.tsx">
+```tsx
+import type { RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async (requestEvent) => {
+  const response = new Response('Hello World', {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/plain',
+    },
+  });
+  requestEvent.send(response);
+};
+```
+</CodeSandbox>
+
+### `exit()`
+
+Throw to stop the execution of the middleware functions.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/exit/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ exit }) => {
+  throw exit();
+};
+```
+</CodeSandbox>
+
+### `env`
+
+Retrieve environmental property in a platform-independent way.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/env/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ env, json }) => {
+  json(200, {
+    USER: env.get('USER'),
+    MODE_ENV: env.get('MODE_ENV'),
+    PATH: env.get('PATH'),
+    SHELL: env.get('SHELL'),
+  });
+};
+```
+</CodeSandbox>
+
+### `getWritableStream()`
+
+
+Set stream response.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/getWritableStream/index.tsx">
+```tsx
+import type { RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async (requestEvent) => {
+  const writableStream = requestEvent.getWritableStream();
+  const writer = writableStream.getWriter();
+  const encoder = new TextEncoder();
+
+  writer.write(encoder.encode('Hello World'));
+  await wait(100);
+  writer.write(encoder.encode('After 100ms'));
+  await wait(100);
+  writer.write(encoder.encode('After 200ms'));
+  await wait(100);
+  writer.write(encoder.encode('END'));
+  writer.close();
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+```
+</CodeSandbox>
+
+
+### `headerSent`
+
+
+Check to see if the header has been set.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/headerSent/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ headersSent, json }) => {
+  if (!headersSent) {
+    json(200, { response: 'default response' });
+  }
+};
+
+export const onRequest: RequestHandler = async ({ status }) => {
+  status(200);
+};
+```
+</CodeSandbox>
+
+
+
+### `request`
+
+Get the HTTP request object. Useful for getting hold of the request data such as the headers.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/request/index.tsx">
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ json, request }) => {
+  const obj: Record<string, string> = {};
+  request.headers.forEach((v, k) => (obj[k] = v));
+  json(200, { headers: obj });
+};
+```
+</CodeSandbox>

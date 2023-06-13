@@ -1,6 +1,6 @@
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve } from 'node:path';
-import type { Plugin, UserConfig } from 'vite';
+import type { Plugin, PluginOption, UserConfig } from 'vite';
 import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
@@ -27,11 +27,72 @@ import {
   STATIC_PATHS_ID,
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
+import type { OutputFormat } from 'vite-imagetools';
 
 /**
  * @public
  */
-export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
+  return [
+    qwikCityPlugin(userOpts),
+    import('vite-imagetools').then(({ imagetools }) =>
+      imagetools({
+        extendOutputFormats(builtins) {
+          const jsx: OutputFormat = () => (metadatas) => {
+            const srcSet = metadatas.map((meta) => `${meta.src} ${meta.width}w`).join(', ');
+            let largestImage: any;
+            let largestImageSize = 0;
+            for (let i = 0; i < metadatas.length; i++) {
+              const m = metadatas[i] as any;
+              if (m.width > largestImageSize) {
+                largestImage = m;
+                largestImageSize = m.width;
+              }
+            }
+            return {
+              srcSet,
+              width: largestImage === null || largestImage === void 0 ? void 0 : largestImage.width,
+              height:
+                largestImage === null || largestImage === void 0 ? void 0 : largestImage.height,
+            };
+          };
+          return {
+            ...builtins,
+            jsx,
+          };
+        },
+        defaultDirectives: (url) => {
+          if (url.searchParams.has('jsx')) {
+            return new URLSearchParams({
+              format: 'webp',
+              quality: '75',
+              w: '200;400;800;1200',
+              as: 'jsx',
+            });
+          }
+          return new URLSearchParams();
+        },
+      })
+    ),
+    {
+      name: 'qwik-city-image',
+      transform: (code, id) => {
+        if (id.endsWith('?jsx')) {
+          return code.replace(
+            /export default.*/g,
+            `import { _jsxQ } from '@builder.io/qwik';
+          export default function (props, key) {
+            return _jsxQ('img', props, {decoding: 'async', loading: 'lazy', srcSet, width, height}, undefined, 3, key);
+          }`
+          );
+        }
+        return null;
+      },
+    },
+  ];
+}
+
+function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;

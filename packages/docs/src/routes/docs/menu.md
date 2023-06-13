@@ -75,6 +75,7 @@
 - [React Cheat Sheet](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx)
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
 - [Bundle Optimization](/docs/(qwikcity)/guides/bundle/index.mdx)
+- [Deprecated Features](/docs/(qwikcity)/guides/deprecated-features/index.mdx)
 
 ## Concepts
 

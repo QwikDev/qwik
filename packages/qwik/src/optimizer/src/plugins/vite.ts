@@ -48,6 +48,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
   let srcDir: string | null = null;
+  let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
@@ -214,6 +215,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       manifestInput = pluginOpts.manifestInput || null;
       srcDir = opts.srcDir;
+      rootDir = opts.rootDir;
       clientOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
       );
@@ -559,7 +561,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
-      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), srcDir!));
+      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       const plugin = async () => {
         const opts = qwikPlugin.getOptions();
         const sys = qwikPlugin.getSys();

@@ -17,6 +17,7 @@
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "commit": "git-cz",
     "link.dist": "cd packages/qwik/dist && pnpm link --global && cd ../../qwik-city/lib && pnpm link --global && cd ../../eslint-plugin-qwik/dist && pnpm link --global && cd ../../qwik-react && pnpm link --global",
+    "link.dist.npm": "cd packages/qwik/dist && npm link && cd ../../qwik-city/lib && npm link && cd ../../eslint-plugin-qwik/dist && npm link && cd ../../qwik-react && npm link",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",

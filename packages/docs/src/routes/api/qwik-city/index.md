@@ -538,6 +538,7 @@ export type RouteNavigate = QRL<
       | {
           type?: Exclude<NavigationType, "initial">;
           forceReload?: boolean;
+          replaceState?: boolean;
         }
       | boolean
   ) => Promise<void>

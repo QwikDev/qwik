@@ -2360,8 +2360,8 @@ export const App = component$((props: Stuff) => {
 fn example_mutable_children() {
     test_input!(TestInput {
         code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-
+import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
     return (
@@ -2442,7 +2442,10 @@ export const AppStatic = component$((props: Stuff) => {
             <div>Static {f ? 1 : 3}</div>
             <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
 
-            <div>{prop.value && <div></div>}<div></div></div>
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+            <div>{prop.value && <><div></div></>}</div>
+            <div>{prop.value && <Image/>}</div>
             <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
@@ -2461,6 +2464,28 @@ export const AppStatic = component$((props: Stuff) => {
     });
 }
 
+#[test]
+fn example_immutable_function_components() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, Slot } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <div>
+            <Slot/>
+        </div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_transpile_ts_only() {
     test_input!(TestInput {

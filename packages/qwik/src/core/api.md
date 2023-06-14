@@ -147,8 +147,10 @@ export const Fragment: FunctionComponent<{
 
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    (props: P, key: string | null, flags: number): JSXNode | null;
+    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
 
 // @internal (undocumented)
@@ -333,8 +335,6 @@ export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props:
 export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     children: any | null;
-    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     dev?: DevJSX;
     // (undocumented)

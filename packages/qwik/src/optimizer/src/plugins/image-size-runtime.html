@@ -182,21 +182,24 @@
       const originalSrc = node.currentSrc;
       const info = await getInfo(originalSrc);
       if (info) {
-        const browserArea = rect.width * rect.height;
-        const realArea = info.width && info.height;
-        const threshholdArea = realArea * 0.5;
-        const loc = node.getAttribute('data-qwik-inspector');
-        skip = true;
-        node.src = '';
-        const rect2 = node.getBoundingClientRect();
-        const tooBig = browserArea < threshholdArea;
-        const layoutInvalidation =
-          rect.x !== rect2.x ||
-          rect.y !== rect2.y ||
-          rect.width !== rect2.width ||
-          rect.height !== rect2.height;
+        let layoutInvalidation = false;
+        if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
+          const browserArea = rect.width * rect.height;
+          const realArea = info.width && info.height;
+          const threshholdArea = realArea * 0.5;
+          const loc = node.getAttribute('data-qwik-inspector');
+          skip = true;
+          node.src = '';
+          const rect2 = node.getBoundingClientRect();
+          const tooBig = browserArea < threshholdArea;
+          const layoutInvalidation =
+            rect.x !== rect2.x ||
+            rect.y !== rect2.y ||
+            rect.width !== rect2.width ||
+            rect.height !== rect2.height;
 
-        node.src = originalSrc;
+          node.src = originalSrc;
+        }
         skip = false;
         let overlay = visibleNodes.get(node);
         if (layoutInvalidation || tooBig) {

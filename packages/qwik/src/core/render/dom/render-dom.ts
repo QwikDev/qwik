@@ -98,7 +98,7 @@ export const processNode = (
   } else if (type === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(type)) {
-    const res = invoke(invocationContext, type, props, key, flags);
+    const res = invoke(invocationContext, type, props, key, flags, node.dev);
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }

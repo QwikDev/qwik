@@ -15,7 +15,7 @@ export default extendConfig(baseConfig, () => {
       cloudflarePagesAdapter({
         ssg: {
           include: ['/*'],
-          exclude: ['/', '/demo/tasks/resource/'],
+          exclude: ['/', '/demo/*'],
           origin:
             (process.env.CF_PAGES_BRANCH !== 'main' ? process.env.CF_PAGES_URL : null) ??
             'https://qwik.builder.io',

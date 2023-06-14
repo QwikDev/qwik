@@ -17,6 +17,7 @@
 - [Slots](/docs/(qwik)/components/slots/index.mdx)
 - [Rendering](/docs/(qwik)/components/rendering/index.mdx)
 - [Styling](/docs/(qwik)/components/styles/index.mdx)
+- [Deprecated Features](/docs/(qwik)/deprecated-features/index.mdx)
 
 ## Qwik City
 
@@ -32,6 +33,7 @@
 - [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
+- [Deprecated Features](/docs/(qwikcity)/qwikcity-deprecated-features/index.mdx)
 
 ## Integrations
 
@@ -75,6 +77,7 @@
 - [React Cheat Sheet](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx)
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
 - [Bundle Optimization](/docs/(qwikcity)/guides/bundle/index.mdx)
+
 
 ## Concepts
 

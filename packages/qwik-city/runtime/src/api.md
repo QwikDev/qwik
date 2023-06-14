@@ -253,6 +253,8 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
     // (undocumented)
     reload?: boolean;
+    // (undocumented)
+    replaceState?: boolean;
 }
 
 // @public (undocumented)

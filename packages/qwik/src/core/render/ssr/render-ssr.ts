@@ -819,7 +819,14 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   if (tagName === InternalSSRStream) {
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
-  const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key, node.flags);
+  const res = invoke(
+    ssrCtx.$invocationContext$,
+    tagName,
+    node.props,
+    node.key,
+    node.flags,
+    node.dev
+  );
   if (!shouldWrapFunctional(res, node)) {
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
   }

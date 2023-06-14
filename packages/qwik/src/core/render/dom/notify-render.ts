@@ -136,7 +136,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     const staticCtx = rCtx.$static$;
     const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
     containerState.$hostsNext$.clear();
-    await executeWatchesBefore(containerState, rCtx);
+    await executeTasksBefore(containerState, rCtx);
 
     containerState.$hostsStaging$.forEach((host) => {
       hostsRendering.add(host);
@@ -215,7 +215,7 @@ const getFlags = (el: Element | null) => {
 export const postRendering = async (containerState: ContainerState, rCtx: RenderContext) => {
   const hostElements = rCtx.$static$.$hostElements$;
 
-  await executeWatchesAfter(containerState, rCtx, (watch, stage) => {
+  await executeTasksAfter(containerState, rCtx, (watch, stage) => {
     if ((watch.$flags$ & WatchFlagsIsVisibleTask) === 0) {
       return false;
     }
@@ -245,7 +245,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
-const executeWatchesBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
+const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
@@ -279,7 +279,7 @@ const executeWatchesBefore = async (containerState: ContainerState, rCtx: Render
     // Wait for all promises
     if (watchPromises.length > 0) {
       const watches = await Promise.all(watchPromises);
-      sortWatches(watches);
+      sortTasks(watches);
       await Promise.all(
         watches.map((watch) => {
           return runSubscriber(watch, containerState, rCtx);
@@ -291,12 +291,12 @@ const executeWatchesBefore = async (containerState: ContainerState, rCtx: Render
 
   if (resourcesPromises.length > 0) {
     const resources = await Promise.all(resourcesPromises);
-    sortWatches(resources);
+    sortTasks(resources);
     resources.forEach((watch) => runSubscriber(watch, containerState, rCtx));
   }
 };
 
-const executeWatchesAfter = async (
+const executeTasksAfter = async (
   containerState: ContainerState,
   rCtx: RenderContext,
   watchPred: (watch: SubscriberEffect, staging: boolean) => boolean
@@ -328,9 +328,9 @@ const executeWatchesAfter = async (
     // Wait for all promises
     if (watchPromises.length > 0) {
       const watches = await Promise.all(watchPromises);
-      sortWatches(watches);
+      sortTasks(watches);
       for (const watch of watches) {
-        await runSubscriber(watch, containerState, rCtx);
+        runSubscriber(watch, containerState, rCtx);
       }
       watchPromises.length = 0;
     }
@@ -343,7 +343,7 @@ const sortNodes = (elements: QContext[]) => {
   );
 };
 
-const sortWatches = (watches: SubscriberEffect[]) => {
+const sortTasks = (watches: SubscriberEffect[]) => {
   watches.sort((a, b) => {
     if (a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;

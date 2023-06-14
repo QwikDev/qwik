@@ -18,6 +18,7 @@ import popStateScript from './init-popstate.txt?raw';
  */
 export const RouterOutlet = component$(() => {
   _jsxBranch();
+
   const nonce = useServerData<string | undefined>('nonce');
   const { value } = useContext(ContentInternalContext);
   if (value && value.length > 0) {

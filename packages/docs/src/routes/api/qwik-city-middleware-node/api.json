@@ -54,7 +54,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [origin?](#) |  | string | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
+      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientConn?](#) |  | (req: IncomingMessage) =&gt; ClientConn | _(Optional)_ |\n|  [origin?](#) |  | string | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.qwikcitynoderequestoptions.md"
     }

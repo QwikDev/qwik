@@ -18,15 +18,16 @@
 - [Rendering](/docs/(qwik)/components/rendering/index.mdx)
 - [Styling](/docs/(qwik)/components/styles/index.mdx)
 
-## Routing (Qwik City)
+## Qwik City
 
-- [Qwik City](/docs/(qwikcity)/qwikcity/index.mdx)
+- [Overview](/docs/(qwikcity)/qwikcity/index.mdx)
 - [Routing](/docs/(qwikcity)/routing/index.mdx)
-- [Route Loaders](/docs/(qwikcity)/route-loader/index.mdx)
-- [Form actions](/docs/(qwikcity)/action/index.mdx)
-- [Layouts](/docs/(qwikcity)/layout/index.mdx)
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
+- [Layouts](/docs/(qwikcity)/layout/index.mdx)
+- [Loaders](/docs/(qwikcity)/route-loader/index.mdx)
+- [Actions](/docs/(qwikcity)/action/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
+- [Middleware](/docs/(qwikcity)/middleware/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
 - [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)

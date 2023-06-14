@@ -11,6 +11,14 @@ export interface EnvGetter {
 
 /**
  * @public
+ */
+export interface ClientConn {
+  ip?: string;
+  country?: string;
+}
+
+/**
+ * @public
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = any> {
@@ -20,6 +28,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  getClientConn: () => ClientConn;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -240,6 +249,11 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    */
   readonly send: SendMethod;
 
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
+
   readonly exit: () => AbortMessage;
 }
 
@@ -413,7 +427,14 @@ export interface CacheControlOptions {
  * @public
  */
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+  /**
+   * True if headers have been sent, preventing any more headers from being set.
+   */
   readonly headersSent: boolean;
+
+  /**
+   * True if the middleware chain has finished executing.
+   */
   readonly exited: boolean;
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
@@ -421,6 +442,11 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
    */
   readonly getWritableStream: () => WritableStream<Uint8Array>;
 
+  /**
+   * Invoke the next middleware function in the chain.
+   *
+   * NOTE: Ensure that the call to `next()` is `await`ed.
+   */
   readonly next: () => Promise<void>;
 }
 

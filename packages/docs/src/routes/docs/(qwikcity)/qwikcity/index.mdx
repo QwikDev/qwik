@@ -11,37 +11,41 @@ contributors:
   - adamdbradley
 ---
 
-# Qwik City (routing)
+# Qwik City
 
-_aka. Qwik Router_
-
-Learning Qwik and Qwik City are not two different things, Qwik City is built on top of Qwik, bringing opinionated routing and goodies to make your life easier.
+While Qwik focuses on Component API, Qwik City contains API to support the component with common server focused features:
+- [routing](/docs/routing/): Define your application routes with directory based routing. (Supports both MPA and SPA routing models.)
+- [pages](/docs/pages): Render application pages, the main feature of an application.
+- [layouts](/docs/layouts/): Define common shared page layouts to be reused across pages.
+- [loaders](/docs/route-loader/): Fetch data on server to be used by the component.
+- [actions](/docs/action/): Provide a way for the component to request server to perform an action.
+- [endpoints](/docs/endpoints/): A way to define data endpoints for your RESTful API, GraphQL API, JSON, XML or revers proxy.
+- [middleware](/docs/middleware/): A centralized way to perform cross-cutting concerns such as authentication, security, caching, redirects, and logging.
+- [server$](/docs/server$/): A simple way to execute logic on server.
+- [cache](/docs/caching/): Control caching of your content.
+- [env variables](/docs/env-variables/): API to manage reading environment variables, commonly used for keys, in platform independent way.
+- Supports both Server Side Rending (SSR) for fully dynamic sites as  well as Static Side Generation (SSG) to be hosted on static web servers and CDNs.
 
 > Qwik¹ City²
 >
 > [**Qwik¹**](/docs/(qwik)/index.mdx): Core framework, stable, primitives, component model.
 >
-> [**City²**](/docs/(qwikcity)/routing/index.mdx): Opinionated file-based router, build fast.
+> [**City²**](/docs/(qwikcity)/routing/index.mdx): Opinionated file-based router, middleware, endpoints, and data fetching and update.
 
 We call it a **meta-framework** for Qwik. Qwik City is to Qwik, what [Next.js](https://nextjs.org/) is to React, what [Nuxt](https://nuxtjs.org/) is to Vue, [SvelteKit](https://kit.svelte.dev/) to Svelte and [Analog](https://analogjs.org/) is to Angular.
 
-Qwik (core) and Qwik City (routing) solve problems at two layers of abstraction. **Qwik can stay stable**, without breaking changes, focusing on long-term and stable primitives, while Qwik City brings an **opinionated and performant way to build sites at scale**. We don't want to lock the ecosystem into a single correct way of building sites, in fact we encourage the community to build alternative solutions on top of Qwik.
+Qwik (core) and Qwik City (routing) solve problems at two layers of abstraction. **Qwik**, focuses component and state management primitives, while Qwik City brings an **opinionated and performant way to build sites at scale**. We don't want to lock the ecosystem into a single correct way of building sites, in fact we encourage the community to build alternative solutions on top of Qwik.
 
-> As a user, using Qwik City today for your app is a no-brainer. Thanks to Qwik architecture, it comes with zero overhead, meaning that no extra JS will be delivered to the browser.
+> While Qwik-City is full of useful functionality, thanks to Qwik's resumability and JavaScript streaming, there is no additional cost to end user from Qwik-City. (zero JavaScript);
 
-Use Qwik City to build an e-commerce website, blog site, or any other website that needs routing, layouts, templating, or data retrieval/updates. Qwik City is built on Qwik, and therefore Qwik City sites are resumable and only download the minimal amount of JavaScript with fine-grained lazy loading.
+Use Qwik City to build an e-commerce website, blog site, or any other website that needs routing, layouts, or data retrieval/updates. Qwik City is built on Qwik, and therefore Qwik City sites are resumable and only download the minimal amount of JavaScript with fine-grained lazy loading.
 
-Qwik City provides:
+## High Level API Overview
 
-- Directory-based routing
-- Nested layouts
-- File-based menus
-- Breadcrumbs
-- Support authoring content with `.tsx` or `.mdx` file formats
-- Data endpoints
+This table shows in which file (`index.tsx` vs `layout.tsx` ) should the respective feature be implemented in.
 
-By default, Qwik City sites are fast because they:
+<img width="100%" src="/docs/qwikcity/routing-files.png"/>
 
-- Are resumable
-- Download minimal JavaScript
-- Come with [Partytown](https://partytown.builder.io)
+## Partytown
+
+Qwik-City also comes pre-integrated with [Partytown](https://partytown.builder.io) allowing your to execute your third-party code off the main thread.

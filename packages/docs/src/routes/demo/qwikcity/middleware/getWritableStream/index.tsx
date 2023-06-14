@@ -5,11 +5,11 @@ export const onGet: RequestHandler = async (requestEvent) => {
   const writer = writableStream.getWriter();
   const encoder = new TextEncoder();
 
-  writer.write(encoder.encode('Hello World'));
+  writer.write(encoder.encode('Hello World\n'));
   await wait(100);
-  writer.write(encoder.encode('After 100ms'));
+  writer.write(encoder.encode('After 100ms\n'));
   await wait(100);
-  writer.write(encoder.encode('After 200ms'));
+  writer.write(encoder.encode('After 200ms\n'));
   await wait(100);
   writer.write(encoder.encode('END'));
   writer.close();

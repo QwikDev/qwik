@@ -1,0 +1,20 @@
+import { component$ } from '@builder.io/qwik';
+import { type DocumentHead, routeLoader$ } from '@builder.io/qwik-city';
+
+export const useNameLoader = routeLoader$(() => {
+  return '[name]';
+});
+
+export default component$(() => {
+  const name = useNameLoader();
+
+  return <div>{name.value} route works.</div>;
+});
+
+export const head: DocumentHead = ({ resolveValue }) => {
+  const name = resolveValue(useNameLoader);
+
+  return {
+    title: `${name}`,
+  };
+}

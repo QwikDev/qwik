@@ -53,7 +53,7 @@ test.describe('effect-client', () => {
   test('issue 2015', async ({ page }) => {
     const order = page.locator('#issue-2015-order');
     await page.waitForTimeout(300);
-    await expect(order).toHaveText('Order: start 1 finish 1 start 2 finish 2 start 3 finish 3');
+    await expect(order).toHaveText('Order: start 1 start 2 start 3 finish 1 finish 2 finish 3');
   });
 
   test('issue 1955', async ({ page }) => {
@@ -71,5 +71,15 @@ test.describe('effect-client', () => {
     await expect(nuCleanups).toHaveText('1');
     await counter.click();
     await expect(nuCleanups).toHaveText('2');
+  });
+
+  test('issue 4432', async ({ page }) => {
+    const button = page.locator('#issue-4432-button');
+    const logs = page.locator('#issue-4432-logs');
+    await page.waitForTimeout(500);
+    await expect(logs).toHaveText('VisibleTask ChildA /\n');
+    await button.click();
+    await page.waitForTimeout(500);
+    await expect(logs).toHaveText('VisibleTask ChildA /\nCleanup ChildA /other\n');
   });
 });

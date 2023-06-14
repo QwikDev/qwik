@@ -46,6 +46,18 @@ navTest('pushState for different routes', () => {
   equal(win.events(), []);
 });
 
+navTest('when passing replaceState', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
+  equal(win.history.state, null);
+  equal(getHistoryId(), '0');
+
+  const length = win.history.length;
+  clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-a?search=456'), true);
+  equal(win.history.state, { id: 1 });
+  equal(getHistoryId(), '1');
+  equal(win.history.length, length);
+});
+
 navTest('pushState for different hash', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123#hash-1');
   equal(win.history.state, null);
@@ -74,7 +86,7 @@ navTest('pushState for different hash', () => {
 function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (path: string) => URL] {
   resetHistoryId();
   const events: Event[] = [];
-  const histryEntries: { url: URL; state: T | null }[] = [{ url: new URL(href), state: null }];
+  const historyEntries: { url: URL; state: T | null }[] = [{ url: new URL(href), state: null }];
   let index = 0;
 
   return [
@@ -93,28 +105,32 @@ function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (pat
         return events;
       },
       get location() {
-        return histryEntries[index].url;
+        return historyEntries[index].url;
       },
       dispatchEvent: (event: Event) => events.push(event),
       history: {
         popState: (delta: number) => {
           const newIndex = index + delta;
-          if (newIndex < 0 || newIndex > histryEntries.length - 1) {
+          if (newIndex < 0 || newIndex > historyEntries.length - 1) {
             throw new Error(
-              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${histryEntries.length}`
+              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${historyEntries.length}`
             );
           }
           index = newIndex;
         },
         pushState: (state: any, _: string, path: string) => {
           ++index;
-          histryEntries.push({ url: new URL(path, href), state });
+          historyEntries.push({ url: new URL(path, href), state });
+        },
+        replaceState: (state: any, _: string, path: string) => {
+          historyEntries.splice(historyEntries.length - 1, 1, { url: new URL(path, href), state });
+          return historyEntries;
         },
         get length() {
-          return histryEntries.length;
+          return historyEntries.length;
         },
         get state() {
-          return histryEntries[index].state;
+          return historyEntries[index].state;
         },
       },
     } as any,

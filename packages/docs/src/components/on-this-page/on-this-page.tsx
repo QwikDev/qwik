@@ -100,7 +100,7 @@ export const OnThisPage = component$(() => {
       <h6>More</h6>
       <ul>
         <li>
-          <a href={editUrl} target="_blank">
+          <a href={editUrl} rel="noopener" target="_blank">
             <EditIcon width={22} height={22} />
             <span>Edit this page</span>
           </a>

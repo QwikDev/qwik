@@ -2,6 +2,7 @@ import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
+export type Size = number | string;
 export type Numberish = number | `${number}`;
 
 /**
@@ -434,12 +435,12 @@ export interface ButtonHTMLAttributes<T> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
 }
 export interface CanvasHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: Numberish | undefined;
-  width?: Numberish | undefined;
+  height?: Size | undefined;
+  width?: Size | undefined;
 }
 export interface ColHTMLAttributes<T> extends HTMLAttributes<T> {
   span?: number | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
 export interface ColgroupHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -460,10 +461,10 @@ export interface DialogHTMLAttributes<T> extends HTMLAttributes<T> {
   open?: boolean | undefined;
 }
 export interface EmbedHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   src?: string | undefined;
   type?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
 export interface FieldsetHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -490,7 +491,7 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
   allowTransparency?: boolean | undefined;
   /** @deprecated Deprecated */
   frameBorder?: number | string | undefined;
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   loading?: 'eager' | 'lazy' | undefined;
   /** @deprecated Deprecated */
   marginHeight?: number | undefined;
@@ -504,7 +505,7 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
   seamless?: boolean | undefined;
   src?: string | undefined;
   srcDoc?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
 export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -631,7 +632,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   formMethod?: string | undefined;
   formNoValidate?: boolean | undefined;
   formTarget?: string | undefined;
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   list?: string | undefined;
   max?: number | string | undefined;
   maxLength?: number | undefined;
@@ -649,7 +650,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: HTMLInputTypeAttribute | undefined;
   value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
   'bind:value'?: Signal<string | undefined>;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
 export interface InsHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -716,11 +717,11 @@ export interface ObjectHTMLAttributes<T> extends HTMLAttributes<T> {
   classID?: string | undefined;
   data?: string | undefined;
   form?: string | undefined;
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   name?: string | undefined;
   type?: string | undefined;
   useMap?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   wmode?: string | undefined;
 }
 export interface OlHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -788,13 +789,13 @@ export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
   'bind:value'?: Signal<string | undefined>;
 }
 export interface SourceHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   media?: string | undefined;
   sizes?: string | undefined;
   src?: string | undefined;
   srcSet?: string | undefined;
   type?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
 export interface StyleHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -808,7 +809,7 @@ export interface TableHTMLAttributes<T> extends HTMLAttributes<T> {
   cellPadding?: number | string | undefined;
   cellSpacing?: number | string | undefined;
   summary?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
 }
 export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
@@ -817,8 +818,8 @@ export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
   rowSpan?: number | undefined;
   scope?: string | undefined;
   abbr?: string | undefined;
-  height?: Numberish | undefined;
-  width?: Numberish | undefined;
+  height?: Size | undefined;
+  width?: Size | undefined;
   valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
 }
 export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {

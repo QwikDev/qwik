@@ -92,6 +92,15 @@ export interface QwikCityProps {
  * @public
  */
 export const QwikCityProvider = component$<QwikCityProps>((props) => {
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
+
   useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
@@ -115,7 +124,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   );
   const navResolver: { r?: () => void } = {};
   const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
-  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
+  const routeInternal = useSignal<RouteStateInternal>({
+    type: 'initial',
+    dest: url,
+    replaceState: false,
+  });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
@@ -140,14 +153,17 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   );
 
   const goto: RouteNavigate = $(async (path, opt) => {
-    const { type = 'link', forceReload = false } =
-      typeof opt === 'object' ? opt : { forceReload: opt };
+    const {
+      type = 'link',
+      forceReload = false,
+      replaceState = false,
+    } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
     if (!forceReload && dest.href === lastDest.href) {
       return;
     }
-    routeInternal.value = { type, dest };
+    routeInternal.value = { type, dest, replaceState };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -174,9 +190,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useTask$(({ track }) => {
     async function run() {
       const [navigation, action] = track(() => [routeInternal.value, actionState.value]);
+
       const locale = getLocale('');
       const prevUrl = routeLocation.url;
       const navType = action ? 'form' : navigation.type;
+      const replaceState = navigation.replaceState;
       let trackUrl: URL;
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
@@ -279,7 +297,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           const navId = getHistoryId();
           const scrollRecord = getOrInitializeScrollRecord();
           scrollRecord[navId] = currentScrollState(document.documentElement);
-          clientNavigate(window, navType, prevUrl, trackUrl);
+          clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           routeLocation.isNavigating = false;
           _waitUntilRendered(elm as Element).then(() => {
             const restore = props.restoreScroll$ ?? toLastPositionOnPopState;

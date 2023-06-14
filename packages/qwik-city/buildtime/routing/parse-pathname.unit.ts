@@ -63,6 +63,11 @@ const tests = {
     pattern: /^\/xyz\/abc\.dot\/?$/,
     paramNames: [],
   },
+  '/xyz/%D8%B9%D8%B1%D8%A8%D9%8A/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/%D8%B9%D8%B1%D8%A8%D9%8A\/?$/,
+    paramNames: [],
+  },
 };
 
 for (const [key, t] of Object.entries(tests)) {

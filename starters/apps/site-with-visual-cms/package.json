@@ -2,7 +2,7 @@
   "name": "qwik-site-with-visual-cms",
   "description": "Site integrated with Builder.io for visual editing",
   "devDependencies": {
-    "@builder.io/dev-tools": "^0.0.5",
+    "@builder.io/dev-tools": "^0.0.6",
     "@builder.io/sdk-qwik": "^0.3.0"
   },
   "type": "module",

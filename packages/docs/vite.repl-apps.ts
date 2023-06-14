@@ -133,7 +133,7 @@ export function examplesData(routesDir: string): Plugin {
 
     async load(id) {
       if (basename(id) === '@examples-data') {
-        const data = loadExamplesData(this);
+        const data = loadExamplesData(this as any);
         return `const exampleSections = ${JSON.stringify(data)};export default exampleSections;`;
       }
       return null;
@@ -251,7 +251,7 @@ export function tutorialData(routesDir: string): Plugin {
 
     async load(id) {
       if (basename(id) === '@tutorial-data') {
-        const data = loadTutorialData(this);
+        const data = loadTutorialData(this as any);
         return `const tutorialSections = ${JSON.stringify(data)};export default tutorialSections;`;
       }
       return null;

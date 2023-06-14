@@ -7,6 +7,7 @@
     }
 
     .icon {
+      margin: 5px;
       color: black;
       max-width: 100%;
       width: 20px;
@@ -24,15 +25,17 @@
       pointer-events: none;
     }
 
-    .warn {
-      display: none;
+    dialog {
+      padding: 0;
+      border: 0;
+      margin: 0 5px;
       background: #ffffe8;
       color: black;
       width: 250px;
       font-size: 11px;
       position: absolute;
       bottom: calc(100% + 5px);
-      left: -5px;
+      left: 0;
       border-radius: 5px;
       pointer-events: all;
       overflow: hidden;
@@ -47,14 +50,9 @@
       background: #2e3801;
       color: #d2d2d2;
       font-family: monospace;
-      text-align: right;
+      text-align: left;
       padding: 2px 5px;
       pointer-events: all;
-    }
-
-    :host(.visible) .warn {
-      display: block;
-      /* opacity: 1.0; */
     }
 
     pre {
@@ -73,7 +71,25 @@
       text-decoration: underline;
     }
 
-    button {
+    #close {
+      border: 0;
+      width: 25px;
+      height: 25px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      background: #ffe14f;
+      color: black;
+      font-weight: 900;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    #autofix {
       border: 2px solid #18ae00;
       padding: 2px 4px;
       background: #50ff50;
@@ -101,14 +117,17 @@
       />
     </svg>
   </div>
-  <div class="warn">
+  <dialog>
+    <form method="dialog">
+      <button id="close" type="submit" aria-label="Close">X</button>
+    </form>
     <div class="loc"></div>
     <div class="content">
       <h2 id="title"></h2>
       <p id="message"></p>
       <p class="autofix"></p>
     </div>
-  </div>
+  </dialog>
 </template>
 <script>
   (function () {
@@ -120,15 +139,21 @@
         this.shadowRoot.appendChild(
           document.importNode(document.getElementById('image-warning-template').content, true)
         );
+        const dialog = this.shadowRoot.querySelector('dialog');
 
         this.shadowRoot.addEventListener('click', async (ev) => {
           const target = ev.target;
-          if (target.nodeName === 'BUTTON') {
+          if (target.nodeName === 'BUTTON' && target.id === 'autofix') {
             if (this.#autofix) {
               this.#autofix();
+              dialog.close();
             }
           } else if (target.nodeName === 'DIV' && target.className === 'icon') {
-            this.classList.add('visible');
+            if (dialog.open) {
+              dialog.close();
+            } else {
+              dialog.show();
+            }
           }
         });
       }
@@ -148,7 +173,8 @@
       set autofix(value) {
         this.#autofix = value;
         if (value) {
-          this.shadowRoot.querySelector('.autofix').innerHTML = '<button>Auto fix</button>';
+          this.shadowRoot.querySelector('.autofix').innerHTML =
+            '<button id="autofix">Auto fix</button>';
         }
       }
     }
@@ -183,16 +209,12 @@
       const info = await getInfo(originalSrc);
       if (info) {
         let layoutInvalidation = false;
+        const loc = node.getAttribute('data-qwik-inspector');
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
-          const browserArea = rect.width * rect.height;
-          const realArea = info.width && info.height;
-          const threshholdArea = realArea * 0.5;
-          const loc = node.getAttribute('data-qwik-inspector');
           skip = true;
           node.src = '';
           const rect2 = node.getBoundingClientRect();
-          const tooBig = browserArea < threshholdArea;
-          const layoutInvalidation =
+          layoutInvalidation =
             rect.x !== rect2.x ||
             rect.y !== rect2.y ||
             rect.width !== rect2.width ||
@@ -200,6 +222,10 @@
 
           node.src = originalSrc;
         }
+        const browserArea = rect.width * rect.height;
+        const realArea = info.width && info.height;
+        const threshholdArea = realArea * 0.5;
+        const tooBig = browserArea < threshholdArea;
         skip = false;
         let overlay = visibleNodes.get(node);
         if (layoutInvalidation || tooBig) {
@@ -228,7 +254,10 @@
                 url.searchParams.set('loc', loc);
                 url.searchParams.set('width', info.width);
                 url.searchParams.set('height', info.height);
-
+                if (!node.srcset) {
+                  url.searchParams.set('src', node.currentSrc);
+                  url.searchParams.set('currentHref', location.href);
+                }
                 await fetch(url, {
                   method: 'POST',
                 });

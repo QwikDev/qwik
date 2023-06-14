@@ -998,6 +998,24 @@ export default component$(() => (
       <h3 id="jsx-img">jsx-img</h3>
       <span>For performance reasons, always provide width and height attributes for &lt;img&gt; elements, it will help to prevent layout shifts.</span>
   
+<h4>noLocalSrc</h4>
+<p>Examples of <b>correct</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx
+import Image from '~/media/image.png';
+<Image />
+```
+</div>
+<p>Examples of <b>incorrect</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx
+<img src="/image.png">
+```
+<p class="code-description">Serving images from public are not optimized, nor cached. Import images using ESM instead.</p>
+</div>
+<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>noWidthHeight</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">

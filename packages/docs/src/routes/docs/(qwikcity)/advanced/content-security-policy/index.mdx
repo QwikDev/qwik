@@ -2,6 +2,7 @@
 title: Content Security Policy
 contributors:
   - tzdesign
+  - jordanw66
 ---
 
 # Content Security Policy
@@ -32,9 +33,10 @@ src/
 
 #### Example
 
-> Please note that in dev mode the Vite scripts have no nonce and will report. For this reason, the example will not add csp in dev mode.
-> These are very good defaults with backwards compatibility, but please adapt them to your needs.
+> This template provides very permissive backward-compatible defaults. 
+> It is highly recommended that you customize it to better suit your specific use case.
 > As this is an advanced topic, you should take a closer look at [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) or [web.dev](https://web.dev/csp/) to get a better understanding of CSP.
+> Please note that in dev mode the Vite scripts have no nonce and will report. For this reason, the example will not add csp in dev mode.
 
 ```typescript title="src/routes/plugin@csp.ts"
 import type { RequestHandler } from "@builder.io/qwik-city";

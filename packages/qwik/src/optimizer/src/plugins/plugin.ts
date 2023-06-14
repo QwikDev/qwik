@@ -570,7 +570,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
-      const strip = opts.target !== 'lib';
+      const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 
@@ -601,17 +601,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         scope: opts.scope ? opts.scope : void 0,
       };
       const isSSR = !!ssrOpts.ssr;
+      if (isSSR) {
+        transformOpts.entryStrategy = { type: 'hoist' };
+      }
+      transformOpts.isServer = isSSR;
       if (strip) {
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
           transformOpts.stripEventHandlers = true;
-          transformOpts.entryStrategy = { type: 'hoist' };
           transformOpts.regCtxName = REG_CTX_NAME;
-          transformOpts.isServer = true;
         } else {
           transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
           transformOpts.stripExports = SERVER_STRIP_EXPORTS;
-          transformOpts.isServer = false;
         }
       }
 

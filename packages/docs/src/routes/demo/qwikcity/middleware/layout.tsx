@@ -1,6 +1,6 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
 
-export const onRequest: RequestHandler = async ({ request, next }) => {
+export const onRequest: RequestHandler = async ({ next }) => {
   try {
     await next();
   } catch (error) {

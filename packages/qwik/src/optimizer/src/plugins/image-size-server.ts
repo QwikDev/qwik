@@ -104,7 +104,7 @@ export async function getInfoForSrc(src: string) {
   }
 }
 
-export const getImageSizeServer = (sys: OptimizerSystem, srcDir: string) => {
+export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir: string) => {
   const handler: Connect.NextHandleFunction = async (req, res, next) => {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
     const path: typeof import('path') = await sys.dynamicImport('node:path');
@@ -133,6 +133,9 @@ export const getImageSizeServer = (sys: OptimizerSystem, srcDir: string) => {
         const loc = url.searchParams.get('loc') as string;
         const width = url.searchParams.get('width');
         const height = url.searchParams.get('height');
+        const src = url.searchParams.get('src') as string;
+        const currentHref = url.searchParams.get('currentHref') as string;
+
         const locParts = loc.split(':');
         const column = parseInt(locParts[locParts.length - 1], 10) - 1;
         let line = parseInt(locParts[locParts.length - 2], 10) - 1;
@@ -152,10 +155,48 @@ export const getImageSizeServer = (sys: OptimizerSystem, srcDir: string) => {
         }
 
         if (text.slice(offset, offset + 4) === '<img') {
-          const end = text.indexOf('>', offset);
+          const end = text.indexOf('>', offset) + 1;
+
           let imgTag = text.slice(offset, end);
-          imgTag = imgTag.replace(/width=({|'|").*(}|'|")/, `width="${width}"`);
-          imgTag = imgTag.replace(/height=({|'|").*(}|'|")/, `height="${height}"`);
+
+          if (src && currentHref) {
+            const urlSrc = new URL(src);
+            const urlCurrent = new URL(currentHref);
+            if (urlSrc.origin === urlCurrent.origin) {
+              const publicImagePath = path.join(rootDir, 'public', urlSrc.pathname);
+              const rootImagePath = path.join(rootDir, urlSrc.pathname);
+              let relativeLocation: string;
+              if (fs.existsSync(publicImagePath)) {
+                const mediaSrc = path.join(srcDir, 'media', path.dirname(urlSrc.pathname));
+                await fs.promises.mkdir(mediaSrc, { recursive: true });
+                await fs.promises.copyFile(
+                  publicImagePath,
+                  path.join(srcDir, 'media', urlSrc.pathname)
+                );
+                relativeLocation = '~/media' + urlSrc.pathname;
+              } else if (fs.existsSync(rootImagePath)) {
+                relativeLocation = urlSrc.pathname.replace('/src/', '~/');
+              } else {
+                return;
+              }
+              const importIdent = imgImportName(urlSrc.pathname);
+              const importSrc = `${relativeLocation}?jsx`;
+              imgTag = imgTag.replace(/^<img/, `<${importIdent}`);
+              imgTag = imgTag.replace(/\bwidth=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
+              imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
+              imgTag = imgTag.replace(/\bsrc=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
+
+              text = `import ${importIdent} from '${importSrc}';\n${text.slice(
+                0,
+                offset
+              )}${imgTag}${text.slice(end)}`;
+              fs.writeFileSync(filePath, text);
+            }
+            return;
+          }
+
+          imgTag = imgTag.replace(/\bwidth=(({[^}]*})|('[^']*')|("[^"]*"))/, `width="${width}"`);
+          imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))/, `height="${height}"`);
           if (!imgTag.includes('height=')) {
             imgTag = imgTag.replace(/<img/, `<img height="${height}"`);
           }
@@ -174,3 +215,19 @@ export const getImageSizeServer = (sys: OptimizerSystem, srcDir: string) => {
   };
   return handler;
 };
+
+function imgImportName(value: string) {
+  const dot = value.lastIndexOf('.');
+  const slash = value.lastIndexOf('/');
+  value = value.substring(slash + 1, dot);
+  return `Img${toPascalCase(value)}`;
+}
+
+function toPascalCase(string: string) {
+  return `${string}`
+    .toLowerCase()
+    .replace(new RegExp(/[-_]+/, 'g'), ' ')
+    .replace(new RegExp(/[^\w\s]/, 'g'), '')
+    .replace(new RegExp(/\s+(.)(\w*)/, 'g'), ($1, $2, $3) => `${$2.toUpperCase() + $3}`)
+    .replace(new RegExp(/\w/), (s) => s.toUpperCase());
+}

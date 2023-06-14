@@ -92,15 +92,6 @@ export interface QwikCityProps {
  * @public
  */
 export const QwikCityProvider = component$<QwikCityProps>((props) => {
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-  console.log('+++++++++++++++++++++++++++ Wims Qwik City ++++++++++++++++++++++++++++++++');
-
   useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {

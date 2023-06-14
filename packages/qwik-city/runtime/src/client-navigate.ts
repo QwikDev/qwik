@@ -10,7 +10,6 @@ export const clientNavigate = (
   toURL: URL,
   replaceState = false
 ) => {
-  console.log('clientNavigate', win, navType, fromURL, toURL);
   if (isSameOrigin(fromURL, toURL)) {
     if (navType === 'popstate') {
       clientHistoryState.id = win.history.state?.id ?? 0;

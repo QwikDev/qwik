@@ -2700,6 +2700,30 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_issue_4438() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const toggle = useSignal(false);
+    return (
+        <>
+            <div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+            <div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_derived_signals_children() {
     test_input!(TestInput {
         code: r#"

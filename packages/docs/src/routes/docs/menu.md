@@ -103,6 +103,7 @@
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 - [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
+- [Content Security Policy](/docs/(qwik)/advanced/content-security-policy/index.mdx)
 
 ## Reference
 

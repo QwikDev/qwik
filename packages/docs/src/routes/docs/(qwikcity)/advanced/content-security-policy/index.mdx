@@ -1,0 +1,113 @@
+---
+title: Content Security Policy
+contributors:
+  - tzdesign
+  - jordanw66
+---
+
+# Content Security Policy
+
+## What is CSP?
+
+[Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft, to site defacement, to malware distribution.
+
+## Steps to integrate
+
+### Add a route plugin
+
+To add the middleware plugin to your application, simply add a file named ```plugin@your-plugin-name.ts``` to the routes folder. 
+This file will be loaded with every request, allowing you to add headers, modify the response, and more.
+
+```bash  {3} /plugin@csp\.ts/ title="Add the plugin"
+src/
+└── routes/
+    ├── plugin@csp.ts         # The plugin which runs on every request (route middleware)
+    ├── contact/
+    │   └── index.mdx         # https://example.com/contact
+    ├── about/
+    │   └── index.md          # https://example.com/about
+    ├── index.mdx             # https://example.com/
+    │
+    └── layout.tsx            # This layout is used for all pages
+```
+
+#### Example
+
+> This template provides very permissive backward-compatible defaults. 
+> It is highly recommended that you customize it to better suit your specific use case.
+> As this is an advanced topic, you should take a closer look at [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) or [web.dev](https://web.dev/csp/) to get a better understanding of CSP.
+> Please note that in dev mode the Vite scripts have no nonce and will report. For this reason, the example will not add csp in dev mode.
+
+```typescript title="src/routes/plugin@csp.ts"
+import type { RequestHandler } from "@builder.io/qwik-city";
+import { isDev } from "@builder.io/qwik/build";
+
+export const onRequest: RequestHandler = event => {
+  if (isDev) return; // Will not return CSP headers in dev mode
+  const nonce = Date.now().toString(36); // Your custom nonce logic here
+  event.sharedMap.set("@nonce", nonce);
+  const csp = [
+    `default-src 'self' 'unsafe-inline'`,
+    `font-src 'self'`,
+    `img-src 'self' 'unsafe-inline' data:`,
+    `script-src 'self' 'unsafe-inline' https: 'nonce-${nonce}' 'strict-dynamic'`,
+    `style-src 'self' 'unsafe-inline'`,
+    `frame-src 'self' 'nonce-${nonce}'`,
+    `object-src 'none'`,
+    `base-uri 'self'`,
+  ];
+
+  event.headers.set("Content-Security-Policy", csp.join("; "));
+};
+```
+
+### Add it to the service worker as well
+
+```tsx {12,22} /nonce/ title="src/root.ts"
+import { component$, useServerData } from "@builder.io/qwik";
+import {
+  QwikCityProvider,
+  RouterOutlet,
+  ServiceWorkerRegister,
+} from "@builder.io/qwik-city";
+import { RouterHead } from "./components/router-head/router-head";
+
+import "./global.css";
+
+export default component$(() => {
+  const nonce = useServerData<string | undefined>("nonce");
+  return (
+    <QwikCityProvider>
+      <head>
+        <meta charSet="utf-8" />
+        <link rel="manifest" href="/manifest.json" />
+        <RouterHead />
+      </head>
+      <body lang="en">
+        <RouterOutlet />
+        <ServiceWorkerRegister nonce={nonce} />
+      </body>
+    </QwikCityProvider>
+  );
+});
+```
+
+### Custom scripts
+
+If you have custom script tags that you need to add the nonce to, you can use the `useServerData` hook to get the nonce from the server and add it to your script tags.
+
+```tsx {2,5} /nonce/ title="src/components/some-component.tsx"
+export default component$(() => {
+  const nonce = useServerData<string | undefined>("nonce");
+  return (
+    <div>
+      <script nonce={nonce}>alert("Hello world")</script>
+    </div>
+  );
+});
+```
+
+
+## Validate your CSP
+
+There is a great tool to validate your CSP: [https://csp-evaluator.withgoogle.com/](https://csp-evaluator.withgoogle.com/)

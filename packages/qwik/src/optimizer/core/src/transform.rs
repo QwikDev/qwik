@@ -519,6 +519,9 @@ impl<'a> QwikTransform<'a> {
                 return (None, false);
             } else if decl_collect.iter().any(|entry| entry.0 == *ident) {
                 set.insert(ident.clone());
+            } else if ident.0.starts_with('$') {
+                // TODO: remove, this is a workaround for $localize to work
+                return (None, false);
             }
         }
         let mut scoped_idents: Vec<Id> = set.into_iter().collect();

@@ -249,11 +249,6 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    */
   readonly send: SendMethod;
 
-  /**
-   * Provides information about the client connection, such as the IP address and the country the request originated from.
-   */
-  readonly clientConn: ClientConn;
-
   readonly exit: () => AbortMessage;
 }
 
@@ -351,6 +346,11 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
    */
   readonly cacheControl: (cacheControl: CacheControl) => void;
+
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
 }
 
 /**

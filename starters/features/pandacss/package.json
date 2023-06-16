@@ -1,0 +1,19 @@
+{
+  "description": "Zero runtime inlined CSS with PandaCSS",
+  "scripts": {
+    "pandacss.generate": "panda codegen"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "^0.3.1"
+  },
+  "__qwik__": {
+    "displayName": "Integration: PandaCSS (styling)",
+    "priority": -10,
+    "postInstall": "panda codegen",
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/pandacss/",
+      "https://panda-css.com/docs/getting-started/qwik"
+    ]
+  }
+}

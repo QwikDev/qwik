@@ -87,7 +87,7 @@ export interface QwikCityProps {
   /**
    * @alpha
    * Scroll restoration logic for SPA navigation.
-   * 
+   *
    * Default: `toLastPositionOnPopState`
    */
   restoreScroll$?: RestoreScroll;

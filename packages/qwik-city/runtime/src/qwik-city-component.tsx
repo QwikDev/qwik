@@ -13,7 +13,6 @@ import {
   _weakSerialize,
   useStyles$,
   _waitUntilRendered,
-  type PropFunction,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
@@ -85,7 +84,13 @@ export interface QwikCityProps {
    */
   viewTransition?: boolean;
 
-  restoreScroll$?: PropFunction<RestoreScroll>;
+  /**
+   * @alpha
+   * Scroll restoration logic for SPA navigation.
+   * 
+   * Default: `toLastPositionOnPopState`
+   */
+  restoreScroll$?: RestoreScroll;
 }
 
 /**

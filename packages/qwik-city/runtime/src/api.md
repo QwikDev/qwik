@@ -10,7 +10,6 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
-import { PropFunction } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -321,10 +320,8 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
-    // Warning: (ae-incompatible-release-tags) The symbol "restoreScroll$" is marked as @public, but its signature references "RestoreScroll" which is marked as @alpha
-    //
-    // (undocumented)
-    restoreScroll$?: PropFunction<RestoreScroll>;
+    // @alpha
+    restoreScroll$?: RestoreScroll;
     viewTransition?: boolean;
 }
 

@@ -44,14 +44,16 @@ import type {
   RouteNavigate,
   RouteStateInternal,
   RestoreScroll,
+  ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
 import { isSamePathname, toUrl } from './utils';
-import { clientNavigate, getHistoryId } from './client-navigate';
+import { clientNavigate } from './client-navigate';
 import {
   currentScrollState,
-  getOrInitializeScrollRecord,
+  getScrollHistory,
+  saveScrollHistory,
   toLastPositionOnPopState,
 } from './scroll-restoration';
 
@@ -245,9 +247,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         if (isBrowser) {
-          const navId = getHistoryId();
-          const scrollRecord = getOrInitializeScrollRecord();
-          scrollRecord[navId] = currentScrollState(document.documentElement);
+          let scrollState: ScrollState | undefined;
+          if (navType === 'popstate') {
+            scrollState = getScrollHistory();
+          }
 
           // Awaits a QRL to resolve scroll function, must happen BEFORE setting contentInternal.value below.
           // This is because the actual scroll restore needs to be synchronous with render.
@@ -256,7 +259,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             navType,
             prevUrl,
             trackUrl,
-            scrollRecord
+            scrollState
           );
         }
 
@@ -294,11 +297,32 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             Object.assign(loaderState, loaders);
           }
           CLIENT_DATA_CACHE.clear();
+
           if (!win._qCityHistory) {
             // only add event listener once
             win._qCityHistory = 1;
 
+            win.addEventListener(
+              'scroll',
+              () => {
+                if (!win._qCityScrollHandlerEnabled) {
+                  return;
+                }
+
+                clearTimeout(win._qCityScrollDebounceTimeout);
+                win._qCityScrollDebounceTimeout = setTimeout(() => {
+                  const scrollState = currentScrollState(document.documentElement);
+                  saveScrollHistory(scrollState);
+                }, 200);
+              },
+              { passive: true }
+            );
+
             win.addEventListener('popstate', () => {
+              // Disable scroll handler eagerly to prevent overwriting history.state.
+              win._qCityScrollHandlerEnabled = false;
+              clearTimeout(win._qCityScrollDebounceTimeout);
+
               return goto(location.href, {
                 type: 'popstate',
               });
@@ -310,9 +334,25 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               history.scrollRestoration = 'manual';
             }
           }
+
+          win._qCityScrollHandlerEnabled = false;
+          clearTimeout(win._qCityScrollDebounceTimeout);
+          if (navType !== 'popstate') {
+            // Save the final scroll state before pushing new state.
+            // Also upgrades/replaces null state with scroll pos on first nav.
+            const scrollState = currentScrollState(document.documentElement);
+            saveScrollHistory(scrollState, true);
+          }
+
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           routeLocation.isNavigating = false;
-          _waitUntilRendered(elm as Element).then(navResolver.r);
+          _waitUntilRendered(elm as Element).then(() => {
+            const scrollState = currentScrollState(document.documentElement);
+            saveScrollHistory(scrollState);
+            win._qCityScrollHandlerEnabled = true;
+
+            navResolver.r?.();
+          });
         }
       }
     }
@@ -386,5 +426,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
 
 interface ClientHistoryWindow extends Window {
   _qCityHistory?: 1;
+  _qCityScrollHandlerEnabled?: boolean;
+  _qCityScrollDebounceTimeout?: ReturnType<typeof setTimeout>;
   _qCityPopstateFallback?: () => void;
 }

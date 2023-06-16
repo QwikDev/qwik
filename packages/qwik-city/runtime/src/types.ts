@@ -82,17 +82,12 @@ export type RouteStateInternal = {
 /**
  * @alpha
  */
-export type ScrollState = [
-  scrollX: number,
-  scrollY: number,
-  scrollWidth: number,
-  scrollHeight: number
-];
-
-/**
- * @alpha
- */
-export type ScrollRecord = Record<string, ScrollState>;
+export type ScrollState = {
+  scrollX: number;
+  scrollY: number;
+  scrollWidth: number;
+  scrollHeight: number;
+};
 
 /**
  * @alpha
@@ -101,7 +96,7 @@ export type RestoreScroll = (
   navigationType: NavigationType,
   fromUrl: URL,
   toUrl: URL,
-  records: ScrollRecord
+  scrollState?: ScrollState
 ) => () => void;
 
 /**

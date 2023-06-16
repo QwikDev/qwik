@@ -220,9 +220,6 @@ export interface FormSubmitSuccessDetail<T> {
     value: T;
 }
 
-// @alpha (undocumented)
-export const getHistoryId: () => string;
-
 // @public (undocumented)
 export const globalAction$: ActionConstructor;
 
@@ -343,10 +340,10 @@ export { RequestHandler }
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
-// Warning: (ae-forgotten-export) The symbol "ScrollRecord" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ScrollState" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, records: ScrollRecord) => () => void;
+export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, scrollState?: ScrollState) => () => void;
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;

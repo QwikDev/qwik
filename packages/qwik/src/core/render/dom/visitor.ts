@@ -1120,7 +1120,9 @@ export const executeContextWithScrollAndTransition = async (ctx: RenderStaticCon
   }
   // fallback
   executeDOMRender(ctx);
-  if (isBrowser) restoreScroll();
+  if (isBrowser) {
+    restoreScroll();
+  }
 };
 
 export const directAppendChild = (parent: QwikElement, child: Node | VirtualElement) => {

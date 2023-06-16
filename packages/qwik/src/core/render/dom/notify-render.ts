@@ -1,5 +1,5 @@
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
+import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
@@ -191,7 +191,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       return;
     }
 
-    await executeContextWithTransition(staticCtx);
+    await executeContextWithScrollAndTransition(staticCtx);
     printRenderStats(staticCtx);
     return postRendering(containerState, rCtx);
   } catch (err) {

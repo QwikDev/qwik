@@ -349,7 +349,7 @@ export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 // Warning: (ae-forgotten-export) The symbol "ScrollRecord" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, records: ScrollRecord) => void | Promise<void>;
+export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, records: ScrollRecord) => () => void;
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;

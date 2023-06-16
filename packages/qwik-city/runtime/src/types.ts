@@ -102,7 +102,7 @@ export type RestoreScroll = (
   fromUrl: URL,
   toUrl: URL,
   records: ScrollRecord
-) => void | Promise<void>;
+) => () => void;
 
 /**
  * @public

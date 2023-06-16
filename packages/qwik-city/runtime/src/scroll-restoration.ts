@@ -6,9 +6,7 @@ import { getHistoryId } from './client-navigate';
 /**
  * @alpha
  */
-export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSettled) => {
-  // wait for url to settled
-  const toUrl = await toUrlSettled;
+export const toTopAlways: QRL<RestoreScroll> = $((_type, fromUrl, toUrl) => () => {
   if (!scrollForHashChange(fromUrl, toUrl)) {
     window.scrollTo(0, 0);
   }
@@ -18,11 +16,9 @@ export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSet
  * @alpha
  */
 export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
-  (type, fromUrl, toUrlSettled, scrollRecord) => {
+  (type, fromUrl, toUrl, scrollRecord) => () => {
     flushScrollRecordToStorage(scrollRecord);
 
-    // wait for url to settled
-    const toUrl = toUrlSettled;
     if (!scrollForHashChange(fromUrl, toUrl)) {
       // retrieve scroll position for popstate navigation
       let [scrollX, scrollY] = [0, 0];

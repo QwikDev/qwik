@@ -239,6 +239,22 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
+        if (isBrowser) {
+          const navId = getHistoryId();
+          const scrollRecord = getOrInitializeScrollRecord();
+          scrollRecord[navId] = currentScrollState(document.documentElement);
+
+          // Awaits a QRL to resolve scroll function, must happen BEFORE setting contentInternal.value below.
+          // This is because the actual scroll restore needs to be synchronous with render.
+          const scrollRestoreQrl = props.restoreScroll$ ?? toLastPositionOnPopState;
+          document.__q_scroll_restore__ = await scrollRestoreQrl(
+            navType,
+            prevUrl,
+            trackUrl,
+            scrollRecord
+          );
+        }
+
         // Update route location
         routeLocation.prevUrl = prevUrl;
         routeLocation.url = trackUrl;
@@ -289,15 +305,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               history.scrollRestoration = 'manual';
             }
           }
-          const navId = getHistoryId();
-          const scrollRecord = getOrInitializeScrollRecord();
-          scrollRecord[navId] = currentScrollState(document.documentElement);
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           routeLocation.isNavigating = false;
-          _waitUntilRendered(elm as Element).then(() => {
-            const restore = props.restoreScroll$ ?? toLastPositionOnPopState;
-            restore(routeInternal.value.type, prevUrl, trackUrl, scrollRecord).then(navResolver.r);
-          });
+          _waitUntilRendered(elm as Element).then(navResolver.r);
         }
       }
     }

@@ -5,5 +5,9 @@ export interface [name]Props {
 }
 
 export const [name] = component$<[name]Props>((props) => {
-  return <>[name] component works!</>
+  return (
+    <div>
+      [name] component works!
+    </div>
+  );
 });

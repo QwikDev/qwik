@@ -284,6 +284,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             });
 
             win.removeEventListener('popstate', win._qCityPopstateFallback!);
+
+            if (history.scrollRestoration) {
+              history.scrollRestoration = 'manual';
+            }
           }
           const navId = getHistoryId();
           const scrollRecord = getOrInitializeScrollRecord();

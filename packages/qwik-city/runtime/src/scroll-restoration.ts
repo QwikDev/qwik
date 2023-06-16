@@ -7,15 +7,11 @@ import { getHistoryId } from './client-navigate';
  * @alpha
  */
 export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSettled) => {
-  nativeScrollRestoration.disable();
-
   // wait for url to settled
   const toUrl = await toUrlSettled;
   if (!scrollForHashChange(fromUrl, toUrl)) {
     window.scrollTo(0, 0);
   }
-
-  nativeScrollRestoration.enable();
 });
 
 /**
@@ -23,7 +19,6 @@ export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSet
  */
 export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
   (type, fromUrl, toUrlSettled, scrollRecord) => {
-    nativeScrollRestoration.disable();
     flushScrollRecordToStorage(scrollRecord);
 
     // wait for url to settled
@@ -40,23 +35,8 @@ export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
       }
       window.scrollTo(scrollX, scrollY);
     }
-
-    nativeScrollRestoration.enable();
   }
 );
-
-const nativeScrollRestoration = {
-  backup: 'auto' as ScrollRestoration,
-  disable() {
-    // back up browser scroll restoration setting and override it to manual
-    nativeScrollRestoration.backup = history.scrollRestoration;
-    history.scrollRestoration = 'manual';
-  },
-  enable() {
-    // revert scroll restoration to original value
-    history.scrollRestoration = nativeScrollRestoration.backup;
-  },
-};
 
 const QWIK_CITY_SCROLL_RECORD = '_qCityScroll';
 

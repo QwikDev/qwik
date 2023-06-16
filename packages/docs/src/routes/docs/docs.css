@@ -79,6 +79,8 @@
   font-size: 70px;
   margin: 0;
   line-height: 1;
+  position: relative;
+  margin: auto;
 }
 
 .docs article h1 {

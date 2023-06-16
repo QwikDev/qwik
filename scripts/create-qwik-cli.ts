@@ -92,7 +92,7 @@ export async function publishCreateQwikCli(
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
-  let semverQwik = `^${version}`;
+  const semverQwik = config.devRelease ? `${version}` : `^${version}`;
   console.log(`   update devDependencies["@builder.io/qwik"] = "${semverQwik}"`);
   baseAppPkg.devDependencies['@builder.io/qwik'] = semverQwik;
 

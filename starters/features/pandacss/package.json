@@ -1,5 +1,5 @@
 {
-  "description": "Zero runtime inlined CSS with PandaCSS",
+  "description": "Zero-runtime CSS-in-JS",
   "scripts": {
     "pandacss.generate": "panda codegen"
   },
@@ -12,7 +12,6 @@
     "postInstall": "panda codegen",
     "viteConfig": {},
     "docs": [
-      "https://qwik.builder.io/integrations/integration/pandacss/",
       "https://panda-css.com/docs/getting-started/qwik"
     ]
   }

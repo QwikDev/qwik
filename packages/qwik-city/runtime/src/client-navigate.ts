@@ -15,15 +15,15 @@ export const clientNavigate = (
     const samePath = isSamePath(fromURL, toURL);
     const sameHash = fromURL.hash === toURL.hash;
     if (!samePath || !sameHash) {
-      const state: ScrollHistoryState = {
+      const newState: ScrollHistoryState = {
         _qCityScroll: emptyScrollState(),
       };
 
       if (replaceState) {
-        win.history.replaceState(state, '', toPath(toURL));
+        win.history.replaceState(newState, '', toPath(toURL));
       } else {
         // push to history for path or hash changes
-        win.history.pushState(state, '', toPath(toURL));
+        win.history.pushState(newState, '', toPath(toURL));
       }
     }
   }

@@ -340,7 +340,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           clearTimeout(win._qCityScrollDebounceTimeout);
           if (navType !== 'popstate') {
             // Save the final scroll state before pushing new state.
-            // Also upgrades/replaces null state with scroll pos on first nav.
+            // Upgrades/replaces state with scroll pos on nav as needed.
             const scrollState = currentScrollState(document.documentElement);
             saveScrollHistory(scrollState, true);
           }

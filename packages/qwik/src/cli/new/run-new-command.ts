@@ -77,7 +77,7 @@ export async function runNewCommand(app: AppCommand) {
     }
 
     if (typeArg === 'route') {
-      outDir = join(app.rootDir, 'src', `routes`, mainInput);
+      outDir = join(app.rootDir, 'src', `routes`, nameArg);
     } else {
       outDir = join(app.rootDir, 'src', `components`, nameArg);
     }
@@ -110,7 +110,7 @@ async function selectType() {
 }
 
 async function selectName(type: 'route' | 'component') {
-  const message = type === 'route' ? 'Route path' : 'Name your component';
+  const message = type === 'route' ? 'New route path' : 'Name your component';
   const placeholder = type === 'route' ? '/product/[id]' : 'my-component';
   const nameAnswer = await text({
     message,

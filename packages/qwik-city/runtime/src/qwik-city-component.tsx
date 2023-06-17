@@ -325,6 +325,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 win._qCityScrollDebounceTimeout = setTimeout(() => {
                   const scrollState = currentScrollState(document.documentElement);
                   saveScrollHistory(scrollState);
+                  // Needed for e2e debounceDetector.
                   win._qCityScrollDebounceTimeout = undefined;
                 }, 200);
               },

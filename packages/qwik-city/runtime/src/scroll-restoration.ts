@@ -19,11 +19,9 @@ export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
     if (!scrollForHashChange(fromUrl, toUrl)) {
       // retrieve scroll position for popstate navigation
       let [scrollX, scrollY] = [0, 0];
-      if (type === 'popstate') {
-        if (scrollState) {
-          scrollX = scrollState.scrollX || 0;
-          scrollY = scrollState.scrollY || 0;
-        }
+      if (type === 'popstate' && scrollState) {
+        scrollX = scrollState.scrollX;
+        scrollY = scrollState.scrollY;
       }
       window.scrollTo(scrollX, scrollY);
     }

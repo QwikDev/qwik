@@ -313,6 +313,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 win._qCityScrollDebounceTimeout = setTimeout(() => {
                   const scrollState = currentScrollState(document.documentElement);
                   saveScrollHistory(scrollState);
+                  win._qCityScrollDebounceTimeout = undefined;
                 }, 200);
               },
               { passive: true }

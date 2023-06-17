@@ -284,7 +284,7 @@ There are two built-in scroll restoration presets provided by QwikCity - `toTopA
 - `toTopAlways`, as the name suggests, always scrolls the page to the top of the window when navigating to new or previous pages.
 - `toLastPositionOnPopState` (default) mimics how browsers handle MPA - scrolling the page to the top when navigating to a new page, but to the last-visited position when navigating with a `popstate` event (e.g. back/next button).
 
-> Note that both presets treat hash navigation as an exception and always scroll to the hashed element when it is available and specified in the URL.
+> Note that browsers such as Chromium and Firefox natively scroll to hashes on regular navigation, popstates will ALWAYS restore. The `toLastPositionOnPopState` preset will replicate this behavior, while `toTopAlways` will always scroll to hashes.
 
 You can also implement your own scroll restoration logic by supplying a function with the above signature, for example:
 
@@ -306,7 +306,8 @@ const restoreScroll: QRL<RestoreScroll> = $((type, fromUrl, toUrl, scrollState) 
 ```
 
 > Note that the returned inner void function MUST run synchronously with render, it is recommended to avoid expensive computations inside of it.
-> The `scrollState` argument may be undefined when there is no scroll history, typically when type is not popstate, but also pops on custom `pushState`s.
+
+> The `scrollState` argument may be undefined when there is no scroll history, typically when type is not popstate, but also pops on custom `pushState`.
 
 ## `<RouterOutlet>`
 

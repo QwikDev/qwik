@@ -2,27 +2,13 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { assertQrl, createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
-import {
-  qError,
-  QError_dynamicImportFailed,
-  QError_qrlMissingChunk,
-  QError_unknownTypeArgument,
-} from '../error/error';
+import { qError, QError_qrlMissingChunk, QError_unknownTypeArgument } from '../error/error';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { assertDefined, assertTrue, assertElement } from '../error/assert';
 import type { MustGetObjID } from '../container/container';
 import type { QContext } from '../state/context';
 import { mapJoin } from '../container/pause';
-
-// https://regexr.com/68v72
-const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
-
-// https://regexr.com/690ds
-const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
-
-// https://regexr.com/6a83h
-const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 const announcedQRL = /*#__PURE__*/ new Set<string>();
 
@@ -55,33 +41,12 @@ export interface QRLDev {
 export const qrl = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY,
-  stackOffset = 0
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   let chunk: string | null = null;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
   if (isFunction(chunkOrFn)) {
     symbolFn = chunkOrFn;
-    if (qSerialize) {
-      let match: RegExpMatchArray | null;
-      const srcCode = String(chunkOrFn);
-      if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
-        chunk = match[2];
-      } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
-        const ref = 'QWIK-SELF';
-        const frames = new Error(ref).stack!.split('\n');
-        const start = frames.findIndex((f) => f.includes(ref));
-        const frame = frames[start + 2 + stackOffset];
-        match = frame.match(EXTRACT_FILE_NAME);
-        if (!match) {
-          chunk = 'main';
-        } else {
-          chunk = match[1];
-        }
-      } else {
-        throw qError(QError_dynamicImportFailed, srcCode);
-      }
-    }
   } else if (isString(chunkOrFn)) {
     chunk = chunkOrFn;
   } else {
@@ -95,7 +60,6 @@ export const qrl = <T = any>(
       symbols: [getSymbolHash(symbol)],
     });
   }
-
   // Unwrap subscribers
   return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
 };
@@ -131,7 +95,7 @@ export const qrlDEV = <T = any>(
   opts: QRLDev,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
-  const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
+  const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture) as QRLInternal<T>;
   newQrl.dev = opts;
   return newQrl;
 };
@@ -150,12 +114,7 @@ export const inlinedQrlDEV = <T = any>(
   return qrl;
 };
 
-export interface QRLSerializeOptions {
-  $getObjId$?: MustGetObjID;
-  $addRefMap$?: (obj: any) => string;
-}
-
-export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) => {
+export const serializeQRL = (qrl: QRLInternal, getObjId: MustGetObjID) => {
   assertTrue(qSerialize, 'In order to serialize a QRL, qSerialize must be true');
   assertQrl(qrl);
   let symbol = qrl.$symbol$;
@@ -187,11 +146,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const capture = qrl.$capture$;
   const captureRef = qrl.$captureRef$;
   if (captureRef && captureRef.length) {
-    if (opts.$getObjId$) {
-      output += `[${mapJoin(captureRef, opts.$getObjId$, ' ')}]`;
-    } else if (opts.$addRefMap$) {
-      output += `[${mapJoin(captureRef, opts.$addRefMap$, ' ')}]`;
-    }
+    output += `[${mapJoin(captureRef, getObjId, ' ')}]`;
   } else if (capture && capture.length > 0) {
     output += `[${capture.join(' ')}]`;
   }
@@ -200,10 +155,8 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
 
 export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
   assertElement(elCtx.$element$);
-  const opts: QRLSerializeOptions = {
-    $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),
-  };
-  return mapJoin(existingQRLs, (qrl) => serializeQRL(qrl, opts), '\n');
+  const getObjId = (obj: any) => addToArray(elCtx.$refMap$, obj);
+  return mapJoin(existingQRLs, (qrl) => serializeQRL(qrl, getObjId), '\n');
 };
 
 /**

@@ -65,6 +65,9 @@ import { HOST_FLAG_DYNAMIC, type QContext, tryGetContext } from '../state/contex
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
 import { QObjectImmutable, QObjectRecursive } from '../state/constants';
+import { resolveManifest } from '../../server/render';
+import { getPlatform } from '../platform/platform';
+import type { QwikManifest } from '../../server/types';
 
 /**
  * @internal
@@ -175,9 +178,14 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 // </docs>
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
-  defaultParentJSON?: Element
+  manifest: QwikManifest,
+  defaultParentJSON?: Element,
 ): Promise<SnapshotResult> => {
   const doc = getDocument(elmOrDoc);
+  const resolved = resolveManifest(manifest)!;
+  getPlatform().chunkForSymbol = (symbolName) => {
+    return resolved.mapper[symbolName]
+  };
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
   if (directGetAttribute(containerEl, QContainerAttr) === 'paused') {

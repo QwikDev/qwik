@@ -47,12 +47,19 @@ qrlSuite('should parse', () => {
   });
 });
 
+const getObjID = (obj: any) => '0';
 qrlSuite('serialize qrls', () => {
-  equal(serializeQRL(createQRL('./chunk', '', null, null, null, null, null)), 'chunk#');
-  equal(serializeQRL(createQRL('./c', 's1', null, null, null, null, null)), 'c#s1');
-  equal(serializeQRL(createQRL('./c', 's1', null, null, [], null, null)), 'c#s1');
-  equal(serializeQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)), 'c#s1[1 2]');
-  equal(serializeQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)), 'c#s1[1 2]');
+  equal(serializeQRL(createQRL('./chunk', '', null, null, null, null, null), getObjID), 'chunk#');
+  equal(serializeQRL(createQRL('./c', 's1', null, null, null, null, null), getObjID), 'c#s1');
+  equal(serializeQRL(createQRL('./c', 's1', null, null, [], null, null), getObjID), 'c#s1');
+  equal(
+    serializeQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null), getObjID),
+    'c#s1[1 2]'
+  );
+  equal(
+    serializeQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null), getObjID),
+    'c#s1[1 2]'
+  );
 });
 
 qrlSuite('should parse reference', () => {

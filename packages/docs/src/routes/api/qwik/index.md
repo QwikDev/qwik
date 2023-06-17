@@ -1091,8 +1091,7 @@ This function should be used by the Qwik Optimizer only. The function should not
 qrl: <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture?: any[],
-  stackOffset?: number
+  lexicalScopeCapture?: any[]
 ) => QRL<T>;
 ```
 
@@ -1108,8 +1107,7 @@ This function should be used by the Qwik Optimizer only. The function should not
 qrl: <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture?: any[],
-  stackOffset?: number
+  lexicalScopeCapture?: any[]
 ) => QRL<T>;
 ```
 

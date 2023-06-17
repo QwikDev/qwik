@@ -932,7 +932,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
+      "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts",
       "mdFile": "qwik.qrl.md"
     },
@@ -946,7 +946,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>\n```",
+      "content": "Used by Qwik Optimizer to point to lazy-loaded resources.\n\nThis function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.\n\n\n```typescript\nqrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.qrl.md"
     },

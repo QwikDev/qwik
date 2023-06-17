@@ -103,9 +103,7 @@ const QRLSerializer: Serializer<QRLInternal> = {
     }
   },
   $serialize$: (obj, getObjId) => {
-    return serializeQRL(obj, {
-      $getObjId$: getObjId,
-    });
+    return serializeQRL(obj, getObjId);
   },
   $prepare$: (data, containerState) => {
     return parseQRL(data, containerState.$containerEl$);
@@ -226,9 +224,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
   $test$: (obj) => isQwikComponent(obj),
   $serialize$: (obj, getObjId) => {
     const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
-    return serializeQRL(qrl, {
-      $getObjId$: getObjId,
-    });
+    return serializeQRL(qrl, getObjId);
   },
   $prepare$: (data, containerState) => {
     const qrl: QRL<any> = parseQRL(data, containerState.$containerEl$);

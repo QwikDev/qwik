@@ -1,3 +1,4 @@
+import type { ResolvedManifest, SymbolMapper } from '../../optimizer/src/types';
 import type { ValueOrPromise } from '../util/types';
 
 // <docs markdown="./readme.md#CorePlatform">

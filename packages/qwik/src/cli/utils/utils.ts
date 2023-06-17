@@ -132,7 +132,7 @@ export function panic(msg: string) {
   process.exit(1);
 }
 
-export function bye() {
+export function bye(): never {
   outro('Take care, see you soon! 👋');
   process.exit(0);
 }

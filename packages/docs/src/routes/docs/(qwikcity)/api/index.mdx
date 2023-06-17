@@ -275,7 +275,7 @@ type RestoreScroll = (
   type: 'initial' | 'form' | 'link' | 'popstate';
   fromUrl: URL;
   toUrl: URL;
-  records: ScrollRecord;
+  scrollState?: ScrollState;
 ) => () => void;
 ```
 
@@ -289,19 +289,24 @@ There are two built-in scroll restoration presets provided by QwikCity - `toTopA
 You can also implement your own scroll restoration logic by supplying a function with the above signature, for example:
 
 ```ts
-// TODO Adjust this example after finalize of SPA scroll restoration feature.
-const restoreScroll: RestoreScroll = $((type, fromUrl, toUrl, records) => {
-  // do something before navigation
+const restoreScroll: QRL<RestoreScroll> = $((type, _fromUrl, _toUrl, scrollState) => {
+  // Do something before navigation:
   prepare();
 
   return () => {
-    // handle the actual scroll restoration
+    // Handle the actual scroll restoration:
+    let [scrollX, scrollY] = [0, 0];
+    if (type === 'popstate' && scrollState) {
+      scrollX = scrollState.scrollX;
+      scrollY = scrollState.scrollY;
+    }
     window.scrollTo(scrollX, scrollY);
   }
 });
 ```
 
-> Note that the returned inner void function is run synchronously with render, it is recommended to avoid expensive computations inside of it.
+> Note that the returned inner void function MUST run synchronously with render, it is recommended to avoid expensive computations inside of it.
+> The `scrollState` argument may be undefined when there is no scroll history, typically when type is not popstate, but also pops on custom `pushState`s.
 
 ## `<RouterOutlet>`
 

@@ -6,9 +6,10 @@ import {
   _serializeData,
 } from '@builder.io/qwik';
 
+import { isDev, isServer } from '@builder.io/qwik/build';
+
 //@ts-ignore
 import workerUrl from './worker-proxy.js?worker&url';
-
 
 /**
  * @public
@@ -51,6 +52,16 @@ const getWorker = (qrl: QRL) => {
  */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
   return $(async (...args: any[]) => {
+    if (isServer) {
+      throw new Error('workerQrl() can only be used on the client.');
+    }
+    const inSideWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+    if (inSideWorker) {
+      if (isDev) {
+        console.warn('workerQrl() will not create nested workers.');
+      }
+      return qrl(...args as any);
+    }
     const containerEl =
       (_getContextElement() as HTMLElement | undefined)?.closest('[q\\:container]') ??
       document.documentElement;

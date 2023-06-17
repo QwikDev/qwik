@@ -289,7 +289,7 @@ There are two built-in scroll restoration presets provided by QwikCity - `toTopA
 You can also implement your own scroll restoration logic by supplying a function with the above signature, for example:
 
 ```ts
-const restoreScroll: QRL<RestoreScroll> = $((type, _fromUrl, _toUrl, scrollState) => {
+const restoreScroll: QRL<RestoreScroll> = $((type, fromUrl, toUrl, scrollState) => {
   // Do something before navigation:
   prepare();
 

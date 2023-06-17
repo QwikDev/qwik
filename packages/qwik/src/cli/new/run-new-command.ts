@@ -125,6 +125,9 @@ async function selectName(type: 'route' | 'component') {
   if (isCancel(nameAnswer)) {
     bye();
   }
+  if (typeof nameAnswer !== 'string') {
+    bye();
+  }
   if (type === 'route' && !(nameAnswer as string).startsWith('/')) {
     return `/${nameAnswer as string}`;
   }

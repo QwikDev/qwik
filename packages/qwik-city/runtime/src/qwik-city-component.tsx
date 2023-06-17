@@ -302,6 +302,18 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // only add event listener once
             win._qCityHistory = 1;
 
+            win.addEventListener('popstate', () => {
+              // Disable scroll handler eagerly to prevent overwriting history.state.
+              win._qCityScrollHandlerEnabled = false;
+              clearTimeout(win._qCityScrollDebounceTimeout);
+
+              return goto(location.href, {
+                type: 'popstate',
+              });
+            });
+
+            win.removeEventListener('popstate', win._qCityPopstateFallback!);
+
             win.addEventListener(
               'scroll',
               () => {
@@ -318,18 +330,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               },
               { passive: true }
             );
-
-            win.addEventListener('popstate', () => {
-              // Disable scroll handler eagerly to prevent overwriting history.state.
-              win._qCityScrollHandlerEnabled = false;
-              clearTimeout(win._qCityScrollDebounceTimeout);
-
-              return goto(location.href, {
-                type: 'popstate',
-              });
-            });
-
-            win.removeEventListener('popstate', win._qCityPopstateFallback!);
 
             if (history.scrollRestoration) {
               history.scrollRestoration = 'manual';

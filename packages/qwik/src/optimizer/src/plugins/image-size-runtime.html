@@ -6,7 +6,8 @@
       pointer-events: none;
     }
 
-    .icon {
+    #icon {
+      border: 0;
       margin: 5px;
       color: black;
       max-width: 100%;
@@ -19,7 +20,7 @@
       cursor: pointer;
     }
 
-    .icon svg {
+    #icon svg {
       width: 100%;
       height: auto;
       pointer-events: none;
@@ -34,12 +35,27 @@
       width: 250px;
       font-size: 11px;
       position: absolute;
-      bottom: calc(100% + 5px);
-      left: 0;
+      inset-inline-start: unset;
+      inset-inline-end: unset;
       border-radius: 5px;
       pointer-events: all;
       overflow: hidden;
       box-shadow: 0px -2px 20px 0px #0000002e;
+    }
+
+    .top {
+      bottom: calc(100% + 5px);
+    }
+    .bottom {
+      top: 40px;
+    }
+    .right {
+      inset-inline-start: 0;
+      inset-inline-end: unset;
+    }
+    .left {
+      inset-inline-start: unset;
+      inset-inline-end: calc(100% - 40px);
     }
 
     .content {
@@ -109,14 +125,14 @@
       margin: 10px 0;
     }
   </style>
-  <div class="icon">
+  <button id="icon" type="button" aria-label="Open image dev dialog">
     <svg width="32" height="32" viewBox="0 0 24 24">
       <path
         fill="currentColor"
         d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"
       />
     </svg>
-  </div>
+  </button>
   <dialog>
     <form method="dialog">
       <button id="close" type="submit" aria-label="Close">X</button>
@@ -131,6 +147,16 @@
 </template>
 <script>
   (function () {
+    function getPositionClasses(target) {
+      const { x, y } = target.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      let horizontal = 'right';
+      let vertical = 'bottom';
+      if (x > windowWidth - 260) {
+        horizontal = 'left';
+      }
+      return `${vertical} ${horizontal}`;
+    }
     class ImageWarning extends HTMLElement {
       #autofix = null;
       constructor() {
@@ -152,6 +178,7 @@
             if (dialog.open) {
               dialog.close();
             } else {
+              dialog.className = getPositionClasses(target);
               dialog.show();
             }
           }
@@ -174,7 +201,7 @@
         this.#autofix = value;
         if (value) {
           this.shadowRoot.querySelector('.autofix').innerHTML =
-            '<button id="autofix">Auto fix</button>';
+            '<button id="autofix" type="button">Auto fix</button>';
         }
       }
     }

@@ -77,7 +77,7 @@ export async function runNewCommand(app: AppCommand) {
     }
 
     if (typeArg === 'route') {
-      outDir = join(app.rootDir, 'src', `routes`, mainInput);
+      outDir = join(app.rootDir, 'src', `routes`, nameArg);
     } else {
       outDir = join(app.rootDir, 'src', `components`, nameArg);
     }
@@ -109,15 +109,28 @@ async function selectType() {
   return typeAnswer as (typeof POSSIBLE_TYPES)[number];
 }
 
-async function selectName(type: string) {
+async function selectName(type: 'route' | 'component') {
+  const message = type === 'route' ? 'New route path' : 'Name your component';
+  const placeholder = type === 'route' ? '/product/[id]' : 'my-component';
   const nameAnswer = await text({
-    message: `Name your ${type}`,
+    message,
+    placeholder,
+    validate: (v) => {
+      if (v.length < 1) {
+        return 'Value can not be empty';
+      }
+    },
   });
 
   if (isCancel(nameAnswer)) {
     bye();
   }
-
+  if (typeof nameAnswer !== 'string') {
+    bye();
+  }
+  if (type === 'route' && !(nameAnswer as string).startsWith('/')) {
+    return `/${nameAnswer as string}`;
+  }
   return nameAnswer as string;
 }
 
@@ -126,6 +139,13 @@ async function selectTemplate(typeArg: (typeof POSSIBLE_TYPES)[number]) {
 
   const templates = allTemplates.filter((i) => i[typeArg] && i[typeArg].length);
 
+  if (!templates.length) {
+    log.error(`No templates found for type "${typeArg}"`);
+    bye();
+  }
+  if (templates.length === 1) {
+    return templates[0][typeArg][0];
+  }
   const templateAnswer = await select({
     message: 'Which template would you like to use?',
     options: templates.map((t) => ({ value: t[typeArg][0], label: t.id })),

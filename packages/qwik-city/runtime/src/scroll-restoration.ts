@@ -84,8 +84,8 @@ export const emptyScrollState = (): ScrollState => {
  */
 export const currentScrollState = (elm: Element): ScrollState => {
   return {
-    scrollX: window.scrollX,
-    scrollY: window.scrollY,
+    scrollX: elm.scrollLeft,
+    scrollY: elm.scrollTop,
     scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
     scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
   };

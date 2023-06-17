@@ -197,7 +197,7 @@ importers:
     dependencies:
       '@modular-forms/qwik':
         specifier: ^0.12.0
-        version: 0.12.0(@builder.io/qwik-city@1.1.5-dev20230614155244)(@builder.io/qwik@1.1.5)
+        version: 0.12.0(@builder.io/qwik-city@1.1.5-dev20230617103719)(@builder.io/qwik@1.1.5)
       '@supabase/supabase-js':
         specifier: ^2.24.0
         version: 2.24.0
@@ -228,10 +228,10 @@ importers:
         version: 0.8.0
       '@builder.io/qwik':
         specifier: github:BuilderIo/qwik-build#main
-        version: github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03(undici@5.22.1)
+        version: github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d(undici@5.22.1)
       '@builder.io/qwik-city':
         specifier: github:BuilderIo/qwik-city-build#main
-        version: github.com/BuilderIo/qwik-city-build/b2e81d923510ca6bc2b83429a4b3de18dfe68ec2(rollup@3.25.1)
+        version: github.com/BuilderIo/qwik-city-build/36f5b874481dfd48b2b3a00080422a732971c9ad(rollup@3.25.1)
       '@builder.io/qwik-react':
         specifier: 0.5.0
         version: 0.5.0(@builder.io/qwik@1.1.5)(@types/react-dom@18.2.4)(@types/react@18.2.7)(react-dom@18.2.0)(react@18.2.0)
@@ -465,6 +465,9 @@ importers:
       vite:
         specifier: 4.3.9
         version: 4.3.9(@types/node@20.2.5)(terser@5.18.0)
+      vite-plugin-static-copy:
+        specifier: ^0.16.0
+        version: 0.16.0(vite@4.3.9)
       yaml:
         specifier: 2.3.1
         version: 2.3.1
@@ -493,19 +496,7 @@ importers:
         version: 5.1.3
       vite:
         specifier: 4.3.9
-        version: 4.3.9(@types/node@20.2.5)(terser@5.17.7)
-
-  packages/qwik-worker:
-    devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:*
-        version: link:../qwik
-      vite:
-        specifier: 4.3.9
-        version: 4.3.9(@types/node@20.2.5)(terser@5.17.7)
-      vite-plugin-static-copy:
-        specifier: ^0.16.0
-        version: 0.16.0(vite@4.3.9)
+        version: 4.3.9(@types/node@20.2.5)(terser@5.18.0)
 
   packages/supabase-auth-helpers-qwik:
     dependencies:
@@ -775,7 +766,7 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d(undici@5.22.1)
       '@types/react': 18.2.7
       '@types/react-dom': 18.2.4
       react: 18.2.0
@@ -797,7 +788,7 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '>=1.0.0'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d(undici@5.22.1)
     dev: true
 
   /@clack/core@0.3.2:
@@ -1878,14 +1869,14 @@ packages:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
-  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.1.5-dev20230614155244)(@builder.io/qwik@1.1.5):
+  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.1.5-dev20230617103719)(@builder.io/qwik@1.1.5):
     resolution: {integrity: sha512-IJi5Uvm1Z1tJZLOpYM8jWza40Viac6tblnMre0pdrslVv7tW3MnXFgQgO539YksooOsn1Jn1KjVUVmhiMuXXuA==}
     peerDependencies:
       '@builder.io/qwik': ^1.0.0
       '@builder.io/qwik-city': ^1.0.0
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03(undici@5.22.1)
-      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/b2e81d923510ca6bc2b83429a4b3de18dfe68ec2(rollup@3.25.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/36f5b874481dfd48b2b3a00080422a732971c9ad(rollup@3.25.1)
     dev: false
 
   /@mui/base@5.0.0-beta.0(@types/react@18.2.7)(react-dom@18.2.0)(react@18.2.0):
@@ -2809,7 +2800,7 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '*'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d(undici@5.22.1)
       '@unpic/core': 0.0.24
     dev: false
 
@@ -8601,17 +8592,6 @@ packages:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  /terser@5.17.7:
-    resolution: {integrity: sha512-/bi0Zm2C6VAexlGgLlVxA0P2lru/sdLyfCVaRMfKVo9nWxbmz7f/sD8VPybPeSUJaJcwmCJis9pBIhcVcG1QcQ==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dependencies:
-      '@jridgewell/source-map': 0.3.3
-      acorn: 8.8.2
-      commander: 2.20.3
-      source-map-support: 0.5.21
-    dev: true
-
   /terser@5.18.0:
     resolution: {integrity: sha512-pdL757Ig5a0I+owA42l6tIuEycRuM7FPY4n62h44mRLRfnOxJkkOHd6i89dOpwZlpF6JXBwaAHF6yWzFrt+QyA==}
     engines: {node: '>=10'}
@@ -9067,7 +9047,7 @@ packages:
       fast-glob: 3.2.12
       fs-extra: 11.1.1
       picocolors: 1.0.0
-      vite: 4.3.9(@types/node@20.2.5)(terser@5.17.7)
+      vite: 4.3.9(@types/node@20.2.5)(terser@5.18.0)
     dev: true
 
   /vite-tsconfig-paths@4.2.0(typescript@5.1.3)(vite@4.3.9):
@@ -9085,40 +9065,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
-    dev: true
-
-  /vite@4.3.9(@types/node@20.2.5)(terser@5.17.7):
-    resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>= 14'
-      less: '*'
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      '@types/node': 20.2.5
-      esbuild: 0.17.19
-      postcss: 8.4.24
-      rollup: 3.24.0
-      terser: 5.17.7
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: true
 
   /vite@4.3.9(@types/node@20.2.5)(terser@5.18.0):
@@ -9476,9 +9422,9 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
-  github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03(undici@5.22.1):
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-build/tar.gz/27407984c3cd234970f6a8ebfb760f4ab1a2ef03}
-    id: github.com/BuilderIo/qwik-build/27407984c3cd234970f6a8ebfb760f4ab1a2ef03
+  github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d(undici@5.22.1):
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-build/tar.gz/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d}
+    id: github.com/BuilderIo/qwik-build/fd2c42f8bfe2713014e5ed6d2c2fdb62d4a2103d
     name: '@builder.io/qwik'
     version: 1.1.5
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
@@ -9488,11 +9434,11 @@ packages:
     dependencies:
       undici: 5.22.1
 
-  github.com/BuilderIo/qwik-city-build/b2e81d923510ca6bc2b83429a4b3de18dfe68ec2(rollup@3.25.1):
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-city-build/tar.gz/b2e81d923510ca6bc2b83429a4b3de18dfe68ec2}
-    id: github.com/BuilderIo/qwik-city-build/b2e81d923510ca6bc2b83429a4b3de18dfe68ec2
+  github.com/BuilderIo/qwik-city-build/36f5b874481dfd48b2b3a00080422a732971c9ad(rollup@3.25.1):
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-city-build/tar.gz/36f5b874481dfd48b2b3a00080422a732971c9ad}
+    id: github.com/BuilderIo/qwik-city-build/36f5b874481dfd48b2b3a00080422a732971c9ad
     name: '@builder.io/qwik-city'
-    version: 1.1.5-dev20230614155244
+    version: 1.1.5-dev20230617103719
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     dependencies:
       '@mdx-js/mdx': 2.3.0

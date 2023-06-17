@@ -454,6 +454,24 @@ export const validator$: ValidatorConstructor;
 // @public (undocumented)
 export const validatorQrl: ValidatorConstructorQRL;
 
+// @public (undocumented)
+export const worker$: <T extends WorkerFunction>(first: T) => QRL<T>;
+
+// @public (undocumented)
+export interface WorkerConstructorQRL {
+    // (undocumented)
+    <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
+}
+
+// @public (undocumented)
+export interface WorkerFunction {
+    // (undocumented)
+    (...args: any[]): any;
+}
+
+// @public (undocumented)
+export const workerQrl: WorkerConstructorQRL;
+
 export { z }
 
 // @public (undocumented)

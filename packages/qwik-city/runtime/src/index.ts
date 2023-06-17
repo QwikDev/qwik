@@ -67,3 +67,6 @@ export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
+
+export { worker$, workerQrl } from './worker';
+export type { WorkerConstructorQRL, WorkerFunction } from './worker';

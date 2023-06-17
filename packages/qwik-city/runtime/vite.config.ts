@@ -1,5 +1,6 @@
 import { defineConfig, type UserConfigExport } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(() => {
   return {
@@ -16,7 +17,17 @@ export default defineConfig(() => {
         external: ['zod', '@qwik-city-sw-register', '@qwik-city-plan'],
       },
     },
-    plugins: [qwikVite()],
+    plugins: [
+      qwikVite(),
+      viteStaticCopy({
+        targets: [
+          {
+            src: 'src/worker.js',
+            dest: '.',
+          },
+        ],
+      }),
+    ],
     clearScreen: false,
     optimizeDeps: {
       force: true,

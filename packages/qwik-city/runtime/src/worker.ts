@@ -7,13 +7,21 @@ import {
 } from '@builder.io/qwik';
 
 //@ts-ignore
-import workerUrl from './worker.js?worker&url';
+import workerUrl from './worker-proxy.js?worker&url';
 
-export interface ServerFunction {
+
+/**
+ * @public
+ */
+export interface WorkerFunction {
   (...args: any[]): any;
 }
+
+/**
+ * @public
+ */
 export interface WorkerConstructorQRL {
-  <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
+  <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
 }
 
 const qwikWorkers = new Map<string, Worker>();
@@ -38,6 +46,9 @@ const getWorker = (qrl: QRL) => {
   return worker;
 };
 
+/**
+ * @public
+ */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
   return $(async (...args: any[]) => {
     const containerEl =
@@ -75,4 +86,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
   }) as any;
 };
 
+/**
+ * @public
+ */
 export const worker$ = implicit$FirstArg(workerQrl);

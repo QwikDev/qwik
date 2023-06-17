@@ -759,6 +759,62 @@
       "mdFile": "qwik-city.validatorqrl.md"
     },
     {
+      "name": "worker$",
+      "id": "worker_",
+      "hierarchy": [
+        {
+          "name": "worker$",
+          "id": "worker_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nworker$: <T extends WorkerFunction>(first: T) => QRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts",
+      "mdFile": "qwik-city.worker_.md"
+    },
+    {
+      "name": "WorkerConstructorQRL",
+      "id": "workerconstructorqrl",
+      "hierarchy": [
+        {
+          "name": "WorkerConstructorQRL",
+          "id": "workerconstructorqrl"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface WorkerConstructorQRL \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts",
+      "mdFile": "qwik-city.workerconstructorqrl.md"
+    },
+    {
+      "name": "WorkerFunction",
+      "id": "workerfunction",
+      "hierarchy": [
+        {
+          "name": "WorkerFunction",
+          "id": "workerfunction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface WorkerFunction \n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts",
+      "mdFile": "qwik-city.workerfunction.md"
+    },
+    {
+      "name": "workerQrl",
+      "id": "workerqrl",
+      "hierarchy": [
+        {
+          "name": "workerQrl",
+          "id": "workerqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nworkerQrl: WorkerConstructorQRL\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts",
+      "mdFile": "qwik-city.workerqrl.md"
+    },
+    {
       "name": "zod$",
       "id": "zod_",
       "hierarchy": [

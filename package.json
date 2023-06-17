@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --platform-binding-wasm-copy",
-    "build.full": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwikreact --qwikauth --cli --platform-binding --wasm",
+    "build.full": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikreact --qwikauth --cli --platform-binding --wasm",
     "build.qwik-city": "tsm scripts/index.ts --tsc --qwikcity",
     "build.platform": "tsm scripts/index.ts --platform-binding",
     "build.platform.copy": "tsm scripts/index.ts --platform-binding-wasm-copy",

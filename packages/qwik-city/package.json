@@ -118,6 +118,7 @@
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
     "vite": "4.3.9",
+    "vite-plugin-static-copy": "^0.16.0",
     "yaml": "2.3.1"
   },
   "license": "MIT",

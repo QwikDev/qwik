@@ -89,7 +89,6 @@
     "packages/qwik/src",
     "packages/qwik-city",
     "packages/qwik-auth",
-    "packages/qwik-worker",
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
     "scripts",

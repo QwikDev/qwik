@@ -654,6 +654,38 @@ validatorQrl: ValidatorConstructorQRL;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
+## worker$
+
+```typescript
+worker$: <T extends WorkerFunction>(first: T) => QRL<T>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts)
+
+## WorkerConstructorQRL
+
+```typescript
+export interface WorkerConstructorQRL
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts)
+
+## WorkerFunction
+
+```typescript
+export interface WorkerFunction
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts)
+
+## workerQrl
+
+```typescript
+workerQrl: WorkerConstructorQRL;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/worker.ts)
+
 ## zod$
 
 ```typescript

@@ -1,8 +1,7 @@
 import { isBrowser } from '@builder.io/qwik/build';
 import type { QPrefetchData } from './service-worker/types';
-import type { NavigationType } from './types';
+import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
-import { emptyScrollState, type ScrollHistoryState } from './scroll-restoration';
 
 export const clientNavigate = (
   win: Window,
@@ -15,8 +14,8 @@ export const clientNavigate = (
     const samePath = isSamePath(fromURL, toURL);
     const sameHash = fromURL.hash === toURL.hash;
     if (!samePath || !sameHash) {
-      const newState: ScrollHistoryState = {
-        _qCityScroll: emptyScrollState(),
+      const newState = {
+        _qCityScroll: newScrollState(),
       };
 
       if (replaceState) {
@@ -27,6 +26,15 @@ export const clientNavigate = (
       }
     }
   }
+};
+
+export const newScrollState = (): ScrollState => {
+  return {
+    scrollX: 0,
+    scrollY: 0,
+    scrollWidth: 0,
+    scrollHeight: 0,
+  };
 };
 
 export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {

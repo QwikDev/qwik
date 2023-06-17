@@ -68,18 +68,6 @@ const scrollToHashId = (hash: string) => {
 /**
  * @alpha
  */
-export const emptyScrollState = (): ScrollState => {
-  return {
-    scrollX: 0,
-    scrollY: 0,
-    scrollWidth: 0,
-    scrollHeight: 0,
-  };
-};
-
-/**
- * @alpha
- */
 export const currentScrollState = (elm: Element): ScrollState => {
   return {
     scrollX: elm.scrollLeft,

@@ -1,7 +1,6 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { clientNavigate } from './client-navigate';
-import { emptyScrollState } from './scroll-restoration';
+import { clientNavigate, newScrollState } from './client-navigate';
 import { deepEqual } from 'assert';
 
 const navTest = suite('clientNavigate');
@@ -10,7 +9,7 @@ navTest('initialize and push empty scroll history state on navigate', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/');
   equal(win.history.state, null);
 
-  const scrollState = emptyScrollState();
+  const scrollState = newScrollState();
 
   clientNavigate(win, 'link', urlOf('/'), urlOf('/page-a'));
   deepEqual(win.history.state, { _qCityScroll: scrollState });
@@ -35,7 +34,7 @@ navTest('pushState for different routes', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
   equal(win.history.state, null);
 
-  const scrollState = emptyScrollState();
+  const scrollState = newScrollState();
 
   clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-b?search=123'));
   deepEqual(win.history.state, { _qCityScroll: scrollState });
@@ -50,7 +49,7 @@ navTest('when passing replaceState', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
   equal(win.history.state, null);
 
-  const scrollState = emptyScrollState();
+  const scrollState = newScrollState();
 
   const length = win.history.length;
   clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-a?search=456'), true);
@@ -62,7 +61,7 @@ navTest('pushState for different hash', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123#hash-1');
   equal(win.history.state, null);
 
-  const scrollState = emptyScrollState();
+  const scrollState = newScrollState();
 
   clientNavigate(
     win,

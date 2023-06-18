@@ -18,7 +18,7 @@ test.describe('actions', () => {
         await page.goto('/qwikcity-test/actions/');
       });
 
-      test('should run actions programatically', async ({ page, javaScriptEnabled }) => {
+      test('should run actions programmatically', async ({ page, javaScriptEnabled }) => {
         if (javaScriptEnabled) {
           const success = page.locator('#other-success');
           const btn = page.locator('#other-button');

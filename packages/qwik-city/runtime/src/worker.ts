@@ -55,7 +55,8 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
     if (isServer) {
       throw new Error('workerQrl() can only be used on the client.');
     }
-    const inSideWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+    const inSideWorker =
+      typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
     if (inSideWorker) {
       if (isDev) {
         console.warn('workerQrl() will not create nested workers.');

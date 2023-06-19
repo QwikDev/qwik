@@ -1,6 +1,8 @@
 import { defineConfig } from '@pandacss/dev';
 
 export default defineConfig({
+  jsxFramework: 'qwik',
+
   // Whether to use css reset
   preflight: true,
 

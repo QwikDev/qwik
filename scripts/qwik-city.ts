@@ -205,6 +205,7 @@ async function buildVite(config: BuildConfig) {
     'undici',
     'typescript',
     'vite-imagetools',
+    'svgo',
   ];
 
   const swRegisterPath = join(config.srcQwikCityDir, 'runtime', 'src', 'sw-register.ts');

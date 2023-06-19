@@ -6,6 +6,7 @@
 
 import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { ConfigEnv } from 'vite';
+import type { PluginOption } from 'vite';
 import { UserConfigExport } from 'vite';
 
 // @public (undocumented)
@@ -15,7 +16,7 @@ export function extendConfig(baseConfigExport: UserConfigExport, serverConfigExp
 export type MdxOptions = CompileOptions;
 
 // @public (undocumented)
-export function qwikCity(userOpts?: QwikCityVitePluginOptions): any;
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[];
 
 // @public (undocumented)
 export interface QwikCityPlugin {

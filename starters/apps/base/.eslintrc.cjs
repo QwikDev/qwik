@@ -37,5 +37,6 @@ module.exports = {
     'no-console': 'off',
     '@typescript-eslint/no-unused-vars': ['error'],
     '@typescript-eslint/consistent-type-imports': 'warn',
+    '@typescript-eslint/no-unnecessary-condition': 'warn',
   },
 };

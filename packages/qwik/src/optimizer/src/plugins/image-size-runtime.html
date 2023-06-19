@@ -6,7 +6,9 @@
       pointer-events: none;
     }
 
-    .icon {
+    #icon {
+      border: 0;
+      margin: 5px;
       color: black;
       max-width: 100%;
       width: 20px;
@@ -18,25 +20,42 @@
       cursor: pointer;
     }
 
-    .icon svg {
+    #icon svg {
       width: 100%;
       height: auto;
       pointer-events: none;
     }
 
-    .warn {
-      display: none;
+    dialog {
+      padding: 0;
+      border: 0;
+      margin: 0 5px;
       background: #ffffe8;
       color: black;
       width: 250px;
       font-size: 11px;
       position: absolute;
-      bottom: calc(100% + 5px);
-      left: -5px;
+      inset-inline-start: unset;
+      inset-inline-end: unset;
       border-radius: 5px;
       pointer-events: all;
       overflow: hidden;
       box-shadow: 0px -2px 20px 0px #0000002e;
+    }
+
+    .top {
+      bottom: calc(100% + 5px);
+    }
+    .bottom {
+      top: 40px;
+    }
+    .right {
+      inset-inline-start: 0;
+      inset-inline-end: unset;
+    }
+    .left {
+      inset-inline-start: unset;
+      inset-inline-end: calc(100% - 40px);
     }
 
     .content {
@@ -47,14 +66,9 @@
       background: #2e3801;
       color: #d2d2d2;
       font-family: monospace;
-      text-align: right;
+      text-align: left;
       padding: 2px 5px;
       pointer-events: all;
-    }
-
-    :host(.visible) .warn {
-      display: block;
-      /* opacity: 1.0; */
     }
 
     pre {
@@ -73,7 +87,25 @@
       text-decoration: underline;
     }
 
-    button {
+    #close {
+      border: 0;
+      width: 25px;
+      height: 25px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      background: #ffe14f;
+      color: black;
+      font-weight: 900;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    #autofix {
       border: 2px solid #18ae00;
       padding: 2px 4px;
       background: #50ff50;
@@ -93,25 +125,38 @@
       margin: 10px 0;
     }
   </style>
-  <div class="icon">
+  <button id="icon" type="button" aria-label="Open image dev dialog">
     <svg width="32" height="32" viewBox="0 0 24 24">
       <path
         fill="currentColor"
         d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"
       />
     </svg>
-  </div>
-  <div class="warn">
+  </button>
+  <dialog>
+    <form method="dialog">
+      <button id="close" type="submit" aria-label="Close">X</button>
+    </form>
     <div class="loc"></div>
     <div class="content">
       <h2 id="title"></h2>
       <p id="message"></p>
       <p class="autofix"></p>
     </div>
-  </div>
+  </dialog>
 </template>
 <script>
   (function () {
+    function getPositionClasses(target) {
+      const { x, y } = target.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      let horizontal = 'right';
+      let vertical = 'bottom';
+      if (x > windowWidth - 260) {
+        horizontal = 'left';
+      }
+      return `${vertical} ${horizontal}`;
+    }
     class ImageWarning extends HTMLElement {
       #autofix = null;
       constructor() {
@@ -120,15 +165,22 @@
         this.shadowRoot.appendChild(
           document.importNode(document.getElementById('image-warning-template').content, true)
         );
+        const dialog = this.shadowRoot.querySelector('dialog');
 
         this.shadowRoot.addEventListener('click', async (ev) => {
           const target = ev.target;
-          if (target.nodeName === 'BUTTON') {
+          if (target.nodeName === 'BUTTON' && target.id === 'autofix') {
             if (this.#autofix) {
               this.#autofix();
+              dialog.close();
             }
           } else if (target.nodeName === 'DIV' && target.className === 'icon') {
-            this.classList.add('visible');
+            if (dialog.open) {
+              dialog.close();
+            } else {
+              dialog.className = getPositionClasses(target);
+              dialog.show();
+            }
           }
         });
       }
@@ -148,7 +200,8 @@
       set autofix(value) {
         this.#autofix = value;
         if (value) {
-          this.shadowRoot.querySelector('.autofix').innerHTML = '<button>Auto fix</button>';
+          this.shadowRoot.querySelector('.autofix').innerHTML =
+            '<button id="autofix" type="button">Auto fix</button>';
         }
       }
     }
@@ -182,21 +235,24 @@
       const originalSrc = node.currentSrc;
       const info = await getInfo(originalSrc);
       if (info) {
+        let layoutInvalidation = false;
+        const loc = node.getAttribute('data-qwik-inspector');
+        if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
+          skip = true;
+          node.src = '';
+          const rect2 = node.getBoundingClientRect();
+          layoutInvalidation =
+            rect.x !== rect2.x ||
+            rect.y !== rect2.y ||
+            rect.width !== rect2.width ||
+            rect.height !== rect2.height;
+
+          node.src = originalSrc;
+        }
         const browserArea = rect.width * rect.height;
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
-        const loc = node.getAttribute('data-qwik-inspector');
-        skip = true;
-        node.src = '';
-        const rect2 = node.getBoundingClientRect();
         const tooBig = browserArea < threshholdArea;
-        const layoutInvalidation =
-          rect.x !== rect2.x ||
-          rect.y !== rect2.y ||
-          rect.width !== rect2.width ||
-          rect.height !== rect2.height;
-
-        node.src = originalSrc;
         skip = false;
         let overlay = visibleNodes.get(node);
         if (layoutInvalidation || tooBig) {
@@ -225,7 +281,10 @@
                 url.searchParams.set('loc', loc);
                 url.searchParams.set('width', info.width);
                 url.searchParams.set('height', info.height);
-
+                if (!node.srcset) {
+                  url.searchParams.set('src', node.currentSrc);
+                  url.searchParams.set('currentHref', location.href);
+                }
                 await fetch(url, {
                   method: 'POST',
                 });

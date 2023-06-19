@@ -14,7 +14,7 @@ import {
 } from '@clack/prompts';
 import { bgBlue, red, gray } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
-import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
+import { backgroundInstallDeps, installDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
@@ -161,6 +161,12 @@ export async function runCreateInteractiveCli() {
   if (runDepInstall) {
     s.start(`Installing ${pkgManager} dependencies...`);
     successfulDepsInstall = await backgroundInstall.complete(result.outDir);
+
+    if (successfulDepsInstall) {
+      const finalInstall = installDeps(pkgManager, result.outDir);
+      successfulDepsInstall = await finalInstall.install;
+    }
+
     s.stop(
       `${successfulDepsInstall ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`
     );

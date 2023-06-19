@@ -1,17 +1,25 @@
 import { isBrowser } from '@builder.io/qwik/build';
 import type { QPrefetchData } from './service-worker/types';
 import type { NavigationType } from './types';
-import { isSameOrigin, isSamePath, toPath } from './utils';
+import { isSamePath, toPath } from './utils';
 
-export const clientNavigate = (win: Window, navType: NavigationType, fromURL: URL, toURL: URL) => {
-  if (isSameOrigin(fromURL, toURL)) {
-    if (navType === 'popstate') {
-      clientHistoryState.id = win.history.state?.id ?? 0;
-    } else {
-      const samePath = isSamePath(fromURL, toURL);
-      const sameHash = fromURL.hash === toURL.hash;
-      // push to history for path or hash changes
-      if (!samePath || !sameHash) {
+export const clientNavigate = (
+  win: Window,
+  navType: NavigationType,
+  fromURL: URL,
+  toURL: URL,
+  replaceState = false
+) => {
+  if (navType === 'popstate') {
+    clientHistoryState.id = win.history.state?.id ?? 0;
+  } else {
+    const samePath = isSamePath(fromURL, toURL);
+    const sameHash = fromURL.hash === toURL.hash;
+    if (!samePath || !sameHash) {
+      if (replaceState) {
+        win.history.replaceState({ id: ++clientHistoryState.id }, '', toPath(toURL));
+      } else {
+        // push to history for path or hash changes
         win.history.pushState({ id: ++clientHistoryState.id }, '', toPath(toURL));
       }
     }

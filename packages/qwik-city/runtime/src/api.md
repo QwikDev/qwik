@@ -394,6 +394,7 @@ export interface RouteLocation {
 export type RouteNavigate = QRL<(path?: string, options?: {
     type?: Exclude<NavigationType, 'initial'>;
     forceReload?: boolean;
+    replaceState?: boolean;
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)

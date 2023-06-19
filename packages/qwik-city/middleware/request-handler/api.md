@@ -28,6 +28,14 @@ export class AbortMessage {
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
 
 // @public (undocumented)
+export interface ClientConn {
+    // (undocumented)
+    country?: string;
+    // (undocumented)
+    ip?: string;
+}
+
+// @public (undocumented)
 export interface Cookie {
     delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
     get(name: string): CookieValue | null;
@@ -73,12 +81,9 @@ export class RedirectMessage extends AbortMessage {
 
 // @public (undocumented)
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
     readonly exited: boolean;
     readonly getWritableStream: () => WritableStream<Uint8Array>;
-    // (undocumented)
     readonly headersSent: boolean;
-    // (undocumented)
     readonly next: () => Promise<void>;
 }
 
@@ -92,6 +97,7 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly basePathname: string;
     readonly cacheControl: (cacheControl: CacheControl) => void;
+    readonly clientConn: ClientConn;
     readonly cookie: Cookie;
     // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
@@ -172,6 +178,8 @@ export interface ServerRenderOptions extends RenderOptions {
 export interface ServerRequestEvent<T = any> {
     // (undocumented)
     env: EnvGetter;
+    // (undocumented)
+    getClientConn: () => ClientConn;
     // (undocumented)
     getWritableStream: ServerResponseHandler<T>;
     // (undocumented)

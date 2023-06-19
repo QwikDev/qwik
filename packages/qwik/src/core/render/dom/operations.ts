@@ -1,3 +1,4 @@
+import type { ContainerState } from '../../container/container';
 import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
@@ -120,7 +121,7 @@ export const appendHeadStyle = (staticCtx: RenderStaticContext, styleTask: Style
   staticCtx.$containerState$.$styleIds$.add(styleTask.styleId);
   staticCtx.$postOperations$.push({
     $operation$: _appendHeadStyle,
-    $args$: [staticCtx.$containerState$.$containerEl$, styleTask],
+    $args$: [staticCtx.$containerState$, styleTask],
   });
 };
 
@@ -142,7 +143,8 @@ export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[])
   classList.add(...toAdd);
 };
 
-export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) => {
+export const _appendHeadStyle = (containerState: ContainerState, styleTask: StyleAppend) => {
+  const containerEl = containerState.$containerEl$;
   const doc = getDocument(containerEl);
   const isDoc = doc.documentElement === containerEl;
   const headEl = doc.head;

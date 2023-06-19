@@ -423,7 +423,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
+    if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
         id: normalizePath(getPath().resolve(opts.rootDir, QWIK_BUILD_ID)),
@@ -601,17 +601,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         scope: opts.scope ? opts.scope : void 0,
       };
       const isSSR = !!ssrOpts.ssr;
+      if (isSSR) {
+        transformOpts.entryStrategy = { type: 'hoist' };
+      }
+      transformOpts.isServer = isSSR;
       if (strip) {
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
           transformOpts.stripEventHandlers = true;
-          transformOpts.entryStrategy = { type: 'hoist' };
           transformOpts.regCtxName = REG_CTX_NAME;
-          transformOpts.isServer = true;
         } else {
           transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
           transformOpts.stripExports = SERVER_STRIP_EXPORTS;
-          transformOpts.isServer = false;
         }
       }
 

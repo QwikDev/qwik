@@ -1097,19 +1097,32 @@ export const cleanupTree = (
   }
 };
 
-export const executeContextWithTransition = async (ctx: RenderStaticContext) => {
+const restoreScroll = () => {
+  if (document.__q_scroll_restore__) {
+    document.__q_scroll_restore__();
+    document.__q_scroll_restore__ = undefined;
+  }
+};
+
+export const executeContextWithScrollAndTransition = async (ctx: RenderStaticContext) => {
   // try to use `document.startViewTransition`
   if (isBrowser && !qTest) {
     if (document.__q_view_transition__) {
       document.__q_view_transition__ = undefined;
       if (document.startViewTransition) {
-        await document.startViewTransition(() => executeDOMRender(ctx)).finished;
+        await document.startViewTransition(() => {
+          executeDOMRender(ctx);
+          restoreScroll();
+        }).finished;
         return;
       }
     }
   }
   // fallback
   executeDOMRender(ctx);
+  if (isBrowser) {
+    restoreScroll();
+  }
 };
 
 export const directAppendChild = (parent: QwikElement, child: Node | VirtualElement) => {

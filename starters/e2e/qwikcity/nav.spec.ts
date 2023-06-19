@@ -5,6 +5,7 @@ import {
   getWindowScrollXY,
   linkNavigate,
   load,
+  scrollDebounceDetector,
   scrollDetector,
   scrollTo,
 } from './util.js';
@@ -99,6 +100,12 @@ test.describe('actions', () => {
 
         const scrollHeightShort = await getScrollHeight(page);
         await scrollTo(page, 0, scrollHeightShort);
+
+        // QwikCity relies on a debounced scroll handler to save scroll position.
+        // Once a popstate occurs we cannot update scroll position.
+        // We must wait for the debounce to trigger before popping.
+        await page.waitForTimeout(50);
+        await scrollDebounceDetector(page);
 
         const scrollDetector2 = scrollDetector(page);
         await page.goBack();

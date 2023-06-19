@@ -10,7 +10,6 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
-import { PropFunction } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -221,9 +220,6 @@ export interface FormSubmitSuccessDetail<T> {
     value: T;
 }
 
-// @alpha (undocumented)
-export const getHistoryId: () => string;
-
 // @public (undocumented)
 export const globalAction$: ActionConstructor;
 
@@ -321,10 +317,8 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
-    // Warning: (ae-incompatible-release-tags) The symbol "restoreScroll$" is marked as @public, but its signature references "RestoreScroll" which is marked as @alpha
-    //
-    // (undocumented)
-    restoreScroll$?: PropFunction<RestoreScroll>;
+    // @alpha
+    restoreScroll$?: RestoreScroll;
     viewTransition?: boolean;
 }
 
@@ -346,10 +340,10 @@ export { RequestHandler }
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
-// Warning: (ae-forgotten-export) The symbol "ScrollRecord" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ScrollState" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, records: ScrollRecord) => void | Promise<void>;
+export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, scrollState?: ScrollState) => () => void;
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;

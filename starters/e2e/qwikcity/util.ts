@@ -124,6 +124,19 @@ export async function scrollDetector(page: Page) {
   );
 }
 
+export async function scrollDebounceDetector(page: Page) {
+  await page.evaluate(() => {
+    return new Promise<void>((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (!window['_qCityScrollDebounceTimeout']) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 50);
+    });
+  });
+}
+
 export function locator(ctx: TestContext, selector: string) {
   const page = getPage(ctx);
   return page.locator(selector);

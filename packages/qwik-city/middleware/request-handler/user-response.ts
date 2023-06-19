@@ -99,9 +99,6 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
   return pathname;
 }
 
-export const isQDataJson = (pathname: string) => {
-  return pathname.endsWith(QDATA_JSON);
-};
-
+export const IsQData = '@isQData';
 export const QDATA_JSON = '/q-data.json';
-const QDATA_JSON_LEN = QDATA_JSON.length;
+export const QDATA_JSON_LEN = QDATA_JSON.length;

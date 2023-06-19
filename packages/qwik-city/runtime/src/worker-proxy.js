@@ -1,5 +1,3 @@
-import { _deserializeData } from '@builder.io/qwik';
-
 globalThis.document = {
   nodeType: 9,
   ownerDocument: undefined,
@@ -12,6 +10,8 @@ globalThis.document = {
     };
   },
 };
+
+import { _deserializeData } from '@builder.io/qwik';
 
 globalThis.onmessage = async ({ data }) => {
   const requestId = data[0];

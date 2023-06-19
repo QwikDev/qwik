@@ -38,6 +38,7 @@ const excludeDeps = [
   '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
   '@qwik-client-manifest',
+  '@qwik-client-mapping',
 ];
 
 vite('command: serve, mode: development', async () => {

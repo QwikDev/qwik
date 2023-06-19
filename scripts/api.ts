@@ -243,6 +243,10 @@ declare module '@qwik-client-manifest' {
   const manifest: import('./optimizer').QwikManifest;
   export { manifest };
 }
+declare module '@qwik-client-mapping' {
+  const mapping: Record<string, string>;
+  export default mapping;
+}
 // MD
 declare module '*.md' {
   const node: import('./core').FunctionComponent;

@@ -14,7 +14,7 @@ export default defineConfig(() => {
       },
       minify: false,
       rollupOptions: {
-        external: ['zod', '@qwik-city-sw-register', '@qwik-city-plan'],
+        external: ['zod', '@qwik-city-sw-register', '@qwik-city-plan', './worker-proxy.js?worker&url'],
       },
     },
     plugins: [
@@ -22,8 +22,8 @@ export default defineConfig(() => {
       viteStaticCopy({
         targets: [
           {
-            src: 'src/worker.js',
-            dest: '.',
+            src: 'src/worker-proxy.js',
+            dest: '../lib',
           },
         ],
       }),

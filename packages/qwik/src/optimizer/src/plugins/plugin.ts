@@ -431,6 +431,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
+    if (id.endsWith(QWIK_CLIENT_MAPPING_ID)) {
+      if (id === '/q-mapping.js') {
+        return {
+          id: '/q-mapping.js',
+          external: true
+        };
+      }
+    }
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
       log(`resolveId()`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       if (opts.target === 'lib') {
@@ -868,6 +876,8 @@ export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
+export const QWIK_CLIENT_MAPPING_ID = '@qwik-client-mapping';
+
 export const SRC_DIR_DEFAULT = 'src';
 
 export const CLIENT_OUT_DIR = 'dist';
@@ -877,6 +887,7 @@ export const SSR_OUT_DIR = 'server';
 const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
+export const Q_MAPPING_FILENAME = 'q-mapping.json';
 
 export interface QwikPluginOptions {
   buildMode?: QwikBuildMode;

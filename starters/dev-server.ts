@@ -319,7 +319,9 @@ async function main() {
 
   appNames.forEach((appName) => {
     const buildPath = join(startersAppsDir, appName, 'dist', appName, 'build');
+    const assetsPath = join(startersAppsDir, appName, 'dist', appName, 'assets');
     app.use(`/${appName}/build`, express.static(buildPath));
+    app.use(`/${appName}/assets`, express.static(assetsPath));
 
     const publicPath = join(startersAppsDir, appName, 'public');
     app.use(`/${appName}`, express.static(publicPath));

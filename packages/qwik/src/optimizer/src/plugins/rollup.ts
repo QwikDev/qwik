@@ -157,6 +157,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           fileName: Q_MANIFEST_FILENAME,
           source: JSON.stringify(manifest, null, 2),
         });
+
+        this.emitFile({
+          type: 'prebuilt-chunk',
+          code: `export default ${JSON.stringify(manifest.mapping, null, 2)}`,
+          fileName: 'q-mapping.js',
+          exports: ['default']
+        });
       }
     },
   };

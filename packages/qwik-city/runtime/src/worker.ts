@@ -7,6 +7,7 @@ import {
 } from '@builder.io/qwik';
 
 import { isDev, isServer } from '@builder.io/qwik/build';
+import mapping from '@qwik-client-mapping';
 
 //@ts-ignore
 import workerUrl from './worker-proxy.js?worker&url';
@@ -80,6 +81,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
       }
       return arg;
     });
+
     const data = await _serializeData([qrl, ...filtered], false);
     return new Promise((resolve, reject) => {
       const handler = ({ data }: MessageEvent) => {

@@ -489,6 +489,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             source: clientManifestStr,
           });
 
+          this.emitFile({
+            type: 'prebuilt-chunk',
+            code: `export default ${JSON.stringify(manifest.mapping, null, 2)}`,
+            fileName: 'q-mapping.js',
+          });
+
           if (typeof opts.manifestOutput === 'function') {
             await opts.manifestOutput(manifest);
           }

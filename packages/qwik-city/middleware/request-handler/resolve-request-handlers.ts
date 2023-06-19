@@ -165,7 +165,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
         console.warn(
-          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure you <form> has method="POST" attribute, like this: <form method="POST">'
+          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure your <form> has method="POST" attribute, like this: <form method="POST">'
         );
       }
     }

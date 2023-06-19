@@ -33,7 +33,7 @@ yarn create qwik@latest
 ```
 
 - Understand the difference between [resumable and replayable](https://qwik.builder.io/docs/concepts/resumable/) applications.
-- Learn about Qwik's high level [mental model](https://qwik.builder.io/docs/think-qwik/).
+- Learn about Qwik's high level [mental model](https://qwik.builder.io/docs/concepts/think-qwik/).
 
 ## Resources
 

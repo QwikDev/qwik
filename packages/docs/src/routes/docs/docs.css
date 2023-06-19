@@ -79,6 +79,9 @@
   font-size: 70px;
   margin: 0;
   line-height: 1;
+}
+
+.docs article .card .intro-icon {
   position: relative;
   margin: auto;
 }

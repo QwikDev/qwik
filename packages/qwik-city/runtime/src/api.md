@@ -250,6 +250,8 @@ export const Link: Component<LinkProps>;
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
     // (undocumented)
+    end?: boolean;
+    // (undocumented)
     prefetch?: boolean;
     // (undocumented)
     reload?: boolean;

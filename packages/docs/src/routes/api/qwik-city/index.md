@@ -331,6 +331,7 @@ export interface LinkProps extends AnchorAttributes
 
 | Property       | Modifiers | Type    | Description  |
 | -------------- | --------- | ------- | ------------ |
+| [end?](#)      |           | boolean | _(Optional)_ |
 | [prefetch?](#) |           | boolean | _(Optional)_ |
 | [reload?](#)   |           | boolean | _(Optional)_ |
 

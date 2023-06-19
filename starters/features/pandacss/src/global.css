@@ -1,0 +1,5 @@
+/**
+ * PandaCSS CSS layers
+ * View the full documentation at https://panda-css.com/docs/concepts/cascade-layers#layer-css
+ */
+@layer reset, base, tokens, recipes, utilities;

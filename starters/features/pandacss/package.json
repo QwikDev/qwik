@@ -1,0 +1,18 @@
+{
+  "description": "Zero-runtime CSS-in-JS",
+  "scripts": {
+    "pandacss.generate": "panda codegen"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "^0.3.2"
+  },
+  "__qwik__": {
+    "displayName": "Integration: PandaCSS (styling)",
+    "priority": -10,
+    "postInstall": "panda codegen",
+    "viteConfig": {},
+    "docs": [
+      "https://panda-css.com/docs/getting-started/qwik"
+    ]
+  }
+}

@@ -27,7 +27,7 @@ and create a new file named `plugin@auth.ts` with an example configuration.
 
 ### Manual Action Required
 
-After installing the auth package using `npm run qwik add auth` the `@auth/core` package will need to be added to the dependency optimzation settings of the `vite.config.js` file:
+After installing the auth package using `npm run qwik add auth` the `@auth/core` package will need to be added to the dependency optimization settings of the `vite.config.js` file:
 
 ```js {9-11} title="vite.config.js"
 export default defineConfig(() => {
@@ -68,7 +68,7 @@ A [routeAction$](/docs/action/) used to initiate a signin flow or send the user 
 
 #### Parameters
 
-* `providerId`: An optional string parameter with the name of the provider. When supplied will initiate the Authorization Request to your Identity Provider. When omited will redirect to the built-in/unbranded sign-in page.
+* `providerId`: An optional string parameter with the name of the provider. When supplied will initiate the Authorization Request to your Identity Provider. When omitted will redirect to the built-in/unbranded sign-in page.
 * `options`: An optional object of options.
   * `callbackUrl`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
 * `authorizationParams`: An optional object of additional parameters sent to the /authorize endpoint. See the Authorization Request OIDC spec for some ideas.
@@ -94,7 +94,7 @@ export default component$(() => {
 });
 ```
 
-Example using `useAuthSignin` programatically with optional `providerId` and `options.callbackUrl`:
+Example using `useAuthSignin` programmatically with optional `providerId` and `options.callbackUrl`:
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -136,7 +136,7 @@ export default component$(() => {
 });
 ```
 
-Example using `useAuthSignout` programatically with optional `callbackUrl`:
+Example using `useAuthSignout` programmatically with optional `callbackUrl`:
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -228,7 +228,7 @@ AUTH_SECRET=
 
 > *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
 
-4. The application is now ready to impliment authentication using Auth.js.
+4. The application is now ready to implement authentication using Auth.js.
 5. Enjoy!
 
 ### Route Protection

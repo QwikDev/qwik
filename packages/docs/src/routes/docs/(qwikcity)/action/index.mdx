@@ -26,7 +26,7 @@ import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(async (data, requestEvent) => {
-  // This will only run on the server when the user submits the form (or when the action is called programatically)
+  // This will only run on the server when the user submits the form (or when the action is called programmatically)
   const userID = await db.users.add({
     firstName: data.firstName,
     lastName: data.lastName,
@@ -91,9 +91,9 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
 
-## Using actions programatically
+## Using actions programmatically
 
-Actions can also be triggered programatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+Actions can also be triggered programmatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx {18} title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';

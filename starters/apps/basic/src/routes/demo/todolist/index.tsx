@@ -46,13 +46,15 @@ export default component$(() => {
       <div role="presentation" class="ellipsis"></div>
 
       <div class="container container-center">
-        {(list.value.length && (
+        {list.value.length === 0 ? (
+          <span class={styles.empty}>No items found</span>
+        ) : (
           <ul class={styles.list}>
             {list.value.map((item, index) => (
               <li key={`items-${index}`}>{item.text}</li>
             ))}
           </ul>
-        )) || <span class={styles.empty}>No items found</span>}
+        )}
       </div>
 
       <div class="container container-center">

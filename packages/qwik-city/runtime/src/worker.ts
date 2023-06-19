@@ -60,7 +60,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
       if (isDev) {
         console.warn('workerQrl() will not create nested workers.');
       }
-      return qrl(...args as any);
+      return qrl.apply(undefined, args as any);
     }
     const containerEl =
       (_getContextElement() as HTMLElement | undefined)?.closest('[q\\:container]') ??

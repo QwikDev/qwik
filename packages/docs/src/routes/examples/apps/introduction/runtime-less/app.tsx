@@ -10,9 +10,9 @@ export default component$(() => {
           // Meaning, the qwik runtime is NEVER downloaded, nor executed
           console.log('click');
           const div = document.querySelector('#container')! as HTMLElement;
-          if(div.style.background === 'yellow'){
+          if (div.style.background === 'yellow') {
             div.style.background = 'red';
-          }else {
+          } else {
             div.style.background = 'yellow';
           }
         }}

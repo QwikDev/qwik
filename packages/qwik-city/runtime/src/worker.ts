@@ -9,7 +9,6 @@ import {
 //@ts-ignore
 import workerUrl from './worker-proxy.js?worker&url';
 
-
 /**
  * @public
  */

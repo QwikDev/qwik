@@ -8,7 +8,8 @@ demo h1 {
   font-weight: bolder;
 }
 
-demo button {
+demo button,
+demo button[type='submit'] {
   display: inline-block;
   border: 1px solid #ccc;
   padding: 0.5rem 1rem;
@@ -67,19 +68,17 @@ demo a:active {
 }
 
 demo ul {
-  margin-top: 1em;
-  margin-bottom: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
   margin-left: 0;
   margin-right: 0;
-  padding-left: 40px;
-  list-style-type: square;
 }
 
 demo li {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-left: 0;
-  list-style-type: none;
+  list-style-type: disc;
   margin-left: 1em;
 }
 

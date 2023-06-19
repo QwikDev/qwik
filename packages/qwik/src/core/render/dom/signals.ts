@@ -34,7 +34,7 @@ export const executeSignalOperation = (
         const prop = operation[4];
         const isSVG = elm.namespaceURI === SVG_NS;
         staticCtx.$containerState$.$subsManager$.$clearSignal$(operation);
-        let value = trackSignal(operation[2], operation) as any;
+        let value = trackSignal(operation[2], operation.slice(0, -1) as any) as any;
         if (prop === 'class') {
           value = serializeClassWithHost(value, tryGetContext(hostElm));
         } else if (prop === 'style') {
@@ -54,7 +54,7 @@ export const executeSignalOperation = (
         if (!staticCtx.$visited$.includes(elm)) {
           // assertTrue(elm.isConnected, 'text node must be connected to the dom');
           staticCtx.$containerState$.$subsManager$.$clearSignal$(operation);
-          const value = trackSignal(operation[2], operation);
+          const value = trackSignal(operation[2], operation.slice(0, -1) as any);
           return setProperty(staticCtx, elm, 'data', jsxToString(value));
         }
       }

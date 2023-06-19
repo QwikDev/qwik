@@ -6,6 +6,7 @@
 
 /// <reference types="node" />
 
+import type { ClientConn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { IncomingMessage } from 'node:http';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
@@ -35,6 +36,8 @@ export interface PlatformNode {
 
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
+    // (undocumented)
+    getClientConn?: (req: IncomingMessage) => ClientConn;
     origin?: string;
     static?: {
         root?: string;

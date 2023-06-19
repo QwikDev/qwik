@@ -10,6 +10,7 @@ import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import imageDevTools from './image-size-runtime.html?raw';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -338,7 +339,9 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
 
   const hotKeys: string[] = opts.clickToSource;
 
-  return `
+  return (
+    imageDevTools +
+    `
 <style>
 #qwik-inspector-overlay {
   position: fixed;
@@ -384,8 +387,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
   console.debug("%c🔍 Qwik Click-To-Source","background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Hold-press the '${hotKeys.join(
     ' + '
   )}' key${
-    (hotKeys.length > 1 && 's') || ''
-  } and click a component to jump directly to the source code in your IDE!");
+      (hotKeys.length > 1 && 's') || ''
+    } and click a component to jump directly to the source code in your IDE!");
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
@@ -502,7 +505,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
 })();
 </script>
 <div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(' + ')}</div>
-`;
+`
+  );
 };
 
 const PERF_WARNING = `

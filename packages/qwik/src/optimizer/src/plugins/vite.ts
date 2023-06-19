@@ -30,9 +30,11 @@ import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configureDevServer, configurePreviewServer, VITE_DEV_CLIENT_QS } from './vite-server';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
+import { getImageSizeServer } from './image-size-server';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
+const CSS_EXTENSIONS = ['.css', '.scss', '.sass'];
 /**
  * @public
  */
@@ -45,6 +47,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let clientOutDir: string | null = null;
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
+  let srcDir: string | null = null;
+  let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
@@ -210,7 +214,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
 
       manifestInput = pluginOpts.manifestInput || null;
-
+      srcDir = opts.srcDir;
+      rootDir = opts.rootDir;
       clientOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
       );
@@ -519,8 +524,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             try {
               const bundleFileName = sys.path.basename(bundeName);
               const ext = sys.path.extname(bundleFileName);
+              const isEntryFile =
+                bundleFileName.startsWith('entry.') || bundleFileName.startsWith('entry_');
               if (
-                bundleFileName.startsWith('entry.') &&
+                isEntryFile &&
                 !bundleFileName.includes('preview') &&
                 (ext === '.mjs' || ext === '.cjs')
               ) {
@@ -554,6 +561,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
+      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       const plugin = async () => {
         const opts = qwikPlugin.getOptions();
         const sys = qwikPlugin.getSys();
@@ -575,23 +583,30 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         await configurePreviewServer(server.middlewares, ssrOutDir!, sys, path);
       };
     },
-
     handleHotUpdate(ctx) {
       qwikPlugin.log('handleHotUpdate()', ctx);
 
       for (const mod of ctx.modules) {
         const deps = mod.info?.meta?.qwikdeps;
-        if (deps) {
+        if (deps && deps.length > 0) {
           for (const dep of deps) {
             const mod = ctx.server.moduleGraph.getModuleById(dep);
             if (mod) {
               ctx.server.moduleGraph.invalidateModule(mod);
             }
           }
+        } else if (
+          mod.type === 'js' &&
+          Array.from(mod.importers).every(
+            (m) => m.type === 'css' || CSS_EXTENSIONS.some((ext) => m.file?.endsWith(ext))
+          )
+        ) {
+          // invalidate all modules that import this module
+          ctx.server.moduleGraph.invalidateAll();
         }
       }
 
-      if (['.css', '.scss', '.sass'].some((ext) => ctx.file.endsWith(ext))) {
+      if (CSS_EXTENSIONS.some((ext) => ctx.file.endsWith(ext))) {
         qwikPlugin.log('handleHotUpdate()', 'force css reload');
 
         ctx.server.ws.send({

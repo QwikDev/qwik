@@ -68,7 +68,53 @@ export interface RouteLocation {
 /**
  * @public
  */
-export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
+
+/**
+ * @internal
+ */
+export type RouteStateInternal = {
+  type: NavigationType;
+  dest: URL;
+  replaceState?: boolean;
+};
+
+/**
+ * @alpha
+ */
+export type ScrollState = [
+  scrollX: number,
+  scrollY: number,
+  scrollWidth: number,
+  scrollHeight: number
+];
+
+/**
+ * @alpha
+ */
+export type ScrollRecord = Record<string, ScrollState>;
+
+/**
+ * @alpha
+ */
+export type RestoreScroll = (
+  navigationType: NavigationType,
+  fromUrl: URL,
+  toUrl: URL,
+  records: ScrollRecord
+) => void | Promise<void>;
+
+/**
+ * @public
+ */
+export type RouteNavigate = QRL<
+  (
+    path?: string,
+    options?:
+      | { type?: Exclude<NavigationType, 'initial'>; forceReload?: boolean; replaceState?: boolean }
+      | boolean
+  ) => Promise<void>
+>;
 
 export type RouteAction = Signal<RouteActionValue>;
 
@@ -131,6 +177,7 @@ export interface DocumentMeta {
   readonly property?: string;
   readonly key?: string;
   readonly itemprop?: string;
+  readonly media?: string;
 }
 
 /**

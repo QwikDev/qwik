@@ -447,6 +447,33 @@ test.describe('render', () => {
         throw new Error('Unexpected mounted value');
       }
     });
+
+    test('issue4292', async ({ page }) => {
+      const button = page.locator('#issue-4292-result');
+      await expect(button).toHaveText('Hello, World!');
+      await expect(button).toHaveAttribute('aria-label', 'a1');
+      await expect(button).toHaveAttribute('title', 'a1');
+
+      await button.click();
+      await expect(button).toHaveAttribute('aria-label', 'a');
+      await expect(button).toHaveAttribute('title', 'a');
+
+      await button.click();
+      await expect(button).toHaveAttribute('aria-label', 'a1');
+      await expect(button).toHaveAttribute('title', 'a1');
+    });
+
+    test('issue 4386', async ({ page }) => {
+      const result = page.locator('#issue-4386-result');
+      await expect(result).toHaveText('1');
+    });
+
+    test('issue 4455', async ({ page }) => {
+      const input1 = page.locator('#issue-4455-input1');
+      const input2 = page.locator('#issue-4455-input2');
+      await expect(input1).toHaveValue('0.5');
+      await expect(input2).toHaveValue('0.5');
+    });
   }
 
   tests();
@@ -465,5 +492,13 @@ test.describe('render', () => {
     await expect(ref).toHaveText('data');
     await ref.click();
     await expect(ref).not.toHaveText('data');
+  });
+
+  test('issue4346', async ({ page }) => {
+    const result = page.locator('#issue-4346-result');
+    const toggle = page.locator('#issue-4346-toggle');
+    await expect(result).toHaveText('Hello');
+    await toggle.click();
+    await expect(result).toHaveText('world');
   });
 });

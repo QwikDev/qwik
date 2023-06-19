@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-qwik",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "index.js",
   "author": "Builder Team",
@@ -26,7 +26,7 @@
     "node": ">=16"
   },
   "devDependencies": {
-    "@types/eslint": "8.37.0",
+    "@types/eslint": "8.40.2",
     "@types/estree": "^1.0.1",
     "redent": "^4.0.0"
   },

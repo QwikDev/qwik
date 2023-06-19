@@ -147,8 +147,10 @@ export const Fragment: FunctionComponent<{
 
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    (props: P, key: string | null, flags: number): JSXNode | null;
+    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
 
 // @internal (undocumented)
@@ -333,8 +335,6 @@ export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props:
 export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     children: any | null;
-    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     dev?: DevJSX;
     // (undocumented)
@@ -518,7 +518,7 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 
 // Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
@@ -566,6 +566,8 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
     // (undocumented)
     ctrlKey: boolean;
     getModifierState(key: string): boolean;
+    // (undocumented)
+    isComposing: boolean;
     key: string;
     // (undocumented)
     keyCode: number;

@@ -5,7 +5,7 @@ import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
-import type { SubscriptionManager } from './common';
+import { getProxyTarget, type SubscriptionManager } from './common';
 import type { ContainerState } from '../container/container';
 import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
@@ -14,7 +14,7 @@ import { isElement } from '../../testing/html';
 import { assertQwikElement, assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { QObjectImmutable } from './constants';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
 
 export const Q_CTX = '_qc_';
 
@@ -104,8 +104,10 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
               elCtx.$componentQrl$ = getObject(renderQrl);
             }
             if (props) {
-              elCtx.$props$ = getObject(props);
-              setObjectFlags(elCtx.$props$!, QObjectImmutable);
+              const propsObj = getObject(props);
+              elCtx.$props$ = propsObj;
+              setObjectFlags(propsObj, QObjectImmutable);
+              propsObj[_IMMUTABLE] = getImmutableFromProps(propsObj);
             } else {
               elCtx.$props$ = createProxy(createPropsState(), containerState);
             }
@@ -116,6 +118,17 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
   }
 
   return elCtx;
+};
+
+const getImmutableFromProps = (props: Record<string, any>): Record<string, any> => {
+  const immutable: Record<string, any> = {};
+  const target = getProxyTarget(props);
+  for (const key in target) {
+    if (key.startsWith(_IMMUTABLE_PREFIX)) {
+      immutable[key.slice(_IMMUTABLE_PREFIX.length)] = target[key];
+    }
+  }
+  return immutable;
 };
 
 export const createContext = (element: Element | VirtualElement): QContext => {

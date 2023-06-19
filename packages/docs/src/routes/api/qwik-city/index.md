@@ -26,10 +26,10 @@ export interface ActionConstructor
 export interface ActionOptions
 ```
 
-| Property         | Modifiers             | Type              | Description  |
-| ---------------- | --------------------- | ----------------- | ------------ |
-| [id?](#)         | <code>readonly</code> | string            | _(Optional)_ |
-| [validation?](#) | <code>readonly</code> | DataValidator\[\] | _(Optional)_ |
+| Property         | Modifiers             | Type            | Description  |
+| ---------------- | --------------------- | --------------- | ------------ |
+| [id?](#)         | <code>readonly</code> | string          | _(Optional)_ |
+| [validation?](#) | <code>readonly</code> | DataValidator[] | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -39,10 +39,10 @@ export interface ActionOptions
 export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
 ```
 
-| Property        | Modifiers             | Type                                | Description  |
-| --------------- | --------------------- | ----------------------------------- | ------------ |
-| [id?](#)        | <code>readonly</code> | string                              | _(Optional)_ |
-| [validation](#) | <code>readonly</code> | \[val: B, ...a: DataValidator\[\]\] |              |
+| Property        | Modifiers             | Type                            | Description  |
+| --------------- | --------------------- | ------------------------------- | ------------ |
+| [id?](#)        | <code>readonly</code> | string                          | _(Optional)_ |
+| [validation](#) | <code>readonly</code> | [val: B, ...a: DataValidator[]] |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -103,11 +103,11 @@ export interface ContentHeading
 export interface ContentMenu
 ```
 
-| Property    | Modifiers             | Type                            | Description  |
-| ----------- | --------------------- | ------------------------------- | ------------ |
-| [href?](#)  | <code>readonly</code> | string                          | _(Optional)_ |
-| [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)\[\] | _(Optional)_ |
-| [text](#)   | <code>readonly</code> | string                          |              |
+| Property    | Modifiers             | Type                          | Description  |
+| ----------- | --------------------- | ----------------------------- | ------------ |
+| [href?](#)  | <code>readonly</code> | string                        | _(Optional)_ |
+| [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)[] | _(Optional)_ |
+| [text](#)   | <code>readonly</code> | string                        |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -145,13 +145,13 @@ export interface DocumentHeadProps extends RouteLocation
 export interface DocumentHeadValue
 ```
 
-| Property          | Modifiers             | Type                                         | Description                                                                                                                                                                                                                                                           |
-| ----------------- | --------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt;    | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
-| [links?](#)       | <code>readonly</code> | readonly [DocumentLink](#documentlink)\[\]   | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
-| [meta?](#)        | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)\[\]   | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
-| [styles?](#)      | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)\[\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
-| [title?](#)       | <code>readonly</code> | string                                       | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
+| Property          | Modifiers             | Type                                       | Description                                                                                                                                                                                                                                                           |
+| ----------------- | --------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt;  | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
+| [links?](#)       | <code>readonly</code> | readonly [DocumentLink](#documentlink)[]   | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
+| [meta?](#)        | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)[]   | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
+| [styles?](#)      | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)[] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
+| [title?](#)       | <code>readonly</code> | string                                     | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -195,6 +195,7 @@ export interface DocumentMeta
 | [httpEquiv?](#) | <code>readonly</code> | string | _(Optional)_ |
 | [itemprop?](#)  | <code>readonly</code> | string | _(Optional)_ |
 | [key?](#)       | <code>readonly</code> | string | _(Optional)_ |
+| [media?](#)     | <code>readonly</code> | string | _(Optional)_ |
 | [name?](#)      | <code>readonly</code> | string | _(Optional)_ |
 | [property?](#)  | <code>readonly</code> | string | _(Optional)_ |
 
@@ -206,11 +207,11 @@ export interface DocumentMeta
 export interface DocumentStyle
 ```
 
-| Property    | Modifiers             | Type                                              | Description  |
-| ----------- | --------------------- | ------------------------------------------------- | ------------ |
-| [key?](#)   | <code>readonly</code> | string                                            | _(Optional)_ |
-| [props?](#) | <code>readonly</code> | Readonly&lt;{ \[propName: string\]: string; }&gt; | _(Optional)_ |
-| [style](#)  | <code>readonly</code> | string                                            |              |
+| Property    | Modifiers             | Type                                            | Description  |
+| ----------- | --------------------- | ----------------------------------------------- | ------------ |
+| [key?](#)   | <code>readonly</code> | string                                          | _(Optional)_ |
+| [props?](#) | <code>readonly</code> | Readonly&lt;{ [propName: string]: string; }&gt; | _(Optional)_ |
+| [style](#)  | <code>readonly</code> | string                                          |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -241,7 +242,7 @@ Form: <O, I>(
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'>
 ```
 
-**Extends:** Omit&lt;QwikJSX.IntrinsicElements\['form'\], 'action' \| 'method'&gt;
+**Extends:** Omit&lt;QwikJSX.IntrinsicElements['form'], 'action' \| 'method'&gt;
 
 | Property                 | Modifiers | Type                                                                                                                                               | Description                                                                                                                                                                      |
 | ------------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -361,6 +362,14 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## NavigationType
+
+```typescript
+export type NavigationType = "initial" | "form" | "link" | "popstate";
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## PageModule
 
 ```typescript
@@ -373,7 +382,7 @@ export interface PageModule extends RouteModule
 | ---------------------- | --------------------- | ----------------------------------------------- | ------------ |
 | [default](#)           | <code>readonly</code> | any                                             |              |
 | [head?](#)             | <code>readonly</code> | ContentModuleHead                               | _(Optional)_ |
-| [headings?](#)         | <code>readonly</code> | [ContentHeading](#contentheading)\[\]           | _(Optional)_ |
+| [headings?](#)         | <code>readonly</code> | [ContentHeading](#contentheading)[]             | _(Optional)_ |
 | [onStaticGenerate?](#) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
@@ -385,6 +394,19 @@ export declare type PathParams = Record<string, string>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
+## QwikCityMockProps
+
+```typescript
+export interface QwikCityMockProps
+```
+
+| Property     | Modifiers | Type                         | Description  |
+| ------------ | --------- | ---------------------------- | ------------ |
+| [params?](#) |           | Record&lt;string, string&gt; | _(Optional)_ |
+| [url?](#)    |           | string                       | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityMockProvider
 
@@ -400,14 +422,14 @@ QwikCityMockProvider: import("@builder.io/qwik").Component<QwikCityMockProps>;
 export interface QwikCityPlan
 ```
 
-| Property            | Modifiers             | Type                        | Description  |
-| ------------------- | --------------------- | --------------------------- | ------------ |
-| [basePathname?](#)  | <code>readonly</code> | string                      | _(Optional)_ |
-| [cacheModules?](#)  | <code>readonly</code> | boolean                     | _(Optional)_ |
-| [menus?](#)         | <code>readonly</code> | [MenuData](#menudata)\[\]   | _(Optional)_ |
-| [routes](#)         | <code>readonly</code> | [RouteData](#routedata)\[\] |              |
-| [serverPlugins?](#) | <code>readonly</code> | RouteModule\[\]             | _(Optional)_ |
-| [trailingSlash?](#) | <code>readonly</code> | boolean                     | _(Optional)_ |
+| Property            | Modifiers             | Type                      | Description  |
+| ------------------- | --------------------- | ------------------------- | ------------ |
+| [basePathname?](#)  | <code>readonly</code> | string                    | _(Optional)_ |
+| [cacheModules?](#)  | <code>readonly</code> | boolean                   | _(Optional)_ |
+| [menus?](#)         | <code>readonly</code> | [MenuData](#menudata)[]   | _(Optional)_ |
+| [routes](#)         | <code>readonly</code> | [RouteData](#routedata)[] |              |
+| [serverPlugins?](#) | <code>readonly</code> | RouteModule[]             | _(Optional)_ |
+| [trailingSlash?](#) | <code>readonly</code> | boolean                   | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -417,9 +439,10 @@ export interface QwikCityPlan
 export interface QwikCityProps
 ```
 
-| Property             | Modifiers | Type    | Description                                                                        |
-| -------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
-| [viewTransition?](#) |           | boolean | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
+| Property             | Modifiers | Type                              | Description                                                                        |
+| -------------------- | --------- | --------------------------------- | ---------------------------------------------------------------------------------- |
+| [restoreScroll$?](#) |           | PropFunction&lt;RestoreScroll&gt; | _(Optional)_                                                                       |
+| [viewTransition?](#) |           | boolean                           | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
@@ -509,9 +532,20 @@ export interface RouteLocation
 
 ```typescript
 export type RouteNavigate = QRL<
-  (path?: string, forceReload?: boolean) => Promise<void>
+  (
+    path?: string,
+    options?:
+      | {
+          type?: Exclude<NavigationType, "initial">;
+          forceReload?: boolean;
+          replaceState?: boolean;
+        }
+      | boolean
+  ) => Promise<void>
 >;
 ```
+
+**References:** [NavigationType](#navigationtype)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -554,9 +588,9 @@ ServiceWorkerRegister: (props: { nonce?: string }) =>
 export interface StaticGenerate
 ```
 
-| Property     | Modifiers | Type                          | Description  |
-| ------------ | --------- | ----------------------------- | ------------ |
-| [params?](#) |           | [PathParams](#pathparams)\[\] | _(Optional)_ |
+| Property     | Modifiers | Type                        | Description  |
+| ------------ | --------- | --------------------------- | ------------ |
+| [params?](#) |           | [PathParams](#pathparams)[] | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 

@@ -416,7 +416,9 @@ export const diffVnode = (
         let newValue = props[prop];
         if (prop === 'ref') {
           assertElement(elm);
-          setRef(newValue, elm);
+          if (newValue !== undefined) {
+            setRef(newValue, elm);
+          }
           continue;
         }
 
@@ -689,7 +691,7 @@ const createElm = (
         directSetAttribute(
           elm,
           'data-qwik-inspector',
-          `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+          `${dev.fileName}:${dev.lineNumber}:${dev.columnNumber}`
         );
       }
     }
@@ -997,7 +999,9 @@ export const setProperties = (
     let newValue = newProps[prop];
     if (prop === 'ref') {
       assertElement(elm);
-      setRef(newValue, elm);
+      if (newValue !== undefined) {
+        setRef(newValue, elm);
+      }
       continue;
     }
 

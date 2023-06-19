@@ -81,7 +81,7 @@
 
 ## Concepts
 
-- [Think Qwik](/docs/(qwik)/think-qwik/index.mdx)
+- [Think Qwik](/docs/(qwik)/concepts/think-qwik/index.mdx)
 - [Resumable](/docs/(qwik)/concepts/resumable/index.mdx)
 - [Progressive](/docs/(qwik)/concepts/progressive/index.mdx)
 - [Reactivity](/docs/(qwik)/concepts/reactivity/index.mdx)

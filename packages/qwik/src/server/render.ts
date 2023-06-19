@@ -213,6 +213,24 @@ export async function renderToStream(
         );
       }
 
+      // embed server-data in document obj
+      if (opts.serverData) {
+        const normalizedServerData: any = {};
+        const disallowedProperties = ['url', 'requestHeaders', 'nonce', 'qwikcity'];
+        for (const key of Object.keys(opts.serverData).filter(
+          (k) => !disallowedProperties.includes(k)
+        )) {
+          normalizedServerData[key] = opts.serverData[key];
+        }
+        const normalizedServerDataJson = JSON.stringify(normalizedServerData);
+        children.push(
+          jsx('script', {
+            dangerouslySetInnerHTML: `window.document.serverData=JSON.parse('${normalizedServerDataJson}')`,
+            nonce: opts.serverData?.nonce,
+          })
+        );
+      }
+
       collectRenderSymbols(renderSymbols, contexts);
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });

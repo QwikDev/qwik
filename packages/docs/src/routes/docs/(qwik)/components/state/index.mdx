@@ -182,7 +182,7 @@ In Qwik there are two ways to create computed values, each with a different use 
 2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask)). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
 
 ### `useComputed$()`
 
@@ -262,10 +262,10 @@ export default component$(() => {
 
 
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data on in the browser.
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
 >
 >
-> In many ways `useResource$` is similar to `useTask$` The big differences are:
+> In many ways `useResource$` is similar to `useTask$`. The big differences are:
 >
 > - `useResource$` allows you to return a "value".
 > - `useResource$` does not block rendering while the resource is being resolved.

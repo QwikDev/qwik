@@ -439,10 +439,9 @@ export interface QwikCityPlan
 export interface QwikCityProps
 ```
 
-| Property             | Modifiers | Type                              | Description                                                                        |
-| -------------------- | --------- | --------------------------------- | ---------------------------------------------------------------------------------- |
-| [restoreScroll$?](#) |           | PropFunction&lt;RestoreScroll&gt; | _(Optional)_                                                                       |
-| [viewTransition?](#) |           | boolean                           | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
+| Property             | Modifiers | Type    | Description                                                                        |
+| -------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
+| [viewTransition?](#) |           | boolean | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 

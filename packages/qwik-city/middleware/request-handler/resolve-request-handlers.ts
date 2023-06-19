@@ -19,7 +19,7 @@ import {
   RequestEvSharedActionId,
 } from './request-event';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
-import { isQDataJson, QDATA_JSON } from './user-response';
+import { IsQData, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
@@ -334,8 +334,9 @@ async function pureServerFunction(ev: RequestEvent) {
 
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const { basePathname, pathname, url } = ev;
-  if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
+  const { basePathname, pathname, url, sharedMap } = ev;
+  const isQData = sharedMap.has(IsQData);
+  if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -407,7 +408,7 @@ export function renderQwikMiddleware(render: Render) {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+    const isPageDataReq = requestEv.sharedMap.has(IsQData);
     if (isPageDataReq) {
       return;
     }
@@ -458,7 +459,7 @@ export function renderQwikMiddleware(render: Render) {
 }
 
 export async function renderQData(requestEv: RequestEvent) {
-  const isPageDataReq = isQDataJson(requestEv.pathname);
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (isPageDataReq) {
     try {
       await requestEv.next();
@@ -467,7 +468,7 @@ export async function renderQData(requestEv: RequestEvent) {
         throw err;
       }
     }
-    if (requestEv.headersSent || requestEv.exited) {
+    if (requestEv.headersSent) {
       return;
     }
 

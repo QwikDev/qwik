@@ -81,6 +81,11 @@
   line-height: 1;
 }
 
+.docs article .card .intro-icon {
+  position: relative;
+  margin: auto;
+}
+
 .docs article h1 {
   @apply mb-7;
   @apply relative;

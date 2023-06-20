@@ -372,9 +372,9 @@ jobs:
           path: packages/qwik/dist/*
           if-no-files-found: error
 
-      - name: Build QwikCity
+      - name: Build QwikCity / QwikLabs
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --tsc --qwikcity --api
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api
 
       - name: Print QwikCity Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

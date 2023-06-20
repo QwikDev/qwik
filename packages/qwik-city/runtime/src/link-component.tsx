@@ -1,4 +1,11 @@
-import { component$, Slot, type QwikIntrinsicElements, untrack, event$, useComputed$ } from '@builder.io/qwik';
+import {
+  component$,
+  Slot,
+  type QwikIntrinsicElements,
+  untrack,
+  event$,
+  useComputed$,
+} from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
@@ -18,8 +25,8 @@ export const Link = component$<LinkProps>((props) => {
   const onPrefetch =
     prefetchDataset != null
       ? event$((ev: any, elm: HTMLAnchorElement) =>
-        prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
-      )
+          prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
+        )
       : undefined;
   const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
     if (elm.href) {
@@ -30,13 +37,13 @@ export const Link = component$<LinkProps>((props) => {
   });
   const ariaCurrent = useComputed$(() =>
     Boolean(props.href) &&
-      (loc.url.pathname === props.href ||
-        (!props.end &&
-          loc.url.pathname.startsWith(props.href!) &&
-          loc.url.pathname.charAt(props.href!.length) === "/"))
-      ? "page"
+    (loc.url.pathname === props.href ||
+      (!props.end &&
+        loc.url.pathname.startsWith(props.href!) &&
+        loc.url.pathname.charAt(props.href!.length) === '/'))
+      ? 'page'
       : undefined
-  )
+  );
   return (
     <a
       {...linkProps}

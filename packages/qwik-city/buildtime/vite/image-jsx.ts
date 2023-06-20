@@ -69,15 +69,13 @@ export function imagePlugin(): PluginOption[] {
         id = id.toLowerCase();
         if (id.endsWith('?jsx')) {
           if (supportedExtensions.some((ext) => id.endsWith(ext))) {
-            return code.replace(
-              /export default.*/g,
-              `
+            const index = code.indexOf('export default');
+            return code.slice(0, index) + `
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = {decoding: 'async', loading: 'lazy', srcSet, width, height};
   export default function (props, key, _, dev) {
     return _jsxQ('img', props, PROPS, undefined, 3, key, dev);
-  }`
-            );
+  }`;
           } else if (id.endsWith('.svg?jsx')) {
             const svgAttributes: Record<string, string> = {};
             const data = optimize(code, {

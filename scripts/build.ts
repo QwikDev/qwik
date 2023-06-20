@@ -29,6 +29,7 @@ import { validateBuild } from './validate-build';
 import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
 import { buildQwikWorker } from './qwik-worker';
+import { buildQwikLabs } from './qwik-labs';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -105,6 +106,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
+    }
+
+    if (config.qwiklabs) {
+      await buildQwikLabs(config);
     }
 
     if (config.qwikauth) {

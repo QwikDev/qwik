@@ -4,8 +4,8 @@ import RealMetricsOptimization from './components/real-metrics-optimization/real
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
-
 import { BUILDER_PUBLIC_API_KEY } from './constants';
+import { Insights } from '@builder.io/qwik-labs';
 
 export default component$(() => {
   const store = useStore<SiteStore>({
@@ -22,6 +22,11 @@ export default component$(() => {
         <meta charSet="utf-8" />
         <RouterHead />
         <ServiceWorkerRegister />
+        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
+        <Insights
+          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
+          postUrl={'/api/v1/${publicApiKey}/post/'}
+        />
       </head>
       <body
         class={{

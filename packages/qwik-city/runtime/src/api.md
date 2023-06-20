@@ -252,6 +252,8 @@ export interface LinkProps extends AnchorAttributes {
     // The end prop changes the matching logic for the aria-current attribute to only match to the "end" of the Link's href path. If the URL is longer than href, it will no longer be considered active.
     end?: boolean;
     // (undocumented)
+    end?: boolean;
+    // (undocumented)
     prefetch?: boolean;
     // (undocumented)
     reload?: boolean;

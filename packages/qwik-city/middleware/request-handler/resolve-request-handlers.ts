@@ -442,7 +442,7 @@ export function renderQwikMiddleware(render: Render) {
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url, trailingSlash),
       };
-      if ((typeof result as any as RenderToStringResult).html === 'string') {
+      if (typeof (result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
         // write the already completed html to the stream
         await stream.write((result as any as RenderToStringResult).html);

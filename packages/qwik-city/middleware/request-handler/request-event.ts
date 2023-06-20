@@ -50,7 +50,7 @@ export function createRequestEvent(
   const url = new URL(request.url);
   if (url.pathname.endsWith(QDATA_JSON)) {
     url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
-    if (trailingSlash) {
+    if (trailingSlash && !url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
     sharedMap.set(IsQData, true);

@@ -25,9 +25,11 @@ export const RouterOutlet = component$(() => {
     const contentsLen = value.length;
     let cmp: JSXNode | null = null;
     for (let i = contentsLen - 1; i >= 0; i--) {
-      cmp = jsx(value[i].default, {
-        children: cmp,
-      });
+      if (value[i].default) {
+        cmp = jsx(value[i].default, {
+          children: cmp,
+        });
+      }
     }
     return (
       <>

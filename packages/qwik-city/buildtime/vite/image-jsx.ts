@@ -69,8 +69,9 @@ export function imagePlugin(): PluginOption[] {
         id = id.toLowerCase();
         if (id.endsWith('?jsx')) {
           if (supportedExtensions.some((ext) => id.endsWith(ext))) {
-            return code.replace(
-              /export default.*/g,
+            const index = code.indexOf('export default');
+            return (
+              code.slice(0, index) +
               `
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = {decoding: 'async', loading: 'lazy', srcSet, width, height};

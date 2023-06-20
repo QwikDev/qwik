@@ -22,7 +22,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
     `^${segments
       .filter((segment) => segment.length > 0)
       .map((s) => {
-        const segment = decodeURIComponent(s);
+        const segment = decodeURI(s);
 
         // special case — /[...rest]/ could contain zero segments
         const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
@@ -46,7 +46,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
               }
 
               return (
-                encodeURIComponent(content)
+                encodeURI(content)
                   // allow users to specify characters on the file system in an encoded manner
                   .normalize()
                   // We use [ and ] to denote parameters, so users must encode these on the file

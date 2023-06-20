@@ -125,6 +125,18 @@ test.describe('actions', () => {
         expect(toPath(page.url())).toEqual('/qwikcity-test/scroll-restoration/page-short/');
         expect(await getWindowScrollXY(page)).toStrictEqual([0, scrollHeightShort]);
       });
+
+      test('issue4502 (link)', async ({ page }) => {
+        await page.goto('/qwikcity-test/issue4502/');
+        const count = page.locator('#count');
+        await expect(count).toHaveText('Count: 0');
+        await count.click();
+        await expect(count).toHaveText('Count: 1');
+        await page.locator('#link').click();
+        await page.waitForURL('/qwikcity-test/issue4502/broken/route/');
+        await expect(page.locator('#route')).toHaveText('welcome to /broken/route');
+        await expect(count).toHaveText('Count: 1');
+      });
     });
   }
 
@@ -250,6 +262,19 @@ test.describe('actions', () => {
           h1: 'Qwik City Test API!',
         });
       });
+    });
+
+    test('issue4502 (anchor)', async ({ page }) => {
+      await page.goto('/qwikcity-test/issue4502/');
+      await page.locator('#anchor').click();
+      await page.waitForURL('/qwikcity-test/issue4502/broken/route/');
+      await expect(page.locator('#route')).toHaveText('welcome to /broken/route');
+    });
+
+    test('issue4531', async ({ page }) => {
+      const res = await page.goto('/qwikcity-test/issue4531/');
+      await expect(page.locator('#route')).toHaveText('should render');
+      expect(await res?.headerValue('X-Qwikcity-Test')).toEqual('issue4531');
     });
   }
 });

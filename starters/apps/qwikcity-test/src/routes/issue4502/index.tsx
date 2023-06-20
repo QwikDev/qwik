@@ -4,10 +4,14 @@ import { Link } from '@builder.io/qwik-city';
 export default component$(() => (
   <div>
     <p>
-      <Link href="/qwikcity-test/issue4502/broken">Broken Link</Link>
+      <Link id="link" href="/qwikcity-test/issue4502/broken">
+        Link
+      </Link>
     </p>
     <p>
-      <a href="/qwikcity-test/issue4502/broken">Working a</a>
+      <a id="anchor" href="/qwikcity-test/issue4502/broken">
+        Anchor
+      </a>
     </p>
   </div>
 ));

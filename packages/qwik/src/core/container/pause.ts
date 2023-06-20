@@ -179,12 +179,12 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
   manifest: QwikManifest,
-  defaultParentJSON?: Element,
+  defaultParentJSON?: Element
 ): Promise<SnapshotResult> => {
   const doc = getDocument(elmOrDoc);
   const resolved = resolveManifest(manifest)!;
   getPlatform().chunkForSymbol = (symbolName) => {
-    return resolved.mapper[symbolName]
+    return resolved.mapper[symbolName];
   };
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;

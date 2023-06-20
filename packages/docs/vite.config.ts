@@ -9,7 +9,7 @@ import { qwikReact } from '@builder.io/qwik-react/vite';
 import Inspect from 'vite-plugin-inspect';
 
 export default defineConfig(async () => {
-  const {default: rehypePrettyCode} = await import('rehype-pretty-code');
+  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
 
   const routesDir = resolve('src', 'routes');
   return {

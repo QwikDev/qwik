@@ -55,7 +55,10 @@ const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
   return true;
 };
 
-const scrollToHashId = (hash: string) => {
+/**
+ * @alpha
+ */
+export const scrollToHashId = (hash: string) => {
   const elmId = hash.slice(1);
   const elm = document.getElementById(elmId);
   if (elm) {

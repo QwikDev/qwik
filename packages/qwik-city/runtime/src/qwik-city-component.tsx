@@ -54,6 +54,7 @@ import {
   currentScrollState,
   getScrollHistory,
   saveScrollHistory,
+  scrollToHashId,
   toLastPositionOnPopState,
 } from './scroll-restoration';
 
@@ -159,6 +160,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
     if (!forceReload && dest.href === lastDest.href) {
+      if (type === 'link' && dest.hash) {
+        scrollToHashId(dest.hash);
+      }
+
       return;
     }
     routeInternal.value = { type, dest, replaceState };

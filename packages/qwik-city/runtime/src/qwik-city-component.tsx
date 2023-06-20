@@ -314,6 +314,25 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
             win.removeEventListener('popstate', win._qCityPopstateFallback!);
 
+            // TODO Remove block after Navigation API PR.
+            // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
+            // Only Chromium 96 - 101 have BFCache without Navigation API. (<1% of users)
+            if (!(window as any).navigation) {
+              // Commit scrollState on refresh, cross-origin navigation, mobile view changes, etc.
+              document.addEventListener(
+                'visibilitychange',
+                () => {
+                  if (win._qCityScrollHandlerEnabled && document.visibilityState === 'hidden') {
+                    // Last & most reliable point to commit state.
+                    // Do not clear timeout here in case debounce gets to run later.
+                    const scrollState = currentScrollState(document.documentElement);
+                    saveScrollHistory(scrollState);
+                  }
+                },
+                { passive: true }
+              );
+            }
+
             win.addEventListener(
               'scroll',
               () => {

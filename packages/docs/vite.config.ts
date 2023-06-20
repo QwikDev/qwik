@@ -5,11 +5,12 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import rehypePrettyCode from 'rehype-pretty-code';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import Inspect from 'vite-plugin-inspect';
 
-export default defineConfig(() => {
+export default defineConfig(async () => {
+  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
+
   const routesDir = resolve('src', 'routes');
   return {
     ssr: {

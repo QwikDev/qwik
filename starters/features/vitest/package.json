@@ -1,8 +1,8 @@
 {
   "description": "Use Vitest into your Qwik app",
   "devDependencies": {
-    "@vitest/ui": "^0.31.3",
-    "vitest": "^0.31.3"
+    "@vitest/ui": "^0.32.2",
+    "vitest": "^0.32.2"
   },
   "scripts": {
     "test.unit": "vitest components",

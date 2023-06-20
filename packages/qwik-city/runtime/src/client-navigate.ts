@@ -10,14 +10,22 @@ export const clientNavigate = (
   toURL: URL,
   replaceState = false
 ) => {
-  if (navType !== 'popstate') {
-    const samePath = isSamePath(fromURL, toURL);
-    const sameHash = fromURL.hash === toURL.hash;
-    if (!samePath || !sameHash) {
-      const newState = {
-        _qCityScroll: newScrollState(),
-      };
+  const samePath = isSamePath(fromURL, toURL);
+  const sameHash = fromURL.hash === toURL.hash;
 
+  const newState = {
+    _qCityScroll: newScrollState(),
+  };
+
+  if (navType === 'popstate') {
+    if (samePath && toURL.hash && !sameHash && !history.state?._qCityScroll) {
+      // This is an anchor tag, upgrade state to include scroll.
+      const state = history.state || {};
+      state._qCityScroll = newState;
+      win.history.replaceState(state, '', toPath(toURL));
+    }
+  } else {
+    if (!samePath || !sameHash) {
       if (replaceState) {
         win.history.replaceState(newState, '', toPath(toURL));
       } else {

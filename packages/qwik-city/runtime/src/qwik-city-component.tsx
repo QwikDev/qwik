@@ -160,8 +160,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
     if (!forceReload && dest.href === lastDest.href) {
-      if (type === 'link' && dest.hash) {
-        scrollToHashId(dest.hash);
+      if (isBrowser) {
+        if (type === 'link' && dest.hash) {
+          scrollToHashId(dest.hash);
+        } else if (type === 'popstate') {
+          // Re-enable scroll handler for anchor tag hashpops.
+          (window as ClientHistoryWindow)._qCityScrollHandlerEnabled = true;
+        }
       }
 
       return;
@@ -318,6 +323,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             });
 
             win.removeEventListener('popstate', win._qCityPopstateFallback!);
+
+            // TODO Fix Firefox anchor tag re-scroll. (doesn't trigger any events)
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.

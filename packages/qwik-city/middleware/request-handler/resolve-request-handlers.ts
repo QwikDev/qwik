@@ -63,6 +63,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
+    requestHandlers.push(handleRedirect);
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -458,7 +459,7 @@ export function renderQwikMiddleware(render: Render) {
   };
 }
 
-export async function renderQData(requestEv: RequestEvent) {
+export async function handleRedirect(requestEv: RequestEvent) {
   const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (isPageDataReq) {
     try {
@@ -474,7 +475,6 @@ export async function renderQData(requestEv: RequestEvent) {
 
     const status = requestEv.status();
     const location = requestEv.headers.get('Location');
-    const trailingSlash = getRequestTrailingSlash(requestEv);
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
       const adaptedLocation = makeQDataPath(location);
@@ -487,6 +487,21 @@ export async function renderQData(requestEv: RequestEvent) {
         requestEv.headers.delete('Location');
       }
     }
+  }
+}
+
+export async function renderQData(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
+  if (isPageDataReq) {
+    await requestEv.next();
+
+    if (requestEv.headersSent || requestEv.exited) {
+      return;
+    }
+
+    const status = requestEv.status();
+    const location = requestEv.headers.get('Location');
+    const trailingSlash = getRequestTrailingSlash(requestEv);
 
     const requestHeaders: Record<string, string> = {};
     requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));

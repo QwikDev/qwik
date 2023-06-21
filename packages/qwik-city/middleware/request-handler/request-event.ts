@@ -191,11 +191,13 @@ export function createRequestEvent(
     redirect: (statusCode: number, url: string) => {
       check();
       status = statusCode;
-      const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
-      if (url !== fixedURL) {
-        console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+      if (url) {
+        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
+        if (url !== fixedURL) {
+          console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+        }
+        headers.set('Location', fixedURL);
       }
-      headers.set('Location', fixedURL);
       headers.delete('Cache-Control');
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');

@@ -92,7 +92,7 @@ export const SecretForm = component$(() => {
           message.value = value!.secret!;
         }}
       >
-        I dont wanna to play
+        I don't wanna to play
       </button>
     </>
   );

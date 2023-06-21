@@ -39,3 +39,6 @@ tsdoc-metadata.json
 .yarn/*
 !.yarn/releases
 .pnpm-store/*
+
+# Local Netlify folder
+.netlify

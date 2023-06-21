@@ -48,12 +48,13 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { isSamePathname, toUrl } from './utils';
+import { isSameOrigin, isSamePath, isSamePathname, toUrl } from './utils';
 import { clientNavigate } from './client-navigate';
 import {
   currentScrollState,
   getScrollHistory,
   saveScrollHistory,
+  scrollToHashId,
   toLastPositionOnPopState,
 } from './scroll-restoration';
 
@@ -157,8 +158,22 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       replaceState = false,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
-    const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+    let dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+
+    // Remove empty # before sending them into Navigate, it introduces too many edgecases.
+    dest = !dest.hash && dest.href.endsWith('#') ? new URL(dest.href.slice(0, -1)) : dest;
+
     if (!forceReload && dest.href === lastDest.href) {
+      if (isBrowser) {
+        if (type === 'link') {
+          if (dest.hash) {
+            scrollToHashId(dest.hash);
+          } else {
+            window.scrollTo(0, 0);
+          }
+        }
+      }
+
       return;
     }
     routeInternal.value = { type, dest, replaceState };
@@ -313,6 +328,30 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             });
 
             win.removeEventListener('popstate', win._qCityPopstateFallback!);
+
+            // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
+            // ... even if the URL is already on the #hash.
+            // Firefox only does it once and no more, but will still scroll. It also sets state to null.
+            // Any <a> tags w/ #hash href will break SPA state in Firefox.
+            // However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
+            // We patch these events and direct them to Link pipeline during SPA.
+            document.body.addEventListener('click', (event) => {
+              if (event.defaultPrevented) {
+                return;
+              }
+
+              const target = (event.target as HTMLElement).closest('a[href*="#"]');
+
+              if (target && !target.getAttribute('preventdefault:click')) {
+                const prev = routeLocation.url;
+                const dest = toUrl(target.getAttribute('href')!, prev);
+                // Patch only same-page hash anchors.
+                if (isSameOrigin(dest, prev) && isSamePath(dest, prev)) {
+                  event.preventDefault();
+                  goto(target.getAttribute('href')!);
+                }
+              }
+            });
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.

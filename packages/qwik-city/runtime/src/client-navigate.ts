@@ -13,6 +13,7 @@ export const clientNavigate = (
   if (navType !== 'popstate') {
     const samePath = isSamePath(fromURL, toURL);
     const sameHash = fromURL.hash === toURL.hash;
+
     if (!samePath || !sameHash) {
       const newState = {
         _qCityScroll: newScrollState(),

@@ -16,10 +16,11 @@ export const toTopAlways: QRL<RestoreScroll> = $((_type, fromUrl, toUrl) => () =
  */
 export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
   (type, fromUrl, toUrl, scrollState) => () => {
-    // Chromium & Firefox will always natively restore on popstate, only scroll to hash on regular navigate.
-    if (type === 'popstate' || !scrollForHashChange(fromUrl, toUrl)) {
+    // Chromium & Firefox will always natively restore on visited popstates.
+    // Always scroll to known state if available on pop. Otherwise, try hash scroll.
+    if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
       let [scrollX, scrollY] = [0, 0];
-      if (type === 'popstate' && scrollState) {
+      if (scrollState) {
         scrollX = scrollState.scrollX;
         scrollY = scrollState.scrollY;
       }
@@ -55,7 +56,10 @@ const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
   return true;
 };
 
-const scrollToHashId = (hash: string) => {
+/**
+ * @alpha
+ */
+export const scrollToHashId = (hash: string) => {
   const elmId = hash.slice(1);
   const elm = document.getElementById(elmId);
   if (elm) {

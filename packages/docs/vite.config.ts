@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import path, { resolve } from 'node:path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
@@ -7,6 +7,7 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import Inspect from 'vite-plugin-inspect';
+import { insightsEntryStrategy } from '../qwik-labs/src';
 
 export default defineConfig(async () => {
   const { default: rehypePrettyCode } = await import('rehype-pretty-code');
@@ -94,15 +95,18 @@ export default defineConfig(async () => {
         },
       }),
       qwikVite({
-        entryStrategy: {
-          type: 'smart',
-          manual: {
-            ...page,
-            ...menus,
-            ...algoliaSearch,
-            ...repl,
-          },
-        },
+        entryStrategy: await insightsEntryStrategy({
+          publicApiKey: loadEnv('', '.').PUBLIC_QWIK_INSIGHT_KEY,
+        }),
+        // entryStrategy: {
+        //   type: 'smart',
+        //   manual: {
+        //     ...page,
+        //     ...menus,
+        //     ...algoliaSearch,
+        //     ...repl,
+        //   },
+        // },
       }),
       partytownVite({
         dest: resolve('dist', '~partytown'),

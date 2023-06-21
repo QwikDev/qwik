@@ -1,28 +1,28 @@
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, loader$ } from '@builder.io/qwik-city';
-import BuilderContentComp, { getBuilderContent } from '../components/builder-content';
+import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
+import BuilderContentComp from '../components/builder-content';
+import { Footer } from '../components/footer/footer';
+import { Header } from '../components/header/header';
+import HomePageV2 from '../components/home-page-v2';
 import { QWIK_MODEL, QWIK_PUBLIC_API_KEY } from '../constants';
 
 export default component$(() => {
-  const builder = getBuilder.use();
-
+  const showNewDesign = useLocation().url.searchParams.get('render') === 'v2';
   return (
-    <BuilderContentComp
-      html={builder.value.html}
-      apiKey={QWIK_PUBLIC_API_KEY}
-      model={QWIK_MODEL}
-      tag="main"
-    />
+    <>
+      <Header />
+      <main>
+        {showNewDesign ? (
+          <HomePageV2 />
+        ) : (
+          <BuilderContentComp apiKey={QWIK_PUBLIC_API_KEY} model={QWIK_MODEL} tag="main" />
+        )}
+      </main>
+      <div class="px-4">
+        <Footer />
+      </div>
+    </>
   );
-});
-
-export const getBuilder = loader$(({ pathname }) => {
-  return getBuilderContent({
-    apiKey: QWIK_PUBLIC_API_KEY,
-    model: QWIK_MODEL,
-    urlPath: pathname,
-    cacheBust: true,
-  });
 });
 
 export const head: DocumentHead = {

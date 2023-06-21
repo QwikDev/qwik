@@ -1,4 +1,4 @@
-import { createContext, Signal } from '@builder.io/qwik';
+import { createContextId, type Signal } from '@builder.io/qwik';
 import type {
   ContentState,
   ContentStateInternal,
@@ -6,18 +6,22 @@ import type {
   RouteAction,
   RouteLocation,
   RouteNavigate,
+  RouteStateInternal,
 } from './types';
 
-export const RouteStateContext = /*#__PURE__*/ createContext<Record<string, any>>('qc-s');
+export const RouteStateContext = /*#__PURE__*/ createContextId<Record<string, any>>('qc-s');
 
-export const ContentContext = /*#__PURE__*/ createContext<ContentState>('qc-c');
+export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qc-c');
 export const ContentInternalContext =
-  /*#__PURE__*/ createContext<Signal<ContentStateInternal>>('qc-ic');
+  /*#__PURE__*/ createContextId<Signal<ContentStateInternal>>('qc-ic');
 
 export const DocumentHeadContext =
-  /*#__PURE__*/ createContext<Required<ResolvedDocumentHead>>('qc-h');
-export const RouteLocationContext = /*#__PURE__*/ createContext<RouteLocation>('qc-l');
+  /*#__PURE__*/ createContextId<Required<ResolvedDocumentHead>>('qc-h');
+export const RouteLocationContext = /*#__PURE__*/ createContextId<RouteLocation>('qc-l');
 
-export const RouteNavigateContext = /*#__PURE__*/ createContext<RouteNavigate>('qc-n');
+export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>('qc-n');
 
-export const RouteActionContext = /*#__PURE__*/ createContext<RouteAction>('qc-a');
+export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qc-a');
+
+export const RouteInternalContext =
+  /*#__PURE__*/ createContextId<Signal<RouteStateInternal>>('qc-ir');

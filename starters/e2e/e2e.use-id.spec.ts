@@ -4,8 +4,13 @@ test.describe('use-id', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/use-id');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
     // await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500); // Wait for useClientEffect$
+    await page.waitForTimeout(500); // Wait for useVisibleTask$
   });
 
   test('Creates unique ids and ensure no collisions', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { component$, useClientEffect$, useSignal, useId } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal, useId } from '@builder.io/qwik';
 
 export const MIN_CHILDREN = 2;
 export const MAX_CHIDREN = 5;
@@ -37,7 +37,7 @@ export const UseId = component$(() => {
   const collsionsSignal = useSignal<number | null>(null);
   const resultSignal = useSignal<string | null>(null);
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     const ids = Array.from(document.querySelectorAll('ul[id]'));
 
     const uniqueIds: Set<string> = [...ids].reduce((prev, value) => {

@@ -1,10 +1,13 @@
 /* eslint-disable no-console */
-import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils';
+import { ESLintUtils } from '@typescript-eslint/utils';
 import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
+import redent from 'redent';
+import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
+import { QwikEslintExamples } from '../examples';
 
-const createRule = ESLintUtils.RuleCreator((name) => `https://typescript-eslint.io/rules/${name}`);
+const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
 
 interface DetectorOptions {
   allowAny: boolean;
@@ -22,6 +25,7 @@ export const validLexicalScope = createRule({
       description:
         'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
       recommended: 'error',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#valid-lexical-scope',
     },
 
     schema: [
@@ -40,11 +44,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-      unvalidJsxDollar:
-        'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+        'Seems like you are referencing "{{varName}}" inside a different scope ({{dollarName}}), when this happens, Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+      invalidJsxDollar:
+        'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured by the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {
@@ -87,25 +91,6 @@ export const validLexicalScope = createRule({
               return;
             }
             if (scopeType === 'module') {
-              const identifier =
-                declaredVariable.identifiers.length === 1
-                  ? declaredVariable.identifiers[0]
-                  : ref.identifier;
-              const tsNode = esTreeNodeToTSNodeMap.get(identifier);
-              const s = typeChecker.getSymbolAtLocation(tsNode);
-              if (s && exports.includes(s)) {
-                return;
-              }
-              context.report({
-                messageId: 'referencesOutside',
-                node: ref.identifier,
-                data: {
-                  varName: ref.identifier.name,
-                  dollarName: dollarIdentifier,
-                  reason:
-                    "it's declared at the root of the module and it is not exported. Add export",
-                },
-              });
               return;
             }
             const identifier = ref.identifier;
@@ -119,10 +104,7 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
-              if (
-                identifier.parent &&
-                identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
-              ) {
+              if (identifier.parent && identifier.parent.type === 'AssignmentExpression') {
                 if (identifier.parent.left === identifier) {
                   context.report({
                     messageId: 'mutableIdentifier',
@@ -134,7 +116,8 @@ export const validLexicalScope = createRule({
                   });
                 }
               }
-              const reason = canCapture(typeChecker, tsNode, ref.identifier, opts);
+
+              const reason = canCapture(context, typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
                   messageId: 'referencesOutside',
@@ -155,10 +138,10 @@ export const validLexicalScope = createRule({
 
     return {
       CallExpression(node) {
-        if (node.callee.type === AST_NODE_TYPES.Identifier) {
+        if (node.callee.type === 'Identifier') {
           if (node.callee.name.endsWith('$')) {
             const firstArg = node.arguments.at(0);
-            if (firstArg && firstArg.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+            if (firstArg && firstArg.type === 'ArrowFunctionExpression') {
               const scope = scopeManager.acquire(firstArg);
               if (scope) {
                 relevantScopes.set(scope, node.callee.name);
@@ -169,23 +152,57 @@ export const validLexicalScope = createRule({
       },
       JSXAttribute(node) {
         const jsxName = node.name;
-        const name =
-          jsxName.type === AST_NODE_TYPES.JSXIdentifier ? jsxName.name : jsxName.name.name;
+        const name = jsxName.type === 'JSXIdentifier' ? jsxName.name : jsxName.name.name;
 
         if (name.endsWith('$')) {
           const firstArg = node.value;
-          if (firstArg && firstArg.type === AST_NODE_TYPES.JSXExpressionContainer) {
+          if (firstArg && firstArg.type === 'JSXExpressionContainer') {
             const scope = scopeManager.acquire(firstArg.expression);
             if (scope) {
               relevantScopes.set(scope, name);
-            } else if (firstArg.expression.type === AST_NODE_TYPES.Identifier) {
+            } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
+
               if (!isTypeQRL(type)) {
-                context.report({
-                  messageId: 'unvalidJsxDollar',
-                  node: firstArg.expression,
-                });
+                if (type.isUnionOrIntersection()) {
+                  if (
+                    !type.types.every((t) => {
+                      if (t.symbol) {
+                        return t.symbol.name === 'PropFnInterface';
+                      }
+                      if (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+                        return true;
+                      }
+                      return false;
+                    })
+                  ) {
+                    context.report({
+                      messageId: 'invalidJsxDollar',
+                      node: firstArg.expression,
+                      data: {
+                        varName: firstArg.expression.name,
+                        solution: `Fix the type of ${firstArg.expression.name} to be PropFunction`,
+                      },
+                    });
+                  }
+                } else {
+                  const symbolName = type.symbol.name;
+                  if (symbolName === 'PropFnInterface') {
+                    return;
+                  }
+                  context.report({
+                    messageId: 'invalidJsxDollar',
+                    node: firstArg.expression,
+                    data: {
+                      varName: firstArg.expression.name,
+                      solution: `const ${firstArg.expression.name} = $(\n${getContent(
+                        type.symbol,
+                        context.getSourceCode().text
+                      )}\n);\n`,
+                    },
+                  });
+                }
               }
             }
           }
@@ -213,6 +230,7 @@ export const validLexicalScope = createRule({
 });
 
 function canCapture(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   node: ts.Node,
   ident: Identifier,
@@ -220,7 +238,7 @@ function canCapture(
 ) {
   const type = checker.getTypeAtLocation(node);
   const seen = new Set<any>();
-  return isTypeCapturable(checker, type, node, ident, opts, seen);
+  return isTypeCapturable(context, checker, type, node, ident, opts, seen);
 }
 
 interface TypeReason {
@@ -242,6 +260,7 @@ function humanizeTypeReason(reason: TypeReason) {
 }
 
 function isTypeCapturable(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   type: ts.Type,
   tsnode: ts.Node,
@@ -249,7 +268,7 @@ function isTypeCapturable(
   opts: DetectorOptions,
   seen: Set<any>
 ): TypeReason | undefined {
-  const result = _isTypeCapturable(checker, type, tsnode, opts, 0, seen);
+  const result = _isTypeCapturable(context, checker, type, tsnode, opts, 0, seen);
   if (result) {
     const loc = result.location;
     if (loc) {
@@ -260,6 +279,7 @@ function isTypeCapturable(
   return result;
 }
 function _isTypeCapturable(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   type: ts.Type,
   node: ts.Node,
@@ -280,7 +300,7 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: 'is unknown, which is not serializable',
+      reason: 'is unknown, which could be serializable or not, please make the type for specific',
     };
   }
   const isAny = type.flags & ts.TypeFlags.Any;
@@ -291,14 +311,6 @@ function _isTypeCapturable(
       reason: 'is any, which is not serializable',
     };
   }
-  const isBigInt = type.flags & ts.TypeFlags.BigIntLike;
-  if (isBigInt) {
-    return {
-      type,
-      typeStr: checker.typeToString(type),
-      reason: 'is BigInt and it is not supported yet, use a number instead',
-    };
-  }
   const isSymbol = type.flags & ts.TypeFlags.ESSymbolLike;
   if (isSymbol) {
     return {
@@ -307,7 +319,7 @@ function _isTypeCapturable(
       reason: 'is Symbol, which is not serializable',
     };
   }
-  const isEnum = type.flags & ts.TypeFlags.EnumLike;
+  const isEnum = type.flags & ts.TypeFlags.Enum;
   if (isEnum) {
     return {
       type,
@@ -322,19 +334,32 @@ function _isTypeCapturable(
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
     const symbolName = type.symbol.name;
-    if (symbolName === 'PropFnInterface') {
+    if (
+      symbolName === 'PropFnInterface' ||
+      symbolName === 'RefFnInterface' ||
+      symbolName === 'bivarianceHack'
+    ) {
       return;
     }
+    let reason = 'is a function, which is not serializable';
+    if (level === 0 && ts.isIdentifier(node)) {
+      const solution = `const ${node.text} = $(\n${getContent(
+        type.symbol,
+        context.getSourceCode().text
+      )}\n);`;
+      reason += `.\nDid you mean to wrap it in \`$()\`?\n\n${solution}\n`;
+    }
+
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: 'is a function, which is not serializable',
+      reason,
     };
   }
 
   if (type.isUnion()) {
     for (const subType of type.types) {
-      const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
+      const result = _isTypeCapturable(context, checker, subType, node, opts, level + 1, seen);
       if (result) {
         return result;
       }
@@ -345,13 +370,13 @@ function _isTypeCapturable(
   if (isObject) {
     const arrayType = getElementTypeOfArrayType(type, checker);
     if (arrayType) {
-      return _isTypeCapturable(checker, arrayType, node, opts, level + 1, seen);
+      return _isTypeCapturable(context, checker, arrayType, node, opts, level + 1, seen);
     }
 
     const tupleTypes = getTypesOfTupleType(type, checker);
     if (tupleTypes) {
       for (const subType of tupleTypes) {
-        const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
+        const result = _isTypeCapturable(context, checker, subType, node, opts, level + 1, seen);
         if (result) {
           return result;
         }
@@ -369,7 +394,7 @@ function _isTypeCapturable(
     if (type.getProperty('activeElement')) {
       return;
     }
-    if (ALLOWED_CLASSES[symbolName]) {
+    if (symbolName in ALLOWED_CLASSES) {
       return;
     }
     if (type.isClass()) {
@@ -401,7 +426,7 @@ function _isTypeCapturable(
     }
 
     for (const symbol of type.getProperties()) {
-      const result = isSymbolCapturable(checker, symbol, node, opts, level + 1, seen);
+      const result = isSymbolCapturable(context, checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;
         result.location = `${symbol.name}${loc ? `.${loc}` : ''}`;
@@ -413,6 +438,7 @@ function _isTypeCapturable(
 }
 
 function isSymbolCapturable(
+  context: RuleContext<any, any>,
   checker: ts.TypeChecker,
   symbol: ts.Symbol,
   node: ts.Node,
@@ -421,7 +447,7 @@ function isSymbolCapturable(
   seen: Set<any>
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
-  return _isTypeCapturable(checker, type, node, opts, level, seen);
+  return _isTypeCapturable(context, checker, type, node, opts, level, seen);
 }
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
@@ -441,6 +467,16 @@ function isTypeQRL(type: ts.Type): boolean {
   return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
 }
 
+function getContent(symbol: ts.Symbol, sourceCode: string) {
+  if (symbol.declarations && symbol.declarations.length > 0) {
+    const decl = symbol.declarations[0];
+    // Remove empty lines
+    const text = sourceCode.slice(decl.pos, decl.end).replace(/^\s*$/gm, '');
+    return redent(text, 2);
+  }
+  return '';
+}
+
 const ALLOWED_CLASSES = {
   Promise: true,
   URL: true,
@@ -449,4 +485,136 @@ const ALLOWED_CLASSES = {
   FormData: true,
   URLSearchParams: true,
   Error: true,
+  Set: true,
+  Map: true,
+};
+
+const referencesOutsideGood = `
+import { component$, useTask$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = $((msg: string) => {
+    console.log(msg);
+  });
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
+
+const referencesOutsideBad = `
+import { component$, useTask$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = (msg: string) => {
+    console.log(msg);
+  };
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
+
+const invalidJsxDollarGood = `
+import { component$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = $(() => console.log());
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
+
+const invalidJsxDollarBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = () => console.log();
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
+
+const mutableIdentifierGood = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const person = { name: 'Bob' };
+
+  return (
+    <button onClick$={() => {
+      person.name = 'Alice';
+    }}>
+      {person.name}
+    </button>
+  );
+});`.trim();
+
+const mutableIdentifierBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  let personName = 'Bob';
+
+  return (
+    <button onClick$={() => {
+      personName = 'Alice';
+    }}>
+      {personName}
+    </button>
+  );
+});`.trim();
+
+export const validLexicalScopeExamples: QwikEslintExamples = {
+  referencesOutside: {
+    good: [
+      {
+        codeHighlight: `{1,4} /print/#a /$((msg: string)/#b)`,
+        code: referencesOutsideGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: `{1,4} /print/#a /(msg: string)/#b)`,
+        code: referencesOutsideBad,
+        description:
+          'Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.',
+      },
+    ],
+  },
+  invalidJsxDollar: {
+    good: [
+      {
+        codeHighlight: '{1} /click/#a',
+        code: invalidJsxDollarGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{1} /click/#a',
+        code: invalidJsxDollarBad,
+        description: 'Event handler must be wrapped with `${ ... }`.',
+      },
+    ],
+  },
+  mutableIdentifier: {
+    good: [
+      {
+        codeHighlight: '{4} /person/#a',
+        code: mutableIdentifierGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{4} /personName/#a',
+        code: mutableIdentifierBad,
+        description:
+          'Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.',
+      },
+    ],
+  },
 };

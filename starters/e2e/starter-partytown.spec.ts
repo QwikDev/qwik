@@ -3,6 +3,11 @@ import { test, expect } from '@playwright/test';
 test('rendered', async ({ page }) => {
   await page.goto('/starter-partytown-test/');
   page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      expect(msg.text()).toEqual(undefined);
+    }
+  });
 
   const congrats = page.locator('.congrats');
   const state = page.locator('#state');
@@ -17,6 +22,11 @@ test('rendered', async ({ page }) => {
 test('update text', async ({ page }) => {
   await page.goto('/starter-partytown-test/');
   page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      expect(msg.text()).toEqual(undefined);
+    }
+  });
 
   await page.fill('input', 'QWIK');
   await page.dispatchEvent('input', 'keyup');

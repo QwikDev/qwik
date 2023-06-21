@@ -4,6 +4,11 @@ test.describe('toggle', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/toggle');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should load', async ({ page }) => {

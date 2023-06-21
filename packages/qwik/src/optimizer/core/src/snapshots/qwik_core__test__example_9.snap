@@ -50,10 +50,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
+/*#__PURE__*/ qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA\"}")
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
 == DIAGNOSTICS ==
 
 []

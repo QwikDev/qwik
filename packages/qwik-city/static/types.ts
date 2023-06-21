@@ -3,25 +3,26 @@ import type { RenderOptions } from '@builder.io/qwik/server';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface System {
-  createMainProcess: () => Promise<MainContext>;
+  createMainProcess: (() => Promise<MainContext>) | null;
   createWorkerProcess: (
     onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
   ) => void;
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
-  removeFile: (filePath: string) => Promise<void>;
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
-  getPageFilePath: (pathname: string) => string;
-  getDataFilePath: (pathname: string) => string | null;
+  getRouteFilePath: (pathname: string, isHtml: boolean) => string;
+  getDataFilePath: (pathname: string) => string;
+  getEnv: (key: string) => string | undefined;
   platform: { [key: string]: any };
 }
 
 export interface StaticStreamWriter extends StreamWriter {
   write: (chunk: string | Buffer) => void;
   end(callback?: () => void): void;
+  on(event: 'error', callback: (err: Error) => void): void;
 }
 
 export interface MainContext {
@@ -37,7 +38,7 @@ export interface Logger {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateRenderOptions extends RenderOptions {
   /**
@@ -73,7 +74,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * and written to the root of the `outDir`. Setting to `null` will prevent
    * the sitemap from being created.
    */
-  sitemapOutFile?: string;
+  sitemapOutFile?: string | null;
   /**
    * Log level.
    */
@@ -95,26 +96,21 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    */
   emit404Pages?: boolean;
   /**
-   * The `filter` callback function can be used to determine if a page should be statically
-   * generated or not. The filter function is passed the `pathname` and `params` data,
-   * and should return `true` if the page should be statically generated. Returning `false`
-   * will prevent the page from being statically generated. If a `filter` function is not
-   * provided then all pages will be statically generated.
+   * Defines file system routes relative to the source `routes` directory that should be static generated.
+   * Accepts wildcard behavior. This should not include the "base" pathname.
+   * If not provided, all routes will be static generated. `exclude` always takes priority over `include`.
    */
-  filter?: StaticGeneratePathFilter;
+  include?: string[];
+  /**
+   * Defines file system routes relative to the source `routes` directory that should not be static generated.
+   * Accepts wildcard behavior. This should not include the "base" pathname.
+   * `exclude` always takes priority over `include`.
+   */
+  exclude?: string[];
 }
 
 /**
- * @alpha
- */
-export type StaticGeneratePathFilter = (filterOpts: {
-  pathname: string;
-  params: Record<string, string> | undefined;
-  isStatic: boolean | undefined;
-}) => boolean;
-
-/**
- * @alpha
+ * @public
  */
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   /**
@@ -130,6 +126,8 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
    * Defaults to `/`
    */
   basePathname?: string;
+
+  rootDir?: string;
 }
 
 export interface StaticGenerateHandlerOptions
@@ -158,13 +156,14 @@ export interface StaticWorkerRenderResult {
   pathname: string;
   url: string;
   ok: boolean;
-  error: string | null;
-  isStatic: boolean;
+  error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
+  contentType: string | null;
+  resourceType: 'page' | '404' | null;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateResult {
   duration: number;

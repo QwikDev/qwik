@@ -1,6 +1,6 @@
 import path, { resolve } from 'node:path';
 import { qwikRollup } from './rollup';
-import type { InputOptions, OutputOptions } from 'rollup';
+import type { Rollup } from 'vite';
 import type { OptimizerOptions } from '../types';
 import type { NormalizedQwikPluginOptions } from './plugin';
 import { suite } from 'uvu';
@@ -29,7 +29,7 @@ rollup('rollup default input options, client', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = qwikRollup(initOpts);
-  const rollupInputOpts: InputOptions = await plugin.options!({});
+  const rollupInputOpts: Rollup.InputOptions = await plugin.options!({});
 
   equal(typeof rollupInputOpts.onwarn, 'function');
   equal(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
@@ -41,7 +41,7 @@ rollup('rollup default input options, ssr', async () => {
     target: 'ssr',
   } as any;
   const plugin = qwikRollup(initOpts);
-  const rollupInputOpts: InputOptions = await plugin.options!({});
+  const rollupInputOpts: Rollup.InputOptions = await plugin.options!({});
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
 
   equal(typeof rollupInputOpts.onwarn, 'function');
@@ -56,7 +56,7 @@ rollup('rollup default set input options, ssr', async () => {
     target: 'ssr',
   } as any;
   const plugin = qwikRollup(initOpts);
-  const rollupInputOpts: InputOptions = await plugin.options!({
+  const rollupInputOpts: Rollup.InputOptions = await plugin.options!({
     input: normalizePath(resolve(cwd, 'src', 'my.ssr.tsx')),
   });
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
@@ -73,7 +73,7 @@ rollup('rollup default output options, client', async () => {
   } as any;
   const plugin = qwikRollup(initOpts);
   await plugin.options!({});
-  const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({});
+  const rollupOutputOpts: Rollup.OutputOptions = await plugin.outputOptions!({});
 
   equal(rollupOutputOpts.dir, normalizePath(resolve(cwd, 'dist')));
   equal(rollupOutputOpts.format, 'es');
@@ -86,7 +86,7 @@ rollup('rollup default output options, ssr', async () => {
   } as any;
   const plugin = qwikRollup(initOpts);
   await plugin.options!({});
-  const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({
+  const rollupOutputOpts: Rollup.OutputOptions = await plugin.outputOptions!({
     format: 'cjs',
   });
 
@@ -153,7 +153,7 @@ rollup('rollup input, ssr/development default', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, true);
 });
 
@@ -169,7 +169,7 @@ rollup('rollup input, ssr/production default', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'production');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, true);
 });
 
@@ -202,7 +202,7 @@ rollup('rollup input, forceFullBuild true', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
-  equal(opts.entryStrategy, { type: 'inline' });
+  equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.forceFullBuild, true);
 });
 

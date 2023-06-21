@@ -5,7 +5,7 @@ export class ErrorResponse extends Error {
 }
 
 /**
- * @alpha
+ * @public
  */
 export function getErrorHtml(status: number, e: any) {
   let message = 'Server Error';
@@ -18,10 +18,10 @@ export function getErrorHtml(status: number, e: any) {
     }
   }
 
-  return minimalHtmlResponse(status, message);
+  return `<html>` + minimalHtmlResponse(status, message) + `</html>`;
 }
 
-function minimalHtmlResponse(status: number, message?: string) {
+export function minimalHtmlResponse(status: number, message?: string) {
   if (typeof status !== 'number') {
     status = 500;
   }
@@ -32,8 +32,7 @@ function minimalHtmlResponse(status: number, message?: string) {
   }
   const width = typeof message === 'string' ? '600px' : '300px';
   const color = status >= 500 ? COLOR_500 : COLOR_400;
-  return `<!DOCTYPE html>
-<html>
+  return `
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Status" content="${status}">
@@ -47,7 +46,7 @@ function minimalHtmlResponse(status: number, message?: string) {
   </style>
 </head>
 <body><p><strong>${status}</strong> <span>${message}</span></p></body>
-</html>`;
+`;
 }
 const ESCAPE_HTML = /[&<>]/g;
 

@@ -1,4 +1,3 @@
-import type { PathParams } from '@builder.io/qwik-city';
 import type {
   RequestEvent,
   RequestEventLoader,
@@ -6,43 +5,63 @@ import type {
   ServerRequestMode,
   RequestHandler,
   RequestEventCommon,
+  ResolveValue,
+  QwikSerializer,
 } from './types';
 import type {
-  ServerAction,
-  ServerActionInternal,
-  ServerLoader,
-  ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
+  ActionInternal,
+  JSONValue,
+  LoadedRoute,
+  LoaderInternal,
+} from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
+import type { ValueOrPromise } from '@builder.io/qwik';
+import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
+import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
-const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
-const RequestEvStatus = Symbol('RequestEvStatus');
-export const RequestEvAction = Symbol('RequestEvAction');
+const RequestEvRoute = Symbol('RequestEvRoute');
+export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
-export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
+export const RequestEvSharedActionId = '@actionId';
+export const RequestEvSharedActionFormData = '@actionFormData';
+export const RequestEvSharedNonce = '@nonce';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
-  params: PathParams,
-  requestHandlers: RequestHandler<unknown>[],
-  trailingSlash = true,
-  basePathname = '/',
+  loadedRoute: LoadedRoute | null,
+  requestHandlers: RequestHandler<any>[],
+  manifest: QwikManifest | ResolvedManifest | undefined,
+  trailingSlash: boolean,
+  basePathname: string,
+  qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
   const { request, platform, env } = serverRequestEv;
 
+  const sharedMap = new Map();
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
+  if (url.pathname.endsWith(QDATA_JSON)) {
+    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
+    if (trailingSlash && !url.pathname.endsWith('/')) {
+      url.pathname += '/';
+    }
+    sharedMap.set(IsQData, true);
+  }
+  sharedMap.set('@manifest', manifest);
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
+  let requestData: Promise<JSONValue | undefined> | undefined = undefined;
+  let locale = serverRequestEv.locale;
+  let status = 200;
 
   const next = async () => {
     routeModuleIndex++;
@@ -66,14 +85,13 @@ export function createRequestEvent(
   const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
     if (typeof statusOrResponse === 'number') {
-      requestEv[RequestEvStatus] = statusOrResponse;
+      status = statusOrResponse;
       const writableStream = requestEv.getWritableStream();
       const writer = writableStream.getWriter();
       writer.write(typeof body === 'string' ? encoder.encode(body) : body);
       writer.close();
     } else {
-      const status = statusOrResponse.status;
-      requestEv[RequestEvStatus] = status;
+      status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
         headers.append(key, value);
       });
@@ -88,102 +106,118 @@ export function createRequestEvent(
         }
       }
     }
+    return exit();
+  };
+
+  const exit = () => {
+    routeModuleIndex = ABORT_INDEX;
     return new AbortMessage();
   };
 
   const loaders: Record<string, Promise<any>> = {};
-
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
-    [RequestEvLocale]: serverRequestEv.locale,
     [RequestEvMode]: serverRequestEv.mode,
-    [RequestEvStatus]: 200,
-    [RequestEvAction]: undefined,
     [RequestEvTrailingSlash]: trailingSlash,
-    [RequestEvBasePathname]: basePathname,
+    [RequestEvRoute]: loadedRoute,
+    [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
     method: request.method,
-    params,
+    params: loadedRoute?.[0] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,
     request,
     url,
-    sharedMap: new Map(),
+    basePathname,
+    sharedMap,
     get headersSent() {
       return writableStream !== null;
     },
     get exited() {
       return routeModuleIndex >= ABORT_INDEX;
     },
+    get clientConn() {
+      return serverRequestEv.getClientConn();
+    },
 
     next,
 
-    exit: () => {
-      routeModuleIndex = ABORT_INDEX;
-      return new AbortMessage();
-    },
+    exit,
 
     cacheControl: (cacheControl) => {
       check();
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {
+    resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
-      const id = (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__qrl.getHash();
-
-      if (
-        (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__brand === 'server_loader'
-      ) {
-        if (id in loaders) {
-          throw new Error('Loader data does not exist');
+      const id = loaderOrAction.__id;
+      if (loaderOrAction.__brand === 'server_loader') {
+        if (!(id in loaders)) {
+          throw new Error(
+            'You can not get the returned data of a loader that has not been executed for this request.'
+          );
         }
       }
 
       return loaders[id];
-    },
+    }) as ResolveValue,
 
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
         check();
-        requestEv[RequestEvStatus] = statusCode;
+        status = statusCode;
         return statusCode;
       }
-      return requestEv[RequestEvStatus];
+      return status;
     },
 
-    locale: (locale?: string) => {
-      if (typeof locale === 'string') {
-        requestEv[RequestEvLocale] = locale;
+    locale: (_locale?: string) => {
+      if (typeof _locale === 'string') {
+        locale = _locale;
       }
-      return requestEv[RequestEvLocale] || '';
+      return locale || '';
     },
 
     error: (statusCode: number, message: string) => {
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.delete('Cache-Control');
       return new ErrorResponse(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {
       check();
-      requestEv[RequestEvStatus] = statusCode;
-      headers.set('Location', url);
+      status = statusCode;
+      if (url) {
+        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
+        if (url !== fixedURL) {
+          console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+        }
+        headers.set('Location', fixedURL);
+      }
       headers.delete('Cache-Control');
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
+      exit();
       return new RedirectMessage();
     },
 
-    fail: (statusCode: number, data: any) => {
+    defer: (returnData) => {
+      return typeof returnData === 'function' ? returnData : () => returnData;
+    },
+
+    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
-      requestEv[RequestEvStatus] = statusCode;
+      status = statusCode;
       headers.delete('Cache-Control');
-      return data;
+      return {
+        failed: true,
+        ...data,
+      };
     },
 
     text: (statusCode: number, text: string) => {
@@ -196,6 +230,13 @@ export function createRequestEvent(
       return send(statusCode, html);
     },
 
+    parseBody: async () => {
+      if (requestData !== undefined) {
+        return requestData;
+      }
+      return (requestData = parseRequest(requestEv.request, sharedMap, qwikSerializer));
+    },
+
     json: (statusCode: number, data: any) => {
       headers.set('Content-Type', 'application/json; charset=utf-8');
       return send(statusCode, JSON.stringify(data));
@@ -203,10 +244,20 @@ export function createRequestEvent(
 
     send: send as any,
 
+    isDirty: () => {
+      return writableStream !== null;
+    },
+
     getWritableStream: () => {
       if (writableStream === null) {
+        if (serverRequestEv.mode === 'dev') {
+          const serverTiming = sharedMap.get('@serverTiming') as [string, number][] | undefined;
+          if (serverTiming) {
+            headers.set('Server-Timing', serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(','));
+          }
+        }
         writableStream = serverRequestEv.getWritableStream(
-          requestEv[RequestEvStatus],
+          status,
           headers,
           cookie,
           resolved,
@@ -216,33 +267,85 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return requestEv;
+  return Object.freeze(requestEv);
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  [RequestEvLoaders]: Record<string, Promise<any>>;
-  [RequestEvLocale]: string | undefined;
+  [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvMode]: ServerRequestMode;
-  [RequestEvStatus]: number;
-  [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
-  [RequestEvBasePathname]: string;
+  [RequestEvRoute]: LoadedRoute | null;
+  [RequestEvQwikSerializer]: QwikSerializer;
+
+  /**
+   * Check if this request is already written to.
+   *
+   * @returns true, if `getWritableStream()` has already been called.
+   */
+  isDirty(): boolean;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
-export function getRequestAction(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvAction];
+export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
 }
 
-export function setRequestAction(requestEv: RequestEventCommon, id: string) {
-  (requestEv as RequestEventInternal)[RequestEvAction] = id;
+export function getRequestRoute(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvRoute];
 }
 
 export function getRequestMode(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvMode];
 }
 
-const ABORT_INDEX = 999999999;
+const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
+
+const parseRequest = async (
+  request: Request,
+  sharedMap: Map<string, any>,
+  qwikSerializer: QwikSerializer
+): Promise<JSONValue | undefined> => {
+  const req = request.clone();
+  const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
+  if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
+    const formData = await req.formData();
+    sharedMap.set(RequestEvSharedActionFormData, formData);
+    return formToObj(formData);
+  } else if (type === 'application/json') {
+    const data = await req.json();
+    return data;
+  } else if (type === 'application/qwik-json') {
+    return qwikSerializer._deserializeData(await req.text());
+  }
+  return undefined;
+};
+
+const formToObj = (formData: FormData): Record<string, any> => {
+  // Convert FormData to object
+  // Handle nested form input using dot notation
+  // Handle array input using square bracket notation
+  const obj: any = {};
+  formData.forEach((value, key) => {
+    const keys = key.split('.').filter((k) => k);
+    let current = obj;
+    for (let i = 0; i < keys.length; i++) {
+      let k = keys[i];
+      // Last key
+      if (i === keys.length - 1) {
+        if (k.endsWith('[]')) {
+          k = k.slice(0, -2);
+          current[k] = current[k] || [];
+          current[k].push(value);
+        } else {
+          current[k] = value;
+        }
+      } else {
+        current = current[k] = { ...current[k] };
+      }
+    }
+  });
+  return obj;
+};

@@ -1,19 +1,34 @@
+import { isServer } from '@builder.io/qwik/build';
+import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
+import { getSymbolHash } from '../qrl/qrl-class';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
-import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (): CorePlatform => {
   return {
-    isServer: false,
+    isServer,
     importSymbol(containerEl, url, symbolName) {
+      if (isServer) {
+        const hash = getSymbolHash(symbolName);
+        const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+        if (regSym) {
+          return regSym;
+        }
+      }
+      if (!url) {
+        throw qError(QError_qrlMissingChunk, symbolName);
+      }
+      if (!containerEl) {
+        throw qError(QError_qrlMissingContainer, url, symbolName);
+      }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
       urlCopy.search = '';
       const importURL = urlCopy.href;
       return import(/* @vite-ignore */ importURL).then((mod) => {
-        return findSymbol(mod, symbolName);
+        return mod[symbolName];
       });
     },
     raf: (fn) => {
@@ -30,20 +45,10 @@ export const createPlatform = (): CorePlatform => {
         });
       });
     },
-    chunkForSymbol() {
-      return undefined;
+    chunkForSymbol(symbolName, chunk) {
+      return [symbolName, chunk ?? '_'];
     },
   };
-};
-const findSymbol = (module: any, symbol: string) => {
-  if (symbol in module) {
-    return module[symbol];
-  }
-  for (const v of Object.values(module)) {
-    if (isObject(v) && symbol in v) {
-      return (v as any)[symbol];
-    }
-  }
 };
 
 /**
@@ -63,7 +68,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
   return new URL(url, base);
 };
 
-let _platform = createPlatform();
+let _platform = /*#__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -76,7 +81,7 @@ let _platform = createPlatform();
  *
  * @param doc - The document of the application for which the platform is needed.
  * @param platform - The platform to use.
- * @alpha
+ * @public
  */
 // </docs>
 export const setPlatform = (plt: CorePlatform) => (_platform = plt);
@@ -94,14 +99,14 @@ export const setPlatform = (plt: CorePlatform) => (_platform = plt);
  * is associated with the application document.
  *
  * @param docOrNode - The document (or node) of the application for which the platform is needed.
- * @alpha
+ * @public
  */
 // </docs>
-export const getPlatform = () => {
+export const getPlatform = (): CorePlatform => {
   return _platform;
 };
 
-export const isServer = () => {
+export const isServerPlatform = () => {
   if (qDynamicPlatform) {
     return _platform.isServer;
   }

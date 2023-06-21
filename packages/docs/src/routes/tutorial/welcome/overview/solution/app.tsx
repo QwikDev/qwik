@@ -20,7 +20,7 @@ export const Counter = component$(() => {
   return (
     <>
       I am a dynamic component. Qwik will download me only when it is time to re-render me after the
-      user clicks on the <tt>+1</tt> button.
+      user clicks on the <code>+1</code> button.
       <br />
       Current count: {store.count}
       <br />

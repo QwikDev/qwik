@@ -25,7 +25,7 @@ export const App = component$(() => {
       ],
       nextItemId: 3,
     },
-    { recursive: true }
+    { deep: true }
   );
   return (
     <section class="todoapp">

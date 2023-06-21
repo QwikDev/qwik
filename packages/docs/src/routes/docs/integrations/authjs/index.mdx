@@ -1,0 +1,247 @@
+---
+title: Qwik City and Auth.js
+keywords: 'authentication, auth, oauth'
+contributors:
+  - the-r3aper7
+  - ulic75
+---
+
+# Auth.js
+
+[Auth.js](https://authjs.dev/) allows developers to setup authentication flow to your web app. It supports wide range of authentication [providers](https://authjs.dev/reference/core/providers) and other [options](https://next-auth.js.org/configuration/options#options). Be aware that the Auth.js library is still in a pre-1.0 stage and could have bugs.
+
+## Installation
+
+You can add Auth.js easily by using the following Qwik starter script:
+
+```shell
+npm run qwik add auth
+```
+
+This command will add new packages:
+
+- `@auth/core`
+- `@builder.io/qwik-auth`
+
+and create a new file named `plugin@auth.ts` with an example configuration.
+
+### Manual Action Required
+
+After installing the auth package using `npm run qwik add auth` the `@auth/core` package will need to be added to the dependency optimization settings of the `vite.config.js` file:
+
+```js {9-11} title="vite.config.js"
+export default defineConfig(() => {
+  return {
+    plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
+    preview: {
+      headers: {
+        'Cache-Control': 'public, max-age=600',
+      },
+    },
+    optimizeDeps: {
+      include: [ "@auth/core" ]
+    }
+  };
+});
+```
+
+## Qwik API
+
+### useAuthSession
+
+A [routerLoader$](/docs/route-loader/) that returns a session object or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback. Session data can also be retrieved using the [session](#session) REST API.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useAuthSession } from '~/routes/plugin@auth';
+
+export default component$(() => {
+  const session = useAuthSession();
+  return <p>{session.value?.user?.email}</p>;
+});
+
+```
+
+### useAuthSignin
+
+A [routeAction$](/docs/action/) used to initiate a signin flow or send the user to the signin page listing all possible providers. The CSRF token is handled internally when signing in using `useAuthSignin`.
+
+#### Parameters
+
+* `providerId`: An optional string parameter with the name of the provider. When supplied will initiate the Authorization Request to your Identity Provider. When omitted will redirect to the built-in/unbranded sign-in page.
+* `options`: An optional object of options.
+  * `callbackUrl`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
+* `authorizationParams`: An optional object of additional parameters sent to the /authorize endpoint. See the Authorization Request OIDC spec for some ideas.
+
+> **NOTE:** You can also set the `authorizationParams` through the provider.authorizationParams configuration
+
+Example using `useAuthSignin` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `providerId` and `options.callbackUrl`:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+import { useAuthSignin } from '~/routes/plugin@auth';
+
+export default component$(() => {
+  const signIn = useAuthSignin();
+  return (
+    <Form action={signIn}>
+      <input type="hidden" name="providerId" value="github" />
+      <input type="hidden" name="options.callbackUrl" value="http://qwik-auth-example.com/dashboard" />
+      <button>Sign In</button>
+    </Form>
+  );
+});
+```
+
+Example using `useAuthSignin` programmatically with optional `providerId` and `options.callbackUrl`:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useAuthSignin } from '~/routes/plugin@auth';
+
+export default component$(() => {
+  const signIn = useAuthSignin();
+  return (
+    <button onClick$={() => signIn.submit({ providerId: 'github', options: { callbackUrl: 'http://qwik-auth-example.com/dashboard' } })}>Sign In</button>
+  );
+});
+```
+
+### useAuthSignout
+
+A [routeAction$](/docs/action/) used to initiate a signout flow. The user session will be invalidated/removed from the cookie/database, depending on the flow you chose to store sessions.
+
+#### Parameters
+
+* `callbackUrl`: An optional string specifying to which URL the user will be redirected after signing out. Defaults to the page URL the sign-in is initiated from.
+
+The 'callbackUrl' must be considered valid by the redirect callback handler. By default, it requires the URL to be an absolute URL at the same host name, or you can also supply a relative URL starting with a slash. If it does not match it will redirect to the homepage. You can define your own redirect callback to allow other URLs.
+
+Example using `useAuthSignout` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `callbackUrl`:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+import { useAuthSignout } from '~/routes/plugin@auth';
+
+export default component$(() => {
+  const signOut = useAuthSignout();
+  return (
+    <Form action={signOut}>
+      <input type="hidden" name="callbackUrl" value="/signedout" />
+      <button>Sign Out</button>
+    </Form>
+  );
+});
+```
+
+Example using `useAuthSignout` programmatically with optional `callbackUrl`:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useAuthSignout } from '~/routes/plugin@auth';
+
+export default component$(() => {
+  const signOut = useAuthSignout();
+  return <button onClick$={() => signOut.submit({ callbackUrl: '/signedout' })}>Sign Out</button>;
+});
+```
+
+## REST API
+
+All the same REST APIs as provided by Auth.js are available.
+
+### signin
+
+**GET /api/auth/signin**
+
+Displays the built-in/unbranded sign-in page.
+
+**POST /api/auth/signin/:provider**
+
+Starts a provider-specific sign-in flow. In the case of an OAuth provider, calling this endpoint will initiate the Authorization Request to your Identity Provider.  This endpoint is also used by the [useAuthSignin](#useauthsignin) action internally.
+
+### callback
+
+**GET/POST /api/auth/callback/:provider**
+
+### signout
+
+**GET /api/auth/signout**
+
+Displays the built-in/unbranded sign out page.
+
+**POST /api/auth/signout**
+
+Handles signing the user out - this is a POST submission to prevent malicious links from triggering signing a user out without their consent. The user session will be invalidated/removed from the cookie/database, depending on the flow you chose to store sessions. This endpoint is also used by the [useAuthSignout](#useauthsignout) method internally.
+
+### session
+
+**GET /api/auth/session**
+
+Returns client-safe session object - or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback. Session data can also be retrieved using the [useAuthSession](#useauthsession) routerLoader.
+
+### csrf
+
+**GET /api/auth/csrf**
+
+Returns object containing CSRF token. In NextAuth.js, CSRF protection is present on all authentication routes. It uses the "double submit cookie method", which uses a signed HttpOnly, host-only cookie. The CSRF token returned by this endpoint must be passed as form variable named csrfToken in all POST submissions to any API endpoint.
+
+### providers
+
+**GET /api/auth/providers**
+
+Returns a list of configured OAuth services and details (e.g. sign in and callback URLs) for each service. It is useful to dynamically generate custom sign up pages and to check what callback URLs are configured for each OAuth provider that is configured.
+
+## Examples
+
+### GitHub
+
+1. Follow the [GitHub OAuth Guide](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) to get your `GitHub Client ID`, `GitHub Client Secrets` and generate `AUTH_SECRET` using `openssl rand -base64 32` or [Secret Generator](https://generate-secret.vercel.app/32).
+2. Since the default `plugin@auth.ts` uses GitHub as an example, we don't need to change anything there. However a provider other than GitHub could be used or additional provides could be added. Auth.js also supports many [additional options](https://next-auth.js.org/configuration/options#options) that can be set in this file.
+```ts title="src/routes/plugin@auth.ts"
+import { serverAuth$ } from '@builder.io/qwik-auth';
+import GitHub from '@auth/core/providers/github';
+import type { Provider } from '@auth/core/providers';
+
+export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } = serverAuth$(
+  ({ env }) => ({
+    secret: env.get("AUTH_SECRET"),
+    trustHost: true,
+    providers: [
+      GitHub({
+        clientId: env.get("GITHUB_ID"),
+        clientSecret: env.get("GITHUB_SECRET"),
+      }),
+    ] as Provider[],
+  })
+);
+```
+3. Create or edit the `.env.local` file at the root of your project to store secrets
+
+```bash title=".env.local"
+GITHUB_ID=
+GITHUB_SECRET=
+AUTH_SECRET=
+```
+
+> *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
+
+4. The application is now ready to implement authentication using Auth.js.
+5. Enjoy!
+
+### Route Protection
+
+Session data can be accessed via the route `event.sharedMap`.  So a route can be protected and redirect using something like this located in a `layout.tsx` or page `index.tsx`:
+
+```tsx
+export const onRequest: RequestHandler = (event) => {
+  const session: Session | null = event.sharedMap.get('session');
+  if (!session || new Date(session.expires) < new Date()) {
+    throw event.redirect(302, `/api/auth/signin?callbackUrl=${event.url.href}`);
+  }
+};
+```
+
+> Note: If placed in a layout.tsx ensure that the redirect destination does not share the same layout.tsx or a redirection loop could occur.

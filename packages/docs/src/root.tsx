@@ -1,35 +1,13 @@
-import {
-  component$,
-  useContextProvider,
-  useStore,
-  useStyles$,
-  _wrapSignal,
-} from '@builder.io/qwik';
-import { QwikCity, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+import { component$, useContextProvider, useStore } from '@builder.io/qwik';
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
-import { GlobalStore, SiteStore } from './context';
-import styles from './global.css?inline';
+import { GlobalStore, type SiteStore } from './context';
+import './global.css';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
-
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_ALGOLIA_APP_ID: string;
-      VITE_ALGOLIA_SEARCH_KEY: string;
-      VITE_ALGOLIA_INDEX: string;
-      BASE_URL: '/';
-      MODE: 'ssr';
-      DEV: boolean;
-      PROD: boolean;
-      SSR: boolean;
-    };
-  }
-}
+import { Insights } from '@builder.io/qwik-labs';
 
 export default component$(() => {
-  useStyles$(styles);
-
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
@@ -39,10 +17,16 @@ export default component$(() => {
   useContextProvider(GlobalStore, store);
 
   return (
-    <QwikCity>
+    <QwikCityProvider>
       <head>
         <meta charSet="utf-8" />
         <RouterHead />
+        <ServiceWorkerRegister />
+        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
+        <Insights
+          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
+          postUrl={'/api/v1/${publicApiKey}/post/'}
+        />
       </head>
       <body
         class={{
@@ -51,9 +35,13 @@ export default component$(() => {
         }}
       >
         <RouterOutlet />
-        <ServiceWorkerRegister />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
       </body>
-    </QwikCity>
+    </QwikCityProvider>
   );
 });
+
+export function collectSymbols() {
+  (window as any).symbols = [];
+  document.addEventListener('qsymbol', (e) => (window as any).symbols.push((e as any).detail));
+}

@@ -38,6 +38,15 @@
 			"$0"
 		]
 	},
+	"Qwik signal": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useSignal",
+		"description": "useSignal() declaration",
+		"body": [
+			"const ${1:signal} = useSignal($2);",
+			"$0"
+		]
+	},
 	"$ hook": {
 		"scope": "javascriptreact,typescriptreact",
 		"prefix": "q:$",
@@ -49,12 +58,12 @@
 			""
 		]
 	},
-	"useClientEffect": {
+	"useVisibleTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useClientEffect",
-		"description": "useClientEffect$() function hook",
+		"prefix": "q:useVisibleTask",
+		"description": "useVisibleTask$() function hook",
 		"body": [
-			"useClientEffect$(({ track }) => {",
+			"useVisibleTask$(({ track }) => {",
 			"  $0",
 			"});",
 			""
@@ -66,7 +75,7 @@
 		"description": "useTask$() function hook",
 		"body": [
 			"useTask$(({ track }) => {",
-			"  track($1);",
+			"  track(() => $1);",
 			"  $0",
 			"});",
 			""
@@ -83,15 +92,43 @@
 			""
 		]
 	},
-	"useServerMount": {
+	"useOn": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useServerMount",
-		"description": "useServerMount$() function hook",
+		"prefix": "q:useOn",
+		"description": "useOn declaration",
 		"body": [
-			"useServerMount$(() => {",
-			"  $0",
-			"});",
-			""
+			"useOn(",
+			"'$1',",
+			"$((event) => {",
+			"  const { $3 } = event as $2;",
+			"  })",
+			");"
+		]
+	},
+	"useOnDocument": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useOnDocument",
+		"description": "useOnDocument declaration",
+		"body": [
+			"useOnDocument(",
+			"'$1',",
+			"$((event) => {",
+			"  const { $3 } = event as $2;",
+			"  })",
+			");"
+		]
+	},
+	"useOnWindow": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useOnWindow",
+		"description": "useOnWindow declaration",
+		"body": [
+			"useOnWindow(",
+			"'$1',",
+			"$((event) => {",
+			"  const { $3 } = event as $2;",
+			"  })",
+			");"
 		]
 	}
 }

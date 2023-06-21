@@ -10,12 +10,17 @@ macro_rules! test_input {
             .strip_exports
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
 
+        let reg_ctx_name: Option<Vec<JsWord>> = input
+            .reg_ctx_name
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let strip_ctx_name: Option<Vec<JsWord>> = input
             .strip_ctx_name
             .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
 
         let res = transform_modules(TransformModulesOptions {
             src_dir: input.src_dir,
+            root_dir: input.root_dir,
             input: vec![TransformModuleInput {
                 code: input.code.clone(),
                 path: input.filename,
@@ -30,9 +35,11 @@ macro_rules! test_input {
             entry_strategy: input.entry_strategy,
             mode: input.mode,
             scope: input.scope,
+            core_module: input.core_module,
             strip_exports,
             strip_ctx_name,
-            strip_ctx_kind: input.strip_ctx_kind,
+            reg_ctx_name,
+            strip_event_handlers: input.strip_event_handlers,
             is_server: input.is_server,
         });
         if input.snapshot {
@@ -431,6 +438,7 @@ export const Bar = component$(({bar}) => {
 })
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -512,14 +520,15 @@ export const Works = component$(({
     some = 1+2,
     hello = CONST,
     stuff: hey,
+    stuffDefault: hey2 = 123,
     ...rest}) => {
     console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey, some);
+        console.log(count, rest, hey, some, hey2);
     });
     return (
-        <div some={some} class={count} {...rest}>{count}</div>
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
     );
 });
 
@@ -553,6 +562,263 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
     });
 }
 
+#[test]
+fn example_use_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+import { CONST } from 'const';
+export const Works = component$((props) => {
+    const {countNested} = useStore({value:{count:0}}).value;
+    const countNested2 = countNested;
+    const {hello} = countNested2;
+    const bye = hello.bye;
+    const {ciao} = bye.italian;
+
+
+    return (
+        <div ciao={ciao} >{foo}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_3561() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3561 = component$(() => {
+    const props = useStore({
+      product: {
+        currentVariant: {
+          variantImage: 'image',
+          variantNumber: 'number',
+          setContents: 'contents',
+        },
+      },
+    });
+    const {
+      currentVariant: { variantImage, variantNumber, setContents } = {},
+    } = props.product;
+
+    console.log(variantImage, variantNumber, setContents)
+
+    return <p></p>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_4386() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const FOO_MAPPING = {
+    A: 1,
+    B: 2,
+    C: 3,
+  };
+
+  export default component$(() => {
+    const key = 'A';
+    const value = FOO_MAPPING[key];
+
+    return <>{value}</>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_3542() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const AtomStatus = component$(({ctx,atom})=>{
+    let status = atom.status;
+    if(!atom.real) {
+        status="WILL-VANISH"
+    } else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+        status="WTFED"
+    }
+    return (
+        <span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+        </span>
+    );
+})
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_3795() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3795 = component$(() => {
+    let base = "foo";
+    const firstAssignment = base;
+    base += "bar";
+    const secondAssignment = base;
+    return (
+      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_drop_side_effects() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { clientSupabase } from 'supabase';
+import { Client } from 'openai';
+import { secret } from './secret';
+import { sideEffect } from './secret';
+
+const supabase = clientSupabase();
+const dfd = new Client(secret);
+
+(function() {
+    console.log('run');
+  })();
+  (() => {
+    console.log('run');
+  })();
+
+sideEffect();
+
+export const api = server$(() => {
+    supabase.from('ffg').do(dfd);
+});
+
+export default component$(() => {
+    return (
+      <button onClick$={() => await api()}></button>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        strip_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+import { foo } from './foo';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <>
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+        <div onClick$={() => foo()}></div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        strip_event_handlers: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_reg_ctx_name_hooks_hoisted() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
+
+export const Works = component$((props) => {
+    useStyle$(STYLES);
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+
+const STYLES = '.class {}';
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
@@ -742,6 +1008,7 @@ export const Header = component$(() => {
 export const Footer = component$();
 "#
         .to_string(),
+        transpile_ts: true,
         ..TestInput::default()
     });
 }
@@ -1099,7 +1366,7 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
     const state = useStore({
@@ -1107,7 +1374,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         const timer = setInterval(() => {
         state.count++;
         }, 1000);
@@ -1135,7 +1402,7 @@ export const Child = component$(() => {
 fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -1147,7 +1414,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useClientEffect$(() => {
+    useBrowserVisibleTask$(() => {
         state.count = thing.doStuff() + import("./sibling");
     });
 
@@ -1237,6 +1504,9 @@ fn example_parsed_inlined_qrls() {
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+    useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+
     const store = useStore({
         count: 0
     });
@@ -1263,10 +1533,13 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     });
 }, "App_component_Fh88JClhbC0"));
 
+export const STYLES = ".red { color: red; }";
+
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
         mode: EmitMode::Prod,
+        transpile_ts: false,
         ..TestInput::default()
     });
 }
@@ -1436,9 +1709,10 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
+import { handler } from 'serverless';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1453,7 +1727,16 @@ export const Parent = component$(() => {
 
     serverStuff$(async () => {
         // should be removed too
+        const a = $(() => {
+            // from $(), should not be removed
+        });
+        const b = client$(() => {
+            // from clien$(), should not be removed
+        });
+        return [a,b];
     })
+
+    serverLoader$(handler);
 
     useTask$(() => {
         // Code
@@ -1534,6 +1817,9 @@ import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwi
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
+import { a } from './keep';
+import { b } from '../keep2';
+import { c } from '../../remove';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -1543,7 +1829,7 @@ export const Parent = component$(() => {
     // Double count watch
     useClientMount$(async () => {
         state.text = await mongo.users();
-        redis.set(state.text);
+        redis.set(state.text, a, b, c);
     });
 
     useTask$(() => {
@@ -1551,18 +1837,26 @@ export const Parent = component$(() => {
     });
 
     return (
-        <div onClick$={() => console.log('parent', state, threejs)}>
+        <div
+            shouldRemove$={() => state.text}
+            onClick$={() => console.log('parent', state, threejs)}
+        >
+            <Div
+                onClick$={() => console.log('keep')}
+                render$={() => state.text}
+            />
             {state.text}
         </div>
     );
 });
 "#
         .to_string(),
+        filename: "components/component.tsx".into(),
         transpile_ts: true,
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Inline,
         strip_ctx_name: Some(vec!["useClientMount$".into(),]),
-        strip_ctx_kind: Some(HookKind::Event),
+        strip_event_handlers: true,
         ..TestInput::default()
     });
 }
@@ -1594,6 +1888,37 @@ const d = $(()=>console.log('thing'));
         .to_string(),
         transpile_ts: true,
         transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_input_bind() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    const value = useSignal(0);
+    const checked = useSignal(false);
+    const stuff = useSignal();
+    return (
+        <>
+            <input bind:value={value} />
+            <input bind:checked={checked} />
+            <input bind:stuff={stuff} />
+            <div>{value}</div>
+            <div>{value.value}</div>
+        </>
+
+    )
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
@@ -1698,14 +2023,26 @@ fn example_immutable_analysis() {
         code: r#"
 import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
+import styles from './styles.module.css';
 
 export const App = component$((props) => {
+    const {Model} = props;
     const state = useStore({count: 0});
+    const remove = $((id: number) => {
+        const d = state.data;
+        d.splice(
+          d.findIndex((d) => d.id === id),
+          1
+        )
+      });
     return (
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                class={styles.foo}
+                document={window.document}
                 onClick$={props.onClick$}
+                onEvent$={() => console.log('stuff')}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
@@ -1718,15 +2055,18 @@ export const App = component$((props) => {
             >
                 <p>Hello Qwik</p>
             </Div>
-            <Div
-                class={state}
-                mutable1={{
-                    foo: 'bar',
-                    baz: state.count ? true : false,
-                }}
-                mutable2={(() => console.log(state.count))()}
-                mutable3={[1, 2, state, null, {}]}
-            />
+            [].map(() => (
+                <Model
+                    class={state}
+                    remove$={remove}
+                    mutable1={{
+                        foo: 'bar',
+                        baz: state.count ? true : false,
+                    }}
+                    mutable2={(() => console.log(state.count))()}
+                    mutable3={[1, 2, state, null, {}]}
+                />
+            ));
         </>
     );
 });
@@ -1888,6 +2228,80 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_spread_jsx() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+
+/**
+ * The RouterHead component is placed inside of the document `<head>` element.
+ */
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+  const loc = useLocation();
+
+  return (
+    <>
+      <title>{head.title}</title>
+
+      <link rel="canonical" href={loc.href} />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+      {head.meta.map((m) => (
+        <meta {...m} />
+      ))}
+
+      {head.links.map((l) => (
+        <link {...l} key={l.key} />
+      ))}
+
+      {head.styles.map((s) => (
+        <style {...s.props} dangerouslySetInnerHTML={s.style} key={s.key} />
+      ))}
+    </>
+  );
+});"#
+            .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_export_issue() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+const App = component$(() => {
+    return (
+        <div>hola</div>
+    );
+});
+
+
+export const Root = component$((props: Stuff) => {
+    return (
+        <App/>
+    );
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_jsx_keyed() {
     test_input!(TestInput {
         code: r#"
@@ -1932,6 +2346,8 @@ export const App = component$((props: Stuff) => {
 });
 "#
         .to_string(),
+        filename: "project/index.tsx".into(),
+        src_dir: "/src/project".into(),
         transpile_ts: true,
         transpile_jsx: true,
         mode: EmitMode::Dev,
@@ -1944,27 +2360,103 @@ export const App = component$((props: Stuff) => {
 fn example_mutable_children() {
     test_input!(TestInput {
         code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import Image from './image.jpg?jsx';
 
-export const App = component$((props: Stuff) => {
+export function Fn1(props: Stuff) {
     return (
         <>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
-            <div>{prop.value && <div></div>}<div></div></div>
-            <div>{prop.value || <div></div>}</div>
-            <div>{prop.value ?? <div></div>}</div>
-            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+}
 
+export function Fn2(props: Stuff) {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+}
+
+export function Fn3(props: Stuff) {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+}
+
+export function Fn4(props: Stuff) {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+}
+
+export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
+
+export const AppDynamic1 = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+        </>
+    );
+});
+export const AppDynamic2 = component$((props: Stuff) => {
+    return (
+        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
+    );
+});
+
+export const AppDynamic3 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <Stuff></Stuff>
+        );
+    }
+    return (
+        <div></div>
+    );
+});
+
+export const AppDynamic4 = component$((props: Stuff) => {
+    if (prop.value) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <Stuff></Stuff>
+    );
+});
+
+export const AppStatic = component$((props: Stuff) => {
+    return (
+        <>
+            <div>Static {f ? 1 : 3}</div>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+            <div>{prop.value && <><div></div></>}</div>
+            <div>{prop.value && <Image/>}</div>
+            <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
             <div>Static {stuff()}</div>
             <div>Static {stuff()}</div>
-
         </>
     );
 });
 "#
         .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
         transpile_ts: true,
         transpile_jsx: true,
         explicit_extensions: true,
@@ -1972,6 +2464,28 @@ export const App = component$((props: Stuff) => {
     });
 }
 
+#[test]
+fn example_immutable_function_components() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, Slot } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <div>
+            <Slot/>
+        </div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_transpile_ts_only() {
     test_input!(TestInput {
@@ -1990,6 +2504,38 @@ export const App = component$((props: Stuff) => {
         entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
         transpile_jsx: false,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_class_name() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const App2 = component$(() => {
+    const signal = useSignal();
+    const computed = signal.value + 'foo';
+    return (
+        <>
+            <div className="hola"></div>
+            <div className={signal.value}></div>
+            <div className={signal}></div>
+            <div className={computed}></div>
+
+            <Foo className="hola"></Foo>
+            <Foo className={signal.value}></Foo>
+            <Foo className={signal}></Foo>
+            <Foo className={computed}></Foo>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
         explicit_extensions: true,
         ..TestInput::default()
     });
@@ -2055,6 +2601,16 @@ import { isServer, isBrowser } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
+import L from 'leaflet';
+
+export const functionThatNeedsWindow = () => {
+  if (isBrowser) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
+};
+
 export const App = component$(() => {
     useMount$(() => {
         if (isServer) {
@@ -2074,10 +2630,312 @@ export const App = component$(() => {
 "#
         .to_string(),
         is_server: Some(true),
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
 
+#[test]
+fn example_derived_signals_div() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+import styles from './styles.module.css';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    const count = props.counter.count;
+
+    return (
+        <div
+            class={{
+                even: count % 2 === 0,
+                odd: count % 2 === 1,
+                stable0: true,
+                hidden: false,
+            }}
+            staticClass={styles.foo}
+            staticDocument={window.document}
+            staticText="text"
+            staticText2={`text`}
+            staticNumber={1}
+            staticBoolean={true}
+            staticExpr={`text${12}`}
+            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+
+            signal={signal}
+            signalValue={signal.value}
+            signalComputedValue={12 + signal.value}
+
+            store={store.address.city.name}
+            storeComputed={store.address.city.name ? 'true' : 'false'}
+
+            dep={dep}
+            depAccess={dep.thing}
+            depComputed={dep.thing + 'stuff'}
+
+            global={globalThing}
+            globalAccess={globalThing.thing}
+            globalComputed={globalThing.thing + 'stuff'}
+
+
+            noInline={signal.value()}
+            noInline2={signal.value + unknown()}
+            noInline3={mutable(signal)}
+            noInline4={signal.value + dep}
+        />
+
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_issue_4438() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const toggle = useSignal(false);
+    return (
+        <>
+            <div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+            <div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const TextContent = component$((props) => {
+    return (
+        <>
+            <div>data-nu: {props['data-nu']}</div>
+            <div>class: {props.class}</div>
+        </>
+    );
+});
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <div>text</div>
+            <div>{`text`}</div>
+            <div>{1}</div>
+            <div>{true}</div>
+            <div>{`text${12}`}</div>
+            <div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
+            <div>{signal}</div>
+            <div>{signal.value}</div>
+            <div>{12 + signal.value}</div>
+            <div>{store.address.city.name}</div>
+            <div>{store.address.city.name ? 'true' : 'false'}</div>
+            <div>{dep}</div>
+            <div>{dep.thing}</div>
+            <div>{dep.thing + 'stuff'}</div>
+            <div>{globalThing}</div>
+            <div>{globalThing.thing}</div>
+            <div>{globalThing.thing + 'stuff'}</div>
+            <div>{signal.value()}</div>
+            <div>{signal.value + unknown()}</div>
+            <div>{mutable(signal)}</div>
+            <div>{signal.value + dep}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_multiple_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <div>First text</div>
+            <div>First {`text`}</div>
+            <div>First {1}</div>
+            <div>First {true}</div>
+            <div>First {`text${12}`}</div>
+            <div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
+            <div>First {signal}</div>
+            <div>First {signal.value}</div>
+            <div>First {12 + signal.value}</div>
+            <div>First {store.address.city.name}</div>
+            <div>First {store.address.city.name ? 'true' : 'false'}</div>
+            <div>First {dep}</div>
+            <div>First {dep.thing}</div>
+            <div>First {dep.thing + 'stuff'}</div>
+            <div>First {globalThing}</div>
+            <div>First {globalThing.thing}</div>
+            <div>First {globalThing.thing + 'stuff'}</div>
+            <div>First {signal.value()}</div>
+            <div>First {signal.value + unknown()}</div>
+            <div>First {mutable(signal)}</div>
+            <div>First {signal.value + dep}</div>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_complext_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <>
+            <ul id="issue-2800-result">
+                {Object.entries(store).map(([key, value]) => (
+                <li>
+                    {key} - {value}
+                </li>
+                ))}
+            </ul>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_derived_signals_cmp() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+import {Cmp} from './cmp';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    return (
+        <Cmp
+            staticText="text"
+            staticText2={`text`}
+            staticNumber={1}
+            staticBoolean={true}
+            staticExpr={`text${12}`}
+            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+
+            signal={signal}
+            signalValue={signal.value}
+            signalComputedValue={12 + signal.value}
+
+            store={store.address.city.name}
+            storeComputed={store.address.city.name ? 'true' : 'false'}
+
+            dep={dep}
+            depAccess={dep.thing}
+            depComputed={dep.thing + 'stuff'}
+
+            global={globalThing}
+            globalAccess={globalThing.thing}
+            globalComputed={globalThing.thing + 'stuff'}
+
+
+            noInline={signal.value()}
+            noInline2={signal.value + unknown()}
+            noInline3={mutable(signal)}
+            noInline4={signal.value + dep}
+        />
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_issue_33443() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const Issue3742 = component$(({description = '', other}: any) => {
+    const counter = useSignal(0);
+    return (
+      <div
+        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+      >
+        Issue3742
+        <button onClick$={() => counter.value++}>
+          Increment
+        </button>
+      </div>
+    )
+  });
+  "#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_getter_generation() {
     test_input!(TestInput {
@@ -2100,6 +2958,7 @@ export const App = component$(() => {
             nested={store.nested.count}
             signal={signal}
             store={store.stuff + 12}
+            value={signal.formData?.get('username')}
         >
         </Cmp>
     );
@@ -2328,6 +3187,18 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
+fn example_qwik_sdk_inline() {
+    test_input!(TestInput {
+        code: include_str!("fixtures/index.qwik.mjs").to_string(),
+        filename: "../node_modules/@builder.io/qwik-city/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Smart,
+        explicit_extensions: true,
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn relative_paths() {
     let dep = r#"
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
@@ -2378,6 +3249,7 @@ export const Local = component$(() => {
 "#;
     let res = transform_modules(TransformModulesOptions {
         src_dir: "/path/to/app/src/thing".into(),
+        root_dir: Some("/path/to/app/".into()),
         input: vec![
             TransformModuleInput {
                 code: dep.into(),
@@ -2397,10 +3269,12 @@ export const Local = component$(() => {
         transpile_ts: true,
         transpile_jsx: true,
         preserve_filenames: false,
+        core_module: None,
         scope: None,
         strip_exports: None,
         strip_ctx_name: None,
-        strip_ctx_kind: None,
+        strip_event_handlers: false,
+        reg_ctx_name: None,
         is_server: None,
     });
     snapshot_res!(&res, "".into());
@@ -2467,6 +3341,7 @@ export const Greeter = component$(() => {
         ],
         source_maps: true,
         minify: MinifyMode::Simplify,
+        root_dir: None,
         explicit_extensions: true,
         mode: EmitMode::Lib,
         manual_chunks: None,
@@ -2475,9 +3350,11 @@ export const Greeter = component$(() => {
         transpile_jsx: true,
         preserve_filenames: false,
         scope: None,
+        core_module: None,
+        reg_ctx_name: None,
         strip_exports: None,
         strip_ctx_name: None,
-        strip_ctx_kind: None,
+        strip_event_handlers: false,
         is_server: None,
     });
     let ref_hooks: Vec<_> = res
@@ -2500,6 +3377,7 @@ export const Greeter = component$(() => {
                     path: "components/main.tsx".into(),
                 },
             ],
+            root_dir: None,
             source_maps: false,
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
@@ -2510,9 +3388,11 @@ export const Greeter = component$(() => {
             transpile_jsx: option.2,
             preserve_filenames: false,
             scope: None,
+            core_module: None,
             strip_exports: None,
             strip_ctx_name: None,
-            strip_ctx_kind: None,
+            strip_event_handlers: false,
+            reg_ctx_name: None,
             is_server: None,
         });
 
@@ -2548,6 +3428,7 @@ struct TestInput {
     pub code: String,
     pub filename: String,
     pub src_dir: String,
+    pub root_dir: Option<String>,
     pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
@@ -2557,10 +3438,12 @@ struct TestInput {
     pub explicit_extensions: bool,
     pub snapshot: bool,
     pub mode: EmitMode,
+    pub core_module: Option<String>,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
+    pub reg_ctx_name: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
-    pub strip_ctx_kind: Option<HookKind>,
+    pub strip_event_handlers: bool,
     pub is_server: Option<bool>,
 }
 
@@ -2569,6 +3452,7 @@ impl TestInput {
         Self {
             filename: "test.tsx".to_string(),
             src_dir: "/user/qwik/src/".to_string(),
+            root_dir: None,
             code: "/user/qwik/src/".to_string(),
             manual_chunks: None,
             entry_strategy: EntryStrategy::Hook,
@@ -2580,9 +3464,11 @@ impl TestInput {
             snapshot: true,
             mode: EmitMode::Lib,
             scope: None,
+            core_module: None,
+            reg_ctx_name: None,
             strip_exports: None,
             strip_ctx_name: None,
-            strip_ctx_kind: None,
+            strip_event_handlers: false,
             is_server: None,
         }
     }

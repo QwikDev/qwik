@@ -4,6 +4,11 @@ test.describe('effect-client', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/effect-client');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should load', async ({ page }) => {
@@ -42,18 +47,39 @@ test.describe('effect-client', () => {
     const meta = page.locator('#issue-1717-meta');
     await expect(value1).toHaveText('value 1');
     await expect(value2).toHaveText('value 2');
-    await expect(meta).toHaveText('Sub: 10 Renders: 2');
+    await expect(meta).toHaveText('Sub: 10 Renders: 1');
   });
 
   test('issue 2015', async ({ page }) => {
     const order = page.locator('#issue-2015-order');
     await page.waitForTimeout(300);
-    await expect(order).toHaveText('Order: start 1 finish 1 start 2 finish 2 start 3 finish 3');
+    await expect(order).toHaveText('Order: start 1 start 2 start 3 finish 1 finish 2 finish 3');
   });
 
   test('issue 1955', async ({ page }) => {
     const results = page.locator('#issue-1955-results');
     await page.waitForTimeout(300);
     await expect(results).toHaveText('run');
+  });
+
+  test('cleanup', async ({ page }) => {
+    const counter = page.locator('#cleanup-effects-button');
+    const nuCleanups = page.locator('#cleanup-effects-count');
+    await page.waitForTimeout(200);
+    await expect(nuCleanups).toHaveText('0');
+    await counter.click();
+    await expect(nuCleanups).toHaveText('1');
+    await counter.click();
+    await expect(nuCleanups).toHaveText('2');
+  });
+
+  test('issue 4432', async ({ page }) => {
+    const button = page.locator('#issue-4432-button');
+    const logs = page.locator('#issue-4432-logs');
+    await page.waitForTimeout(500);
+    await expect(logs).toHaveText('VisibleTask ChildA /\n');
+    await button.click();
+    await page.waitForTimeout(500);
+    await expect(logs).toHaveText('VisibleTask ChildA /\nCleanup ChildA /other\n');
   });
 });

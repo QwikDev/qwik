@@ -213,11 +213,109 @@ test.describe('slot', () => {
       await toggleBtn.click();
       await expect(modalContent).not.toBeHidden();
     });
+
+    test('issue 2688', async ({ page }) => {
+      const result = page.locator('#issue-2688-result');
+      const button = page.locator('#issue-2688-button');
+      const count = page.locator('#btn-count');
+      await expect(result).toHaveText('Alpha 0', { useInnerText: true });
+      await button.click();
+      await expect(result).toHaveText('Bravo 0', { useInnerText: true });
+      await button.click();
+      await expect(result).toHaveText('Alpha 0', { useInnerText: true });
+      await count.click();
+      await expect(result).toHaveText('Alpha 1', { useInnerText: true });
+      await count.click();
+      await expect(result).toHaveText('Alpha 2', { useInnerText: true });
+      await button.click();
+      await expect(result).toHaveText('Bravo 2', { useInnerText: true });
+      await count.click();
+      await expect(result).toHaveText('Bravo 3', { useInnerText: true });
+      await count.click();
+      await expect(result).toHaveText('Bravo 4', { useInnerText: true });
+      await button.click();
+      await expect(result).toHaveText('Alpha 4', { useInnerText: true });
+      await count.click();
+      await expect(result).toHaveText('Alpha 5', { useInnerText: true });
+    });
+
+    test('issue 2751', async ({ page }) => {
+      const result = page.locator('#issue-2751-result');
+      const button = page.locator('#issue-2751-toggle');
+      await expect(result).toHaveText('Bogus 0 0 0');
+      await button.click();
+      await expect(result).toHaveText('Nothing');
+      await button.click();
+      await expect(result).toHaveText('Bogus 2 2 2');
+      await button.click();
+      await expect(result).toHaveText('Nothing');
+      await button.click();
+      await expect(result).toHaveText('Bogus 4 4 4');
+      await button.click();
+      await expect(result).toHaveText('Nothing');
+      await button.click();
+      await expect(result).toHaveText('Bogus 6 6 6');
+    });
+
+    test('issue 3565', async ({ page }) => {
+      const result = page.locator('#issue-3565-result');
+      await expect(result).toHaveText('Own contentcontent projected');
+    });
+
+    test('issue 3607', async ({ page }) => {
+      const button = page.locator('#issue-3607-result');
+      await expect(button).toHaveText('Load more');
+      await button.click();
+      await expect(button).toHaveText('Loading...');
+      await button.click();
+      await expect(button).toHaveText('Load more');
+      await button.click();
+      await expect(button).toHaveText('Loading...');
+    });
+
+    test('issue 3727', async ({ page }) => {
+      const navigate = page.locator('#issue-3727-navigate');
+      await navigate.click();
+      const results = page.locator('#issue-3727-results > li');
+      const add = page.locator('#issue-3727-add');
+      await expect(results).toHaveText([]);
+      await add.click();
+      await expect(results).toHaveText(['item 0']);
+      await add.click();
+      await expect(results).toHaveText(['item 0', 'item 1']);
+    });
+
+    test('issue 4215', async ({ page }) => {
+      const svg = page.locator('#issue-4215-svg');
+      const toggle = page.locator('#issue-4215-toggle');
+      async function getNamespaceURI() {
+        return (
+          await (await svg.locator('path').elementHandle())?.getProperty('namespaceURI')
+        )?.jsonValue();
+      }
+
+      await expect(getNamespaceURI()).resolves.toBe('http://www.w3.org/2000/svg');
+      await toggle.click();
+      await toggle.click();
+      await expect(getNamespaceURI()).resolves.toBe('http://www.w3.org/2000/svg');
+    });
+
+    test('issue 4283', async ({ page }) => {
+      const result = page.locator('#issue-4283-result');
+      await expect(result).toHaveText(`Hide until visible\n\nContent\n\nindex page`, {
+        useInnerText: true,
+      });
+    });
   }
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/slot');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   tests();

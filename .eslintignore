@@ -17,9 +17,11 @@ tsdoc-metadata.json
 scripts/**/*
 **/server/**/*.js
 *.tsbuildinfo
+packages/docs/api/**/*
 packages/docs/src/routes/examples/apps/**/*
 packages/docs/src/routes/playground/app/**/*
 packages/docs/src/routes/tutorial/**/*
 starters/apps/base
 starters/apps/library
+starters/templates
 vite.config.ts

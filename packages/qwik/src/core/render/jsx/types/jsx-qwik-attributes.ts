@@ -1,6 +1,5 @@
 import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
-import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikAnimationEvent,
@@ -162,56 +161,57 @@ export type QwikEventMap<T> = {
   Waiting: Event;
 };
 
-export type PreventDefault<T> = {
+export type PreventDefault<T extends Element> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
+
+export type QwikKeysEvents = Lowercase<keyof QwikEventMap<any>>;
 
 export type BaseClassList =
   | string
   | undefined
   | null
+  | false
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
+
+/**
+ * @public
+ */
 export type ClassList = BaseClassList | BaseClassList[];
 
-export interface QwikProps<T> extends PreventDefault<T> {
+export interface QwikProps<T extends Element> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Ref<T> | undefined;
 
   /**
-   *
+   * Corresponding slot name used to project the element into.
    */
   'q:slot'?: string;
-
-  /**
-   * URL against which relative QRLs should be resolved to.
-   */
-  'q:version'?: string;
-  'q:container'?: '';
 }
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-export type BivariantEventHandler<T extends SyntheticEvent<any> | Event> = {
-  bivarianceHack(event: T, element: Element): any;
+export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
+  bivarianceHack(event: T, element: EL): any;
 }['bivarianceHack'];
 
 /**
  * @public
  */
-export type NativeEventHandler<T extends Event = Event> =
-  | BivariantEventHandler<T>
-  | QRL<BivariantEventHandler<T>>[];
+export type NativeEventHandler<T extends Event = Event, EL = Element> =
+  | BivariantEventHandler<T, EL>
+  | QRL<BivariantEventHandler<T, EL>>[];
 
 /**
  * @public
  */
-export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type>>;
+export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type, Element>>;
 
-export interface QwikCustomEvents {
+export interface QwikCustomEvents<El> {
   [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | SingleOrArray<NativeEventHandler<Event>>
+    | SingleOrArray<NativeEventHandler<Event, El>>
     | SingleOrArray<Function>
     | SingleOrArray<undefined>;
 }
@@ -220,17 +220,17 @@ type SingleOrArray<T> = T | (SingleOrArray<T> | undefined | null)[];
 
 export type QwikKnownEvents<T> = {
   [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: SingleOrArray<
-    BivariantEventHandler<QwikEventMap<T>[K]>
+    BivariantEventHandler<QwikEventMap<T>[K], T>
   >;
 };
 /**
  * @public
  */
-export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents {
-  'document:onLoad$'?: BivariantEventHandler<Event>;
-  'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>>;
-  'document:onVisible$'?: BivariantEventHandler<Event>;
-  'document:onVisibilityChange$'?: BivariantEventHandler<Event>;
+export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
+  'document:onLoad$'?: BivariantEventHandler<Event, T>;
+  'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>, T>;
+  'document:onVisible$'?: BivariantEventHandler<Event, T>;
+  'document:onVisibilityChange$'?: BivariantEventHandler<Event, T>;
 }
 
 /**
@@ -242,7 +242,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
  * @public
  */
 export interface ComponentBaseProps {
-  key?: string | number;
+  key?: string | number | null | undefined;
   'q:slot'?: string;
 }
 
@@ -259,12 +259,22 @@ export type JSXChildren =
   | RegExp
   | JSXChildren[]
   | Promise<JSXChildren>
+  | Signal<JSXChildren>
   | JSXNode;
 
 /**
  * @public
  */
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
-  key?: string | number;
+  key?: string | number | null | undefined;
 }
+
+interface RefFnInterface {
+  (el: Element): void;
+}
+
+/**
+ * @public
+ */
+export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;

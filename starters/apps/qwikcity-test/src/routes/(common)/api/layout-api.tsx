@@ -29,8 +29,8 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = ({ pathname }) => {
+export const head: DocumentHead = ({ url }) => {
   return {
-    title: `API: ${pathname}`,
+    title: `API: ${url.pathname}`,
   };
 };

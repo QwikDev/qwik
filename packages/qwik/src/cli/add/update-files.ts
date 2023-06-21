@@ -1,6 +1,6 @@
-import type { FsUpdates, UpdateAppOptions } from '../types';
 import fs from 'node:fs';
-import { join } from 'node:path';
+import type { FsUpdates, UpdateAppOptions } from '../types';
+import { extname, join } from 'node:path';
 import { getPackageManager } from '../utils/utils';
 
 export async function mergeIntegrationDir(
@@ -13,6 +13,7 @@ export async function mergeIntegrationDir(
   await Promise.all(
     items.map(async (itemName) => {
       const destName = itemName === 'gitignore' ? '.gitignore' : itemName;
+      const ext = extname(destName);
       const srcChildPath = join(srcDir, itemName);
       const destChildPath = join(destDir, destName);
       const s = await fs.promises.stat(srcChildPath);
@@ -27,6 +28,8 @@ export async function mergeIntegrationDir(
           await mergeReadmes(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === '.gitignore') {
           await mergeGitIgnores(fileUpdates, srcChildPath, destChildPath);
+        } else if (ext === '.css') {
+          await mergeCss(fileUpdates, srcChildPath, destChildPath);
         } else {
           if (fs.existsSync(destChildPath)) {
             fileUpdates.files.push({
@@ -140,6 +143,29 @@ async function mergeGitIgnores(fileUpdates: FsUpdates, srcPath: string, destPath
       type: 'modify',
     });
   } catch (e) {
+    fileUpdates.files.push({
+      path: destPath,
+      content: srcContent,
+      type: 'create',
+    });
+  }
+}
+
+async function mergeCss(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+  const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
+
+  try {
+    // css file already exists, prepend the src to the dest file
+    const destContent = await fs.promises.readFile(destPath, 'utf-8');
+    const mergedContent = srcContent.trim() + '\n\n' + destContent.trim() + '\n';
+
+    fileUpdates.files.push({
+      path: destPath,
+      content: mergedContent,
+      type: 'modify',
+    });
+  } catch (e) {
+    // css file doesn't already exist, just copy it over
     fileUpdates.files.push({
       path: destPath,
       content: srcContent,

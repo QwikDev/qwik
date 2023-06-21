@@ -2,13 +2,14 @@ import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
+import { _deserializeData } from '@builder.io/qwik';
 
 export const loadClientData = async (
-  href: string,
+  url: URL,
+  element: unknown,
   clearCache?: boolean,
   action?: RouteActionValue
 ) => {
-  const url = new URL(href);
   const pagePathname = url.pathname;
   const pageSearch = url.search;
   const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
@@ -22,26 +23,25 @@ export const loadClientData = async (
   });
 
   if (!qData) {
-    const actionData = action?.data;
+    const options = getFetchOptions(action);
     if (action) {
       action.data = undefined;
     }
-    const options: RequestInit | undefined = actionData
-      ? {
-          method: 'POST',
-          body: actionData,
-        }
-      : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {
+      const redirectedURL = new URL(rsp.url);
+      const isQData = redirectedURL.pathname.endsWith('/q-data.json');
+      if (redirectedURL.origin !== location.origin || !isQData) {
+        location.href = redirectedURL.href;
+        return;
+      }
       if ((rsp.headers.get('content-type') || '').includes('json')) {
-        const redirectedURL = new URL(rsp.url);
-        if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
-          location.href = redirectedURL.href;
-          return;
-        }
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const clientData = parseData(text) as ClientPageData;
+          const clientData = _deserializeData(text, element) as ClientPageData | null;
+          if (!clientData) {
+            location.href = url.href;
+            return;
+          }
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }
@@ -54,7 +54,8 @@ export const loadClientData = async (
           return clientData;
         });
       } else {
-        CLIENT_DATA_CACHE.delete(clientDataPath);
+        location.href = url.href;
+        return undefined;
       }
     });
 
@@ -63,28 +64,31 @@ export const loadClientData = async (
     }
   }
 
-  return qData;
-};
-
-function parseData(str: string) {
-  return JSON.parse(str, (_, value) => {
-    if (value && typeof value === 'object' && value.__brand === 'formdata') {
-      return formDataFromArray(value.value);
+  return qData.then((v) => {
+    if (!v) {
+      CLIENT_DATA_CACHE.delete(clientDataPath);
     }
-    return value;
+    return v;
   });
-}
-
-function formDataFromArray(array: [string, string][]): FormData {
-  const formData = new FormData();
-  for (const [key, value] of array) {
-    formData.append(key, value);
-  }
-  return formData;
-}
-
-export const isQDataJson = (pathname: string) => {
-  return pathname.endsWith(QDATA_JSON);
 };
 
-export const QDATA_JSON = '/q-data.json';
+const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | undefined => {
+  const actionData = action?.data;
+  if (!actionData) {
+    return undefined;
+  }
+  if (actionData instanceof FormData) {
+    return {
+      method: 'POST',
+      body: actionData,
+    };
+  } else {
+    return {
+      method: 'POST',
+      body: JSON.stringify(actionData),
+      headers: {
+        'Content-Type': 'application/json, charset=UTF-8',
+      },
+    };
+  }
+};

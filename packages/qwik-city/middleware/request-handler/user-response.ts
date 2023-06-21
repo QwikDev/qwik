@@ -1,35 +1,37 @@
-import type { ServerRequestEvent } from './types';
-import type { PathParams, RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import { createRequestEvent } from './request-event';
-import { ErrorResponse, getErrorHtml } from './error-handler';
-import { HttpStatus } from './http-status-codes';
+import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
+import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
+import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { LoadedRoute } from '../../runtime/src/types';
+import { encoder } from './resolve-request-handlers';
+import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
   requestEv: RequestEvent;
-  completion: Promise<RequestEvent>;
+  completion: Promise<unknown>;
 }
 
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
-  params: PathParams,
-  requestHandlers: RequestHandler<unknown>[],
+  loadedRoute: LoadedRoute | null,
+  requestHandlers: RequestHandler<any>[],
+  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash = true,
-  basePathname = '/'
+  basePathname = '/',
+  qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
-  if (requestHandlers.length === 0) {
-    throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
-  }
-
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(
     serverRequestEv,
-    params,
+    loadedRoute,
     requestHandlers,
+    manifest,
     trailingSlash,
     basePathname,
+    qwikSerializer,
     resolve!
   );
   return {
@@ -39,27 +41,47 @@ export function runQwikCity<T>(
   };
 }
 
-async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
+async function runNext(requestEv: RequestEventInternal, resolve: (value: any) => void) {
   try {
+    // Run all middlewares
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
-      requestEv.getWritableStream().close();
+      const stream = requestEv.getWritableStream();
+      await stream.close();
     } else if (e instanceof ErrorResponse) {
+      console.error(e);
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
-        requestEv.html(e.status, html);
+        const status = e.status as StatusCodes;
+        requestEv.html(status, html);
       }
-      console.error(e);
     } else if (!(e instanceof AbortMessage)) {
-      if (!requestEv.headersSent) {
-        requestEv.status(HttpStatus.InternalServerError);
+      if (getRequestMode(requestEv) !== 'dev') {
+        try {
+          if (!requestEv.headersSent) {
+            requestEv.headers.set('content-type', 'text/html; charset=utf-8');
+            requestEv.cacheControl({ noCache: true });
+            requestEv.status(500);
+          }
+          const stream = requestEv.getWritableStream();
+          if (!stream.locked) {
+            const writer = stream.getWriter();
+            await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+            await writer.close();
+          }
+        } catch {
+          console.error('Unable to render error page');
+        }
       }
-      throw e;
+      return e;
+    }
+  } finally {
+    if (!requestEv.isDirty()) {
+      resolve(null);
     }
   }
-  resolve(null);
-  return requestEv;
+  return undefined;
 }
 
 /**
@@ -77,18 +99,6 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
   return pathname;
 }
 
-export const isQDataJson = (pathname: string) => {
-  return pathname.endsWith(QDATA_JSON);
-};
-
+export const IsQData = '@isQData';
 export const QDATA_JSON = '/q-data.json';
-const QDATA_JSON_LEN = QDATA_JSON.length;
-
-export function isFormContentType(headers: Headers) {
-  return isContentType(headers, 'application/x-www-form-urlencoded', 'multipart/form-data');
-}
-
-export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
-  return types.includes(type);
-}
+export const QDATA_JSON_LEN = QDATA_JSON.length;

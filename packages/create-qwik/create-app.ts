@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 import fs from 'node:fs';
-import color from 'kleur';
+import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,
@@ -12,6 +11,7 @@ import {
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 import { logSuccessFooter } from '../qwik/src/cli/utils/log';
 import { updateApp } from '../qwik/src/cli/add/update-app';
+import os from 'node:os';
 
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
@@ -46,43 +46,43 @@ export function logCreateAppResult(
   result: CreateAppResult,
   ranInstall: boolean
 ) {
-  console.log(``);
-  console.log(``);
-
   const isCwdDir = process.cwd() === result.outDir;
   const relativeProjectPath = relative(process.cwd(), result.outDir);
+  const outString = [];
 
   if (isCwdDir) {
-    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
+    outString.push(`🦄 ${bgMagenta(' Success! ')}`);
   } else {
-    console.log(
-      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
-        color.magenta(relativeProjectPath)
-      )} ${color.cyan(`directory`)}`
+    outString.push(
+      `🦄 ${bgMagenta(' Success! ')} ${cyan(`Project created in`)} ${bold(
+        magenta(relativeProjectPath)
+      )} ${cyan(`directory`)}`
     );
   }
-  console.log(``);
+  outString.push(``);
 
-  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
+  outString.push(`🐰 ${cyan(`Next steps:`)}`);
   if (!isCwdDir) {
-    console.log(`   cd ${relativeProjectPath}`);
+    outString.push(`   cd ${relativeProjectPath}`);
   }
   if (!ranInstall) {
-    console.log(`   ${pkgManager} install`);
+    outString.push(`   ${pkgManager} install`);
   }
-  console.log(`   ${pkgManager} start`);
-  console.log(``);
+  outString.push(`   ${pkgManager} start`);
+  outString.push(``);
 
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
-  console.log(`🔌 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
-  console.log(`   ${qwikAdd}`);
-  console.log(``);
+  outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  outString.push(`   ${qwikAdd}`);
+  outString.push(``);
 
-  logSuccessFooter(result.docs);
+  outString.push(logSuccessFooter(result.docs));
 
-  console.log(`📺 ${color.cyan('Presentations, Podcasts and Videos:')}`);
-  console.log(`   https://qwik.builder.io/media/`);
-  console.log(``);
+  outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
+  outString.push(`   https://qwik.builder.io/media/`);
+  outString.push(``);
+
+  return outString.join('\n');
 }
 
 export async function createApp(opts: CreateAppOptions) {
@@ -97,7 +97,7 @@ export async function createApp(opts: CreateAppOptions) {
     throw new Error(`outDir must be an absolute path`);
   }
   if (!fs.existsSync(opts.outDir)) {
-    fs.mkdirSync(opts.outDir, { recursive: true });
+    fs.mkdirSync(decodeURIComponent(opts.outDir), { recursive: true });
   }
 
   const result: CreateAppResult = {
@@ -177,7 +177,12 @@ function isValidOption(value: any) {
 }
 
 export function getOutDir(outDir: string) {
-  return resolve(process.cwd(), outDir);
+  // check if the outDir start with home ~
+  if (outDir.startsWith('~/')) {
+    return resolve(os.homedir(), outDir);
+  } else {
+    return resolve(process.cwd(), outDir);
+  }
 }
 
 export function writeToCwd() {

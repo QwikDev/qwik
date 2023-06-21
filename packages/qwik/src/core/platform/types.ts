@@ -18,7 +18,7 @@ import type { ValueOrPromise } from '../util/types';
  *
  * This is a low-level API and there should not be a need for you to access this.
  *
- * @alpha
+ * @public
  */
 // </docs>
 export interface CorePlatform {
@@ -54,7 +54,11 @@ export interface CorePlatform {
    * @returns A promise that resolves to the imported symbol.
    */
   // </docs>
-  importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+  importSymbol: (
+    containerEl: Element | undefined,
+    url: string | URL | undefined | null,
+    symbol: string
+  ) => ValueOrPromise<any>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit ./readme.md#CorePlatform.raf instead)
@@ -91,5 +95,12 @@ export interface CorePlatform {
    * contains the symbol.
    */
   // </docs>
-  chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
+  chunkForSymbol: (
+    symbolName: string,
+    chunk: string | null
+  ) => readonly [symbol: string, chunk: string] | undefined;
+}
+
+export interface CorePlatformServer extends CorePlatform {
+  isServer: true;
 }

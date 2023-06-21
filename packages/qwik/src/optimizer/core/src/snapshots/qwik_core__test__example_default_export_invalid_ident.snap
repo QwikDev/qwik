@@ -19,21 +19,21 @@ export default component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../_404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../../_404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,mGAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,iHAKZ\"}")
 ============================= _404_component_zrvowc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const _404_component_zRvoWc98eqo = ()=>{
-    return <div onClick$={qrl(()=>import("./_404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
+    return <div onClick$={/*#__PURE__*/ qrl(()=>import("./_404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
 
         </div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B,IAAM;IAC5B,QACK,IAAI,iHAAsC;;QAC3C,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B,IAAM;IAC5B,QACK,IAAI,+HAAsC;;QAC3C,EAAE;AAEV\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",
@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "canonicalFilename": "_404_component_div_onclick_oimo9dvew9q",
   "extension": "tsx",
   "parent": "_404_component_zRvoWc98eqo",
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [

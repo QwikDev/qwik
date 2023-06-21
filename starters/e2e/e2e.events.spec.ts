@@ -4,6 +4,11 @@ test.describe('events', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/events');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should rerender correctly', async ({ page }) => {
@@ -57,12 +62,38 @@ test.describe('events', () => {
     await prevented2.click();
     await expect(countWrapped).toHaveText('countAnchor: 1');
   });
+
+  test('issue 3948', async ({ page }) => {
+    const always = page.locator('#issue-3948-always');
+    const toggle = page.locator('#issue-3948-toggle');
+    const html = page.locator('html');
+    await expect(always).toHaveText('always count: 0');
+
+    await html.click();
+    await expect(always).toHaveText('always count: 1');
+    await toggle.click();
+    const conditional = page.locator('#issue-3948-conditional');
+    await expect(conditional).toHaveText('conditional count: 0');
+
+    await html.click();
+    await expect(always).toHaveText('always count: 3');
+    await expect(conditional).toHaveText('conditional count: 1');
+
+    await html.click();
+    await expect(always).toHaveText('always count: 4');
+    await expect(conditional).toHaveText('conditional count: 2');
+  });
 });
 
 test.describe('broadcast-events', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/broadcast-events');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   function tests() {
@@ -119,6 +150,11 @@ test.describe('events client side', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/events-client');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
   });
 
   test('should progressively listen to new events', async ({ page }) => {

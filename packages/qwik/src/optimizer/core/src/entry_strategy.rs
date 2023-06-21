@@ -1,6 +1,6 @@
-use crate::parse::PathData;
 use crate::transform::HookData;
 use crate::words::*;
+use crate::{parse::PathData, transform::HookKind};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -13,10 +13,11 @@ lazy_static! {
 }
 
 // EntryStrategies
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Copy, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum EntryStrategy {
     Inline,
+    Hoist,
     Single,
     Hook,
     Component,
@@ -142,6 +143,11 @@ impl EntryPolicy for SmartStrategy {
         context: &[String],
         hook_data: &HookData,
     ) -> Option<JsWord> {
+        if hook_data.scoped_idents.is_empty()
+            && (hook_data.ctx_kind != HookKind::Function || &hook_data.ctx_name == "event$")
+        {
+            return None;
+        }
         if hook_data.ctx_name == *USE_SERVER_MOUNT {
             return Some(ENTRY_SERVER.clone());
         }
@@ -159,12 +165,12 @@ impl EntryPolicy for SmartStrategy {
 }
 
 pub fn parse_entry_strategy(
-    strategy: EntryStrategy,
+    strategy: &EntryStrategy,
     manual_chunks: Option<HashMap<String, JsWord>>,
 ) -> Box<dyn EntryPolicy> {
     match strategy {
         EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
-        EntryStrategy::Inline => Box::new(InlineStrategy::default()),
+        EntryStrategy::Inline | EntryStrategy::Hoist => Box::new(InlineStrategy::default()),
         EntryStrategy::Single => Box::new(SingleStrategy::new(manual_chunks)),
         EntryStrategy::Component => Box::new(PerComponentStrategy::new(manual_chunks)),
         EntryStrategy::Smart => Box::new(SmartStrategy::new(manual_chunks)),

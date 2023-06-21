@@ -1,12 +1,29 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { IncomingMessage } from 'http';
+import { magenta } from 'kleur/colors';
+import type { IncomingMessage, ServerResponse } from 'http';
+
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
-import { ERROR_HOST } from './errored-host';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import imageDevTools from './image-size-runtime.html?raw';
+import clickToComponent from './click-to-component.html?raw';
+import perfWarning from './perf-warning.html?raw';
+import errorHost from './error-host.html?raw';
+
+function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
+  const headers = req.headers;
+  const protocol =
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const host = (HOST_HEADER && headers[HOST_HEADER]) || headers[':authority'] || headers['host'];
+
+  return `${protocol}://${host}`;
+}
 
 export async function configureDevServer(
   server: ViteDevServer,
@@ -17,16 +34,16 @@ export async function configureDevServer(
   clientDevInput: string | undefined
 ) {
   if (typeof fetch !== 'function' && sys.env === 'node') {
-    // polyfill fetch() when not available in NodeJS
+    // polyfill fetch() when not available in Node.js
 
     try {
       if (!globalThis.fetch) {
         const undici = await sys.strictDynamicImport('undici');
-        global.fetch = undici.fetch;
-        global.Headers = undici.Headers;
-        global.Request = undici.Request;
-        global.Response = undici.Response;
-        global.FormData = undici.FormData;
+        globalThis.fetch = undici.fetch;
+        globalThis.Headers = undici.Headers;
+        globalThis.Request = undici.Request;
+        globalThis.Response = undici.Response;
+        globalThis.FormData = undici.FormData;
       }
     } catch {
       console.warn('Global fetch() was not installed');
@@ -35,9 +52,10 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  server.middlewares.use(async (req, res, next) => {
+  server.middlewares.use(async (req: any, res: any, next: any) => {
     try {
-      const domain = 'http://' + (req.headers.host ?? 'localhost');
+      const { ORIGIN } = process.env;
+      const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
@@ -64,9 +82,7 @@ export async function configureDevServer(
           return;
         }
 
-        const ssrModule = await server.ssrLoadModule(opts.input[0], {
-          fixStacktrace: false,
-        });
+        const ssrModule = await server.ssrLoadModule(opts.input[0]);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 
@@ -79,6 +95,7 @@ export async function configureDevServer(
             version: '1',
           };
 
+          const added = new Set();
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const hook = v.info?.meta?.hook;
@@ -92,6 +109,7 @@ export async function configureDevServer(
 
               const { pathId, query } = parseId(v.url);
               if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
+                added.add(url);
                 manifest.injections!.push({
                   tag: 'link',
                   location: 'head',
@@ -104,6 +122,9 @@ export async function configureDevServer(
             });
           });
 
+          const srcBase = opts.srcDir
+            ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
+            : 'src';
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -113,9 +134,15 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
+                  const defaultChunk = [
+                    symbolName,
+                    `/${srcBase}/${symbolName.toLowerCase()}.js`,
+                  ] as const;
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
-                    return mapper[hash];
+                    return mapper[hash] ?? defaultChunk;
+                  } else {
+                    return defaultChunk;
                   }
                 },
             prefetchStrategy: null,
@@ -129,13 +156,29 @@ export async function configureDevServer(
           res.writeHead(status);
 
           const result = await render(renderOpts);
+
+          // Sometimes new CSS files are added after the initial render
+          Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+            entry[1].forEach((v) => {
+              const { pathId, query } = parseId(v.url);
+              if (
+                !added.has(v.url) &&
+                query === '' &&
+                ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))
+              ) {
+                res.write(`<link rel="stylesheet" href="${v.url}">`);
+              }
+            });
+          });
+
+          // End stream
           if ('html' in result) {
-            res.write(END_SSR_SCRIPT(opts));
-            res.end((result as any).html);
-          } else {
-            res.write(END_SSR_SCRIPT(opts));
-            res.end();
+            res.write((result as any).html);
           }
+          res.write(
+            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
+          );
+          res.end();
         } else {
           next();
         }
@@ -143,8 +186,10 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
-      server.ssrFixStacktrace(e);
-      await formatError(sys, e);
+      if (e instanceof Error) {
+        server.ssrFixStacktrace(e);
+        await formatError(sys, e);
+      }
       next(e);
     } finally {
       if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
@@ -152,6 +197,18 @@ export async function configureDevServer(
       }
     }
   });
+
+  server.middlewares.use(function (err: any, _req: any, res: ServerResponse, next: any) {
+    if (!res.writableEnded) {
+      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
+    }
+    return next(err);
+  });
+
+  setTimeout(() => {
+    console.log(`\n  ❗️ ${magenta('Expect significant performance loss in development.')}`);
+    console.log(`  ❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}`);
+  }, 1000);
 }
 
 export async function configurePreviewServer(
@@ -231,7 +288,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
     // has extension
     return false;
   }
-  if (pathname.includes('__vite_ping')) {
+  if (pathname.includes('_-vite-ping')) {
     return false;
   }
   if (pathname.includes('__open-in-editor')) {
@@ -253,20 +310,6 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   return true;
 };
 
-const DEV_ERROR_HANDLING = `
-<script>
-
-document.addEventListener('qerror', ev => {
-  const ErrorOverlay = customElements.get('vite-error-overlay');
-  if (!ErrorOverlay) {
-    return;
-  }
-  const err = ev.detail.error;
-  const overlay = new ErrorOverlay(err);
-  document.body.appendChild(overlay);
-});
-</script>`;
-
 declare global {
   interface Window {
     __qwik_inspector_state: {
@@ -276,195 +319,31 @@ declare global {
   }
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
-  if (!opts.clickToSource) {
-    // click to source set to false means no inspector
-    return '';
-  }
-
-  const hotKeys: string[] = opts.clickToSource;
-
-  return `
-<style>
-#qwik-inspector-overlay {
-  position: fixed;
-  background: rgba(24, 182, 246, 0.27);
-  pointer-events: none;
-  box-sizing: border-box;
-  border: 2px solid rgba(172, 126, 244, 0.46);
-  border-radius: 4px;
-  contain: strict;
-  cursor: pointer;
-  z-index: 999999;
-}
-#qwik-inspector-info-popup {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  font-family: monospace;
-  background: #000000c2;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 34%), 0 8px 10px -6px rgb(0 0 0 / 24%);
-  backdrop-filter: blur(4px);
-  -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
-  animation: fadeOut 0.3s 3s ease-in-out forwards;
-  z-index: 999999;
-}
-#qwik-inspector-info-popup p {
-  margin: 0px;
-}
-@-webkit-keyframes fadeOut {
-  0% {opacity: 1;}
-  100% {opacity: 0;}
-}
-
-@keyframes fadeOut {
-  0% {opacity: 1;}
-  100% {opacity: 0; visibility: hidden;}
-}
-</style>
-<script>
-(function() {
-  console.debug("%c🔍 Qwik Click-To-Source","background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Hold-press the '${hotKeys.join(
-    ' + '
-  )}' key${
-    (hotKeys.length > 1 && 's') || ''
-  } and click a component to jump directly to the source code in your IDE!");
-  window.__qwik_inspector_state = {
-    pressedKeys: new Set(),
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
+  const qwikdevtools = {
+    hotKeys: opts.clickToSource ?? [],
+    srcDir: new URL(srcDir + '/', 'http://local.local').href,
   };
-
-  const body = document.body;
-  const overlay = document.createElement('div');
-  overlay.id = 'qwik-inspector-overlay';
-  overlay.setAttribute('aria-hidden', 'true');
-  body.appendChild(overlay);
-
-  document.addEventListener(
-    'keydown',
-    (event) => {
-      window.__qwik_inspector_state.pressedKeys.add(event.code);
-      updateOverlay();
-    },
-    { capture: true }
+  return (
+    `<script>
+      globalThis.qwikdevtools = ${JSON.stringify(qwikdevtools)};
+    </script>` +
+    imageDevTools +
+    (opts.clickToSource ? clickToComponent : '')
   );
-
-  document.addEventListener(
-    'keyup',
-    (event) => {
-      window.__qwik_inspector_state.pressedKeys.delete(event.code);
-      updateOverlay();
-    },
-    { capture: true }
-  );
-
-  document.addEventListener(
-    'mouseover',
-    (event) => {
-      if (event.target && event.target instanceof HTMLElement && event.target.dataset.qwikInspector) {
-        window.__qwik_inspector_state.hoveredElement = event.target;
-      } else {
-        window.__qwik_inspector_state.hoveredElement = undefined;
-      }
-      updateOverlay();
-    },
-    { capture: true }
-  );
-
-  document.addEventListener(
-    'click',
-    (event) => {
-      if (isActive()) {
-        window.__qwik_inspector_state.pressedKeys.clear();
-        if (event.target && event.target instanceof HTMLElement) {
-          if (event.target.dataset.qwikInspector) {
-            event.preventDefault();
-            body.style.setProperty('cursor', 'progress');
-
-            fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
-          }
-        }
-      }
-    },
-    { capture: true }
-  );
-
-  document.addEventListener(
-    'contextmenu',
-    (event) => {
-      if (isActive()) {
-        window.__qwik_inspector_state.pressedKeys.clear();
-        if (event.target && event.target instanceof HTMLElement) {
-          if (event.target.dataset.qwikInspector) {
-            event.preventDefault();
-          }
-        }
-      }
-    },
-    { capture: true }
-  );
-
-  function updateOverlay() {
-    const hoverElement = window.__qwik_inspector_state.hoveredElement;
-    if (hoverElement && isActive()) {
-      const rect = hoverElement.getBoundingClientRect();
-      overlay.style.setProperty('height', rect.height + 'px');
-      overlay.style.setProperty('width', rect.width + 'px');
-      overlay.style.setProperty('top', rect.top + 'px');
-      overlay.style.setProperty('left', rect.left + 'px');
-      overlay.style.setProperty('visibility', 'visible');
-      body.style.setProperty('cursor', 'pointer');
-    } else {
-      overlay.style.setProperty('height', '0px');
-      overlay.style.setProperty('width', '0px');
-      overlay.style.setProperty('visibility', 'hidden');
-      body.style.removeProperty('cursor');
-    }
-  }
-
-  function checkKeysArePressed() {
-    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
-      .map((key) => key ? key.replace(/(Left|Right)$/g, '') : undefined);
-    const clickToSourceKeys = ${JSON.stringify(hotKeys)};
-    return clickToSourceKeys.every((key) => activeKeys.includes(key));
-  }
-
-  function isActive() {
-    return checkKeysArePressed();
-  }
-
-  window.addEventListener('resize', updateOverlay);
-  document.addEventListener('scroll', updateOverlay);
-
-})();
-</script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(
-    ' + '
-  )}</p></div>
-`;
 };
 
-const PERF_WARNING = `
-<script>
-if (!window.__qwikViteLog) {
-  window.__qwikViteLog = true;
-  console.debug("%c⭐️ Qwik Dev SSR Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","App is running in SSR development mode!\\n - Additional JS is loaded by Vite for debugging and live reloading\\n - Rendering performance might not be optimal\\n - Delayed interactivity because prefetching is disabled\\n - Vite dev bundles do not represent production output\\n\\nProduction build can be tested running 'npm run preview'");
-}
-</script>`;
-
-const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions) => `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+<style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
-${DEV_ERROR_HANDLING}
-${ERROR_HOST}
-${PERF_WARNING}
-${DEV_QWIK_INSPECTOR(opts.devTools)}
+${errorHost}
+${perfWarning}
+${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
   </head>
   <body>
@@ -480,7 +359,7 @@ function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) 
     }
     main();
     </script>
-    ${DEV_ERROR_HANDLING}
+    ${errorHost}
   </body>
 </html>`;
 }

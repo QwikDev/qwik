@@ -1,17 +1,17 @@
-import { ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
+import { type ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
 import { component$, useStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(() => {
   useStyles$(styles);
 
-  const { pathname } = useLocation();
+  const { url } = useLocation();
 
   const { menu } = useContent();
   const items = flattenMenu(menu);
 
-  const prev = getNav(items, pathname, -1);
-  const next = getNav(items, pathname, 1);
+  const prev = getNav(items, url.pathname, -1);
+  const next = getNav(items, url.pathname, 1);
 
   return (
     <nav class="content-nav">
@@ -24,7 +24,7 @@ export const ContentNav = component$(() => {
       </div>
       <div class="next">
         {next ? (
-          <Link href={next.href} prefetch={true}>
+          <Link href={next.href} prefetch>
             {next.text}
           </Link>
         ) : null}

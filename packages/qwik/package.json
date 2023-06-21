@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.16.2",
+  "version": "1.1.5",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "./dist/core.mjs",
   "types": "./dist/core.d.ts",
@@ -11,10 +11,12 @@
     ".": {
       "import": {
         "min": "./dist/core.min.mjs",
+        "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
         "default": "./dist/core.mjs"
       },
       "require": {
+        "development": "./dist/core.cjs",
         "production": "./dist/core.prod.cjs",
         "default": "./dist/core.cjs"
       }
@@ -23,15 +25,33 @@
       "require": "./dist/cli.cjs"
     },
     "./jsx-runtime": {
-      "import": "./dist/jsx-runtime.mjs",
-      "require": "./dist/jsx-runtime.cjs"
+      "import": {
+        "min": "./dist/core.min.mjs",
+        "development": "./dist/core.mjs",
+        "production": "./dist/core.prod.mjs",
+        "default": "./dist/core.mjs"
+      },
+      "require": {
+        "development": "./dist/core.cjs",
+        "production": "./dist/core.prod.cjs",
+        "default": "./dist/core.cjs"
+      }
     },
     "./jsx-dev-runtime": {
-      "import": "./dist/jsx-runtime.mjs",
-      "require": "./dist/jsx-runtime.cjs"
+      "import": {
+        "min": "./dist/core.min.mjs",
+        "development": "./dist/core.mjs",
+        "production": "./dist/core.prod.mjs",
+        "default": "./dist/core.mjs"
+      },
+      "require": {
+        "development": "./dist/core.cjs",
+        "production": "./dist/core.prod.cjs",
+        "default": "./dist/core.cjs"
+      }
     },
     "./build": {
-      "import": "./dist/build/index.mjs",
+      "import": "./src/build/index.ts",
       "require": "./dist/build/index.cjs"
     },
     "./loader": {
@@ -69,6 +89,14 @@
     "build/index.cjs.map",
     "build/index.mjs",
     "build/index.mjs.map",
+    "build/index.dev.mjs",
+    "build/index.dev.mjs.map",
+    "build/index.prod.mjs",
+    "build/index.prod.mjs.map",
+    "build/index.dev.cjs",
+    "build/index.dev.cjs.map",
+    "build/index.prod.cjs",
+    "build/index.prod.cjs.map",
     "build/index.d.ts",
     "build/package.json",
     "cli.cjs",
@@ -106,15 +134,17 @@
     "server.d.ts",
     "server-modules.d.ts",
     "server/package.json",
-    "starters/adaptors",
+    "starters/adapters",
     "starters/features",
+    "templates",
     "testing/index.cjs",
     "testing/index.mjs",
     "testing/index.d.ts",
     "testing/package.json"
   ],
   "devDependencies": {
-    "@builder.io/qwik-dom": "2.1.19",
+    "@builder.io/qwik-dom": "workspace:*",
+    "image-size": "^1.0.2",
     "kleur": "4.1.5"
   },
   "contributors": [
@@ -158,6 +188,6 @@
     "Builder.io"
   ],
   "engines": {
-    "node": ">=16.8.0"
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
   }
 }

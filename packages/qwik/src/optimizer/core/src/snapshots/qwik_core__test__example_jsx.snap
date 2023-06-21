@@ -47,32 +47,33 @@ export const Foo = component$((props) => {
 
 ============================= test.js ==
 
+import { _jsxQ } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export const Lightweight = (props)=>{
-    return /*#__PURE__*/ _jsx("div", {
-        children: /*#__PURE__*/ _jsxs(_Fragment, {
-            children: [
-                /*#__PURE__*/ _jsx("div", {}),
-                /*#__PURE__*/ _jsx("button", {
-                    ...props
-                })
-            ]
-        }, "u6_0")
-    }, "u6_1");
+    return /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxC(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxS("button", {
+                ...props
+            }, null, 0, null)
+        ]
+    }, 1, "u6_0"), 1, "u6_1");
 };
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC,qBACI,KAAC;kBACG,cAAA;;8BACI,KAAC;8BACD,KAAC;oBAAQ,GAAG,KAAK;;;;;AAIjC,EAAE;AAEF,OAAO,MAAM,oBAAM,0FAuBhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC,qBACI,MAAC,iCACG;;0BACI,MAAC;0BACD,MAAC;gBAAQ,GAAG,KAAK;;;;AAIjC,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACC,SAAS;AACb,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
+    return /*#__PURE__*/ qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
         props
     ]);
 };
@@ -103,51 +104,45 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { useLexicalScope } from "@builder.io/qwik";
 import { Lightweight } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const [props] = useLexicalScope();
-    return /*#__PURE__*/ _jsxs("div", {
-        children: [
-            /*#__PURE__*/ _jsxs(_Fragment, {
-                children: [
-                    /*#__PURE__*/ _jsx("div", {
-                        class: "class"
-                    }),
-                    /*#__PURE__*/ _jsx("div", {
-                        class: "class"
-                    }),
-                    /*#__PURE__*/ _jsx("div", {
-                        class: "class",
-                        children: "12"
-                    })
-                ]
-            }, "u6_2"),
-            /*#__PURE__*/ _jsx("div", {
-                class: "class",
-                children: /*#__PURE__*/ _jsx(Lightweight, {
-                    ...props
-                }, "u6_3")
-            }),
-            /*#__PURE__*/ _jsxs("div", {
-                class: "class",
-                children: [
-                    /*#__PURE__*/ _jsx("div", {}),
-                    /*#__PURE__*/ _jsx("div", {}),
-                    /*#__PURE__*/ _jsx("div", {})
-                ]
-            }),
-            /*#__PURE__*/ _jsx("div", {
-                class: "class",
-                children: children
-            })
-        ]
-    }, "u6_4");
+    return /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxC(_Fragment, {
+            children: [
+                /*#__PURE__*/ _jsxQ("div", null, {
+                    class: "class"
+                }, null, 3, null),
+                /*#__PURE__*/ _jsxQ("div", null, {
+                    class: "class"
+                }, null, 3, null),
+                /*#__PURE__*/ _jsxQ("div", null, {
+                    class: "class"
+                }, "12", 3, null)
+            ]
+        }, 3, "u6_2"),
+        /*#__PURE__*/ _jsxQ("div", null, {
+            class: "class"
+        }, /*#__PURE__*/ _jsxC(Lightweight, {
+            ...props
+        }, 0, "u6_3"), 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, {
+            class: "class"
+        }, [
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxQ("div", null, null, null, 3, null)
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, {
+            class: "class"
+        }, children, 3, null)
+    ], 1, "u6_4");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAea;;IACL,qBACI,MAAC;;0BACG;;kCACI,KAAC;wBAAI,OAAM;;kCACX,KAAC;wBAAI,OAAM;;kCACX,KAAC;wBAAI,OAAM;kCAAQ;;;;0BAEvB,KAAC;gBAAI,OAAM;0BACP,cAAA,KAAC;oBAAa,GAAG,KAAK;;;0BAE1B,MAAC;gBAAI,OAAM;;kCACP,KAAC;kCACD,KAAC;kCACD,KAAC;;;0BAEL,KAAC;gBAAI,OAAM;0BACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAea;;IACL,qBACI,MAAC;sBACG;;8BACI,MAAC;oBAAI,OAAM;;8BACX,MAAC;oBAAI,OAAM;;8BACX,MAAC;oBAAI,OAAM;mBAAQ;;;sBAEvB,MAAC;YAAI,OAAM;yBACP,MAAC;YAAa,GAAG,KAAK;;sBAE1B,MAAC;YAAI,OAAM;;0BACP,MAAC;0BACD,MAAC;0BACD,MAAC;;sBAEL,MAAC;YAAI,OAAM;WACN\"}")
 /*
 {
   "origin": "test.tsx",

@@ -1,7 +1,7 @@
 /* eslint-disable */
-import { component$, useStore, createContext, useContextProvider } from '@builder.io/qwik';
+import { component$, useStore, createContextId, useContextProvider } from '@builder.io/qwik';
 
-export const LOGS = createContext<{ content: string }>('qwik.logs.resource');
+export const LOGS = createContextId<{ content: string }>('qwik.logs.resource');
 
 export const TreeshakingApp = component$(() => {
   const logs = {

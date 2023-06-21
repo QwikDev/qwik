@@ -5,7 +5,7 @@ import {
   useResource$,
   Resource,
   useTask$,
-  ResourceReturn,
+  type ResourceReturn,
 } from '@builder.io/qwik';
 
 export interface WeatherData {
@@ -29,7 +29,7 @@ export const Weather = component$(() => {
 
   // Debounce city
   useTask$(({ track }) => {
-    const city = track(state, 'city');
+    const city = track(() => state.city);
     const timer = setTimeout(() => {
       state.debouncedCity = city;
     }, 500);
@@ -39,7 +39,7 @@ export const Weather = component$(() => {
   });
 
   const weather = useResource$<WeatherData | undefined>(async ({ track, cleanup }) => {
-    const city = track(state, 'debouncedCity');
+    const city = track(() => state.debouncedCity);
     cleanup(() => console.log('abort request for ', city));
     if (city.length < 2) {
       return undefined;

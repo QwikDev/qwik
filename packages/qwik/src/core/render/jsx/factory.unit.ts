@@ -3,7 +3,7 @@ import { isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 import { equal } from 'uvu/assert';
 import { suite } from 'uvu';
-import { ProcessedJSXNode, processNode } from '../dom/render-dom';
+import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
 
 const jsxSuite = suite('classic jsx factory h()');
 jsxSuite('map multiple nodes, flatten', () => {
@@ -37,7 +37,7 @@ jsxSuite('one child node', () => {
   const v = processNode(h('parent', null, h('child', null))) as ProcessedJSXNode;
   equal(v.$children$.length, 1);
   equal(v.$children$[0].$type$, 'child');
-  equal(v.$children$[0].$props$, { children: [] });
+  equal(v.$children$[0].$props$, {});
   equal(v.$children$[0].$children$, []);
 });
 
@@ -74,26 +74,26 @@ jsxSuite('no children', () => {
 jsxSuite('key', () => {
   // <div key="val"/>
   const v = h('div', { key: 'val' });
-  equal(v.props, { children: [] });
+  equal(v.props, {});
   equal(v.key, 'val');
 });
 
 jsxSuite('name/value props', () => {
   // <div id="val"/>
   const v = h('div', { id: 'val' });
-  equal(v.props, { id: 'val', children: [] });
+  equal(v.props, { id: 'val' });
 });
 
 jsxSuite('boolean props', () => {
   // <input checked/>
   const v = h('input', { checked: true });
-  equal(v.props, { checked: true, children: [] });
+  equal(v.props, { checked: true });
 });
 
 jsxSuite('no props', () => {
   // <div/>
   const v = h('div', null);
-  equal(v.props, { children: [] });
+  equal(v.props, {});
   equal(v.key, null);
 });
 

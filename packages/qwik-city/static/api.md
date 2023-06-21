@@ -8,38 +8,34 @@
 
 import type { RenderOptions } from '@builder.io/qwik/server';
 
-// @alpha
+// @public
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
     basePathname?: string;
     qwikCityPlanModulePath: string;
     renderModulePath: string;
+    // (undocumented)
+    rootDir?: string;
 }
 
-// @alpha (undocumented)
-export type StaticGeneratePathFilter = (filterOpts: {
-    pathname: string;
-    params: Record<string, string> | undefined;
-    isStatic: boolean | undefined;
-}) => boolean;
-
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateRenderOptions extends RenderOptions {
     emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
-    filter?: StaticGeneratePathFilter;
+    exclude?: string[];
+    include?: string[];
     log?: 'debug';
     maxTasksPerWorker?: number;
     maxWorkers?: number;
     origin: string;
     outDir: string;
-    sitemapOutFile?: string;
+    sitemapOutFile?: string | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateResult {
     // (undocumented)
     duration: number;

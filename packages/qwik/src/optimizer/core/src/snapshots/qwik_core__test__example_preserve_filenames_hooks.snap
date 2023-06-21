@@ -22,29 +22,29 @@ export const foo = () => console.log('foo');
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
 export const foo = ()=>console.log('foo');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,6FAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,2GAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { foo } from "./test.tsx";
 import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
     foo();
-    return /*#__PURE__*/ _jsx(Cmp, {
-        children: /*#__PURE__*/ _jsx("p", {
+    return /*#__PURE__*/ _jsxC(Cmp, {
+        children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
-            onClick$: qrl(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto.js"), "App_component_Cmp_p_onClick_vuXzfUTkpto"),
-            children: "Hello Qwik"
-        })
-    }, "u6_0");
+            onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto.js"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
+        }, "Hello Qwik", 3, null)
+    }, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,QAAiB;IAC5C;IACA,qBACI,KAAC;kBACG,cAAA,KAAC;YAAE,OAAM;YAAQ,QAAQ;sBAA6B;;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC,QAAiB;IAC5C;IACA,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;WAA6B;;AAGlE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,7 +80,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component_cmp_p_onclick_vuxzfutkpto",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [

@@ -11,8 +11,11 @@ use qwik_core::{transform_fs, EmitMode, EntryStrategy, MinifyMode, TransformFsOp
 struct OptimizerInput {
     glob: Option<String>,
     manifest: Option<String>,
+    core_module: Option<String>,
+    scope: Option<String>,
     src: PathBuf,
     dest: PathBuf,
+    mode: EmitMode,
     strategy: EntryStrategy,
     transpile_ts: bool,
     transpile_jsx: bool,
@@ -100,10 +103,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some("simplify") | None => MinifyMode::Simplify,
             _ => panic!("Invalid minify option"),
         };
+
+        let mode = match matches.value_of("mode") {
+            Some("dev") => EmitMode::Dev,
+            Some("prod") => EmitMode::Prod,
+            Some("lib") | None => EmitMode::Lib,
+            _ => panic!("Invalid mode option"),
+        };
         optimize(OptimizerInput {
             src: matches.value_of_t_or_exit("src"),
             dest: matches.value_of_t_or_exit("dest"),
             manifest: matches.value_of("manifest").map(|s| s.into()),
+            core_module: matches.value_of("core_module").map(|s| s.into()),
+            scope: matches.value_of("scope").map(|s| s.into()),
+            mode,
             glob: None,
             strategy,
             minify,
@@ -132,15 +145,19 @@ fn optimize(
         transpile_jsx: optimizer_input.transpile_jsx,
         transpile_ts: optimizer_input.transpile_ts,
         preserve_filenames: optimizer_input.preserve_filenames,
-        manual_chunks: None,
         entry_strategy: optimizer_input.strategy,
         explicit_extensions: optimizer_input.explicit_extensions,
-        mode: EmitMode::Lib,
-        scope: None,
+        core_module: optimizer_input.core_module,
+        root_dir: None,
 
+        mode: optimizer_input.mode,
+        scope: optimizer_input.scope,
+
+        manual_chunks: None,
         strip_exports: None,
         strip_ctx_name: None,
-        strip_ctx_kind: None,
+        strip_event_handlers: false,
+        reg_ctx_name: None,
         is_server: None,
     })?;
 

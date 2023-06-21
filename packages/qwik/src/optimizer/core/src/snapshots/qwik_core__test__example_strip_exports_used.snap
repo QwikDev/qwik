@@ -59,21 +59,21 @@ import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa;;;AASb,6BAAe,4FAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,0GAKZ\"}")
 ============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useResourceQrl } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
-    useResourceQrl(qrl(()=>import("./test_component_useresource_4a8wvy7wh38"), "test_component_useResource_4a8wVY7wh38"));
-    return <div >cmp</div>;
+    useResourceQrl(/*#__PURE__*/ qrl(()=>import("./test_component_useresource_4a8wvy7wh38"), "test_component_useResource_4a8wVY7wh38"));
+    return <div>cmp</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B;IAGA,QAAQ,KAAI,GAAG,EAAE;AACrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B;IAGA,QAAQ,IAAI,GAAG,EAAE;AACrB\"}")
 /*
 {
   "origin": "test.tsx",

@@ -141,7 +141,7 @@ function tests() {
     if (javaScriptEnabled) {
       // TODO!!
     } else {
-      // no useClientEffect()
+      // no useBrowserVisibleTask()
       expect(await nodeVersion.innerText()).toBe('');
     }
 

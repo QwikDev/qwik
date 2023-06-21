@@ -36,9 +36,13 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     let dots = 0;
     let code;
     for (let i = 0; i <= path.length; ++i) {
-      if (i < path.length) code = path.charCodeAt(i);
-      else if (code === 47 /*/*/) break;
-      else code = 47 /*/*/;
+      if (i < path.length) {
+        code = path.charCodeAt(i);
+      } else if (code === 47 /*/*/) {
+        break;
+      } else {
+        code = 47 /*/*/;
+      }
       if (code === 47 /*/*/) {
         if (lastSlash === i - 1 || dots === 1) {
           // NOOP
@@ -72,13 +76,19 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
             }
           }
           if (allowAboveRoot) {
-            if (res.length > 0) res += '/..';
-            else res = '..';
+            if (res.length > 0) {
+              res += '/..';
+            } else {
+              res = '..';
+            }
             lastSegmentLength = 2;
           }
         } else {
-          if (res.length > 0) res += '/' + path.slice(lastSlash + 1, i);
-          else res = path.slice(lastSlash + 1, i);
+          if (res.length > 0) {
+            res += '/' + path.slice(lastSlash + 1, i);
+          } else {
+            res = path.slice(lastSlash + 1, i);
+          }
           lastSegmentLength = i - lastSlash - 1;
         }
         lastSlash = i;
@@ -112,8 +122,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
     for (let i = paths.length - 1; i >= -1 && !resolvedAbsolute; i--) {
       let path;
-      if (i >= 0) path = paths[i];
-      else {
+      if (i >= 0) {
+        path = paths[i];
+      } else {
         if (cwd === undefined) {
           if (opts && typeof opts.cwd === 'function') {
             cwd = opts.cwd();
@@ -144,8 +155,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
 
     if (resolvedAbsolute) {
-      if (resolvedPath.length > 0) return '/' + resolvedPath;
-      else return '/';
+      if (resolvedPath.length > 0) {
+        return '/' + resolvedPath;
+      } else {
+        return '/';
+      }
     } else if (resolvedPath.length > 0) {
       return resolvedPath;
     } else {
@@ -156,7 +170,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
   const normalize = function normalize(path: string) {
     assertPath(path);
 
-    if (path.length === 0) return '.';
+    if (path.length === 0) {
+      return '.';
+    }
 
     const isAbsolute = path.charCodeAt(0) === 47; /*/*/
     const trailingSeparator = path.charCodeAt(path.length - 1) === 47; /*/*/
@@ -164,10 +180,16 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     // Normalize the path
     path = normalizeStringPosix(path, !isAbsolute);
 
-    if (path.length === 0 && !isAbsolute) path = '.';
-    if (path.length > 0 && trailingSeparator) path += '/';
+    if (path.length === 0 && !isAbsolute) {
+      path = '.';
+    }
+    if (path.length > 0 && trailingSeparator) {
+      path += '/';
+    }
 
-    if (isAbsolute) return '/' + path;
+    if (isAbsolute) {
+      return '/' + path;
+    }
     return path;
   };
 
@@ -177,17 +199,24 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
   };
 
   const join = function join(...paths: string[]) {
-    if (paths.length === 0) return '.';
+    if (paths.length === 0) {
+      return '.';
+    }
     let joined;
     for (let i = 0; i < paths.length; ++i) {
       const arg = paths[i];
       assertPath(arg);
       if (arg.length > 0) {
-        if (joined === undefined) joined = arg;
-        else joined += '/' + arg;
+        if (joined === undefined) {
+          joined = arg;
+        } else {
+          joined += '/' + arg;
+        }
       }
     }
-    if (joined === undefined) return '.';
+    if (joined === undefined) {
+      return '.';
+    }
     return normalize(joined);
   };
 
@@ -195,17 +224,23 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     assertPath(from);
     assertPath(to);
 
-    if (from === to) return '';
+    if (from === to) {
+      return '';
+    }
 
     from = resolve(from);
     to = resolve(to);
 
-    if (from === to) return '';
+    if (from === to) {
+      return '';
+    }
 
     // Trim any leading backslashes
     let fromStart = 1;
     for (; fromStart < from.length; ++fromStart) {
-      if (from.charCodeAt(fromStart) !== 47 /*/*/) break;
+      if (from.charCodeAt(fromStart) !== 47 /*/*/) {
+        break;
+      }
     }
     const fromEnd = from.length;
     const fromLen = fromEnd - fromStart;
@@ -213,7 +248,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     // Trim any leading backslashes
     let toStart = 1;
     for (; toStart < to.length; ++toStart) {
-      if (to.charCodeAt(toStart) !== 47 /*/*/) break;
+      if (to.charCodeAt(toStart) !== 47 /*/*/) {
+        break;
+      }
     }
     const toEnd = to.length;
     const toLen = toEnd - toStart;
@@ -249,8 +286,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
       const fromCode = from.charCodeAt(fromStart + i);
       const toCode = to.charCodeAt(toStart + i);
-      if (fromCode !== toCode) break;
-      else if (fromCode === 47 /*/*/) lastCommonSep = i;
+      if (fromCode !== toCode) {
+        break;
+      } else if (fromCode === 47 /*/*/) {
+        lastCommonSep = i;
+      }
     }
 
     let out = '';
@@ -258,24 +298,32 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     // and `from`
     for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
       if (i === fromEnd || from.charCodeAt(i) === 47 /*/*/) {
-        if (out.length === 0) out += '..';
-        else out += '/..';
+        if (out.length === 0) {
+          out += '..';
+        } else {
+          out += '/..';
+        }
       }
     }
 
     // Lastly, append the rest of the destination (`to`) path that comes after
     // the common path parts
-    if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
-    else {
+    if (out.length > 0) {
+      return out + to.slice(toStart + lastCommonSep);
+    } else {
       toStart += lastCommonSep;
-      if (to.charCodeAt(toStart) === 47 /*/*/) ++toStart;
+      if (to.charCodeAt(toStart) === 47 /*/*/) {
+        ++toStart;
+      }
       return to.slice(toStart);
     }
   };
 
   const dirname = function dirname(path: string) {
     assertPath(path);
-    if (path.length === 0) return '.';
+    if (path.length === 0) {
+      return '.';
+    }
     let code = path.charCodeAt(0);
     const hasRoot = code === 47; /*/*/
     let end = -1;
@@ -293,14 +341,19 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
     }
 
-    if (end === -1) return hasRoot ? '/' : '.';
-    if (hasRoot && end === 1) return '//';
+    if (end === -1) {
+      return hasRoot ? '/' : '.';
+    }
+    if (hasRoot && end === 1) {
+      return '//';
+    }
     return path.slice(0, end);
   };
 
   const basename = function basename(path: string, ext: string) {
-    if (ext !== undefined && typeof ext !== 'string')
+    if (ext !== undefined && typeof ext !== 'string') {
       throw new TypeError('"ext" argument must be a string');
+    }
     assertPath(path);
 
     let start = 0;
@@ -309,7 +362,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     let i;
 
     if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
-      if (ext.length === path.length && ext === path) return '';
+      if (ext.length === path.length && ext === path) {
+        return '';
+      }
       let extIdx = ext.length - 1;
       let firstNonSlashEnd = -1;
       for (i = path.length - 1; i >= 0; --i) {
@@ -346,8 +401,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
         }
       }
 
-      if (start === end) end = firstNonSlashEnd;
-      else if (end === -1) end = path.length;
+      if (start === end) {
+        end = firstNonSlashEnd;
+      } else if (end === -1) {
+        end = path.length;
+      }
       return path.slice(start, end);
     } else {
       for (i = path.length - 1; i >= 0; --i) {
@@ -366,7 +424,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
         }
       }
 
-      if (end === -1) return '';
+      if (end === -1) {
+        return '';
+      }
       return path.slice(start, end);
     }
   };
@@ -399,8 +459,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
       if (code === 46 /*.*/) {
         // If this is our first dot, mark it as the start of our extension
-        if (startDot === -1) startDot = i;
-        else if (preDotState !== 1) preDotState = 1;
+        if (startDot === -1) {
+          startDot = i;
+        } else if (preDotState !== 1) {
+          preDotState = 1;
+        }
       } else if (startDot !== -1) {
         // We saw a non-dot and non-path separator before our dot, so we should
         // have a good chance at having a non-empty extension
@@ -440,7 +503,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       ext: '',
       name: '',
     };
-    if (path.length === 0) return ret;
+    if (path.length === 0) {
+      return ret;
+    }
     let code = path.charCodeAt(0);
     let start;
     const isAbsolute = code === 47; /*/*/
@@ -480,8 +545,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
       if (code === 46 /*.*/) {
         // If this is our first dot, mark it as the start of our extension
-        if (startDot === -1) startDot = i;
-        else if (preDotState !== 1) preDotState = 1;
+        if (startDot === -1) {
+          startDot = i;
+        } else if (preDotState !== 1) {
+          preDotState = 1;
+        }
       } else if (startDot !== -1) {
         // We saw a non-dot and non-path separator before our dot, so we should
         // have a good chance at having a non-empty extension
@@ -498,8 +566,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       (preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
     ) {
       if (end !== -1) {
-        if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);
-        else ret.base = ret.name = path.slice(startPart, end);
+        if (startPart === 0 && isAbsolute) {
+          ret.base = ret.name = path.slice(1, end);
+        } else {
+          ret.base = ret.name = path.slice(startPart, end);
+        }
       }
     } else {
       if (startPart === 0 && isAbsolute) {
@@ -512,8 +583,11 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       ret.ext = path.slice(startDot, end);
     }
 
-    if (startPart > 0) ret.dir = path.slice(0, startPart - 1);
-    else if (isAbsolute) ret.dir = '/';
+    if (startPart > 0) {
+      ret.dir = path.slice(0, startPart - 1);
+    } else if (isAbsolute) {
+      ret.dir = '/';
+    }
 
     return ret;
   };

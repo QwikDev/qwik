@@ -6,77 +6,117 @@ import type { MenuData } from './types';
 
 const routingTest = suite('routing');
 
-routingTest('matches paths with patterns', () => {
-  const tests = [
-    {
-      basenamePath: '/',
-      pattern: '/stuff/[param]',
-      path: '/stuff/thing',
-      result: {
-        param: 'thing',
-      },
+const routeTests = [
+  {
+    basenamePath: '/',
+    pattern: '/stuff/[param]',
+    pathname: '/stuff/thing',
+    result: {
+      param: 'thing',
     },
-    {
-      basenamePath: '/',
-      pattern: '/stuff/[param]',
-      path: '/stuff/thing/',
-      result: {
-        param: 'thing',
-      },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/stuff/[param]',
+    pathname: '/stuff/thing/',
+    result: {
+      param: 'thing',
     },
-    {
-      basenamePath: '/',
-      pattern: '/stuff/[...param]',
-      path: '/stuff/a/b/c/',
-      result: {
-        param: 'a/b/c',
-      },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/stuff/[...param]',
+    pathname: '/stuff/a/b/c/',
+    result: {
+      param: 'a/b/c',
     },
-    {
-      basenamePath: '/',
-      pattern: '/stuff/[...param]',
-      path: '/stuff/a/b/c',
-      result: {
-        param: 'a/b/c',
-      },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/stuff/[...param]',
+    pathname: '/stuff/a/b/c',
+    result: {
+      param: 'a/b/c',
     },
-    {
-      basenamePath: '/',
-      pattern: '/[...param]',
-      path: '/thing/',
-      result: {
-        param: 'thing',
-      },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/stuff/[...param]',
+    pathname: '/stuff/',
+    result: {
+      param: '',
     },
-    {
-      basenamePath: '/',
-      pattern: '/[...param]',
-      path: '/thing',
-      result: {
-        param: 'thing',
-      },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/stuff/[...param]',
+    pathname: '/stuff',
+    result: {
+      param: '',
     },
-  ];
+  },
+  {
+    basenamePath: '/',
+    pattern: '/[...param]',
+    pathname: '/thing/',
+    result: {
+      param: 'thing',
+    },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/[...param]',
+    pathname: '/thing',
+    result: {
+      param: 'thing',
+    },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/xyz/[...param]',
+    pathname: '/xyz/abc.dot',
+    result: {
+      param: 'abc.dot',
+    },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/[...param]',
+    pathname: '/abc.dot',
+    result: {
+      param: 'abc.dot',
+    },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/[param]',
+    pathname: '/abc.dot',
+    result: {
+      param: 'abc.dot',
+    },
+  },
+  {
+    basenamePath: '/',
+    pattern: '/xyz/[param]',
+    pathname: '/xyz/abc.dot',
+    result: {
+      param: 'abc.dot',
+    },
+  },
+];
 
-  for (const t of tests) {
-    testMatch(t.basenamePath, t.pattern, t.path, t.result);
-  }
-});
+for (const t of routeTests) {
+  routingTest(`matches ${t.pathname} with ${t.pattern}`, () => {
+    const actual = parseRoutePathname(t.basenamePath, t.pattern);
+    const matched = actual.pattern.exec(t.pathname);
 
-const testMatch = (
-  basenamePath: string,
-  pattern: string,
-  pathname: string,
-  result: Record<string, string> | null
-) => {
-  const actual = parseRoutePathname(basenamePath, pattern);
-  const matched = actual.pattern.exec(pathname);
-  if (matched === null) {
-    equal(result, null);
-  } else {
-    equal(getPathParams(actual.paramNames, matched), result);
-  }
-};
+    if (matched === null) {
+      equal(t.result, null);
+    } else {
+      equal(getPathParams(actual.paramNames, matched), t.result);
+    }
+  });
+}
 
 test(`getMenuLoader, crawl up root, trailing slash`, async () => {
   const menus: MenuData[] = [

@@ -4,7 +4,9 @@ export function getPropertyByPath(object: Record<string, any>, path: string): an
   const parts = path.split('.');
 
   return parts.reduce((prev, current) => {
-    if (prev?.[current]) return prev[current];
+    if (prev?.[current]) {
+      return prev[current];
+    }
     return null;
   }, object);
 }

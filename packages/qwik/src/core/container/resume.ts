@@ -1,31 +1,33 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isText } from '../util/element';
+import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
 import { isArray, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
+import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
 import {
-  ContainerState,
-  getContainerState,
-  GetObject,
+  type ContainerState,
+  _getContainerState,
+  type GetObject,
   isContainer,
   SHOW_COMMENT,
-  SnapshotState,
+  type SnapshotState,
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, Subscriptions } from '../state/common';
+import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
-import { qSerialize } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
+import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
-import { domToVnode } from '../render/dom/visitor';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import { SVG_NS } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -41,11 +43,48 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
-  const script = getQwikJSON(parentJSON);
+  const script = getQwikJSON(parentJSON, 'type');
   if (script) {
     const data = (script.firstChild! as any).data;
     return JSON.parse(unescapeText(data) || '{}') as SnapshotState;
   }
+};
+
+/**
+ * @internal
+ */
+export const _deserializeData = (data: string, element?: unknown) => {
+  const obj = JSON.parse(data);
+  if (typeof obj !== 'object') {
+    return null;
+  }
+  const { _objs, _entry } = obj;
+  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
+    return null;
+  }
+  let doc = {} as Document;
+  let containerState = {} as any;
+  if (isNode(element) && isQwikElement(element)) {
+    const containerEl = getWrappingContainer(element);
+    if (containerEl) {
+      containerState = _getContainerState(containerEl);
+      doc = containerEl.ownerDocument;
+    }
+  }
+  const parser = createParser(containerState, doc);
+
+  for (let i = 0; i < _objs.length; i++) {
+    const value = _objs[i];
+    if (isString(value)) {
+      _objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
+    }
+  }
+
+  const getObject: GetObject = (id) => _objs[strToInt(id)];
+  for (const obj of _objs) {
+    reviveNestedObjects(obj, getObject, parser);
+  }
+  return getObject(_entry);
 };
 
 export const resumeContainer = (containerEl: Element) => {
@@ -66,16 +105,20 @@ export const resumeContainer = (containerEl: Element) => {
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
-  const script = getQwikJSON(parentJSON);
-  if (!script) {
-    logWarn('Skipping hydration qwik/json metadata was not found.');
-    return;
+  if (qDev) {
+    const script = getQwikJSON(parentJSON, 'type');
+    if (!script) {
+      logWarn('Skipping hydration qwik/json metadata was not found.');
+      return;
+    }
   }
-  const containerState = getContainerState(containerEl);
-  moveStyles(containerEl, containerState);
+
+  const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
+  const containerState = _getContainerState(containerEl);
 
   // Collect all elements
   const elements = new Map<number, Node>();
+  const text = new Map<number, string>();
   let node: Comment | null = null;
   let container = 0;
 
@@ -93,7 +136,9 @@ export const resumeContainer = (containerEl: Element) => {
       } else if (data.startsWith('t=')) {
         const id = data.slice(2);
         const index = strToInt(id);
-        elements.set(index, getTextNode(node));
+        const textNode = getTextNode(node);
+        elements.set(index, textNode);
+        text.set(index, textNode.data);
       }
     }
     if (data === 'cq') {
@@ -136,8 +181,8 @@ export const resumeContainer = (containerEl: Element) => {
 
   const computeObject: GetObject = (id) => {
     // Handle elements
-    if (id.startsWith(ELEMENT_ID_PREFIX)) {
-      const elementId = id.slice(ELEMENT_ID_PREFIX.length);
+    if (id.startsWith('#')) {
+      const elementId = id.slice(1);
       const index = strToInt(elementId);
       assertTrue(elements.has(index), `missing element for id:`, elementId);
       const rawElement = elements.get(index);
@@ -148,22 +193,43 @@ export const resumeContainer = (containerEl: Element) => {
           return undefined;
         }
         const close = findClose(rawElement);
-        const virtual = new VirtualElementImpl(rawElement, close);
+        const virtual = new VirtualElementImpl(
+          rawElement,
+          close,
+          rawElement.parentElement?.namespaceURI === SVG_NS
+        );
         finalized.set(id, virtual);
         getContext(virtual, containerState);
         return virtual;
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);
-        getContext(rawElement, containerState).$vdom$ = domToVnode(rawElement);
+        getContext(rawElement, containerState);
         return rawElement;
       }
       finalized.set(id, rawElement);
       return rawElement;
+    } else if (id.startsWith('@')) {
+      const funcId = id.slice(1);
+      const index = strToInt(funcId);
+      const func = inlinedFunctions[index];
+      assertDefined(func, `missing inlined function for id:`, funcId);
+      return func;
+    } else if (id.startsWith('*')) {
+      const elementId = id.slice(1);
+      const index = strToInt(elementId);
+      assertTrue(elements.has(index), `missing element for id:`, elementId);
+      const str = text.get(index);
+      assertDefined(str, `missing element for id:`, elementId);
+      finalized.set(id, str);
+      return str;
     }
     const index = strToInt(id);
     const objs = pauseState.objs;
     assertTrue(objs.length > index, 'resume: index is out of bounds', id);
-    const value = objs[index];
+    let value = objs[index];
+    if (isString(value)) {
+      value = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
+    }
     let obj = value;
     for (let i = id.length - 1; i >= 0; i--) {
       const code = id[i];
@@ -190,19 +256,9 @@ export const resumeContainer = (containerEl: Element) => {
     refs: pauseState.refs,
   };
 
-  reviveValues(pauseState.objs, parser);
   directSetAttribute(containerEl, QContainerAttr, 'resumed');
   logDebug('Container resumed');
   emitEvent(containerEl, 'qresume', undefined, true);
-};
-
-const reviveValues = (objs: any[], parser: Parser) => {
-  for (let i = 0; i < objs.length; i++) {
-    const value = objs[i];
-    if (isString(value)) {
-      objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
-    }
-  }
 };
 
 const reviveSubscriptions = (
@@ -252,29 +308,32 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
         obj[i] = getObject(obj[i]);
       }
     } else if (isSerializableObject(obj)) {
-      for (const key of Object.keys(obj)) {
+      for (const key in obj) {
         obj[key] = getObject(obj[key]);
       }
     }
   }
 };
 
-export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
-  const head = containerEl.ownerDocument.head;
-  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
-    head.appendChild(el);
-  });
-};
-
 const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
+interface ExtraScript extends HTMLScriptElement {
+  qFuncs?: Function[];
+}
+export const getQwikInlinedFuncs = (parentElm: Element): Function[] => {
+  const elm = getQwikJSON(parentElm, 'q:func') as ExtraScript | undefined;
+  return elm?.qFuncs ?? EMPTY_ARRAY;
+};
+
+export const getQwikJSON = (
+  parentElm: Element,
+  attribute: string
+): HTMLScriptElement | undefined => {
   let child = parentElm.lastElementChild;
   while (child) {
-    if (child.tagName === 'SCRIPT' && directGetAttribute(child, 'type') === 'qwik/json') {
+    if (child.tagName === 'SCRIPT' && directGetAttribute(child, attribute) === 'qwik/json') {
       return child as HTMLScriptElement;
     }
     child = child.previousElementSibling;
@@ -296,7 +355,7 @@ const getTextNode = (mark: Comment) => {
 export const appendQwikDevTools = (containerEl: Element) => {
   (containerEl as any)['qwik'] = {
     pause: () => pauseContainer(containerEl),
-    state: getContainerState(containerEl),
+    state: _getContainerState(containerEl),
   };
 };
 

@@ -1,13 +1,17 @@
 /* eslint-disable */
 import {
   component$,
-  useClientEffect$,
-  useRef,
+  useVisibleTask$,
   useStore,
   useStyles$,
   Slot,
   useSignal,
   useTask$,
+  type Signal,
+  useComputed$,
+  useContext,
+  createContextId,
+  useContextProvider,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -25,6 +29,7 @@ export const EffectClient = component$(() => {
       <Issue1717 />
       <Issue2015 />
       <Issue1955 />
+      <CleanupEffects />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -38,6 +43,7 @@ export const EffectClient = component$(() => {
 
       <Timer />
       <Eager></Eager>
+      <Issue4432 />
     </div>
   );
 });
@@ -45,20 +51,20 @@ export const EffectClient = component$(() => {
 export const Timer = component$(() => {
   console.log('<Timer> renders');
 
-  const container = useRef();
+  const container = useSignal<Element>();
   const state = useStore({
     count: 0,
     msg: 'empty',
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     state.msg = 'run';
-    container.current!.setAttribute('data-effect', 'true');
+    container.value!.setAttribute('data-effect', 'true');
   });
 
   // Double count watch
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     state.count = 10;
     const timer = setInterval(() => {
       state.count++;
@@ -84,12 +90,12 @@ export const Eager = component$(() => {
   });
 
   // Double count watch
-  useClientEffect$(
+  useVisibleTask$(
     () => {
       state.msg = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
@@ -110,25 +116,25 @@ export const ClientSide = component$(() => {
     text3: 'empty 3',
   });
 
-  useClientEffect$(
+  useVisibleTask$(
     () => {
       state.text1 = 'run';
     },
     {
-      eagerness: 'load',
+      strategy: 'document-ready',
     }
   );
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     state.text2 = 'run';
   });
 
-  useClientEffect$(
+  useVisibleTask$(
     () => {
       state.text3 = 'run';
     },
     {
-      eagerness: 'idle',
+      strategy: 'document-idle',
     }
   );
 
@@ -143,7 +149,7 @@ export const ClientSide = component$(() => {
 
 export const FancyName = component$(() => {
   console.log('Fancy Name');
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.log('Client effect fancy name');
   });
   return <Slot />;
@@ -152,7 +158,7 @@ export const FancyName = component$(() => {
 export const fancyName = 'Some';
 
 export const Issue1413 = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.log(fancyName);
   });
   console.log('Root route');
@@ -167,7 +173,7 @@ export const Issue1413 = component$(() => {
 
 export function useDelay(value: string) {
   const ready = useSignal('---');
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     ready.value = value;
   });
   return ready;
@@ -204,19 +210,19 @@ export const Issue2015 = component$(() => {
     logs: [] as string[],
   });
 
-  useClientEffect$(async () => {
+  useVisibleTask$(async () => {
     state.logs.push('start 1');
     await delay(100);
     state.logs.push('finish 1');
   });
 
-  useClientEffect$(async () => {
+  useVisibleTask$(async () => {
     state.logs.push('start 2');
     await delay(100);
     state.logs.push('finish 2');
   });
 
-  useClientEffect$(async () => {
+  useVisibleTask$(async () => {
     state.logs.push('start 3');
     await delay(100);
     state.logs.push('finish 3');
@@ -236,9 +242,84 @@ export const Issue1955Helper = component$(() => {
 
 export const Issue1955 = component$(() => {
   const signal = useSignal('empty');
-  useClientEffect$(() => {
-    debugger;
+  useVisibleTask$(() => {
     signal.value = 'run';
   });
   return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;
+});
+
+export const CleanupEffects = component$(() => {
+  const nuCleanups = useSignal(0);
+  const counter = useSignal(0);
+
+  return (
+    <>
+      <CleanupEffectsChild nuCleanups={nuCleanups} key={counter.value} />
+      <button id="cleanup-effects-button" onClick$={() => counter.value++}>
+        Add
+      </button>
+      <div id="cleanup-effects-count">{nuCleanups.value + ''}</div>
+    </>
+  );
+});
+
+export const CleanupEffectsChild = component$((props: { nuCleanups: Signal<number> }) => {
+  useVisibleTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.nuCleanups.value++;
+    });
+  });
+  return <div>Hello</div>;
+});
+
+const ContextIssue4432 = createContextId<{ url: URL; logs: string }>('issue-4432');
+
+export const Issue4432 = component$(() => {
+  const loc = useStore({
+    url: new URL('http://localhost:3000/'),
+    logs: '',
+  });
+  useContextProvider(ContextIssue4432, loc);
+
+  return (
+    <>
+      <button
+        id="issue-4432-button"
+        onClick$={() => (loc.url = new URL('http://localhost:3000/other'))}
+      >
+        Change
+      </button>
+      <pre id="issue-4432-logs">{loc.logs}</pre>
+      {loc.url.pathname === '/' && <Issue4432Child />}
+    </>
+  );
+});
+
+export const Issue4432Child = component$(() => {
+  const state = useContext(ContextIssue4432);
+
+  const pathname = useComputed$(() => state.url.pathname);
+
+  useVisibleTask$(
+    ({ track, cleanup }) => {
+      track(() => pathname.value);
+
+      // This should only run on page load for path '/'
+      state.logs += `VisibleTask ChildA ${pathname.value}\n`;
+
+      // This should only run when leaving the page
+      cleanup(() => {
+        state.logs += `Cleanup ChildA ${pathname.value}\n`;
+      });
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+
+  return (
+    <>
+      <p>Child A</p>
+    </>
+  );
 });

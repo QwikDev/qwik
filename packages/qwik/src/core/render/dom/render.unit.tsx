@@ -4,15 +4,15 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
-import { useCleanup$, useOn } from '../../use/use-on';
+import { useVisibleTask$, useTask$ } from '../../use/use-task';
+import { useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
-import { useRef } from '../../use/use-ref';
 import { pauseContainer } from '../../container/pause';
+import { useSignal } from '../../use/use-signal';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {
@@ -118,13 +118,13 @@ renderSuite('should render into a document', async () => {
     fixture.document.documentElement,
     `
   <html q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX:-->
+  <!--qv -->
   <!--qv q:key q:sref=0 q:s-->
-    <head q:head="">
+    <head>
       <title></title>
       <existing></existing>
-      <title q:head="">Replace</title>
-      <div q:head=""><div></div></div>
+      <title>Replace</title>
+      <div><div></div></div>
     </head>
     <body>
       WORKS
@@ -221,7 +221,7 @@ renderSuite('should render a component with scoped styles', async () => {
         color: red;
       }
     </style>
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
         Hello
@@ -244,7 +244,7 @@ renderSuite('should render a component with scoped styles', async () => {
         color: red;
       }
     </style>
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0">
         Hello
@@ -287,7 +287,7 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <div aria-hidden="false">
         <div class="normal">Normal div</div>
         <button>toggle</button>
@@ -300,9 +300,9 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <div aria-hidden="true">
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <div><div>this is ToggleChild</div></div>
         <!--/qv-->
         <button>toggle</button>
@@ -321,7 +321,7 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <button class="decrement">-</button>
       <span>0</span>
       <button class="increment">+</button>
@@ -333,7 +333,7 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <button class="decrement">-</button>
       <span>5</span>
       <button class="increment">+</button>
@@ -398,7 +398,7 @@ renderSuite('should render host events on the first element', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     hello
     <div>
       thing
@@ -452,7 +452,10 @@ renderSuite('should project multiple slot with same name', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
+      <q:template q:slot="ignore" hidden="" aria-hidden="true">
+        <span q:slot="ignore">IGNORE</span>
+      </q:template>
       <section>
         <!--qv q:key q:sref=0 q:s-->
         <!--/qv-->
@@ -463,9 +466,6 @@ renderSuite('should project multiple slot with same name', async () => {
         <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>
-      <q:template q:slot="ignore" hidden="" aria-hidden="true">
-        <span q:slot="ignore">IGNORE</span>
-      </q:template>
       <!--/qv-->
     </host>
     `
@@ -539,7 +539,6 @@ renderSuite('should render a component with hooks', async () => {
       <div id="watch">true</div>
       <div id="watch-destroy"></div>
       <div id="server-mount">false</div>
-      <div id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
   );
@@ -548,13 +547,12 @@ renderSuite('should render a component with hooks', async () => {
   await expectRendered(
     fixture,
     `
-    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div id="effect" q:id="2">true</div>
-      <div id="effect-destroy" q:id="3">true</div>
+    <div>
+      <div id="effect">true</div>
+      <div id="effect-destroy">true</div>
       <div id="watch">true</div>
-      <div id="watch-destroy" q:id="4">true</div>
+      <div id="watch-destroy">true</div>
       <div id="server-mount">false</div>
-      <div id="cleanup" q:id="5">true</div>
       <div id="reference">true</div>
     </div>`
   );
@@ -634,7 +632,7 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <button class="increment">+</button>
     <div class="stuff m-0 p-2">Div 1</div>
     <div class="stuff m-0 p-2 active container">Div 2</div>
@@ -648,10 +646,10 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <button class="increment">+</button>
     <div class="other">Div 1</div>
-    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <div class="stuff m-0 p-2 almost-null active container">Div 2</div>
     <!--/qv-->
   </host>`
   );
@@ -775,6 +773,23 @@ renderSuite('should render foreignObject properly', async () => {
   );
 });
 
+renderSuite(
+  'should clean up subscriptions after calling the returned cleanup function',
+  async () => {
+    const fixture = new ElementFixture();
+
+    const spies = {
+      cleanupSpy: false,
+    };
+
+    const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
+
+    cleanup();
+
+    equal(spies.cleanupSpy, true);
+  }
+);
+
 async function expectRendered(fixture: ElementFixture, expected: string) {
   const firstNode = getFirstNode(fixture.host);
   return await expectDOM(firstNode, expected);
@@ -787,6 +802,7 @@ function getFirstNode(el: Element) {
   }
   return firstNode;
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -809,13 +825,13 @@ export const HelloWorldScoped = component$(() => {
   return (
     <div>
       {state.cond && (
-        <div>
+        <div key="a">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>
       )}
       {!state.cond && (
-        <div class="stuff" aria-hidden="true">
+        <div key="b" class="stuff" aria-hidden="true">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>
@@ -922,7 +938,7 @@ export const Project = component$(() => {
 export const SimpleProject = component$(() => {
   return (
     <section>
-      <Slot>..default..</Slot>
+      <Slot></Slot>
     </section>
   );
 });
@@ -971,7 +987,7 @@ export const Transparent = component$(() => {
 });
 
 export const UseEvents = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('hello');
   });
   useOn(
@@ -991,31 +1007,26 @@ export const UseEvents = component$(() => {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const Hooks = component$(() => {
-  const watchDestroyDiv = useRef();
-  const effectDiv = useRef();
-  const effectDestroyDiv = useRef();
-  const cleanupDiv = useRef();
+  const watchDestroyDiv = useSignal<HTMLElement>();
+  const effectDiv = useSignal<HTMLElement>();
+  const effectDestroyDiv = useSignal<HTMLElement>();
 
   const state = useStore({
     watch: 'false',
     server: 'false',
   });
 
-  useCleanup$(() => {
-    cleanupDiv.current!.textContent = 'true';
-  });
-
   useTask$(() => {
     state.watch = 'true';
     return () => {
-      watchDestroyDiv.current!.textContent = 'true';
+      watchDestroyDiv.value!.textContent = 'true';
     };
   });
 
-  useClientEffect$(() => {
-    effectDiv.current!.textContent = 'true';
+  useVisibleTask$(() => {
+    effectDiv.value!.textContent = 'true';
     return () => {
-      effectDestroyDiv.current!.textContent = 'true';
+      effectDestroyDiv.value!.textContent = 'true';
     };
   });
 
@@ -1028,9 +1039,24 @@ export const Hooks = component$(() => {
       <div id="watch-destroy" ref={watchDestroyDiv}></div>
 
       <div id="server-mount">{state.server}</div>
-      <div id="cleanup" ref={cleanupDiv}></div>
 
       <div id="reference">true</div>
+    </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+export const CleanupComponent = component$((props: { spies: { cleanupSpy: boolean } }) => {
+  useTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.spies.cleanupSpy = true;
+    });
+  });
+
+  return (
+    <div>
+      <div id="cleanup">true</div>
     </div>
   );
 });

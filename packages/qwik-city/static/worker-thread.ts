@@ -1,14 +1,16 @@
 import type {
   StaticGenerateHandlerOptions,
   StaticRoute,
+  StaticStreamWriter,
   StaticWorkerRenderResult,
   System,
 } from './types';
+import type { ClientPageData } from '../runtime/src/types';
 import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
-import type { ClientPageData } from '../runtime/src/types';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -37,6 +39,23 @@ export async function workerThread(sys: System) {
   });
 }
 
+export async function createSingleThreadWorker(sys: System) {
+  const ssgOpts = sys.getOptions();
+  const pendingPromises = new Set<Promise<any>>();
+
+  const opts: StaticGenerateHandlerOptions = {
+    ...ssgOpts,
+    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
+    qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
+  };
+
+  return (staticRoute: StaticRoute) => {
+    return new Promise<StaticWorkerRenderResult>((resolve) => {
+      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
+    });
+  };
+}
+
 async function workerRender(
   sys: System,
   opts: StaticGenerateHandlerOptions,
@@ -44,6 +63,11 @@ async function workerRender(
   pendingPromises: Set<Promise<any>>,
   callback: (result: StaticWorkerRenderResult) => void
 ) {
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
 
@@ -53,21 +77,18 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: true,
     filePath: null,
+    contentType: null,
+    resourceType: null,
   };
 
-  const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
-  const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
-
-  const writeHtmlEnabled = opts.emitHtml !== false;
-  const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
-
-  if (writeHtmlEnabled || writeDataEnabled) {
-    await sys.ensureDir(htmlFilePath);
-  }
-
   try {
+    let routeWriter: StaticStreamWriter | null = null;
+    let closeResolved: (v?: any) => void;
+    const closePromise = new Promise((closePromiseResolve) => {
+      closeResolved = closePromiseResolve;
+    });
+
     const request = new Request(url);
 
     const requestCtx: ServerRequestEvent<void> = {
@@ -77,73 +98,160 @@ async function workerRender(
       request,
       env: {
         get(key) {
-          return process.env[key];
+          return sys.getEnv(key);
         },
       },
+      platform: sys.platform,
+      getClientConn: () => {
+        return {};
+      },
       getWritableStream: (status, headers, _, _r, requestEv) => {
-        result.ok =
-          status >= 200 &&
-          status <= 299 &&
-          (headers.get('Content-Type') || '').includes('text/html');
+        result.ok = status >= 200 && status < 300;
 
         if (!result.ok) {
-          return noopWriter;
+          // not ok, don't write anything
+          return noopWritableStream;
         }
 
-        const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
+        result.contentType = (headers.get('Content-Type') || '').toLowerCase();
+        const isHtml = result.contentType.includes('text/html');
+        const is404ErrorPage = url.pathname.endsWith('/404.html');
+        const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
+
+        if (is404ErrorPage) {
+          result.resourceType = '404';
+        } else if (isHtml) {
+          result.resourceType = 'page';
+        }
+
+        const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
+        const writeQDataEnabled = isHtml && opts.emitData !== false;
+
         const stream = new WritableStream<Uint8Array>({
-          write(chunk) {
-            // page html writer
-            if (htmlWriter) {
-              htmlWriter.write(Buffer.from(chunk.buffer));
-            }
-          },
-          close() {
-            const data: ClientPageData = requestEv.sharedMap.get('qData');
-
-            if (writeDataEnabled) {
-              if (data) {
-                if (typeof data.isStatic === 'boolean') {
-                  result.isStatic = data.isStatic;
-                }
-                const dataWriter = sys.createWriteStream(dataFilePath);
-                dataWriter.write(JSON.stringify(data));
-                dataWriter.end();
+          async start() {
+            try {
+              if (hasRouteWriter || writeQDataEnabled) {
+                // for html pages, endpoints or q-data.json
+                // ensure the containing directory is created
+                await sys.ensureDir(routeFilePath);
               }
-            }
 
-            if (data) {
-              if (htmlWriter) {
-                return new Promise<void>((resolve) => {
-                  result.filePath = htmlFilePath;
-                  htmlWriter.end(resolve);
+              if (hasRouteWriter) {
+                // create a write stream for the static file if enabled
+                routeWriter = sys.createWriteStream(routeFilePath);
+                routeWriter.on('error', (e) => {
+                  console.error(e);
+                  routeWriter = null;
+                  result.error = {
+                    message: e.message,
+                    stack: e.stack,
+                  };
                 });
               }
+            } catch (e: any) {
+              routeWriter = null;
+              result.error = {
+                message: String(e),
+                stack: e.stack || '',
+              };
+            }
+          },
+          write(chunk) {
+            try {
+              if (routeWriter) {
+                // write to the static file if enabled
+                routeWriter.write(Buffer.from(chunk.buffer));
+              }
+            } catch (e: any) {
+              routeWriter = null;
+              result.error = {
+                message: String(e),
+                stack: e.stack || '',
+              };
+            }
+          },
+          async close() {
+            const writePromises: Promise<any>[] = [];
+
+            try {
+              if (writeQDataEnabled) {
+                const qData: ClientPageData = requestEv.sharedMap.get('qData');
+                if (qData && !is404ErrorPage) {
+                  // write q-data.json file when enabled and qData is set
+                  const qDataFilePath = sys.getDataFilePath(url.pathname);
+                  const dataWriter = sys.createWriteStream(qDataFilePath);
+                  dataWriter.on('error', (e) => {
+                    console.error(e);
+                    result.error = {
+                      message: e.message,
+                      stack: e.stack,
+                    };
+                  });
+
+                  const serialized = await _serializeData(qData, true);
+                  dataWriter.write(serialized);
+
+                  writePromises.push(
+                    new Promise<void>((resolve) => {
+                      // set the static file path for the result
+                      result.filePath = routeFilePath;
+                      dataWriter.end(resolve);
+                    })
+                  );
+                }
+              }
+
+              if (routeWriter) {
+                // close the static file if there is one
+                writePromises.push(
+                  new Promise<void>((resolve) => {
+                    // set the static file path for the result
+                    result.filePath = routeFilePath;
+                    routeWriter!.end(resolve);
+                  }).finally(closeResolved)
+                );
+              }
+
+              if (writePromises.length > 0) {
+                await Promise.all(writePromises);
+              }
+            } catch (e: any) {
+              routeWriter = null;
+              result.error = {
+                message: String(e),
+                stack: e.stack || '',
+              };
             }
           },
         });
         return stream;
       },
-      platform: sys.platform,
     };
 
-    const promise = requestHandler(requestCtx, opts)
+    const promise = requestHandler(requestCtx, opts, qwikSerializer)
       .then((rsp) => {
         if (rsp != null) {
-          return rsp.completion;
+          return rsp.completion.then((r) => {
+            if (routeWriter) {
+              return closePromise.then(() => r);
+            }
+            return r;
+          });
         }
       })
-      .catch((e) => {
-        if (e) {
-          if (e.stack) {
-            result.error = String(e.stack);
-          } else if (e.message) {
-            result.error = String(e.message);
+      .then((e) => {
+        if (e !== undefined) {
+          if (e instanceof Error) {
+            result.error = {
+              message: e.message,
+              stack: e.stack,
+            };
           } else {
-            result.error = String(e);
+            result.error = {
+              message: String(e),
+              stack: undefined,
+            };
           }
-        } else {
-          result.error = `Error`;
         }
       })
       .finally(() => {
@@ -153,22 +261,39 @@ async function workerRender(
 
     pendingPromises.add(promise);
   } catch (e: any) {
-    if (e) {
-      if (e.stack) {
-        result.error = String(e.stack);
-      } else if (e.message) {
-        result.error = String(e.message);
-      } else {
-        result.error = String(e);
-      }
+    if (e instanceof Error) {
+      result.error = {
+        message: e.message,
+        stack: e.stack,
+      };
     } else {
-      result.error = `Error`;
+      result.error = {
+        message: String(e),
+        stack: undefined,
+      };
     }
     callback(result);
   }
 }
 
-const noopWriter = /*#__PURE__*/ new WritableStream({
-  write() {},
-  close() {},
-});
+const noopWriter: WritableStreamDefaultWriter<any> = {
+  closed: Promise.resolve(undefined),
+  ready: Promise.resolve(undefined),
+  desiredSize: 0,
+  async close() {},
+  async abort() {},
+  async write() {},
+  releaseLock() {},
+};
+
+const noopWritableStream: WritableStream = {
+  get locked() {
+    return false;
+  },
+  set locked(_: boolean) {},
+  async abort() {},
+  async close() {},
+  getWriter() {
+    return noopWriter;
+  },
+};

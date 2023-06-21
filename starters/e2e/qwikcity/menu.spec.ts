@@ -57,7 +57,7 @@ function tests() {
     await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/getting-started/"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/docs/getting-started/',
-      title: 'Docs: Getting Started - Qwik',
+      title: 'Docs: @builder.io/qwik Getting Started - Qwik',
       layoutHierarchy: ['docs'],
       h1: 'Getting Started',
       activeHeaderLink: 'Docs',
@@ -92,7 +92,7 @@ function tests() {
     expect(await breadcrumb1.innerText()).toBe('Basics');
 
     /***********  Docs: components/listeners  ***********/
-    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/components/listeners"]');
+    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/components/listeners/"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/docs/components/listeners/',
       title: 'Docs: components listeners - Qwik',

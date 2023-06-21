@@ -1,0 +1,23 @@
+{
+  "routes": [
+    {
+      "route": "*",
+      "methods": ["POST", "PUT", "DELETE"],
+      "rewrite": "/api/render"
+    },
+    {
+      "route": "/",
+      "rewrite": "/api/render"
+    },
+    {
+      "route": "/index.html",
+      "rewrite": "/api/render"
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/api/render"
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}

@@ -1,4 +1,6 @@
-import { qRuntimeQrl } from '../util/qdev';
+import { implicit$FirstArg } from '../util/implicit_dollar';
+import { qDev, qRuntimeQrl } from '../util/qdev';
+import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 
 // <docs markdown="../readme.md#QRL">
@@ -94,7 +96,7 @@ import { createQRL } from './qrl-class';
  *
  * Let's assume that you intend to write code such as this:
  *
- * ```typescript
+ * ```tsx
  * return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
  * ```
  *
@@ -102,7 +104,7 @@ import { createQRL } from './qrl-class';
  *
  * ```
  * <div q:base="/build/">
- *   <button on:lick="./chunk-abc.js#onClick">...</button>
+ *   <button on:click="./chunk-abc.js#onClick">...</button>
  * </div>
  * ```
  *
@@ -131,7 +133,17 @@ export interface QRL<TYPE = any> {
 
   /**
    * Resolve the QRL of closure and invoke it.
-   * @param args - Clousure arguments.
+   * @param signal - An AbortSignal object.
+   * @param args - Closure arguments.
+   * @returns A promise of the return value of the closure.
+   */
+  (signal: AbortSignal, ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<
+    TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never
+  >;
+
+  /**
+   * Resolve the QRL of closure and invoke it.
+   * @param args - Closure arguments.
    * @returns A promise of the return value of the closure.
    */
   (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<
@@ -142,9 +154,10 @@ export interface QRL<TYPE = any> {
    * Resolve the QRL and return the actual value.
    */
   resolve(): Promise<TYPE>;
-
+  getCaptured(): any[] | null;
   getSymbol(): string;
   getHash(): string;
+  dev: QRLDev | null;
 }
 
 /**
@@ -159,8 +172,10 @@ let runtimeSymbolId = 0;
 /**
  * @public
  */
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
-  ? PropFnInterface<ARGS, RET>
+export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
+  ...args: infer ARGS
+) => infer RET
+  ? PropFnInterface<ARGS, Awaited<RET>>
   : never;
 
 // <docs markdown="../readme.md#$">
@@ -211,8 +226,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *
  * ```tsx
  *
- * import { createContext, useContext, useContextProvider } from './use/use-context';
- * import { useRef } from './use/use-ref';
+ * import { createContextId, useContext, useContextProvider } from './use/use-context';
  * import { Resource, useResource$ } from './use/use-resource';
  *
  * export const greet = () => console.log('greet');
@@ -242,7 +256,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  */
 // </docs>
 export const $ = <T>(expression: T): QRL<T> => {
-  if (!qRuntimeQrl) {
+  if (!qRuntimeQrl && qDev) {
     throw new Error(
       'Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.'
     );
@@ -250,3 +264,15 @@ export const $ = <T>(expression: T): QRL<T> => {
 
   return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
 };
+
+/**
+ * @public
+ */
+export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
+  return qrl;
+};
+
+/**
+ * @public
+ */
+export const event$ = implicit$FirstArg(eventQrl);

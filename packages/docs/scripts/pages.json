@@ -1,11 +1,27 @@
 [
   {
+    "href": "https://wope.com/",
+    "tags": "saas"
+  },
+  {
     "href": "https://www.builder.io/",
     "tags": "saas"
   },
   {
+    "href": "https://jose-aguilar.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
     "href": "https://shaunchander.me",
     "tags": "portfolio"
+  },
+  {
+    "href": "https://reflect.app/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://www.hexa.center/",
+    "tags": "saas"
   },
   {
     "href": "https://img-models.vercel.app/",
@@ -43,7 +59,13 @@
   },
   {
     "href": "https://www.burgersonfleek.ca/",
-    "tags": "site"
+    "tags": "site",
+    "repo": "https://github.com/saboooor/burgersonfleek"
+  },
+  {
+    "href": "https://simplymc.art/",
+    "tags": "site",
+    "repo": "https://github.com/LuminescentDev/SimplyMC"
   },
   {
     "href": "https://goshi.dev/",
@@ -71,6 +93,10 @@
     "tags": "portfolio"
   },
   {
+    "href": "https://www.blackflag.dev/",
+    "tags": "site"
+  },
+  {
     "href": "https://qwik.builder.io",
     "tags": "site",
     "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
@@ -84,6 +110,10 @@
     "tags": "investing"
   },
   {
+    "href": "https://promptle.art/",
+    "tags": "game"
+  },
+  {
     "href": "https://abdhashem.com",
     "tags": "portfolio"
   },
@@ -95,8 +125,54 @@
     "href": "https://puzzledbycsharp.com/",
     "tags": "site"
   },
- {
+  {
     "href": "https://ss-link.netlify.app/",
+    "tags": "app"
+  },
+  {
+    "href": "https://necatikcl.dev/",
+    "tags": "personal",
+    "size": "large"
+  },
+  {
+    "href": "https://tatbiqit.com/",
+    "tags": "company"
+  },
+  {
+    "href": "https://keyboardz.co/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://travelcalc.pages.dev",
+    "tags": "app"
+  },
+  {
+    "href": "https://upester.com",
+    "tags": "app"
+  },
+  {
+    "href": "https://pay4me.app",
+    "tags": "sass"
+  },
+  {
+    "href": "https://qwik-osm-poc.netlify.app/",
+    "tags": "site"
+  },
+  {
+    "href": "https://leonerd.blog",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://seifen.vercel.app/",
+    "tags": "site"
+  },
+  {
+    "href": "https://builtwith.appwrite.io/",
+    "tags": "site",
+    "repo": "https://github.com/appwrite/builtwith"
+  },
+  {
+    "href": "https://radixstream.com/",
     "tags": "site"
   }
 ]

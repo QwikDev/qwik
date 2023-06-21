@@ -2,15 +2,15 @@ import {
   component$,
   useSignal,
   useContextProvider,
-  createContext,
-  Signal,
+  createContextId,
+  type Signal,
   useContext,
   useTask$,
 } from '@builder.io/qwik';
 
-export const CTXCount = createContext<Signal<number>>('resuming-count');
-export const CTXShow = createContext<Signal<boolean>>('resuming-show');
-export const CTXCounterCopy = createContext<Signal<number>>('resuming-copy');
+export const CTXCount = createContextId<Signal<number>>('resuming-count');
+export const CTXShow = createContextId<Signal<boolean>>('resuming-show');
+export const CTXCounterCopy = createContextId<Signal<number>>('resuming-copy');
 
 export const Resuming1 = component$(() => {
   const signal = useSignal(0);

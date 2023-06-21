@@ -1,14 +1,15 @@
 import {
   component$,
-  useRef,
-  Ref,
-  Signal,
+  type Signal,
   useSignal,
   useStore,
-  useClientEffect$,
+  useVisibleTask$,
   useTask$,
   Slot,
   useStyles$,
+  useResource$,
+  type QwikIntrinsicElements,
+  Resource,
 } from '@builder.io/qwik';
 import { delay } from '../resource/resource';
 import {
@@ -22,9 +23,21 @@ import {
   TestCStr,
   TestCWithFlag,
 } from './utils/utils';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export const Signals = component$(() => {
-  const ref = useRef();
+  const rerender = useSignal(0);
+  return (
+    <>
+      <button id="rerender" onClick$={() => rerender.value++}>
+        Rerender
+      </button>
+      <SignalsChildren key={rerender.value} />
+    </>
+  );
+});
+export const SignalsChildren = component$(() => {
+  const ref = useSignal<Element>();
   const ref2 = useSignal<Element>();
   const id = useSignal(0);
   const signal = useSignal('');
@@ -42,12 +55,13 @@ export const Signals = component$(() => {
 
   const styles = useSignal('body { background: white}');
 
-  useClientEffect$(() => {
-    ref.current!.setAttribute('data-set', 'ref');
+  useVisibleTask$(() => {
+    ref.value!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
   });
 
   renders.count++;
+  const rerenders = renders.count + 0;
   return (
     <div aria-label={store.attribute}>
       <button
@@ -83,7 +97,7 @@ export const Signals = component$(() => {
       >
         Black background
       </button>
-      <div id="parent-renders">Parent renders: {renders.count}</div>
+      <div id="parent-renders">Parent renders: {rerenders}</div>
       <Child
         text="Message"
         count={store.foo}
@@ -104,6 +118,20 @@ export const Signals = component$(() => {
       <ComplexClassSignals />
       <Issue2311 />
       <Issue2344 />
+      <Issue2928 />
+      <Issue2930 />
+      <Issue3212 />
+      <FineGrainedTextSub />
+      <FineGrainedUnsubs />
+      <Issue3415 />
+      <BindSignal />
+      <Issue3482 />
+      <Issue3663 />
+      <Issue3440 />
+      <Issue4174 />
+      <Issue4249 />
+      <Issue4228 />
+      <Issue4368 />
     </div>
   );
 });
@@ -111,7 +139,7 @@ export const Signals = component$(() => {
 interface ChildProps {
   count: number;
   text: string;
-  ref: Ref<Element>;
+  ref: Signal<Element | undefined>;
   ref2: Signal<Element | undefined>;
   signal: Signal<string>;
   signal2: Signal<string>;
@@ -126,9 +154,10 @@ export const Child = component$((props: ChildProps) => {
     { reactive: false }
   );
   renders.count++;
+  const rerenders = renders.count + 0;
   return (
     <>
-      <div id="child-renders">Child renders: {renders.count}</div>
+      <div id="child-renders">Child renders: {rerenders}</div>
       <div id="text" ref={props.ref}>
         Text: {props.text}
       </div>
@@ -419,7 +448,9 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
         onClick$={() => {
           store.n++;
           store.flag = !store.flag;
-          if (store.n >= colors.length) store.n = 0;
+          if (store.n >= colors.length) {
+            store.n = 0;
+          }
           store.color = colors[store.n];
           colorSignal.value = colors[store.n];
         }}
@@ -473,7 +504,9 @@ export const Issue2245B = component$(() => {
           store.n++;
           store.flag = !store.flag;
           flagSignal.value = !flagSignal.value;
-          if (store.n >= colors.length) store.n = 0;
+          if (store.n >= colors.length) {
+            store.n = 0;
+          }
           store.color = colors[store.n];
           colorSignal.value = colors[store.n];
         }}
@@ -584,6 +617,497 @@ export const Issue2344 = component$(() => {
           Should not error
         </button>
       </p>
+    </>
+  );
+});
+
+export const Issue2928 = component$(() => {
+  const store = useStore(
+    {
+      controls: {
+        age: {
+          value: 1,
+          valid: true,
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+  const group = {
+    controls: store.controls,
+  };
+
+  return (
+    <div>
+      <button
+        onClick$={async (e) => {
+          group.controls.age.value++;
+          await delayZero();
+          group.controls.age.valid = false;
+        }}
+      >
+        Increment
+      </button>
+      <FormDebug ctrl={group.controls.age} />
+      {group.controls.age.value == 2 && <div>match!</div>}
+    </div>
+  );
+});
+
+export const FormDebug = component$<{ ctrl: any }>((props) => {
+  return (
+    <div>
+      value:{' this_breaks!! '} -<>{props.ctrl.value} </>
+      <>{props.ctrl.value + ''} </>
+    </div>
+  );
+});
+
+export const Issue2930 = component$(() => {
+  const group = useStore(
+    {
+      controls: {
+        ctrl: {
+          value: '',
+        },
+      },
+    },
+    {
+      deep: true,
+    }
+  );
+
+  return (
+    <div>
+      <div>Type into input field:</div>
+      <input
+        id="issue-2930-input"
+        style="border: 1px solid black"
+        type="text"
+        value={group.controls.ctrl.value}
+        onInput$={(e) => {
+          const val = (e.target as HTMLInputElement).value;
+          group.controls.ctrl.value = val;
+        }}
+      />
+      <Stringify data={group} />
+
+      <Stringify data={group.controls} />
+
+      <Stringify data={group.controls.ctrl} />
+
+      <Stringify data={group.controls.ctrl.value} />
+    </div>
+  );
+});
+
+export const Stringify = component$<{
+  data: any;
+  style?: any;
+}>((props) => {
+  return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
+});
+
+export const Issue3212Child = component$((props: { signal: Signal<number> }) => {
+  return <>{props.signal.value}</>;
+});
+
+export function useMySignal() {
+  const signal = useSignal<number>(1);
+  return { signal };
+}
+
+export const Issue3212 = component$(() => {
+  const stuff = useMySignal();
+  const signal = stuff.signal;
+  return (
+    <div>
+      <h2>Issue3212</h2>
+      <div id="issue-3212-result-0">
+        <Issue3212Child signal={stuff.signal} />
+      </div>
+      <div id="issue-3212-result-1">{stuff.signal.value}</div>
+      <div id="issue-3212-result-2">{stuff.signal}</div>
+      <div id="issue-3212-result-3">{signal}</div>
+    </div>
+  );
+});
+
+export const delayZero = () => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 1);
+  });
+};
+
+export const FineGrainedTextSub = component$(() => {
+  const count = useSignal(0);
+  const computed = count.value + 2;
+
+  return (
+    <div>
+      <h2>Fine Grained</h2>
+      <div id="fine-grained-mutable" data-value={computed}>
+        {computed}
+      </div>
+      <div>
+        <button id="fine-grained-signal" data-value={count.value} onClick$={() => count.value++}>
+          Increment {count.value}
+        </button>
+      </div>
+    </div>
+  );
+});
+
+export const FineGrainedUnsubs = component$(() => {
+  const count = useSignal<{ nu: number } | undefined>({ nu: 1 });
+  console.warn(count.value);
+
+  return (
+    <div>
+      <h2>Fine Grained Unsubs</h2>
+      <button
+        id="fine-grained-unsubs-toggle"
+        onClick$={() => {
+          if (count.value) {
+            count.value = undefined;
+          } else {
+            count.value = { nu: 123 };
+          }
+        }}
+      >
+        Toggle
+      </button>
+
+      {count.value && (
+        <div id="fine-grained-unsubs" data-value={count.value.nu}>
+          {count.value.nu}
+        </div>
+      )}
+      <div>{count.value?.nu ?? 'EMPTY'}</div>
+    </div>
+  );
+});
+
+export const Issue3415 = component$(() => {
+  const signal = useSignal('<b>foo</b>');
+
+  return (
+    <>
+      <button
+        id="issue-3415-button"
+        onClick$={() => {
+          signal.value = '<i>bar</i>';
+        }}
+      >
+        Toggle
+      </button>
+      <div id="issue-3415-result" dangerouslySetInnerHTML={signal.value} />
+    </>
+  );
+});
+
+export const BindSignal = component$(() => {
+  const value = useSignal('initial');
+  const checked = useSignal(false);
+
+  return (
+    <>
+      <input id="bind-checkbox" type="checkbox" bind:checked={checked} />
+      <input id="bind-input-1" bind:value={value} disabled={checked.value} />
+      <div id="bind-text-1">Value: {value}</div>
+      <div id="bind-text-2">Value: {value.value}</div>
+      <textarea id="bind-input-2" bind:value={value} disabled={checked.value} />
+      <input id="bind-checkbox-2" type="checkbox" bind:checked={checked} />
+    </>
+  );
+});
+
+export const Issue3482 = component$(() => {
+  const count = useStore({
+    'data-foo': 0,
+  });
+
+  return (
+    <>
+      <button
+        id="issue-3482-button"
+        data-count={count['data-foo']}
+        onClick$={() => count['data-foo']++}
+      >
+        Increment {count['data-foo']}
+      </button>
+      <div id="issue-3482-result" data-count={count['data-foo']}>
+        {count['data-foo']}
+      </div>
+    </>
+  );
+});
+
+export const Issue3663 = component$(() => {
+  const store = useStore({
+    'Custom Counter': 0,
+  });
+  const a = store['Custom Counter'] + 0;
+  return (
+    <div>
+      <button id="issue-3663-button" onClick$={() => store['Custom Counter']++}>
+        Increment
+      </button>
+      <div class="issue-3663-result" data-value={store['Custom Counter']}>
+        {store['Custom Counter']}
+      </div>
+      <Issue3663Cmp prop={store['Custom Counter']} />
+      <div class="issue-3663-result" data-value={a}>
+        {a}
+      </div>
+    </div>
+  );
+});
+
+function Issue3663Cmp(props: { prop: number }) {
+  return (
+    <div class="issue-3663-result" data-value={props.prop}>
+      {props.prop}
+    </div>
+  );
+}
+
+export const Issue3440 = component$(() => {
+  const name = useSignal('Demo');
+  const blogs = useStore([
+    {
+      id: 1,
+      title: 'my first blog',
+    },
+    {
+      id: 2,
+      title: 'my second blogs',
+    },
+    {
+      id: 3,
+      title: 'my third blog',
+    },
+  ]);
+  return (
+    <>
+      <div>
+        <div>
+          <h1>Name: {name.value}</h1>
+          {blogs.map((blog) => (
+            <div class="issue-3440-results" key={blog.id}>
+              {blog.title}
+            </div>
+          ))}
+          <button id="issue-3440-remove" onClick$={() => blogs.pop()}>
+            Remove Blog
+          </button>
+        </div>
+      </div>
+    </>
+  );
+});
+
+export const Issue4174 = component$(() => {
+  const storeWithoutInit = useStore<{ value?: string }>({});
+
+  useVisibleTask$(
+    () => {
+      storeWithoutInit.value = 'visible-task';
+    },
+    { strategy: 'document-ready' }
+  );
+
+  return (
+    <>
+      <div id="issue-4174-result">Store: {storeWithoutInit.value}</div>
+    </>
+  );
+});
+
+export const Issue4249 = component$(() => {
+  const first = useSignal('');
+  const second = useSignal('');
+
+  return (
+    <main>
+      <div>
+        <label for="first">
+          {'First '}
+          <input
+            id="issue-4249-first"
+            value={first.value}
+            onInput$={(_, e) => (first.value = e.value)}
+            placeholder="type here"
+          />
+        </label>
+      </div>
+      <div>
+        <label for="second">
+          {'Second '}
+          <input
+            id="issue-4249-second"
+            value={second.value}
+            onInput$={(_, e) => (second.value = e.value)}
+            placeholder="type here"
+          />
+        </label>
+      </div>
+
+      <div
+        id="issue-4249-result"
+        data-value={
+          first.value && second.value && first.value === second.value ? 'collision' : 'no-collision'
+        }
+      >
+        {'Status: '}
+        {first.value && second.value && first.value === second.value
+          ? 'Collision detected'
+          : 'No collision'}
+      </div>
+    </main>
+  );
+});
+
+type Counters = {
+  countA: number;
+  countB: number;
+  signal: Signal<number>;
+};
+
+type Props = {
+  counters: Counters;
+};
+
+export const DisplayA = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display A:{' '}
+      <span id="issue-4228-result-a">{`${counters.countA}:${
+        typeof (globalThis as any).countA === 'number' ? (window as any).countA++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplayB = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display B:{' '}
+      <span id="issue-4228-result-b">{`${counters.countB}:${
+        typeof (globalThis as any).countB === 'number' ? (window as any).countB++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplaySignal = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display C:{' '}
+      <span id="issue-4228-result-c">{`${counters.signal.value}:${
+        typeof (globalThis as any).countC === 'number' ? (window as any).countC++ : 0
+      }`}</span>
+    </>
+  );
+});
+export const DisplayTotal = component$<Props>(({ counters }) => {
+  return (
+    <>
+      Display Total:{' '}
+      <span id="issue-4228-result-total">{`${
+        counters.countA + counters.countB + counters.signal.value
+      }:${typeof (globalThis as any).countD === 'number' ? (window as any).countD++ : 0}`}</span>
+    </>
+  );
+});
+export const Issue4228 = component$(() => {
+  const signal = useSignal(0);
+  const counter = useStore({
+    countA: 0,
+    countB: 0,
+    signal,
+  });
+  useTask$(() => {
+    if (isBrowser) {
+      (window as any).countA = -1;
+      (window as any).countB = -1;
+      (window as any).countC = -1;
+      (window as any).countD = -1;
+    }
+  });
+  useVisibleTask$(
+    () => {
+      (window as any).countA = 1;
+      (window as any).countB = 1;
+      (window as any).countC = 1;
+      (window as any).countD = 1;
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+  return (
+    <>
+      <p>
+        <button id="issue-4228-button-a" onClick$={() => counter.countA++}>
+          +1 A
+        </button>
+        <DisplayA counters={counter} />
+      </p>
+      <p>
+        <button id="issue-4228-button-b" onClick$={() => counter.countB++}>
+          +1 B
+        </button>
+        <DisplayB counters={counter} />
+      </p>
+      <p>
+        <button id="issue-4228-button-c" onClick$={() => signal.value++}>
+          +1 Signal
+        </button>
+        <DisplaySignal counters={counter} />
+      </p>
+      <p>
+        <DisplayTotal counters={counter} />
+      </p>
+    </>
+  );
+});
+
+const MyButton = component$<QwikIntrinsicElements['button']>(({ type, ...rest }) => {
+  return (
+    <button id="issue-4368-button" type={type || 'button'} {...rest}>
+      <Slot />
+    </button>
+  );
+});
+
+const MyTextButton = component$<{ text: string }>((props) => {
+  return (
+    <MyButton disabled={!props.text}>{props.text ? 'Example button' : 'Text is empty'}</MyButton>
+  );
+});
+
+export const Issue4368 = component$(() => {
+  const text = useSignal('');
+
+  const textResource = useResource$(async (ctx) => {
+    return ctx.track(() => text.value);
+  });
+
+  return (
+    <>
+      <input id="issue-4368-input" bind:value={text} placeholder="type something here" />
+
+      <Resource
+        value={textResource}
+        onRejected={() => <p>Error</p>}
+        onPending={() => <p>Loading</p>}
+        onResolved={(resolved) => (
+          <>
+            <MyTextButton text={resolved} />
+          </>
+        )}
+      />
     </>
   );
 });

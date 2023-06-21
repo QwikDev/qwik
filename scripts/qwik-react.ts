@@ -1,4 +1,4 @@
-import { BuildConfig, copyDir, panic } from './util';
+import { type BuildConfig, copyDir, panic } from './util';
 import { join } from 'node:path';
 import { execa } from 'execa';
 

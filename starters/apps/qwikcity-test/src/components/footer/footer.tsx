@@ -1,12 +1,12 @@
 import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
-import { userLoader } from '../../routes/layout';
-import { rootLoader } from '../../routes/plugin@header';
+import { useUserLoader } from '../../routes/layout';
+import { useRootLoader } from '../../routes/plugin@header';
 import styles from './footer.css?inline';
 
 export default component$(() => {
-  const serverData = rootLoader.use();
-  const userData = userLoader.use();
+  const serverData = useRootLoader();
+  const userData = useUserLoader();
 
   useStyles$(styles);
 
@@ -51,7 +51,7 @@ export default component$(() => {
         </li>
       </ul>
       <ul>
-        <li>{serverData.value.serverTime}</li>
+        <li>{serverData.value.serverTime.toISOString()}</li>
         <li>Node {serverData.value.nodeVersion}</li>
       </ul>
     </footer>

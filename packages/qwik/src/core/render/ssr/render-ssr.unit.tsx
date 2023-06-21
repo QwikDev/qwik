@@ -7,17 +7,16 @@ import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { $ } from '../../qrl/qrl.public';
-import { createContext, useContext, useContextProvider } from '../../use/use-context';
+import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
-import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-task';
+import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
-import { SSRComment } from '../jsx/utils.public';
+import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
-import { jsx } from '../jsx/jsx-runtime';
-import { renderSSR, RenderSSROptions } from './render-ssr';
+import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
+import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
 
@@ -323,6 +322,110 @@ renderSSRSuite('single simple children', async () => {
   );
 });
 
+renderSSRSuite('valid phrasing content', async () => {
+  await testSSR(
+    <body>
+      <p>
+        <del>Del</del>
+      </p>
+    </body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p><del>Del</del></p></body>'
+  );
+  await testSSR(
+    <body>
+      <p>
+        <select>
+          <option>A</option>
+          <option>B</option>
+        </select>
+      </p>
+    </body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p><select><option>A</option><option>B</option></select></p></body>'
+  );
+  await testSSR(
+    <body>
+      <p>
+        <link rel="example" />
+      </p>
+    </body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p><link rel="example"/></p></body>'
+  );
+  await testSSR(
+    <body>
+      <p>
+        <map name="my-map">
+          <area shape="poly" coords="0,0,10,10,10,0" href="/example" alt="Example" />
+        </map>
+        <img useMap="#my-map" src="/example.png" alt="Example" />
+      </p>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <p>
+          <map name="my-map">
+            <area shape="poly" coords="0,0,10,10,10,0" href="/example" alt="Example">
+          </map>
+          <img usemap="#my-map" src="/example.png" alt="Example">
+        </p>
+        </body>
+      </html>`
+  );
+  await testSSR(
+    <body>
+      <p>
+        <svg
+          viewBox="0 0 10 10"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <path d="M 0 0 L 10 10"></path>
+          <circle cx="5" cy="5" rx="5" ry="5"></circle>
+        </svg>
+      </p>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <p>
+          <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <path d="M 0 0 L 10 10"></path>
+            <circle cx="5" cy="5" rx="5" ry="5"></circle>
+          </svg>
+        </p>
+      </body>
+    </html>`
+  );
+  await testSSR(
+    <body>
+      <p>
+        <math>
+          <semantics>
+            <mrow>
+              <mi>2</mi>
+              <mo>+</mo>
+              <mi>2</mi>
+            </mrow>
+          </semantics>
+        </math>
+      </p>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <p>
+          <math>
+            <semantics>
+              <mrow>
+                <mi>2</mi>
+                <mo>+</mo>
+                <mi>2</mi>
+              </mrow>
+            </semantics>
+          </math>
+        </p>
+      </body>
+    </html>`
+  );
+});
+
 renderSSRSuite('events', async () => {
   await testSSR(
     <body onClick$={() => console.warn('hol')}>hola</body>,
@@ -352,26 +455,19 @@ renderSSRSuite('events', async () => {
   );
 });
 
-renderSSRSuite('ref', async () => {
-  const ref = { current: undefined } as Ref<any>;
-  await testSSR(
-    <body ref={ref}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:id="0"></body></html>'
-  );
-});
 renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <body dangerouslySetInnerHTML="<p>hola</p>"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body><p>hola</p></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:key="innerhtml"><p>hola</p></body></html>'
   );
   await testSSR(
     <body dangerouslySetInnerHTML=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:key="innerhtml"></body></html>'
   );
   const Div = 'body' as any;
   await testSSR(
     <Div dangerouslySetInnerHTML={0}></Div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body>0</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body q:key="innerhtml">0</body></html>'
   );
   await testSSR(
     <body>
@@ -379,7 +475,7 @@ renderSSRSuite('innerHTML', async () => {
     </body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
-        <script>
+        <script q:key="innerhtml">
           () => null
         </script>
       </body>
@@ -428,7 +524,7 @@ renderSSRSuite('single multiple children', async () => {
   );
 });
 
-renderSSRSuite('sanitazion', async () => {
+renderSSRSuite('sanity', async () => {
   await testSSR(
     <body>
       <div>{`.rule > thing{}`}</div>
@@ -627,6 +723,32 @@ renderSSRSuite('using component with key', async () => {
         <!--qv q:id=0 q:key=sX:hola-->
         <section><div>MyCmp{}</div></section>
         <!--/qv-->
+      </body>
+    </html>`
+  );
+});
+
+renderSSRSuite('using element with key', async () => {
+  await testSSR(
+    <body>
+      <div key="hola" />
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <div q:key="hola"></div>
+      </body>
+    </html>`
+  );
+});
+
+renderSSRSuite('using element with key containing double quotes', async () => {
+  await testSSR(
+    <body>
+      <div key={'"hola"'} />
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <div q:key="&quot;hola&quot;"></div>
       </body>
     </html>`
   );
@@ -940,6 +1062,28 @@ renderSSRSuite('component useOn()', async () => {
   );
 });
 
+renderSSRSuite('component useOn([array])', async () => {
+  await testSSR(
+    <body>
+      <UseOnMultiple />
+    </body>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+        <div on:click="/runtimeQRL#_\n/runtimeQRL#_"
+          on:scroll="/runtimeQRL#_"
+          on-window:click="/runtimeQRL#_"
+          on-window:scroll="/runtimeQRL#_"
+          on-document:click="/runtimeQRL#_"
+          on-document:scroll="/runtimeQRL#_"
+        ></div>
+        <!--/qv-->
+      </body>
+    </html>`
+  );
+});
+
 renderSSRSuite('component useStyles()', async () => {
   await testSSR(
     <>
@@ -972,19 +1116,24 @@ renderSSRSuite('component useStylesScoped()', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
-        <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
+        <!--qv q:sstyle=⭐️1d-0|⭐️1e-1 q:id=0 q:key=sX:-->
         <style q:style="1d-0" hidden>
           .host.⭐️1d-0 {
             color: red;
           }
         </style>
-        <div class="⭐️1d-0 host">
-          <div class="⭐️1d-0 div">
+        <style q:style="1e-1" hidden>
+          .blue.⭐️1e-1 {
+            color: blue;
+          }
+        </style>
+        <div class="⭐️1d-0 ⭐️1e-1 host">
+          <div class="⭐️1d-0 ⭐️1e-1 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
             <!--/qv-->
-            <p class="⭐️1d-0">Que tal?</p>
+            <p class="⭐️1d-0 ⭐️1e-1">Que tal?</p>
           </div>
           <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
           <style q:style="f0gmsw-0" hidden>
@@ -1010,7 +1159,8 @@ renderSSRSuite('component useStylesScoped()', async () => {
         </div>
         <!--/qv-->
       </body>
-    </html>`
+    </html>
+    `
   );
 });
 
@@ -1045,7 +1195,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect()', async () => {
+renderSSRSuite('component useBrowserVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" class="qc📦">
@@ -1060,7 +1210,7 @@ renderSSRSuite('component useClientEffect()', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() without elements', async () => {
+renderSSRSuite('component useBrowserVisibleTask() without elements', async () => {
   await testSSR(
     <body>
       <UseEmptyClientEffect />
@@ -1078,7 +1228,7 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
   );
 });
 
-renderSSRSuite('component useClientEffect() inside <head>', async () => {
+renderSSRSuite('component useBrowserVisibleTask() inside <head>', async () => {
   await testSSR(
     <head>
       <UseEmptyClientEffect />
@@ -1257,6 +1407,36 @@ renderSSRSuite('ssr marks', async () => {
   );
 });
 
+renderSSRSuite('ssr raw', async () => {
+  await testSSR(
+    <body>
+      <SSRRaw data="<div>hello</div>" />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
+    <body>
+      <div>hello</div>
+    </body>
+  </html>`
+  );
+});
+
+renderSSRSuite('html fragment', async () => {
+  await testSSR(
+    <body>
+      <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
+    <body>
+      <!--qv-->
+      <div>hello</div>
+      <!--/qv-->
+    </body>
+  </html>`
+  );
+});
+
 renderSSRSuite('html slot', async () => {
   await testSSR(
     <HtmlContext>
@@ -1334,6 +1514,33 @@ renderSSRSuite('class emoji valid', async () => {
   );
 });
 
+renderSSRSuite('issue 4283', async () => {
+  await testSSR(
+    <body>
+      <Issue4283>
+        <p>index page</p>
+      </Issue4283>
+    </body>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+        <!--qv q:id=1 q:key=sX:-->
+        <div on:qvisible="/runtimeQRL#_[0]" q:id="2"></div>
+        <q:template q:slot hidden aria-hidden="true">
+          <p>Content</p>
+          <!--qv q:s q:sref=0 q:key=-->
+          <p>index page</p>
+          <!--/qv-->
+        </q:template>
+        <!--/qv-->
+        <!--/qv-->
+      </body>
+    </html>
+    `
+  );
+});
+
 // TODO
 // Merge props on host
 // - host events
@@ -1358,7 +1565,7 @@ export const MyCmp = component$((props: Record<string, any>) => {
 });
 
 export const MyCmpComplex = component$(() => {
-  const ref = useRef();
+  const ref = useSignal<HTMLElement>();
   return (
     <div ref={ref} onClick$={() => console.warn('from component')}>
       <button onClick$={() => console.warn('click')}>Click</button>
@@ -1414,6 +1621,23 @@ export const Events = component$(() => {
   return <div onClick$={() => console.warn('scroll')}></div>;
 });
 
+export const UseOnMultiple = component$(() => {
+  useOn(
+    ['click', 'scroll'],
+    $(() => console.warn('click or scroll'))
+  );
+  useOnWindow(
+    ['click', 'scroll'],
+    $(() => console.warn('window:click or scroll'))
+  );
+  useOnDocument(
+    ['click', 'scroll'],
+    $(() => console.warn('document:click or scroll'))
+  );
+
+  return <div onClick$={() => console.warn('scroll')}></div>;
+});
+
 export const Styles = component$(() => {
   useStylesQrl(inlinedQrl('.host {color: red}', 'styles_987'));
 
@@ -1422,6 +1646,7 @@ export const Styles = component$(() => {
 
 export const ScopedStyles1 = component$(() => {
   useStylesScopedQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+  useStylesScopedQrl(inlinedQrl('.blue {color: blue}', 'styles_scoped_2'));
 
   return (
     <div class="host">
@@ -1472,9 +1697,9 @@ export const ComponentA = component$(() => {
   );
 });
 
-const CTX_INTERNAL = createContext<{ value: string }>('internal');
-const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
-const CTX_VALUE = createContext<{ value: string }>('value');
+const CTX_INTERNAL = createContextId<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContextId<{ value: string }>('qwikcity');
+const CTX_VALUE = createContextId<{ value: string }>('value');
 
 export const VariadicContext = component$(() => {
   return (
@@ -1536,10 +1761,10 @@ export const ContextConsumer = component$(() => {
 });
 
 export const UseClientEffect = component$((props: any) => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1551,10 +1776,10 @@ export const UseClientEffect = component$((props: any) => {
 });
 
 export const UseEmptyClientEffect = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('second client effect');
   });
   useTask$(async () => {
@@ -1565,7 +1790,7 @@ export const UseEmptyClientEffect = component$(() => {
 });
 
 export const HeadCmp = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('client effect');
   });
   return (
@@ -1608,7 +1833,7 @@ async function testSSR(
       chunks.push(chunk);
     },
   };
-  await renderSSR(node, {
+  await _renderSSR(node, {
     stream,
     containerTagName: 'html',
     containerAttributes: {},
@@ -1629,7 +1854,7 @@ export const DelayResource = component$((props: { text: string; delay: number })
   useStylesQrl(inlinedQrl(`.cmp {background: blue}`, 'styles_DelayResource'));
 
   const resource = useResource$<string>(async ({ track }) => {
-    track(props, 'text');
+    track(() => props.text);
     await delay(props.delay);
     return props.text;
   });
@@ -1645,20 +1870,52 @@ export const NullCmp = component$(() => {
 });
 
 export const EffectTransparent = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('log');
   });
   return (
     <EffectTransparent>
       <section>Hello</section>
     </EffectTransparent>
+  );
+});
+
+export const HideUntilVisible = component$(() => {
+  const isNotVisible = useSignal(true);
+
+  useVisibleTask$(() => {
+    if (isNotVisible.value) {
+      isNotVisible.value = false;
+    }
+  });
+
+  // NOTE: if you comment the line below,
+  // there will only be one "Content"
+  if (isNotVisible.value) {
+    return <div></div>;
+  }
+
+  return (
+    <div>
+      <p>Hide until visible</p>
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue4283 = component$(() => {
+  return (
+    <HideUntilVisible>
+      <p>Content</p>
+      <Slot />
+    </HideUntilVisible>
   );
 });
 

@@ -4,7 +4,7 @@ export const getCacheToDelete = (appBundles: AppBundle[], cachedUrls: string[]) 
   cachedUrls.filter((url) => !appBundles.some((appBundle) => url.endsWith(appBundle[0])));
 
 export const useCache = (request: Request, response: Response | undefined) =>
-  !!response && !hasNoCacheHeader(request) && !hasNoCacheHeader(response);
+  !!response && !hasNoCacheHeader(response);
 
 const hasNoCacheHeader = (r: { headers: Headers }) => {
   const cacheControl = r.headers.get('Cache-Control') || '';

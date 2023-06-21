@@ -24,9 +24,63 @@ const testConfig = {
 };
 
 const ruleTester = new RuleTester(testConfig as any);
-test('no-use-after-await', () => {
-  ruleTester.run('my-rule', rules['no-use-after-await'] as any, {
+test('use-method-usage', () => {
+  ruleTester.run('my-rule', rules['use-method-usage'] as any, {
     valid: [
+      `
+export function useSession1() {
+  useContext();
+}
+export function useSession2() {
+  return useContext();
+}
+export function useSession3() {
+  return useContext().value;
+}
+`,
+      `
+export const useSession1 = () => {
+  useContext();
+}
+
+export const useSession2 = () => {
+  return useContext();
+}
+
+export const useSession3 = () => useContext();
+
+export const useSession4 = () => useContext().value;
+
+export const useSession5 = () => useContext().value + 10;
+
+`,
+
+      `
+export const useSession1 = () => {
+  useContext()?.value;
+}
+
+export const useSession2 = () => {
+  return useContext()?.value;
+}
+
+export const useSession3 = () => useContext()?.value;
+
+export const useSession4 = () => useContext()?.value;
+
+export const useSession5 = () => useContext()?.value; + 10;
+
+`,
+      `
+export const HelloWorld = component$(async () => {
+  const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
+    loader: useFormLoader(),
+    action: useFormAction(),
+    validate: zodForm$(todoSchema),
+  });
+
+  });
+  `,
       `
       export const HelloWorld = component$(async () => {
           useMethod();
@@ -47,10 +101,14 @@ test('no-use-after-await', () => {
           await something();
           await stuff();
           return $(() => {
-            useHostElement();
             return <div></div>
           });
         });`,
+      `export const HelloWorld = component$(async () => {
+          const test = useFunction() as string;
+        
+          });
+          `,
     ],
     invalid: [
       {
@@ -65,7 +123,7 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
+        errors: [{ messageId: 'use-after-await' }],
       },
       {
         code: `export const HelloWorld = component$(async () => {
@@ -81,7 +139,40 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
+        errors: [{ messageId: 'use-after-await' }],
+      },
+
+      {
+        code: `export function noUseSession() {
+          useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+          useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => useContext();`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => useContext().value;`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
       },
     ],
   });
@@ -90,6 +181,23 @@ test('no-use-after-await', () => {
 test('valid-lexical-scope', () => {
   ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
     valid: [
+      `
+      import { component$, useTask$, useSignal } from '@builder.io/qwik';
+      enum Color {
+        Red,
+        Blue,
+        Green,
+      }
+
+      export default component$(() => {
+        const color: Color = useSignal({ color: Color.Red })
+
+        useTask$(() => {
+          color.value.color = Color.Blue
+        });
+        return <></>
+      })
+      `,
       `
       import { component$, SSRStream } from "@builder.io/qwik";
 import { Readable } from "stream";
@@ -249,11 +357,17 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
 
   export interface Props {
     method$: PropFunction<() => void>;
+    method1$: PropFunction<() => void>;
+    method2$: PropFunction<() => void> | null;
   }
 
-  export const HelloWorld = component$((props: Props) => {
-    return <div onClick$={async () => {
-      await props.method$();
+  export const HelloWorld = component$(({method$, method1$, method2$, method3$}: Props) => {
+    return <div
+     onKeydown$={method$}
+     onKeydown1$={method1$}
+     onKeydown2$={method2$}
+     onClick$={async () => {
+      await method$();
     }}></div>;
   });
       `,
@@ -291,20 +405,15 @@ export default component$(() => {
         );
       });
     `,
-    ],
-    invalid: [
-      {
-        code: `
+      `
           const useMethod = 12;
           export const HelloWorld = component$(() => {
             const foo = 'bar';
             useMethod(foo);
             return <div></div>
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
-      },
+    ],
+    invalid: [
       {
         code: `
           export const HelloWorld = component$(() => {
@@ -317,9 +426,7 @@ export default component$(() => {
             });
             return <div></div>;
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -333,9 +440,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -347,9 +452,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("Stuff") can not be captured inside the scope (useTask$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -362,9 +465,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("stuff") can not be captured inside the scope (useTask$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -377,9 +478,25 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useTask$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
+      },
+      {
+        code: `
+        import { component$, useTask$, useSignal } from '@builder.io/qwik';
+
+        export default component$(() => {
+          const color: Color = useSignal({ color: Color.Red })
+          enum Color {
+            Red,
+            Blue,
+            Green,
+          }
+          useTask$(() => {
+            color.value.color = Color.Blue
+          });
+          return <></>
+        })`,
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -399,9 +516,7 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -416,9 +531,7 @@ export default component$(() => {
           });
           return <div></div>
         });`,
-        errors: [
-          'Identifier ("state") can not be captured inside the scope (useTask$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
       {
         code: `
@@ -431,7 +544,9 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+          {
+            messageId: 'invalidJsxDollar',
+          },
         ],
       },
       {
@@ -448,7 +563,9 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+          {
+            messageId: 'mutableIdentifier',
+          },
         ],
       },
       {
@@ -464,33 +581,35 @@ export default component$(() => {
             <button onClick$={() => props.nonserializableTuple}></button>
           );
         });`,
-        errors: [
-          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
-        ],
+        errors: [{ messageId: 'referencesOutside' }],
       },
     ],
   });
 });
 
-test('single-jsx-root', () => {
-  ruleTester.run('my-rule', rules['single-jsx-root'] as any, {
-    valid: [``],
+test('jsx-img', () => {
+  ruleTester.run('jsx-img', rules['jsx-img'], {
+    valid: [
+      `<img width={200} height={200} />`,
+      `<img width="200" height="200" />`,
+      `<img {...props}/>`,
+    ],
     invalid: [
       {
-        code: `export const HelloWorld = component$(async () => {
-            return isLoading ? <>Loading...</> : <div>The value is loaded</div>;
-          });`,
-        errors: [
-          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
-        ],
+        code: `<img height={200} />`,
+        errors: [{ messageId: 'noWidthHeight' }],
       },
       {
-        code: `export const HelloWorld = component$(async () => {
-          return isLoading ? <div>Loading...</div> : <div>The value is loaded</div>
-          });`,
-        errors: [
-          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
-        ],
+        code: `<img width={200} />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img src='./file.png' />`,
+        errors: [{ messageId: 'noWidthHeight' }],
       },
     ],
   });

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const token = process.env.API_TOKEN_GITHUB;
+const token = process.env.QWIK_API_TOKEN_GITHUB;
 const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 
@@ -18,8 +18,18 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
     buildRepo: 'qwik-city-build',
     artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
   });
+  const finishCreateQwikCli = await prepare({
+    buildRepo: 'qwik-create-cli-build',
+    artifactsDir: join(root, 'packages', 'create-qwik', 'dist'),
+  });
+  const finishQwikLabs = await prepare({
+    buildRepo: 'qwik-labs-build',
+    artifactsDir: join(root, 'packages', 'qwik-labs', 'lib'),
+  });
   await finishQwik();
   await finishQwikCity();
+  await finishCreateQwikCli();
+  await finishQwikLabs();
 })();
 
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {

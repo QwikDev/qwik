@@ -9,12 +9,11 @@
   margin-bottom: 3px;
 }
 
-.sidebar summary h5{
- transition: color .2s ease-in-out;
+.sidebar summary h5 {
+  transition: color 0.2s ease-in-out;
 }
 
-
-.sidebar summary:hover h5{
+.sidebar summary:hover h5 {
   color: var(--text-color);
 }
 
@@ -106,7 +105,7 @@
 details li {
   @apply py-1 pl-3 block overflow-hidden text-ellipsis;
   padding: unset;
-  transition: background-color .2s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 details li:hover {
@@ -119,7 +118,7 @@ details li a {
 
 .menu li a {
   color: var(--secondary-text-color);
-  padding: .5rem 20px;
+  padding: 0.5rem 20px;
   border-radius: 4px;
 }
 

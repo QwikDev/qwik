@@ -167,9 +167,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           } else {
             window.scrollTo(0, 0);
           }
-        } else if (type === 'popstate') {
-          // Re-enable scroll handler for anchor tag hashpops.
-          (window as ClientHistoryWindow)._qCityScrollHandlerEnabled = true;
         }
       }
 

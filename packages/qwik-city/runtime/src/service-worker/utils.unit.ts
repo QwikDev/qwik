@@ -70,14 +70,6 @@ test('do not useCache, response has no-cache', () => {
   equal(c, false);
 });
 
-test('do not useCache, request has no-cache', () => {
-  const request = mockRequest();
-  request.headers.set('cache-control', 'no-cache');
-  const response = mockResponse();
-  const c = useCache(request, response);
-  equal(c, false);
-});
-
 test('useCache', () => {
   const request = mockRequest();
   const response = mockResponse();

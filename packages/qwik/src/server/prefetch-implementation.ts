@@ -1,6 +1,7 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import {
   flattenPrefetchResources,
+  getMostReferenced,
   prefetchUrlsEventScript,
   workerFetchScript,
 } from './prefetch-utils';
@@ -43,9 +44,18 @@ function prefetchUrlsEvent(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
+  const mostReferenced = getMostReferenced(prefetchResources);
+  for (const url of mostReferenced) {
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'modulepreload',
+        href: url,
+        nonce,
+      })
+    );
+  }
   prefetchNodes.push(
     jsx('script', {
-      type: 'module',
       dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
       nonce,
     })

@@ -7,7 +7,6 @@
   display: block;
   padding-top: 3px;
   margin-bottom: 3px;
-  transition: color .3s ease-in-out;
 }
 
 .sidebar summary h5{

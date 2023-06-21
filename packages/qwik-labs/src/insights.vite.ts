@@ -1,4 +1,4 @@
-import { QwikVitePluginOptions } from '@builder.io/qwik/optimizer';
+import { type QwikVitePluginOptions } from '@builder.io/qwik/optimizer';
 
 export async function insightsEntryStrategy({
   publicApiKey,

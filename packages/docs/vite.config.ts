@@ -7,7 +7,9 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import Inspect from 'vite-plugin-inspect';
-import { insightsEntryStrategy } from '../qwik-labs/src';
+// import { insightsEntryStrategy } from '@builder.io/qwik-labs';
+
+export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 
 export default defineConfig(async () => {
   const { default: rehypePrettyCode } = await import('rehype-pretty-code');
@@ -95,18 +97,18 @@ export default defineConfig(async () => {
         },
       }),
       qwikVite({
-        entryStrategy: await insightsEntryStrategy({
-          publicApiKey: loadEnv('', '.').PUBLIC_QWIK_INSIGHT_KEY,
-        }),
-        // entryStrategy: {
-        //   type: 'smart',
-        //   manual: {
-        //     ...page,
-        //     ...menus,
-        //     ...algoliaSearch,
-        //     ...repl,
-        //   },
-        // },
+        // entryStrategy: await insightsEntryStrategy({
+        //   publicApiKey: PUBLIC_QWIK_INSIGHT_KEY,
+        // }),
+        entryStrategy: {
+          type: 'smart',
+          manual: {
+            ...page,
+            ...menus,
+            ...algoliaSearch,
+            ...repl,
+          },
+        },
       }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
@@ -125,17 +127,17 @@ export default defineConfig(async () => {
   };
 });
 
-const page = {
+export const page = {
   KnNE9eL0qfc: 'page',
   '9t1uPE4yoLA': 'page',
 };
 
-const menus = {
+export const menus = {
   S0wV0vUzzSo: 'right',
   '5wL0DAwmu0A': 'left',
 };
 
-const algoliaSearch = bundle('algoliasearch', [
+export const algoliaSearch = bundle('algoliasearch', [
   'hW',
   '9t1uPE4yoLA',
   'I5CyQjO9FjQ',
@@ -170,7 +172,7 @@ const algoliaSearch = bundle('algoliasearch', [
   'S0wV0vUzzSo',
 ]);
 
-const repl = bundle('repl', [
+export const repl = bundle('repl', [
   's_XoQB11UZ1S0',
   's_AqHBIVNKf34',
   's_IRhp4u7HN3o',

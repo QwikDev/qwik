@@ -4,7 +4,6 @@ import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-for
 import { applicationTable, getDB } from '~/db';
 import { ApplicationForm } from '../../[publicApiKey]/app.form';
 import { eq } from 'drizzle-orm';
-import { a } from 'drizzle-orm/column.d-b7dc3bdb';
 import { url } from '~/url';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
@@ -54,6 +53,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 );
 
 export default component$(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loginForm, { Form, Field, FieldArray }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
     action: useFormAction(),

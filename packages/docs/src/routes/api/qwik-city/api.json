@@ -320,7 +320,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [end?](#) |  | boolean | _(Optional)_ |\n|  [prefetch?](#) |  | boolean | _(Optional)_ |\n|  [reload?](#) |  | boolean | _(Optional)_ |",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [end?](#) |  | boolean | _(Optional)_ The end prop changes the matching logic for the aria-current attribute to only match to the \"end\" of the Link's href path. If the URL is longer than href, it will no longer be considered active.. |\n|  [prefetch?](#) |  | boolean | _(Optional)_ The prefetch prop tells Qwik to prefetch the code for the Link's destination. |\n|  [reload?](#) |  | boolean | _(Optional)_ The reload prop forces a reload of the current route when a Link is clicked, even if the current route is the same as the Link's destination. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
       "mdFile": "qwik-city.linkprops.md"
     },

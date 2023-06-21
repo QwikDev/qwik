@@ -329,11 +329,11 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property       | Modifiers | Type    | Description  |
-| -------------- | --------- | ------- | ------------ |
-| [end?](#)      |           | boolean | _(Optional)_ |
-| [prefetch?](#) |           | boolean | _(Optional)_ |
-| [reload?](#)   |           | boolean | _(Optional)_ |
+| Property       | Modifiers | Type    | Description                                                                                                                                                                                                      |
+| -------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [end?](#)      |           | boolean | _(Optional)_ The end prop changes the matching logic for the aria-current attribute to only match to the "end" of the Link's href path. If the URL is longer than href, it will no longer be considered active.. |
+| [prefetch?](#) |           | boolean | _(Optional)_ The prefetch prop tells Qwik to prefetch the code for the Link's destination.                                                                                                                       |
+| [reload?](#)   |           | boolean | _(Optional)_ The reload prop forces a reload of the current route when a Link is clicked, even if the current route is the same as the Link's destination.                                                       |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 

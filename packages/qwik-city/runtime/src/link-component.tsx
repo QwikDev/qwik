@@ -84,7 +84,16 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
  * @public
  */
 export interface LinkProps extends AnchorAttributes {
+  /**
+   * The prefetch prop tells Qwik to prefetch the code for the Link's destination.
+   */
   prefetch?: boolean;
+  /**
+   * The reload prop forces a reload of the current route when a Link is clicked, even if the current route is the same as the Link's destination.
+   */
   reload?: boolean;
+  /**
+   * The end prop changes the matching logic for the aria-current attribute to only match when current location pathname and href are identical. Otherwise, aria-current will match any location that starts with the href value.
+   */
   end?: boolean;
 }

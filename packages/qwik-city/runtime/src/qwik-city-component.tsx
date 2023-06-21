@@ -158,7 +158,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       replaceState = false,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
-    const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+    let dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+
+    // Remove empty # before sending them into Navigate, it introduces too many edgecases.
+    dest = !dest.hash && dest.href.endsWith('#') ? new URL(dest.href.slice(0, -1)) : dest;
+
     if (!forceReload && dest.href === lastDest.href) {
       if (isBrowser) {
         if (type === 'link') {
@@ -340,9 +344,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
               if (target && !target.getAttribute('preventdefault:click')) {
                 event.preventDefault();
-                const url = new URL(target.getAttribute('href')!, location as any);
-                // Remove empty #, we will re-scroll on same-page navigation in SPA anyway.
-                goto((url.hash && url.href) || url.href.slice(0, -1));
+                goto(target.getAttribute('href')!);
               }
             });
 

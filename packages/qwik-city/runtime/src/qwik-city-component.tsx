@@ -328,21 +328,22 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // ... even if the URL is already on the #hash.
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
-            // We patch these events and direct them to Link pipeline.
-            if (navigator.userAgent.indexOf('Firefox') !== -1) {
-              document.body.addEventListener('click', (event) => {
-                if (event.defaultPrevented) {
-                  return;
-                }
+            // However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
+            // We patch these events and direct them to Link pipeline during SPA.
+            document.body.addEventListener('click', (event) => {
+              if (event.defaultPrevented) {
+                return;
+              }
 
-                const target = (event.target as HTMLElement).closest('a[href^="#"]');
+              const target = (event.target as HTMLElement).closest('a[href^="#"]');
 
-                if (target && !target.getAttribute('preventdefault:click')) {
-                  event.preventDefault();
-                  goto(target.getAttribute('href')!);
-                }
-              });
-            }
+              if (target && !target.getAttribute('preventdefault:click')) {
+                event.preventDefault();
+                const url = new URL(target.getAttribute('href')!, location as any);
+                // Remove empty #, we will re-scroll on same-page navigation in SPA anyway.
+                goto((url.hash && url.href) || url.href.slice(0, -1));
+              }
+            });
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.

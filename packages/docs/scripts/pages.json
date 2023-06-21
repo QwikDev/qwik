@@ -126,6 +126,10 @@
     "tags": "site"
   },
   {
+    "href": "https://ss-link.netlify.app/",
+    "tags": "app"
+  },
+  {
     "href": "https://necatikcl.dev/",
     "tags": "personal",
     "size": "large"

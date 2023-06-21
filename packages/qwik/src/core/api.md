@@ -112,7 +112,7 @@ export const _deserializeData: (data: string, element?: unknown) => any;
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
@@ -208,7 +208,7 @@ export { h as createElement }
 export { h }
 
 // @public (undocumented)
-export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     about?: string | undefined;
     // (undocumented)
@@ -499,7 +499,7 @@ export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, Nat
 }
 
 // @public (undocumented)
-export interface QwikDOMAttributes extends DOMAttributes<any> {
+export interface QwikDOMAttributes extends DOMAttributes<Element> {
 }
 
 // @public (undocumented)
@@ -525,10 +525,6 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     //
     // (undocumented)
     [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-    // Warning: (ae-forgotten-export) The symbol "QwikScriptHTMLAttributes" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    script: QwikScriptHTMLAttributes<HTMLScriptElement>;
 }
 
 // @public (undocumented)
@@ -552,8 +548,10 @@ export namespace QwikJSX {
     // (undocumented)
     export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
+    // Warning: (ae-forgotten-export) The symbol "AddRef" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    export interface IntrinsicElements extends QwikIntrinsicElements {
+    export interface IntrinsicElements extends AddRef<QwikIntrinsicElements> {
     }
 }
 

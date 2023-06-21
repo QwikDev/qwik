@@ -461,7 +461,7 @@ createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 ## DOMAttributes
 
 ```typescript
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T>
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T>
 ```
 
 **Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;
@@ -651,7 +651,7 @@ export declare namespace h
 ## HTMLAttributes
 
 ```typescript
-export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T>
+export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T>
 ```
 
 **Extends:** [AriaAttributes](#ariaattributes), [DOMAttributes](#domattributes)&lt;T&gt;
@@ -1176,10 +1176,10 @@ export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, Nat
 ## QwikDOMAttributes
 
 ```typescript
-export interface QwikDOMAttributes extends DOMAttributes<any>
+export interface QwikDOMAttributes extends DOMAttributes<Element>
 ```
 
-**Extends:** [DOMAttributes](#domattributes)&lt;any&gt;
+**Extends:** [DOMAttributes](#domattributes)&lt;Element&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
 
@@ -1237,10 +1237,6 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 ```
 
 **Extends:** IntrinsicHTMLElements
-
-| Property    | Modifiers | Type                                              | Description |
-| ----------- | --------- | ------------------------------------------------- | ----------- |
-| [script](#) |           | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
 

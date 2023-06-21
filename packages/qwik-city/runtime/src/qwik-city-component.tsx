@@ -48,7 +48,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { isSamePathname, toUrl } from './utils';
+import { isSameOrigin, isSamePath, isSamePathname, toUrl } from './utils';
 import { clientNavigate } from './client-navigate';
 import {
   currentScrollState,
@@ -340,11 +340,16 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 return;
               }
 
-              const target = (event.target as HTMLElement).closest('a[href^="#"]');
+              const target = (event.target as HTMLElement).closest('a[href*="#"]');
 
               if (target && !target.getAttribute('preventdefault:click')) {
-                event.preventDefault();
-                goto(target.getAttribute('href')!);
+                const prev = routeLocation.url;
+                const dest = toUrl(target.getAttribute('href')!, prev);
+                // Patch only same-page hash anchors.
+                if (isSameOrigin(dest, prev) && isSamePath(dest, prev)) {
+                  event.preventDefault();
+                  goto(target.getAttribute('href')!);
+                }
               }
             });
 

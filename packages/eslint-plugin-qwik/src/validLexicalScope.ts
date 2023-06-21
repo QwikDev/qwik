@@ -334,7 +334,11 @@ function _isTypeCapturable(
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
     const symbolName = type.symbol.name;
-    if (symbolName === 'PropFnInterface') {
+    if (
+      symbolName === 'PropFnInterface' ||
+      symbolName === 'RefFnInterface' ||
+      symbolName === 'bivarianceHack'
+    ) {
       return;
     }
     let reason = 'is a function, which is not serializable';

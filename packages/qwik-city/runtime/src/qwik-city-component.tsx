@@ -161,8 +161,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
     if (!forceReload && dest.href === lastDest.href) {
       if (isBrowser) {
-        if (type === 'link' && dest.hash) {
-          scrollToHashId(dest.hash);
+        if (type === 'link') {
+          if (dest.hash) {
+            scrollToHashId(dest.hash);
+          } else {
+            window.scrollTo(0, 0);
+          }
         } else if (type === 'popstate') {
           // Re-enable scroll handler for anchor tag hashpops.
           (window as ClientHistoryWindow)._qCityScrollHandlerEnabled = true;

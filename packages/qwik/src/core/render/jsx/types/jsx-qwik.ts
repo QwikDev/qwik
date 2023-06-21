@@ -1,10 +1,6 @@
-import type { DOMAttributes, Ref } from './jsx-qwik-attributes';
+import type { DOMAttributes } from './jsx-qwik-attributes';
 import type { JSXNode } from './jsx-node';
 import type { QwikIntrinsicAttributes, QwikIntrinsicElements } from './jsx-qwik-elements';
-
-type AddRef<T> = {
-  [P in keyof T]: T[P] & { ref?: Ref };
-};
 
 /**
  * @public
@@ -16,7 +12,7 @@ export namespace QwikJSX {
   export interface ElementChildrenAttribute {
     children: any;
   }
-  export interface IntrinsicElements extends AddRef<QwikIntrinsicElements> {}
+  export interface IntrinsicElements extends QwikIntrinsicElements {}
 }
 
 /**

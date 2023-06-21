@@ -548,10 +548,8 @@ export namespace QwikJSX {
     // (undocumented)
     export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
-    // Warning: (ae-forgotten-export) The symbol "AddRef" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    export interface IntrinsicElements extends AddRef<QwikIntrinsicElements> {
+    export interface IntrinsicElements extends QwikIntrinsicElements {
     }
 }
 

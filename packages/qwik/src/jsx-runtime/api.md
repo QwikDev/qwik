@@ -33,11 +33,10 @@ export namespace JSX {
     // (undocumented)
     export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
-    // Warning: (ae-forgotten-export) The symbol "AddRef" needs to be exported by the entry point jsx-runtime.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicElements" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    export interface IntrinsicElements extends AddRef<QwikIntrinsicElements> {
+    export interface IntrinsicElements extends QwikIntrinsicElements {
     }
 }
 

@@ -183,6 +183,7 @@ export type ClassList = BaseClassList | BaseClassList[];
 export interface QwikProps<T extends Element> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
+  ref?: Ref<T> | undefined;
 
   /**
    * Corresponding slot name used to project the element into.
@@ -269,9 +270,11 @@ export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEven
   key?: string | number | null | undefined;
 }
 
+interface RefFnInterface {
+  (el: Element): void;
+}
+
 /**
  * @public
  */
-export type Ref<T extends Element = Element> =
-  | Signal<Element | undefined>
-  | ((el: Element) => void);
+export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;

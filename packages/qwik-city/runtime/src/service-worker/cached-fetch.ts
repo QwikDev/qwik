@@ -5,7 +5,8 @@ export const cachedFetch = (
   cache: Cache,
   fetch: Fetch,
   awaitingRequests: AwaitingRequests,
-  request: Request
+  request: Request,
+  preloadResponse?: Promise<Response> | undefined
 ) =>
   new Promise<Response>((promiseResolve, promiseReject) => {
     const url = request.url;
@@ -59,7 +60,8 @@ export const cachedFetch = (
           } else {
             // no cached response found or user didn't want to use the cache
             // do a full network request
-            return fetch(request).then(async (networkResponse) => {
+            const responsePromise = preloadResponse ? preloadResponse : fetch(request);
+            return responsePromise.then(async (networkResponse) => {
               if (networkResponse.ok) {
                 // network response was good, let's cache it
                 await cache.put(url, networkResponse.clone());

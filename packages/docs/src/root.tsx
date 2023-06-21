@@ -21,7 +21,7 @@ export default component$(() => {
       <head>
         <meta charSet="utf-8" />
         <RouterHead />
-        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
+        <ServiceWorkerRegister />
       </head>
       <body
         class={{
@@ -30,7 +30,6 @@ export default component$(() => {
         }}
       >
         <RouterOutlet />
-        <ServiceWorkerRegister />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
       </body>
     </QwikCityProvider>

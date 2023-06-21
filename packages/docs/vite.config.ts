@@ -13,6 +13,11 @@ export default defineConfig(async () => {
 
   const routesDir = resolve('src', 'routes');
   return {
+    preview: {
+      headers: {
+        'Cache-Control': 'public, max-age=600',
+      },
+    },
     ssr: {
       noExternal: [
         '@mui/material',

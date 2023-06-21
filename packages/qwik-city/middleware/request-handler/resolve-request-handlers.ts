@@ -431,7 +431,7 @@ export function renderQwikMiddleware(render: Render) {
       const isStatic = getRequestMode(requestEv) === 'static';
       const result = await render({
         base: requestEv.basePathname + 'build/',
-        stream: stream,
+        stream,
         serverData: getQwikCityServerData(requestEv),
         containerAttributes: {
           ['q:render']: isStatic ? 'static' : '',

@@ -324,7 +324,25 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
             win.removeEventListener('popstate', win._qCityPopstateFallback!);
 
-            // TODO Fix Firefox anchor tag re-scroll. (doesn't trigger any events)
+            // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
+            // ... even if the URL is already on the #hash.
+            // Firefox only does it once and no more, but will still scroll. It also sets state to null.
+            // Any <a> tags w/ #hash href will break SPA state in Firefox.
+            // We patch these events and direct them to Link pipeline.
+            if (navigator.userAgent.indexOf('Firefox') !== -1) {
+              document.body.addEventListener('click', (event) => {
+                if (event.defaultPrevented) {
+                  return;
+                }
+
+                const target = (event.target as HTMLElement).closest('a[href^="#"]');
+
+                if (target && !target.getAttribute('preventdefault:click')) {
+                  event.preventDefault();
+                  goto(target.getAttribute('href')!);
+                }
+              });
+            }
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.

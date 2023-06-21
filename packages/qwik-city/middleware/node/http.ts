@@ -85,15 +85,10 @@ export async function fromNodeHttp(
         res.setHeader('Set-Cookie', cookieHeaders);
       }
       return new WritableStream<Uint8Array>({
-        start(controller) {
-          res.on('close', () => controller.error());
-        },
-        write(chunk, controller) {
+        write(chunk) {
           res.write(chunk, (error) => {
             if (error) {
-              // FIXME: Ideally, we would like to inform the writer that this was an error.
-              //        Not all writers seem to handle rejections, though.
-              // controller.error(error);
+              console.error(error);
             }
           });
         },

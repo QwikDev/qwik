@@ -12,6 +12,7 @@
     "dev": "vite --mode ssr --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "preview": "qwik build preview && vite preview --open",
+    "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
     "preview.wrangler": "wrangler pages dev ./dist",
     "build.showcase": "pnpm node scripts/showcase.js",
     "start": "pnpm dev",

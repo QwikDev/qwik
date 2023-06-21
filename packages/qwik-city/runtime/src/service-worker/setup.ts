@@ -70,16 +70,16 @@ export const setupServiceWorkerScope = (
           // Enable navigation preloads!
           await (self as any as ServiceWorkerGlobalScope).registration.navigationPreload.enable();
         }
+        try {
+          const qBuildCache = await swScope.caches.open(qBuildCacheName);
+          const cachedRequestKeys = await qBuildCache.keys();
+          const cachedUrls = cachedRequestKeys.map((r) => r.url);
+          const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
+          await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
+        } catch (e) {
+          console.error(e);
+        }
       })()
     );
-    try {
-      const qBuildCache = await swScope.caches.open(qBuildCacheName);
-      const cachedRequestKeys = await qBuildCache.keys();
-      const cachedUrls = cachedRequestKeys.map((r) => r.url);
-      const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
-      await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
-    } catch (e) {
-      console.error(e);
-    }
   });
 };

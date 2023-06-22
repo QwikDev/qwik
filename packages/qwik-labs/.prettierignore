@@ -4,5 +4,8 @@
 *.
 dist
 node_modules
+<<<<<<< HEAD
 lib
 lib-types
+=======
+>>>>>>> 2bc94b254 (chore: create `@builder.io/qwik-labs`)

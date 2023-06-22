@@ -35,6 +35,11 @@
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 - [Deprecated Features](/docs/(qwikcity)/qwikcity-deprecated-features/index.mdx)
 
+## Qwik Labs 🧪
+
+- [Overview](/docs/labs/index.mdx)
+- [Insights](/docs/labs/insights/index.mdx)
+
 ## Integrations
 
 - [Overview](integrations/index.mdx)

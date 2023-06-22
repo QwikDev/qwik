@@ -1,0 +1,48 @@
+---
+title: 🧪 Qwik Labs
+contributors:
+  - mhevery
+---
+
+# 🧪 Qwik Labs Overview
+
+Qwik Labs is an incubator for ideas that are not yet ready for production. It is a place where we can publish our "work in progress" so that the community can give it a try and provide feedback without any guarantees that the feature is stable or it will make it to production. Because these are ideas in initial stages of forming, chances are that they will significantly change over their lifetime and so should not be relied upon in production. 
+
+USE AT YOUR OWN RISK.
+
+> **DISCLAIMER:** Qwik Labs is a place to experiment, as such:
+> - We make to guarantees about stability of API: _we can break it at any point._
+> - It is not ready for production: _we want you to try it and give us feedback so that we can improve._
+> - No guarantees that the feature will ever make it to production: _it can be abandon at any point._
+>
+> **Expect lots of breaking changes as the features are being developed!!!**
+
+## Stages
+
+Each Qwik Labs feature can roughly be thought of as going through these stages:
+1. `proposal`: An RFC proposal no code yet
+2. `prototyping`: An experimental stage where we explore the API, algorithm and approaches. Missing features, probably not in a usable state.
+3. `implementation`: We know what needs to be built and are going through the built out process.
+4. `alpha`: We think the project is ready to receive feedback from the community. Try it out and let us know what works and what does not.
+5. `beta`: We think the project is ready to graduate to the main repo and be used in production.
+
+## Installation
+
+Qwik labs are distributed as a separate node package. Because Qwik Labs is "work in progress" the node package is not published to NPM but instead as a github URL. The package is continually updated and so it will always contains the latest build. (You may read up on installing node packages [here](https://docs.npmjs.com/cli/v8/commands/npm-install).)
+
+
+```sh
+npm install github:BuilderIo/qwik-labs-build#main
+```
+
+Or just add this to your `pakcage.json`
+
+```javascript
+{
+  ...
+  "dependencies": {
+    ...
+    "@builder.io/qwik-labs": "github:BuilderIo/qwik-labs-build#main",
+  }
+}
+```

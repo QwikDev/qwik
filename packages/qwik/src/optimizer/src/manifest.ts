@@ -259,7 +259,6 @@ export function generateManifestFromBundles(
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
-      forceFullBuild: opts.forceFullBuild,
       entryStrategy: opts.entryStrategy,
     },
   };

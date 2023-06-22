@@ -47,7 +47,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         target: qwikRollupOpts.target,
         buildMode: qwikRollupOpts.buildMode,
         debug: qwikRollupOpts.debug,
-        forceFullBuild: qwikRollupOpts.forceFullBuild ?? true,
         entryStrategy: qwikRollupOpts.entryStrategy,
         rootDir: qwikRollupOpts.rootDir,
         srcDir: qwikRollupOpts.srcDir,
@@ -263,7 +262,6 @@ export interface QwikRollupPluginOptions {
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   /**
    * The source directory to find all the Qwik components. Since Qwik
    * does not have a single input, the `srcDir` is used to recursively

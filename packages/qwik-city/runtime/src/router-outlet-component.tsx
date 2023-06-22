@@ -11,11 +11,9 @@ import {
 } from '@builder.io/qwik';
 
 import { ContentInternalContext } from './contexts';
-// TODO!!! Finalize imports here after SPA recovery determined.
-// TODO!!! Reset innerHTML below.
 // import popStateScript from './init-popstate.txt?raw';
-//@ts-ignore
-import popStateScript from './init-popstate';
+// TODO Replace this with SHIM after finalized.
+import spaStateScript from './init-spa';
 
 /**
  * @public
@@ -39,7 +37,7 @@ export const RouterOutlet = component$(() => {
       <>
         {cmp}
         <script
-          dangerouslySetInnerHTML={`(${popStateScript.toString()})();`}
+          dangerouslySetInnerHTML={`(${spaStateScript.toString()})(window,location,history,document);`}
           nonce={nonce}
         ></script>
       </>

@@ -43,4 +43,4 @@ export default () => {
   }
 
   console.log('END: init-popstate.js');
-}
+};

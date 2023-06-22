@@ -22,7 +22,10 @@ export const Link = component$<LinkProps>((props) => {
         )
       : undefined;
   const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
-    if (elm.href) {
+    if (elm.hasAttribute('q:bootstrap')) {
+      // Allow bootstrapping into useNavigate.
+      await nav(location.href, { type: 'popstate' });
+    } else if (elm.href) {
       elm.setAttribute('aria-pressed', 'true');
       await nav(elm.href, { forceReload: reload });
       elm.removeAttribute('aria-pressed');

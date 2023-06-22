@@ -88,7 +88,8 @@
 .ecosystem-menu a {
   padding: 10px 10px;
   margin: 5px 0;
-  display: block;
+  display: flex;
+  align-items: center;
   border: 1px solid transparent;
   border-radius: 5px;
 }

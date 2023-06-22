@@ -156,7 +156,7 @@ export function resolveRoute(
   }
 
   const buildRoute: BuildRoute = {
-    id: createFileId(opts.routesDir, filePath),
+    id: createFileId(opts.routesDir, filePath, 'Route'),
     filePath,
     pathname,
     layouts: layouts.reverse(),
@@ -170,7 +170,7 @@ export function resolveRoute(
 export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const filePath = sourceFile.filePath;
   const buildRoute: BuildServerPlugin = {
-    id: createFileId(opts.serverPluginsDir, filePath),
+    id: createFileId(opts.serverPluginsDir, filePath, 'Plugin'),
     filePath,
     ext: sourceFile.ext,
   };
@@ -182,7 +182,7 @@ function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
-    id: createFileId(opts.routesDir, sourceFile.filePath),
+    id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
     filePath: sourceFile.filePath,
     chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),
@@ -197,7 +197,7 @@ function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: Ro
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
-    id: createFileId(opts.routesDir, sourceFile.filePath),
+    id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
     filePath: sourceFile.filePath,
     chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),

@@ -22,7 +22,7 @@ export async function walkServerPlugins(opts: NormalizedPluginOptions) {
 
       if (isModuleExt(ext) && isPluginModule(extlessName)) {
         sourceFiles.push({
-          id: createFileId(opts.serverPluginsDir, itemPath),
+          id: createFileId(opts.serverPluginsDir, itemPath, 'Plugin'),
           filePath: itemPath,
           ext,
         });

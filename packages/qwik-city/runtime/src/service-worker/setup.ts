@@ -4,7 +4,6 @@ import { cachedFetch } from './cached-fetch';
 import { computeAppSymbols, getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
 import { prefetchBundleNames, prefetchLinkBundles, prefetchWaterfall } from './prefetch';
 
-
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
   appBundles: AppBundle[],
@@ -78,7 +77,7 @@ export const setupServiceWorkerScope = (
       } catch (e) {
         console.error(e);
       }
-    })()
+    })();
   });
 };
 

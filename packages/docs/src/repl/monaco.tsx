@@ -199,6 +199,7 @@ export const addQwikLibs = async (version: string) => {
   const deps = await loadDeps(version);
   deps.forEach((dep) => {
     if (dep && typeof dep.code === 'string' && typeof dep.path === 'string') {
+      console.log('addExtraLib', dep);
       typescriptDefaults.addExtraLib(dep.code, `file://${dep.path}`);
     }
   });
@@ -328,7 +329,7 @@ const getCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
   return `https://cdn.jsdelivr.net/npm/${pkgName}@${pkgVersion}${pkgPath}`;
 };
 
-const MONACO_VERSION = '0.33.0';
+const MONACO_VERSION = '0.39.0';
 const MONACO_VS_URL = getCdnUrl('monaco-editor', MONACO_VERSION, '/min/vs');
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 

@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
-import { resolve } from 'node:path';
+import path, { resolve } from 'node:path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
@@ -17,6 +17,14 @@ export default defineConfig(async () => {
       headers: {
         'Cache-Control': 'public, max-age=600',
       },
+    },
+    resolve: {
+      alias: [
+        {
+          find: '~',
+          replacement: path.resolve(__dirname, 'src'),
+        },
+      ],
     },
     ssr: {
       noExternal: [

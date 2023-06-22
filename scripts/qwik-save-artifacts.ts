@@ -24,7 +24,7 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
   });
   const finishQwikLabs = await prepare({
     buildRepo: 'qwik-labs-build',
-    artifactsDir: join(root, 'packages', 'qwik-labs', 'lib'),
+    artifactsDir: join(root, 'packages', 'qwik-labs'),
   });
   await finishQwik();
   await finishQwikCity();
@@ -39,7 +39,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     return () => null;
   }
   console.log(
-    'preparing to save artifacts to ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
+    'preparing to save artifacts from ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
   );
   const buildRepoDir = join(root, 'dist-dev', buildRepo);
   const repo = token
@@ -113,9 +113,10 @@ async function $(cmd: string, ...args: string[]): Promise<string> {
 }
 
 async function expand(path: string): Promise<string[]> {
-  const { stdout } = await execa('ls', [path]);
+  const { stdout } = await execa('ls', ['-a', path]);
   const paths = String(stdout)
     .split('\n')
+    .filter((v) => v !== '.' && v !== '..' && v !== '.git')
     .map((file) => path + '/' + file.trim());
   return paths;
 }

@@ -4,6 +4,7 @@
       position: absolute;
       border: 1px solid red;
       pointer-events: none;
+      z-index: 1;
     }
 
     #icon {
@@ -41,6 +42,7 @@
       pointer-events: all;
       overflow: hidden;
       box-shadow: 0px -2px 20px 0px #0000002e;
+      z-index: 10000;
     }
 
     .top {
@@ -62,13 +64,24 @@
       padding: 5px;
     }
 
-    .loc {
+    #loc {
       background: #2e3801;
       color: #d2d2d2;
       font-family: monospace;
-      text-align: left;
-      padding: 2px 5px;
+      padding: 3px 5px;
       pointer-events: all;
+      margin: 0;
+      border: 0;
+      cursor: pointer;
+      font-size: 11px;
+      width: calc(100% - 24px);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      display: block;
+      direction: rtl;
+    }
+    #loc:hover {
+      background: #3a4a01;
     }
 
     pre {
@@ -103,6 +116,10 @@
       align-items: center;
       justify-content: center;
       line-height: 1;
+      cursor: pointer;
+    }
+    #close:hover {
+      background: #ffeb6f;
     }
 
     #autofix {
@@ -137,7 +154,7 @@
     <form method="dialog">
       <button id="close" type="submit" aria-label="Close">X</button>
     </form>
-    <div class="loc"></div>
+    <button id="loc"></button>
     <div class="content">
       <h2 id="title"></h2>
       <p id="message"></p>
@@ -169,24 +186,33 @@
 
         this.shadowRoot.addEventListener('click', async (ev) => {
           const target = ev.target;
-          if (target.nodeName === 'BUTTON' && target.id === 'autofix') {
-            if (this.#autofix) {
-              this.#autofix();
-              dialog.close();
-            }
-          } else if (target.nodeName === 'DIV' && target.className === 'icon') {
-            if (dialog.open) {
-              dialog.close();
-            } else {
-              dialog.className = getPositionClasses(target);
-              dialog.show();
+          if (target.nodeName === 'BUTTON') {
+
+            if (target.id === 'autofix') {
+              if (this.#autofix) {
+                this.#autofix();
+                dialog.close();
+              }
+            } else if (target.id === 'icon') {
+              if (dialog.open) {
+                dialog.close();
+              } else {
+                dialog.className = getPositionClasses(target);
+                dialog.show();
+              }
+            } else if (target.id === 'loc' && target.dataset.url) {
+              globalThis.qwikOpenInEditor(target.dataset.url);
             }
           }
         });
       }
 
       set loc(value) {
-        this.shadowRoot.querySelector('.loc').textContent = value;
+        const anchor = this.shadowRoot.querySelector('#loc');
+        anchor.textContent = value;
+        if (globalThis.qwikOpenInEditor) {
+          anchor.dataset.url = value;
+        }
       }
 
       set header(value) {
@@ -231,6 +257,8 @@
       return p;
     }
     async function doImg(node) {
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       const rect = node.getBoundingClientRect();
       const originalSrc = node.currentSrc;
       const info = await getInfo(originalSrc);
@@ -261,8 +289,8 @@
             document.body.appendChild(overlay);
             visibleNodes.set(node, overlay);
           }
-          overlay.style.top = rect.top + 'px';
-          overlay.style.left = rect.left + 'px';
+          overlay.style.top = (rect.top + scrollY) + 'px';
+          overlay.style.left = (rect.left + scrollX) + 'px';
           overlay.style.width = rect.width + 'px';
           overlay.style.height = rect.height + 'px';
           overlay.info = info;
@@ -275,7 +303,8 @@
               '" height="' +
               info.height +
               '"</span></pre>';
-            if (loc && info) {
+            const uniqueLoc = document.querySelectorAll('[data-qwik-inspector="' + loc + '"]').length === 1;
+            if (loc && uniqueLoc) {
               overlay.autofix = async () => {
                 const url = new URL('/__image_fix', location.href);
                 url.searchParams.set('loc', loc);
@@ -348,6 +377,21 @@
       document.body.querySelectorAll('img').forEach((node) => {
         resizeObserver.observe(node);
       });
+      if (typeof PerformanceObserver !== 'undefined') {
+        let DCLS = 0;
+        const perf = new PerformanceObserver((list) => {
+            list.getEntries().forEach((entry) => {
+              if (entry.hadRecentInput) {
+                return;  // Ignore shifts after recent input.
+              }
+              DCLS += entry.value;
+            });
+        });
+        perf.observe({type: "layout-shift", buffered: true});
+
+      }
+      addEventListener("load", () => {
+});
     };
     if (document.readyState === 'complete') {
       activate();

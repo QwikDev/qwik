@@ -140,6 +140,7 @@ export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir
         const column = parseInt(locParts[locParts.length - 1], 10) - 1;
         let line = parseInt(locParts[locParts.length - 2], 10) - 1;
         const filePath = path.resolve(srcDir, locParts.slice(0, locParts.length - 2).join(':'));
+        const extension = path.extname(filePath);
         const buffer = fs.readFileSync(filePath);
         let text = buffer.toString('utf-8');
 
@@ -156,10 +157,9 @@ export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir
 
         if (text.slice(offset, offset + 4) === '<img') {
           const end = text.indexOf('>', offset) + 1;
-
+          const extensionSupportsImport = ['.ts', '.tsx', '.js', '.jsx', '.mdx'].includes(extension);
           let imgTag = text.slice(offset, end);
-
-          if (src && currentHref) {
+          if (src && currentHref && extensionSupportsImport) {
             const urlSrc = new URL(src);
             const urlCurrent = new URL(currentHref);
             if (urlSrc.origin === urlCurrent.origin) {
@@ -186,8 +186,16 @@ export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir
               imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
               imgTag = imgTag.replace(/\bsrc=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
 
-              text = `import ${importIdent} from '${importSrc}';\n${text.slice(
-                0,
+              let insertImport = 0;
+              if (extension === '.mdx' && text.startsWith('---')) {
+                insertImport = text.indexOf('---', 4) + 3;
+                if (insertImport === -1) {
+                  return;
+                }
+              }
+              const newImport = `\nimport ${importIdent} from '${importSrc}';`;
+              text = `${text.slice(0, insertImport)}${newImport}${text.slice(
+                insertImport,
                 offset
               )}${imgTag}${text.slice(end)}`;
               fs.writeFileSync(filePath, text);

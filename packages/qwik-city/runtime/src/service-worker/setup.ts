@@ -4,6 +4,7 @@ import { cachedFetch } from './cached-fetch';
 import { computeAppSymbols, getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
 import { prefetchBundleNames, prefetchLinkBundles, prefetchWaterfall } from './prefetch';
 
+
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
   appBundles: AppBundle[],
@@ -63,23 +64,22 @@ export const setupServiceWorkerScope = (
     }
   });
 
-  swScope.addEventListener('activate', async (event) => {
-    event.waitUntil(
-      (async () => {
-        if ((self as any as ServiceWorkerGlobalScope).registration.navigationPreload) {
-          // Enable navigation preloads!
-          await (self as any as ServiceWorkerGlobalScope).registration.navigationPreload.enable();
-        }
-        try {
-          const qBuildCache = await swScope.caches.open(qBuildCacheName);
-          const cachedRequestKeys = await qBuildCache.keys();
-          const cachedUrls = cachedRequestKeys.map((r) => r.url);
-          const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
-          await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
-        } catch (e) {
-          console.error(e);
-        }
-      })()
-    );
+  swScope.addEventListener('activate', (event) => {
+    if (self.registration.navigationPreload) {
+      event.waitUntil(self.registration.navigationPreload.enable());
+    }
+    (async () => {
+      try {
+        const qBuildCache = await swScope.caches.open(qBuildCacheName);
+        const cachedRequestKeys = await qBuildCache.keys();
+        const cachedUrls = cachedRequestKeys.map((r) => r.url);
+        const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
+        await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
+      } catch (e) {
+        console.error(e);
+      }
+    })()
   });
 };
+
+declare const self: ServiceWorkerGlobalScope;

@@ -23,8 +23,8 @@ export default defineConfig(async () => {
         {
           find: '~',
           replacement: path.resolve(__dirname, 'src'),
-        }
-      ]
+        },
+      ],
     },
     ssr: {
       noExternal: [

@@ -157,7 +157,9 @@ export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir
 
         if (text.slice(offset, offset + 4) === '<img') {
           const end = text.indexOf('>', offset) + 1;
-          const extensionSupportsImport = ['.ts', '.tsx', '.js', '.jsx', '.mdx'].includes(extension);
+          const extensionSupportsImport = ['.ts', '.tsx', '.js', '.jsx', '.mdx'].includes(
+            extension
+          );
           let imgTag = text.slice(offset, end);
           if (src && currentHref && extensionSupportsImport) {
             const urlSrc = new URL(src);

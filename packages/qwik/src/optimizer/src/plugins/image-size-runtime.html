@@ -1,3 +1,21 @@
+<style>
+  [data-qwik-cls] {
+    outline: 2px solid red;
+  }
+  [data-qwik-cls]::after {
+    position: absolute;
+    font-size: 12px;
+    content: 'CLS ' attr(data-qwik-cls);
+    font-family: monospace;
+    font-weight: bold;
+    background: red;
+    color: white;
+    margin: -2px;
+    padding: 1px;
+    line-height: 1;
+    pointer-events: none;
+  }
+</style>
 <template id="image-warning-template">
   <style>
     :host {
@@ -5,6 +23,7 @@
       border: 1px solid red;
       pointer-events: none;
       z-index: 1;
+      contain: layout size;
     }
 
     #icon {
@@ -79,6 +98,7 @@
       overflow: hidden;
       display: block;
       direction: rtl;
+      text-align: right;
     }
     #loc:hover {
       background: #3a4a01;
@@ -122,7 +142,7 @@
       background: #ffeb6f;
     }
 
-    #autofix {
+    #action-btn {
       border: 2px solid #18ae00;
       padding: 2px 4px;
       background: #50ff50;
@@ -158,7 +178,7 @@
     <div class="content">
       <h2 id="title"></h2>
       <p id="message"></p>
-      <p class="autofix"></p>
+      <p class="action-container"></p>
     </div>
   </dialog>
 </template>
@@ -175,7 +195,7 @@
       return `${vertical} ${horizontal}`;
     }
     class ImageWarning extends HTMLElement {
-      #autofix = null;
+      #actionFn = null;
       constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -187,10 +207,9 @@
         this.shadowRoot.addEventListener('click', async (ev) => {
           const target = ev.target;
           if (target.nodeName === 'BUTTON') {
-
-            if (target.id === 'autofix') {
-              if (this.#autofix) {
-                this.#autofix();
+            if (target.id === 'action-btn') {
+              if (this.#actionFn) {
+                this.#actionFn();
                 dialog.close();
               }
             } else if (target.id === 'icon') {
@@ -223,16 +242,20 @@
         this.shadowRoot.querySelector('#message').innerHTML = value;
       }
 
-      set autofix(value) {
-        this.#autofix = value;
+      set actionFn(value) {
+        this.#actionFn = value;
+      }
+      set actionName(value) {
         if (value) {
-          this.shadowRoot.querySelector('.autofix').innerHTML =
-            '<button id="autofix" type="button">Auto fix</button>';
+          this.shadowRoot.querySelector(
+            '.action-container'
+          ).innerHTML = `<button id="action-btn" type="button">${value}</button>`;
         }
       }
     }
     customElements.define('image-warning', ImageWarning);
 
+    const shiftsMap = new Map();
     const visibleNodes = new Map();
     let skip = false;
 
@@ -289,35 +312,41 @@
             document.body.appendChild(overlay);
             visibleNodes.set(node, overlay);
           }
-          overlay.style.top = (rect.top + scrollY) + 'px';
-          overlay.style.left = (rect.left + scrollX) + 'px';
+          overlay.style.top = rect.top + scrollY + 'px';
+          overlay.style.left = rect.left + scrollX + 'px';
           overlay.style.width = rect.width + 'px';
           overlay.style.height = rect.height + 'px';
           overlay.info = info;
           overlay.loc = loc;
           if (layoutInvalidation) {
+            const clipBoard = `width="${info.width}" height="${info.height}"`;
             overlay.header = 'Perf: layout shift';
-            overlay.message =
-              'Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>width="' +
-              info.width +
-              '" height="' +
-              info.height +
-              '"</span></pre>';
-            const uniqueLoc = document.querySelectorAll('[data-qwik-inspector="' + loc + '"]').length === 1;
-            if (loc && uniqueLoc) {
-              overlay.autofix = async () => {
-                const url = new URL('/__image_fix', location.href);
-                url.searchParams.set('loc', loc);
-                url.searchParams.set('width', info.width);
-                url.searchParams.set('height', info.height);
-                if (!node.srcset) {
-                  url.searchParams.set('src', node.currentSrc);
-                  url.searchParams.set('currentHref', location.href);
-                }
-                await fetch(url, {
-                  method: 'POST',
-                });
-              };
+            overlay.message = `Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>${clipBoard}</span></pre>`;
+            const uniqueLoc =
+              document.querySelectorAll('[data-qwik-inspector="' + loc + '"]').length === 1;
+            if (loc) {
+              if (uniqueLoc) {
+                overlay.actionName = 'Auto fix';
+                overlay.actionFn = async () => {
+                  const url = new URL('/__image_fix', location.href);
+                  url.searchParams.set('loc', loc);
+                  url.searchParams.set('width', info.width);
+                  url.searchParams.set('height', info.height);
+                  if (!node.srcset) {
+                    url.searchParams.set('src', node.currentSrc);
+                    url.searchParams.set('currentHref', location.href);
+                  }
+                  await fetch(url, {
+                    method: 'POST',
+                  });
+                };
+              } else {
+                overlay.actionName = 'Open in editor';
+                overlay.actionFn = async () => {
+                  await navigator.clipboard.writeText(clipBoard);
+                  globalThis.qwikOpenInEditor(loc);
+                };
+              }
             }
           } else if (tooBig) {
             overlay.header = 'Perf: properly size image';
@@ -354,7 +383,7 @@
       for (const mutation of entry) {
         for (const node of mutation.addedNodes) {
           if (node.nodeName === 'IMG') {
-            resizeObserver.observe(img);
+            resizeObserver.observe(node);
           } else if (node.nodeType === 1) {
             node.querySelectorAll('img').forEach((img) => {
               resizeObserver.observe(img);
@@ -365,38 +394,61 @@
           if (node.nodeName === 'IMG') {
             updateImg(node);
             resizeObserver.unobserve(node);
+          } else if (node.nodeType === 1) {
+            node.querySelectorAll('img').forEach((img) => {
+              updateImg(img);
+              resizeObserver.unobserve(img);
+            });
           }
         }
       }
     });
+    let perfObserver;
+    let DCLS = 0;
     const activate = () => {
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
-      document.body.querySelectorAll('img').forEach((node) => {
-        resizeObserver.observe(node);
-      });
-      if (typeof PerformanceObserver !== 'undefined') {
-        let DCLS = 0;
-        const perf = new PerformanceObserver((list) => {
-            list.getEntries().forEach((entry) => {
-              if (entry.hadRecentInput) {
-                return;  // Ignore shifts after recent input.
-              }
-              DCLS += entry.value;
-            });
+      setTimeout(() => {
+        if (perfObserver) {
+          perfObserver.disconnect();
+          if (DCLS > 0.005) {
+            console.error('Detected Layout Shift during page load', DCLS);
+          }
+        }
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
         });
-        perf.observe({type: "layout-shift", buffered: true});
-
-      }
-      addEventListener("load", () => {
-});
+        document.body.querySelectorAll('img').forEach((node) => {
+          resizeObserver.observe(node);
+        });
+      }, 100);
     };
     if (document.readyState === 'complete') {
       activate();
     } else {
       window.addEventListener('load', activate);
+    }
+    if (typeof PerformanceObserver !== 'undefined') {
+      const shiftsMap = new Map();
+      perfObserver = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          if (entry.hadRecentInput) {
+            return; // Ignore shifts after recent input.
+          }
+          if (entry.value > 0.006) {
+            for (const source of entry.sources) {
+              if (
+                source.node &&
+                source.node.nodeType === 1 &&
+                source.node.nodeName !== 'IMAGE-WARNING'
+              ) {
+                source.node.setAttribute('data-qwik-cls', Number(entry.value).toFixed(3));
+              }
+            }
+          }
+          DCLS += entry.value;
+        });
+      });
+      perfObserver.observe({ type: 'layout-shift', buffered: true });
     }
   })();
 </script>

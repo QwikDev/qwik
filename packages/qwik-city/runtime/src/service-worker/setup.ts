@@ -64,9 +64,9 @@ export const setupServiceWorkerScope = (
   });
 
   swScope.addEventListener('activate', (event) => {
-    if (self.registration.navigationPreload) {
-      event.waitUntil(self.registration.navigationPreload.enable());
-    }
+    // if (self.registration.navigationPreload) {
+    //   event.waitUntil(self.registration.navigationPreload.enable());
+    // }
     (async () => {
       try {
         const qBuildCache = await swScope.caches.open(qBuildCacheName);

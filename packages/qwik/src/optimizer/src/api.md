@@ -82,6 +82,8 @@ export interface HookAnalysis {
 // @public (undocumented)
 export interface HookEntryStrategy {
     // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
     type: 'hook';
 }
 
@@ -209,7 +211,6 @@ export interface QwikManifest {
     options?: {
         target?: string;
         buildMode?: string;
-        forceFullBuild?: boolean;
         entryStrategy?: {
             [key: string]: any;
         };
@@ -234,8 +235,6 @@ export interface QwikRollupPluginOptions {
     buildMode?: QwikBuildMode;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
-    // (undocumented)
-    forceFullBuild?: boolean;
     manifestInput?: QwikManifest;
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     // (undocumented)

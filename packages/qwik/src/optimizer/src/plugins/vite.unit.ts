@@ -55,7 +55,6 @@ vite('command: serve, mode: development', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, false);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
@@ -89,7 +88,6 @@ vite('command: serve, mode: production', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, false);
   equal(opts.resolveQwikBuild, true);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
@@ -124,7 +122,6 @@ vite('command: build, mode: development', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
@@ -162,7 +159,6 @@ vite('command: build, mode: production', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
@@ -227,7 +223,6 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');

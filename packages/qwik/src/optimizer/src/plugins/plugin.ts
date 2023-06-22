@@ -66,6 +66,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
+  const hookManifest: Record<string, string> = {};
   let diagnosticsCallback: (
     d: Diagnostic[],
     optimizer: Optimizer,
@@ -81,7 +82,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     input: null as any,
     outDir: null as any,
     resolveQwikBuild: true,
-    forceFullBuild: false,
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
@@ -180,31 +180,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = null;
     } else {
       opts.srcDir = srcDir;
-    }
-
-    if (typeof updatedOpts.forceFullBuild === 'boolean') {
-      opts.forceFullBuild = updatedOpts.forceFullBuild;
-    } else {
-      opts.forceFullBuild =
-        (opts.entryStrategy.type !== 'hook' &&
-          opts.entryStrategy.type !== 'inline' &&
-          opts.entryStrategy.type !== 'hoist') ||
-        !!updatedOpts.srcInputs;
-    }
-
-    if (
-      opts.forceFullBuild === false &&
-      opts.entryStrategy.type !== 'hook' &&
-      opts.entryStrategy.type !== 'inline' &&
-      opts.entryStrategy.type !== 'hoist'
-    ) {
-      console.error(`forceFullBuild cannot be false with entryStrategy ${opts.entryStrategy.type}`);
-      opts.forceFullBuild = true;
-    }
-
-    if (opts.forceFullBuild === false && !!updatedOpts.srcInputs) {
-      console.error(`forceFullBuild reassigned to "true" since "srcInputs" have been provided`);
-      opts.forceFullBuild = true;
     }
 
     if (Array.isArray(opts.srcInputs)) {
@@ -312,12 +287,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const buildStart = async (ctx: any) => {
-    log(
-      `buildStart()`,
-      opts.buildMode,
-      opts.forceFullBuild ? 'full build' : 'isolated build',
-      opts.scope
-    );
+    log(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
     if (optimizer.sys.env === 'node' && opts.target !== 'ssr') {
@@ -328,7 +298,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
-    if (opts.forceFullBuild) {
+    const generatePreManifest = !['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type);
+    if (generatePreManifest) {
       const path = getPath();
 
       let srcDir = '/';
@@ -387,7 +358,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         log(`buildStart() add transformedOutput`, key, output.hook?.displayName);
         transformedOutputs.set(key, [output, key]);
         ssrTransformedOutputs.set(key, [output, key]);
-        if (output.isEntry) {
+        if (output.hook) {
+          hookManifest[output.hook.hash] = key;
+        } else if (output.isEntry) {
           ctx.emitFile({
             id: key,
             type: 'chunk',
@@ -554,11 +527,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     ssrOpts: { ssr?: boolean } = {}
   ) {
-    if (opts.forceFullBuild) {
-      // Only run when moduleIsolated === true
-      return null;
-    }
-
     const optimizer = getOptimizer();
     const path = getPath();
 
@@ -580,7 +548,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
-      const mode = opts.buildMode === 'development' ? 'dev' : 'prod';
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+      // const entryStrategy: EntryStrategy = ['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type)
+      //   ? opts.entryStrategy
+      //   : {
+      //     type: 'hook',
+      //     manual: hookManifest,
+      //   };
+      const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [
           {
@@ -588,7 +564,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             path: filePath,
           },
         ],
-        entryStrategy: opts.entryStrategy,
+        entryStrategy,
         minify: 'simplify',
         sourceMaps: 'development' === opts.buildMode,
         transpileTs: true,
@@ -882,7 +858,6 @@ export interface QwikPluginOptions {
   buildMode?: QwikBuildMode;
   debug?: boolean;
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   rootDir?: string;
   tsconfigFileNames?: string[];
   vendorRoots?: string[];

@@ -105,7 +105,6 @@ rollup('rollup input, default', async () => {
   equal(opts.target, 'client');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
-  equal(opts.forceFullBuild, true);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.srcDir, normalizePath(resolve(cwd, 'src')));
 });
@@ -122,7 +121,6 @@ rollup('rollup input, client default', async () => {
   equal(opts.target, 'client');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
-  equal(opts.forceFullBuild, true);
 });
 
 rollup('rollup input, client/production default', async () => {
@@ -138,7 +136,6 @@ rollup('rollup input, client/production default', async () => {
   equal(opts.target, 'client');
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'smart' });
-  equal(opts.forceFullBuild, true);
 });
 
 rollup('rollup input, ssr/development default', async () => {
@@ -154,7 +151,6 @@ rollup('rollup input, ssr/development default', async () => {
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hoist' });
-  equal(opts.forceFullBuild, true);
 });
 
 rollup('rollup input, ssr/production default', async () => {
@@ -170,7 +166,6 @@ rollup('rollup input, ssr/production default', async () => {
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'hoist' });
-  equal(opts.forceFullBuild, true);
 });
 
 rollup('rollup input, lib/production default', async () => {
@@ -186,14 +181,12 @@ rollup('rollup input, lib/production default', async () => {
   equal(opts.target, 'lib');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'inline' });
-  equal(opts.forceFullBuild, true);
 });
 
 rollup('rollup input, forceFullBuild true', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
     target: 'ssr',
-    forceFullBuild: true,
     buildMode: 'development',
   } as any;
   const plugin = qwikRollup(initOpts);
@@ -203,7 +196,6 @@ rollup('rollup input, forceFullBuild true', async () => {
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hoist' });
-  equal(opts.forceFullBuild, true);
 });
 
 rollup.run();

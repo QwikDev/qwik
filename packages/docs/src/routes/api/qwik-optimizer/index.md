@@ -172,9 +172,10 @@ export interface HookAnalysis
 export interface HookEntryStrategy
 ```
 
-| Property  | Modifiers | Type   | Description |
-| --------- | --------- | ------ | ----------- |
-| [type](#) |           | 'hook' |             |
+| Property     | Modifiers | Type                         | Description  |
+| ------------ | --------- | ---------------------------- | ------------ |
+| [manual?](#) |           | Record&lt;string, string&gt; | _(Optional)_ |
+| [type](#)    |           | 'hook'                       |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -376,15 +377,15 @@ export interface QwikBundle
 export interface QwikManifest
 ```
 
-| Property         | Modifiers | Type                                                                                                        | Description  |
-| ---------------- | --------- | ----------------------------------------------------------------------------------------------------------- | ------------ |
-| [bundles](#)     |           | { [fileName: string]: [QwikBundle](#qwikbundle); }                                                          |              |
-| [injections?](#) |           | [GlobalInjections](#globalinjections)[]                                                                     | _(Optional)_ |
-| [mapping](#)     |           | { [symbolName: string]: string; }                                                                           |              |
-| [options?](#)    |           | { target?: string; buildMode?: string; forceFullBuild?: boolean; entryStrategy?: { [key: string]: any; }; } | _(Optional)_ |
-| [platform?](#)   |           | { [name: string]: string; }                                                                                 | _(Optional)_ |
-| [symbols](#)     |           | { [symbolName: string]: [QwikSymbol](#qwiksymbol); }                                                        |              |
-| [version](#)     |           | string                                                                                                      |              |
+| Property         | Modifiers | Type                                                                              | Description  |
+| ---------------- | --------- | --------------------------------------------------------------------------------- | ------------ |
+| [bundles](#)     |           | { [fileName: string]: [QwikBundle](#qwikbundle); }                                |              |
+| [injections?](#) |           | [GlobalInjections](#globalinjections)[]                                           | _(Optional)_ |
+| [mapping](#)     |           | { [symbolName: string]: string; }                                                 |              |
+| [options?](#)    |           | { target?: string; buildMode?: string; entryStrategy?: { [key: string]: any; }; } | _(Optional)_ |
+| [platform?](#)   |           | { [name: string]: string; }                                                       | _(Optional)_ |
+| [symbols](#)     |           | { [symbolName: string]: [QwikSymbol](#qwiksymbol); }                              |              |
+| [version](#)     |           | string                                                                            |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -417,7 +418,6 @@ export interface QwikRollupPluginOptions
 | [buildMode?](#)               |           | [QwikBuildMode](#qwikbuildmode)                                                                         | _(Optional)_ Build <code>production</code> or <code>development</code>. Default <code>development</code>                                                                                                                             |
 | [debug?](#)                   |           | boolean                                                                                                 | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code>                                                                                                                                                       |
 | [entryStrategy?](#)           |           | [EntryStrategy](#entrystrategy)                                                                         | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>)                                                |
-| [forceFullBuild?](#)          |           | boolean                                                                                                 | _(Optional)_                                                                                                                                                                                                                         |
 | [manifestInput?](#)           |           | [QwikManifest](#qwikmanifest)                                                                           | _(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest. Default <code>undefined</code>                                 |
 | [manifestOutput?](#)          |           | (manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void                             | _(Optional)_ The client build will create a manifest and this hook is called with the generated build data. Default <code>undefined</code>                                                                                           |
 | [optimizerOptions?](#)        |           | [OptimizerOptions](#optimizeroptions)                                                                   | _(Optional)_                                                                                                                                                                                                                         |

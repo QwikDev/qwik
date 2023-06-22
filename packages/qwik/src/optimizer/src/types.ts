@@ -228,6 +228,7 @@ export interface HoistEntryStrategy {
  */
 export interface HookEntryStrategy {
   type: 'hook';
+  manual?: Record<string, string>;
 }
 
 /**
@@ -266,7 +267,6 @@ export interface QwikManifest {
   options?: {
     target?: string;
     buildMode?: string;
-    forceFullBuild?: boolean;
     entryStrategy?: { [key: string]: any };
   };
   platform?: { [name: string]: string };

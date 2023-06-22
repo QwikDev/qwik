@@ -23,10 +23,7 @@ export default component$(() => {
         <RouterHead />
         <ServiceWorkerRegister />
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
-        <Insights
-          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
-          postUrl={'/api/v1/${publicApiKey}/post/'}
-        />
+        <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
       </head>
       <body
         class={{

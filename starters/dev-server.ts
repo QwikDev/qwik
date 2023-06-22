@@ -189,7 +189,6 @@ export {
             type: 'single',
           },
           client: {
-            // forceFullBuild: true,
             manifestOutput(manifest) {
               clientManifest = manifest;
             },

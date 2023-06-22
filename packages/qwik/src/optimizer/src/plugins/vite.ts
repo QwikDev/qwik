@@ -103,17 +103,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode = 'development';
       }
 
-      let forceFullBuild = true;
       if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
-        forceFullBuild = false;
       } else {
         if (target === 'ssr') {
           qwikViteOpts.entryStrategy = { type: 'hoist' };
         } else if (target === 'lib') {
           qwikViteOpts.entryStrategy = { type: 'inline' };
         }
-        forceFullBuild = true;
       }
 
       const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
@@ -129,7 +126,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         rootDir: viteConfig.root,
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
-        forceFullBuild,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,

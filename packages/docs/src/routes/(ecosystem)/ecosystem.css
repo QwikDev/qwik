@@ -161,6 +161,7 @@
   margin: auto;
   max-width: 160px;
   max-height: 90px;
+  object-fit: contain;
 }
 
 .grid-item .cover img {

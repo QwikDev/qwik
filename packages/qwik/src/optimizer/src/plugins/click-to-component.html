@@ -24,6 +24,7 @@
     -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
     animation: fadeOut 0.3s 3s ease-in-out forwards;
     z-index: 999999;
+    contain: layout;
   }
   #qwik-inspector-info-popup p {
     margin: 0px;
@@ -120,21 +121,25 @@
           const target = findContainer(event.target);
           if (target) {
             event.preventDefault();
-            const resolvedURL = new URL(target.getAttribute(inspectAttribute), srcDir);
+            const inspectUrl = target.getAttribute(inspectAttribute);
             body.style.setProperty('cursor', 'progress');
-            if (resolvedURL.origin === origin) {
-              const params = new URLSearchParams();
-              params.set('file', resolvedURL.pathname);
-              fetch('/__open-in-editor?' + params.toString());
-            } else {
-              location.href = resolvedURL.href;
-            }
+            qwikOpenInEditor(inspectUrl);
           }
         }
       },
       { capture: true }
     );
 
+    globalThis.qwikOpenInEditor = function (path) {
+      const resolvedURL = new URL(path, srcDir);
+      if (resolvedURL.origin === origin) {
+        const params = new URLSearchParams();
+        params.set('file', resolvedURL.pathname);
+        fetch('/__open-in-editor?' + params.toString());
+      } else {
+        location.href = resolvedURL.href;
+      }
+    };
     document.addEventListener(
       'contextmenu',
       (event) => {
@@ -177,7 +182,6 @@
     function isActive() {
       return checkKeysArePressed();
     }
-
     window.addEventListener('resize', updateOverlay);
     document.addEventListener('scroll', updateOverlay);
   })();

@@ -11,9 +11,7 @@ import {
 } from '@builder.io/qwik';
 
 import { ContentInternalContext } from './contexts';
-// TODO Replace spa-init with spa-shim.
-// import spaShim from './spa-shim';
-import spaInit from './spa-init';
+import spaShim from './spa-shim';
 
 /**
  * @public
@@ -37,7 +35,7 @@ export const RouterOutlet = component$(() => {
       <>
         {cmp}
         <script
-          dangerouslySetInnerHTML={`(${spaInit.toString()})(window,location,history,document);`}
+          dangerouslySetInnerHTML={`(${spaShim.toString()})(window,history,document);`}
           nonce={nonce}
         ></script>
       </>

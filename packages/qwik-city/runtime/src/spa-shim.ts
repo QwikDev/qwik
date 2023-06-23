@@ -1,44 +1,42 @@
-export default () => {
-  // console.log('BEGIN: spa-shim');
-  // TODO Shim for expanded SPA recovery pop.
+import type { ClientSPAWindow } from './qwik-city-component';
+import type { ScrollHistoryState } from './scroll-restoration';
 
-  // TODO Conditions for checking SPA status:
-  // - history.scrollRestoration = 'manual'?
-  // --- This will ALWAYS be set if a page was arrived at via SPA.
-  // --- Robust, stored in browser history state, will always be attached to history entry.
-  // --- If this is not set, your page is MPA and you cannot pop anywhere. (at least not from us)
-  // --- Tested this on Chromium, FF, WebKitGTK.
+export default (window: ClientSPAWindow, history: History, document: Document) => {
+  /**
+   * TODO Potential load strategies for SPA init:
+   * - "Install" the script in localStorage when upgrading to SPA.
+   * --- XSS? Requires previous XSS and minimal w/ history check.
+   * --- Brittle if localStorage is cleared, no recovery.
+   * - Build SPA init to a file under /build/, src in DOM. (ideal)
+   * --- Cache file when upgrading to SPA.
+   * --- Reasonable expectation this small file is already cached for history revisits.
+   * --- No need for popstate fallback, this will always be available.
+   * --- Robust, fully relies only on history.
+   * - Cookie? (brittle, overhead)
+   * - etc...
+   * ! Minimal footprint. (low overhead on MPA-only, every byte counts)
+   */
 
-  // TODO Potential load strategies to consider for SPA init:
-  // - "Install" the script in localStorage upon SPA upgrade. Load it. (XSS? minimal w/ checks)
-  // - Build SPA init to a file under /build/, conditional add to DOM. (likely)
-  // --- This one we might be able to save by removing the popstate fallback below.
-  // --- State-based? (no need to worry if user clears browser)
-  // --- Add this file to the browser's cache ahead of time when uprading to SPA.
-  // --- SPA reasonable expectation this file is already cached for history revists. (blocking import)
-  // - Cookie? (might be brittle, overhead)
-  // - etc...
-  // ! Will need to add configuration notes on CSP docs.
-  // - Hash checking?
-  // ! MINIMAL footprint. (low overhead on MPA-only, every byte counts)
+  /**
+   * TODO Build spa-init to /build/.
+   * TODO Swap localStorage for script.src.
+   * TODO Add configuration notes on CSP docs as applicable.
+   */
 
-  // const loc = location;
-  // const currentPath = loc.pathname + loc.search;
-  // const fallback = '_qCityPopstateFallback';
-  // const history = '_qCityHistory';
+  /**
+   * This should ALWAYS be 'manual' if a page was arrived at via SPA.
+   * Robust, stored in browser history state, will always be attached to history entry.
+   * If this is not set, your page is MPA and never had an SPA context. (no pop needed?)
+   */
+  if (history.scrollRestoration === 'manual') {
+    const scrollState = (history.state as ScrollHistoryState)?._qCityScroll;
+    if (scrollState) {
+      window.scrollTo(scrollState.x, scrollState.y);
+    }
 
-  // if (!window[fallback]) {
-  //   window[fallback] = () => {
-  //     console.log('--- popped ---');
-  //     if (!window[history] && currentPath !== loc.pathname + loc.search) {
-  //       loc.reload();
-  //     }
-  //   };
-
-  //   setTimeout(() => {
-  //     addEventListener('popstate', window[fallback]);
-  //   }, 0);
-  // }
-
-  // console.log('END: spa-shim');
+    // ! Proof of concept only, brittle if localStorage gets cleared. (swap to file-based)
+    const script = document.createElement('script');
+    script.text = localStorage.getItem('_qCitySPA')!;
+    (document.currentScript as HTMLScriptElement).after(script);
+  }
 };

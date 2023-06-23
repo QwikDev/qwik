@@ -63,11 +63,11 @@ export const RouterHead = component$(() => {
       routeLevel.value = 1;
       // check if on example a.k.a qwik-sandbox because the navigation in qwik-sandbox does not update useDocumenthead()
       if (parentRoute == 'examples') {
-        imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${
+        imageUrl.value = `https://opengraphqwik.vercel.app/api/og/?level=${
           routeLevel.value
         }&title=${'Examples'}&subtitle=${'Qwik Sandbox'}`;
       } else {
-        imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
+        imageUrl.value = `https://opengraphqwik.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
       }
     }
   });

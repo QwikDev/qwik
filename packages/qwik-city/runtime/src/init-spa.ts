@@ -18,6 +18,7 @@ export default (
   const currentPath = location.pathname + location.search;
 
   const spa = '_qCitySPA';
+  const historyPatch = '_qCityHistoryPatch';
   const bootstrap = '_qCityBootstrap';
   const initPopstate = '_qCityInitPopstate';
   const initAnchors = '_qCityInitAnchors';
@@ -44,17 +45,19 @@ export default (
       }
     };
 
-    const saveScrollState = () => {
+    const currentScrollState = (): ScrollState => {
       const elm = document.documentElement;
-      const scrollState: ScrollState = {
+      return {
         scrollX: elm.scrollLeft,
         scrollY: elm.scrollTop,
         scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
         scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
       };
+    };
 
+    const saveScrollState = () => {
       const state: ScrollHistoryState = history.state || {};
-      state[scrollHistory] = scrollState;
+      state[scrollHistory] = currentScrollState();
       history.replaceState(state, '');
     };
 
@@ -115,6 +118,30 @@ export default (
         }
       };
 
+      if (!window[historyPatch]) {
+        ((history) => {
+          window[historyPatch] = true;
+          const pushState = history.pushState;
+          const replaceState = history.replaceState;
+
+          const prepareState = (state: ScrollHistoryState) => {
+            state = state || {};
+            state._qCityScroll = state._qCityScroll || currentScrollState();
+            return state;
+          };
+
+          history.pushState = (state: ScrollHistoryState, title, url) => {
+            state = prepareState(state);
+            return pushState.call(history, state, title, url);
+          };
+
+          history.replaceState = (state: ScrollHistoryState, title, url) => {
+            state = prepareState(state);
+            return replaceState.call(history, state, title, url);
+          };
+        })(history);
+      }
+
       // We need this handler in init because Firefox destroys states w/ anchor tags.
       window[initAnchors] = (event: MouseEvent) => {
         if (window[spa] || event.defaultPrevented) {
@@ -160,10 +187,7 @@ export default (
 
       window[scrollEnabled] = true;
 
-      /**
-       * TODO Patch history object?
-       * TODO Navigation API; check for support & simplify.
-       */
+      // TODO Navigation API; check for support & simplify.
 
       setTimeout(() => {
         window[addEventListener]('popstate', window[initPopstate]!);

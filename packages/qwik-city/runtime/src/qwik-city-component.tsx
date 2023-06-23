@@ -56,6 +56,7 @@ import {
   saveScrollHistory,
   scrollToHashId,
   toLastPositionOnPopState,
+  type ScrollHistoryState,
 } from './scroll-restoration';
 
 /**
@@ -334,6 +335,40 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win._qCityInitPopstate = undefined;
 
             /**
+             * Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
+             * Devs could push their own states that we can't control.
+             * If a user doesn't initiate scroll after, it will not have any scrollState.
+             * We patch these to always include scrollState.
+             * TODO Gracefully fails for states that aren't obj type, we could force by moving those to { _data: ... }?
+             *  - Note this in docs either way.
+             * TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
+             */
+            if (!win._qCityHistoryPatch) {
+              ((history) => {
+                win._qCityHistoryPatch = true;
+                const pushState = history.pushState;
+                const replaceState = history.replaceState;
+
+                const prepareState = (state: ScrollHistoryState) => {
+                  state = state || {};
+                  state._qCityScroll =
+                    state._qCityScroll || currentScrollState(document.documentElement);
+                  return state;
+                };
+
+                history.pushState = (state: ScrollHistoryState, title, url) => {
+                  state = prepareState(state);
+                  return pushState.call(history, state, title, url);
+                };
+
+                history.replaceState = (state: ScrollHistoryState, title, url) => {
+                  state = prepareState(state);
+                  return replaceState.call(history, state, title, url);
+                };
+              })(history);
+            }
+
+            /**
              * Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
              * ... even if the URL is already on the #hash.
              * Firefox only does it once and no more, but will still scroll. It also sets state to null.
@@ -502,6 +537,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
 
 export interface ClientSPAWindow extends Window {
   _qCitySPA?: boolean;
+  _qCityHistoryPatch?: boolean;
   _qCityScrollEnabled?: boolean;
   _qCityScrollDebounce?: ReturnType<typeof setTimeout>;
   _qCityInitPopstate?: () => void;

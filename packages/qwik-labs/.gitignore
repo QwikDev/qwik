@@ -2,6 +2,7 @@
 /dist
 /lib
 /lib-types
+/vite
 /server
 
 # Development

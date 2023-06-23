@@ -3,7 +3,7 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 import { eq } from 'drizzle-orm';
 import { SymbolIcon } from '~/components/icons/symbol';
 import { applicationTable, getDB } from '~/db';
-import { AppLink } from '~/url';
+import { AppLink } from '~/routes.config';
 
 export const useApplication = routeLoader$(async ({ params }) => {
   const db = getDB();

@@ -2,20 +2,19 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "ES2021",
-    "module": "ES2020",
+    "module": "CommonJS",
     "lib": ["es2021", "DOM"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "@builder.io/qwik",
     "strict": true,
     "declaration": true,
-    "declarationDir": "lib-types",
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "outDir": "vite",
+    "declarationDir": "vite"
   },
-  "include": ["src"]
+  "files": ["src-vite/index.ts"]
 }

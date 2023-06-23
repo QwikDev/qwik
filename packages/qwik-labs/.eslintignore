@@ -13,6 +13,7 @@ dist
 dist-dev
 lib
 lib-types
+vite
 etc
 external
 node_modules

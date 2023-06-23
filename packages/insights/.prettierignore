@@ -38,3 +38,4 @@ package-lock.json
 yarn.lock
 server
 drizzle
+**/*.gen.d.ts

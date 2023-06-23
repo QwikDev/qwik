@@ -22,7 +22,7 @@ export const Link = component$<LinkProps>((props) => {
         )
       : undefined;
   const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
-    if (elm.hasAttribute('q:bootstrap')) {
+    if (elm.hasAttribute('q:navBootstrap')) {
       // Allow bootstrapping into useNavigate.
       await nav(location.href, { type: 'popstate' });
     } else if (elm.href) {

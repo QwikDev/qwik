@@ -10,6 +10,8 @@ export default (
   history: History,
   document: Document
 ) => {
+  const scrollRestoration = 'scrollRestoration';
+
   const script = document.currentScript;
   const currentPath = location.pathname + location.search;
 
@@ -47,7 +49,7 @@ export default (
 
   // TODO Replace this with the SHIM, if shim imports us then this MUST be 'manual'.
   // TODO Shim will scroll. If also pop handler then load this script as deferred?
-  if (history.scrollRestoration === 'manual') {
+  if (history[scrollRestoration] === 'manual') {
     const checkAndScroll = (scrollState: ScrollState | undefined) => {
       if (scrollState) {
         window.scrollTo(scrollState.scrollX, scrollState.scrollY);
@@ -67,21 +69,25 @@ export default (
           // Hook into useNavigate context, if available.
           // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
           // TODO Will only work with <Link>, is there a better way?
+          // - Get symbol + check for ctx + create anchor?
+          // - Less brittle, no need to rely on q:key?
           const container = script?.closest('[q\\:container]');
           const link = container?.querySelector('a[q\\:key="AD_1"]');
 
           if (link) {
             const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
-            bootstrapLink.setAttribute('q:bootstrap', '');
+            bootstrapLink.setAttribute('q:navBootstrap', '');
             container!.appendChild(bootstrapLink);
             window[bootstrap] = bootstrapLink;
             bootstrapLink.click();
           } else if (currentPath !== location.pathname + location.search) {
             location.reload();
           } else {
-            scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
-            checkAndScroll(scrollState);
-            window[scrollEnabled] = true;
+            if (history[scrollRestoration] === 'manual') {
+              scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
+              checkAndScroll(scrollState);
+              window[scrollEnabled] = true;
+            }
           }
         }
       };

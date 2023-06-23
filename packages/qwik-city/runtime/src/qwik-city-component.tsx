@@ -324,8 +324,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               clearTimeout(win._qCityScrollDebounce);
               // TODO This might not get re-enabled if we pop onto the same path? (no re-render)
               // TODO Test by adding a fake pushState and popping.
+              // TODO Remove all checks for state, always save scroll.
 
-              return goto(location.href, {
+              goto(location.href, {
                 type: 'popstate',
               });
             });

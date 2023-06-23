@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
 import { Social } from './social';
 import { Vendor } from './vendor';
@@ -13,6 +13,64 @@ export const RouterHead = component$(() => {
   const description =
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
+
+  const pageTitle = head.title;
+
+  // arrayed url
+  const arrayedUrl = url.href.split('/');
+  const parentRoute = arrayedUrl.slice(3)[0];
+
+  //turn the title into array
+  const arrayedTitle = pageTitle.split(' | ');
+
+  //check if we are on home page or level 0 or 1 route
+  let isBaseRoute = true;
+  isBaseRoute = arrayedTitle.length > 0 ? false : true;
+
+  // set the text for the ogimage
+  const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0]; //.replace('#', '');
+  const smallerTitle = isBaseRoute ? undefined : arrayedTitle[1];
+
+  const pathname = useLocation().url.pathname;
+  const routeLevel = useSignal(0);
+
+  const imageUrl = useSignal('');
+  const ogImgTitle = useSignal('');
+  const ogImgSubTitle = useSignal('');
+  // const ogImgFragment = useSignal('');
+
+  //the url
+  const urlString = pathname;
+
+  //turn the url into array
+  const array = urlString.split('/').slice(1, -1).reverse();
+  //check if we are on home page or level 0/1 route
+  let isHomePage = true;
+  isHomePage = array.length > 0 ? false : true;
+
+  useTask$(() => {
+    //change the value of the title and subtitle
+    ogImgTitle.value = biggerTitle!;
+    ogImgSubTitle.value = smallerTitle!;
+
+    //decide whether or not to show subtitle
+    if (ogImgSubTitle.value == undefined || ogImgTitle == undefined) {
+      ogImgTitle.value = biggerTitle!;
+
+      routeLevel.value = 0;
+      imageUrl.value = `/logos/social-card.jpg`;
+    } else {
+      routeLevel.value = 1;
+      // check if on example a.k.a qwik-sandbox because the navigation in qwik-sandbox does not update useDocumenthead()
+      if (parentRoute == 'examples') {
+        imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${
+          routeLevel.value
+        }&title=${'Examples'}&subtitle=${'Qwik Sandbox'}`;
+      } else {
+        imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
+      }
+    }
+  });
 
   return (
     <>
@@ -31,10 +89,17 @@ export const RouterHead = component$(() => {
 
       {import.meta.env.PROD && (
         <>
-          <Social title={title} description={description} href={url.href} />
+          <Social
+            title={title}
+            description={description}
+            href={url.href}
+            ogImage={imageUrl.value}
+          />
           <Vendor />
         </>
       )}
+      <Social title={title} description={description} href={url.href} ogImage={imageUrl.value} />
+      <Vendor />
 
       {head.meta.map((m) => (
         <meta {...m} />

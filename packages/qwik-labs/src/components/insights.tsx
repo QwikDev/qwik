@@ -168,7 +168,7 @@ function symbolTracker(
     }
   }
   function debounceFlush() {
-    timeoutID != null && clearInterval(timeoutID);
+    timeoutID != null && clearTimeout(timeoutID);
     timeoutID = setTimeout(flush, 1000);
   }
   document.addEventListener(

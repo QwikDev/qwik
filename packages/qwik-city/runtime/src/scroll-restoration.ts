@@ -80,13 +80,10 @@ export const getScrollHistory = () => {
   return state?._qCityScroll;
 };
 
-export const saveScrollHistory = (scrollState: ScrollState, initialize = false) => {
+export const saveScrollHistory = (scrollState: ScrollState) => {
   const state: ScrollHistoryState = history.state || {};
-
-  if (state?._qCityScroll || initialize) {
-    state._qCityScroll = scrollState;
-    history.replaceState(state, '');
-  }
+  state._qCityScroll = scrollState;
+  history.replaceState(state, '');
 };
 
 export interface ScrollHistoryState {

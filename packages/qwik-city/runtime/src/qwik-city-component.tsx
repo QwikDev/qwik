@@ -324,7 +324,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               clearTimeout(win._qCityScrollDebounce);
               // TODO This might not get re-enabled if we pop onto the same path? (no re-render)
               // TODO Test by adding a fake pushState and popping.
-              // TODO Remove all checks for state, always save scroll.
 
               goto(location.href, {
                 type: 'popstate',
@@ -334,12 +333,14 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win.removeEventListener('popstate', win._qCityInitPopstate!);
             win._qCityInitPopstate = undefined;
 
-            // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
-            // ... even if the URL is already on the #hash.
-            // Firefox only does it once and no more, but will still scroll. It also sets state to null.
-            // Any <a> tags w/ #hash href will break SPA state in Firefox.
-            // However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
-            // We patch these events and direct them to Link pipeline during SPA.
+            /**
+             * Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
+             * ... even if the URL is already on the #hash.
+             * Firefox only does it once and no more, but will still scroll. It also sets state to null.
+             * Any <a> tags w/ #hash href will break SPA state in Firefox.
+             * However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
+             * We patch these events and direct them to Link pipeline during SPA.
+             */
             document.body.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;
@@ -409,7 +410,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // Save the final scroll state before pushing new state.
             // Upgrades/replaces state with scroll pos on nav as needed.
             const scrollState = currentScrollState(document.documentElement);
-            saveScrollHistory(scrollState, true);
+            saveScrollHistory(scrollState);
           }
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);

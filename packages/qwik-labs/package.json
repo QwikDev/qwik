@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Qwik Labs - Where you can try the latest ideas",
   "main": "./lib/index.qwik.mjs",
+  "type": "module",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib-types/index.d.ts",
   "exports": {
@@ -10,19 +11,24 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs",
       "types": "./lib-types/index.d.ts"
+    },
+    "./vite": {
+      "require": "./vite/index.js",
+      "types": "./vite/index.d.ts"
     }
   },
   "files": [
     "lib",
-    "lib-types"
+    "lib-types",
+    "vite"
   ],
   "engines": {
     "node": ">=16"
   },
   "private": false,
-  "type": "module",
   "scripts": {
-    "build": "qwik build",
+    "build": "pnpm build.vite && qwik build",
+    "build.vite": "tsc -p ./tsconfig-vite.json",
     "build.lib": "vite build --mode lib",
     "build.types": "tsc --emitDeclarationOnly",
     "dev": "vite --mode ssr",

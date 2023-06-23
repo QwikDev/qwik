@@ -12,6 +12,7 @@ use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
+use crate::panda_css::PandaCSSTransform;
 use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
@@ -295,6 +296,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     ));
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
+
+                    // Transform Panda CSS
+                    main_module.visit_mut_with(&mut PandaCSSTransform::new(&mut collect));
 
                     transform_props_destructuring(
                         &mut main_module,

@@ -1,9 +1,16 @@
+import * as CSS from 'csstype';
 import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
 export type Size = number | string;
 export type Numberish = number | `${number}`;
+
+/**
+ * @public
+ */
+export type CSSProperties = CSS.Properties<string | number> &
+  Record<string, string | number | undefined>;
 
 /**
  * @public
@@ -314,7 +321,7 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellcheck?: boolean | undefined;
-  style?: Record<string, string | number | undefined> | string | undefined;
+  style?: CSSProperties | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -909,7 +916,7 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
   method?: string | undefined;
   min?: number | string | undefined;
   name?: string | undefined;
-  style?: Record<string, string | number> | string | undefined;
+  style?: CSSProperties | string | undefined;
   target?: string | undefined;
   type?: string | undefined;
   width?: Numberish | undefined;

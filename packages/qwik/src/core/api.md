@@ -4,6 +4,8 @@
 
 ```ts
 
+import * as CSS_2 from 'csstype';
+
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
@@ -104,6 +106,9 @@ export interface CorePlatform {
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// @public (undocumented)
+export type CSSProperties = CSS_2.Properties<string | number> & Record<string, string | number | undefined>;
 
 // @internal (undocumented)
 export const _deserializeData: (data: string, element?: unknown) => any;
@@ -272,7 +277,7 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
     // (undocumented)
     spellcheck?: boolean | undefined;
     // (undocumented)
-    style?: Record<string, string | number | undefined> | string | undefined;
+    style?: CSSProperties | string | undefined;
     // (undocumented)
     tabIndex?: number | undefined;
     // (undocumented)

@@ -37,7 +37,6 @@ export type {
   StaticGenerate,
   RouteNavigate,
   NavigationType,
-  RestoreScroll,
   DeferReturn,
   RequestEventBase,
   JSONObject,
@@ -52,7 +51,6 @@ export {
   QwikCityMockProvider,
 } from './qwik-city-component';
 export { type LinkProps, Link } from './link-component';
-export { toTopAlways, toLastPositionOnPopState } from './scroll-restoration';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { routeAction$, routeActionQrl } from './server-functions';

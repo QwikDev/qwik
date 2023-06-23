@@ -317,8 +317,6 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
-    // @alpha
-    restoreScroll$?: RestoreScroll;
     viewTransition?: boolean;
 }
 
@@ -339,11 +337,6 @@ export { RequestHandler }
 
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
-
-// Warning: (ae-forgotten-export) The symbol "ScrollState" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export type RestoreScroll = (navigationType: NavigationType, fromUrl: URL, toUrl: URL, scrollState?: ScrollState) => () => void;
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;
@@ -417,12 +410,6 @@ export interface StaticGenerate {
 
 // @public (undocumented)
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
-
-// @alpha (undocumented)
-export const toLastPositionOnPopState: QRL<RestoreScroll>;
-
-// @alpha (undocumented)
-export const toTopAlways: QRL<RestoreScroll>;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

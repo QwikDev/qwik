@@ -43,7 +43,6 @@ import type {
   RouteActionValue,
   RouteNavigate,
   RouteStateInternal,
-  RestoreScroll,
   ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
@@ -55,8 +54,8 @@ import {
   getScrollHistory,
   saveScrollHistory,
   scrollToHashId,
-  toLastPositionOnPopState,
   type ScrollHistoryState,
+  restoreScroll,
 } from './scroll-restoration';
 
 /**
@@ -87,14 +86,6 @@ export interface QwikCityProps {
    * @see https://caniuse.com/mdn-api_viewtransition
    */
   viewTransition?: boolean;
-
-  /**
-   * @alpha
-   * Scroll restoration logic for SPA navigation.
-   *
-   * Default: `toLastPositionOnPopState`
-   */
-  restoreScroll$?: RestoreScroll;
 }
 
 /**
@@ -265,23 +256,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
-        if (isBrowser) {
-          let scrollState: ScrollState | undefined;
-          if (navType === 'popstate') {
-            scrollState = getScrollHistory();
-          }
-
-          // Awaits a QRL to resolve scroll function, must happen BEFORE setting contentInternal.value below.
-          // This is because the actual scroll restore needs to be synchronous with render.
-          const scrollRestoreQrl = props.restoreScroll$ ?? toLastPositionOnPopState;
-          document.__q_scroll_restore__ = await scrollRestoreQrl(
-            navType,
-            prevUrl,
-            trackUrl,
-            scrollState
-          );
-        }
-
         // Update route location
         routeLocation.prevUrl = prevUrl;
         routeLocation.url = trackUrl;
@@ -309,6 +283,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // mark next DOM render to use startViewTransition API
             document.__q_view_transition__ = true;
           }
+
+          let scrollState: ScrollState | undefined;
+          if (navType === 'popstate') {
+            scrollState = getScrollHistory();
+          }
+
+          document.__q_scroll_restore__ = restoreScroll(navType, prevUrl, trackUrl, scrollState);
 
           const loaders = clientPageData?.loaders;
           const win = window as ClientSPAWindow;

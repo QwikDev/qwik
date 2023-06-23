@@ -1,5 +1,12 @@
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useVisibleTask$, useSignal, useTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useStyles$,
+  useContext,
+  useVisibleTask$,
+  useSignal,
+  useTask$,
+} from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -20,38 +27,34 @@ import BuilderContentComp from '../../components/builder-content';
 import { BUILDER_TOP_BAR_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
-
-
   // the title of the current page
-const pageTitle = useDocumentHead().title
-const {url} = useLocation()
+  const pageTitle = useDocumentHead().title;
+  const { url } = useLocation();
 
-// arrayed url 
+  // arrayed url
 
-// parent route
-const arrayedUrl = url.href.split("/")
-const parentRoute = arrayedUrl.slice(3)[0]
+  // parent route
+  const arrayedUrl = url.href.split('/');
+  const parentRoute = arrayedUrl.slice(3)[0];
 
   //turn the title into array
-  const arrayedTitle = pageTitle.split(" | ");
+  const arrayedTitle = pageTitle.split(' | ');
 
   //check if we are on home page or level 0 or 1 route
   let isBaseRoute = true;
   isBaseRoute = arrayedTitle.length > 0 ? false : true;
 
-// set the text for the ogimage
+  // set the text for the ogimage
   const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0]; //.replace('#', '');
   const smallerTitle = isBaseRoute ? undefined : arrayedTitle[1];
 
-// check the outputs on the server
-console.log(arrayedTitle);
-console.log('Array length ' + arrayedTitle.length);
-console.log('Bigger text is ' + biggerTitle + ' and smaller text ' + smallerTitle);
-console.log(arrayedUrl)
-console.log(parentRoute)
-console.log("third level route is "+ arrayedUrl[2])
-
-
+  // check the outputs on the server
+  console.log(arrayedTitle);
+  console.log('Array length ' + arrayedTitle.length);
+  console.log('Bigger text is ' + biggerTitle + ' and smaller text ' + smallerTitle);
+  console.log(arrayedUrl);
+  console.log(parentRoute);
+  console.log('third level route is ' + arrayedUrl[2]);
 
   useStyles$(styles);
   useStyles$(ogImage);
@@ -62,7 +65,7 @@ console.log("third level route is "+ arrayedUrl[2])
   const imageUrl = useSignal('');
   const ogImgTitle = useSignal('');
   const ogImgSubTitle = useSignal('');
-  // const ogImgFragment = useSignal(''); 
+  // const ogImgFragment = useSignal('');
 
   //the url
   const urlString = pathname;
@@ -82,29 +85,26 @@ console.log("third level route is "+ arrayedUrl[2])
     if (ogImgSubTitle.value == undefined || ogImgTitle == undefined) {
       ogImgTitle.value = biggerTitle!;
 
-      routeLevel.value =     0;
+      routeLevel.value = 0;
       imageUrl.value = `/logos/social-card.jpg`;
-    } 
-    else {
+    } else {
       routeLevel.value = 1;
-// check if on example a.k.a qwik-sandbox because the navigation in qwik-sandbox does not update useDocumenthead()
-if( parentRoute == "examples" ){
-      imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${routeLevel.value}&title=${"Examples"}&subtitle=${"Qwik Sandbox"}`;
-
-} else{     
-  imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
-}
-
-
+      // check if on example a.k.a qwik-sandbox because the navigation in qwik-sandbox does not update useDocumenthead()
+      if (parentRoute == 'examples') {
+        imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${
+          routeLevel.value
+        }&title=${'Examples'}&subtitle=${'Qwik Sandbox'}`;
+      } else {
+        imageUrl.value = `https://next-satori.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
+      }
     }
-
 
     // console.log(ogImgTitle.value + "aaaa "+ ogImgSubTitle.value + " bbb")
   });
 
   useVisibleTask$(() => {
     // console.log(useLocation().url.hash); // dont forget to remove this bruh
-    console.log(pageTitle)
+    console.log(pageTitle);
 
     globalStore.theme = getColorPreference();
     return colorSchemeChangeListener((isDark) => {

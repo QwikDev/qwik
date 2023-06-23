@@ -42,17 +42,17 @@ export default (
   if (history[scrollRestoration] === 'manual') {
     const checkAndScroll = (scrollState: ScrollState | undefined) => {
       if (scrollState) {
-        window.scrollTo(scrollState.scrollX, scrollState.scrollY);
+        window.scrollTo(scrollState.x, scrollState.y);
       }
     };
 
     const currentScrollState = (): ScrollState => {
       const elm = document.documentElement;
       return {
-        scrollX: elm.scrollLeft,
-        scrollY: elm.scrollTop,
-        scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
-        scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
+        x: elm.scrollLeft,
+        y: elm.scrollTop,
+        w: Math.max(elm.scrollWidth, elm.clientWidth),
+        h: Math.max(elm.scrollHeight, elm.clientHeight),
       };
     };
 

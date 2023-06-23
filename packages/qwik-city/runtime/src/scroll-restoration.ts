@@ -10,12 +10,12 @@ export const restoreScroll = (
   // Chromium & Firefox will always natively restore on visited popstates.
   // Always scroll to known state if available on pop. Otherwise, try hash scroll.
   if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
-    let [scrollX, scrollY] = [0, 0];
+    let [x, y] = [0, 0];
     if (scrollState) {
-      scrollX = scrollState.scrollX;
-      scrollY = scrollState.scrollY;
+      x = scrollState.x;
+      y = scrollState.y;
     }
-    window.scrollTo(scrollX, scrollY);
+    window.scrollTo(x, y);
   }
 };
 
@@ -58,10 +58,10 @@ export const scrollToHashId = (hash: string) => {
 
 export const currentScrollState = (elm: Element): ScrollState => {
   return {
-    scrollX: elm.scrollLeft,
-    scrollY: elm.scrollTop,
-    scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
-    scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
+    x: elm.scrollLeft,
+    y: elm.scrollTop,
+    w: Math.max(elm.scrollWidth, elm.clientWidth),
+    h: Math.max(elm.scrollHeight, elm.clientHeight),
   };
 };
 

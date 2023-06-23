@@ -80,10 +80,10 @@ export type RouteStateInternal = {
 };
 
 export type ScrollState = {
-  scrollX: number;
-  scrollY: number;
-  scrollWidth: number;
-  scrollHeight: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 };
 
 /**

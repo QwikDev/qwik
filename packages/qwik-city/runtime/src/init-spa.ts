@@ -1,7 +1,9 @@
-// TODO!!! Finalize this file, method of import, etc.?
 import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
+
+// TODO!!! Finalize this script, method of import, etc.
+// TODO Dedupe handler code from here and QwikCityProvider.
 
 export default (
   window: ClientSPAWindow,
@@ -9,6 +11,7 @@ export default (
   history: History,
   document: Document
 ) => {
+  const addEventListener = 'addEventListener';
   const scrollRestoration = 'scrollRestoration';
 
   const script = document.currentScript;
@@ -17,6 +20,8 @@ export default (
   const spa = '_qCitySPA';
   const bootstrap = '_qCityBootstrap';
   const initPopstate = '_qCityInitPopstate';
+  const initAnchors = '_qCityInitAnchors';
+  const initVisibility = '_qCityInitVisibility';
   const initScroll = '_qCityInitScroll';
   const scrollEnabled = '_qCityScrollEnabled';
   const debounceTimeout = '_qCityScrollDebounce';
@@ -39,31 +44,66 @@ export default (
       }
     };
 
+    const saveScrollState = () => {
+      const elm = document.documentElement;
+      const scrollState: ScrollState = {
+        scrollX: elm.scrollLeft,
+        scrollY: elm.scrollTop,
+        scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
+        scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
+      };
+
+      const state: ScrollHistoryState = history.state || {};
+      state[scrollHistory] = scrollState;
+      history.replaceState(state, '');
+    };
+
+    const navigate = (href?: string) => {
+      // Hook into useNavigate context, if available.
+      // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
+      // TODO Will only work with <Link>, is there a better way?
+      const container = script?.closest('[q\\:container]');
+      const link = container?.querySelector('a[q\\:key="AD_1"]');
+
+      if (link) {
+        const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
+
+        if (href) {
+          bootstrapLink.setAttribute('href', href);
+        } else {
+          bootstrapLink.setAttribute('q:navBootstrap', '');
+        }
+
+        container!.appendChild(bootstrapLink);
+        window[bootstrap] = bootstrapLink;
+        bootstrapLink.click();
+        return true;
+      } else {
+        return false;
+      }
+    };
+
     let scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
     checkAndScroll(scrollState);
 
-    if (!window[spa] && !window[initPopstate] && !window[initScroll]) {
+    if (
+      !window[spa] &&
+      !window[initPopstate] &&
+      !window[initAnchors] &&
+      !window[initVisibility] &&
+      !window[initScroll]
+    ) {
       window[initPopstate] = () => {
-        if (!window[spa]) {
-          // Disable scroll handler eagerly to prevent overwriting history.state.
-          window[scrollEnabled] = false;
-          clearTimeout(window[debounceTimeout]);
+        if (window[spa]) {
+          return;
+        }
 
-          // Hook into useNavigate context, if available.
-          // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
-          // TODO Will only work with <Link>, is there a better way?
-          // - Get symbol + check for ctx + create anchor?
-          // - Less brittle, no need to rely on q:key?
-          const container = script?.closest('[q\\:container]');
-          const link = container?.querySelector('a[q\\:key="AD_1"]');
+        // Disable scroll handler eagerly to prevent overwriting history.state.
+        window[scrollEnabled] = false;
+        clearTimeout(window[debounceTimeout]);
 
-          if (link) {
-            const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
-            bootstrapLink.setAttribute('q:navBootstrap', '');
-            container!.appendChild(bootstrapLink);
-            window[bootstrap] = bootstrapLink;
-            bootstrapLink.click();
-          } else if (currentPath !== location.pathname + location.search) {
+        if (!navigate()) {
+          if (currentPath !== location.pathname + location.search) {
             location.reload();
           } else {
             if (history[scrollRestoration] === 'manual') {
@@ -75,6 +115,36 @@ export default (
         }
       };
 
+      // We need this handler in init because Firefox destroys states w/ anchor tags.
+      window[initAnchors] = (event: MouseEvent) => {
+        if (window[spa] || event.defaultPrevented) {
+          return;
+        }
+
+        const target = (event.target as HTMLElement).closest('a[href*="#"]');
+
+        if (target && !target.hasAttribute('preventdefault:click')) {
+          const href = target.getAttribute('href')!;
+          const prev = new URL(location.href);
+          const dest = new URL(href, prev);
+          const sameOrigin = dest.origin === prev.origin;
+          const samePath = dest.pathname + dest.search === prev.pathname + prev.search;
+          // Patch only same-page hash anchors.
+          if (sameOrigin && samePath) {
+            event.preventDefault();
+            navigate(href);
+          }
+        }
+      };
+
+      window[initVisibility] = () => {
+        if (!window[spa] && window[scrollEnabled] && document.visibilityState === 'hidden') {
+          // Last & most reliable point to commit state.
+          // Do not clear timeout here in case debounce gets to run later.
+          saveScrollState();
+        }
+      };
+
       window[initScroll] = () => {
         if (window[spa] || !window[scrollEnabled]) {
           return;
@@ -82,17 +152,7 @@ export default (
 
         clearTimeout(window[debounceTimeout]);
         window[debounceTimeout] = setTimeout(() => {
-          const elm = document.documentElement;
-          const scrollState: ScrollState = {
-            scrollX: elm.scrollLeft,
-            scrollY: elm.scrollTop,
-            scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
-            scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
-          };
-
-          const state: ScrollHistoryState = history.state || {};
-          state[scrollHistory] = scrollState;
-          history.replaceState(state, '');
+          saveScrollState();
           // Needed for e2e debounceDetector.
           window[debounceTimeout] = undefined;
         }, 200);
@@ -101,15 +161,20 @@ export default (
       window[scrollEnabled] = true;
 
       /**
-       * TODO Patch same-page hash anchors?
-       * TODO Visibility change handler for improved scrollState reliability.
        * TODO Patch history object?
        * TODO Navigation API; check for support & simplify.
        */
 
       setTimeout(() => {
-        addEventListener('popstate', window[initPopstate]!);
-        addEventListener('scroll', window[initScroll]!, { passive: true });
+        window[addEventListener]('popstate', window[initPopstate]!);
+        window[addEventListener]('scroll', window[initScroll]!, { passive: true });
+        document.body[addEventListener]('click', window[initAnchors]!);
+
+        if (!(window as any).navigation) {
+          document[addEventListener]('visibilitychange', window[initVisibility]!, {
+            passive: true,
+          });
+        }
       }, 0);
     }
   }

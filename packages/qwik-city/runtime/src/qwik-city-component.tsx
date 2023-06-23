@@ -359,6 +359,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               }
             });
 
+            document.body.removeEventListener('click', win._qCityInitAnchors!);
+            win._qCityInitAnchors = undefined;
+
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
             // Only Chromium 96 - 101 have BFCache without Navigation API. (<1% of users)
@@ -376,6 +379,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 },
                 { passive: true }
               );
+
+              document.removeEventListener('visibilitychange', win._qCityInitVisibility!);
+              win._qCityInitVisibility = undefined;
             }
 
             win.addEventListener(
@@ -499,6 +505,8 @@ export interface ClientSPAWindow extends Window {
   _qCityScrollEnabled?: boolean;
   _qCityScrollDebounce?: ReturnType<typeof setTimeout>;
   _qCityInitPopstate?: () => void;
+  _qCityInitAnchors?: (event: MouseEvent) => void;
+  _qCityInitVisibility?: () => void;
   _qCityInitScroll?: () => void;
   _qCityBootstrap?: HTMLAnchorElement;
 }

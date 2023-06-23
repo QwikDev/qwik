@@ -536,5 +536,4 @@ export interface ClientSPAWindow extends Window {
   _qCityInitVisibility?: () => void;
   _qCityInitScroll?: () => void;
   _qCityBootstrap?: HTMLAnchorElement;
-  _qcs?: HTMLScriptElement;
 }

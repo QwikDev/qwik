@@ -3,23 +3,13 @@ import type { ScrollHistoryState } from './scroll-restoration';
 
 export default (window: ClientSPAWindow, history: History, document: Document) => {
   /**
-   * TODO Potential load strategies for SPA init:
-   * - "Install" the script in localStorage when upgrading to SPA.
-   * --- XSS? Requires previous XSS and minimal w/ history check.
-   * --- Brittle if localStorage is cleared, no recovery.
-   * - Build SPA init to a file under /build/, src in DOM. (ideal)
-   * --- Cache file when upgrading to SPA.
-   * --- Reasonable expectation this small file is already cached for history revisits.
-   * --- No need for popstate fallback, this will always be available.
-   * --- Robust, fully relies only on history.
-   * - Cookie? (brittle, overhead)
-   * - etc...
-   * ! Minimal footprint. (low overhead on MPA-only, every byte counts)
-   */
-
-  /**
-   * TODO Build spa-init to /build/.
+   * TODO Build SPA init to a file under /build/, conditional src in DOM.
+   * - Cache file when upgrading to SPA.
+   * - Reasonable expectation this small file is already cached for history revisits.
+   * - No need for popstate fallback, this will always be available.
+   * - Robust, fully relies only on history.
    * TODO Swap localStorage for script.src.
+   * TODO Dev vs prod?
    * TODO Add configuration notes on CSP docs as applicable.
    */
 

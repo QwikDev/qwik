@@ -2,7 +2,6 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-// TODO!!! Finalize this script, method of import, etc.
 // TODO Dedupe handler code from here and QwikCityProvider.
 // TODO Navigation API; check for support & simplify.
 
@@ -30,7 +29,7 @@ export default (
   const scrollHistory = '_qCityScroll';
 
   /**
-   * * If loaded as deferred/async:
+   * TODO If loaded as deferred/async?:
    *  - Forward document.currentScript from shim, if needed.
    *  - Remove backup pop handler, if exists.
    */

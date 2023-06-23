@@ -15,7 +15,12 @@ import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
-import { getSubscriptionManager, noSerialize, type NoSerialize, unwrapProxy } from '../state/common';
+import {
+  getSubscriptionManager,
+  noSerialize,
+  type NoSerialize,
+  unwrapProxy,
+} from '../state/common';
 import {
   isSignal,
   QObjectSignalFlags,

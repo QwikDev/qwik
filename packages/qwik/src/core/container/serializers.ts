@@ -22,7 +22,7 @@ import {
 import { type Collector, collectSubscriptions, collectValue, mapJoin } from './pause';
 import {
   fastWeakSerialize,
-  getProxyManager,
+  getSubscriptionManager,
   LocalSubscriptionManager,
   type SubscriptionManager,
   type Subscriptions,
@@ -306,7 +306,7 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   $collect$(obj, collector, leaks) {
     collectValue(obj.ref, collector, leaks);
     if (fastWeakSerialize(obj.ref)) {
-      const localManager = getProxyManager(obj.ref)!;
+      const localManager = getSubscriptionManager(obj.ref)!;
       if (isTreeShakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }

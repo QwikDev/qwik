@@ -15,7 +15,7 @@ import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
-import { getProxyManager, noSerialize, type NoSerialize, unwrapProxy } from '../state/common';
+import { getSubscriptionManager, noSerialize, type NoSerialize, unwrapProxy } from '../state/common';
 import {
   isSignal,
   QObjectSignalFlags,
@@ -554,7 +554,7 @@ export const runResource = <T>(
       ctx.$subscriber$ = [0, watch];
       return invoke(ctx, obj);
     }
-    const manager = getProxyManager(obj);
+    const manager = getSubscriptionManager(obj);
     if (manager) {
       manager.$addSub$([0, watch], prop);
     } else {
@@ -673,7 +673,7 @@ export const runWatch = (
       ctx.$subscriber$ = [0, watch];
       return invoke(ctx, obj);
     }
-    const manager = getProxyManager(obj);
+    const manager = getSubscriptionManager(obj);
     if (manager) {
       manager.$addSub$([0, watch], prop);
     } else {

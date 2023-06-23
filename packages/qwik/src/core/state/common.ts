@@ -185,7 +185,7 @@ export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undef
   return (obj as any)[QOjectTargetSymbol];
 };
 
-export const getProxyManager = (obj: Record<string, any>): LocalSubscriptionManager | undefined => {
+export const getSubscriptionManager = (obj: Record<string, any>): LocalSubscriptionManager | undefined => {
   return (obj as any)[QObjectManagerSymbol];
 };
 

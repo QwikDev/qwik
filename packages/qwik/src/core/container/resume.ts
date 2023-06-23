@@ -19,7 +19,7 @@ import {
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
+import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
@@ -289,7 +289,7 @@ const reviveSubscriptions = (
     if (!parser.subs(value, converted)) {
       const proxy = containerState.$proxyMap$.get(value);
       if (proxy) {
-        getProxyManager(proxy)!.$addSubs$(converted);
+        getSubscriptionManager(proxy)!.$addSubs$(converted);
       } else {
         createProxy(value, containerState, converted);
       }

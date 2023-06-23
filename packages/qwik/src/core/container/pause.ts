@@ -54,7 +54,7 @@ import {
   fastSkipSerialize,
   fastWeakSerialize,
   getProxyFlags,
-  getProxyManager,
+  getSubscriptionManager,
   getProxyTarget,
   isConnected,
   LocalSubscriptionManager,
@@ -663,18 +663,18 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
   const props = elCtx.$props$;
   if (parentCtx && props && !isEmptyObj(props) && collector.$elements$.includes(parentCtx)) {
-    const subs = getProxyManager(props)?.$subs$;
+    const subs = getSubscriptionManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
       for (const sub of subs) {
         if (sub[0] === 0) {
           if (sub[1] !== el) {
-            collectSubscriptions(getProxyManager(props)!, collector, false);
+            collectSubscriptions(getSubscriptionManager(props)!, collector, false);
           }
           collectElement(sub[1] as VirtualElement, collector);
         } else {
           collectValue(props, collector, false);
-          collectSubscriptions(getProxyManager(props)!, collector, false);
+          collectSubscriptions(getSubscriptionManager(props)!, collector, false);
         }
       }
     }
@@ -730,7 +730,7 @@ export const collectElementData = (
 ) => {
   if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
     collectValue(elCtx.$props$, collector, dynamicCtx);
-    collectSubscriptions(getProxyManager(elCtx.$props$)!, collector, dynamicCtx);
+    collectSubscriptions(getSubscriptionManager(elCtx.$props$)!, collector, dynamicCtx);
   }
   if (elCtx.$componentQrl$) {
     collectValue(elCtx.$componentQrl$, collector, dynamicCtx);
@@ -868,7 +868,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
           seen.add(obj);
           const mutable = (getProxyFlags(obj)! & QObjectImmutable) === 0;
           if (leaks && mutable) {
-            collectSubscriptions(getProxyManager(input)!, collector, leaks);
+            collectSubscriptions(getSubscriptionManager(input)!, collector, leaks);
           }
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
@@ -936,11 +936,11 @@ const getManager = (obj: any, containerState: ContainerState) => {
     return undefined;
   }
   if (obj instanceof SignalImpl) {
-    return getProxyManager(obj);
+    return getSubscriptionManager(obj);
   }
   const proxy = containerState.$proxyMap$.get(obj);
   if (proxy) {
-    return getProxyManager(proxy);
+    return getSubscriptionManager(proxy);
   }
   return undefined;
 };

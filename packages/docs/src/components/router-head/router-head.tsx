@@ -37,7 +37,6 @@ export const RouterHead = component$(() => {
   const imageUrl = useSignal('');
   const ogImgTitle = useSignal('');
   const ogImgSubTitle = useSignal('');
-  // const ogImgFragment = useSignal('');
 
   //the url
   const urlString = pathname;

@@ -1,5 +1,5 @@
-import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useVisibleTask$ } from '@builder.io/qwik';
+import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { component$, useStyles$, useContext, useVisibleTask$, useSignal, useTask$ } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -8,6 +8,7 @@ import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
+import ogImage from './ogImage.css?inline';
 import { GlobalStore } from '../../context';
 import {
   colorSchemeChangeListener,
@@ -61,7 +62,7 @@ console.log("third level route is "+ arrayedUrl[2])
   const imageUrl = useSignal('');
   const ogImgTitle = useSignal('');
   const ogImgSubTitle = useSignal('');
-  const ogImgFragment = useSignal('');
+  // const ogImgFragment = useSignal(''); 
 
   //the url
   const urlString = pathname;

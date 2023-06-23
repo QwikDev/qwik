@@ -7,7 +7,9 @@ import { ThemeScript } from './theme-script';
 export const RouterHead = component$(() => {
   const { url } = useLocation();
   const head = useDocumentHead();
-  const title = head.title ? `${head.title} - Qwik` : `Qwik - Framework reimagined for the edge`;
+  const title = head.title
+    ? `${head.title} 📚 Qwik Documentation`
+    : `Qwik - Framework reimagined for the edge`;
   const description =
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;

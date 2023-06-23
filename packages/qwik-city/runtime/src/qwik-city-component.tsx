@@ -172,6 +172,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           } else {
             window.scrollTo(0, 0);
           }
+        } else if (type === 'popstate') {
+          // TODO Restore scroll here, state-to-state. (browsers natively do this)
+          (window as ClientSPAWindow)._qCityScrollEnabled = true;
         }
       }
 
@@ -323,8 +326,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               // Disable scroll handler eagerly to prevent overwriting history.state.
               win._qCityScrollEnabled = false;
               clearTimeout(win._qCityScrollDebounce);
-              // TODO This might not get re-enabled if we pop onto the same path? (no re-render)
-              // TODO Test by adding a fake pushState and popping.
 
               goto(location.href, {
                 type: 'popstate',

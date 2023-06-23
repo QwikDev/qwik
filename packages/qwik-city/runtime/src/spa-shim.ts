@@ -3,9 +3,9 @@ import type { ScrollHistoryState } from './scroll-restoration';
 
 export default (window: ClientSPAWindow, history: History, document: Document) => {
   /**
-   * TODO Build SPA init to a file under /build/, conditional src in DOM.
+   * TODO Build `spa-init.ts` to a file under /build/.
    * - Cache file when upgrading to SPA.
-   * - Reasonable expectation this small file is already cached for history revisits.
+   * - Reasonable expectation this file is already cached for history revisits.
    * - No need for popstate fallback, this will always be available.
    * - Robust, fully relies only on history.
    * TODO Swap localStorage for script.src.

@@ -4,7 +4,7 @@ import { qwikVite } from '@builder.io/qwik/optimizer';
 export default defineConfig(() => {
   return {
     build: {
-      target: 'es2020',
+      target: 'es2021',
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],

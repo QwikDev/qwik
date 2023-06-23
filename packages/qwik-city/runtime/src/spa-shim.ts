@@ -1,12 +1,5 @@
-// TODO!!! Finalize this file, manual minification, etc.?
 export default () => {
-  console.log('BEGIN: init-popstate.js');
-
-  const loc = location;
-  const currentPath = loc.pathname + loc.search;
-  const fallback = '_qCityPopstateFallback';
-  const history = '_qCityHistory';
-
+  console.log('BEGIN: spa-shim');
   // TODO Shim for expanded SPA recovery pop.
 
   // TODO Conditions for checking SPA status:
@@ -29,18 +22,23 @@ export default () => {
   // - Hash checking?
   // ! MINIMAL footprint. (low overhead on MPA-only, every byte counts)
 
-  if (!window[fallback]) {
-    window[fallback] = () => {
-      console.log('--- popped ---');
-      if (!window[history] && currentPath !== loc.pathname + loc.search) {
-        loc.reload();
-      }
-    };
+  // const loc = location;
+  // const currentPath = loc.pathname + loc.search;
+  // const fallback = '_qCityPopstateFallback';
+  // const history = '_qCityHistory';
 
-    setTimeout(() => {
-      addEventListener('popstate', window[fallback]);
-    }, 0);
-  }
+  // if (!window[fallback]) {
+  //   window[fallback] = () => {
+  //     console.log('--- popped ---');
+  //     if (!window[history] && currentPath !== loc.pathname + loc.search) {
+  //       loc.reload();
+  //     }
+  //   };
 
-  console.log('END: init-popstate.js');
+  //   setTimeout(() => {
+  //     addEventListener('popstate', window[fallback]);
+  //   }, 0);
+  // }
+
+  console.log('END: spa-shim');
 };

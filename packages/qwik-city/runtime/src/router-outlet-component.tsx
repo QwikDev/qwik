@@ -11,9 +11,9 @@ import {
 } from '@builder.io/qwik';
 
 import { ContentInternalContext } from './contexts';
-// import popStateScript from './init-popstate.txt?raw';
-// TODO Replace this with SHIM after finalized.
-import spaStateScript from './init-spa';
+// TODO Replace spa-init with spa-shim.
+// import spaShim from './spa-shim';
+import spaInit from './spa-init';
 
 /**
  * @public
@@ -37,7 +37,7 @@ export const RouterOutlet = component$(() => {
       <>
         {cmp}
         <script
-          dangerouslySetInnerHTML={`(${spaStateScript.toString()})(window,location,history,document);`}
+          dangerouslySetInnerHTML={`(${spaInit.toString()})(window,location,history,document);`}
           nonce={nonce}
         ></script>
       </>

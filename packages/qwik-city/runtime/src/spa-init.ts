@@ -4,6 +4,7 @@ import type { ScrollState } from './types';
 
 // TODO!!! Finalize this script, method of import, etc.
 // TODO Dedupe handler code from here and QwikCityProvider.
+// TODO Navigation API; check for support & simplify.
 
 export default (
   window: ClientSPAWindow,
@@ -186,8 +187,6 @@ export default (
       };
 
       window[scrollEnabled] = true;
-
-      // TODO Navigation API; check for support & simplify.
 
       setTimeout(() => {
         window[addEventListener]('popstate', window[initPopstate]!);

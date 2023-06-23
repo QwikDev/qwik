@@ -85,7 +85,7 @@ The `useTask` function is used to observe the `state.count` property. Any change
 
 <docs code="./examples.tsx#use-task"/>
 
-@param watch - Function which should be re-executed when changes to the inputs are detected
+@param task - Function which should be re-executed when changes to the inputs are detected
 @public
 
 # `useVisibleTask`

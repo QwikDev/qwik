@@ -14,10 +14,10 @@ import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../
 import { qDev } from '../util/qdev';
 
 import {
-  destroyWatch,
+  destroyTask,
   isResourceTask,
   type ResourceReturnInternal,
-  WatchFlagsIsDirty,
+  TaskFlagsIsDirty,
 } from '../use/use-task';
 import {
   qError,
@@ -255,20 +255,20 @@ export const _pauseFromContexts = async (
 
   // TODO: optimize
   for (const ctx of allContexts) {
-    if (ctx.$watches$) {
-      for (const watch of ctx.$watches$) {
+    if (ctx.$tasks$) {
+      for (const task of ctx.$tasks$) {
         if (qDev) {
-          if (watch.$flags$ & WatchFlagsIsDirty) {
-            logWarn('Serializing dirty watch. Looks like an internal error.');
+          if (task.$flags$ & TaskFlagsIsDirty) {
+            logWarn('Serializing dirty task. Looks like an internal error.');
           }
-          if (!isConnected(watch)) {
-            logWarn('Serializing disconnected watch. Looks like an internal error.');
+          if (!isConnected(task)) {
+            logWarn('Serializing disconnected task. Looks like an internal error.');
           }
         }
-        if (isResourceTask(watch)) {
-          collector.$resources$.push(watch.$state$);
+        if (isResourceTask(task)) {
+          collector.$resources$.push(task.$state$);
         }
-        destroyWatch(watch);
+        destroyTask(task);
       }
     }
   }
@@ -517,7 +517,7 @@ export const _pauseFromContexts = async (
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
-    const watches = ctx.$watches$;
+    const tasks = ctx.$tasks$;
     const renderQrl = ctx.$componentQrl$;
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
@@ -545,8 +545,8 @@ export const _pauseFromContexts = async (
         }
       }
 
-      if (watches && watches.length > 0) {
-        const value = mapJoin(watches, getObjId, ' ');
+      if (tasks && tasks.length > 0) {
+        const value = mapJoin(tasks, getObjId, ' ');
         if (value) {
           metaValue.w = value;
           add = true;
@@ -740,9 +740,9 @@ export const collectElementData = (
       collectValue(obj, collector, dynamicCtx);
     }
   }
-  if (elCtx.$watches$) {
+  if (elCtx.$tasks$) {
     const map = collector.$containerState$.$subsManager$.$groupToManagers$;
-    for (const obj of elCtx.$watches$) {
+    for (const obj of elCtx.$tasks$) {
       if (map.has(obj)) {
         collectValue(obj, collector, dynamicCtx);
       }

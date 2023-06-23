@@ -160,7 +160,18 @@ export default (
           // Patch only same-page hash anchors.
           if (sameOrigin && samePath) {
             event.preventDefault();
-            navigate(href);
+
+            if (!navigate(href)) {
+              if (dest.hash !== prev.hash) {
+                history.pushState(null, '', dest);
+              }
+
+              const elmId = dest.hash.slice(1);
+              const elm = document.getElementById(elmId);
+              if (elm) {
+                elm.scrollIntoView();
+              }
+            }
           }
         }
       };

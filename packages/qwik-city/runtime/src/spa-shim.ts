@@ -1,5 +1,5 @@
 export default () => {
-  console.log('BEGIN: spa-shim');
+  // console.log('BEGIN: spa-shim');
   // TODO Shim for expanded SPA recovery pop.
 
   // TODO Conditions for checking SPA status:
@@ -40,5 +40,5 @@ export default () => {
   //   }, 0);
   // }
 
-  console.log('END: spa-shim');
+  // console.log('END: spa-shim');
 };

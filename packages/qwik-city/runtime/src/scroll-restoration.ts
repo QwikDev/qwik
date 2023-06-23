@@ -56,9 +56,6 @@ const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
   return true;
 };
 
-/**
- * @alpha
- */
 export const scrollToHashId = (hash: string) => {
   const elmId = hash.slice(1);
   const elm = document.getElementById(elmId);
@@ -69,9 +66,6 @@ export const scrollToHashId = (hash: string) => {
   return elm;
 };
 
-/**
- * @alpha
- */
 export const currentScrollState = (elm: Element): ScrollState => {
   return {
     scrollX: elm.scrollLeft,
@@ -81,17 +75,11 @@ export const currentScrollState = (elm: Element): ScrollState => {
   };
 };
 
-/**
- * @alpha
- */
 export const getScrollHistory = () => {
   const state = history.state as ScrollHistoryState;
   return state?._qCityScroll;
 };
 
-/**
- * @alpha
- */
 export const saveScrollHistory = (scrollState: ScrollState, initialize = false) => {
   const state: ScrollHistoryState = history.state || {};
 
@@ -101,9 +89,6 @@ export const saveScrollHistory = (scrollState: ScrollState, initialize = false) 
   }
 };
 
-/**
- * @alpha
- */
 export interface ScrollHistoryState {
   _qCityScroll?: ScrollState;
 }

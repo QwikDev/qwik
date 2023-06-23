@@ -34,5 +34,5 @@ interface SocialProps {
   title: string;
   description: string;
   href: string;
-  ogImage: string;
+  ogImage?: string;
 }

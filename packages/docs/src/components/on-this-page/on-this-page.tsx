@@ -27,7 +27,7 @@ const makeEditPageUrl = (url: string): string => {
     'sitemaps',
   ];
 
-  const whitelistedDirectories = ['integrations', 'deployments', 'community'];
+  const whitelistedDirectories = ['integrations', 'deployments', 'community', 'labs'];
 
   const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
 

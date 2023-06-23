@@ -461,9 +461,10 @@ createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 ## CSSProperties
 
 ```typescript
-export type CSSProperties = CSS.Properties<string | number> &
-  Record<string, string | number | undefined>;
+export interface CSSProperties extends CSS.Properties<string | number>, CSS.PropertiesHyphen<string | number>
 ```
+
+**Extends:** CSS.Properties&lt;string \| number&gt;, CSS.PropertiesHyphen&lt;string \| number&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 

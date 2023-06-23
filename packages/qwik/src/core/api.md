@@ -108,7 +108,9 @@ export interface CorePlatform {
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 // @public (undocumented)
-export type CSSProperties = CSS_2.Properties<string | number> & Record<string, string | number | undefined>;
+export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
+    [v: `--${string}`]: string | number | undefined;
+}
 
 // @internal (undocumented)
 export const _deserializeData: (data: string, element?: unknown) => any;

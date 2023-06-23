@@ -216,8 +216,8 @@
           "id": "cssproperties"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type CSSProperties = CSS.Properties<string | number> & Record<string, string | number | undefined>;\n```",
+      "kind": "Interface",
+      "content": "```typescript\nexport interface CSSProperties extends CSS.Properties<string | number>, CSS.PropertiesHyphen<string | number> \n```\n**Extends:** CSS.Properties&lt;string \\| number&gt;, CSS.PropertiesHyphen&lt;string \\| number&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.cssproperties.md"
     },

@@ -1,19 +1,23 @@
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath } from './utils';
 
-export const restoreScroll =
-  (type: NavigationType, fromUrl: URL, toUrl: URL, scrollState?: ScrollState) => () => {
-    // Chromium & Firefox will always natively restore on visited popstates.
-    // Always scroll to known state if available on pop. Otherwise, try hash scroll.
-    if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
-      let [scrollX, scrollY] = [0, 0];
-      if (scrollState) {
-        scrollX = scrollState.scrollX;
-        scrollY = scrollState.scrollY;
-      }
-      window.scrollTo(scrollX, scrollY);
+export const restoreScroll = (
+  type: NavigationType,
+  fromUrl: URL,
+  toUrl: URL,
+  scrollState?: ScrollState
+) => {
+  // Chromium & Firefox will always natively restore on visited popstates.
+  // Always scroll to known state if available on pop. Otherwise, try hash scroll.
+  if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
+    let [scrollX, scrollY] = [0, 0];
+    if (scrollState) {
+      scrollX = scrollState.scrollX;
+      scrollY = scrollState.scrollY;
     }
-  };
+    window.scrollTo(scrollX, scrollY);
+  }
+};
 
 const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
   const newHash = toUrl.hash;

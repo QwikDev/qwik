@@ -164,7 +164,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             window.scrollTo(0, 0);
           }
         } else if (type === 'popstate') {
-          // TODO Restore scroll here, state-to-state. (browsers natively do this)
+          restoreScroll(type, dest, lastDest, getScrollHistory());
           (window as ClientSPAWindow)._qCityScrollEnabled = true;
         }
       }
@@ -289,7 +289,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             scrollState = getScrollHistory();
           }
 
-          document.__q_scroll_restore__ = restoreScroll(navType, prevUrl, trackUrl, scrollState);
+          document.__q_scroll_restore__ = () =>
+            restoreScroll(navType, prevUrl, trackUrl, scrollState);
 
           const loaders = clientPageData?.loaders;
           const win = window as ClientSPAWindow;

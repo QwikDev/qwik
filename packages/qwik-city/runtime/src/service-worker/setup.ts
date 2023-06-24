@@ -23,7 +23,7 @@ export const setupServiceWorkerScope = (
         ev.respondWith(
           swScope.caches.open(qBuildCacheName).then((qBuildCache) => {
             prefetchWaterfall(appBundles, qBuildCache, swFetch, url);
-            return cachedFetch(qBuildCache, swFetch, awaitingRequests, request);
+            return cachedFetch(qBuildCache, swFetch, awaitingRequests, request, ev.preloadResponse);
           })
         );
       }
@@ -63,15 +63,22 @@ export const setupServiceWorkerScope = (
     }
   });
 
-  swScope.addEventListener('activate', async () => {
-    try {
-      const qBuildCache = await swScope.caches.open(qBuildCacheName);
-      const cachedRequestKeys = await qBuildCache.keys();
-      const cachedUrls = cachedRequestKeys.map((r) => r.url);
-      const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
-      await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
-    } catch (e) {
-      console.error(e);
-    }
+  swScope.addEventListener('activate', (event) => {
+    // if (self.registration.navigationPreload) {
+    //   event.waitUntil(self.registration.navigationPreload.enable());
+    // }
+    (async () => {
+      try {
+        const qBuildCache = await swScope.caches.open(qBuildCacheName);
+        const cachedRequestKeys = await qBuildCache.keys();
+        const cachedUrls = cachedRequestKeys.map((r) => r.url);
+        const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
+        await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
+      } catch (e) {
+        console.error(e);
+      }
+    })();
   });
 };
+
+declare const self: ServiceWorkerGlobalScope;

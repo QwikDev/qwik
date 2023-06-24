@@ -17,20 +17,29 @@
 - [Slots](/docs/(qwik)/components/slots/index.mdx)
 - [Rendering](/docs/(qwik)/components/rendering/index.mdx)
 - [Styling](/docs/(qwik)/components/styles/index.mdx)
+- [Deprecated Features](/docs/(qwik)/deprecated-features/index.mdx)
 
-## Routing (Qwik City)
+## Qwik City
 
-- [Qwik City](/docs/(qwikcity)/qwikcity/index.mdx)
+- [Overview](/docs/(qwikcity)/qwikcity/index.mdx)
 - [Routing](/docs/(qwikcity)/routing/index.mdx)
-- [Route Loaders](/docs/(qwikcity)/route-loader/index.mdx)
-- [Form actions](/docs/(qwikcity)/action/index.mdx)
-- [Layouts](/docs/(qwikcity)/layout/index.mdx)
 - [Pages](/docs/(qwikcity)/pages/index.mdx)
+- [Layouts](/docs/(qwikcity)/layout/index.mdx)
+- [Loaders](/docs/(qwikcity)/route-loader/index.mdx)
+- [Actions](/docs/(qwikcity)/action/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
+- [Middleware](/docs/(qwikcity)/middleware/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)
 - [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
+- [Deprecated Features](/docs/(qwikcity)/qwikcity-deprecated-features/index.mdx)
+
+## Qwik Labs 🧪
+
+- [Overview](/docs/labs/index.mdx)
+- [Insights](/docs/labs/insights/index.mdx)
+- [Typed Routes](/docs/labs/typed-routes/index.mdx)
 
 ## Integrations
 
@@ -43,6 +52,7 @@
 - [Internationalization](integrations/i18n/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
+- [Panda CSS](integrations/panda-css/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
 - [PostCSS](integrations/postcss/index.mdx)
@@ -75,9 +85,10 @@
 - [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx)
 - [Bundle Optimization](/docs/(qwikcity)/guides/bundle/index.mdx)
 
+
 ## Concepts
 
-- [Think Qwik](/docs/(qwik)/think-qwik/index.mdx)
+- [Think Qwik](/docs/(qwik)/concepts/think-qwik/index.mdx)
 - [Resumable](/docs/(qwik)/concepts/resumable/index.mdx)
 - [Progressive](/docs/(qwik)/concepts/progressive/index.mdx)
 - [Reactivity](/docs/(qwik)/concepts/reactivity/index.mdx)
@@ -99,6 +110,7 @@
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 - [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
+- [Content Security Policy](/docs/(qwikcity)/advanced/content-security-policy/index.mdx)
 
 ## Reference
 

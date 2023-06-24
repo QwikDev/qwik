@@ -107,7 +107,7 @@ export const createQRL = <TYPE>(
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvocationContext(currentCtx);
+          const baseContext = createOrReuseInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
@@ -123,7 +123,7 @@ export const createQRL = <TYPE>(
     }) as any;
   }
 
-  const createInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
     } else if (isArray(invoke)) {

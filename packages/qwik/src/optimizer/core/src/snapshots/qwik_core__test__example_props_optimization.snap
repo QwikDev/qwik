@@ -79,17 +79,17 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
             props
         ], "p0.count")
     }, {
-        some: _fnSignal((p0)=>p0.some ?? 3, [
+        class: _fnSignal((p0)=>p0.count, [
             props
-        ], "p0.some??1+2"),
+        ], "p0.count"),
         params: _fnSignal((p0)=>({
                 some: p0.some ?? 3
             }), [
             props
         ], "{some:p0.some??1+2}"),
-        class: _fnSignal((p0)=>p0.count, [
+        some: _fnSignal((p0)=>p0.some ?? 3, [
             props
-        ], "p0.count")
+        ], "p0.some??1+2")
     }, 0, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count , stuff: { hey  }  })=>{
@@ -120,7 +120,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMf;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UARV;QASI,QAAQ,GAAG,OATf,OASuB,YANvB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACI,MAAC;QAAiD,GAAG,IAAI;qCAZ7D;;;;QAYS,IAAI,qBAXb,QAAO;;;QAWc,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXnC,QAAO;YAW6B,CAAA;;;QAAG,KAAK,qBAZ5C;;;;AAcJ,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMf;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UARV;QASI,QAAQ,GAAG,OATf,OASuB,YANvB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACI,MAAC;QAAiD,GAAG,IAAI;qCAZ7D;;;;QAYuC,KAAK,qBAZ5C;;;QAYqB,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXnC,QAAO;YAW6B,CAAA;;;QAA3B,IAAI,qBAXb,QAAO;;;;AAaX,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

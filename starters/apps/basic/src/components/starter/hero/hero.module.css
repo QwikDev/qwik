@@ -9,6 +9,16 @@
   gap: 40px;
 }
 
+.hero-image {
+  width: 100%;
+  position: absolute;
+  height: auto;
+  object-fit: cover;
+  z-index: -1;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
 .hero p {
   color: white;
   margin: 0;

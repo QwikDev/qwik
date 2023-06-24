@@ -21,6 +21,7 @@ import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
 import type { ValueOrPromise } from '@builder.io/qwik';
 import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
+import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -43,9 +44,18 @@ export function createRequestEvent(
 ) {
   const { request, platform, env } = serverRequestEv;
 
+  const sharedMap = new Map();
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
+  if (url.pathname.endsWith(QDATA_JSON)) {
+    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
+    if (trailingSlash && !url.pathname.endsWith('/')) {
+      url.pathname += '/';
+    }
+    sharedMap.set(IsQData, true);
+  }
+  sharedMap.set('@manifest', manifest);
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
@@ -96,13 +106,15 @@ export function createRequestEvent(
         }
       }
     }
+    return exit();
+  };
+
+  const exit = () => {
+    routeModuleIndex = ABORT_INDEX;
     return new AbortMessage();
   };
 
   const loaders: Record<string, Promise<any>> = {};
-
-  const sharedMap = new Map();
-  sharedMap.set('@manifest', manifest);
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,
@@ -127,13 +139,13 @@ export function createRequestEvent(
     get exited() {
       return routeModuleIndex >= ABORT_INDEX;
     },
+    get clientConn() {
+      return serverRequestEv.getClientConn();
+    },
 
     next,
 
-    exit: () => {
-      routeModuleIndex = ABORT_INDEX;
-      return new AbortMessage();
-    },
+    exit,
 
     cacheControl: (cacheControl) => {
       check();
@@ -179,11 +191,18 @@ export function createRequestEvent(
     redirect: (statusCode: number, url: string) => {
       check();
       status = statusCode;
-      headers.set('Location', url);
+      if (url) {
+        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
+        if (url !== fixedURL) {
+          console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+        }
+        headers.set('Location', fixedURL);
+      }
       headers.delete('Cache-Control');
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
+      exit();
       return new RedirectMessage();
     },
 
@@ -282,7 +301,7 @@ export function getRequestMode(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvMode];
 }
 
-const ABORT_INDEX = 999999999;
+const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 
 const parseRequest = async (
   request: Request,

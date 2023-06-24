@@ -8,6 +8,10 @@ import {
   useSignal,
   useTask$,
   type Signal,
+  useComputed$,
+  useContext,
+  createContextId,
+  useContextProvider,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -39,6 +43,7 @@ export const EffectClient = component$(() => {
 
       <Timer />
       <Eager></Eager>
+      <Issue4432 />
     </div>
   );
 });
@@ -265,4 +270,56 @@ export const CleanupEffectsChild = component$((props: { nuCleanups: Signal<numbe
     });
   });
   return <div>Hello</div>;
+});
+
+const ContextIssue4432 = createContextId<{ url: URL; logs: string }>('issue-4432');
+
+export const Issue4432 = component$(() => {
+  const loc = useStore({
+    url: new URL('http://localhost:3000/'),
+    logs: '',
+  });
+  useContextProvider(ContextIssue4432, loc);
+
+  return (
+    <>
+      <button
+        id="issue-4432-button"
+        onClick$={() => (loc.url = new URL('http://localhost:3000/other'))}
+      >
+        Change
+      </button>
+      <pre id="issue-4432-logs">{loc.logs}</pre>
+      {loc.url.pathname === '/' && <Issue4432Child />}
+    </>
+  );
+});
+
+export const Issue4432Child = component$(() => {
+  const state = useContext(ContextIssue4432);
+
+  const pathname = useComputed$(() => state.url.pathname);
+
+  useVisibleTask$(
+    ({ track, cleanup }) => {
+      track(() => pathname.value);
+
+      // This should only run on page load for path '/'
+      state.logs += `VisibleTask ChildA ${pathname.value}\n`;
+
+      // This should only run when leaving the page
+      cleanup(() => {
+        state.logs += `Cleanup ChildA ${pathname.value}\n`;
+      });
+    },
+    {
+      strategy: 'document-ready',
+    }
+  );
+
+  return (
+    <>
+      <p>Child A</p>
+    </>
+  );
 });

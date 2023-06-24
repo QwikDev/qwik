@@ -3,339 +3,59 @@ title: Qwik City - Endpoints
 contributors:
   - adamdbradley
   - manucorporat
-  - Oyemade
   - mhevery
-  - royboy789
-  - PatrickJS
-  - the-r3aper7
 ---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
 
 # Endpoints
 
-Endpoints are `index.ts` files in the `src/routes` directory that does not export a `default` component. Instead, it exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
 
+A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other time of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
+
+All endpoints receive an [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
+
+
+For example, when navigating to `/greet/` URL this endpoint will return `{"hello":"world"}`.
+
+File: `src/routes/greet/index.tsx`
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/json/index.tsx">
 ```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@builder.io/qwik-city';
 
-// Called when the HTTP method is GET
-export const onGet: RequestHandler = async (requestEvent) => {
-  // Respond with a JSON object
-  requestEvent.json(200, { hello: 'world' });
+export const onGet: RequestHandler = async ({ json }) => {
+  json(200, { hello: 'world' });
 };
 ```
+</CodeSandbox>
 
-Endpoints are useful when you need to expose some external API, for example a RESTful API, or a GraphQL API, for use by an external entity such as a mobile app or a third-party service.
+> Sending a response is what differentiates an endpoint from a middleware. Sending a response (using `json()` for example) will therefore implicitly halt the middleware chain.
 
-```ts
-import type { RequestHandler } from '@builder.io/qwik-city';
 
-// Called with every HTTP request (regardless of method)
-export const onRequest: RequestHandler = async (requestEvent) => { ... }
 
-// Called when the HTTP method is GET
-export const onGet: RequestHandler = async (requestEvent) => { ... }
-
-// Called when the HTTP method is POST
-export const onPost: RequestHandler = async (requestEvent) => { ... }
-
-// Called when the HTTP method is PUT
-export const onPut: RequestHandler = async (requestEvent) => { ... }
-
-// Called when the HTTP method is PATCH
-export const onPatch: RequestHandler = async (requestEvent) => { ... }
-
-// Called when the HTTP method is DELETE
-export const onDelete: RequestHandler = async (requestEvent) => { ... }
-```
-
-## Endpoints vs server$
-
-Endpoint routes expose proper HTTP endpoints that can be accessed externally from any client, whereas `server$` functions are only accessible internally within the Qwik project.
-
-Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
-
-The `server$` functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` are strongly typed and provide a more convenient API for returning data.
-
-## Raw Response Control
-
-Endpoints give developers full control over the HTTP response. This allows endpoints to implement RESTful APIs, JSON, XML, GraphQL APIs, reverse proxies or any other type of API.
-
-All endpoint functions are passed a `RequestEvent` object, which contains the HTTP request and response information.
-
-```ts
-export interface RequestEvent {
-  /**
-   * HTTP response headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
-   */
-  readonly headers: Headers;
-
-  /**
-   * HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value.
-   * Use the `set()` method to set a response cookie value.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
-   */
-  readonly cookie: Cookie;
-
-  /**
-   * HTTP request method.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-   */
-  readonly method: string;
-
-  /**
-   * URL pathname. Does not include the protocol, domain, query string (search params) or hash.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname
-   */
-  readonly pathname: string;
-
-  /**
-   * URL path params which have been parsed from the current url pathname segments.
-   * Use `query` to instead retrieve the query string search params.
-   */
-  readonly params: Readonly<Record<string, string>>;
-
-  /**
-   * URL Query Strings (URL Search Params).
-   * Use `params` to instead retrieve the route params found in the url pathname.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
-   */
-  readonly query: URLSearchParams;
-
-  /**
-   * HTTP request URL.
-   */
-  readonly url: URL;
-
-  /**
-   * The base pathname of the request, which can be configured at build time.
-   * Defaults to `/`.
-   */
-  readonly basePathname: string;
-
-  /**
-   * HTTP request information.
-   */
-  readonly request: Request;
-
-  /**
-   * Platform specific data and functions
-   */
-  readonly platform: PLATFORM;
-
-  /**
-   * Platform provided environment variables.
-   */
-  readonly env: EnvGetter;
-
-  /**
-   * Shared Map across all the request handlers. Every HTTP request will get a new instance of
-   * the shared map. The shared map is useful for sharing data between request handlers.
-   */
-  readonly sharedMap: Map<string, any>;
-
-  /**
-   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
-   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
-   *
-   * If the `Content-Type` header is not set, it will return `null`.
-   */
-  readonly parseBody: () => Promise<unknown>;
-
-  /**
-   * Convenience method to set the Cache-Control header.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-   */
-  readonly cacheControl: (cacheControl: CacheControl) => void;
-
-  /**
-   * HTTP response status code. Sets the status code when called with an
-   * argument. Always returns the status code, so calling `status()` without
-   * an argument will can be used to return the current status code.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   */
-  readonly status: (statusCode?: number) => number;
-
-  /**
-   * Which locale the content is in.
-   *
-   * The locale value can be retrieved from selected methods using `getLocale()`:
-   */
-  readonly locale: (local?: string) => string;
-
-  /**
-   * URL to redirect to. When called, the response will immediately
-   * end with the correct redirect status and headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-   */
-  readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
-
-  /**
-   * When called, the response will immediately end with the given
-   * status code. This could be useful to end a response with `404`,
-   * and use the 404 handler in the routes directory.
-   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   * for which status code should be used.
-   */
-  readonly error: (statusCode: number, message: string) => ErrorResponse;
-
-  /**
-   * Convenience method to send an text body response. The response will be automatically
-   * set the `Content-Type` header to`text/plain; charset=utf-8`.
-   *  An `text()` response can only be called once.
-   */
-  readonly text: (statusCode: number, text: string) => AbortMessage;
-
-  /**
-   * Convenience method to send an HTML body response. The response will be automatically
-   * set the `Content-Type` header to`text/html; charset=utf-8`.
-   *  An `html()` response can only be called once.
-   */
-  readonly html: (statusCode: number, html: string) => AbortMessage;
-
-  /**
-   * Convenience method to JSON stringify the data and send it in the response.
-   * The response will be automatically set the `Content-Type` header to
-   * `application/json; charset=utf-8`. A `json()` response can only be called once.
-   */
-  readonly json: (statusCode: number, data: any) => AbortMessage;
-
-  /**
-   * Send a body response. The `Content-Type` response header is not automatically set
-   * when using `send()` and must be set manually. A `send()` response can only be called once.
-   */
-  readonly send: SendMethod;
-
-  /**
-   * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
-   * the status and headers can no longer be modified and will be sent over the network.
-   */
-  readonly getWritableStream: () => WritableStream<Uint8Array>;
-
-  readonly next: () => Promise<void>;
-}
-```
-
-## Examples
-
-### JSON GET Endpoint
-
-Creating a JSON endpoint is as simple as calling the `json(status, object)` method. The `json()` method will automatically set the `Content-Type` header to `application/json; charset=utf-8` and JSON stringify the data.
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-interface ProductData {
-  skuId: string;
-  price: number;
-  description: string;
-}
-
-export const onGet: RequestHandler = async (requestEvent) => {
-  // Get the product from the database
-  const product: ProductData = await database.get(requestEvent.params.skuId);
-
-  // Send the product as JSON
-  requestEvent.json(200, product);
-};
-```
-
-### Changing the status code
-
-Endpoints can manually change the HTTP status code of the response, using the `status()` method.
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async (requestEvent) => {
-  requestEvent.status(404);
-};
-```
-
-### Adding response headers
-
-Endpoints can manually add response headers to the response, using the `headers` property.
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onPost: RequestHandler = async (requestEvent) => {
-  requestEvent.headers.set('X-My-Custom-Header', 'Hello World');
-};
-```
-
-### Setting a cookie
-
-Endpoints can manually read and set cookies, using the `cookie` property. This might be useful for setting a session cookie, such as a JWT token, or a cookie to track a user.
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async (requestEvent) => {
-  // Read a cookie
-  requestEvent.cookie.get('my-cookie');
-
-  // Set a cookie
-  requestEvent.cookie.set('my-cookie', 'Hello World');
-};
-```
-
-
-### Sending a Text body
-
-Creating a text endpoint is as simple as calling the `text(status, string)` method. The `text()` method will automatically set the `Content-Type` header to `text/plain; charset=utf-8`.
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async (requestEvent) => {
-  requestEvent.text(200, 'Hello World');
-};
-```
-
-### Sending a RAW response
-
-Creating a raw endpoint is as simple as calling the `send(Response)` method. The `send()` method takes a standard `Response` object, which can be created using the `Response` constructor.
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async (requestEvent) => {
-  const response = new Response('Hello World', {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/plain',
-    },
-  });
-  requestEvent.send(response);
-};
-```
-
-### Create a reverse proxy using a fetch
+## Create a reverse proxy using a fetch
 
 A reverse proxy can be created by using the `fetch()` method to make a request to another server, and then using the `send()` method to send the response back to the client.
 
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/proxy/index.tsx">
 ```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet: RequestHandler = async (requestEvent) => {
-  const response = await fetch('https://example.com');
-  requestEvent.send(response);
+export const onGet: RequestHandler = async ({ send, url }) => {
+  const response = await fetch(
+    new URL('/demo/qwikcity/middleware/json/', url)
+  );
+  send(response);
 };
 ```
+</CodeSandbox>
 
-### Create a stream response manually
+## Create a stream response manually
 
 Endpoints can manually write to the HTTP response stream, using the `getWritableStream()` method. This can be useful for creating a streaming endpoint, such as a server-sent events endpoint.
 
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/getWritableStream/index.tsx">
 ```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
@@ -356,15 +76,11 @@ export const onGet: RequestHandler = async (requestEvent) => {
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 ```
+</CodeSandbox>
 
-### Redirecting to another URL
+## Endpoint vs `server$`
 
-Endpoints can redirect to another URL, by throwing the `redirect(status, url)` method. The `redirect()` method will automatically set the `Location` header to the redirect URL.
+Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
 
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
+The `server$` functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` are strongly typed and provides a more convenient API for returning data.
 
-export const onGet: RequestHandler = async (requestEvent) => {
-  throw requestEvent.redirect(302,'/auth/login');
-};
-```

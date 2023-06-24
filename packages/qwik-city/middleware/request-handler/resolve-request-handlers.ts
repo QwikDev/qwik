@@ -19,7 +19,7 @@ import {
   RequestEvSharedActionId,
 } from './request-event';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
-import { isQDataJson, QDATA_JSON } from './user-response';
+import { IsQData, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
@@ -63,6 +63,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
+    requestHandlers.push(handleRedirect);
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -165,7 +166,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
         console.warn(
-          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure you <form> has method="POST" attribute, like this: <form method="POST">'
+          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure your <form> has method="POST" attribute, like this: <form method="POST">'
         );
       }
     }
@@ -334,8 +335,9 @@ async function pureServerFunction(ev: RequestEvent) {
 
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const { basePathname, pathname, url } = ev;
-  if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
+  const { basePathname, pathname, url, sharedMap } = ev;
+  const isQData = sharedMap.has(IsQData);
+  if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -407,7 +409,7 @@ export function renderQwikMiddleware(render: Render) {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+    const isPageDataReq = requestEv.sharedMap.has(IsQData);
     if (isPageDataReq) {
       return;
     }
@@ -429,7 +431,7 @@ export function renderQwikMiddleware(render: Render) {
       const isStatic = getRequestMode(requestEv) === 'static';
       const result = await render({
         base: requestEv.basePathname + 'build/',
-        stream: stream,
+        stream,
         serverData: getQwikCityServerData(requestEv),
         containerAttributes: {
           ['q:render']: isStatic ? 'static' : '',
@@ -441,7 +443,7 @@ export function renderQwikMiddleware(render: Render) {
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url, trailingSlash),
       };
-      if ((typeof result as any as RenderToStringResult).html === 'string') {
+      if (typeof (result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
         // write the already completed html to the stream
         await stream.write((result as any as RenderToStringResult).html);
@@ -457,8 +459,8 @@ export function renderQwikMiddleware(render: Render) {
   };
 }
 
-export async function renderQData(requestEv: RequestEvent) {
-  const isPageDataReq = isQDataJson(requestEv.pathname);
+export async function handleRedirect(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (isPageDataReq) {
     try {
       await requestEv.next();
@@ -467,13 +469,12 @@ export async function renderQData(requestEv: RequestEvent) {
         throw err;
       }
     }
-    if (requestEv.headersSent || requestEv.exited) {
+    if (requestEv.headersSent) {
       return;
     }
 
     const status = requestEv.status();
     const location = requestEv.headers.get('Location');
-    const trailingSlash = getRequestTrailingSlash(requestEv);
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
       const adaptedLocation = makeQDataPath(location);
@@ -486,6 +487,21 @@ export async function renderQData(requestEv: RequestEvent) {
         requestEv.headers.delete('Location');
       }
     }
+  }
+}
+
+export async function renderQData(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
+  if (isPageDataReq) {
+    await requestEv.next();
+
+    if (requestEv.headersSent || requestEv.exited) {
+      return;
+    }
+
+    const status = requestEv.status();
+    const location = requestEv.headers.get('Location');
+    const trailingSlash = getRequestTrailingSlash(requestEv);
 
     const requestHeaders: Record<string, string> = {};
     requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));

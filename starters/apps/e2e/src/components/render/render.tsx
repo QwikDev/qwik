@@ -98,6 +98,7 @@ export const RenderChildren = component$(() => {
       <HTMLFragmentTest />
       <Issue4292 />
       <Issue4386 />
+      <Issue4455 />
     </>
   );
 });
@@ -855,4 +856,13 @@ export const Issue4386 = component$(() => {
   const value = FOO_MAPPING[key];
 
   return <div id="issue-4386-result">{value}</div>;
+});
+
+export const Issue4455 = component$(() => {
+  return (
+    <>
+      <input id="issue-4455-input1" type="range" value="0.5" step="0.1" min="0" max="1" />
+      <input id="issue-4455-input2" type="range" step="0.1" value="0.5" min="0" max="1" />
+    </>
+  );
 });

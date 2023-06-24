@@ -192,6 +192,11 @@ export const MEDIA = mediaObj({
   /*****************************************/
   blogs: [
     {
+      href: 'https://tzdesign.de/en/blog/how-10-engineers-deliver-exactly-what-the-browser-wants-with-qwik',
+      title:
+        'How 10 Engineers Deliver Exactly What the Browser Wants with Qwik - by Tobias Zimmermann',
+    },
+    {
       href: 'https://www.builder.io/blog/resumability-from-ground-up',
       title: 'Understanding Resumability from the Ground Up',
     },

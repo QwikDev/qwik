@@ -29,6 +29,19 @@ export type CacheControl =
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
+## ClientConn
+
+```typescript
+export interface ClientConn
+```
+
+| Property      | Modifiers | Type   | Description  |
+| ------------- | --------- | ------ | ------------ |
+| [country?](#) |           | string | _(Optional)_ |
+| [ip?](#)      |           | string | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+
 ## Cookie
 
 ```typescript
@@ -206,10 +219,10 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 
 | Property               | Modifiers             | Type                                      | Description                                                                                                                                                                                 |
 | ---------------------- | --------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [exited](#)            | <code>readonly</code> | boolean                                   |                                                                                                                                                                                             |
+| [exited](#)            | <code>readonly</code> | boolean                                   | True if the middleware chain has finished executing.                                                                                                                                        |
 | [getWritableStream](#) | <code>readonly</code> | () =&gt; WritableStream&lt;Uint8Array&gt; | Low-level access to write to the HTTP response stream. Once <code>getWritableStream()</code> is called, the status and headers can no longer be modified and will be sent over the network. |
-| [headersSent](#)       | <code>readonly</code> | boolean                                   |                                                                                                                                                                                             |
-| [next](#)              | <code>readonly</code> | () =&gt; Promise&lt;void&gt;              |                                                                                                                                                                                             |
+| [headersSent](#)       | <code>readonly</code> | boolean                                   | True if headers have been sent, preventing any more headers from being set.                                                                                                                 |
+| [next](#)              | <code>readonly</code> | () =&gt; Promise&lt;void&gt;              | <p>Invoke the next middleware function in the chain.</p><p>NOTE: Ensure that the call to <code>next()</code> is <code>await</code>ed.</p>                                                   |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -237,6 +250,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform>
 | ----------------- | --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [basePathname](#) | <code>readonly</code> | string                                                   | The base pathname of the request, which can be configured at build time. Defaults to <code>/</code>.                                                                                                                                                                                                                                                                |
 | [cacheControl](#) | <code>readonly</code> | (cacheControl: [CacheControl](#cachecontrol)) =&gt; void | <p>Convenience method to set the Cache-Control header.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control</p>                                                                                                                                                                                                                            |
+| [clientConn](#)   | <code>readonly</code> | [ClientConn](#clientconn)                                | Provides information about the client connection, such as the IP address and the country the request originated from.                                                                                                                                                                                                                                               |
 | [cookie](#)       | <code>readonly</code> | [Cookie](#cookie)                                        | <p>HTTP request and response cookie. Use the <code>get()</code> method to retrieve a request cookie value. Use the <code>set()</code> method to set a response cookie value.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies</p>                                                                                                                    |
 | [env](#)          | <code>readonly</code> | EnvGetter                                                | Platform provided environment variables.                                                                                                                                                                                                                                                                                                                            |
 | [headers](#)      | <code>readonly</code> | Headers                                                  | <p>HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use <code>request.headers</code> instead.</p><p>https://developer.mozilla.org/en-US/docs/Glossary/Response\_header</p>                                                                                                                     |
@@ -356,6 +370,7 @@ export interface ServerRequestEvent<T = any>
 | Property               | Modifiers | Type                                                     | Description |
 | ---------------------- | --------- | -------------------------------------------------------- | ----------- |
 | [env](#)               |           | EnvGetter                                                |             |
+| [getClientConn](#)     |           | () =&gt; [ClientConn](#clientconn)                       |             |
 | [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
 | [locale](#)            |           | string \| undefined                                      |             |
 | [mode](#)              |           | [ServerRequestMode](#serverrequestmode)                  |             |

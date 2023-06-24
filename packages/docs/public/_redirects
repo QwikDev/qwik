@@ -66,3 +66,4 @@
 /deployments/* /docs/deployments/:splat 308
 /docs/advanced/i18n/ /docs/integrations/i18n/ 308
 /docs/components/inline-components/ /docs/components/overview/ 308
+/docs/think-qwik/ /docs/concepts/think-qwik/ 308

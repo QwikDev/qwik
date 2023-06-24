@@ -1,93 +1,33 @@
 import { $, type QRL } from '@builder.io/qwik';
-import type { RestoreScroll, ScrollRecord, ScrollState } from './types';
+import type { RestoreScroll, ScrollState } from './types';
 import { isSamePath } from './utils';
-import { getHistoryId } from './client-navigate';
 
 /**
  * @alpha
  */
-export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSettled) => {
-  nativeScrollRestoration.disable();
-
-  // wait for url to settled
-  const toUrl = await toUrlSettled;
+export const toTopAlways: QRL<RestoreScroll> = $((_type, fromUrl, toUrl) => () => {
   if (!scrollForHashChange(fromUrl, toUrl)) {
     window.scrollTo(0, 0);
   }
-
-  nativeScrollRestoration.enable();
 });
 
 /**
  * @alpha
  */
 export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
-  (type, fromUrl, toUrlSettled, scrollRecord) => {
-    nativeScrollRestoration.disable();
-    flushScrollRecordToStorage(scrollRecord);
-
-    // wait for url to settled
-    const toUrl = toUrlSettled;
-    if (!scrollForHashChange(fromUrl, toUrl)) {
-      // retrieve scroll position for popstate navigation
+  (type, fromUrl, toUrl, scrollState) => () => {
+    // Chromium & Firefox will always natively restore on visited popstates.
+    // Always scroll to known state if available on pop. Otherwise, try hash scroll.
+    if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
       let [scrollX, scrollY] = [0, 0];
-      if (type === 'popstate') {
-        const record = scrollRecord[getHistoryId()];
-        if (record) {
-          scrollX = record[0];
-          scrollY = record[1];
-        }
+      if (scrollState) {
+        scrollX = scrollState.scrollX;
+        scrollY = scrollState.scrollY;
       }
       window.scrollTo(scrollX, scrollY);
     }
-
-    nativeScrollRestoration.enable();
   }
 );
-
-const nativeScrollRestoration = {
-  backup: 'auto' as ScrollRestoration,
-  disable() {
-    // back up browser scroll restoration setting and override it to manual
-    nativeScrollRestoration.backup = history.scrollRestoration;
-    history.scrollRestoration = 'manual';
-  },
-  enable() {
-    // revert scroll restoration to original value
-    history.scrollRestoration = nativeScrollRestoration.backup;
-  },
-};
-
-const QWIK_CITY_SCROLL_RECORD = '_qCityScroll';
-
-export const currentScrollState = (elm: Element): ScrollState => [
-  window.scrollX,
-  window.scrollY,
-  Math.max(elm.scrollWidth, elm.clientWidth),
-  Math.max(elm.scrollHeight, elm.clientHeight),
-];
-
-const flushScrollRecordToStorage = (scrollRecord: ScrollRecord) => {
-  try {
-    sessionStorage.setItem(QWIK_CITY_SCROLL_RECORD, JSON.stringify(scrollRecord));
-  } catch (e) {
-    console.error('Failed to save scroll positions', e);
-  }
-};
-
-export const getOrInitializeScrollRecord = (): ScrollRecord => {
-  const win = window as ScrollHistoryWindow;
-  if (win[QWIK_CITY_SCROLL_RECORD]) {
-    return win[QWIK_CITY_SCROLL_RECORD];
-  }
-  const scrollRecord = sessionStorage.getItem(QWIK_CITY_SCROLL_RECORD);
-  try {
-    return JSON.parse(scrollRecord!) || {};
-  } catch (e) {
-    console.error('Failed to parse scroll positions', e);
-    return {};
-  }
-};
 
 const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
   const newHash = toUrl.hash;
@@ -116,7 +56,10 @@ const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
   return true;
 };
 
-const scrollToHashId = (hash: string) => {
+/**
+ * @alpha
+ */
+export const scrollToHashId = (hash: string) => {
   const elmId = hash.slice(1);
   const elm = document.getElementById(elmId);
   if (elm) {
@@ -126,6 +69,41 @@ const scrollToHashId = (hash: string) => {
   return elm;
 };
 
-export interface ScrollHistoryWindow extends Window {
-  _qCityScroll?: ScrollRecord;
+/**
+ * @alpha
+ */
+export const currentScrollState = (elm: Element): ScrollState => {
+  return {
+    scrollX: elm.scrollLeft,
+    scrollY: elm.scrollTop,
+    scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
+    scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
+  };
+};
+
+/**
+ * @alpha
+ */
+export const getScrollHistory = () => {
+  const state = history.state as ScrollHistoryState;
+  return state?._qCityScroll;
+};
+
+/**
+ * @alpha
+ */
+export const saveScrollHistory = (scrollState: ScrollState, initialize = false) => {
+  const state: ScrollHistoryState = history.state || {};
+
+  if (state?._qCityScroll || initialize) {
+    state._qCityScroll = scrollState;
+    history.replaceState(state, '');
+  }
+};
+
+/**
+ * @alpha
+ */
+export interface ScrollHistoryState {
+  _qCityScroll?: ScrollState;
 }

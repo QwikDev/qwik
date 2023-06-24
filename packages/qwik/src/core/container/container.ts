@@ -85,8 +85,8 @@ export interface ContainerState {
   readonly $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
 
-  readonly $watchNext$: Set<SubscriberEffect>;
-  readonly $watchStaging$: Set<SubscriberEffect>;
+  readonly $taskNext$: Set<SubscriberEffect>;
+  readonly $taskStaging$: Set<SubscriberEffect>;
 
   readonly $opsNext$: Set<SubscriberSignal>;
 
@@ -133,8 +133,8 @@ export const createContainerState = (containerEl: Element, base: string) => {
 
     $opsNext$: new Set(),
 
-    $watchNext$: new Set(),
-    $watchStaging$: new Set(),
+    $taskNext$: new Set(),
+    $taskStaging$: new Set(),
 
     $hostsNext$: new Set(),
     $hostsStaging$: new Set(),

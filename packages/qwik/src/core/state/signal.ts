@@ -6,7 +6,7 @@ import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isObject } from '../util/types';
 import type { ContainerState } from '../container/container';
 import {
-  getProxyManager,
+  getSubscriptionManager,
   getProxyTarget,
   LocalSubscriptionManager,
   type Subscriptions,
@@ -150,7 +150,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> ext
   }
 
   get [QObjectManagerSymbol]() {
-    return getProxyManager(this.ref);
+    return getSubscriptionManager(this.ref);
   }
 
   get value(): T[P] {

@@ -10,8 +10,10 @@ export const untypedAppUrl = function appUrl(
   for (let i = 0; i < path.length; i++) {
     const segment = path[i];
     if (segment.startsWith('[') && segment.endsWith(']')) {
+      const isSpread = segment.startsWith('[...');
       const key = segment.substring(segment.startsWith('[...') ? 4 : 1, segment.length - 1);
-      path[i] = params ? params[paramsPrefix + key] || params[key] : '';
+      const value = params ? params[paramsPrefix + key] || params[key] : '';
+      path[i] = isSpread ? value : encodeURIComponent(value);
     }
   }
   return path.join('/');

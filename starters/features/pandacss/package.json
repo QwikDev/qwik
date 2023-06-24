@@ -4,15 +4,28 @@
     "pandacss.generate": "panda codegen"
   },
   "devDependencies": {
+    "@builder.io/vite-plugin-macro": "~0.0.6",
     "@pandacss/dev": "^0.3.2"
   },
   "__qwik__": {
     "displayName": "Integration: PandaCSS (styling)",
     "priority": -10,
     "postInstall": "panda codegen",
-    "viteConfig": {},
     "docs": [
       "https://panda-css.com/docs/getting-started/qwik"
-    ]
+    ],
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "macroPlugin"
+          ],
+          "importPath": "@builder.io/vite-plugin-macro"
+        }
+      ],
+      "vitePluginsPrepend": [
+        "macroPlugin({ preset: 'pandacss' })"
+      ]
+    }
   }
 }

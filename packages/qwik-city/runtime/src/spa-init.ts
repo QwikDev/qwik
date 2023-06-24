@@ -15,6 +15,8 @@ import { $ } from '@builder.io/qwik';
  * - Robust, fully relies only on history. (scrollRestoration = 'manual')
  */
 export default $((currentScript: HTMLScriptElement) => {
+  console.log('Initializing SPA bootstrap!');
+
   const win: ClientSPAWindow = window;
 
   const currentPath = location.pathname + location.search;

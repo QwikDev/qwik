@@ -14,7 +14,7 @@ import {
   useStyles$,
   _waitUntilRendered,
 } from '@builder.io/qwik';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
@@ -57,6 +57,7 @@ import {
   type ScrollHistoryState,
   restoreScroll,
 } from './scroll-restoration';
+import spaInit from './spa-init';
 
 /**
  * @public
@@ -426,8 +427,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win._qCityBootstrap?.remove();
             win._qCityBootstrap = undefined;
 
-            // Cache SPA recovery script.
-            // TODO Cache SPA recovery script here.
+            if (!isDev) {
+              // Cache SPA recovery script.
+              spaInit.resolve();
+            }
           }
 
           if (navType !== 'popstate') {

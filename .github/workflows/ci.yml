@@ -50,6 +50,9 @@ jobs:
               - 'packages/qwik/src/**/*.rs'
               - 'packages/qwik-city/**/*.ts'
               - 'packages/qwik-city/**/*.tsx'
+              - 'packages/qwik-labs/src/**/*.ts'
+              - 'packages/qwik-labs/src/**/*.tsx'
+              - 'packages/qwik-labs/src-vite/**/*.ts'
               - 'packages/eslint-plugin-qwik/**/*.ts'
               - 'starters/apps/**/*.ts'
               - 'starters/apps/**/*.tsx'
@@ -390,7 +393,7 @@ jobs:
 
       - name: Print QwikLabs Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree packages/qwik-labs/lib/ tree packages/qwik-labs/lib-types/  tree packages/qwik-labs/vite/
+        run: tree packages/qwik-labs/lib/ packages/qwik-labs/lib-types/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

@@ -2,6 +2,7 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
+import { isDev } from '@builder.io/qwik/build';
 import { $ } from '@builder.io/qwik';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
@@ -14,8 +15,6 @@ import { $ } from '@builder.io/qwik';
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
 export default $((currentScript: HTMLScriptElement) => {
-  console.log('Initializing SPA bootstrap!');
-
   const win: ClientSPAWindow = window;
 
   const currentPath = location.pathname + location.search;
@@ -31,10 +30,6 @@ export default $((currentScript: HTMLScriptElement) => {
   const debounceTimeout = '_qCityScrollDebounce';
   const scrollHistory = '_qCityScroll';
 
-  /**
-   * TODO If loaded as deferred/async?:
-   *  - Remove backup pop handler, if exists.
-   */
   const checkAndScroll = (scrollState: ScrollState | undefined) => {
     if (scrollState) {
       win.scrollTo(scrollState.x, scrollState.y);
@@ -119,18 +114,31 @@ export default $((currentScript: HTMLScriptElement) => {
         const pushState = history.pushState;
         const replaceState = history.replaceState;
 
-        const prepareState = (state: ScrollHistoryState) => {
-          state = state || {};
+        const prepareState = (state: any) => {
+          if (state === null || typeof state === undefined) {
+            state = {};
+          } else if (state?.constructor !== Object) {
+            state = { _data: state };
+
+            if (isDev) {
+              console.warn(
+                'In a Qwik SPA context, history.state is used to store scroll state. ' +
+                  'Direct calls to pushState and replaceState must be typeof object. ' +
+                  'Your state data has been moved to: `history.state._data`'
+              );
+            }
+          }
+
           state._qCityScroll = state._qCityScroll || currentScrollState();
           return state;
         };
 
-        history.pushState = (state: ScrollHistoryState, title, url) => {
+        history.pushState = (state, title, url) => {
           state = prepareState(state);
           return pushState.call(history, state, title, url);
         };
 
-        history.replaceState = (state: ScrollHistoryState, title, url) => {
+        history.replaceState = (state, title, url) => {
           state = prepareState(state);
           return replaceState.call(history, state, title, url);
         };

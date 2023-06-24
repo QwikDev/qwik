@@ -54,7 +54,6 @@ import {
   getScrollHistory,
   saveScrollHistory,
   scrollToHashId,
-  type ScrollHistoryState,
   restoreScroll,
 } from './scroll-restoration';
 import spaInit from './spa-init';
@@ -323,8 +322,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // Devs could push their own states that we can't control.
             // If a user doesn't initiate scroll after, it will not have any scrollState.
             // We patch these to always include scrollState.
-            // TODO Gracefully fails for states that aren't obj type, we could force by moving those to { _data: ... }?
-            // - Note this in docs either way.
             // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
             if (!win._qCityHistoryPatch) {
               ((history) => {
@@ -332,19 +329,32 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 const pushState = history.pushState;
                 const replaceState = history.replaceState;
 
-                const prepareState = (state: ScrollHistoryState) => {
-                  state = state || {};
+                const prepareState = (state: any) => {
+                  if (state === null || typeof state === undefined) {
+                    state = {};
+                  } else if (state?.constructor !== Object) {
+                    state = { _data: state };
+
+                    if (isDev) {
+                      console.warn(
+                        'In a Qwik SPA context, history.state is used to store scroll state. ' +
+                          'Direct calls to pushState and replaceState must be typeof object. ' +
+                          'Your state data has been moved to: `history.state._data`'
+                      );
+                    }
+                  }
+
                   state._qCityScroll =
                     state._qCityScroll || currentScrollState(document.documentElement);
                   return state;
                 };
 
-                history.pushState = (state: ScrollHistoryState, title, url) => {
+                history.pushState = (state, title, url) => {
                   state = prepareState(state);
                   return pushState.call(history, state, title, url);
                 };
 
-                history.replaceState = (state: ScrollHistoryState, title, url) => {
+                history.replaceState = (state, title, url) => {
                   state = prepareState(state);
                   return replaceState.call(history, state, title, url);
                 };

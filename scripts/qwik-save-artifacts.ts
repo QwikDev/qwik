@@ -70,7 +70,12 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     await $('git', 'checkout', '-b', branch);
   }
 
-  await $('cp', '-r', ...(await expand(artifactsDir)), buildRepoDir);
+  await $(
+    'cp',
+    '-r',
+    ...(await expand(artifactsDir, ['.gitignore', 'node_modules'])),
+    buildRepoDir
+  );
   await $('git', 'add', '--all');
   await $(
     'git',
@@ -112,11 +117,11 @@ async function $(cmd: string, ...args: string[]): Promise<string> {
   return output;
 }
 
-async function expand(path: string): Promise<string[]> {
+async function expand(path: string, ignore: string[] = []): Promise<string[]> {
   const { stdout } = await execa('ls', ['-a', path]);
   const paths = String(stdout)
     .split('\n')
-    .filter((v) => v !== '.' && v !== '..' && v !== '.git')
+    .filter((v) => v !== '.' && v !== '..' && v !== '.git' && !ignore.includes(v))
     .map((file) => path + '/' + file.trim());
   return paths;
 }

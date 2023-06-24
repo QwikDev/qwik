@@ -39,6 +39,7 @@
 
 - [Overview](/docs/labs/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
+- [Typed Routes](/docs/labs/typed-routes/index.mdx)
 
 ## Integrations
 

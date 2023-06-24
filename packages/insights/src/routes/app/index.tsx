@@ -5,7 +5,7 @@ import { ErrorIcon } from '~/components/icons/error';
 import { SlowIcon } from '~/components/icons/slow';
 import { SymbolIcon } from '~/components/icons/symbol';
 import { applicationTable, getDB } from '~/db';
-import { AppLink, url } from '~/url';
+import { AppLink } from '~/routes.config';
 
 export const useApps = routeLoader$(async () => {
   const db = getDB();
@@ -16,7 +16,11 @@ export default component$(() => {
   const apps = useApps();
   return (
     <div>
-      <h1>Apps</h1>[ <a href={url('/app/__new__/edit/')}>new</a> ]
+      <h1>Apps</h1>[{' '}
+      <AppLink route="/app/[publicApiKey]/edit/" param:publicApiKey="__new__">
+        new
+      </AppLink>{' '}
+      ]
       <table>
         <tbody>
           <tr>
@@ -28,9 +32,9 @@ export default component$(() => {
           {apps.value.map((app) => (
             <tr key={app.id}>
               <td>
-                <a href={url('/app/[publicApiKey]/', { publicApiKey: app.publicApiKey })}>
+                <AppLink route="/app/[publicApiKey]/" param:publicApiKey={app.publicApiKey}>
                   {app.name}
-                </a>
+                </AppLink>
               </td>
               <td>{app.description}</td>
               <td>

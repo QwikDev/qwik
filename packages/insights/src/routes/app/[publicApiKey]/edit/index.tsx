@@ -4,7 +4,7 @@ import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-for
 import { applicationTable, getDB } from '~/db';
 import { ApplicationForm } from '../../[publicApiKey]/app.form';
 import { eq } from 'drizzle-orm';
-import { url } from '~/url';
+import { appUrl } from '~/routes.config';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   if (isCreateMode(params)) {
@@ -37,7 +37,7 @@ export const useFormAction = formAction$<ApplicationForm>(
           publicApiKey,
         })
         .run();
-      redirect(302, url(`/app/[publicApiKey]/`, { publicApiKey }));
+      redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
     } else {
       db.update(applicationTable)
         .set({
@@ -46,7 +46,7 @@ export const useFormAction = formAction$<ApplicationForm>(
         })
         .where(eq(applicationTable.publicApiKey, params.publicApiKey))
         .run();
-      throw redirect(302, url(`/app/[publicApiKey]/`, { publicApiKey: params.publicApiKey }));
+      throw redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey: params.publicApiKey }));
     }
   },
   zodForm$(ApplicationForm)

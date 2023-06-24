@@ -8,7 +8,7 @@ import {
   isSubscriberDescriptor,
   parseTask,
   type ResourceReturnInternal,
-  serializeWatch,
+  serializeTask,
   type SubscriberEffect,
 } from '../use/use-task';
 import { isDocument } from '../util/element';
@@ -22,7 +22,7 @@ import {
 import { type Collector, collectSubscriptions, collectValue, mapJoin } from './pause';
 import {
   fastWeakSerialize,
-  getProxyManager,
+  getSubscriptionManager,
   LocalSubscriptionManager,
   type SubscriptionManager,
   type Subscriptions,
@@ -130,13 +130,13 @@ const TaskSerializer: Serializer<SubscriberEffect> = {
       }
     }
   },
-  $serialize$: (obj, getObjId) => serializeWatch(obj, getObjId),
+  $serialize$: (obj, getObjId) => serializeTask(obj, getObjId),
   $prepare$: (data) => parseTask(data) as any,
-  $fill$: (watch, getObject) => {
-    watch.$el$ = getObject(watch.$el$ as any);
-    watch.$qrl$ = getObject(watch.$qrl$ as any);
-    if (watch.$state$) {
-      watch.$state$ = getObject(watch.$state$ as any);
+  $fill$: (task, getObject) => {
+    task.$el$ = getObject(task.$el$ as any);
+    task.$qrl$ = getObject(task.$qrl$ as any);
+    if (task.$state$) {
+      task.$state$ = getObject(task.$state$ as any);
     }
   },
 };
@@ -306,7 +306,7 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   $collect$(obj, collector, leaks) {
     collectValue(obj.ref, collector, leaks);
     if (fastWeakSerialize(obj.ref)) {
-      const localManager = getProxyManager(obj.ref)!;
+      const localManager = getSubscriptionManager(obj.ref)!;
       if (isTreeShakeable(collector.$containerState$.$subsManager$, localManager, leaks)) {
         collectValue(obj.ref[obj.prop], collector, leaks);
       }

@@ -72,7 +72,11 @@ import {
   type QContext,
   tryGetContext,
 } from '../../state/context';
-import { getProxyManager, getProxyTarget, type SubscriptionManager } from '../../state/common';
+import {
+  getSubscriptionManager,
+  getProxyTarget,
+  type SubscriptionManager,
+} from '../../state/common';
 import { createPropsState, createProxy, ReadWriteProxyHandler } from '../../state/store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import { trackSignal } from '../../use/use-core';
@@ -1050,7 +1054,7 @@ export const setComponentProps = (
     return;
   }
 
-  const manager = getProxyManager(props);
+  const manager = getSubscriptionManager(props);
   assertDefined(manager, `props have to be a proxy, but it is not`, props);
   const target = getProxyTarget(props);
   assertDefined(target, `props have to be a proxy, but it is not`, props);

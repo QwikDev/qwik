@@ -5,7 +5,7 @@ import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
-import { Insights } from '@builder.io/qwik-labs';
+// import { Insights } from '@builder.io/qwik-labs';
 
 export default component$(() => {
   const store = useStore<SiteStore>({
@@ -23,7 +23,7 @@ export default component$(() => {
         <RouterHead />
         <ServiceWorkerRegister />
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
-        <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
+        {/* <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} /> */}
       </head>
       <body
         class={{

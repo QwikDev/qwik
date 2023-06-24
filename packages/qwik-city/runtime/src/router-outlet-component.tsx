@@ -17,7 +17,7 @@ import shim from './spa-shim';
  * @public
  */
 export const RouterOutlet = component$(() => {
-  // TODO Option to remove this shim especially for MFEs.
+  // TODO Option to remove this shim, especially for MFEs.
   const shimScript = shim();
 
   _jsxBranch();

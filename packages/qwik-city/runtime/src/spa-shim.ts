@@ -32,8 +32,19 @@ const shim = async (path: string, symbol: string) => {
       window.scrollTo(scrollState.x, scrollState.y);
     }
 
-    const currentScript = document.currentScript;
-    // TODO Fix dev import w/ Vite complaining.
-    (await import(path))[symbol](currentScript);
+    const currentScript = document.currentScript as HTMLScriptElement;
+    if (!isDev) {
+      (await import(path))[symbol](currentScript);
+    } else {
+      // Importing @qwik-city-plan here explodes dev, get basePathname manually.
+      const container = currentScript.closest('[q\\:container]')!;
+      const base = new URL(container.getAttribute('q:base')!, document.baseURI);
+      const url = new URL(path, base);
+
+      // Bypass dev import hijack. (not going to work here)
+      // eslint-disable-next-line no-new-func
+      const imp = new Function('url', 'return import(url)');
+      (await imp(url.href))[symbol](currentScript);
+    }
   }
 };

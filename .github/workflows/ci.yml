@@ -388,7 +388,23 @@ jobs:
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
-  ############ RELEASE ############
+      - name: Print QwikLabs Lib Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/qwik-labs/lib/ tree packages/qwik-labs/lib-types/  tree packages/qwik-labs/vite/
+
+      - name: Upload QwikLabs Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builderio-qwiklabs-distribution
+          path: |
+            packages/qwik-labs/lib/
+            packages/qwik-labs/lib-types/
+            packages/qwik-labs/vite/
+            packages/qwik-labs/package.json
+          if-no-files-found: error
+
+    ############ RELEASE ############
   release:
     name: Release
     runs-on: ubuntu-latest

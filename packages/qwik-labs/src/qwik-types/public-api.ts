@@ -20,6 +20,8 @@ export const untypedAppUrl = function appUrl(
 };
 
 /**
+ * Creates a new object from `obj` by omitting a set of `keys`.
+ *
  * @public
  */
 export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS> {

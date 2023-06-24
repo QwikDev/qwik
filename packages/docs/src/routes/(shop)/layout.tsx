@@ -24,7 +24,7 @@ import type { CheckoutQuery, ProductsQuery, CheckoutCreateMutation, ShopApp } fr
 
 export const onRequest: RequestHandler = async (request) => {
   request.cacheControl(600);
-}
+};
 
 const useProductsLoader = routeLoader$(async () => {
   const response = await fetchFromShopify(productsQuery());

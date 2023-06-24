@@ -14,15 +14,14 @@ export default () => {
   }
 };
 
-/**
- * !!! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
- */
+// SPA shim script:
+// - Inlined, loads immediately, checks SPA status.
+// - Manually imports and runs the standalone symbol for SPA recovery.
+// - Robust, fully relies only on history state. (scrollRestoration = 'manual')
+// - If the check here doesn't pass, your page was never SPA. (no SPA pops possible)
+
+// ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
 const shim = async (path: string, symbol: string) => {
-  /**
-   * This should always be 'manual' if a page was arrived at via SPA.
-   * Robust, stored in browser history state, will always be attached to history entry.
-   * If this is not set, your page is MPA and never had an SPA context. (no pop needed?)
-   */
   if (!(window as any)._qcs && history.scrollRestoration === 'manual') {
     // TODO Option to remove this shim especially for MFEs, like loader, for now we only run once.
     (window as any)._qcs = true;

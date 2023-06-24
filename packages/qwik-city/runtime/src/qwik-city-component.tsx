@@ -290,6 +290,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             scrollState = getScrollHistory();
           }
 
+          // Mark next DOM render to scroll.
           document.__q_scroll_restore__ = () =>
             restoreScroll(navType, prevUrl, trackUrl, scrollState);
 
@@ -318,15 +319,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win.removeEventListener('popstate', win._qCityInitPopstate!);
             win._qCityInitPopstate = undefined;
 
-            /**
-             * Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
-             * Devs could push their own states that we can't control.
-             * If a user doesn't initiate scroll after, it will not have any scrollState.
-             * We patch these to always include scrollState.
-             * TODO Gracefully fails for states that aren't obj type, we could force by moving those to { _data: ... }?
-             *  - Note this in docs either way.
-             * TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
-             */
+            // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
+            // Devs could push their own states that we can't control.
+            // If a user doesn't initiate scroll after, it will not have any scrollState.
+            // We patch these to always include scrollState.
+            // TODO Gracefully fails for states that aren't obj type, we could force by moving those to { _data: ... }?
+            // - Note this in docs either way.
+            // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
             if (!win._qCityHistoryPatch) {
               ((history) => {
                 win._qCityHistoryPatch = true;
@@ -352,14 +351,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               })(history);
             }
 
-            /**
-             * Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
-             * ... even if the URL is already on the #hash.
-             * Firefox only does it once and no more, but will still scroll. It also sets state to null.
-             * Any <a> tags w/ #hash href will break SPA state in Firefox.
-             * However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
-             * We patch these events and direct them to Link pipeline during SPA.
-             */
+            // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
+            // ... even if the URL is already on the #hash.
+            // Firefox only does it once and no more, but will still scroll. It also sets state to null.
+            // Any <a> tags w/ #hash href will break SPA state in Firefox.
+            // However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
+            // We patch these events and direct them to Link pipeline during SPA.
             document.body.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;

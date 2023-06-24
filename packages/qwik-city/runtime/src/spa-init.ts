@@ -7,13 +7,12 @@ import { $ } from '@builder.io/qwik';
 // TODO Dedupe handler code from here and QwikCityProvider?
 // TODO Navigation API; check for support & simplify.
 
-/**
- * !!! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
- * SPA init script:
- * - Cached when upgrading to SPA.
- * - Reasonable expectation this file is already cached for history revisits.
- * - Robust, fully relies only on history. (scrollRestoration = 'manual')
- */
+// SPA init script:
+// - Pre-cached when upgrading to SPA.
+// - Reasonable expectation this file is already cached for history revisits.
+// - Robust, fully relies only on history. (scrollRestoration = 'manual')
+
+// ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
 export default $((currentScript: HTMLScriptElement) => {
   console.log('Initializing SPA bootstrap!');
 

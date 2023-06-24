@@ -18,7 +18,8 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
     !updates?.imports &&
     !updates?.qwikViteConfig &&
     !updates?.viteConfig &&
-    !updates?.vitePlugins
+    !updates?.vitePlugins &&
+    !updates?.vitePluginsPrepend
   ) {
     return null;
   }
@@ -37,7 +38,10 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
         if (
           ts.isIdentifier(s.expression.expression) &&
           s.expression.expression.text === 'defineConfig' &&
-          (updates.viteConfig || updates.qwikViteConfig || updates.vitePlugins)
+          (updates.viteConfig ||
+            updates.qwikViteConfig ||
+            updates.vitePlugins ||
+            updates.vitePluginsPrepend)
         ) {
           statements.push(
             ts.factory.updateExportAssignment(
@@ -346,7 +350,7 @@ function updateVitConfigObj(
   if (updates.viteConfig) {
     obj = updateObjectLiteralExpression(ts, obj, updates.viteConfig);
   }
-  if (updates.vitePlugins || updates.qwikViteConfig) {
+  if (updates.vitePlugins || updates.vitePluginsPrepend || updates.qwikViteConfig) {
     obj = updatePlugins(ts, obj, updates);
   }
   return obj;
@@ -395,6 +399,22 @@ function updatePluginsArray(
       );
       if (pluginExp && !alreadyDefined) {
         elms.push(pluginExp);
+      }
+    }
+  }
+
+  if (updates.vitePluginsPrepend) {
+    for (const vitePlugin of updates.vitePluginsPrepend) {
+      const pluginExp = createPluginCall(ts, vitePlugin);
+      const pluginName = (pluginExp?.expression as Identifier | null)?.escapedText;
+      const alreadyDefined = elms.some(
+        (el) =>
+          ts.isCallExpression(el) &&
+          ts.isIdentifier(el.expression) &&
+          el.expression.escapedText === pluginName
+      );
+      if (pluginExp && !alreadyDefined) {
+        elms.unshift(pluginExp);
       }
     }
   }

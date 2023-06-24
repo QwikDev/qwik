@@ -5,8 +5,8 @@ import {
   type ResourceDescriptor,
   type ResourceFn,
   runResource,
-  WatchFlagsIsDirty,
-  WatchFlagsIsResource,
+  TaskFlagsIsDirty,
+  TaskFlagsIsResource,
   Task,
   type ResourceReturnInternal,
 } from './use-task';
@@ -107,19 +107,19 @@ export const useResourceQrl = <T>(
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = elCtx.$element$;
-  const watch = new Task(
-    WatchFlagsIsDirty | WatchFlagsIsResource,
+  const task = new Task(
+    TaskFlagsIsDirty | TaskFlagsIsResource,
     i,
     el,
     qrl,
     resource
   ) as ResourceDescriptor<any>;
   const previousWait = Promise.all(iCtx.$waitOn$.slice());
-  runResource(watch, containerState, iCtx.$renderCtx$, previousWait);
-  if (!elCtx.$watches$) {
-    elCtx.$watches$ = [];
+  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
+  if (!elCtx.$tasks$) {
+    elCtx.$tasks$ = [];
   }
-  elCtx.$watches$.push(watch);
+  elCtx.$tasks$.push(task);
   set(resource);
 
   return resource;

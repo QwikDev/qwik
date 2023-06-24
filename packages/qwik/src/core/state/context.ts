@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, type SubscriberEffect } from '../use/use-task';
+import { destroyTask, type SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
@@ -37,7 +37,7 @@ export interface QContext {
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Listener[];
   $seq$: any[] | null;
-  $watches$: SubscriberEffect[] | null;
+  $tasks$: SubscriberEffect[] | null;
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
@@ -81,12 +81,12 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           const seq = ctxMeta.s;
           const host = ctxMeta.h;
           const contexts = ctxMeta.c;
-          const watches = ctxMeta.w;
+          const tasks = ctxMeta.w;
           if (seq) {
             elCtx.$seq$ = seq.split(' ').map(getObject);
           }
-          if (watches) {
-            elCtx.$watches$ = watches.split(' ').map(getObject);
+          if (tasks) {
+            elCtx.$tasks$ = tasks.split(' ').map(getObject);
           }
           if (contexts) {
             elCtx.$contexts$ = new Map();
@@ -138,7 +138,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $element$: element,
     $refMap$: [],
     li: [],
-    $watches$: null,
+    $tasks$: null,
     $seq$: null,
     $slots$: null,
     $scopeIds$: null,
@@ -157,11 +157,11 @@ export const createContext = (element: Element | VirtualElement): QContext => {
 };
 
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
-  elCtx.$watches$?.forEach((watch) => {
-    subsManager.$clearSub$(watch);
-    destroyWatch(watch);
+  elCtx.$tasks$?.forEach((task) => {
+    subsManager.$clearSub$(task);
+    destroyTask(task);
   });
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
-  elCtx.$watches$ = null;
+  elCtx.$tasks$ = null;
 };

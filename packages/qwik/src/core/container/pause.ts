@@ -14,10 +14,10 @@ import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../
 import { qDev } from '../util/qdev';
 
 import {
-  destroyWatch,
+  destroyTask,
   isResourceTask,
   type ResourceReturnInternal,
-  WatchFlagsIsDirty,
+  TaskFlagsIsDirty,
 } from '../use/use-task';
 import {
   qError,
@@ -54,7 +54,7 @@ import {
   fastSkipSerialize,
   fastWeakSerialize,
   getProxyFlags,
-  getProxyManager,
+  getSubscriptionManager,
   getProxyTarget,
   isConnected,
   LocalSubscriptionManager,
@@ -255,20 +255,20 @@ export const _pauseFromContexts = async (
 
   // TODO: optimize
   for (const ctx of allContexts) {
-    if (ctx.$watches$) {
-      for (const watch of ctx.$watches$) {
+    if (ctx.$tasks$) {
+      for (const task of ctx.$tasks$) {
         if (qDev) {
-          if (watch.$flags$ & WatchFlagsIsDirty) {
-            logWarn('Serializing dirty watch. Looks like an internal error.');
+          if (task.$flags$ & TaskFlagsIsDirty) {
+            logWarn('Serializing dirty task. Looks like an internal error.');
           }
-          if (!isConnected(watch)) {
-            logWarn('Serializing disconnected watch. Looks like an internal error.');
+          if (!isConnected(task)) {
+            logWarn('Serializing disconnected task. Looks like an internal error.');
           }
         }
-        if (isResourceTask(watch)) {
-          collector.$resources$.push(watch.$state$);
+        if (isResourceTask(task)) {
+          collector.$resources$.push(task.$state$);
         }
-        destroyWatch(watch);
+        destroyTask(task);
       }
     }
   }
@@ -517,7 +517,7 @@ export const _pauseFromContexts = async (
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
-    const watches = ctx.$watches$;
+    const tasks = ctx.$tasks$;
     const renderQrl = ctx.$componentQrl$;
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
@@ -545,8 +545,8 @@ export const _pauseFromContexts = async (
         }
       }
 
-      if (watches && watches.length > 0) {
-        const value = mapJoin(watches, getObjId, ' ');
+      if (tasks && tasks.length > 0) {
+        const value = mapJoin(tasks, getObjId, ' ');
         if (value) {
           metaValue.w = value;
           add = true;
@@ -663,18 +663,18 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
   const props = elCtx.$props$;
   if (parentCtx && props && !isEmptyObj(props) && collector.$elements$.includes(parentCtx)) {
-    const subs = getProxyManager(props)?.$subs$;
+    const subs = getSubscriptionManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
       for (const sub of subs) {
         if (sub[0] === 0) {
           if (sub[1] !== el) {
-            collectSubscriptions(getProxyManager(props)!, collector, false);
+            collectSubscriptions(getSubscriptionManager(props)!, collector, false);
           }
           collectElement(sub[1] as VirtualElement, collector);
         } else {
           collectValue(props, collector, false);
-          collectSubscriptions(getProxyManager(props)!, collector, false);
+          collectSubscriptions(getSubscriptionManager(props)!, collector, false);
         }
       }
     }
@@ -730,7 +730,7 @@ export const collectElementData = (
 ) => {
   if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
     collectValue(elCtx.$props$, collector, dynamicCtx);
-    collectSubscriptions(getProxyManager(elCtx.$props$)!, collector, dynamicCtx);
+    collectSubscriptions(getSubscriptionManager(elCtx.$props$)!, collector, dynamicCtx);
   }
   if (elCtx.$componentQrl$) {
     collectValue(elCtx.$componentQrl$, collector, dynamicCtx);
@@ -740,9 +740,9 @@ export const collectElementData = (
       collectValue(obj, collector, dynamicCtx);
     }
   }
-  if (elCtx.$watches$) {
+  if (elCtx.$tasks$) {
     const map = collector.$containerState$.$subsManager$.$groupToManagers$;
-    for (const obj of elCtx.$watches$) {
+    for (const obj of elCtx.$tasks$) {
       if (map.has(obj)) {
         collectValue(obj, collector, dynamicCtx);
       }
@@ -868,7 +868,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
           seen.add(obj);
           const mutable = (getProxyFlags(obj)! & QObjectImmutable) === 0;
           if (leaks && mutable) {
-            collectSubscriptions(getProxyManager(input)!, collector, leaks);
+            collectSubscriptions(getSubscriptionManager(input)!, collector, leaks);
           }
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
@@ -936,11 +936,11 @@ const getManager = (obj: any, containerState: ContainerState) => {
     return undefined;
   }
   if (obj instanceof SignalImpl) {
-    return getProxyManager(obj);
+    return getSubscriptionManager(obj);
   }
   const proxy = containerState.$proxyMap$.get(obj);
   if (proxy) {
-    return getProxyManager(proxy);
+    return getSubscriptionManager(proxy);
   }
   return undefined;
 };

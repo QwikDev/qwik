@@ -145,13 +145,13 @@ export const CmpInline = component$(() => {
       debounced: 0,
     });
 
-    // Double count watch
+    // Double count task
     useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
-    // Debouncer watch
+    // Debouncer task
     useTask$(({ track }) => {
       const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {

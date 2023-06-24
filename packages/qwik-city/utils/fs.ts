@@ -87,7 +87,18 @@ export function normalizePathSlash(path: string) {
   return path;
 }
 
-export function createFileId(routesDir: string, fsPath: string) {
+/**
+ * Creates an id for the module, based on its path.
+ *
+ * @param routesDir
+ * @param fsPath
+ * @param explicitFileType Add to avoid collisions between different types of modules. `Menu` and `Layout` files are named based on their path (eg. /routes/about/menu.md => AboutMenu)
+ */
+export function createFileId(
+  routesDir: string,
+  fsPath: string,
+  explicitFileType?: 'Route' | 'Plugin' | 'ServiceWorker'
+) {
   const ids: string[] = [];
 
   for (let i = 0; i < 25; i++) {
@@ -112,7 +123,10 @@ export function createFileId(routesDir: string, fsPath: string) {
     ids.shift();
   }
 
-  return ids.reverse().join('');
+  return ids
+    .reverse()
+    .join('')
+    .concat(explicitFileType || '');
 }
 
 const PAGE_MODULE_EXTS: { [type: string]: boolean } = {

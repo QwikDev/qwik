@@ -1,0 +1,26 @@
+---
+title: Qwik - Deprecated Features
+contributors:
+  - nsdonato
+---
+
+# Deprecated Features for Qwik
+
+These features were deprecated in the preparation of Qwik for its stable release.
+
+If you happened to come across one of them and don't know what its replacement is, we quickly mention them in this table with the link to their new documentation ✨.
+
+#### Deprecated functions and their replacements
+----
+
+| Deprecated   | Replacements     |
+| :-------- | :-------
+| `useWatch$` | [useTask$](https://qwik.builder.io/docs/components/tasks/#usetask) |
+| `useMount$` | [useTask$](https://qwik.builder.io/docs/components/tasks/#usetask) |
+| `useServerMount` | [useTask$](https://qwik.builder.io/docs/components/tasks/#usetask) + [isServer](https://qwik.builder.io/docs/guides/qwik-nutshell/#isserver-conditional)
+| `useClientMount` | [useTask$](https://qwik.builder.io/docs/components/tasks/#usetask) + [isBrowser](https://qwik.builder.io/docs/guides/qwik-nutshell/#isbrowser-conditional)
+| `useClientEffect` - `useClientEffectQrl` | [useVisibleTask$](https://qwik.builder.io/docs/route-loader/#routeloader) |
+| `useBrowserVisibleTask` - `useBrowserVisibleTaskQrl` | [useVisibleTask$](https://qwik.builder.io/docs/route-loader/#routeloader) |
+| `useEnvData` | [useServerData](https://qwik.builder.io/api/qwik/#useserverdata) |
+| `useRef` | [useSignal](https://qwik.builder.io/docs/components/state/#usesignal) |
+| `createContext` | [createContextId](https://qwik.builder.io/docs/components/context/#createcontextid) |

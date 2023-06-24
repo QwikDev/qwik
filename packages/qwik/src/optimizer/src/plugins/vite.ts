@@ -48,6 +48,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
   let srcDir: string | null = null;
+  let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
@@ -102,17 +103,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode = 'development';
       }
 
-      let forceFullBuild = true;
       if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
-        forceFullBuild = false;
       } else {
         if (target === 'ssr') {
           qwikViteOpts.entryStrategy = { type: 'hoist' };
         } else if (target === 'lib') {
           qwikViteOpts.entryStrategy = { type: 'inline' };
         }
-        forceFullBuild = true;
       }
 
       const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
@@ -128,7 +126,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         rootDir: viteConfig.root,
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
-        forceFullBuild,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
@@ -214,6 +211,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       manifestInput = pluginOpts.manifestInput || null;
       srcDir = opts.srcDir;
+      rootDir = opts.rootDir;
       clientOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
       );
@@ -522,8 +520,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             try {
               const bundleFileName = sys.path.basename(bundeName);
               const ext = sys.path.extname(bundleFileName);
+              const isEntryFile =
+                bundleFileName.startsWith('entry.') || bundleFileName.startsWith('entry_');
               if (
-                bundleFileName.startsWith('entry.') &&
+                isEntryFile &&
                 !bundleFileName.includes('preview') &&
                 (ext === '.mjs' || ext === '.cjs')
               ) {
@@ -557,7 +557,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
-      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), srcDir!));
+      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       const plugin = async () => {
         const opts = qwikPlugin.getOptions();
         const sys = qwikPlugin.getSys();

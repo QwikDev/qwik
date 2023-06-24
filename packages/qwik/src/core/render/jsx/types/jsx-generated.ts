@@ -2,6 +2,7 @@ import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
+export type Size = number | string;
 export type Numberish = number | `${number}`;
 
 /**
@@ -301,7 +302,7 @@ export type AriaRole =
 /**
  * @public
  */
-export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
   accessKey?: string | undefined;
   contentEditable?: 'true' | 'false' | 'inherit' | undefined;
   contextMenu?: string | undefined;
@@ -375,7 +376,7 @@ export type HTMLAttributeReferrerPolicy =
   | 'strict-origin'
   | 'strict-origin-when-cross-origin'
   | 'unsafe-url';
-export interface AnchorHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   download?: any;
   href?: string | undefined;
   hrefLang?: string | undefined;
@@ -386,7 +387,7 @@ export interface AnchorHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: string | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
 }
-export interface AreaHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   alt?: string | undefined;
   coords?: string | undefined;
   download?: any;
@@ -399,7 +400,7 @@ export interface AreaHTMLAttributes<T> extends HTMLAttributes<T> {
   target?: string | undefined;
   children?: undefined;
 }
-export interface MediaHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoPlay?: boolean | undefined;
   controls?: boolean | undefined;
   controlsList?: string | undefined;
@@ -411,16 +412,16 @@ export interface MediaHTMLAttributes<T> extends HTMLAttributes<T> {
   preload?: string | undefined;
   src?: string | undefined;
 }
-export interface AudioHTMLAttributes<T> extends MediaHTMLAttributes<T> {}
-export interface BaseHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface AudioHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T> {}
+export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   href?: string | undefined;
   target?: string | undefined;
   children?: undefined;
 }
-export interface BlockquoteHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
 }
-export interface ButtonHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoFocus?: boolean | undefined;
   disabled?: boolean | undefined;
   form?: string | undefined;
@@ -433,45 +434,45 @@ export interface ButtonHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: 'submit' | 'reset' | 'button' | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
 }
-export interface CanvasHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: Numberish | undefined;
-  width?: Numberish | undefined;
+export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
+  height?: Size | undefined;
+  width?: Size | undefined;
 }
-export interface ColHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   span?: number | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
-export interface ColgroupHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   span?: number | undefined;
 }
-export interface DataHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
 }
-export interface DelHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface DelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
   dateTime?: string | undefined;
 }
 
-export interface DetailsHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface DetailsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   open?: boolean | undefined;
 }
-export interface DialogHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   open?: boolean | undefined;
 }
-export interface EmbedHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: Numberish | undefined;
+export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
+  height?: Size | undefined;
   src?: string | undefined;
   type?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
-export interface FieldsetHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   form?: string | undefined;
   name?: string | undefined;
 }
-export interface FormHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   acceptCharset?: string | undefined;
   action?: string | undefined;
   autoComplete?: 'on' | 'off' | Omit<'on' | 'off', string> | undefined;
@@ -481,16 +482,16 @@ export interface FormHTMLAttributes<T> extends HTMLAttributes<T> {
   noValidate?: boolean | undefined;
   target?: string | undefined;
 }
-export interface HtmlHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface HtmlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   manifest?: string | undefined;
 }
-export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   allow?: string | undefined;
   allowFullScreen?: boolean | undefined;
   allowTransparency?: boolean | undefined;
   /** @deprecated Deprecated */
   frameBorder?: number | string | undefined;
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   loading?: 'eager' | 'lazy' | undefined;
   /** @deprecated Deprecated */
   marginHeight?: number | undefined;
@@ -504,10 +505,10 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
   seamless?: boolean | undefined;
   src?: string | undefined;
   srcDoc?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
-export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   alt?: string | undefined;
   crossOrigin?: HTMLCrossOriginAttribute;
   decoding?: 'async' | 'auto' | 'sync' | undefined;
@@ -530,7 +531,7 @@ export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
   children?: undefined;
 }
 
-export interface HrHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   children?: undefined;
 }
 
@@ -611,7 +612,7 @@ export type HTMLInputAutocompleteAttribute =
   | 'url'
   | 'photo';
 
-export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   accept?: string | undefined;
   alt?: string | undefined;
   autoComplete?:
@@ -631,7 +632,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   formMethod?: string | undefined;
   formNoValidate?: boolean | undefined;
   formTarget?: string | undefined;
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   list?: string | undefined;
   max?: number | string | undefined;
   maxLength?: number | undefined;
@@ -649,14 +650,14 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: HTMLInputTypeAttribute | undefined;
   value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
   'bind:value'?: Signal<string | undefined>;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
-export interface InsHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface InsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
   dateTime?: string | undefined;
 }
-export interface KeygenHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoFocus?: boolean | undefined;
   challenge?: string | undefined;
   disabled?: boolean | undefined;
@@ -666,14 +667,14 @@ export interface KeygenHTMLAttributes<T> extends HTMLAttributes<T> {
   name?: string | undefined;
   children?: undefined;
 }
-export interface LabelHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   form?: string | undefined;
   for?: string | undefined;
 }
-export interface LiHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
 }
-export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   as?: string | undefined;
   crossOrigin?: HTMLCrossOriginAttribute;
   href?: string | undefined;
@@ -689,13 +690,13 @@ export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   charSet?: string | undefined;
   children?: undefined;
 }
-export interface MapHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
 }
-export interface MenuHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   type?: string | undefined;
 }
-export interface MetaHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   charSet?: string | undefined;
   content?: string | undefined;
   httpEquiv?: string | undefined;
@@ -703,7 +704,7 @@ export interface MetaHTMLAttributes<T> extends HTMLAttributes<T> {
   media?: string | undefined;
   children?: undefined;
 }
-export interface MeterHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   form?: string | undefined;
   high?: number | undefined;
   low?: number | undefined;
@@ -712,54 +713,54 @@ export interface MeterHTMLAttributes<T> extends HTMLAttributes<T> {
   optimum?: number | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
 }
-export interface ObjectHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   classID?: string | undefined;
   data?: string | undefined;
   form?: string | undefined;
-  height?: Numberish | undefined;
+  height?: Size | undefined;
   name?: string | undefined;
   type?: string | undefined;
   useMap?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   wmode?: string | undefined;
 }
-export interface OlHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   reversed?: boolean | undefined;
   start?: number | undefined;
   type?: '1' | 'a' | 'A' | 'i' | 'I' | undefined;
 }
-export interface OptgroupHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   label?: string | undefined;
 }
-export interface OptionHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   label?: string | undefined;
   selected?: boolean | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
   children?: string;
 }
-export interface OutputHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   form?: string | undefined;
   for?: string | undefined;
   name?: string | undefined;
 }
-export interface ParamHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
   children?: undefined;
 }
-export interface ProgressHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   max?: number | string | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
 }
-export interface QuoteHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
 }
-export interface SlotHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface SlotHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
 }
-export interface ScriptHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   async?: boolean | undefined;
   /** @deprecated Deprecated */
   charSet?: string | undefined;
@@ -772,7 +773,7 @@ export interface ScriptHTMLAttributes<T> extends HTMLAttributes<T> {
   src?: string | undefined;
   type?: string | undefined;
 }
-export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoComplete?:
     | HTMLInputAutocompleteAttribute
     | Omit<HTMLInputAutocompleteAttribute, string>
@@ -787,41 +788,41 @@ export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
   'bind:value'?: Signal<string | undefined>;
 }
-export interface SourceHTMLAttributes<T> extends HTMLAttributes<T> {
-  height?: Numberish | undefined;
+export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
+  height?: Size | undefined;
   media?: string | undefined;
   sizes?: string | undefined;
   src?: string | undefined;
   srcSet?: string | undefined;
   type?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
   children?: undefined;
 }
-export interface StyleHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   media?: string | undefined;
   nonce?: string | undefined;
   scoped?: boolean | undefined;
   type?: string | undefined;
   children?: string;
 }
-export interface TableHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cellPadding?: number | string | undefined;
   cellSpacing?: number | string | undefined;
   summary?: string | undefined;
-  width?: Numberish | undefined;
+  width?: Size | undefined;
 }
-export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
   colSpan?: number | undefined;
   headers?: string | undefined;
   rowSpan?: number | undefined;
   scope?: string | undefined;
   abbr?: string | undefined;
-  height?: Numberish | undefined;
-  width?: Numberish | undefined;
+  height?: Size | undefined;
+  width?: Size | undefined;
   valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
 }
-export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoComplete?:
     | HTMLInputAutocompleteAttribute
     | Omit<HTMLInputAutocompleteAttribute, string>
@@ -846,7 +847,7 @@ export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
   /** @deprecated - Use the `value` property instead */
   children?: undefined;
 }
-export interface ThHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface ThHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
   colSpan?: number | undefined;
   headers?: string | undefined;
@@ -854,13 +855,13 @@ export interface ThHTMLAttributes<T> extends HTMLAttributes<T> {
   scope?: string | undefined;
   abbr?: string | undefined;
 }
-export interface TimeHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   dateTime?: string | undefined;
 }
-export interface TitleHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   children?: string;
 }
-export interface TrackHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   default?: boolean | undefined;
   kind?: string | undefined;
   label?: string | undefined;
@@ -868,7 +869,7 @@ export interface TrackHTMLAttributes<T> extends HTMLAttributes<T> {
   srcLang?: string | undefined;
   children?: undefined;
 }
-export interface VideoHTMLAttributes<T> extends MediaHTMLAttributes<T> {
+export interface VideoHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T> {
   height?: Numberish | undefined;
   playsInline?: boolean | undefined;
   poster?: string | undefined;
@@ -876,7 +877,7 @@ export interface VideoHTMLAttributes<T> extends MediaHTMLAttributes<T> {
   disablePictureInPicture?: boolean | undefined;
   disableRemotePlayback?: boolean | undefined;
 }
-export interface WebViewHTMLAttributes<T> extends HTMLAttributes<T> {
+export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   allowFullScreen?: boolean | undefined;
   allowpopups?: boolean | undefined;
   autoFocus?: boolean | undefined;
@@ -895,7 +896,7 @@ export interface WebViewHTMLAttributes<T> extends HTMLAttributes<T> {
   useragent?: string | undefined;
   webpreferences?: string | undefined;
 }
-export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
   class?: ClassList | undefined;
   /** @deprecated - Use `class` instead */
   className?: string | undefined;
@@ -1173,7 +1174,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   z?: number | string | undefined;
   zoomAndPan?: string | undefined;
 }
-export interface SVGProps<T> extends SVGAttributes<T> {}
+export interface SVGProps<T extends Element> extends SVGAttributes<T> {}
 
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}
 export interface IntrinsicHTMLElements {

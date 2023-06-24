@@ -467,6 +467,13 @@ test.describe('render', () => {
       const result = page.locator('#issue-4386-result');
       await expect(result).toHaveText('1');
     });
+
+    test('issue 4455', async ({ page }) => {
+      const input1 = page.locator('#issue-4455-input1');
+      const input2 = page.locator('#issue-4455-input2');
+      await expect(input1).toHaveValue('0.5');
+      await expect(input2).toHaveValue('0.5');
+    });
   }
 
   tests();

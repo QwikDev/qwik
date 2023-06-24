@@ -50,6 +50,9 @@ jobs:
               - 'packages/qwik/src/**/*.rs'
               - 'packages/qwik-city/**/*.ts'
               - 'packages/qwik-city/**/*.tsx'
+              - 'packages/qwik-labs/src/**/*.ts'
+              - 'packages/qwik-labs/src/**/*.tsx'
+              - 'packages/qwik-labs/src-vite/**/*.ts'
               - 'packages/eslint-plugin-qwik/**/*.ts'
               - 'starters/apps/**/*.ts'
               - 'starters/apps/**/*.tsx'
@@ -372,9 +375,9 @@ jobs:
           path: packages/qwik/dist/*
           if-no-files-found: error
 
-      - name: Build QwikCity
+      - name: Build QwikCity / QwikLabs
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --tsc --qwikcity --api
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api
 
       - name: Print QwikCity Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -388,7 +391,23 @@ jobs:
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
-  ############ RELEASE ############
+      - name: Print QwikLabs Lib Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/qwik-labs/lib/ packages/qwik-labs/lib-types/ packages/qwik-labs/vite/
+
+      - name: Upload QwikLabs Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builderio-qwiklabs-distribution
+          path: |
+            packages/qwik-labs/lib/
+            packages/qwik-labs/lib-types/
+            packages/qwik-labs/vite/
+            packages/qwik-labs/package.json
+          if-no-files-found: error
+
+    ############ RELEASE ############
   release:
     name: Release
     runs-on: ubuntu-latest

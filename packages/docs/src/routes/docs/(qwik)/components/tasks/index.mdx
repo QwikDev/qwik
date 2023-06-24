@@ -393,7 +393,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 
 ### Option `eagerness`
 
-At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eagre mode. This is done by using the `{ strategy: 'document-ready' }`.
+At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eager mode. This is done by using the `{ strategy: 'document-ready' }`.
 
 <CodeSandbox src="/src/routes/demo/tasks/use-visible-task-eager/index.tsx" style={{ height: '6em' }}>
 ```tsx

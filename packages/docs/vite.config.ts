@@ -1,17 +1,34 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
-import { resolve } from 'node:path';
+import path, { resolve } from 'node:path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import rehypePrettyCode from 'rehype-pretty-code';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import Inspect from 'vite-plugin-inspect';
+// import { insightsEntryStrategy } from '@builder.io/qwik-labs';
 
-export default defineConfig(() => {
+export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+
+export default defineConfig(async () => {
+  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
+
   const routesDir = resolve('src', 'routes');
   return {
+    preview: {
+      headers: {
+        'Cache-Control': 'public, max-age=600',
+      },
+    },
+    resolve: {
+      alias: [
+        {
+          find: '~',
+          replacement: path.resolve(__dirname, 'src'),
+        },
+      ],
+    },
     ssr: {
       noExternal: [
         '@mui/material',
@@ -80,6 +97,9 @@ export default defineConfig(() => {
         },
       }),
       qwikVite({
+        // entryStrategy: await insightsEntryStrategy({
+        //   publicApiKey: PUBLIC_QWIK_INSIGHT_KEY,
+        // }),
         entryStrategy: {
           type: 'smart',
           manual: {
@@ -107,17 +127,17 @@ export default defineConfig(() => {
   };
 });
 
-const page = {
+export const page = {
   KnNE9eL0qfc: 'page',
   '9t1uPE4yoLA': 'page',
 };
 
-const menus = {
+export const menus = {
   S0wV0vUzzSo: 'right',
   '5wL0DAwmu0A': 'left',
 };
 
-const algoliaSearch = bundle('algoliasearch', [
+export const algoliaSearch = bundle('algoliasearch', [
   'hW',
   '9t1uPE4yoLA',
   'I5CyQjO9FjQ',
@@ -152,7 +172,7 @@ const algoliaSearch = bundle('algoliasearch', [
   'S0wV0vUzzSo',
 ]);
 
-const repl = bundle('repl', [
+export const repl = bundle('repl', [
   's_XoQB11UZ1S0',
   's_AqHBIVNKf34',
   's_IRhp4u7HN3o',

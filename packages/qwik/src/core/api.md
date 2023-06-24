@@ -112,7 +112,7 @@ export const _deserializeData: (data: string, element?: unknown) => any;
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
@@ -147,8 +147,10 @@ export const Fragment: FunctionComponent<{
 
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    (props: P, key: string | null, flags: number): JSXNode | null;
+    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
 
 // @internal (undocumented)
@@ -206,7 +208,7 @@ export { h as createElement }
 export { h }
 
 // @public (undocumented)
-export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     about?: string | undefined;
     // (undocumented)
@@ -333,8 +335,6 @@ export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props:
 export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     children: any | null;
-    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     dev?: DevJSX;
     // (undocumented)
@@ -499,7 +499,7 @@ export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, Nat
 }
 
 // @public (undocumented)
-export interface QwikDOMAttributes extends DOMAttributes<any> {
+export interface QwikDOMAttributes extends DOMAttributes<Element> {
 }
 
 // @public (undocumented)
@@ -525,10 +525,6 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     //
     // (undocumented)
     [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-    // Warning: (ae-forgotten-export) The symbol "QwikScriptHTMLAttributes" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    script: QwikScriptHTMLAttributes<HTMLScriptElement>;
 }
 
 // @public (undocumented)

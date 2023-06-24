@@ -1062,6 +1062,28 @@ renderSSRSuite('component useOn()', async () => {
   );
 });
 
+renderSSRSuite('component useOn([array])', async () => {
+  await testSSR(
+    <body>
+      <UseOnMultiple />
+    </body>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+        <div on:click="/runtimeQRL#_\n/runtimeQRL#_"
+          on:scroll="/runtimeQRL#_"
+          on-window:click="/runtimeQRL#_"
+          on-window:scroll="/runtimeQRL#_"
+          on-document:click="/runtimeQRL#_"
+          on-document:scroll="/runtimeQRL#_"
+        ></div>
+        <!--/qv-->
+      </body>
+    </html>`
+  );
+});
+
 renderSSRSuite('component useStyles()', async () => {
   await testSSR(
     <>
@@ -1594,6 +1616,23 @@ export const Events = component$(() => {
   useOnDocument(
     'click',
     $(() => console.warn('document:click'))
+  );
+
+  return <div onClick$={() => console.warn('scroll')}></div>;
+});
+
+export const UseOnMultiple = component$(() => {
+  useOn(
+    ['click', 'scroll'],
+    $(() => console.warn('click or scroll'))
+  );
+  useOnWindow(
+    ['click', 'scroll'],
+    $(() => console.warn('window:click or scroll'))
+  );
+  useOnDocument(
+    ['click', 'scroll'],
+    $(() => console.warn('document:click or scroll'))
   );
 
   return <div onClick$={() => console.warn('scroll')}></div>;

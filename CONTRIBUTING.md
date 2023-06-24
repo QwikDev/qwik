@@ -177,6 +177,12 @@ To use your build in your project, follow these steps:
    pnpm link.dist
    ```
 
+   or
+
+   ```shell
+   pnpm link.dist.npm
+   ```
+
 2. Inside the root of your project run:
 
    ```shell

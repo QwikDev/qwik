@@ -313,7 +313,7 @@ export const GridItem: FunctionComponent<GridItemProps> = (props) => {
     <li class="grid-item">
       <Link href={props.href}>
         <div class={{ thumbnail: props.thumbnailBg, cover: props.imgCover }}>
-          <img src={props.imgSrc} alt={props.title} loading="lazy" />
+          <img src={props.imgSrc} alt={props.title} width="250" height="120" loading="lazy" />
         </div>
         <div class="text">{props.title}</div>
       </Link>

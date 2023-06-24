@@ -1,6 +1,6 @@
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve } from 'node:path';
-import type { Plugin, UserConfig } from 'vite';
+import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
 import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
@@ -19,7 +19,6 @@ import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
-import type { Rollup } from 'vite';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -27,11 +26,16 @@ import {
   STATIC_PATHS_ID,
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
+import { imagePlugin } from './image-jsx';
 
 /**
  * @public
  */
-export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
+  return [qwikCityPlugin(userOpts), ...imagePlugin()];
+}
+
+function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;

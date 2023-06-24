@@ -57,7 +57,6 @@ import {
   type ScrollHistoryState,
   restoreScroll,
 } from './scroll-restoration';
-import spaInit from './spa-init';
 
 /**
  * @public
@@ -428,11 +427,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win._qCityBootstrap = undefined;
 
             // Cache SPA recovery script.
-            // TODO Proof of concept, replace this with caching of file in /build/.
-            localStorage.setItem(
-              '_qCitySPA',
-              `(${spaInit.toString()})(window,location,history,document);`
-            );
+            // TODO Cache SPA recovery script here.
           }
 
           if (navType !== 'popstate') {
@@ -536,4 +531,5 @@ export interface ClientSPAWindow extends Window {
   _qCityInitVisibility?: () => void;
   _qCityInitScroll?: () => void;
   _qCityBootstrap?: HTMLAnchorElement;
+  _qcs?: boolean;
 }

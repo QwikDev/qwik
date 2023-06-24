@@ -1,32 +1,39 @@
-import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 
-export default (window: ClientSPAWindow, history: History, document: Document) => {
-  /**
-   * TODO Build `spa-init.ts` to a file under /build/.
-   * - Cache file when upgrading to SPA.
-   * - Reasonable expectation this file is already cached for history revisits.
-   * - No need for popstate fallback, this will always be available.
-   * - Robust, fully relies only on history.
-   * TODO Swap localStorage for script.src.
-   * TODO Dev vs prod?
-   * TODO Add configuration notes on CSP docs as applicable.
-   */
+import { isDev, isServer } from '@builder.io/qwik/build';
+import { getPlatform } from '@builder.io/qwik';
+import { basePathname } from '@qwik-city-plan';
 
+import init from './spa-init';
+
+export default () => {
+  if (isServer) {
+    const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null)!;
+    const path = (!isDev ? basePathname + 'build/' : '') + bundle;
+    return `(${shim.toString()})('${path}', '${symbol}');`;
+  }
+};
+
+/**
+ * !!! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
+ */
+const shim = async (path: string, symbol: string) => {
   /**
-   * This should ALWAYS be 'manual' if a page was arrived at via SPA.
+   * This should always be 'manual' if a page was arrived at via SPA.
    * Robust, stored in browser history state, will always be attached to history entry.
    * If this is not set, your page is MPA and never had an SPA context. (no pop needed?)
    */
-  if (history.scrollRestoration === 'manual') {
+  if (!(window as any)._qcs && history.scrollRestoration === 'manual') {
+    // TODO Option to remove this shim especially for MFEs, like loader, for now we only run once.
+    (window as any)._qcs = true;
+
     const scrollState = (history.state as ScrollHistoryState)?._qCityScroll;
     if (scrollState) {
       window.scrollTo(scrollState.x, scrollState.y);
     }
 
-    // ! Proof of concept only, brittle if localStorage gets cleared. (swap to file-based)
-    const script = document.createElement('script');
-    script.text = localStorage.getItem('_qCitySPA')!;
-    (document.currentScript as HTMLScriptElement).after(script);
+    const currentScript = document.currentScript;
+    // TODO Fix dev import w/ Vite complaining.
+    (await import(path))[symbol](currentScript);
   }
 };

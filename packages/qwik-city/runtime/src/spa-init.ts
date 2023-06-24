@@ -2,19 +2,21 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-// TODO Dedupe handler code from here and QwikCityProvider.
+import { $ } from '@builder.io/qwik';
+
+// TODO Dedupe handler code from here and QwikCityProvider?
 // TODO Navigation API; check for support & simplify.
 
-export default (
-  window: ClientSPAWindow,
-  location: Location,
-  history: History,
-  document: Document
-) => {
-  const addEventListener = 'addEventListener';
-  const scrollRestoration = 'scrollRestoration';
+/**
+ * !!! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
+ * SPA init script:
+ * - Cached when upgrading to SPA.
+ * - Reasonable expectation this file is already cached for history revisits.
+ * - Robust, fully relies only on history. (scrollRestoration = 'manual')
+ */
+export default $((currentScript: HTMLScriptElement) => {
+  const win: ClientSPAWindow = window;
 
-  const script = document.currentScript;
   const currentPath = location.pathname + location.search;
 
   const spa = '_qCitySPA';
@@ -30,12 +32,11 @@ export default (
 
   /**
    * TODO If loaded as deferred/async?:
-   *  - Forward document.currentScript from shim, if needed.
    *  - Remove backup pop handler, if exists.
    */
   const checkAndScroll = (scrollState: ScrollState | undefined) => {
     if (scrollState) {
-      window.scrollTo(scrollState.x, scrollState.y);
+      win.scrollTo(scrollState.x, scrollState.y);
     }
   };
 
@@ -59,8 +60,8 @@ export default (
     // Hook into useNavigate context, if available.
     // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
     // TODO Will only work with <Link>, is there a better way?
-    const container = script?.closest('[q\\:container]');
-    const link = container?.querySelector('a[q\\:key="AD_1"]');
+    const container = currentScript!.closest('[q\\:container]');
+    const link = container!.querySelector('a[q\\:key="AD_1"]');
 
     if (link) {
       const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
@@ -72,7 +73,7 @@ export default (
       }
 
       container!.appendChild(bootstrapLink);
-      window[bootstrap] = bootstrapLink;
+      win[bootstrap] = bootstrapLink;
       bootstrapLink.click();
       return true;
     } else {
@@ -81,39 +82,39 @@ export default (
   };
 
   if (
-    !window[spa] &&
-    !window[initPopstate] &&
-    !window[initAnchors] &&
-    !window[initVisibility] &&
-    !window[initScroll]
+    !win[spa] &&
+    !win[initPopstate] &&
+    !win[initAnchors] &&
+    !win[initVisibility] &&
+    !win[initScroll]
   ) {
     saveScrollState();
 
-    window[initPopstate] = () => {
-      if (window[spa]) {
+    win[initPopstate] = () => {
+      if (win[spa]) {
         return;
       }
 
       // Disable scroll handler eagerly to prevent overwriting history.state.
-      window[scrollEnabled] = false;
-      clearTimeout(window[debounceTimeout]);
+      win[scrollEnabled] = false;
+      clearTimeout(win[debounceTimeout]);
 
       if (!navigate()) {
         if (currentPath !== location.pathname + location.search) {
           location.reload();
         } else {
-          if (history[scrollRestoration] === 'manual') {
+          if (history.scrollRestoration === 'manual') {
             const scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
             checkAndScroll(scrollState);
-            window[scrollEnabled] = true;
+            win[scrollEnabled] = true;
           }
         }
       }
     };
 
-    if (!window[historyPatch]) {
+    if (!win[historyPatch]) {
       ((history) => {
-        window[historyPatch] = true;
+        win[historyPatch] = true;
         const pushState = history.pushState;
         const replaceState = history.replaceState;
 
@@ -136,8 +137,8 @@ export default (
     }
 
     // We need this handler in init because Firefox destroys states w/ anchor tags.
-    window[initAnchors] = (event: MouseEvent) => {
-      if (window[spa] || event.defaultPrevented) {
+    win[initAnchors] = (event: MouseEvent) => {
+      if (win[spa] || event.defaultPrevented) {
         return;
       }
 
@@ -168,39 +169,39 @@ export default (
       }
     };
 
-    window[initVisibility] = () => {
-      if (!window[spa] && window[scrollEnabled] && document.visibilityState === 'hidden') {
+    win[initVisibility] = () => {
+      if (!win[spa] && win[scrollEnabled] && document.visibilityState === 'hidden') {
         // Last & most reliable point to commit state.
         // Do not clear timeout here in case debounce gets to run later.
         saveScrollState();
       }
     };
 
-    window[initScroll] = () => {
-      if (window[spa] || !window[scrollEnabled]) {
+    win[initScroll] = () => {
+      if (win[spa] || !win[scrollEnabled]) {
         return;
       }
 
-      clearTimeout(window[debounceTimeout]);
-      window[debounceTimeout] = setTimeout(() => {
+      clearTimeout(win[debounceTimeout]);
+      win[debounceTimeout] = setTimeout(() => {
         saveScrollState();
         // Needed for e2e debounceDetector.
-        window[debounceTimeout] = undefined;
+        win[debounceTimeout] = undefined;
       }, 200);
     };
 
-    window[scrollEnabled] = true;
+    win[scrollEnabled] = true;
 
     setTimeout(() => {
-      window[addEventListener]('popstate', window[initPopstate]!);
-      window[addEventListener]('scroll', window[initScroll]!, { passive: true });
-      document.body[addEventListener]('click', window[initAnchors]!);
+      addEventListener('popstate', win[initPopstate]!);
+      addEventListener('scroll', win[initScroll]!, { passive: true });
+      document.body.addEventListener('click', win[initAnchors]!);
 
-      if (!(window as any).navigation) {
-        document[addEventListener]('visibilitychange', window[initVisibility]!, {
+      if (!(win as any).navigation) {
+        document.addEventListener('visibilitychange', win[initVisibility]!, {
           passive: true,
         });
       }
     }, 0);
   }
-};
+});

@@ -1,0 +1,52 @@
+.shop .purple-gradient {
+  position: fixed;
+  width: 1400px;
+  height: 800px;
+  top: 100px;
+  right: -400px;
+  background: radial-gradient(
+    57.58% 57.58% at 48.79% 42.42%,
+    rgba(24, 180, 244, 0.5) 0%,
+    rgba(46, 55, 114, 0) 63.22%
+  );
+  transform: rotate(5deg);
+}
+
+.shop .blue-gradient {
+  position: fixed;
+  width: 1400px;
+  height: 1200px;
+  top: 600px;
+  left: -200px;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(172, 127, 244, 0.5) 0%,
+    rgba(21, 25, 52, 0) 100%
+  );
+  transform: rotate(-5deg);
+}
+
+.shop .product {
+  @apply relative flex w-full max-w-xs flex-col overflow-hidden rounded-lg border border-slate-600 shadow-md;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.shop .product .title {
+  @apply mt-4 px-5 text-xl tracking-tight text-center;
+}
+
+.shop .product .info {
+  @apply mx-5 mt-4 relative flex h-60 rounded-xl;
+}
+
+.shop .product .select {
+  @apply mr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5 bg-white text-black text-xs;
+}
+
+.shop .product .button_primary,
+.shop .cart .button_primary {
+  @apply flex items-center justify-center rounded-md px-5 py-2.5 text-center text-sm font-medium bg-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-300 w-full h-[40px];
+  background-color: var(--text-color);
+  color: var(--bg-color);
+}

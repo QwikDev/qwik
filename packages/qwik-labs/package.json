@@ -13,6 +13,7 @@
       "types": "./lib-types/index.d.ts"
     },
     "./vite": {
+      "import": "./vite/index.js",
       "require": "./vite/index.js",
       "types": "./vite/index.d.ts"
     }

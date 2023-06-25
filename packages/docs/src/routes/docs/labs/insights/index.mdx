@@ -2,6 +2,7 @@
 title: 🧪 Insights
 contributors:
   - mhevery
+  - gioboa
 ---
 
 # 🧪 Insights 
@@ -13,8 +14,15 @@ Insights allow your application to collect real user usage information to optimi
 
 The optimization consists of these parts:
 - A `<Insights>` component which collects real user usage data.
-- A hosted application with a database. (http://qwik-insights.builder.io)
-- a vite time plugin which provides the bundle information.
+- A registered application inside the builder.io database.
+- A qwikVite configuration to load real user usage data during the build process.
+
+> NOTE:
+> To try this new feature please drop a message inside the [Qwik Discord server](https://qwik.builder.io/chat)
+> Currently Insights info are hosted into builder database. This information are about the execution of symbols/chunks in the application.
+> The implementation of the service is open-source and you have the choice to use ours or host your own.
+> (Please note, this may become a paid service in the future.)
+
 
 ## `<Insights>` component
 
@@ -42,7 +50,7 @@ export default component$(() => {
 });
 ```
 
-You can get `PUBLIC_QWIK_INSIGHTS_KEY` by visiting https://qwik-insights.builder.io/ and creating an application.
+You can get `PUBLIC_QWIK_INSIGHTS_KEY` by asking it in inside the [Qwik Discord server](https://qwik.builder.io/chat)
 
 The `<Insights>` component collects this data:
 - Timing information of symbols.
@@ -51,11 +59,7 @@ The `<Insights>` component collects this data:
 
 NOTE: The `<Insights>` component does not collect any user identifiable information.
 
-The information collected is sent to https://qwik-insights.builder.io/ for storage. 
-
-## Hosted application
-
- https://qwik-insights.builder.io/ is hosted as part of Insights and it maintains statistical usage information on the application symbols. The implementation of the service is open-source, and you have the choice to use ours or host your own. (Please note, this may become a paid service in the future.)
+The information collected is sent to builder.io database for storage.
 
 ## Vite integration
 
@@ -65,7 +69,7 @@ file: `vite.config.js`
 ```typescript
 //..
 import { defineConfig, loadEnv } from 'vite';
-import { Insights } from '@builder.io/qwik-labs';
+import { insightsEntryStrategy } from '@builder.io/qwik-labs/vite';
 
 
 export default defineConfig(async () => {
@@ -73,7 +77,7 @@ export default defineConfig(async () => {
     plugins: [
       qwikVite({
         entryStrategy: await insightsEntryStrategy({
-          publicApiKey: loadEnv('', '.').PUBLIC_QWIK_INSIGHT_KEY,
+          publicApiKey: loadEnv('', '.').PUBLIC_QWIK_INSIGHTS_KEY,
         }),
       }), 
       //...

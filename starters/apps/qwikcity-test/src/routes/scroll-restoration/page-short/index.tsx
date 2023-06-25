@@ -1,5 +1,5 @@
-import { component$, useStylesScoped$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { component$, useStylesScoped$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
 
 export default component$(() => {
   useStylesScoped$(`
@@ -11,7 +11,11 @@ export default component$(() => {
   `);
   return (
     <>
-      <Link id="to-page-long" class="nav-link" href="/qwikcity-test/scroll-restoration/page-long/">
+      <Link
+        id="to-page-long"
+        class="nav-link"
+        href="/qwikcity-test/scroll-restoration/page-long/"
+      >
         To Page Long
       </Link>
       <div class="container">

@@ -52,34 +52,6 @@ export default $((currentScript: HTMLScriptElement) => {
     history.replaceState(state, '');
   };
 
-  const navigate = (href?: string) => {
-    // Hook into useNavigate context, if available.
-    // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
-    // TODO Will only work with <Link>, is there a better way? Will `q:key` change?
-    const container = currentScript!.closest('[q\\:container]')!;
-    const link = container.querySelector('a[q\\:key="AD_1"]');
-
-    if (link) {
-      // Re-acquire container, link may be in a nested container.
-      const container = link.closest('[q\\:container]')!;
-      const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
-      bootstrapLink.style.display = 'none';
-
-      if (href) {
-        bootstrapLink.setAttribute('href', href);
-      } else {
-        bootstrapLink.setAttribute('q:nbs', '');
-      }
-
-      container.appendChild(bootstrapLink);
-      win[bootstrap] = bootstrapLink;
-      bootstrapLink.click();
-      return true;
-    } else {
-      return false;
-    }
-  };
-
   if (
     !win[spa] &&
     !win[initPopstate] &&
@@ -98,15 +70,32 @@ export default $((currentScript: HTMLScriptElement) => {
       win[scrollEnabled] = false;
       clearTimeout(win[debounceTimeout]);
 
-      if (!navigate()) {
-        if (currentPath !== location.pathname + location.search) {
-          location.reload();
+      if (currentPath !== location.pathname + location.search) {
+        // Hook into useNavigate context, if available.
+        // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
+        // TODO Will only work with <Link>, is there a better way? Will `q:key` change?
+        const container = currentScript!.closest('[q\\:container]')!;
+        const link = container.querySelector('a[q\\:key="AD_1"]');
+
+        if (link) {
+          // Re-acquire container, link may be in a nested container.
+          const container = link.closest('[q\\:container]')!;
+          const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
+          bootstrapLink.setAttribute('q:nbs', '');
+          bootstrapLink.style.display = 'none';
+
+          container.appendChild(bootstrapLink);
+          win[bootstrap] = bootstrapLink;
+          bootstrapLink.click();
         } else {
-          if (history.scrollRestoration === 'manual') {
-            const scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
-            checkAndScroll(scrollState);
-            win[scrollEnabled] = true;
-          }
+          // No useNavigate ctx available, fallback to reload.
+          location.reload();
+        }
+      } else {
+        if (history.scrollRestoration === 'manual') {
+          const scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
+          checkAndScroll(scrollState);
+          win[scrollEnabled] = true;
         }
       }
     };

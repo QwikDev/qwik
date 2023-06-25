@@ -55,20 +55,23 @@ export default $((currentScript: HTMLScriptElement) => {
   const navigate = (href?: string) => {
     // Hook into useNavigate context, if available.
     // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
-    // TODO Will only work with <Link>, is there a better way?
-    const container = currentScript!.closest('[q\\:container]');
-    const link = container!.querySelector('a[q\\:key="AD_1"]');
+    // TODO Will only work with <Link>, is there a better way? Will `q:key` change?
+    const container = currentScript!.closest('[q\\:container]')!;
+    const link = container.querySelector('a[q\\:key="AD_1"]');
 
     if (link) {
+      // Re-acquire container, link may be in a nested container.
+      const container = currentScript!.closest('[q\\:container]')!;
       const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
+      bootstrapLink.style.display = 'none';
 
       if (href) {
         bootstrapLink.setAttribute('href', href);
       } else {
-        bootstrapLink.setAttribute('q:navBootstrap', '');
+        bootstrapLink.setAttribute('q:nbs', '');
       }
 
-      container!.appendChild(bootstrapLink);
+      container.appendChild(bootstrapLink);
       win[bootstrap] = bootstrapLink;
       bootstrapLink.click();
       return true;

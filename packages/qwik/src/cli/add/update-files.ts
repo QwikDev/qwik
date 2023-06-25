@@ -26,15 +26,19 @@ export async function mergeIntegrationDir(
           await mergePackageJsons(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === 'README.md') {
           await mergeReadmes(fileUpdates, srcChildPath, destChildPath);
-        } else if (destName === '.gitignore') {
-          await mergeGitIgnores(fileUpdates, srcChildPath, destChildPath);
+        } else if (
+          destName === '.gitignore' ||
+          destName === '.prettierignore' ||
+          destName === '.eslintignore'
+        ) {
+          await mergeIgnoresFile(fileUpdates, srcChildPath, destChildPath);
         } else if (ext === '.css') {
           await mergeCss(fileUpdates, srcChildPath, destChildPath);
         } else {
           if (fs.existsSync(destChildPath)) {
             fileUpdates.files.push({
               path: destChildPath,
-              content: await fs.promises.readFile(srcChildPath, 'utf-8'),
+              content: await fs.promises.readFile(srcChildPath),
               type: 'overwrite',
             });
           } else {
@@ -122,7 +126,7 @@ async function mergeReadmes(fileUpdates: FsUpdates, srcPath: string, destPath: s
   });
 }
 
-async function mergeGitIgnores(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeIgnoresFile(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
 
   try {

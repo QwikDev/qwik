@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-labs",
   "version": "0.0.1",
-  "description": "Qwik Labs - Where you can try the latest ideas",
+  "description": "Qwik Labs - Where you can try the latest Qwik ideas.",
   "main": "./lib/index.qwik.mjs",
   "type": "module",
   "qwik": "./lib/index.qwik.mjs",

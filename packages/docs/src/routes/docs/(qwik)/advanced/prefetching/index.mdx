@@ -12,7 +12,7 @@ contributors:
 
 # Prefetching
 
-Qwik provides various strategies to prefetch modules ahead of time, and building on top of that, Qwik City is able to take it further by using [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx). This docs page describes the **low-level** features of Qwik's prefetching, but recommended to instead review Qwik City's [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) docs.
+Qwik provides various strategies to prefetch modules ahead of time, and building on top of that, Qwik City is able to take it further by using [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx). This docs page describes the **low-level** features of Qwik's prefetching. However, it's recommended to refer to Qwik City's documentation on [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) for a more comprehensive understanding.
 
 - [Pre-populate the Cache with service workers](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx)
 - [Link rel](#link-rel)
@@ -85,7 +85,7 @@ For Qwik City applications, we highly recommended using [Speculative Module Fetc
 
 Qwik itself should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. By default, the `prefetchEvent` implementation will be set to `always`. Next, [Qwik City](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
 
-By using a service worker to intercept `fetch` requests from the browser, this approach allows fine-grain caching control, along with preventing duplicate requests for the same resource.
+By using a service worker to intercept `fetch` requests from the browser, this approach allows granular control over caching, along with preventing duplicate requests for the same resource.
 
 Below is an example of manually dispatching the event. These events are dispatched from Qwik itself and do not require developers to dispatch these events manually. Additionally, the [service worker](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) will automatically add listeners for these events.
 
@@ -105,7 +105,7 @@ For example, Safari (the browser powering iPhones and iPads) does not support `m
 >
 > \- <cite><a href="https://andydavies.me/blog/2020/07/08/rel-equals-prefetch-and-the-importance-of-effective-http-slash-2-prioritisation/">Rel=prefetch and the Importance of Effective HTTP/2 Prioritisation</a></cite>
 
-Additionally, it may be possible to fire off a multiple requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time, or a very long time), the user interacts with the app, which then decides to actually request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
+Additionally, it may be possible to fire off multiple requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time, or a very long time), the user interacts with the app, which then decides to actually request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
 
 #### link rel="modulepreload"
 
@@ -114,7 +114,7 @@ Additionally, it may be possible to fire off a multiple requests for the same re
 
 ### Web Worker Fetch
 
-`workerFetchInsert` can be used to have Qwik use a web worker to `fetch()` a JavaScript file, with the goal of priming the browser cache with the module. By using a web worker, the fetch and caching logic lives on another thread. The fetch response will also have an `immutable` or long cache-control header, so the browser doesn't make a second network request.
+`workerFetchInsert` instructs Qwik to employ a web worker to `fetch()` a JavaScript file, with the goal of priming the browser cache with the module. By using a web worker, the fetch and caching logic lives on another thread. The fetch response will also have an `immutable` or long cache-control header, so the browser doesn't make a second network request.
 
 The downside of this setting is that the fetched response is thrown away, and it's only at the browser level that hopefully the file is cached.
 

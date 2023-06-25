@@ -50,11 +50,11 @@ src/
     └── index.tsx          # https://example.com/
 ```
 
-Also note that custom 404 pages are statically generated at build-time, meaning they end up as static `404.html` file, rather than each being a server-side rendered page. Creating static `404.html` pages helps ensure your HTTP server isn't bothered server-side rendering 404 pages and eating up resources.
+It's worth noting that custom 404 pages are statically generated at build time, resulting in a static 404.html file, rather than individually server-side rendered pages. This strategy reduces the load on your HTTP server, avoiding server-side rendering of 404 pages, and thus preserving resources.
 
 ### Dynamic 404 Page
 
-When rendering a page, the default is to always respond with a [200 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200), which tells the browser all is good and the route you went to does exists. However, it's also possible to handle rendering the page, but manually setting the response status code to something other than 200, such as 404.
+When rendering a page, the default is to always respond with a [200 HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200), which tells the browser all is good and the route exists. However, it's also possible to handle rendering the page, but manually setting the response status code to something other than 200, such as 404.
 
 For example, let's say we have a product page with a URL such as `https://example.com/product/abc`. The product page would be handled using `src/routes/product/[id]/index.tsx` directory-based route, and `[id]` is a dynamic param in the URL.
 
@@ -176,7 +176,7 @@ In the above example, there are two layouts that apply themselves around the `/a
 1. `src/routes/layout.tsx`
 2. `src/routes/about/layout.tsx`
 
-In this case, the layouts will nest each other with the page within each of them.
+In this case, the layouts will nest each other with the page enveloped within each of them.
 
 ```
 ┌────────────────────────────────────────────────┐

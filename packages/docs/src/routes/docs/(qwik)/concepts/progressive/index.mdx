@@ -29,7 +29,7 @@ The problem is that the frameworks need to reconcile their internal state with t
 
 ## Solution
 
-Qwik architecture takes full advantage of modern tooling to automate the problem of entry point generation. Developers can write components normally, while the Qwik optimizer will split the components into chunks and download them when needed.
+Qwik's architecture takes full advantage of modern tooling to automate the problem of entry point generation. Developers can write components normally, while the Qwik optimizer will split the components into chunks and download them when needed.
 
 In addition, the framework runtime does not need to download code that is not required for interactivity, even if the component is part of the render tree.
 
@@ -53,7 +53,7 @@ Lazy-loading is asynchronous. Qwik is an asynchronous framework. Qwik understand
 In Qwik everything is lazy-loadable:
 
 - Component on render - initialization block and render block
-- Component on watch - side-effects, only downloaded if inputs change
+- Component tasks - side-effects, only downloaded if inputs change
 - Listeners - only downloaded on interaction
 - Styles - only downloaded if the server did not already provide them
 

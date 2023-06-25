@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import styles from './gauge.module.css';
+import { component$ } from "@builder.io/qwik";
+import styles from "./gauge.module.css";
 
 export default component$(({ value = 50 }: { value?: number }) => {
   const safeValue = value < 0 || value > 100 ? 50 : value;
@@ -13,7 +13,13 @@ export default component$(({ value = 50 }: { value?: number }) => {
             <stop offset="1000%" stop-color="#AC7FF4" />
           </linearGradient>
         </defs>
-        <circle r="56" cx="60" cy="60" stroke-width="8" style="fill: #000; stroke: #0000" />
+        <circle
+          r="56"
+          cx="60"
+          cy="60"
+          stroke-width="8"
+          style="fill: #000; stroke: #0000"
+        />
         <circle
           r="56"
           cx="60"

@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import { Form, globalAction$ } from '@builder.io/qwik-city';
+import { component$ } from "@builder.io/qwik";
+import { Form, globalAction$ } from "@builder.io/qwik-city";
 
 export const useDotNotationAction = globalAction$(async (payload) => {
   return {
@@ -24,7 +24,9 @@ export default component$(() => {
         </button>
       </Form>
       {dotNotation.value?.success && (
-        <div id="issue3497-success">{JSON.stringify(dotNotation.value.payload)}</div>
+        <div id="issue3497-success">
+          {JSON.stringify(dotNotation.value.payload)}
+        </div>
       )}
     </>
   );

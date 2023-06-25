@@ -1,4 +1,4 @@
-import { useStore, component$ } from '@builder.io/qwik';
+import { useStore, component$ } from "@builder.io/qwik";
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -7,7 +7,7 @@ export function delay(time: number) {
 }
 
 export const Async = component$(() => {
-  const state = useStore({ name: 'World', count: 0 });
+  const state = useStore({ name: "World", count: 0 });
   async function stuff() {
     await delay(10);
     return (

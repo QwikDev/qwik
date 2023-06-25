@@ -11,7 +11,7 @@ import {
   jsx,
   type JSXNode,
   useVisibleTask$,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -44,7 +44,9 @@ export const SlotParent = component$(() => {
           </Projector>
 
           <Projector state={state} id="btn2">
-            {!state.removeContent && <div q:slot="start">START {state.count}</div>}
+            {!state.removeContent && (
+              <div q:slot="start">START {state.count}</div>
+            )}
           </Projector>
 
           <Thing state={state} id="btn3">
@@ -92,7 +94,11 @@ export const SlotParent = component$(() => {
         </button>
       </div>
       <div>
-        <button id="btn-count" class="border border-cyan-600" onClick$={() => state.count++}>
+        <button
+          id="btn-count"
+          class="border border-cyan-600"
+          onClick$={() => state.count++}
+        >
           Count
         </button>
       </div>
@@ -114,7 +120,10 @@ export const Issue1630 = component$(() => {
 
   return (
     <>
-      <button id="toggle-child-slot" onClick$={() => (store.open = !store.open)}>
+      <button
+        id="toggle-child-slot"
+        onClick$={() => (store.open = !store.open)}
+      >
         Toggle Non-Slotted Content
       </button>
       <Slot name="slot-content" />
@@ -197,11 +206,14 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
 
   return (
     <>
-      <button id="issue-2688-button" onClick$={() => (store.flip = !store.flip)}>
+      <button
+        id="issue-2688-button"
+        onClick$={() => (store.flip = !store.flip)}
+      >
         Toggle switch
       </button>
       <div id="issue-2688-result">
-        <Switch name={store.flip ? 'b' : 'a'}>
+        <Switch name={store.flip ? "b" : "a"}>
           <div q:slot="a">Alpha {count}</div>
           <div q:slot="b">Bravo {count}</div>
         </Switch>
@@ -210,7 +222,9 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
   );
 });
 
-const Issue2751Context = createContextId<Signal<number>>('CleanupCounterContext');
+const Issue2751Context = createContextId<Signal<number>>(
+  "CleanupCounterContext"
+);
 
 export const Issue2751 = component$(() => {
   const signal = useSignal(0);
@@ -283,7 +297,7 @@ export const Issue3607 = component$(() => {
         show.value = !show.value;
       }}
     >
-      {show.value ? 'Loading...' : 'Load more'}
+      {show.value ? "Loading..." : "Load more"}
     </Issue3607Button>
   );
 });
@@ -298,7 +312,7 @@ export const Issue3607Button = component$(({ onClick$ }: any) => {
   );
 });
 
-const CTX = createContextId<Signal<any[]>>('content-Issue3727');
+const CTX = createContextId<Signal<any[]>>("content-Issue3727");
 
 export const Issue3727 = component$(() => {
   const content = useSignal<any[]>([Issue3727ParentA, Issue3727ChildA]);
@@ -378,7 +392,7 @@ export const QwikSvgWithSlot = component$(() => {
       id="issue-4215-svg"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: '24px', height: '24px' }}
+      style={{ width: "24px", height: "24px" }}
     >
       <Slot />
     </svg>
@@ -422,7 +436,7 @@ export const HideUntilVisible = component$(() => {
       }
     },
     {
-      strategy: 'document-ready',
+      strategy: "document-ready",
     }
   );
 

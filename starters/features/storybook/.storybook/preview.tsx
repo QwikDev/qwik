@@ -1,10 +1,10 @@
-import { Parameters } from 'storybook-framework-qwik';
+import { Parameters } from "storybook-framework-qwik";
 
 export const parameters: Parameters = {
   a11y: {
     config: {},
     options: {
-      checks: { 'color-contrast': { options: { noScroll: true } } },
+      checks: { "color-contrast": { options: { noScroll: true } } },
       restoreScroll: true,
     },
   },
@@ -12,6 +12,6 @@ export const parameters: Parameters = {
     showRoots: true,
   },
   docs: {
-    iframeHeight: '200px',
+    iframeHeight: "200px",
   },
 };

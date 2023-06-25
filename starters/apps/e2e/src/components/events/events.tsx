@@ -5,7 +5,7 @@ import {
   useSignal,
   useOnWindow,
   $,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 
 export const Events = component$(() => {
   const store = useStore({
@@ -32,7 +32,7 @@ export const Events = component$(() => {
       <div>
         <div
           onClick$={() => {
-            throw new Error('event was not stopped');
+            throw new Error("event was not stopped");
           }}
         >
           <a
@@ -87,7 +87,7 @@ export const Listener = component$((props: { name: string }) => {
   const count = useSignal(0);
 
   useOnWindow(
-    'click',
+    "click",
     $(() => {
       count.value++;
     })
@@ -107,8 +107,12 @@ export const Issue3948 = component$(() => {
     <>
       <Listener name="always" />
       <label for="toggle">
-        <input id="issue-3948-toggle" type="checkbox" bind:checked={showingToggle} /> Show
-        conditional
+        <input
+          id="issue-3948-toggle"
+          type="checkbox"
+          bind:checked={showingToggle}
+        />{" "}
+        Show conditional
       </label>
       {showingToggle.value && <Listener name="conditional" />}
     </>

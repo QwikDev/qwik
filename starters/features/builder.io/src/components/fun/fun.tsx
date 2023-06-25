@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from "@builder.io/qwik";
 
 // Example component to use the in the drag and drop editor
 // https://www.builder.io/c/docs/custom-components-setup

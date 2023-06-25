@@ -1,6 +1,6 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 
-import './global.css';
+import "./global.css";
 
 export const Root = component$(() => {
   return (

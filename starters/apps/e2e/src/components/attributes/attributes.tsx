@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore } from '@builder.io/qwik';
+import { component$, useSignal, useStore } from "@builder.io/qwik";
 
 export const Attributes = component$(() => {
   const render = useSignal(0);
@@ -24,14 +24,14 @@ export const AttributesChild = component$(() => {
   );
 
   const title = useSignal<string>();
-  const input = useSignal('');
+  const input = useSignal("");
   const hide = useSignal(false);
   const required = useSignal(false);
   const state = useStore({
-    dataAria: 'true',
+    dataAria: "true",
     count: 0,
-    label: 'even',
-    stuff: '',
+    label: "even",
+    stuff: "",
   });
   renders.count++;
   const rerenders = renders.count + 0;
@@ -51,7 +51,7 @@ export const AttributesChild = component$(() => {
         <button
           id="title"
           onClick$={() => {
-            title.value = title.value === undefined ? 'some title' : undefined;
+            title.value = title.value === undefined ? "some title" : undefined;
           }}
         >
           Toggle title
@@ -59,7 +59,7 @@ export const AttributesChild = component$(() => {
         <button
           id="aria-hidden"
           onClick$={() => {
-            state.dataAria = state.dataAria === 'true' ? 'false' : 'true';
+            state.dataAria = state.dataAria === "true" ? "false" : "true";
           }}
         >
           Toggle aria-hidden
@@ -69,9 +69,9 @@ export const AttributesChild = component$(() => {
           onClick$={() => {
             state.count++;
             if (state.count % 2 === 0) {
-              state.label = 'even';
+              state.label = "even";
             } else {
-              state.label = 'odd';
+              state.label = "odd";
             }
           }}
         >
@@ -88,7 +88,7 @@ export const AttributesChild = component$(() => {
         <button
           id="stuff"
           onClick$={() => {
-            state.stuff += '0';
+            state.stuff += "0";
           }}
         >
           Add stuff (caused render)
@@ -113,7 +113,12 @@ export const AttributesChild = component$(() => {
           </>
         ) : (
           <>
-            <label id="label" for={state.label} form="my-form" title={title.value}></label>
+            <label
+              id="label"
+              for={state.label}
+              form="my-form"
+              title={title.value}
+            ></label>
             <input
               id="input"
               required={required.value}
@@ -122,7 +127,7 @@ export const AttributesChild = component$(() => {
               aria-required={required.value}
               draggable={required.value}
               spellcheck={required.value}
-              data-stuff={'stuff: ' + state.stuff}
+              data-stuff={"stuff: " + state.stuff}
               tabIndex={-1}
               title={title.value}
               onInput$={(ev) => {

@@ -5,7 +5,7 @@
   },
   "devDependencies": {
     "@builder.io/vite-plugin-macro": "~0.0.6",
-    "@pandacss/dev": "^0.3.2"
+    "@pandacss/dev": "^0.4.0"
   },
   "__qwik__": {
     "displayName": "Integration: PandaCSS (styling)",

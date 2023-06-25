@@ -3,7 +3,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.23",
-    "postcss-preset-env": "^8.5.0"
+    "postcss-preset-env": "^8.5.1"
   },
   "__qwik__": {
     "displayName": "Integration: PostCSS (styling)",

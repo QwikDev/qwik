@@ -165,11 +165,14 @@ export default $((currentScript: HTMLScriptElement) => {
         if (sameOrigin && samePath) {
           event.preventDefault();
 
-          if (!navigate(href)) {
-            if (dest.hash !== prev.hash) {
-              history.pushState(null, '', dest);
-            }
+          // Check href because empty hashes don't register.
+          if (dest.href !== prev.href) {
+            history.pushState(null, '', dest);
+          }
 
+          if (!dest.hash) {
+            window.scrollTo(0, 0);
+          } else {
             const elmId = dest.hash.slice(1);
             const elm = document.getElementById(elmId);
             if (elm) {

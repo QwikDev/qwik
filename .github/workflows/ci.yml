@@ -51,6 +51,7 @@ jobs:
               - 'packages/qwik/src/**/*.rs'
               - 'packages/qwik-city/**/*.ts'
               - 'packages/qwik-city/**/*.tsx'
+              - 'packages/qwik-labs/package.json'
               - 'packages/qwik-labs/src/**/*.ts'
               - 'packages/qwik-labs/src/**/*.tsx'
               - 'packages/qwik-labs/src-vite/**/*.ts'

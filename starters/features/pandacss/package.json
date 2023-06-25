@@ -1,7 +1,7 @@
 {
   "description": "Zero-runtime CSS-in-JS",
   "scripts": {
-    "pandacss.generate": "panda codegen"
+    "prebuild.pandacss": "panda codegen"
   },
   "devDependencies": {
     "@builder.io/vite-plugin-macro": "~0.0.6",

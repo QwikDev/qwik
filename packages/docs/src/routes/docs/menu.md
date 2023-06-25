@@ -17,7 +17,6 @@
 - [Slots](/docs/(qwik)/components/slots/index.mdx)
 - [Rendering](/docs/(qwik)/components/rendering/index.mdx)
 - [Styling](/docs/(qwik)/components/styles/index.mdx)
-- [Deprecated Features](/docs/(qwik)/deprecated-features/index.mdx)
 
 ## Qwik City
 
@@ -33,13 +32,6 @@
 - [Caching](/docs/(qwikcity)/caching/index.mdx)
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
-- [Deprecated Features](/docs/(qwikcity)/qwikcity-deprecated-features/index.mdx)
-
-## Qwik Labs 🧪
-
-- [Overview](/docs/labs/index.mdx)
-- [Insights](/docs/labs/insights/index.mdx)
-- [Typed Routes](/docs/labs/typed-routes/index.mdx)
 
 ## Integrations
 
@@ -49,7 +41,7 @@
 - [Cypress](integrations/cypress/index.mdx)
 - [Icons](integrations/icons/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
-- [Internationalization](integrations/i18n/index.mdx)
+- [i18n](integrations/i18n/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
 - [Panda CSS](integrations/panda-css/index.mdx)
@@ -98,11 +90,11 @@
 - [The $ dollar sign](/docs/(qwik)/advanced/dollar/index.mdx)
 - [Containers](/docs/(qwik)/advanced/containers/index.mdx)
 - [QRL](/docs/(qwik)/advanced/qrl/index.mdx)
-- [Library](/docs/(qwik)/advanced/library/index.mdx)
+- [Library mode](/docs/(qwik)/advanced/library/index.mdx)
 - [Qwikloader](/docs/(qwik)/advanced/qwikloader/index.mdx)
 - [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx)
 - [Prefetching](/docs/(qwik)/advanced/prefetching/index.mdx)
-- [Custom Build Directory](/docs/(qwik)/advanced/custom-build-dir/index.mdx)
+- [Build Directory](/docs/(qwik)/advanced/custom-build-dir/index.mdx)
 - [Vite](/docs/(qwik)/advanced/vite/index.mdx)
 - [Advanced Routing](/docs/(qwikcity)/advanced/routing/index.mdx)
 - [Speculative Module Fetching](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx)
@@ -115,6 +107,13 @@
 ## Reference
 
 - [API Reference](/api/)
+- [Deprecated Features](/docs/(qwik)/deprecated-features/index.mdx)
+
+## Qwik Labs 🧪
+
+- [Overview](/docs/labs/index.mdx)
+- [Insights](/docs/labs/insights/index.mdx)
+- [Typed Routes](/docs/labs/typed-routes/index.mdx)
 
 ## Community
 

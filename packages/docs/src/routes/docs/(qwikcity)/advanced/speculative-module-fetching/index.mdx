@@ -12,7 +12,7 @@ contributors:
 
 Qwik is able to load page and become interactive extremely fast due to its ability to startup _without_ JavaScript. In addition to this, Speculative Module Fetching is a powerful feature that allows Qwik to pre-populate the browser's cache in a background thread.
 
-The goal of Qwik is not to pre-populate the cache with the entire application, but to have already cached what's possible _at that time_. When the Qwik optimizer breaks apart the application, it's able to understand possible user interactions. And from this, it's just as important that it's able to understand what's not possible from user interaction, and to not bother loading those bundles.
+The goal of Qwik is not to pre-populate the cache with the entire application, but to have already cached what's possible _at that time_. When the Qwik optimizer breaks apart the application, it's able to understand possible user interactions. And from this, it's just as important that it's able to understand what's not possible from user interaction, and to avoid loading those bundles.
 
 - [Pre-populating the Cache with a Service Worker](#pre-populating-the-cache-with-a-service-worker)
 - [Caching Request and Response Pairs](#caching-request-and-response-pairs)

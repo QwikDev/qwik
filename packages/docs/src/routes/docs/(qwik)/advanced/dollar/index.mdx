@@ -160,7 +160,7 @@ component$(() => {
 
 ##### Module-declared variables can be importable
 
-If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
+If a function that is being extracted by the Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 
 ```tsx
 // Invalid
@@ -204,7 +204,7 @@ export scrollHandler = () => alert('scroll');
 onScroll(() => (await import('./some-chunk')).scrollHandler());
 ```
 
-This works but is a lot of work. The developer is responsible for putting the code in a different file and hard coding the chunk name. Instead, we use Optimizer to perform the work for us automatically. But we need a way to tell Optimizer that we want to perform such a refactoring. We use `$()` as a marker function for this purpose.
+This works but is a lot of work. The developer is responsible for putting the code in a different file and hard coding the chunk name. Instead, we use the Optimizer to perform the work for us automatically. But we need a way to tell the Optimizer that we want to perform such a refactoring. We use `$()` as a marker function for this purpose.
 
 ```tsx
 function onScroll(fnQrl: QRL<() => void>) {

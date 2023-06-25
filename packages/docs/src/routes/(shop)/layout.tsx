@@ -8,7 +8,7 @@ import {
 } from '@builder.io/qwik';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$, type RequestHandler } from '@builder.io/qwik-city';
 import {
   COOKIE_CART_ID_KEY,
   fetchFromShopify,
@@ -21,6 +21,10 @@ import { checkoutQuery, productsQuery } from './query';
 import { checkoutCreateMutation } from './mutation';
 import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
 import type { CheckoutQuery, ProductsQuery, CheckoutCreateMutation, ShopApp } from './types';
+
+export const onRequest: RequestHandler = async (request) => {
+  request.cacheControl(600);
+};
 
 const useProductsLoader = routeLoader$(async () => {
   const response = await fetchFromShopify(productsQuery());

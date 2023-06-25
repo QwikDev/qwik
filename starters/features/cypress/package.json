@@ -1,7 +1,7 @@
 {
   "description": "Add Cypress component testing",
   "devDependencies": {
-    "cypress": "~12.14.0",
+    "cypress": "~12.15.0",
     "cypress-ct-qwik": "~0.3.0"
   },
   "scripts": {

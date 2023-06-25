@@ -450,13 +450,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-          // TODO Docs says isNavigating should be set AFTER render?
-          routeLocation.isNavigating = false;
           _waitUntilRendered(elm as Element).then(() => {
             const scrollState = currentScrollState(document.documentElement);
             saveScrollHistory(scrollState);
             win._qCityScrollEnabled = true;
 
+            routeLocation.isNavigating = false;
             navResolver.r?.();
           });
         }

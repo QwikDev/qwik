@@ -61,7 +61,7 @@ export default $((currentScript: HTMLScriptElement) => {
 
     if (link) {
       // Re-acquire container, link may be in a nested container.
-      const container = currentScript!.closest('[q\\:container]')!;
+      const container = link.closest('[q\\:container]')!;
       const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
       bootstrapLink.style.display = 'none';
 

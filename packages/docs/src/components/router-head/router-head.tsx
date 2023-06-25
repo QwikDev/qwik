@@ -1,4 +1,4 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { $, component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
 import { Social } from './social';
 import { Vendor } from './vendor';
@@ -31,21 +31,11 @@ export const RouterHead = component$(() => {
   const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0]; //.replace('#', '');
   const smallerTitle = isBaseRoute ? undefined : arrayedTitle[1];
 
-  const pathname = useLocation().url.pathname;
   const routeLevel = useSignal(0);
 
   const imageUrl = useSignal('');
   const ogImgTitle = useSignal('');
   const ogImgSubTitle = useSignal('');
-
-  //the url
-  const urlString = pathname;
-
-  //turn the url into array
-  const array = urlString.split('/').slice(1, -1).reverse();
-  //check if we are on home page or level 0/1 route
-  let isHomePage = true;
-  isHomePage = array.length > 0 ? false : true;
 
   useTask$(() => {
     //change the value of the title and subtitle
@@ -70,7 +60,6 @@ export const RouterHead = component$(() => {
       }
     }
   });
-
   return (
     <>
       <title>{title}</title>
@@ -97,7 +86,8 @@ export const RouterHead = component$(() => {
           <Vendor />
         </>
       )}
-
+      <Social title={title} description={description} href={url.href} ogImage={imageUrl.value} />
+      <Vendor />
       {head.meta.map((m) => (
         <meta {...m} />
       ))}

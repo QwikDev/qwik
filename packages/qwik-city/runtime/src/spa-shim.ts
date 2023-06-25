@@ -1,3 +1,4 @@
+import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 
 import { isDev, isServer } from '@builder.io/qwik/build';
@@ -10,7 +11,7 @@ export default () => {
   if (isServer) {
     const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null)!;
     const path = (!isDev ? basePathname + 'build/' : '') + bundle;
-    return `(${shim.toString()})('${path}', '${symbol}');`;
+    return `(${shim.toString()})('${path}','${symbol}');`;
   }
 };
 
@@ -22,9 +23,9 @@ export default () => {
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
 const shim = async (path: string, symbol: string) => {
-  if (!(window as any)._qcs && history.scrollRestoration === 'manual') {
+  if (!(window as ClientSPAWindow)._qcs && history.scrollRestoration === 'manual') {
     // TODO Option to remove this shim especially for MFEs, like loader, for now we only run once.
-    (window as any)._qcs = true;
+    (window as ClientSPAWindow)._qcs = true;
 
     const scrollState = (history.state as ScrollHistoryState)?._qCityScroll;
     if (scrollState) {

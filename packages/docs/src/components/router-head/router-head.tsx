@@ -34,27 +34,29 @@ export const RouterHead = component$(() => {
   const routeLevel = useSignal(0);
 
   const imageUrl = useSignal('');
-  const ogImgTitle = useSignal('');
-  const ogImgSubTitle = useSignal('');
+  const ogImgTitle = useSignal<string | undefined>('');
+  const ogImgSubTitle = useSignal<string | undefined>('');
 
   useTask$(() => {
     //change the value of the title and subtitle
-    ogImgTitle.value = biggerTitle!;
-    ogImgSubTitle.value = smallerTitle!;
+    ogImgTitle.value = biggerTitle?.includes(' ') ? biggerTitle.replace(/ /g, '-') : biggerTitle;
+    ogImgSubTitle.value = smallerTitle?.includes(' ')
+      ? smallerTitle.replace(/ /g, '-')
+      : smallerTitle;
 
     //decide whether or not to show subtitle
     if (ogImgSubTitle.value == undefined || ogImgTitle == undefined) {
       ogImgTitle.value = biggerTitle!;
 
       routeLevel.value = 0;
-      imageUrl.value = `/logos/social-card.jpg`;
+      imageUrl.value = new URL(`/logos/social-card.jpg`, url).href;
     } else {
       routeLevel.value = 1;
       // check if on example a.k.a qwik-sandbox because the navigation in qwik-sandbox does not update useDocumenthead()
       if (parentRoute == 'examples') {
         imageUrl.value = `https://opengraphqwik.vercel.app/api/og/?level=${
           routeLevel.value
-        }&title=${'Examples'}&subtitle=${'Qwik Sandbox'}`;
+        }&title=${'Examples'}&subtitle=${'Qwik-Sandbox'}`;
       } else {
         imageUrl.value = `https://opengraphqwik.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
       }

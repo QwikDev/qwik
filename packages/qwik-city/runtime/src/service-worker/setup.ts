@@ -23,7 +23,7 @@ export const setupServiceWorkerScope = (
         ev.respondWith(
           swScope.caches.open(qBuildCacheName).then((qBuildCache) => {
             prefetchWaterfall(appBundles, qBuildCache, swFetch, url);
-            return cachedFetch(qBuildCache, swFetch, awaitingRequests, request, ev.preloadResponse);
+            return cachedFetch(qBuildCache, swFetch, awaitingRequests, request);
           })
         );
       }
@@ -63,10 +63,7 @@ export const setupServiceWorkerScope = (
     }
   });
 
-  swScope.addEventListener('activate', (event) => {
-    // if (self.registration.navigationPreload) {
-    //   event.waitUntil(self.registration.navigationPreload.enable());
-    // }
+  swScope.addEventListener('activate', () => {
     (async () => {
       try {
         const qBuildCache = await swScope.caches.open(qBuildCacheName);

@@ -320,7 +320,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [prefetch?](#) |  | boolean | _(Optional)_ |\n|  [reload?](#) |  | boolean | _(Optional)_ |",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [prefetch?](#) |  | boolean | _(Optional)_ |\n|  [reload?](#) |  | boolean | _(Optional)_ |\n|  [replaceState?](#) |  | boolean | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
       "mdFile": "qwik-city.linkprops.md"
     },

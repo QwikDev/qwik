@@ -112,40 +112,39 @@ export default $((currentScript: HTMLScriptElement) => {
     };
 
     if (!win[historyPatch]) {
-      ((history) => {
-        win[historyPatch] = true;
-        const pushState = history.pushState;
-        const replaceState = history.replaceState;
+      win[historyPatch] = true;
+      const pushState = history.pushState;
+      const replaceState = history.replaceState;
 
-        const prepareState = (state: any) => {
-          if (state === null || typeof state === undefined) {
-            state = {};
-          } else if (state?.constructor !== Object) {
-            state = { _data: state };
+      const prepareState = (state: any) => {
+        if (state === null || typeof state === undefined) {
+          state = {};
+        } else if (state?.constructor !== Object) {
+          state = { _data: state };
 
-            if (isDev) {
-              console.warn(
-                'In a Qwik SPA context, history.state is used to store scroll state. ' +
-                  'Direct calls to pushState and replaceState must be typeof object. ' +
-                  'Your state data has been moved to: `history.state._data`'
-              );
-            }
+          if (isDev) {
+            console.warn(
+              'In a Qwik SPA context, `history.state` is used to store scroll state. ' +
+                'Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. ' +
+                'We need to be able to automatically attach the scroll state to your state object. ' +
+                'A new state object has been created, your data has been moved to: `history.state._data`'
+            );
           }
+        }
 
-          state._qCityScroll = state._qCityScroll || currentScrollState();
-          return state;
-        };
+        state._qCityScroll = state._qCityScroll || currentScrollState();
+        return state;
+      };
 
-        history.pushState = (state, title, url) => {
-          state = prepareState(state);
-          return pushState.call(history, state, title, url);
-        };
+      history.pushState = (state, title, url) => {
+        state = prepareState(state);
+        return pushState.call(history, state, title, url);
+      };
 
-        history.replaceState = (state, title, url) => {
-          state = prepareState(state);
-          return replaceState.call(history, state, title, url);
-        };
-      })(history);
+      history.replaceState = (state, title, url) => {
+        state = prepareState(state);
+        return replaceState.call(history, state, title, url);
+      };
     }
 
     // We need this handler in init because Firefox destroys states w/ anchor tags.
@@ -183,8 +182,6 @@ export default $((currentScript: HTMLScriptElement) => {
 
     win[initVisibility] = () => {
       if (!win[spa] && win[scrollEnabled] && document.visibilityState === 'hidden') {
-        // Last & most reliable point to commit state.
-        // Do not clear timeout here in case debounce gets to run later.
         saveScrollState();
       }
     };

@@ -324,41 +324,40 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // We patch these to always include scrollState.
             // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
             if (!win._qCityHistoryPatch) {
-              ((history) => {
-                win._qCityHistoryPatch = true;
-                const pushState = history.pushState;
-                const replaceState = history.replaceState;
+              win._qCityHistoryPatch = true;
+              const pushState = history.pushState;
+              const replaceState = history.replaceState;
 
-                const prepareState = (state: any) => {
-                  if (state === null || typeof state === undefined) {
-                    state = {};
-                  } else if (state?.constructor !== Object) {
-                    state = { _data: state };
+              const prepareState = (state: any) => {
+                if (state === null || typeof state === undefined) {
+                  state = {};
+                } else if (state?.constructor !== Object) {
+                  state = { _data: state };
 
-                    if (isDev) {
-                      console.warn(
-                        'In a Qwik SPA context, history.state is used to store scroll state. ' +
-                          'Direct calls to pushState and replaceState must be typeof object. ' +
-                          'Your state data has been moved to: `history.state._data`'
-                      );
-                    }
+                  if (isDev) {
+                    console.warn(
+                      'In a Qwik SPA context, `history.state` is used to store scroll state. ' +
+                        'Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. ' +
+                        'We need to be able to automatically attach the scroll state to your state object. ' +
+                        'A new state object has been created, your data has been moved to: `history.state._data`'
+                    );
                   }
+                }
 
-                  state._qCityScroll =
-                    state._qCityScroll || currentScrollState(document.documentElement);
-                  return state;
-                };
+                state._qCityScroll =
+                  state._qCityScroll || currentScrollState(document.documentElement);
+                return state;
+              };
 
-                history.pushState = (state, title, url) => {
-                  state = prepareState(state);
-                  return pushState.call(history, state, title, url);
-                };
+              history.pushState = (state, title, url) => {
+                state = prepareState(state);
+                return pushState.call(history, state, title, url);
+              };
 
-                history.replaceState = (state, title, url) => {
-                  state = prepareState(state);
-                  return replaceState.call(history, state, title, url);
-                };
-              })(history);
+              history.replaceState = (state, title, url) => {
+                state = prepareState(state);
+                return replaceState.call(history, state, title, url);
+              };
             }
 
             // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,

@@ -95,6 +95,7 @@ export interface ViteConfigUpdates {
   imports?: EnsureImport[];
   viteConfig?: { [key: string]: string };
   vitePlugins?: string[];
+  vitePluginsPrepend?: string[];
   qwikViteConfig?: { [key: string]: string };
 }
 

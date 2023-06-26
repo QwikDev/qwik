@@ -16,9 +16,7 @@ export const RouterHead = component$(() => {
 
   const pageTitle = head.title;
 
-  // arrayed url
-  const arrayedUrl = url.href.split('/');
-  const parentRoute = arrayedUrl.slice(3)[0];
+  const ogImageUrl = new URL('https://opengraphqwik.vercel.app/api/og');
 
   //turn the title into array
   const arrayedTitle = pageTitle.split(' | ');
@@ -28,21 +26,19 @@ export const RouterHead = component$(() => {
   isBaseRoute = arrayedTitle.length > 0 ? false : true;
 
   // set the text for the ogimage
-  const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0]; //.replace('#', '');
+  const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0];
   const smallerTitle = isBaseRoute ? undefined : arrayedTitle[1];
 
   const routeLevel = useSignal(0);
 
   const imageUrl = useSignal('');
-  const ogImgTitle = useSignal<string | undefined>('');
-  const ogImgSubTitle = useSignal<string | undefined>('');
+  const ogImgTitle = useSignal('');
+  const ogImgSubTitle = useSignal('');
 
   useTask$(() => {
     //change the value of the title and subtitle
-    ogImgTitle.value = biggerTitle?.includes(' ') ? biggerTitle.replace(/ /g, '-') : biggerTitle;
-    ogImgSubTitle.value = smallerTitle?.includes(' ')
-      ? smallerTitle.replace(/ /g, '-')
-      : smallerTitle;
+    ogImgTitle.value = biggerTitle!;
+    ogImgSubTitle.value = smallerTitle!;
 
     //decide whether or not to show subtitle
     if (ogImgSubTitle.value == undefined || ogImgTitle == undefined) {
@@ -52,14 +48,11 @@ export const RouterHead = component$(() => {
       imageUrl.value = new URL(`/logos/social-card.jpg`, url).href;
     } else {
       routeLevel.value = 1;
-      // check if on example a.k.a qwik-sandbox because the navigation in qwik-sandbox does not update useDocumenthead()
-      if (parentRoute == 'examples') {
-        imageUrl.value = `https://opengraphqwik.vercel.app/api/og/?level=${
-          routeLevel.value
-        }&title=${'Examples'}&subtitle=${'Qwik-Sandbox'}`;
-      } else {
-        imageUrl.value = `https://opengraphqwik.vercel.app/api/og/?level=${routeLevel.value}&title=${ogImgTitle.value}&subtitle=${ogImgSubTitle.value}`;
-      }
+      ogImageUrl.searchParams.set('title', ogImgTitle.value);
+      ogImageUrl.searchParams.set('subtitle', ogImgSubTitle.value);
+      ogImageUrl.searchParams.set('level', routeLevel.value.toString());
+
+      imageUrl.value = ogImageUrl.toString();
     }
   });
   return (

@@ -46,9 +46,9 @@ export default $((currentScript: HTMLScriptElement) => {
     };
   };
 
-  const saveScrollState = () => {
+  const saveScrollState = (scrollState?: ScrollState) => {
     const state: ScrollHistoryState = history.state || {};
-    state[scrollHistory] = currentScrollState();
+    state[scrollHistory] = scrollState || currentScrollState();
     history.replaceState(state, '');
   };
 
@@ -142,7 +142,7 @@ export default $((currentScript: HTMLScriptElement) => {
         return;
       }
 
-      const target = (event.target as HTMLElement).closest('a[href*="#"]');
+      const target = (event.target as HTMLElement).closest('a[href]');
 
       if (target && !target.hasAttribute('preventdefault:click')) {
         const href = target.getAttribute('href')!;
@@ -150,7 +150,7 @@ export default $((currentScript: HTMLScriptElement) => {
         const dest = new URL(href, prev);
         const sameOrigin = dest.origin === prev.origin;
         const samePath = dest.pathname + dest.search === prev.pathname + prev.search;
-        // Patch only same-page hash anchors.
+        // Patch only same-page anchors.
         if (sameOrigin && samePath) {
           event.preventDefault();
 
@@ -160,7 +160,16 @@ export default $((currentScript: HTMLScriptElement) => {
           }
 
           if (!dest.hash) {
-            window.scrollTo(0, 0);
+            if (dest.href.endsWith('#')) {
+              window.scrollTo(0, 0);
+            } else {
+              // Simulate same-page (no hash) anchor reload.
+              // history.scrollRestoration = 'manual' makes these not scroll.
+              win[scrollEnabled] = false;
+              clearTimeout(win[debounceTimeout]);
+              saveScrollState({ ...currentScrollState(), x: 0, y: 0 });
+              location.reload();
+            }
           } else {
             const elmId = dest.hash.slice(1);
             const elm = document.getElementById(elmId);

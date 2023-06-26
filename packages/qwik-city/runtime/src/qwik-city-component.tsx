@@ -175,6 +175,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
       }
 
+      // TODO Future feature?: update routeLocation.url signal on hash changes for `<Link>` & `<a>` during SPA?
+      // - Hashes in Link are already broken in Qwik (<=v1.1.5), and <a> tags are untracked. (not a new bug)
+      // - Would need an early pop handler pushed on first # w/o full Nav SPA bootup. (post-SPA refactor)
+
       return;
     }
 
@@ -382,14 +386,34 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 return;
               }
 
-              const target = (event.target as HTMLElement).closest('a[href*="#"]');
+              const target = (event.target as HTMLElement).closest('a[href]');
 
               if (target && !target.hasAttribute('preventdefault:click')) {
-                const prev = routeLocation.url;
-                const dest = toUrl(target.getAttribute('href')!, prev);
-                // Patch only same-page hash anchors.
+                const href = target.getAttribute('href')!;
+                const prev = new URL(location.href);
+                const dest = new URL(href, prev);
+                // Patch only same-page anchors.
                 if (isSameOrigin(dest, prev) && isSamePath(dest, prev)) {
                   event.preventDefault();
+
+                  // Simulate same-page (no hash) anchor reload.
+                  // history.scrollRestoration = 'manual' makes these not scroll.
+                  if (!dest.hash && !dest.href.endsWith('#')) {
+                    if (dest.href !== prev.href) {
+                      history.pushState(null, '', dest);
+                    }
+
+                    win._qCityScrollEnabled = false;
+                    clearTimeout(win._qCityScrollDebounce);
+                    saveScrollHistory({
+                      ...currentScrollState(document.documentElement),
+                      x: 0,
+                      y: 0,
+                    });
+                    location.reload();
+                    return;
+                  }
+
                   goto(target.getAttribute('href')!);
                 }
               }

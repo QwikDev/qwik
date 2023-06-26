@@ -63,6 +63,8 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL
     } catch (e) {
       console.error(e);
     }
+  } else if (props.reload) {
+    return toPath(toUrl('', baseUrl.url));
   }
   return null;
 };

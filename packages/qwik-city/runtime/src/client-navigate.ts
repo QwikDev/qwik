@@ -14,6 +14,8 @@ export const clientNavigate = (
     const samePath = isSamePath(fromURL, toURL);
     const sameHash = fromURL.hash === toURL.hash;
 
+    // TODO Refactor, some of this is redundant now.
+
     if (!samePath || !sameHash) {
       const newState = {
         _qCityScroll: newScrollState(),

@@ -178,6 +178,7 @@ test(`isSameOrigin`, () => {
   { props: { href: '' }, expect: '/' },
   { props: { href: null }, expect: null },
   { props: {}, expect: null },
+  { props: { reload: true }, expect: '/' },
 ].forEach((t) => {
   test(`getClientNavPath ${t.props.href}`, () => {
     const baseUrl = new URL('https://qwik.dev/');

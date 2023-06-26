@@ -1,4 +1,4 @@
-import { TSESLint, ASTUtils } from '@typescript-eslint/utils';
+import { ASTUtils } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
 const { getStaticValue } = ASTUtils;
 

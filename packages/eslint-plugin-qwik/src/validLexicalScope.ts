@@ -7,7 +7,9 @@ import redent from 'redent';
 import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
 import { QwikEslintExamples } from '../examples';
 
-const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
+const createRule = ESLintUtils.RuleCreator(
+  (name) => `https://qwik.builder.io/docs/advanced/eslint/#${name}`
+);
 
 interface DetectorOptions {
   allowAny: boolean;
@@ -25,7 +27,6 @@ export const validLexicalScope = createRule({
       description:
         'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
       recommended: 'error',
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#valid-lexical-scope',
     },
 
     schema: [

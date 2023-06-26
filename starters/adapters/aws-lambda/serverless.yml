@@ -1,5 +1,5 @@
 service: qwik-lambda-app
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
@@ -13,7 +13,7 @@ functions:
   qwik:
     handler: server/entry_aws-lambda.qwikApp
     events:
-      - httpApi: '*'
+      - httpApi: "*"
 
 custom:
   serverless-offline:

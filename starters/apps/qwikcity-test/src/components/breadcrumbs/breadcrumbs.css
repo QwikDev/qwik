@@ -15,7 +15,7 @@ nav.breadcrumbs > span a {
 }
 
 nav.breadcrumbs > span::after {
-  content: '>';
+  content: ">";
   padding: 0 5px;
   opacity: 0.4;
 }

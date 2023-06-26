@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-labs",
   "version": "0.0.1",
-  "description": "Qwik Labs - Where you can try the latest ideas",
+  "description": "Qwik Labs - Where you can try the latest Qwik ideas.",
   "main": "./lib/index.qwik.mjs",
   "type": "module",
   "qwik": "./lib/index.qwik.mjs",
@@ -13,6 +13,7 @@
       "types": "./lib-types/index.d.ts"
     },
     "./vite": {
+      "import": "./vite/index.js",
       "require": "./vite/index.js",
       "types": "./vite/index.d.ts"
     }
@@ -44,9 +45,9 @@
     "@builder.io/qwik": "1.1.5",
     "@types/eslint": "8.40.2",
     "@types/node": "^20.2.5",
-    "@typescript-eslint/eslint-plugin": "5.59.11",
-    "@typescript-eslint/parser": "5.59.11",
-    "eslint": "8.42.0",
+    "@typescript-eslint/eslint-plugin": "5.60.0",
+    "@typescript-eslint/parser": "5.60.0",
+    "eslint": "8.43.0",
     "eslint-plugin-qwik": "latest",
     "np": "7.6.1",
     "prettier": "2.8.8",

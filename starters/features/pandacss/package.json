@@ -1,16 +1,16 @@
 {
   "description": "Zero-runtime CSS-in-JS",
   "scripts": {
-    "pandacss.generate": "panda codegen"
+    "prebuild.pandacss": "panda codegen --silent"
   },
   "devDependencies": {
     "@builder.io/vite-plugin-macro": "~0.0.6",
-    "@pandacss/dev": "^0.3.2"
+    "@pandacss/dev": "^0.4.0"
   },
   "__qwik__": {
     "displayName": "Integration: PandaCSS (styling)",
     "priority": -10,
-    "postInstall": "panda codegen",
+    "postInstall": "panda codegen --silent",
     "docs": [
       "https://panda-css.com/docs/getting-started/qwik"
     ],

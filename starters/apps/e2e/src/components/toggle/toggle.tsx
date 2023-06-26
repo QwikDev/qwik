@@ -6,16 +6,18 @@ import {
   useContextProvider,
   useContext,
   useTask$,
-} from '@builder.io/qwik';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+} from "@builder.io/qwik";
+import { isBrowser, isServer } from "@builder.io/qwik/build";
 
-export const CTX = createContextId<{ message: string; count: number }>('toggle');
+export const CTX = createContextId<{ message: string; count: number }>(
+  "toggle"
+);
 
-export const CTX_LOCAL = createContextId<{ logs: string }>('logs');
+export const CTX_LOCAL = createContextId<{ logs: string }>("logs");
 
 export const Toggle = component$(() => {
   const store = useStore({
-    message: 'hello from root',
+    message: "hello from root",
     count: 0,
   });
   useContextProvider(CTX, store);
@@ -33,17 +35,21 @@ export const ToggleShell = component$(() => {
   const store = useStore({
     cond: false,
     a: 2,
-    logs: '',
+    logs: "",
   });
 
   useContextProvider(CTX_LOCAL, store);
 
-  console.log('PARENT renders');
+  console.log("PARENT renders");
   return (
     <div>
       <Logs0 store={store} />
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
+      <button
+        type="button"
+        id="toggle"
+        onClick$={() => (store.cond = !store.cond)}
+      >
         Toggle
       </button>
     </div>
@@ -56,10 +62,10 @@ export const Logs0 = component$((props: Record<string, any>) => {
 
   useTask$(({ track }) => {
     const count = track(() => rootState.count);
-    console.log('changed');
+    console.log("changed");
     logs.logs += `Log(${count})`;
   });
-  console.log('created');
+  console.log("created");
 
   return (
     <div>
@@ -81,26 +87,26 @@ export const Logs2 = component$((props: Record<string, any>) => {
 });
 
 export const ToggleA = component$((props: { root: { logs: string } }) => {
-  console.log('ToggleA renders');
+  console.log("ToggleA renders");
   const rootState = useContext(CTX);
 
   const state = useStore({
-    mount: '',
+    mount: "",
     copyCount: 0,
   });
 
   useTask$(({ cleanup }) => {
-    if (state.mount !== '') {
-      throw new Error('already mounted');
+    if (state.mount !== "") {
+      throw new Error("already mounted");
     }
     if (isServer) {
-      state.mount = 'mounted in server';
+      state.mount = "mounted in server";
     }
     if (isBrowser) {
-      state.mount = 'mounted in client';
+      state.mount = "mounted in client";
     }
     cleanup(() => {
-      props.root.logs += 'ToggleA()';
+      props.root.logs += "ToggleA()";
     });
   });
 
@@ -122,11 +128,11 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
 });
 
 export const ToggleB = component$((props: { root: { logs: string } }) => {
-  console.log('ToggleB renders');
+  console.log("ToggleB renders");
   const rootState = useContext(CTX);
 
   const state = useStore({
-    mount: '',
+    mount: "",
     copyCount: 0,
   });
 
@@ -135,17 +141,17 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
   });
 
   useTask$(({ cleanup }) => {
-    if (state.mount !== '') {
-      throw new Error('already mounted');
+    if (state.mount !== "") {
+      throw new Error("already mounted");
     }
     if (isServer) {
-      state.mount = 'mounted in server';
+      state.mount = "mounted in server";
     }
     if (isBrowser) {
-      state.mount = 'mounted in client';
+      state.mount = "mounted in client";
     }
     cleanup(() => {
-      props.root.logs += 'ToggleB()';
+      props.root.logs += "ToggleB()";
     });
   });
 
@@ -167,7 +173,7 @@ export const Child = component$(() => {
 
   useTask$(({ track }) => {
     const count = track(() => rootState.count);
-    console.log('Child', count);
+    console.log("Child", count);
     logs.logs += `Child(${count})`;
   });
 

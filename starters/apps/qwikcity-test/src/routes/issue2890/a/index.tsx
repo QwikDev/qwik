@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { component$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
 
 export default component$(() => {
   return (
@@ -10,7 +10,10 @@ export default component$(() => {
         </Link>
       </div>
       <div>
-        <Link id="issue2890-link-1" href="/qwikcity-test/issue2890/b/?query=123">
+        <Link
+          id="issue2890-link-1"
+          href="/qwikcity-test/issue2890/b/?query=123"
+        >
           /b/?query=123
         </Link>
       </div>
@@ -20,12 +23,18 @@ export default component$(() => {
         </Link>
       </div>
       <div>
-        <Link id="issue2890-link-3" href="/qwikcity-test/issue2890/b/?query=321&hash=true#h2">
+        <Link
+          id="issue2890-link-3"
+          href="/qwikcity-test/issue2890/b/?query=321&hash=true#h2"
+        >
           /b/?query=321&hash=true#h2
         </Link>
       </div>
       <div>
-        <Link id="issue2890-link-4" href="/qwikcity-test/issue2890/b?query=321&hash=true#h2">
+        <Link
+          id="issue2890-link-4"
+          href="/qwikcity-test/issue2890/b?query=321&hash=true#h2"
+        >
           /b?query=321&hash=true#h2
         </Link>
       </div>

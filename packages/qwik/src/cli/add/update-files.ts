@@ -24,17 +24,23 @@ export async function mergeIntegrationDir(
       } else if (s.isFile()) {
         if (destName === 'package.json') {
           await mergePackageJsons(fileUpdates, srcChildPath, destChildPath);
+        } else if (destName === 'settings.json') {
+          await mergeJsons(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === 'README.md') {
           await mergeReadmes(fileUpdates, srcChildPath, destChildPath);
-        } else if (destName === '.gitignore') {
-          await mergeGitIgnores(fileUpdates, srcChildPath, destChildPath);
+        } else if (
+          destName === '.gitignore' ||
+          destName === '.prettierignore' ||
+          destName === '.eslintignore'
+        ) {
+          await mergeIgnoresFile(fileUpdates, srcChildPath, destChildPath);
         } else if (ext === '.css') {
           await mergeCss(fileUpdates, srcChildPath, destChildPath);
         } else {
           if (fs.existsSync(destChildPath)) {
             fileUpdates.files.push({
               path: destChildPath,
-              content: await fs.promises.readFile(srcChildPath, 'utf-8'),
+              content: await fs.promises.readFile(srcChildPath),
               type: 'overwrite',
             });
           } else {
@@ -68,6 +74,28 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
     fileUpdates.files.push({
       path: destPath,
       content: JSON.stringify(destPkgJson, null, 2) + '\n',
+      type: 'modify',
+    });
+  } catch (e) {
+    fileUpdates.files.push({
+      path: destPath,
+      content: srcContent,
+      type: 'create',
+    });
+  }
+}
+
+async function mergeJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+  const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
+  const srcPkgJson = JSON.parse(srcContent);
+
+  try {
+    const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
+    Object.assign(srcPkgJson, destPkgJson);
+
+    fileUpdates.files.push({
+      path: destPath,
+      content: JSON.stringify(srcPkgJson, null, 2) + '\n',
       type: 'modify',
     });
   } catch (e) {
@@ -122,7 +150,7 @@ async function mergeReadmes(fileUpdates: FsUpdates, srcPath: string, destPath: s
   });
 }
 
-async function mergeGitIgnores(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeIgnoresFile(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
 
   try {

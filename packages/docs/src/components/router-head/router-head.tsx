@@ -86,8 +86,6 @@ export const RouterHead = component$(() => {
           <Vendor />
         </>
       )}
-      <Social title={title} description={description} href={url.href} ogImage={imageUrl.value} />
-      <Vendor />
       {head.meta.map((m) => (
         <meta {...m} />
       ))}

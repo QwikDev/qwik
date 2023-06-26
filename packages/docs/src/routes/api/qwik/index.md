@@ -458,6 +458,16 @@ createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
+## CSSProperties
+
+```typescript
+export interface CSSProperties extends CSS.Properties<string | number>, CSS.PropertiesHyphen<string | number>
+```
+
+**Extends:** CSS.Properties&lt;string \| number&gt;, CSS.PropertiesHyphen&lt;string \| number&gt;
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## DOMAttributes
 
 ```typescript
@@ -690,7 +700,7 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
 | [security?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [slot?](#)            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [spellcheck?](#)      |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [style?](#)           |           | Record&lt;string, string \| number \| undefined&gt; \| string \| undefined                       | _(Optional)_                                                                                                       |
+| [style?](#)           |           | [CSSProperties](#cssproperties) \| string \| undefined                                           | _(Optional)_                                                                                                       |
 | [tabIndex?](#)        |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [title?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
 | [translate?](#)       |           | 'yes' \| 'no' \| undefined                                                                       | _(Optional)_                                                                                                       |

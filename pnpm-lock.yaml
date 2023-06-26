@@ -410,6 +410,9 @@ importers:
       '@builder.io/qwik-dom':
         specifier: workspace:*
         version: link:../qwik-dom
+      csstype:
+        specifier: ^3.1.2
+        version: 3.1.2
       image-size:
         specifier: ^1.0.2
         version: 1.0.2

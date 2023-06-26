@@ -4,6 +4,8 @@
 
 ```ts
 
+import * as CSS_2 from 'csstype';
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;

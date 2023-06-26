@@ -76,6 +76,7 @@ export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 export type RouteStateInternal = {
   type: NavigationType;
   dest: URL;
+  forceReload?: boolean;
   replaceState?: boolean;
 };
 

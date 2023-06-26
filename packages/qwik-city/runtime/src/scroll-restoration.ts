@@ -3,57 +3,34 @@ import { isSamePath } from './utils';
 
 export const restoreScroll = (
   type: NavigationType,
-  fromUrl: URL,
   toUrl: URL,
+  fromUrl: URL,
   scrollState?: ScrollState
 ) => {
-  // Chromium & Firefox will always natively restore on visited popstates.
-  // Always scroll to known state if available on pop. Otherwise, try hash scroll.
-  if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
-    let [x, y] = [0, 0];
-    if (scrollState) {
-      x = scrollState.x;
-      y = scrollState.y;
+  if (type === 'popstate' && scrollState) {
+    window.scrollTo(scrollState.x, scrollState.y);
+  } else if (type === 'link') {
+    if (!hashScroll(toUrl, fromUrl)) {
+      window.scrollTo(0, 0);
     }
-    window.scrollTo(x, y);
   }
 };
 
-const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
-  const newHash = toUrl.hash;
-  if (isSamePath(fromUrl, toUrl)) {
-    // same route after path change
-    if (fromUrl.hash !== newHash) {
-      // hash has changed on the same route
-      if (newHash) {
-        // hash has changed on the same route and there's a hash
-        // scroll to the element if it exists
-        scrollToHashId(newHash);
-      } else {
-        // hash has changed on the same route, but now there's no hash
-        window.scrollTo(0, 0);
-      }
-    }
-  } else {
-    // different route after change
-    if (newHash) {
-      scrollToHashId(newHash);
-    } else {
-      // different route and there isn't a hash
-      return false;
-    }
-  }
-  return true;
-};
+const hashScroll = (toUrl: URL, fromUrl: URL) => {
+  const elmId = toUrl.hash.slice(1);
+  // Firefox complains about empty ids.
+  const elm = elmId && document.getElementById(elmId);
 
-export const scrollToHashId = (hash: string) => {
-  const elmId = hash.slice(1);
-  const elm = document.getElementById(elmId);
   if (elm) {
-    // found element to scroll to
     elm.scrollIntoView();
+    return true;
+  } else if (!elm && toUrl.hash && isSamePath(toUrl, fromUrl)) {
+    // Non-existent (but non-empty) hashes will not scroll in browsers.
+    // However, cross-page non-existent hashes will scroll to top.
+    return true;
   }
-  return elm;
+
+  return false;
 };
 
 export const currentScrollState = (elm: Element): ScrollState => {

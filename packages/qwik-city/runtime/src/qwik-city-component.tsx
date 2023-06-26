@@ -53,7 +53,6 @@ import {
   currentScrollState,
   getScrollHistory,
   saveScrollHistory,
-  scrollToHashId,
   restoreScroll,
 } from './scroll-restoration';
 import spaInit from './spa-init';
@@ -118,6 +117,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
+    forceReload: false,
     replaceState: false,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
@@ -146,32 +146,39 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   const goto: RouteNavigate = $(async (path, opt) => {
     const {
       type = 'link',
-      forceReload = false,
+      forceReload = path === undefined, // Hack for nav() because this API is already set.
       replaceState = false,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
-    let dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+    const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
 
-    // Remove empty # before sending them into Navigate, it introduces too many edgecases.
-    dest = !dest.hash && dest.href.endsWith('#') ? new URL(dest.href.slice(0, -1)) : dest;
-
-    if (!forceReload && dest.href === lastDest.href) {
+    if (!isSameOrigin(dest, lastDest)) {
+      // Cross-origin nav() should always abort early.
       if (isBrowser) {
-        if (type === 'link') {
-          if (dest.hash) {
-            scrollToHashId(dest.hash);
-          } else {
-            window.scrollTo(0, 0);
-          }
-        } else if (type === 'popstate') {
-          restoreScroll(type, dest, lastDest, getScrollHistory());
+        location.href = dest.href;
+      }
+      return;
+    }
+
+    if (!forceReload && isSamePath(dest, lastDest)) {
+      if (isBrowser) {
+        // Use `location.href` because the lastDest signal is only updated on page navigates.
+        if (type === 'link' && dest.href !== location.href) {
+          history.pushState(null, '', dest);
+        }
+
+        // Always scroll on same-page popstates, #hash clicks, or links.
+        restoreScroll(type, dest, new URL(location.href), getScrollHistory());
+
+        if (type === 'popstate') {
           (window as ClientSPAWindow)._qCityScrollEnabled = true;
         }
       }
 
       return;
     }
-    routeInternal.value = { type, dest, replaceState };
+
+    routeInternal.value = { type, dest, forceReload, replaceState };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -289,9 +296,14 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             scrollState = getScrollHistory();
           }
 
-          // Mark next DOM render to scroll.
-          document.__q_scroll_restore__ = () =>
-            restoreScroll(navType, prevUrl, trackUrl, scrollState);
+          if (
+            (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
+            (navType === 'link' || navType === 'popstate')
+          ) {
+            // Mark next DOM render to scroll.
+            document.__q_scroll_restore__ = () =>
+              restoreScroll(navType, trackUrl, prevUrl, scrollState);
+          }
 
           const loaders = clientPageData?.loaders;
           const win = window as ClientSPAWindow;
@@ -364,7 +376,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // ... even if the URL is already on the #hash.
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
-            // However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
             // We patch these events and direct them to Link pipeline during SPA.
             document.body.addEventListener('click', (event) => {
               if (event.defaultPrevented) {

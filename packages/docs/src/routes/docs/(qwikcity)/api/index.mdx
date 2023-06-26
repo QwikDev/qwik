@@ -268,47 +268,6 @@ export default component$(() => {
 
 > `QwikCityProvider` does not render any DOM element, not even the matched route, it merely initializes Qwik City core logic, because of this reason, it should not be used more than once in the same app.
 
-It also accepts an optional `restoreScroll$` prop that can be used to customize the scrolling behavior of SPAs. The function supplied to `restoreScroll$` is called with the following arguments upon navigation events:
-
-```ts
-type RestoreScroll = (
-  type: 'initial' | 'form' | 'link' | 'popstate';
-  fromUrl: URL;
-  toUrl: URL;
-  scrollState?: ScrollState;
-) => () => void;
-```
-
-There are two built-in scroll restoration presets provided by QwikCity - `toTopAlways` and `toLastPositionOnPopState`.
-
-- `toTopAlways`, as the name suggests, always scrolls the page to the top of the window when navigating to new or previous pages.
-- `toLastPositionOnPopState` (default) mimics how browsers handle MPA - scrolling the page to the top when navigating to a new page, but to the last-visited position when navigating with a `popstate` event (e.g. back/next button).
-
-> Note that browsers such as Chromium and Firefox natively scroll to hashes on regular navigation, popstates will ALWAYS restore. The `toLastPositionOnPopState` preset will replicate this behavior, while `toTopAlways` will always scroll to hashes.
-
-You can also implement your own scroll restoration logic by supplying a function with the above signature, for example:
-
-```ts
-const restoreScroll: QRL<RestoreScroll> = $((type, fromUrl, toUrl, scrollState) => {
-  // Do something before navigation:
-  prepare();
-
-  return () => {
-    // Handle the actual scroll restoration:
-    let [scrollX, scrollY] = [0, 0];
-    if (type === 'popstate' && scrollState) {
-      scrollX = scrollState.scrollX;
-      scrollY = scrollState.scrollY;
-    }
-    window.scrollTo(scrollX, scrollY);
-  }
-});
-```
-
-> Note that the returned inner void function MUST run synchronously with render, it is recommended to avoid expensive computations inside of it.
-
-> The `scrollState` argument may be undefined when there is no scroll history, typically when type is not popstate, but also pops on custom `pushState`.
-
 ## `<RouterOutlet>`
 
 The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it uses internally the [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) and to render the current page, as well as all the nested layouts.

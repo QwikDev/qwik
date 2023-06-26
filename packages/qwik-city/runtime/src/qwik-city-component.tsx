@@ -14,7 +14,7 @@ import {
   useStyles$,
   _waitUntilRendered,
 } from '@builder.io/qwik';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
@@ -43,7 +43,6 @@ import type {
   RouteActionValue,
   RouteNavigate,
   RouteStateInternal,
-  RestoreScroll,
   ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
@@ -54,9 +53,9 @@ import {
   currentScrollState,
   getScrollHistory,
   saveScrollHistory,
-  scrollToHashId,
-  toLastPositionOnPopState,
+  restoreScroll,
 } from './scroll-restoration';
+import spaInit from './spa-init';
 
 /**
  * @public
@@ -86,14 +85,6 @@ export interface QwikCityProps {
    * @see https://caniuse.com/mdn-api_viewtransition
    */
   viewTransition?: boolean;
-
-  /**
-   * @alpha
-   * Scroll restoration logic for SPA navigation.
-   *
-   * Default: `toLastPositionOnPopState`
-   */
-  restoreScroll$?: RestoreScroll;
 }
 
 /**
@@ -126,6 +117,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
+    forceReload: false,
     replaceState: false,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
@@ -154,29 +146,43 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   const goto: RouteNavigate = $(async (path, opt) => {
     const {
       type = 'link',
-      forceReload = false,
+      forceReload = path === undefined, // Hack for nav() because this API is already set.
       replaceState = false,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
-    let dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
+    const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
 
-    // Remove empty # before sending them into Navigate, it introduces too many edgecases.
-    dest = !dest.hash && dest.href.endsWith('#') ? new URL(dest.href.slice(0, -1)) : dest;
-
-    if (!forceReload && dest.href === lastDest.href) {
+    if (!isSameOrigin(dest, lastDest)) {
+      // Cross-origin nav() should always abort early.
       if (isBrowser) {
-        if (type === 'link') {
-          if (dest.hash) {
-            scrollToHashId(dest.hash);
-          } else {
-            window.scrollTo(0, 0);
-          }
+        location.href = dest.href;
+      }
+      return;
+    }
+
+    if (!forceReload && isSamePath(dest, lastDest)) {
+      if (isBrowser) {
+        // Use `location.href` because the lastDest signal is only updated on page navigates.
+        if (type === 'link' && dest.href !== location.href) {
+          history.pushState(null, '', dest);
+        }
+
+        // Always scroll on same-page popstates, #hash clicks, or links.
+        restoreScroll(type, dest, new URL(location.href), getScrollHistory());
+
+        if (type === 'popstate') {
+          (window as ClientSPAWindow)._qCityScrollEnabled = true;
         }
       }
 
+      // TODO Future feature?: update routeLocation.url signal on hash changes for `<Link>` & `<a>` during SPA?
+      // - Hashes in Link are already broken in Qwik (<=v1.1.5), and <a> tags are untracked. (not a new bug)
+      // - Would need an early pop handler pushed on first # w/o full Nav SPA bootup. (post-SPA refactor)
+
       return;
     }
-    routeInternal.value = { type, dest, replaceState };
+
+    routeInternal.value = { type, dest, forceReload, replaceState };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -261,23 +267,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
-        if (isBrowser) {
-          let scrollState: ScrollState | undefined;
-          if (navType === 'popstate') {
-            scrollState = getScrollHistory();
-          }
-
-          // Awaits a QRL to resolve scroll function, must happen BEFORE setting contentInternal.value below.
-          // This is because the actual scroll restore needs to be synchronous with render.
-          const scrollRestoreQrl = props.restoreScroll$ ?? toLastPositionOnPopState;
-          document.__q_scroll_restore__ = await scrollRestoreQrl(
-            navType,
-            prevUrl,
-            trackUrl,
-            scrollState
-          );
-        }
-
         // Update route location
         routeLocation.prevUrl = prevUrl;
         routeLocation.url = trackUrl;
@@ -306,52 +295,132 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             document.__q_view_transition__ = true;
           }
 
+          let scrollState: ScrollState | undefined;
+          if (navType === 'popstate') {
+            scrollState = getScrollHistory();
+          }
+
+          if (
+            (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
+            (navType === 'link' || navType === 'popstate')
+          ) {
+            // Mark next DOM render to scroll.
+            document.__q_scroll_restore__ = () =>
+              restoreScroll(navType, trackUrl, prevUrl, scrollState);
+          }
+
           const loaders = clientPageData?.loaders;
-          const win = window as ClientHistoryWindow;
+          const win = window as ClientSPAWindow;
           if (loaders) {
             Object.assign(loaderState, loaders);
           }
           CLIENT_DATA_CACHE.clear();
 
-          if (!win._qCityHistory) {
+          if (!win._qCitySPA) {
             // only add event listener once
-            win._qCityHistory = 1;
+            win._qCitySPA = true;
+            history.scrollRestoration = 'manual';
 
             win.addEventListener('popstate', () => {
               // Disable scroll handler eagerly to prevent overwriting history.state.
-              win._qCityScrollHandlerEnabled = false;
-              clearTimeout(win._qCityScrollDebounceTimeout);
+              win._qCityScrollEnabled = false;
+              clearTimeout(win._qCityScrollDebounce);
 
-              return goto(location.href, {
+              goto(location.href, {
                 type: 'popstate',
               });
             });
 
-            win.removeEventListener('popstate', win._qCityPopstateFallback!);
+            win.removeEventListener('popstate', win._qCityInitPopstate!);
+            win._qCityInitPopstate = undefined;
+
+            // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
+            // Devs could push their own states that we can't control.
+            // If a user doesn't initiate scroll after, it will not have any scrollState.
+            // We patch these to always include scrollState.
+            // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
+            if (!win._qCityHistoryPatch) {
+              win._qCityHistoryPatch = true;
+              const pushState = history.pushState;
+              const replaceState = history.replaceState;
+
+              const prepareState = (state: any) => {
+                if (state === null || typeof state === undefined) {
+                  state = {};
+                } else if (state?.constructor !== Object) {
+                  state = { _data: state };
+
+                  if (isDev) {
+                    console.warn(
+                      'In a Qwik SPA context, `history.state` is used to store scroll state. ' +
+                        'Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. ' +
+                        'We need to be able to automatically attach the scroll state to your state object. ' +
+                        'A new state object has been created, your data has been moved to: `history.state._data`'
+                    );
+                  }
+                }
+
+                state._qCityScroll =
+                  state._qCityScroll || currentScrollState(document.documentElement);
+                return state;
+              };
+
+              history.pushState = (state, title, url) => {
+                state = prepareState(state);
+                return pushState.call(history, state, title, url);
+              };
+
+              history.replaceState = (state, title, url) => {
+                state = prepareState(state);
+                return replaceState.call(history, state, title, url);
+              };
+            }
 
             // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
             // ... even if the URL is already on the #hash.
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
-            // However, Chromium & WebKit also create too many edgecase problems with <a href="#">.
             // We patch these events and direct them to Link pipeline during SPA.
             document.body.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;
               }
 
-              const target = (event.target as HTMLElement).closest('a[href*="#"]');
+              const target = (event.target as HTMLElement).closest('a[href]');
 
-              if (target && !target.getAttribute('preventdefault:click')) {
-                const prev = routeLocation.url;
-                const dest = toUrl(target.getAttribute('href')!, prev);
-                // Patch only same-page hash anchors.
+              if (target && !target.hasAttribute('preventdefault:click')) {
+                const href = target.getAttribute('href')!;
+                const prev = new URL(location.href);
+                const dest = new URL(href, prev);
+                // Patch only same-page anchors.
                 if (isSameOrigin(dest, prev) && isSamePath(dest, prev)) {
                   event.preventDefault();
+
+                  // Simulate same-page (no hash) anchor reload.
+                  // history.scrollRestoration = 'manual' makes these not scroll.
+                  if (!dest.hash && !dest.href.endsWith('#')) {
+                    if (dest.href !== prev.href) {
+                      history.pushState(null, '', dest);
+                    }
+
+                    win._qCityScrollEnabled = false;
+                    clearTimeout(win._qCityScrollDebounce);
+                    saveScrollHistory({
+                      ...currentScrollState(document.documentElement),
+                      x: 0,
+                      y: 0,
+                    });
+                    location.reload();
+                    return;
+                  }
+
                   goto(target.getAttribute('href')!);
                 }
               }
             });
+
+            document.body.removeEventListener('click', win._qCityInitAnchors!);
+            win._qCityInitAnchors = undefined;
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
@@ -361,7 +430,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               document.addEventListener(
                 'visibilitychange',
                 () => {
-                  if (win._qCityScrollHandlerEnabled && document.visibilityState === 'hidden') {
+                  if (win._qCityScrollEnabled && document.visibilityState === 'hidden') {
                     // Last & most reliable point to commit state.
                     // Do not clear timeout here in case debounce gets to run later.
                     const scrollState = currentScrollState(document.documentElement);
@@ -370,47 +439,58 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                 },
                 { passive: true }
               );
+
+              document.removeEventListener('visibilitychange', win._qCityInitVisibility!);
+              win._qCityInitVisibility = undefined;
             }
 
             win.addEventListener(
               'scroll',
               () => {
-                if (!win._qCityScrollHandlerEnabled) {
+                if (!win._qCityScrollEnabled) {
                   return;
                 }
 
-                clearTimeout(win._qCityScrollDebounceTimeout);
-                win._qCityScrollDebounceTimeout = setTimeout(() => {
+                clearTimeout(win._qCityScrollDebounce);
+                win._qCityScrollDebounce = setTimeout(() => {
                   const scrollState = currentScrollState(document.documentElement);
                   saveScrollHistory(scrollState);
                   // Needed for e2e debounceDetector.
-                  win._qCityScrollDebounceTimeout = undefined;
+                  win._qCityScrollDebounce = undefined;
                 }, 200);
               },
               { passive: true }
             );
 
-            if (history.scrollRestoration) {
-              history.scrollRestoration = 'manual';
+            removeEventListener('scroll', win._qCityInitScroll!);
+            win._qCityInitScroll = undefined;
+
+            win._qCityBootstrap?.remove();
+            win._qCityBootstrap = undefined;
+
+            if (!isDev) {
+              // Cache SPA recovery script.
+              spaInit.resolve();
             }
           }
 
-          win._qCityScrollHandlerEnabled = false;
-          clearTimeout(win._qCityScrollDebounceTimeout);
           if (navType !== 'popstate') {
+            win._qCityScrollEnabled = false;
+            clearTimeout(win._qCityScrollDebounce);
+
             // Save the final scroll state before pushing new state.
             // Upgrades/replaces state with scroll pos on nav as needed.
             const scrollState = currentScrollState(document.documentElement);
-            saveScrollHistory(scrollState, true);
+            saveScrollHistory(scrollState);
           }
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-          routeLocation.isNavigating = false;
           _waitUntilRendered(elm as Element).then(() => {
             const scrollState = currentScrollState(document.documentElement);
             saveScrollHistory(scrollState);
-            win._qCityScrollHandlerEnabled = true;
+            win._qCityScrollEnabled = true;
 
+            routeLocation.isNavigating = false;
             navResolver.r?.();
           });
         }
@@ -484,9 +564,15 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   return <Slot />;
 });
 
-interface ClientHistoryWindow extends Window {
-  _qCityHistory?: 1;
-  _qCityScrollHandlerEnabled?: boolean;
-  _qCityScrollDebounceTimeout?: ReturnType<typeof setTimeout>;
-  _qCityPopstateFallback?: () => void;
+export interface ClientSPAWindow extends Window {
+  _qCitySPA?: boolean;
+  _qCityHistoryPatch?: boolean;
+  _qCityScrollEnabled?: boolean;
+  _qCityScrollDebounce?: ReturnType<typeof setTimeout>;
+  _qCityInitPopstate?: () => void;
+  _qCityInitAnchors?: (event: MouseEvent) => void;
+  _qCityInitVisibility?: () => void;
+  _qCityInitScroll?: () => void;
+  _qCityBootstrap?: HTMLAnchorElement;
+  _qcs?: boolean;
 }

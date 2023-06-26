@@ -11,12 +11,15 @@ import {
 } from '@builder.io/qwik';
 
 import { ContentInternalContext } from './contexts';
-import popStateScript from './init-popstate.txt?raw';
+import shim from './spa-shim';
 
 /**
  * @public
  */
 export const RouterOutlet = component$(() => {
+  // TODO Option to remove this shim, especially for MFEs.
+  const shimScript = shim();
+
   _jsxBranch();
 
   const nonce = useServerData<string | undefined>('nonce');
@@ -34,7 +37,7 @@ export const RouterOutlet = component$(() => {
     return (
       <>
         {cmp}
-        <script dangerouslySetInnerHTML={popStateScript} nonce={nonce}></script>
+        <script dangerouslySetInnerHTML={shimScript} nonce={nonce}></script>
       </>
     );
   }

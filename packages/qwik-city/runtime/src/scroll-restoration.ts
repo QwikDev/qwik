@@ -1,109 +1,58 @@
-import { $, type QRL } from '@builder.io/qwik';
-import type { RestoreScroll, ScrollState } from './types';
+import type { NavigationType, ScrollState } from './types';
 import { isSamePath } from './utils';
 
-/**
- * @alpha
- */
-export const toTopAlways: QRL<RestoreScroll> = $((_type, fromUrl, toUrl) => () => {
-  if (!scrollForHashChange(fromUrl, toUrl)) {
-    window.scrollTo(0, 0);
-  }
-});
-
-/**
- * @alpha
- */
-export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
-  (type, fromUrl, toUrl, scrollState) => () => {
-    // Chromium & Firefox will always natively restore on visited popstates.
-    // Always scroll to known state if available on pop. Otherwise, try hash scroll.
-    if ((type === 'popstate' && scrollState) || !scrollForHashChange(fromUrl, toUrl)) {
-      let [scrollX, scrollY] = [0, 0];
-      if (scrollState) {
-        scrollX = scrollState.scrollX;
-        scrollY = scrollState.scrollY;
-      }
-      window.scrollTo(scrollX, scrollY);
+export const restoreScroll = (
+  type: NavigationType,
+  toUrl: URL,
+  fromUrl: URL,
+  scrollState?: ScrollState
+) => {
+  if (type === 'popstate' && scrollState) {
+    window.scrollTo(scrollState.x, scrollState.y);
+  } else if (type === 'link') {
+    if (!hashScroll(toUrl, fromUrl)) {
+      window.scrollTo(0, 0);
     }
   }
-);
-
-const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
-  const newHash = toUrl.hash;
-  if (isSamePath(fromUrl, toUrl)) {
-    // same route after path change
-    if (fromUrl.hash !== newHash) {
-      // hash has changed on the same route
-      if (newHash) {
-        // hash has changed on the same route and there's a hash
-        // scroll to the element if it exists
-        scrollToHashId(newHash);
-      } else {
-        // hash has changed on the same route, but now there's no hash
-        window.scrollTo(0, 0);
-      }
-    }
-  } else {
-    // different route after change
-    if (newHash) {
-      scrollToHashId(newHash);
-    } else {
-      // different route and there isn't a hash
-      return false;
-    }
-  }
-  return true;
 };
 
-/**
- * @alpha
- */
-export const scrollToHashId = (hash: string) => {
-  const elmId = hash.slice(1);
-  const elm = document.getElementById(elmId);
+const hashScroll = (toUrl: URL, fromUrl: URL) => {
+  const elmId = toUrl.hash.slice(1);
+  // Firefox complains about empty ids.
+  const elm = elmId && document.getElementById(elmId);
+
   if (elm) {
-    // found element to scroll to
     elm.scrollIntoView();
+    return true;
+  } else if (!elm && toUrl.hash && isSamePath(toUrl, fromUrl)) {
+    // Non-existent (but non-empty) hashes will not scroll in browsers.
+    // However, cross-page non-existent hashes will scroll to top.
+    return true;
   }
-  return elm;
+
+  return false;
 };
 
-/**
- * @alpha
- */
 export const currentScrollState = (elm: Element): ScrollState => {
   return {
-    scrollX: elm.scrollLeft,
-    scrollY: elm.scrollTop,
-    scrollWidth: Math.max(elm.scrollWidth, elm.clientWidth),
-    scrollHeight: Math.max(elm.scrollHeight, elm.clientHeight),
+    x: elm.scrollLeft,
+    y: elm.scrollTop,
+    w: Math.max(elm.scrollWidth, elm.clientWidth),
+    h: Math.max(elm.scrollHeight, elm.clientHeight),
   };
 };
 
-/**
- * @alpha
- */
 export const getScrollHistory = () => {
   const state = history.state as ScrollHistoryState;
   return state?._qCityScroll;
 };
 
-/**
- * @alpha
- */
-export const saveScrollHistory = (scrollState: ScrollState, initialize = false) => {
+export const saveScrollHistory = (scrollState: ScrollState) => {
   const state: ScrollHistoryState = history.state || {};
-
-  if (state?._qCityScroll || initialize) {
-    state._qCityScroll = scrollState;
-    history.replaceState(state, '');
-  }
+  state._qCityScroll = scrollState;
+  history.replaceState(state, '');
 };
 
-/**
- * @alpha
- */
 export interface ScrollHistoryState {
   _qCityScroll?: ScrollState;
 }

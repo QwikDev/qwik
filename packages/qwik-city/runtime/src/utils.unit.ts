@@ -174,11 +174,11 @@ test(`isSameOrigin`, () => {
   { props: { href: '/abs-path', target: '_blank' }, expect: null },
   { props: { href: 'http://qwik.dev/' }, expect: null },
   { props: { href: 'http://builder.io/' }, expect: null },
-  { props: { href: '       ' }, expect: null },
-  { props: { href: '       ' }, expect: null },
-  { props: { href: '' }, expect: null },
+  { props: { href: '       ' }, expect: '/' },
+  { props: { href: '' }, expect: '/' },
   { props: { href: null }, expect: null },
   { props: {}, expect: null },
+  { props: { reload: true }, expect: '/' },
 ].forEach((t) => {
   test(`getClientNavPath ${t.props.href}`, () => {
     const baseUrl = new URL('https://qwik.dev/');

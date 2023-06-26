@@ -53,9 +53,9 @@ export const getClientDataPath = (
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL }) => {
   const href = props.href;
-  if (typeof href === 'string' && href.trim() !== '' && typeof props.target !== 'string') {
+  if (typeof href === 'string' && typeof props.target !== 'string') {
     try {
-      const linkUrl = toUrl(href, baseUrl.url);
+      const linkUrl = toUrl(href.trim(), baseUrl.url);
       const currentUrl = toUrl('', baseUrl.url)!;
       if (isSameOrigin(linkUrl, currentUrl)) {
         return toPath(linkUrl);

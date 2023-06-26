@@ -190,12 +190,17 @@ For the given example, the Qwik components will be rendered in the following ord
 </RootLayout>
 ```
 
-## SPA navigation
+## SPA Navigation
 
-Qwik provides the `<Link>` component and the `useNavigate()` hook to refresh and navigate between pages.
+With Qwik, the distinction between MPA and SPA disappears; every app can be both at the same time.
+The choice is no longer an architectural design determined at the beginning of the project,
+  instead this decision can be made for every link.
 
-The `Link` is usually the recommend way to navigate because it uses the HTML `<a>` tag, which is the most accessible way to navigate between pages.
+Qwik provides a `<Link>` component and `useNavigate()` hook.
+These can be used to initiate an SPA refresh or navigation between pages.
 
+The `Link` component is the recommend way to navigate as it uses the HTML `<a>` tag,
+  which is the most accessible way to move between pages.
 However, if you need to navigate programmatically, you can use the `useNavigate()` hook.
 
 ```tsx
@@ -213,18 +218,19 @@ export default component$(() => {
 });
 ```
 
+> The `Link` component uses the `useNavigate()` hook internally.
+
 ### Refreshing
 
-You can use the `Link` with the `reload` prop to refresh the page.
-
-You can also call the `nav()` function from the `useNavigate()` hook, without any arguments.
+The `Link` with the `reload` prop can be used to refresh the current page.
+You can also call the `nav()` function from the `useNavigate()` hook, without arguments.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { Link, routeLoader$, useNavigate } from '@builder.io/qwik-city';
 
 export const useServerTime = routeLoader$(() => {
-  // This will re-execute in the server when the page refreshes
+  // This will re-execute in the server when the page refreshes.
   return Date.now();
 });
 
@@ -242,9 +248,52 @@ export default component$(() => {
 });
 ```
 
-> When the page refreshes, all the matching `routeLoader$` and server handlers (`onRequest`) will reexecute in the server and the UI will re-render accordingly.
+> When the page refreshes, all the matching `routeLoader$` and server handlers (`onRequest`) will re-execute in the server and the UI will re-render accordingly.
 
 > While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.
+
+### Scroll Restoration
+
+Qwik provides best-in-class scroll restoration for SPA that closely mimics the native browser experience.
+Your users should receive the exact same experience they've come to expect natively from MPA,
+except with all the added benefits of SPA.
+
+After you use one of the above methods to navigate, the user is automatically upgraded to SPA.
+This means that the current page, and the page they came from, now have an `SPA` context associated with them.
+
+If a user then clicks a regular `<a>` tag, they will perform a regular navigation. This new page will have no SPA context,
+and is effectively downgraded back to MPA. You can swap between these however you see fit,
+and the user's experience will seamlessly switch between MPA and SPA as if it were all the same.
+
+When a user re-visits the SPA-enabled history entries, such as with a refresh, back/forward button, browser session restarts, etc.,
+Qwik will automatically restore their scroll position and bootstrap itself back into the SPA context as needed.
+
+> The script required to provide this robust experience never loads, nor is it ever even sent to the user's browser,
+> unless the history entry has had an SPA context. Pure MPA pages never load this script. This is the magic of Qwik.
+
+> Scroll restoration in Qwik always occurs synchronously with render. When combined with Qwik's resumable and
+> first-class SSR/MPA nature, the user should never experience scroll flashing.
+
+Qwik's scroll restoration is entirely `history` based. This is different from many other frameworks
+which rely on things like `sessionStorage`.
+
+Qwik's ability to remember and restore scroll positions is extremely robust
+and will survive everything from browser session restarts to users clearing their browser data,
+which is not the case for these many other frameworks.
+
+> **Notes on using `pushState()` and `replaceState()` during SPA:**
+>
+> On a page with an SPA context, Qwik will patch the `pushState()` and `replaceState()` functions on the `history` global.
+> This is to ensure that any custom states you add as a developer, also receive the SPA context.
+>
+> While these are patched, states you `push` or `replace` should always be an actual `Object` type.
+> This is because Qwik needs to be able to automatically append the SPA context to the state as a property.
+>
+> If you provide a value that is not an object, Qwik will create a new object for state and add your provided
+> value to a new key: `{ _data: <your_value> }`
+>
+> Qwik will also warn you in the browser's console in `dev` mode when this occurs.
+
 
 ## Request Event
 

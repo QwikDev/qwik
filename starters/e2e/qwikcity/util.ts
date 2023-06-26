@@ -149,7 +149,7 @@ export async function scrollDebounceDetector(page: Page) {
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (!window["_qCityScrollDebounceTimeout"]) {
+        if (!window["_qCityScrollDebounce"]) {
           clearInterval(checkInterval);
           resolve();
         }

@@ -1,7 +1,9 @@
 import { AST_NODE_TYPES, ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
 
-const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
+const createRule = ESLintUtils.RuleCreator(
+  (name) => `https://qwik.builder.io/docs/advanced/eslint/#${name}`
+);
 
 export const jsxImg = createRule({
   defaultOptions: [],
@@ -12,7 +14,6 @@ export const jsxImg = createRule({
       description:
         'For performance reasons, always provide width and height attributes for <img> elements, it will help to prevent layout shifts.',
       recommended: 'warn',
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-img',
     },
     fixable: 'code',
     schema: [],

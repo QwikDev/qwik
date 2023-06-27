@@ -15,9 +15,9 @@ import {
   ResourceEvent,
   TaskEvent,
 } from '../util/markers';
-import { isPromise } from '../util/promises';
+import { isPromise, safeCall } from '../util/promises';
 import { seal } from '../util/qdev';
-import { isArray } from '../util/types';
+import { isArray, ValueOrPromise } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
@@ -163,6 +163,34 @@ export function invokeApply<FN extends (...args: any) => any>(
     _context = previousContext;
   }
   return returnValue;
+}
+
+export function asyncInvoke<ARGS extends any[] = any[], RET = any>(
+  this: unknown,
+  context: InvokeContext | undefined,
+  fn: (...args: ARGS) => RET,
+  ...args: ARGS
+): ValueOrPromise<RET> {
+  if (_context !== context) {
+    _context = context;
+  }
+  return safeCall(
+    () => fn.apply(this, args),
+    (value) => {
+      // restore the context
+      if (_context !== context) {
+        _context = context;
+      }
+      return value;
+    },
+    (e) => {
+      if (_context !== context) {
+        _context = context;
+      }
+
+      throw e;
+    }
+  );
 }
 
 export const waitAndRun = (ctx: RenderInvokeContext, callback: () => unknown) => {

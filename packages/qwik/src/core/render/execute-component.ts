@@ -54,7 +54,7 @@ export const executeComponent = (
 
   // Resolve render function
   componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
-  const componentFn = componentQRL.getFn(iCtx);
+  const componentFn = componentQRL.getFn(false, iCtx);
 
   return safeCall(
     () => componentFn(props),

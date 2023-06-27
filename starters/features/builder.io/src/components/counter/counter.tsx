@@ -1,6 +1,6 @@
-import { component$, useSignal, $ } from '@builder.io/qwik';
-import styles from './counter.module.css';
-import Gauge from '../gauge';
+import { component$, useSignal, $ } from "@builder.io/qwik";
+import styles from "./counter.module.css";
+import Gauge from "../gauge";
 
 export default component$((props: { initialValue: number }) => {
   const count = useSignal(props.initialValue || 99);
@@ -35,7 +35,7 @@ export const celebrate = $(async () => {
     gravity: 0,
     decay: 0.95,
     startVelocity: 30,
-    colors: ['006ce9', 'ac7ff4', '18b6f6', '713fc2', 'ffffff'],
+    colors: ["006ce9", "ac7ff4", "18b6f6", "713fc2", "ffffff"],
     origin: {
       x: 0.5,
       y: 0.35,
@@ -47,9 +47,9 @@ export const celebrate = $(async () => {
       if ((globalThis as any).confetti) {
         return resolve((globalThis as any).confetti as any);
       }
-      const script = document.createElement('script');
+      const script = document.createElement("script");
       script.src =
-        'https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js';
+        "https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js";
       script.onload = () => resolve((globalThis as any).confetti as any);
       script.onerror = reject;
       document.head.appendChild(script);

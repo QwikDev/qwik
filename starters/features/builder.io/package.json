@@ -16,7 +16,7 @@
           "importPath": "@builder.io/dev-tools/vite"
         }
       ],
-      "vitePlugins": [
+      "vitePluginsPrepend": [
         "builderDevTools()"
       ]
     },

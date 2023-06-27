@@ -14,6 +14,7 @@ export const Link = component$<LinkProps>((props) => {
   const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
   const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
   linkProps['preventdefault:click'] = !!clientNavPath;
+  linkProps['allowmodifiers'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
   const onPrefetch =
     prefetchDataset != null
@@ -21,9 +22,8 @@ export const Link = component$<LinkProps>((props) => {
           prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
         )
       : undefined;
-  const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
-    if (!elm.hasAttribute('preventdefault:click')) {
-      // Do not enter the nav pipeline if this is not a clientNavPath.
+  const handleClick = event$(async (event: any, elm: HTMLAnchorElement) => {
+    if (!(event as PointerEvent).defaultPrevented) {
       return;
     }
 

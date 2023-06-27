@@ -52,7 +52,17 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
     if (element.hasAttribute('preventdefault:' + eventName)) {
-      ev.preventDefault();
+      if (
+        !element.hasAttribute('allowmodifiers') ||
+        !(
+          (ev as MouseEvent).ctrlKey ||
+          (ev as MouseEvent).metaKey ||
+          (ev as MouseEvent).shiftKey ||
+          (ev as MouseEvent).altKey
+        )
+      ) {
+        ev.preventDefault();
+      }
     }
     const ctx = (element as any)['_qc_'] as QContext | undefined;
     const qrls = ctx?.li.filter((li) => li[0] === attrName);

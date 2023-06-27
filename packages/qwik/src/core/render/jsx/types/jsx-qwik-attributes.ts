@@ -186,6 +186,11 @@ export interface QwikProps<T extends Element> extends PreventDefault<T> {
   ref?: Ref<T> | undefined;
 
   /**
+   * Allow modifier keys (ctrl, meta, shift, alt) to override preventdefault.
+   */
+  allowmodifiers?: boolean;
+
+  /**
    * Corresponding slot name used to project the element into.
    */
   'q:slot'?: string;

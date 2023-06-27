@@ -6,7 +6,7 @@
 }
 
 .button {
-  background: var(--qwik-dirty-black);
+  background: #1d2033;
   border: none;
   border-radius: 8px;
   color: white;
@@ -19,5 +19,5 @@
 }
 
 .button:hover {
-  background: var(--qwik-dark-blue);
+  background: #006ce9;
 }

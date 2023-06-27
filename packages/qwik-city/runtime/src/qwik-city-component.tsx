@@ -117,9 +117,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
-    noScroll: false,
     forceReload: false,
     replaceState: false,
+    scroll: true,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
@@ -147,9 +147,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   const goto: RouteNavigate = $(async (path, opt) => {
     const {
       type = 'link',
-      noScroll = false,
       forceReload = path === undefined, // Hack for nav() because this API is already set.
       replaceState = false,
+      scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
@@ -184,7 +184,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       return;
     }
 
-    routeInternal.value = { type, dest, noScroll, forceReload, replaceState };
+    routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -303,7 +303,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
 
           if (
-            !navigation.noScroll &&
+            navigation.scroll &&
             (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
             (navType === 'link' || navType === 'popstate')
           ) {

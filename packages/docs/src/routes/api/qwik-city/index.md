@@ -331,10 +331,10 @@ export interface LinkProps extends AnchorAttributes
 
 | Property           | Modifiers | Type    | Description  |
 | ------------------ | --------- | ------- | ------------ |
-| [noScroll?](#)     |           | boolean | _(Optional)_ |
 | [prefetch?](#)     |           | boolean | _(Optional)_ |
 | [reload?](#)       |           | boolean | _(Optional)_ |
 | [replaceState?](#) |           | boolean | _(Optional)_ |
+| [scroll?](#)       |           | boolean | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 
@@ -538,9 +538,9 @@ export type RouteNavigate = QRL<
     options?:
       | {
           type?: Exclude<NavigationType, "initial">;
-          noScroll?: boolean;
           forceReload?: boolean;
           replaceState?: boolean;
+          scroll?: boolean;
         }
       | boolean
   ) => Promise<void>

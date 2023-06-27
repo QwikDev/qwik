@@ -76,9 +76,9 @@ export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 export type RouteStateInternal = {
   type: NavigationType;
   dest: URL;
-  noScroll?: boolean;
   forceReload?: boolean;
   replaceState?: boolean;
+  scroll?: boolean;
 };
 
 export type ScrollState = {
@@ -97,9 +97,9 @@ export type RouteNavigate = QRL<
     options?:
       | {
           type?: Exclude<NavigationType, 'initial'>;
-          noScroll?: boolean;
           forceReload?: boolean;
           replaceState?: boolean;
+          scroll?: boolean;
         }
       | boolean
   ) => Promise<void>

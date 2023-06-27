@@ -104,8 +104,12 @@ export async function getInfoForSrc(src: string) {
   }
 }
 
-export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir: string) => {
-  const handler: Connect.NextHandleFunction = async (req, res, next) => {
+export const getImageSizeServer = (
+  sys: OptimizerSystem,
+  rootDir: string,
+  srcDir: string
+): Connect.NextHandleFunction => {
+  return async (req, res, next) => {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
     const path: typeof import('path') = await sys.dynamicImport('node:path');
 
@@ -155,67 +159,79 @@ export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir
           }
         }
 
-        if (text.slice(offset, offset + 4) === '<img') {
-          const end = text.indexOf('>', offset) + 1;
-          const extensionSupportsImport = ['.ts', '.tsx', '.js', '.jsx', '.mdx'].includes(
-            extension
+        if (text.slice(offset, offset + 4) !== '<img') {
+          console.error(
+            'Could not apply auto fix, because it was not possible to find the original <img> tag'
           );
-          let imgTag = text.slice(offset, end);
-          if (src && currentHref && extensionSupportsImport) {
-            const urlSrc = new URL(src);
-            const urlCurrent = new URL(currentHref);
-            if (urlSrc.origin === urlCurrent.origin) {
-              const publicImagePath = path.join(rootDir, 'public', urlSrc.pathname);
-              const rootImagePath = path.join(rootDir, urlSrc.pathname);
-              let relativeLocation: string;
-              if (fs.existsSync(publicImagePath)) {
-                const mediaSrc = path.join(srcDir, 'media', path.dirname(urlSrc.pathname));
-                await fs.promises.mkdir(mediaSrc, { recursive: true });
-                await fs.promises.copyFile(
-                  publicImagePath,
-                  path.join(srcDir, 'media', urlSrc.pathname)
-                );
-                relativeLocation = '~/media' + urlSrc.pathname;
-              } else if (fs.existsSync(rootImagePath)) {
-                relativeLocation = urlSrc.pathname.replace('/src/', '~/');
-              } else {
+          res.statusCode = 500;
+          return;
+        }
+
+        const end = text.indexOf('>', offset) + 1;
+        if (end < offset) {
+          console.error(
+            'Could not apply auto fix, because it was not possible to find the original <img> tag'
+          );
+          res.statusCode = 500;
+          return;
+        }
+
+        const extensionSupportsImport = ['.ts', '.tsx', '.js', '.jsx', '.mdx'].includes(extension);
+        let imgTag = text.slice(offset, end);
+        if (src && currentHref && extensionSupportsImport) {
+          const urlSrc = new URL(src);
+          const urlCurrent = new URL(currentHref);
+          if (urlSrc.origin === urlCurrent.origin) {
+            const publicImagePath = path.join(rootDir, 'public', urlSrc.pathname);
+            const rootImagePath = path.join(rootDir, urlSrc.pathname);
+            let relativeLocation: string;
+            if (fs.existsSync(publicImagePath)) {
+              const mediaSrc = path.join(srcDir, 'media', path.dirname(urlSrc.pathname));
+              await fs.promises.mkdir(mediaSrc, { recursive: true });
+              await fs.promises.copyFile(
+                publicImagePath,
+                path.join(srcDir, 'media', urlSrc.pathname)
+              );
+              relativeLocation = '~/media' + urlSrc.pathname;
+            } else if (fs.existsSync(rootImagePath)) {
+              relativeLocation = urlSrc.pathname.replace('/src/', '~/');
+            } else {
+              return;
+            }
+            const importIdent = imgImportName(urlSrc.pathname);
+            const importSrc = `${relativeLocation}?jsx`;
+            imgTag = imgTag.replace(/^<img/, `<${importIdent}`);
+            imgTag = imgTag.replace(/\bwidth=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
+            imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
+            imgTag = imgTag.replace(/\bsrc=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
+
+            let insertImport = 0;
+            if (extension === '.mdx' && text.startsWith('---')) {
+              insertImport = text.indexOf('---', 4) + 3;
+              if (insertImport === -1) {
                 return;
               }
-              const importIdent = imgImportName(urlSrc.pathname);
-              const importSrc = `${relativeLocation}?jsx`;
-              imgTag = imgTag.replace(/^<img/, `<${importIdent}`);
-              imgTag = imgTag.replace(/\bwidth=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
-              imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
-              imgTag = imgTag.replace(/\bsrc=(({[^}]*})|('[^']*')|("[^"]*"))\s*/, ``);
-
-              let insertImport = 0;
-              if (extension === '.mdx' && text.startsWith('---')) {
-                insertImport = text.indexOf('---', 4) + 3;
-                if (insertImport === -1) {
-                  return;
-                }
-              }
-              const newImport = `\nimport ${importIdent} from '${importSrc}';`;
-              text = `${text.slice(0, insertImport)}${newImport}${text.slice(
-                insertImport,
-                offset
-              )}${imgTag}${text.slice(end)}`;
-              fs.writeFileSync(filePath, text);
             }
+            const newImport = `\nimport ${importIdent} from '${importSrc}';`;
+            text = `${text.slice(0, insertImport)}${newImport}${text.slice(
+              insertImport,
+              offset
+            )}${imgTag}${text.slice(end)}`;
+            fs.writeFileSync(filePath, text);
             return;
           }
-
-          imgTag = imgTag.replace(/\bwidth=(({[^}]*})|('[^']*')|("[^"]*"))/, `width="${width}"`);
-          imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))/, `height="${height}"`);
-          if (!imgTag.includes('height=')) {
-            imgTag = imgTag.replace(/<img/, `<img height="${height}"`);
-          }
-          if (!imgTag.includes('width=')) {
-            imgTag = imgTag.replace(/<img/, `<img width="${width}"`);
-          }
-          text = text.slice(0, offset) + imgTag + text.slice(end);
-          fs.writeFileSync(filePath, text);
         }
+
+        imgTag = imgTag.replace(/\bwidth=(({[^}]*})|('[^']*')|("[^"]*"))/, `width="${width}"`);
+        imgTag = imgTag.replace(/\bheight=(({[^}]*})|('[^']*')|("[^"]*"))/, `height="${height}"`);
+        if (!imgTag.includes('height=')) {
+          imgTag = imgTag.replace(/<img/, `<img height="${height}"`);
+        }
+        if (!imgTag.includes('width=')) {
+          imgTag = imgTag.replace(/<img/, `<img width="${width}"`);
+        }
+        text = text.slice(0, offset) + imgTag + text.slice(end);
+        fs.writeFileSync(filePath, text);
       } catch (e) {
         console.error('Error auto fixing image', e, url);
       }
@@ -223,7 +239,6 @@ export const getImageSizeServer = (sys: OptimizerSystem, rootDir: string, srcDir
       next();
     }
   };
-  return handler;
 };
 
 function imgImportName(value: string) {

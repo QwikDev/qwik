@@ -331,6 +331,7 @@ export interface LinkProps extends AnchorAttributes
 
 | Property           | Modifiers | Type    | Description  |
 | ------------------ | --------- | ------- | ------------ |
+| [noScroll?](#)     |           | boolean | _(Optional)_ |
 | [prefetch?](#)     |           | boolean | _(Optional)_ |
 | [reload?](#)       |           | boolean | _(Optional)_ |
 | [replaceState?](#) |           | boolean | _(Optional)_ |
@@ -537,6 +538,7 @@ export type RouteNavigate = QRL<
     options?:
       | {
           type?: Exclude<NavigationType, "initial">;
+          noScroll?: boolean;
           forceReload?: boolean;
           replaceState?: boolean;
         }

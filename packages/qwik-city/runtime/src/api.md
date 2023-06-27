@@ -246,6 +246,8 @@ export const Link: Component<LinkProps>;
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
     // (undocumented)
+    noScroll?: boolean;
+    // (undocumented)
     prefetch?: boolean;
     // (undocumented)
     reload?: boolean;
@@ -382,6 +384,7 @@ export interface RouteLocation {
 // @public (undocumented)
 export type RouteNavigate = QRL<(path?: string, options?: {
     type?: Exclude<NavigationType, 'initial'>;
+    noScroll?: boolean;
     forceReload?: boolean;
     replaceState?: boolean;
 } | boolean) => Promise<void>>;

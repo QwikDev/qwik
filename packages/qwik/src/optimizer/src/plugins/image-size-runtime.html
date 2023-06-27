@@ -19,11 +19,12 @@
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100svw !important;
-    overflow: hidden !important;
-    height: 100svh !important;
+    width: 0 !important;
+    overflow: visible !important;
+    height: 0 !important;
     pointer-events: none !important;
-    contain: strict;
+    contain: size layout style content;
+    z-index: 1;
   }
 </style>
 <template id="qwik-image-warning-template">

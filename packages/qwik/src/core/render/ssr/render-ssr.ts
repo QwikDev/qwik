@@ -126,6 +126,19 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
+  if (qDev) {
+    if (
+      root in phasingContent ||
+      root in emptyElements ||
+      root in tableContent ||
+      root in startPhasingContent ||
+      root in invisibleElements
+    ) {
+      throw new Error(
+        `The "containerTagName" can not be "${root}". Please choose a different tag name like: "div", "html", "custom-container".`
+      );
+    }
+  }
   const ssrCtx: SSRContext = {
     $static$: {
       $contexts$: [],
@@ -701,6 +714,11 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
             node
           );
         }
+      } else if (tagName in htmlContent) {
+        throw createJSXError(
+          `<${tagName}> can not be rendered because its parent is not a <html> element. Make sure the 'containerTagName' is set to 'html' in entry.ssr.tsx`,
+          node
+        );
       }
       if (tagName in startPhasingContent) {
         flags |= IS_PHASING;

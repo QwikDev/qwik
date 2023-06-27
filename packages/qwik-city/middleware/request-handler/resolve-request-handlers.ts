@@ -73,7 +73,7 @@ export const resolveRequestHandlers = (
       method
     );
     if (isPageRoute) {
-      if (routeLoaders.length + actionsMiddleware.length > 0) {
+      if (routeLoaders.length + routeActions.length > 0) {
         requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
       }
       requestHandlers.push(renderHandler);
@@ -138,12 +138,12 @@ const _resolveRequestHandlers = (
     if (collectActions) {
       const loaders = Object.values(routeModule).filter((e) =>
         checkBrand(e, 'server_loader')
-      ) as any[];
+      ) as LoaderInternal[];
       routeLoaders.push(...loaders);
 
       const actions = Object.values(routeModule).filter((e) =>
         checkBrand(e, 'server_action')
-      ) as any[];
+      ) as ActionInternal[];
       routeActions.push(...actions);
     }
   }
@@ -207,13 +207,6 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
       await Promise.all(
         routeLoaders.map((loader) => {
           const loaderId = loader.__id;
-          if (isDev) {
-            if (loaders[loaderId]) {
-              throw new Error(
-                `Duplicate loader id "${loaderId}" detected. Please ensure that all loader ids are unique.`
-              );
-            }
-          }
           return (loaders[loaderId] = runValidators(
             requestEv,
             loader.__validators,

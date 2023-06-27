@@ -2,8 +2,10 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext, BuildRoute } from '../types';
 import type {
+  ActionInternal,
   ContentMenu,
   LoadedRoute,
+  LoaderInternal,
   MenuData,
   MenuModule,
   MenuModuleLoader,
@@ -24,7 +26,10 @@ import { updateBuildContext } from '../build';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp, getUrl } from '../../middleware/node/http';
-import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
+import {
+  checkBrand,
+  resolveRequestHandlers,
+} from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
@@ -81,12 +86,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
-
+        const loaderMap = new Map<string, string>();
         const serverPlugins: RouteModule[] = [];
         for (const file of ctx.serverPlugins) {
           const layoutModule = await server.ssrLoadModule(file.filePath);
           serverPlugins.push(layoutModule);
           routeModulePaths.set(layoutModule, file.filePath);
+          checkModule(loaderMap, layoutModule, file.filePath);
         }
 
         const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
@@ -103,10 +109,12 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             const layoutModule = await server.ssrLoadModule(layout.filePath);
             routeModules.push(layoutModule);
             routeModulePaths.set(layoutModule, layout.filePath);
+            checkModule(loaderMap, layoutModule, layout.filePath);
           }
           const endpointModule = await server.ssrLoadModule(route.filePath);
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
+          checkModule(loaderMap, endpointModule, route.filePath);
         }
 
         const renderFn = async (requestEv: RequestEvent) => {
@@ -260,6 +268,31 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     }
   };
 }
+
+const checkModule = (loaderMap: Map<string, string>, routeModule: any, filePath: string) => {
+  for (const loader of Object.values(routeModule)) {
+    if (checkBrand(loader, 'server_action') || checkBrand(loader, 'server_loader')) {
+      checkUniqueLoader(loaderMap, loader as any, filePath);
+    }
+  }
+};
+
+const checkUniqueLoader = (
+  loaderMap: Map<string, string>,
+  loader: LoaderInternal | ActionInternal,
+  filePath: string
+) => {
+  const prev = loaderMap.get(loader.__id);
+  if (prev) {
+    const type = loader.__brand === 'server_loader' ? 'routeLoader$' : 'routeAction$';
+    throw new Error(
+      `The same ${type} (${loader.__qrl.getSymbol()}) was exported in multiple modules:
+      - ${prev}
+      - ${filePath}`
+    );
+  }
+  loaderMap.set(loader.__id, filePath);
+};
 
 export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
   const blue = '#006ce9';

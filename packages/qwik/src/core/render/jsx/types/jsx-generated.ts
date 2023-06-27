@@ -1,9 +1,27 @@
+import * as CSS from 'csstype';
 import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
 export type Size = number | string;
 export type Numberish = number | `${number}`;
+
+/**
+ * @public
+ */
+export interface CSSProperties
+  extends CSS.Properties<string | number>,
+    CSS.PropertiesHyphen<string | number> {
+  /**
+   * The index signature was removed to enable closed typing for style
+   * using CSSType. You're able to use type assertion or module augmentation
+   * to add properties or an index signature of your own.
+   *
+   * For examples and more information, visit:
+   * https://github.com/frenic/csstype#what-should-i-do-when-i-get-type-errors
+   */
+  [v: `--${string}`]: string | number | undefined;
+}
 
 /**
  * @public
@@ -314,7 +332,7 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellcheck?: boolean | undefined;
-  style?: Record<string, string | number | undefined> | string | undefined;
+  style?: CSSProperties | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -909,7 +927,7 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
   method?: string | undefined;
   min?: number | string | undefined;
   name?: string | undefined;
-  style?: Record<string, string | number> | string | undefined;
+  style?: CSSProperties | string | undefined;
   target?: string | undefined;
   type?: string | undefined;
   width?: Numberish | undefined;

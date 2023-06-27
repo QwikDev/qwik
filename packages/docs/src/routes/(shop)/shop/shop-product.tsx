@@ -2,7 +2,7 @@ import { component$, useComputed$, useContext, useSignal } from '@builder.io/qwi
 import { modifyLineItemMutation } from '../mutation';
 import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
 import type { UIProduct } from '../types';
-import { Image } from 'qwik-image';
+import { Image } from '@unpic/qwik';
 
 type Props = {
   product: UIProduct;
@@ -24,8 +24,8 @@ export const ShopProduct = component$<Props>(({ product }) => {
           <Image
             layout="constrained"
             class="object-contain"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             src={product.image.url}
             alt={product.image.altText}
           />

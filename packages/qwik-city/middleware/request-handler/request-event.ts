@@ -324,28 +324,37 @@ const parseRequest = async (
 };
 
 const formToObj = (formData: FormData): Record<string, any> => {
-  // Convert FormData to object
-  // Handle nested form input using dot notation
-  // Handle array input using square bracket notation
-  const obj: any = {};
-  formData.forEach((value, key) => {
-    const keys = key.split('.').filter((k) => k);
-    let current = obj;
-    for (let i = 0; i < keys.length; i++) {
-      let k = keys[i];
-      // Last key
-      if (i === keys.length - 1) {
-        if (k.endsWith('[]')) {
-          k = k.slice(0, -2);
-          current[k] = current[k] || [];
-          current[k].push(value);
-        } else {
-          current[k] = value;
-        }
-      } else {
-        current = current[k] = { ...current[k] };
+  /** Convert FormData to object
+   *  Handle nested form input using dot notation
+   *  Handle array input using indexed dot notation (nested.0, nested.0)
+   *  Create values object by form data entries
+   */
+  const values = [...formData.entries()].reduce<any>((values, [name, value]) => {
+    name.split('.').reduce((object: any, key: string, index: number, keys: any) => {
+      // old style bracket array (nested[])
+      // Should maybe be DEPERCATED
+      if (key.endsWith('[]')) {
+        const arrayKey = key.slice(0, -2);
+        object[arrayKey] = object[arrayKey] || [];
+        return (object[arrayKey] = [...object[arrayKey], value]);
       }
-    }
-  });
-  return obj;
+
+      // If it is not last index, return nested object or array
+      if (index < keys.length - 1) {
+        return (object[key] = object[key] || (Number.isNaN(+keys[index + 1]) ? {} : []));
+      }
+
+      if (value && typeof value === 'string') {
+        return (object[key] = value);
+      }
+
+      return object;
+    }, values);
+
+    // Return modified values
+    return values;
+  }, {});
+
+  // Return values object
+  return values;
 };

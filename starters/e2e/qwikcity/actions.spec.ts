@@ -154,5 +154,20 @@ test.describe("actions", () => {
         await expect(true).toBeTruthy();
       });
     });
+
+    test.describe("issue3183", () => {
+      test("should parse dot notation index array formdata", async ({
+        page,
+      }) => {
+        await page.goto("/qwikcity-test/actions/issue3183/");
+        const success = page.locator("#issue3183-success");
+
+        await expect(success).toBeHidden();
+        await page.locator("#issue3183-button").click();
+        await expect(success).toHaveText(
+          '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}'
+        );
+      });
+    });
   }
 });

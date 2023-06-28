@@ -119,6 +119,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     dest: url,
     forceReload: false,
     replaceState: false,
+    scroll: true,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
@@ -148,6 +149,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       type = 'link',
       forceReload = path === undefined, // Hack for nav() because this API is already set.
       replaceState = false,
+      scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
@@ -182,7 +184,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       return;
     }
 
-    routeInternal.value = { type, dest, forceReload, replaceState };
+    routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -301,6 +303,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
 
           if (
+            navigation.scroll &&
             (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
             (navType === 'link' || navType === 'popstate')
           ) {

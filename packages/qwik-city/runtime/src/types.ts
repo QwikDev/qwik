@@ -78,6 +78,7 @@ export type RouteStateInternal = {
   dest: URL;
   forceReload?: boolean;
   replaceState?: boolean;
+  scroll?: boolean;
 };
 
 export type ScrollState = {
@@ -94,7 +95,12 @@ export type RouteNavigate = QRL<
   (
     path?: string,
     options?:
-      | { type?: Exclude<NavigationType, 'initial'>; forceReload?: boolean; replaceState?: boolean }
+      | {
+          type?: Exclude<NavigationType, 'initial'>;
+          forceReload?: boolean;
+          replaceState?: boolean;
+          scroll?: boolean;
+        }
       | boolean
   ) => Promise<void>
 >;

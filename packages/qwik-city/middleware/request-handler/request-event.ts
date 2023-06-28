@@ -344,11 +344,7 @@ const formToObj = (formData: FormData): Record<string, any> => {
         return (object[key] = object[key] || (Number.isNaN(+keys[index + 1]) ? {} : []));
       }
 
-      if (value && typeof value === 'string') {
-        return (object[key] = value);
-      }
-
-      return object;
+      return (object[key] = value);
     }, values);
 
     // Return modified values

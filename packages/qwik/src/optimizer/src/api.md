@@ -204,6 +204,8 @@ export interface QwikManifest {
     // (undocumented)
     injections?: GlobalInjections[];
     // (undocumented)
+    manifestHash: string;
+    // (undocumented)
     mapping: {
         [symbolName: string]: string;
     };

@@ -259,6 +259,7 @@ export interface SmartEntryStrategy {
  * @public
  */
 export interface QwikManifest {
+  manifestHash: string;
   symbols: { [symbolName: string]: QwikSymbol };
   mapping: { [symbolName: string]: string };
   bundles: { [fileName: string]: QwikBundle };

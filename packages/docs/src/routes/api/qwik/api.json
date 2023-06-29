@@ -1282,7 +1282,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#) |  | string | _(Optional)_ |\n|  [beforeClose?](#) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#) |  | string |  |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#) |  | [StreamWriter](#streamwriter) |  |",
+      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#) |  | string | _(Optional)_ |\n|  [beforeClose?](#) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#) |  | string |  |\n|  [manifestHash](#) |  | string |  |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#) |  | [StreamWriter](#streamwriter) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts",
       "mdFile": "qwik.renderssroptions.md"
     },

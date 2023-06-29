@@ -160,7 +160,13 @@ test('manifestOutput', async () => {
 
 test('manifestInput', async () => {
   const plugin = await mockPlugin();
-  const manifestInput: QwikManifest = { mapping: {}, symbols: {}, bundles: {}, version: '1' };
+  const manifestInput: QwikManifest = {
+    manifestHash: '',
+    mapping: {},
+    symbols: {},
+    bundles: {},
+    version: '1',
+  };
   const opts = plugin.normalizeOptions({ manifestInput });
   equal(opts.manifestInput, manifestInput);
 });

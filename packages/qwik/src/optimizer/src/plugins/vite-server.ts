@@ -88,6 +88,7 @@ export async function configureDevServer(
 
         if (typeof render === 'function') {
           const manifest: QwikManifest = {
+            manifestHash: '',
             symbols: {},
             mapping: {},
             bundles: {},

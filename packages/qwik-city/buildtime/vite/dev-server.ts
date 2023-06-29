@@ -189,6 +189,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
           const manifest: QwikManifest = {
+            manifestHash: '',
             symbols: {},
             mapping: {},
             bundles: {},

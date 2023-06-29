@@ -217,6 +217,7 @@ export async function renderToStream(
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
+    manifestHash: resolvedManifest?.manifest.manifestHash || 'dev',
   });
 
   // End of container

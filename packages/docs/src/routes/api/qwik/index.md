@@ -1509,6 +1509,7 @@ export interface RenderSSROptions
 | [beforeContent?](#)      |           | [JSXNode](#jsxnode)&lt;string&gt;[]                                                                                                                             | _(Optional)_ |
 | [containerAttributes](#) |           | Record&lt;string, string&gt;                                                                                                                                    |              |
 | [containerTagName](#)    |           | string                                                                                                                                                          |              |
+| [manifestHash](#)        |           | string                                                                                                                                                          |              |
 | [serverData?](#)         |           | Record&lt;string, any&gt;                                                                                                                                       | _(Optional)_ |
 | [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                   |              |
 

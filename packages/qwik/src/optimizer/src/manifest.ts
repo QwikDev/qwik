@@ -251,6 +251,7 @@ export function generateManifestFromBundles(
   opts: NormalizedQwikPluginOptions
 ) {
   const manifest: QwikManifest = {
+    manifestHash: '',
     symbols: {},
     mapping: {},
     bundles: {},

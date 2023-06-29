@@ -17,6 +17,7 @@ import type {
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { Rollup } from 'vite';
+import { hashCode } from '../../../core/util/hash_code';
 
 const REG_CTX_NAME = ['server'];
 
@@ -703,6 +704,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             .sort();
         }
       }
+
+      manifest.manifestHash = hashCode(JSON.stringify(manifest));
 
       return manifest;
     };

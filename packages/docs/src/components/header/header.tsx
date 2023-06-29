@@ -108,6 +108,15 @@ export const Header = component$(() => {
               </a>
             </li>
             <li>
+              <a
+                href="/shop/"
+                class={{ active: pathname.startsWith('/shop') }}
+                aria-label="Qwik shop"
+              >
+                <span>Shop</span>
+              </a>
+            </li>
+            <li>
               <DocSearch
                 appId={import.meta.env.VITE_ALGOLIA_APP_ID}
                 apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}

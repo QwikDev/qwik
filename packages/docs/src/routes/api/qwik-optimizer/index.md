@@ -377,15 +377,16 @@ export interface QwikBundle
 export interface QwikManifest
 ```
 
-| Property         | Modifiers | Type                                                                              | Description  |
-| ---------------- | --------- | --------------------------------------------------------------------------------- | ------------ |
-| [bundles](#)     |           | { [fileName: string]: [QwikBundle](#qwikbundle); }                                |              |
-| [injections?](#) |           | [GlobalInjections](#globalinjections)[]                                           | _(Optional)_ |
-| [mapping](#)     |           | { [symbolName: string]: string; }                                                 |              |
-| [options?](#)    |           | { target?: string; buildMode?: string; entryStrategy?: { [key: string]: any; }; } | _(Optional)_ |
-| [platform?](#)   |           | { [name: string]: string; }                                                       | _(Optional)_ |
-| [symbols](#)     |           | { [symbolName: string]: [QwikSymbol](#qwiksymbol); }                              |              |
-| [version](#)     |           | string                                                                            |              |
+| Property          | Modifiers | Type                                                                              | Description  |
+| ----------------- | --------- | --------------------------------------------------------------------------------- | ------------ |
+| [bundles](#)      |           | { [fileName: string]: [QwikBundle](#qwikbundle); }                                |              |
+| [injections?](#)  |           | [GlobalInjections](#globalinjections)[]                                           | _(Optional)_ |
+| [manifestHash](#) |           | string                                                                            |              |
+| [mapping](#)      |           | { [symbolName: string]: string; }                                                 |              |
+| [options?](#)     |           | { target?: string; buildMode?: string; entryStrategy?: { [key: string]: any; }; } | _(Optional)_ |
+| [platform?](#)    |           | { [name: string]: string; }                                                       | _(Optional)_ |
+| [symbols](#)      |           | { [symbolName: string]: [QwikSymbol](#qwiksymbol); }                              |              |
+| [version](#)      |           | string                                                                            |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 

@@ -58,10 +58,9 @@ export async function mergeIntegrationDir(
 
 async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
-  const srcPkgJson = JSON.parse(srcContent);
-
-  const props = ['scripts', 'dependencies', 'devDependencies'];
   try {
+    const srcPkgJson = JSON.parse(srcContent);
+    const props = ['scripts', 'dependencies', 'devDependencies'];
     const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
     props.forEach((prop) => {
       mergePackageJsonSort(srcPkgJson, destPkgJson, prop);
@@ -87,9 +86,8 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
 
 async function mergeJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
-  const srcPkgJson = JSON.parse(srcContent);
-
   try {
+    const srcPkgJson = JSON.parse(srcContent);
     const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
     Object.assign(srcPkgJson, destPkgJson);
 

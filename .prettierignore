@@ -2,7 +2,6 @@
 **/*.log
 **/.DS_Store
 *.
-.vscode/settings.json
 .history
 .yarn
 .yarnrc.yml
@@ -20,7 +19,6 @@ output
 rollup.config.js
 build
 .cache
-.vscode
 .rollup.cache
 tsconfig.tsbuildinfo
 packages/docs/api/**/*

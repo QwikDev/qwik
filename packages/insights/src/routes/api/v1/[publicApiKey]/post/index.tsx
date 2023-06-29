@@ -1,6 +1,7 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
-import { getDB, symbolTable } from '~/db';
+import { applicationTable, getDB, symbolTable } from '~/db';
 import { InsightsPayload } from '@builder.io/qwik-labs';
+import { eq } from 'drizzle-orm';
 
 export const onPost: RequestHandler = async ({ exit, json, request }) => {
   // console.log('API: POST: symbol');
@@ -10,6 +11,23 @@ export const onPost: RequestHandler = async ({ exit, json, request }) => {
   const db = getDB();
   let previousSymbol = payload.previousSymbol;
   const publicApiKey = payload.publicApiKey;
+  if (publicApiKey && publicApiKey.length > 4) {
+    const apps = await db
+      .select()
+      .from(applicationTable)
+      .where(eq(applicationTable.publicApiKey, publicApiKey))
+      .all();
+    if (apps.length == 0) {
+      await db
+        .insert(applicationTable)
+        .values({
+          name: 'Auto create: ' + publicApiKey,
+          description: 'Auto create: ' + publicApiKey,
+          publicApiKey,
+        })
+        .run();
+    }
+  }
   const sessionID = payload.sessionID;
   for (const event of payload.symbols) {
     await db

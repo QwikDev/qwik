@@ -44,3 +44,11 @@ export const errorTable = sqliteTable('errors', {
   error: text('error').notNull(),
   stack: text('stack').notNull(),
 });
+
+export const symbolDetailTable = sqliteTable('symbolDetail', {
+  id: integer('id').primaryKey(),
+  hash: text('hash').notNull(),
+  publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
+  fullName: text('full_name').notNull(),
+  origin: text('origin').notNull(),
+});

@@ -69,10 +69,10 @@ export function imagePlugin(): PluginOption[] {
       transform(code, id) {
         id = id.toLowerCase();
         if (id.endsWith('?jsx')) {
-          if (!code.includes('srcSet')) {
-            this.error(`Image '${id}' could not be optimized to JSX`);
-          }
           if (supportedExtensions.some((ext) => id.endsWith(ext))) {
+            if (!code.includes('srcSet')) {
+              this.error(`Image '${id}' could not be optimized to JSX`);
+            }
             const index = code.indexOf('export default');
             return (
               code.slice(0, index) +

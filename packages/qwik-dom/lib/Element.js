@@ -98,7 +98,21 @@ Element.prototype = Object.create(ContainerNode.prototype, {
     get: function () {
       return this.serialize();
     },
-    set: utils.nyi,
+    set: function(v) {
+      var parser = this.ownerDocument.implementation.mozHTMLParser(
+        this.ownerDocument._address,
+        this);
+      parser.parse(v===null ? '' : String(v), true);
+
+      // Remove any existing children of this node
+      var target = this;
+      while(target.hasChildNodes())
+        target.removeChild(target.firstChild);
+
+      // Now copy newly parsed children to this node
+      target.appendChild(parser._asDocumentFragment());
+
+    },
   },
   outerHTML: {
     get: function () {

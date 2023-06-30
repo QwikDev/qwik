@@ -1,4 +1,4 @@
-import { component$, useBrowserVisibleTask$, useSignal, useStore } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({
@@ -6,7 +6,7 @@ export default component$(() => {
     height: 0,
   });
   const outputRef = useSignal<Element>();
-  useBrowserVisibleTask$(() => {
+  useVisibleTask$(() => {
     if (outputRef.value) {
       const rect = outputRef.value.getBoundingClientRect();
       store.width = Math.round(rect.width);
@@ -15,13 +15,13 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div style={{ border: '1px solid red', width: '100px' }} ref={outputRef}>
+    <main>
+      <aside style={{ border: '1px solid red', width: '100px' }} ref={outputRef}>
         Change text value here to stretch the box.
-      </div>
-      <div>
+      </aside>
+      <p>
         The above red box is {store.height} pixels high and {store.width} pixels wide.
-      </div>
-    </div>
+      </p>
+    </main>
   );
 });

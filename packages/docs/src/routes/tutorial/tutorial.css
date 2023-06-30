@@ -1,6 +1,4 @@
 .tutorial {
-  position: fixed;
-  top: var(--header-height);
   width: 100%;
   height: calc(100vh - var(--header-height));
 }
@@ -137,8 +135,7 @@
 .nav-link:hover,
 .show-me[type='button']:hover {
   background-color: var(--tutorial-nav-button-hover-bg-color);
-  color: white;
-  border-color: var(--tutorial-nav-button-hover-bg-color);
+  color: var(--qwik-blue);
 }
 
 .show-me[type='button'] {
@@ -149,7 +146,6 @@
   margin: 0;
   background-color: white;
   color: var(--interactive-text-color);
-  border: 1px solid var(--interactive-text-color);
 }
 
 .content-main {

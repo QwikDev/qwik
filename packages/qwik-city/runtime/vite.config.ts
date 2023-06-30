@@ -1,4 +1,4 @@
-import { defineConfig, UserConfigExport } from 'vite';
+import { defineConfig, type UserConfigExport } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 
 export default defineConfig(() => {

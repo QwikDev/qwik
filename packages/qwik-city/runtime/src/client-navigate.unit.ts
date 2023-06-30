@@ -1,169 +1,143 @@
-import type { Signal } from '@builder.io/qwik';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { ClientHistoryWindow, clientNavigate } from './client-navigate';
-import type { SimpleURL } from './types';
-import { toPath } from './utils';
+import { clientNavigate, newScrollState } from './client-navigate';
+import { deepEqual } from 'assert';
 
 const navTest = suite('clientNavigate');
 
-navTest('do not popstate if location is the same', () => {
-  const win = createTestWindow('http://qwik.dev/');
-  const routeNav = createRouteNavigate(win);
-  routeNav.value = '/page-a';
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(win.location.href, 'http://qwik.dev/page-a');
-  win.firePopstate();
-  win.firePopstate();
-  win.firePopstate();
-  routeNav.value = '/page-a';
+navTest('initialize and push empty scroll history state on navigate', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/');
+  equal(win.history.state, null);
+
+  const scrollState = newScrollState();
+
+  clientNavigate(win, 'link', urlOf('/'), urlOf('/page-a'));
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+
+  clientNavigate(win, 'link', urlOf('/page-a'), urlOf('/page-b'));
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+
+  win.history.popState(-1);
+  clientNavigate(win, 'popstate', urlOf('/page-b'), urlOf('/page-a'));
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+
+  win.history.popState(-1);
+  clientNavigate(win, 'popstate', urlOf('/page-a'), urlOf('/'));
+  // This will be null, upgrading state only happens in QwikCityProvider.
+  // ClientNavigate only pushes new empty states for the scroll handler to use.
+  equal(win.history.state, null);
+
+  equal(win.events(), []);
 });
 
-navTest('pushState, popstate', () => {
-  const win = createTestWindow('http://qwik.dev/');
-  const routeNav = createRouteNavigate(win);
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  routeNav.value = '/page-a';
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  win.history.back();
-  equal(win.historyPaths.length, 1);
-  equal(win.historyPaths[0], '/');
-  equal(win.location.href, 'http://qwik.dev/');
-  equal(routeNav.value, '/');
+navTest('pushState for different routes', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
+  equal(win.history.state, null);
+
+  const scrollState = newScrollState();
+
+  clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-b?search=123'));
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+
+  clientNavigate(win, 'link', urlOf('/page-b?search=123'), urlOf('/page-b?param=456'));
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+
+  equal(win.events(), []);
 });
 
-navTest('pushState for different path', () => {
-  const win = createTestWindow('http://qwik.dev/');
-  const routeNav = createRouteNavigate(win);
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(win.historyPaths.length, 1);
-  equal(routeNav.value, '/');
-  routeNav.value = '/page-a';
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(routeNav.value, '/page-a');
-  equal(win.historyPaths.length, 2);
-  equal(win.historyPaths[1], '/page-a');
-  equal(win.location.href, 'http://qwik.dev/page-a');
-  equal(routeNav.value, '/page-a');
+navTest('when passing replaceState', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
+  equal(win.history.state, null);
+
+  const scrollState = newScrollState();
+
+  const length = win.history.length;
+  clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-a?search=456'), true);
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+  equal(win.history.length, length);
 });
 
-navTest('do not pushState for same path', () => {
-  const win = createTestWindow('http://qwik.dev/');
-  const routeNav = createRouteNavigate(win);
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(win.historyPaths.length, 1);
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(win.historyPaths.length, 1);
-  equal(routeNav.value, '/');
+navTest('pushState for different hash', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123#hash-1');
+  equal(win.history.state, null);
+
+  const scrollState = newScrollState();
+
+  clientNavigate(
+    win,
+    'link',
+    urlOf('/page-a?search=123#hash-1'),
+    urlOf('/page-b?search=123#hash-2')
+  );
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+  equal(win.events(), []);
+
+  clientNavigate(
+    win,
+    'link',
+    urlOf('/page-b?search=123#hash-2'),
+    urlOf('/page-b?search=123#hash-3')
+  );
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 });
 
-navTest('add only one popstate listener', () => {
-  const win = createTestWindow('http://qwik.dev/');
-  const routeNav = createRouteNavigate(win);
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(win.listeners.get('popstate')!.length, 1);
-  clientNavigate(win, new URL(routeNav.value, win.location.href), routeNav);
-  equal(win.listeners.get('popstate')!.length, 1);
-  equal(win._qCityHistory, 1);
-});
+function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (path: string) => URL] {
+  const events: Event[] = [];
+  const historyEntries: { url: URL; state: T | null }[] = [{ url: new URL(href), state: null }];
+  let index = 0;
 
-navTest('test mock window', () => {
-  const win = createTestWindow('http://qwik.dev/');
-  let calledPopstate = false;
-  win.addEventListener('popstate', () => {
-    calledPopstate = true;
-  });
-  equal(win.location.href, 'http://qwik.dev/');
-  equal(win.history.length, 1);
-  equal(win.history.state, '/');
-  equal(calledPopstate, false);
-  win.history.pushState('', '', '/page-a');
-  equal(win.location.href, 'http://qwik.dev/page-a');
-  equal(win.history.length, 2);
-  equal(win.history.state, '/page-a');
-  equal(calledPopstate, false);
-  win.history.back();
-  equal(win.location.href, 'http://qwik.dev/');
-  equal(win.history.length, 1);
-  equal(win.history.state, '/');
-  equal(calledPopstate, true);
-});
-
-function createTestWindow(href: string): TestClientHistoryWindow {
-  const listeners = new Map<string, (() => void)[]>();
-  const location = new URL(href);
-  const historyPaths: string[] = [toPath(location)];
-
-  return {
-    addEventListener: (evName: string, cb: () => void) => {
-      let evListeners = listeners.get(evName);
-      if (!evListeners) {
-        evListeners = [];
-        listeners.set(evName, evListeners);
-      }
-      evListeners.push(cb);
-    },
-    removeEventListener: (evName: string, cb: () => void) => {
-      const evListeners = listeners.get(evName);
-      if (evListeners) {
-        const index = evListeners.indexOf(cb);
-        if (index > -1) {
-          evListeners.splice(index, 1);
+  return [
+    {
+      HashChangeEvent: class {
+        type: 'hashchange';
+        newURL: string;
+        oldURL: string;
+        constructor(type: 'hashchange', { newURL, oldURL }: { newURL: string; oldURL: string }) {
+          this.type = type;
+          this.newURL = newURL;
+          this.oldURL = oldURL;
         }
-      }
-    },
-    get location() {
-      return location;
-    },
-    document: {
-      getElementById: () => null,
-    },
-    history: {
-      pushState: (_data: any, _: string, path: string) => {
-        historyPaths.push(path);
-        location.href = new URL(path, href).href;
       },
-      back: () => {
-        if (historyPaths.length > 1) {
-          historyPaths.pop()!;
-          location.href = new URL(historyPaths[historyPaths.length - 1], href).href;
-          const evListeners = listeners.get('popstate');
-          if (evListeners) {
-            const cb = evListeners[evListeners.length - 1];
-            cb && cb();
+      events() {
+        return events;
+      },
+      get location() {
+        return historyEntries[index].url;
+      },
+      dispatchEvent: (event: Event) => events.push(event),
+      history: {
+        popState: (delta: number) => {
+          const newIndex = index + delta;
+          if (newIndex < 0 || newIndex > historyEntries.length - 1) {
+            throw new Error(
+              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${historyEntries.length}`
+            );
           }
-        }
+          index = newIndex;
+        },
+        pushState: (state: any, _: string, path: string) => {
+          ++index;
+          historyEntries.push({ url: new URL(path, href), state });
+        },
+        replaceState: (state: any, _: string, path: string) => {
+          historyEntries.splice(historyEntries.length - 1, 1, { url: new URL(path, href), state });
+          return historyEntries;
+        },
+        get length() {
+          return historyEntries.length;
+        },
+        get state() {
+          return historyEntries[index].state;
+        },
       },
-      get length() {
-        return historyPaths.length;
-      },
-      get state() {
-        return historyPaths[historyPaths.length - 1];
-      },
-    },
-    listeners,
-    historyPaths,
-    firePopstate: () => {
-      const evListeners = listeners.get('popstate');
-      if (evListeners) {
-        evListeners[evListeners.length - 1]();
-      }
-    },
-    scrollTo: (x: number, y: number) => {},
-  } as any;
+    } as any,
+    (path: string) => new URL(path, href),
+  ];
 }
 
-interface TestClientHistoryWindow extends ClientHistoryWindow {
-  listeners: TestListeners;
-  historyPaths: string[];
-  firePopstate: () => void;
-}
-
-type TestListeners = Map<string, (() => void)[]>;
-
-function createRouteNavigate(win: { location: SimpleURL }) {
-  const routeNav: Signal<string> = { value: toPath(win.location) };
-  return routeNav;
+interface TestWindow extends Window {
+  events: () => Event[];
+  history: History & { popState: (delta: number) => void };
 }
 
 navTest.run();

@@ -1,4 +1,4 @@
-import type { OutputOptions, Plugin as RollupPlugin, RollupError } from 'rollup';
+import type { Rollup } from 'vite';
 
 import type {
   Diagnostic,
@@ -11,16 +11,16 @@ import type {
 } from '../types';
 import {
   createPlugin,
-  NormalizedQwikPluginOptions,
-  QwikBuildMode,
-  QwikBuildTarget,
-  QwikPluginOptions,
+  type NormalizedQwikPluginOptions,
+  type QwikBuildMode,
+  type QwikBuildTarget,
+  type QwikPluginOptions,
   Q_MANIFEST_FILENAME,
 } from './plugin';
 import { versions } from '../versions';
 
 /**
- * @alpha
+ * @public
  */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createPlugin(qwikRollupOpts.optimizerOptions);
@@ -47,7 +47,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         target: qwikRollupOpts.target,
         buildMode: qwikRollupOpts.buildMode,
         debug: qwikRollupOpts.debug,
-        forceFullBuild: qwikRollupOpts.forceFullBuild ?? true,
         entryStrategy: qwikRollupOpts.entryStrategy,
         rootDir: qwikRollupOpts.rootDir,
         srcDir: qwikRollupOpts.srcDir,
@@ -167,12 +166,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOpts: OutputOptions
+  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
 ) {
-  const outputOpts: OutputOptions = {
-    ...rollupOutputOpts,
-  };
-
+  const outputOpts: Rollup.OutputOptions = {};
+  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
+    Object.assign(outputOpts, rollupOutputOpts);
+  }
   if (opts.target === 'ssr') {
     // ssr output
     if (opts.buildMode === 'production') {
@@ -226,7 +225,7 @@ export function normalizeRollupOutputOptions(
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights[0] ?? {};
-  const err: RollupError = Object.assign(new Error(diagnostic.message), {
+  const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
     loc: {
@@ -239,7 +238,7 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikRollupPluginOptions {
   /**
@@ -263,7 +262,6 @@ export interface QwikRollupPluginOptions {
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   /**
    * The source directory to find all the Qwik components. Since Qwik
    * does not have a single input, the `srcDir` is used to recursively
@@ -306,4 +304,4 @@ export interface QwikRollupPluginOptions {
     | null;
 }
 
-export interface QwikRollupPlugin extends RollupPlugin {}
+export interface QwikRollupPlugin extends Rollup.Plugin {}

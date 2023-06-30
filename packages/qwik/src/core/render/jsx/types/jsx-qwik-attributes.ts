@@ -1,6 +1,5 @@
 import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
-import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikAnimationEvent,
@@ -162,33 +161,34 @@ export type QwikEventMap<T> = {
   Waiting: Event;
 };
 
-export type PreventDefault<T> = {
+export type PreventDefault<T extends Element> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
+
+export type QwikKeysEvents = Lowercase<keyof QwikEventMap<any>>;
 
 export type BaseClassList =
   | string
   | undefined
   | null
+  | false
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
+
+/**
+ * @public
+ */
 export type ClassList = BaseClassList | BaseClassList[];
 
-export interface QwikProps<T> extends PreventDefault<T> {
+export interface QwikProps<T extends Element> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Ref<T> | undefined;
 
   /**
-   *
+   * Corresponding slot name used to project the element into.
    */
   'q:slot'?: string;
-
-  /**
-   * URL against which relative QRLs should be resolved to.
-   */
-  'q:version'?: string;
-  'q:container'?: '';
 }
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
@@ -242,7 +242,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
  * @public
  */
 export interface ComponentBaseProps {
-  key?: string | number;
+  key?: string | number | null | undefined;
   'q:slot'?: string;
 }
 
@@ -259,12 +259,22 @@ export type JSXChildren =
   | RegExp
   | JSXChildren[]
   | Promise<JSXChildren>
+  | Signal<JSXChildren>
   | JSXNode;
 
 /**
  * @public
  */
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
-  key?: string | number;
+  key?: string | number | null | undefined;
 }
+
+interface RefFnInterface {
+  (el: Element): void;
+}
+
+/**
+ * @public
+ */
+export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;

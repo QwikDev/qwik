@@ -18,9 +18,9 @@ import {
   mkdir as fsMkdir,
 } from 'node:fs';
 import { promisify } from 'util';
-import { minify, MinifyOptions } from 'terser';
+import { minify, type MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
-import { execa, Options } from 'execa';
+import { execa, type Options } from 'execa';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -33,12 +33,15 @@ export interface BuildConfig {
   packagesDir: string;
   tmpDir: string;
   srcNapiDir: string;
-  srcDir: string;
+  srcQwikDir: string;
+  srcQwikCityDir: string;
+  srcQwikLabsDir: string;
   scriptsDir: string;
   startersDir: string;
   tscDir: string;
   dtsDir: string;
-  distPkgDir: string;
+  distQwikPkgDir: string;
+  distQwikCityPkgDir: string;
   distBindingsDir: string;
   esmNode: boolean;
   distVersion: string;
@@ -48,7 +51,10 @@ export interface BuildConfig {
   build?: boolean;
   qwikcity?: boolean;
   qwikreact?: boolean;
+  qwiklabs?: boolean;
   qwikauth?: boolean;
+  qwikworker?: boolean;
+  supabaseauthhelpers?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -77,12 +83,15 @@ export function loadConfig(args: string[] = []) {
   config.rootDir = join(__dirname, '..');
   config.packagesDir = join(config.rootDir, 'packages');
   config.tmpDir = join(config.rootDir, 'dist-dev');
-  config.srcDir = join(config.packagesDir, 'qwik', 'src');
-  config.srcNapiDir = join(config.srcDir, 'napi');
+  config.srcQwikDir = join(config.packagesDir, 'qwik', 'src');
+  config.srcQwikCityDir = join(config.packagesDir, 'qwik-city');
+  config.srcQwikLabsDir = join(config.packagesDir, 'qwik-labs');
+  config.srcNapiDir = join(config.srcQwikDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.startersDir = join(config.rootDir, 'starters');
-  config.distPkgDir = join(config.packagesDir, 'qwik', 'dist');
-  config.distBindingsDir = join(config.distPkgDir, 'bindings');
+  config.distQwikPkgDir = join(config.packagesDir, 'qwik', 'dist');
+  config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
+  config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
   config.tscDir = join(config.tmpDir, 'tsc-out');
   config.dtsDir = join(config.tmpDir, 'dts-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
@@ -169,7 +178,7 @@ export const target = 'es2020';
 export const nodeTarget = 'node14';
 
 /**
- * Helper just to know which NodeJS modules that should stay external.
+ * Helper just to know which Node.js modules that should stay external.
  */
 export const nodeBuiltIns = [
   'assert',
@@ -184,24 +193,6 @@ export const nodeBuiltIns = [
   'url',
   'util',
 ];
-
-export function injectGlobalThisPoly() {
-  return `
-if (typeof globalThis == 'undefined') {
-  const g = 'undefined' != typeof global ? global : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.globalThis = g;
-}
-`;
-}
-
-export function injectGlobalPoly() {
-  return `
-if (typeof global == 'undefined') {
-  const g = 'undefined' != typeof globalThis ? globalThis : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.global = g;
-}
-`;
-}
 
 /**
  * Utility just to ignore certain rollup warns we already know aren't issues.

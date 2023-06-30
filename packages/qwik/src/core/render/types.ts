@@ -3,7 +3,7 @@ import type { QContext } from '../state/context';
 import type { QwikElement } from './dom/virtual-element';
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderOperation {
   $operation$: (...args: any[]) => void;
@@ -11,7 +11,7 @@ export interface RenderOperation {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
@@ -24,6 +24,7 @@ export interface RenderStaticContext {
   readonly $doc$: Document;
   readonly $roots$: QContext[];
   readonly $hostElements$: Set<QwikElement>;
+  readonly $visited$: (Node | QwikElement)[];
   readonly $operations$: RenderOperation[];
   readonly $postOperations$: RenderOperation[];
   readonly $containerState$: ContainerState;
@@ -32,6 +33,22 @@ export interface RenderStaticContext {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface RenderContext2 {}
+
+// Polyfills for ViewTransition API & scroll restoration
+declare global {
+  interface ViewTransition {
+    ready: Promise<void>;
+    finished: Promise<void>;
+    updateCallbackDone: Promise<void>;
+    skipTransition: () => void;
+  }
+
+  interface Document {
+    startViewTransition?: (callback: () => void | Promise<void>) => ViewTransition;
+    __q_view_transition__?: true | undefined;
+    __q_scroll_restore__?: (() => void) | undefined;
+  }
+}

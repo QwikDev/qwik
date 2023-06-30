@@ -8,7 +8,7 @@ import { createNodeWorkerProcess } from './node-worker';
 import { normalizePath } from '../../utils/fs';
 
 /**
- * @alpha
+ * @public
  */
 export async function createSystem(opts: StaticGenerateOptions) {
   patchGlobalThis();

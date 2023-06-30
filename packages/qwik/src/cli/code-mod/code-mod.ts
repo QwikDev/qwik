@@ -18,7 +18,8 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
     !updates?.imports &&
     !updates?.qwikViteConfig &&
     !updates?.viteConfig &&
-    !updates?.vitePlugins
+    !updates?.vitePlugins &&
+    !updates?.vitePluginsPrepend
   ) {
     return null;
   }
@@ -37,12 +38,14 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
         if (
           ts.isIdentifier(s.expression.expression) &&
           s.expression.expression.text === 'defineConfig' &&
-          (updates.viteConfig || updates.qwikViteConfig || updates.vitePlugins)
+          (updates.viteConfig ||
+            updates.qwikViteConfig ||
+            updates.vitePlugins ||
+            updates.vitePluginsPrepend)
         ) {
           statements.push(
             ts.factory.updateExportAssignment(
               s,
-              s.decorators,
               s.modifiers,
               updateDefineConfig(ts, s.expression, updates)
             )
@@ -226,7 +229,6 @@ function appendImports(
     statements[i] = ts.factory.updateImportDeclaration(
       n,
       undefined,
-      undefined,
       ts.factory.createImportClause(false, defaultIdentifier, namedBindings),
       n.moduleSpecifier,
       undefined
@@ -252,7 +254,6 @@ function appendImports(
     }
 
     const newNamedImport = ts.factory.createImportDeclaration(
-      undefined,
       undefined,
       ts.factory.createImportClause(false, defaultIdentifier, namedBindings),
       ts.factory.createStringLiteral(importPath)
@@ -314,6 +315,11 @@ function updateDefineConfig(ts: TypeScript, callExp: CallExpression, updates: Vi
         );
         continue;
       }
+
+      if (ts.isObjectLiteralExpression(exp)) {
+        args.push(updateVitConfigObj(ts, exp, updates));
+        continue;
+      }
     }
 
     args.push(exp);
@@ -344,7 +350,7 @@ function updateVitConfigObj(
   if (updates.viteConfig) {
     obj = updateObjectLiteralExpression(ts, obj, updates.viteConfig);
   }
-  if (updates.vitePlugins || updates.qwikViteConfig) {
+  if (updates.vitePlugins || updates.vitePluginsPrepend || updates.qwikViteConfig) {
     obj = updatePlugins(ts, obj, updates);
   }
   return obj;
@@ -384,8 +390,31 @@ function updatePluginsArray(
   if (updates.vitePlugins) {
     for (const vitePlugin of updates.vitePlugins) {
       const pluginExp = createPluginCall(ts, vitePlugin);
-      if (pluginExp) {
+      const pluginName = (pluginExp?.expression as Identifier | null)?.escapedText;
+      const alreadyDefined = elms.some(
+        (el) =>
+          ts.isCallExpression(el) &&
+          ts.isIdentifier(el.expression) &&
+          el.expression.escapedText === pluginName
+      );
+      if (pluginExp && !alreadyDefined) {
         elms.push(pluginExp);
+      }
+    }
+  }
+
+  if (updates.vitePluginsPrepend) {
+    for (const vitePlugin of updates.vitePluginsPrepend) {
+      const pluginExp = createPluginCall(ts, vitePlugin);
+      const pluginName = (pluginExp?.expression as Identifier | null)?.escapedText;
+      const alreadyDefined = elms.some(
+        (el) =>
+          ts.isCallExpression(el) &&
+          ts.isIdentifier(el.expression) &&
+          el.expression.escapedText === pluginName
+      );
+      if (pluginExp && !alreadyDefined) {
+        elms.unshift(pluginExp);
       }
     }
   }
@@ -404,7 +433,7 @@ function updatePluginsArray(
   return ts.factory.updateArrayLiteralExpression(arr, elms);
 }
 
-function createPluginCall(ts: TypeScript, vitePlugin: string) {
+function createPluginCall(ts: TypeScript, vitePlugin: string): CallExpression | null {
   if (typeof vitePlugin === 'string') {
     const tmp = ts.createSourceFile(
       'tmp.ts',
@@ -413,7 +442,7 @@ function createPluginCall(ts: TypeScript, vitePlugin: string) {
     );
     for (const s of tmp.statements) {
       if (ts.isExportAssignment(s)) {
-        return s.expression;
+        return s.expression as CallExpression;
       }
     }
   }

@@ -1,0 +1,28 @@
+service: qwik-lambda-app
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-west-1
+  memorySize: 128
+  timeout: 10
+  stage: dev
+
+functions:
+  qwik:
+    handler: server/entry_aws-lambda.qwikApp
+    events:
+      - httpApi: "*"
+
+custom:
+  serverless-offline:
+    httpPort: 4000
+
+package:
+  excludeDevDependencies: false
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-common-excludes
+  - serverless-plugin-include-dependencies

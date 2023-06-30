@@ -1,4 +1,10 @@
-import { component$, useStyles$, useResource$, Resource, useSignal } from '@builder.io/qwik';
+import {
+  component$,
+  useStyles$,
+  useResource$,
+  Resource,
+  useSignal,
+} from "@builder.io/qwik";
 
 interface ContainerProps {
   url: string;
@@ -35,15 +41,19 @@ export const Container = component$((props: ContainerProps) => {
     }
     `);
 
-  const resource = useResource$<{ url: string; html: string }>(async ({ track }) => {
-    track(props, 'url');
-    const url = `http://localhost:${(globalThis as any).PORT}${props.url}?fragment&loader=false`;
-    const res = await fetch(url);
-    return {
-      url,
-      html: await res.text(),
-    };
-  });
+  const resource = useResource$<{ url: string; html: string }>(
+    async ({ track }) => {
+      track(() => props.url);
+      const url = `http://localhost:${(globalThis as any).PORT}${
+        props.url
+      }?fragment&loader=false`;
+      const res = await fetch(url);
+      return {
+        url,
+        html: await res.text(),
+      };
+    }
+  );
 
   return (
     <div class="container">

@@ -40,7 +40,7 @@ import { qrl } from "@builder.io/qwik";
 export const sym1 = /*#__PURE__*/ qrl(()=>import("./sym1_axurpxx5lak"), "sym1_aXUrPXX5Lak");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AACA,OAAO,MAAM,+EAAoC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,+EAAoC\"}")
 == DIAGNOSTICS ==
 
 []

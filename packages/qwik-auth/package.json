@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-auth",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Qwik Auth is powered by Next's Auth.js a battle tested library for authentication with 3rd party providers",
   "keywords": [
     "auth.js",
@@ -41,15 +41,13 @@
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts",
   "devDependencies": {
-    "@auth/core": "^0.5.0",
+    "@auth/core": "^0.7.1",
     "@builder.io/qwik": "workspace:*",
     "@builder.io/qwik-city": "workspace:*",
     "@types/set-cookie-parser": "^2.4.2",
-    "set-cookie-parser": "^2.5.1"
+    "set-cookie-parser": "^2.6.0"
   },
   "peerDependencies": {
-    "@auth/core": ">=0.4.0",
-    "@builder.io/qwik": ">=0.17.0",
-    "@builder.io/qwik-city": ">=0.1.0"
+    "@auth/core": ">=0.4.0"
   }
 }

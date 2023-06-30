@@ -2,7 +2,7 @@ import type { AppBundle, LinkBundle } from './types';
 import { setupServiceWorkerScope } from './setup';
 
 /**
- * @alpha
+ * @public
  */
 export const setupServiceWorker = () => {
   if (typeof self !== 'undefined' && typeof appBundles !== 'undefined') {

@@ -1,8 +1,8 @@
-import { component$ } from '@builder.io/qwik';
-import { loader$ } from '@builder.io/qwik-city';
-import ActionForm from './action';
+import { component$ } from "@builder.io/qwik";
+import { routeLoader$ } from "@builder.io/qwik-city";
+import ActionForm from "./action";
 
-export const useRealDateLoader = loader$(() => {
+export const useRealDateLoader = routeLoader$(() => {
   return [new Date().toISOString()];
 });
 

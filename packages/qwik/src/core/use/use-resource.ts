@@ -1,14 +1,14 @@
-import { $, QRL } from '../qrl/qrl.public';
+import { $, type QRL } from '../qrl/qrl.public';
 import { assertQrl } from '../qrl/qrl-class';
 import {
-  ResourceReturn,
-  ResourceDescriptor,
-  ResourceFn,
+  type ResourceReturn,
+  type ResourceDescriptor,
+  type ResourceFn,
   runResource,
-  WatchFlagsIsDirty,
-  WatchFlagsIsResource,
+  TaskFlagsIsDirty,
+  TaskFlagsIsResource,
   Task,
-  ResourceReturnInternal,
+  type ResourceReturnInternal,
 } from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
@@ -19,7 +19,7 @@ import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
-import { isSignal, Signal } from '../state/signal';
+import { isSignal, type Signal } from '../state/signal';
 import { isObject } from '../util/types';
 
 /**
@@ -43,7 +43,7 @@ export interface ResourceOptions {
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -107,19 +107,19 @@ export const useResourceQrl = <T>(
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = elCtx.$element$;
-  const watch = new Task(
-    WatchFlagsIsDirty | WatchFlagsIsResource,
+  const task = new Task(
+    TaskFlagsIsDirty | TaskFlagsIsResource,
     i,
     el,
     qrl,
     resource
   ) as ResourceDescriptor<any>;
   const previousWait = Promise.all(iCtx.$waitOn$.slice());
-  runResource(watch, containerState, iCtx.$renderCtx$, previousWait);
-  if (!elCtx.$watches$) {
-    elCtx.$watches$ = [];
+  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
+  if (!elCtx.$tasks$) {
+    elCtx.$tasks$ = [];
   }
-  elCtx.$watches$.push(watch);
+  elCtx.$tasks$.push(task);
   set(resource);
 
   return resource;
@@ -132,7 +132,7 @@ export const useResourceQrl = <T>(
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -207,7 +207,7 @@ export interface ResourceProps<T> {
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:

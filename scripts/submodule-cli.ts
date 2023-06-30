@@ -1,7 +1,8 @@
 import { build } from 'esbuild';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
+import { type BuildConfig, copyDir, copyFile, getBanner, nodeTarget, watcher } from './util';
 
 /**
  * Builds @builder.io/qwik/cli
@@ -10,8 +11,8 @@ export async function submoduleCli(config: BuildConfig) {
   const submodule = 'cli';
 
   await build({
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
-    outfile: join(config.distPkgDir, 'cli.cjs'),
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    outfile: join(config.distQwikPkgDir, 'cli.cjs'),
     format: 'cjs',
     platform: 'node',
     target: nodeTarget,
@@ -44,9 +45,21 @@ export async function submoduleCli(config: BuildConfig) {
     },
   });
 
-  await copyFile(join(config.srcDir, submodule, 'qwik.cjs'), join(config.distPkgDir, 'qwik.cjs'));
+  await copyFile(
+    join(config.srcQwikDir, submodule, 'qwik.cjs'),
+    join(config.distQwikPkgDir, 'qwik.cjs')
+  );
 
-  await copyStartersDir(config, config.distPkgDir, ['features', 'adapters']);
+  await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);
+
+  const tmplSrc = join(config.startersDir, 'templates');
+  const tmplDist = join(config.distQwikPkgDir, 'templates');
+
+  if (existsSync(tmplDist)) {
+    rmSync(tmplDist, { recursive: true });
+  }
+
+  await copyDir(config, tmplSrc, tmplDist);
 
   console.log('📠', submodule);
 }

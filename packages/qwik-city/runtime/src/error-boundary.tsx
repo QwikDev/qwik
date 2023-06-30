@@ -1,7 +1,7 @@
-import { component$, useErrorBoundary, Slot, PropFunction } from '@builder.io/qwik';
+import { component$, useErrorBoundary, Slot, type PropFunction } from '@builder.io/qwik';
 
 /**
- * @alpha
+ * @public
  */
 export interface ErrorBoundaryProps {
   children: any;
@@ -9,7 +9,7 @@ export interface ErrorBoundaryProps {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const ErrorBoundary = component$((props: ErrorBoundaryProps) => {
   const store = useErrorBoundary();

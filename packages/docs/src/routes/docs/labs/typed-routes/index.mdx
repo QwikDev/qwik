@@ -1,0 +1,44 @@
+---
+title: 🧪 Typed Routes
+contributors:
+  - mhevery
+---
+
+# 🧪 Typed Routes 
+**Stage:** `prototyping`
+
+Provides type safe way of building URLs within the application.
+
+## Installation
+
+1. `npm install github:BuilderIo/qwik-labs-build#main`
+2. update `vite.config.js`
+   ```typescript
+   // ...
+   import { qwikTypes } from '@builder.io/qwik-labs/vite'; 
+
+   export default defineConfig(() => {
+     return {
+       plugins: [
+        // ...
+        qwikTypes() // <== Add `qwikTypes()` to the list of plugins
+       ],
+       // ...
+     };
+   });
+   ```
+3. Run build so that it generates `~/routes.gen.d.ts` and `~/routes.config.tsx` files.
+3. To create a typesafe link:
+   ```typescript
+   import { AppLink } from '~/routes.config';
+
+   export default component$(() => {
+     // ...
+     return (
+       // ...
+       <AppLink route="/your/[appParam]/link/" param:appParam={"some-value"}>
+         Link text
+       </AppLink>
+     );
+   });
+   ```

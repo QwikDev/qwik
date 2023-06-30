@@ -67,8 +67,10 @@ export function removeExtension(fileName: string) {
 }
 
 export function normalizePath(path: string) {
-  path = normalize(path);
+  return normalizePathSlash(normalize(path));
+}
 
+export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
   const isExtendedLengthPath = /^\\\\\?\\/.test(path);
@@ -85,7 +87,18 @@ export function normalizePath(path: string) {
   return path;
 }
 
-export function createFileId(routesDir: string, fsPath: string) {
+/**
+ * Creates an id for the module, based on its path.
+ *
+ * @param routesDir
+ * @param fsPath
+ * @param explicitFileType Add to avoid collisions between different types of modules. `Menu` and `Layout` files are named based on their path (eg. /routes/about/menu.md => AboutMenu)
+ */
+export function createFileId(
+  routesDir: string,
+  fsPath: string,
+  explicitFileType?: 'Route' | 'Plugin' | 'ServiceWorker'
+) {
   const ids: string[] = [];
 
   for (let i = 0; i < 25; i++) {
@@ -110,7 +123,10 @@ export function createFileId(routesDir: string, fsPath: string) {
     ids.shift();
   }
 
-  return ids.reverse().join('');
+  return ids
+    .reverse()
+    .join('')
+    .concat(explicitFileType || '');
 }
 
 const PAGE_MODULE_EXTS: { [type: string]: boolean } = {
@@ -184,7 +200,7 @@ export function isGroupedLayoutName(dirName: string, warn = true) {
       console.warn(
         `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
           2
-        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future verions.`
+        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`
       );
     }
     return true;

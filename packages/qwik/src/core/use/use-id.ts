@@ -3,7 +3,7 @@ import { hashCode } from '../util/hash_code';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**
- * @alpha
+ * @public
  */
 export const useId = (): string => {
   const { get, set, elCtx, iCtx } = useSequentialScope<string>();

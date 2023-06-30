@@ -1,12 +1,12 @@
 import type { CorePlatform } from '@builder.io/qwik';
 
 /**
- * @alpha
+ * @public
  */
 export interface MockDocument extends Document {}
 
 /**
- * @alpha
+ * @public
  */
 export interface MockWindow extends Window {
   document: MockDocument;
@@ -14,7 +14,7 @@ export interface MockWindow extends Window {
 
 /**
  * Options when creating a mock Qwik Document object.
- * @alpha
+ * @public
  */
 export interface MockDocumentOptions {
   url?: URL | string;
@@ -24,13 +24,13 @@ export interface MockDocumentOptions {
 /**
  * Options when creating a mock Qwik Window object.
  *
- * @alpha
+ * @public
  *
  */
 export interface MockWindowOptions extends MockDocumentOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface TestPlatform extends CorePlatform {
   flush: () => Promise<void>;

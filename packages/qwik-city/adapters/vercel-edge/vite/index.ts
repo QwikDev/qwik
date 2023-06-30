@@ -1,16 +1,15 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 
 /**
- * @alpha
+ * @public
  */
 export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
   return viteAdapter({
     name: 'vercel-edge',
     origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
-    staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -40,7 +39,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       };
     },
 
-    async generate({ clientOutDir, serverOutDir, basePathname, outputEntries }) {
+    async generate({ clientPublicOutDir, serverOutDir, basePathname, outputEntries }) {
       const vercelOutputDir = getParentDir(serverOutDir, 'output');
 
       if (opts.outputConfig !== false) {
@@ -97,19 +96,13 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       await fs.promises.mkdir(dirname(vercelStaticDir), { recursive: true });
 
       // move the dist directory to the vercel output static directory location
-      await fs.promises.rename(clientOutDir, vercelStaticDir);
+      await fs.promises.rename(clientPublicOutDir, vercelStaticDir);
     },
   });
 }
 
 /**
- * @alpha
- * @deprecated Use `vercelEdgeAdapter` exported from `@builder.io/qwik-city/adapters/vercel-edge/vite` instead.
- */
-export const vercelEdgeAdaptor = vercelEdgeAdapter;
-
-/**
- * @alpha
+ * @public
  */
 export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -141,12 +134,6 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
- * @deprecated Please use `VercelEdgeAdapterOptions` instead.
- */
-export type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;
-
-/**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

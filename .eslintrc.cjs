@@ -28,5 +28,7 @@ module.exports = {
     'no-only-tests/no-only-tests': 'error',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-var-requires': 'off',
+    curly: 'error',
+    'no-new-func': 'error',
   },
 };

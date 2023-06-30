@@ -17,7 +17,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 declare const Deno: any;
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   const qwikSerializer = {
@@ -51,6 +51,12 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
           });
           resolve(response);
           return writable;
+        },
+        getClientConn: () => {
+          return {
+            ip: context.ip,
+            country: context.geo.country?.code,
+          };
         },
         platform: context,
       };
@@ -89,11 +95,11 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

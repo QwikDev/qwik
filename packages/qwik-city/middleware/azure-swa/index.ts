@@ -1,7 +1,5 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import type { RenderOptions } from '@builder.io/qwik';
-import { Render, setServerPlatform } from '@builder.io/qwik/server';
-import qwikCityPlan from '@qwik-city-plan';
+import { setServerPlatform } from '@builder.io/qwik/server';
 import {
   mergeHeadersCookies,
   requestHandler,
@@ -22,7 +20,7 @@ interface AzureResponse {
 }
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   const qwikSerializer = {
@@ -36,11 +34,10 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
       const url = new URL(req.headers['x-ms-original-url']!);
-      const options = {
-        method: req.method,
+      const options: RequestInit = {
+        method: req.method || 'GET',
         headers: req.headers,
-        body: req.body,
-        duplex: 'half' as any,
+        body: req.bufferBody || req.rawBody || req.body,
       };
 
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
@@ -53,7 +50,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
             return process.env[key];
           },
         },
-        request: new Request(url, options as any),
+        request: new Request(url, options),
         getWritableStream: (status, headers, cookies, resolve) => {
           const response: AzureResponse = {
             status,
@@ -76,6 +73,13 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
               resolve(response);
             },
           });
+        },
+
+        getClientConn: () => {
+          return {
+            ip: req.headers['x-forwarded-client-Ip'],
+            country: undefined,
+          };
         },
       };
 
@@ -114,29 +118,11 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityAzureOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
 export interface PlatformAzure extends Partial<Context> {}
-
-/**
- * @alpha
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/azure-swa';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export default createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
-}

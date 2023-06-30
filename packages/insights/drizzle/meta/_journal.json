@@ -1,0 +1,34 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1687211746816,
+      "tag": "0000_blue_blindfold",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1687215719797,
+      "tag": "0001_sweet_virginia_dare",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1687219203328,
+      "tag": "0002_exotic_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1687219846067,
+      "tag": "0003_late_titanium_man",
+      "breakpoints": true
+    }
+  ]
+}

@@ -4,10 +4,10 @@ import type {
   ServerRequestMode,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
-
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
+import type { ClientConn } from '../request-handler/types';
 
 function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
@@ -18,16 +18,29 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-export function getUrl(req: IncomingMessage) {
-  const origin = ORIGIN ?? getOrigin(req);
-  return new URL((req as any).originalUrl || req.url || '/', origin);
+export function getUrl(
+  req: IncomingMessage,
+  origin: string = process.env.ORIGIN ?? getOrigin(req)
+) {
+  return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
+}
+
+const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
+
+export function normalizeUrl(url: string, base: string) {
+  // do not allow the url to have a relative protocol url
+  // which could bypass of CSRF protections
+  // for example: new URL("//attacker.com", "https://qwik.build.io")
+  // would return "https://attacker.com" when it should be "https://qwik.build.io/attacker.com"
+  return new URL(url.replace(DOUBLE_SLASH_REG, '/'), base);
 }
 
 export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
-  mode: ServerRequestMode
+  mode: ServerRequestMode,
+  getClientConn?: (req: IncomingMessage) => ClientConn
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
@@ -49,12 +62,17 @@ export async function fromNodeHttp(
   };
 
   const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+  const controller = new AbortController();
   const options = {
     method: req.method,
     headers: requestHeaders,
     body: body as any,
+    signal: controller.signal,
     duplex: 'half' as any,
   };
+  res.on('close', () => {
+    controller.abort();
+  });
   const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
     url,
@@ -71,15 +89,25 @@ export async function fromNodeHttp(
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      const stream = new WritableStream<Uint8Array>({
+      return new WritableStream<Uint8Array>({
         write(chunk) {
-          res.write(chunk);
+          res.write(chunk, (error) => {
+            if (error) {
+              console.error(error);
+            }
+          });
         },
         close() {
           res.end();
         },
       });
-      return stream;
+    },
+    getClientConn: () => {
+      return getClientConn
+        ? getClientConn(req)
+        : {
+            ip: req.socket.remoteAddress,
+          };
     },
     platform: {
       ssr: true,

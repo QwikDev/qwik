@@ -38,9 +38,9 @@ header .active {
 }
 
 .theme-light .theme-toggle::before {
-  content: '☽';
+  content: "☽";
 }
 
 .theme-dark .theme-toggle::before {
-  content: '☀';
+  content: "☀";
 }

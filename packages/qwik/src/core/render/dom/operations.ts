@@ -1,8 +1,9 @@
+import type { ContainerState } from '../../container/container';
 import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';
-import { isElement, isNode } from '../../util/element';
+import { isElement, isNode, isQwikElement } from '../../util/element';
 import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
@@ -12,27 +13,25 @@ import type { QwikElement, VirtualElement } from './virtual-element';
 import {
   cleanupTree,
   directAppendChild,
+  directInsertAfter,
   directInsertBefore,
   directRemoveChild,
   getChildren,
+  isChildComponent,
   isSlotTemplate,
   SVG_NS,
 } from './visitor';
 
 export const setAttribute = (
-  staticCtx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext,
   el: QwikElement,
   prop: string,
   value: any
 ) => {
-  if (staticCtx) {
-    staticCtx.$operations$.push({
-      $operation$: _setAttribute,
-      $args$: [el, prop, value],
-    });
-  } else {
-    _setAttribute(el, prop, value);
-  }
+  staticCtx.$operations$.push({
+    $operation$: _setAttribute,
+    $args$: [el, prop, value],
+  });
 };
 
 const _setAttribute = (el: QwikElement, prop: string, value: any) => {
@@ -44,20 +43,23 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   }
 };
 
-export const setProperty = (
-  staticCtx: RenderStaticContext | undefined,
+export const setProperty = (staticCtx: RenderStaticContext, node: any, key: string, value: any) => {
+  staticCtx.$operations$.push({
+    $operation$: _setProperty,
+    $args$: [node, key, value],
+  });
+};
+
+export const setPropertyPost = (
+  staticCtx: RenderStaticContext,
   node: any,
   key: string,
   value: any
 ) => {
-  if (staticCtx) {
-    staticCtx.$operations$.push({
-      $operation$: _setProperty,
-      $args$: [node, key, value],
-    });
-  } else {
-    _setProperty(node, key, value);
-  }
+  staticCtx.$postOperations$.push({
+    $operation$: _setProperty,
+    $args$: [node, key, value],
+  });
 };
 
 const _setProperty = (node: any, key: string, value: any) => {
@@ -90,6 +92,19 @@ export const insertBefore = <T extends Node | VirtualElement>(
   return newChild;
 };
 
+export const insertAfter = <T extends Node | VirtualElement>(
+  staticCtx: RenderStaticContext,
+  parent: QwikElement,
+  newChild: T,
+  refChild: Node | VirtualElement | null | undefined
+): T => {
+  staticCtx.$operations$.push({
+    $operation$: directInsertAfter,
+    $args$: [parent, newChild, refChild ? refChild : null],
+  });
+  return newChild;
+};
+
 export const appendChild = <T extends Node | VirtualElement>(
   staticCtx: RenderStaticContext,
   parent: QwikElement,
@@ -106,24 +121,20 @@ export const appendHeadStyle = (staticCtx: RenderStaticContext, styleTask: Style
   staticCtx.$containerState$.$styleIds$.add(styleTask.styleId);
   staticCtx.$postOperations$.push({
     $operation$: _appendHeadStyle,
-    $args$: [staticCtx.$containerState$.$containerEl$, styleTask],
+    $args$: [staticCtx.$containerState$, styleTask],
   });
 };
 
 export const setClasslist = (
-  staticCtx: RenderStaticContext | undefined,
+  staticCtx: RenderStaticContext,
   elm: Element,
   toRemove: string[],
   toAdd: string[]
 ) => {
-  if (staticCtx) {
-    staticCtx.$operations$.push({
-      $operation$: _setClasslist,
-      $args$: [elm, toRemove, toAdd],
-    });
-  } else {
-    _setClasslist(elm, toRemove, toAdd);
-  }
+  staticCtx.$operations$.push({
+    $operation$: _setClasslist,
+    $args$: [elm, toRemove, toAdd],
+  });
 };
 
 export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[]) => {
@@ -132,7 +143,8 @@ export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[])
   classList.add(...toAdd);
 };
 
-export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) => {
+export const _appendHeadStyle = (containerState: ContainerState, styleTask: StyleAppend) => {
+  const containerEl = containerState.$containerEl$;
   const doc = getDocument(containerEl);
   const isDoc = doc.documentElement === containerEl;
   const headEl = doc.head;
@@ -163,6 +175,10 @@ export const directPrepend = (parent: QwikElement, newChild: Node) => {
 };
 
 export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
+  if (isQwikElement(el)) {
+    const subsManager = staticCtx.$containerState$.$subsManager$;
+    cleanupTree(el as Element, staticCtx, subsManager, true);
+  }
   staticCtx.$operations$.push({
     $operation$: _removeNode,
     $args$: [el, staticCtx],
@@ -172,10 +188,6 @@ export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualEle
 const _removeNode = (el: Node | VirtualElement, staticCtx: RenderStaticContext) => {
   const parent = el.parentElement;
   if (parent) {
-    if (el.nodeType === 1 || el.nodeType === 111) {
-      const subsManager = staticCtx.$containerState$.$subsManager$;
-      cleanupTree(el as Element, staticCtx, subsManager, true);
-    }
     directRemoveChild(parent, el);
   } else if (qDev) {
     logWarn('Trying to remove component already removed', el);
@@ -215,27 +227,31 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const slotChildren = getChildren(slotEl, 'root');
+    const slotChildren = getChildren(slotEl, isChildComponent);
     if (slotChildren.length > 0) {
       const sref = slotEl.getAttribute(QSlotRef);
       const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
       if (hostCtx) {
         const hostElm = hostCtx.$element$;
-        const hasTemplate = Array.from(hostElm.childNodes).some(
-          (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
-        );
+        if (hostElm.isConnected) {
+          const hasTemplate = getChildren(hostElm, isSlotTemplate).some(
+            (node: any) => directGetAttribute(node, QSlot) === key
+          );
 
-        if (!hasTemplate) {
-          const template = createTemplate(staticCtx.$doc$, key);
-          for (const child of slotChildren) {
-            directAppendChild(template, child);
+          if (!hasTemplate) {
+            const template = createTemplate(staticCtx.$doc$, key);
+            for (const child of slotChildren) {
+              directAppendChild(template, child);
+            }
+            directInsertBefore(hostElm, template, hostElm.firstChild);
+          } else {
+            cleanupTree(slotEl, staticCtx, subsManager, false);
           }
-          directInsertBefore(hostElm, template, hostElm.firstChild);
         } else {
           cleanupTree(slotEl, staticCtx, subsManager, false);
         }
       } else {
-        // If slot content cannot be relocated, it means it's content is definively removed
+        // If slot content cannot be relocated, it means it's content is definitely removed
         // Cleanup needs to be executed
         cleanupTree(slotEl, staticCtx, subsManager, false);
       }
@@ -247,21 +263,16 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const template = Array.from(hostElm.childNodes).find((node) => {
-      return isSlotTemplate(node) && node.getAttribute(QSlot) === key;
+    const template = getChildren(hostElm, isSlotTemplate).find((node: any) => {
+      return node.getAttribute(QSlot) === key;
     }) as Element | undefined;
     if (template) {
-      const children = getChildren(template, 'root');
-      children.forEach((child) => {
+      getChildren(template, isChildComponent).forEach((child) => {
         directAppendChild(slotEl, child);
       });
       template.remove();
     }
   }
-};
-
-export const createTextNode = (doc: Document, text: string): Text => {
-  return doc.createTextNode(text);
 };
 
 export const printRenderStats = (staticCtx: RenderStaticContext) => {

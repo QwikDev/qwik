@@ -12,11 +12,12 @@ export const Works = component$(({
     some = 1+2,
     hello = CONST,
     stuff: hey,
+    stuffDefault: hey2 = 123,
     ...rest}) => {
     console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey, some);
+        console.log(count, rest, hey, some, hey2);
     });
     return (
         <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
@@ -52,39 +53,44 @@ import { componentQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
-import { _IMMUTABLE } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxS } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const rest = _restProps(props, [
         "count",
         "some",
         "hello",
-        "stuff"
+        "stuff",
+        "hey2"
     ]);
     console.log(props.stuff, props.some ?? 3);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track  })=>{
         const [props, rest] = useLexicalScope();
         track(()=>props.count);
-        console.log(props.count, rest, props.stuff, props.some ?? 3);
+        console.log(props.count, rest, props.stuff, props.some ?? 3, props.stuffDefault ?? 123);
     }, "Works_component_useTask_pjo5U5Ikll0", [
         props,
         rest
     ]));
-    return /*#__PURE__*/ _jsx("div", {
-        some: props.some ?? 3,
-        params: {
-            some: props.some ?? 3
-        },
-        get class () {
-            return props.count;
-        },
+    return /*#__PURE__*/ _jsxS("div", {
         ...rest,
-        children: _wrapSignal(props, "count"),
-        [_IMMUTABLE]: {
-            class: _wrapSignal(props, "count")
-        }
-    }, "u6_0");
+        children: _fnSignal((p0)=>p0.count, [
+            props
+        ], "p0.count")
+    }, {
+        class: _fnSignal((p0)=>p0.count, [
+            props
+        ], "p0.count"),
+        params: _fnSignal((p0)=>({
+                some: p0.some ?? 3
+            }), [
+            props
+        ], "{some:p0.some??1+2}"),
+        some: _fnSignal((p0)=>p0.some ?? 3, [
+            props
+        ], "p0.some??1+2")
+    }, 0, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count , stuff: { hey  }  })=>{
     console.log(hey);
@@ -95,10 +101,9 @@ export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
     }, "NoWorks2_component_useTask_lXiqwbxxjq0", [
         count
     ]));
-    return /*#__PURE__*/ _jsx("div", {
-        class: count,
-        children: count
-    }, "u6_1");
+    return /*#__PURE__*/ _jsxQ("div", {
+        class: count
+    }, null, count, 1, "u6_1");
 }, "NoWorks2_component_JPD9t2HyEKg"));
 export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count , stuff =hola()  })=>{
     console.log(stuff);
@@ -109,14 +114,13 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
     }, "NoWorks3_component_useTask_3cQGU0s1VwU", [
         count
     ]));
-    return /*#__PURE__*/ _jsx("div", {
-        class: count,
-        children: count
-    }, "u6_2");
+    return /*#__PURE__*/ _jsxQ("div", {
+        class: count
+    }, null, count, 1, "u6_2");
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,SAKf;;;;;;;IACb,QAAQ,GAAG,OAFX,aAFA,QAAO;IAKP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAPV;QAQI,QAAQ,GAAG,OARf,OAQuB,YALvB,aAFA,QAAO;;;;;IASP,qBACI,KAAC;QAAI,IAAI,QAVb,QAAO;QAUc,QAAQ;YAAE,IAAI,QAVnC,QAAO;QAU6B;YAAG;yBAXvC;;QAWsD,GAAG,IAAI;;;YAAtB,KAAK;;;AAEhD,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMf;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UARV;QASI,QAAQ,GAAG,OATf,OASuB,YANvB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACI,MAAC;QAAiD,GAAG,IAAI;qCAZ7D;;;;QAYuC,KAAK,qBAZ5C;;;QAYqB,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXnC,QAAO;YAW6B,CAAA;;;QAA3B,IAAI,qBAXb,QAAO;;;;AAaX,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -32,6 +32,7 @@ export type {
   SymbolMapperFn,
   InlineEntryStrategy,
   TransformOptions,
+  ResolvedManifest,
 } from './types';
 
 export type { QwikRollupPluginOptions } from './plugins/rollup';

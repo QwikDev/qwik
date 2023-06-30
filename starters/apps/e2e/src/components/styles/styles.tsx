@@ -1,9 +1,16 @@
-import { component$, useStylesScoped$, useStore, Slot, useSignal } from '@builder.io/qwik';
-import parent from './parent.css?inline';
-import parent2 from './parent2.css?inline';
-import child from './child.css?inline';
-import child2 from './child2.css?inline';
-import empty from './empty.css?inline';
+import {
+  component$,
+  useStylesScoped$,
+  useStore,
+  Slot,
+  useSignal,
+  Fragment,
+} from "@builder.io/qwik";
+import parent from "./parent.css?inline";
+import parent2 from "./parent2.css?inline";
+import child from "./child.css?inline";
+import child2 from "./child2.css?inline";
+import empty from "./empty.css?inline";
 
 export const Styles = component$(() => {
   const reload = useSignal(0);
@@ -26,19 +33,20 @@ export const StylesChildren = component$(() => {
   });
   return (
     <div class="parent-container">
-      <div class={['parent', `count-${store.count}`]}>
+      <div class={["parent", `count-${store.count}`]}>
         Parent
         <button id="add-child" type="button" onClick$={() => store.count++}>
           Add Child
         </button>
         {Array.from({ length: store.count }).map((_, i) => (
-          <>
+          <Fragment key={i}>
             <Child index={i} />
             <div class="parent-child">Inline {i}</div>
-          </>
+          </Fragment>
         ))}
       </div>
       <Issue1945 />
+      <IssueScopedAndFineGrained />
     </div>
   );
 });
@@ -120,5 +128,33 @@ export const ComponentB = component$(() => {
     <div>
       <Slot />
     </div>
+  );
+});
+
+export const IssueScopedAndFineGrained = component$(() => {
+  useStylesScoped$(`
+  .button {
+    background-color: red;
+  }
+  .even {
+    background-color: green;
+  }
+  .odd {
+    background-color: blue;
+  }
+  `);
+  const count = useSignal(0);
+  return (
+    <button
+      id="issue-scoped-fine-grained"
+      onClick$={() => count.value++}
+      class={{
+        button: true,
+        even: count.value % 2 === 0,
+        odd: count.value % 2 === 1,
+      }}
+    >
+      Hello
+    </button>
   );
 });

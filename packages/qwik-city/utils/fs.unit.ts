@@ -160,32 +160,38 @@ test('removeExtension', () => {
 
 test('createFileId, Page dir/index.tsx', () => {
   const path = normalizePath(join(routesDir, 'docs', 'index.tsx'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'Docs');
+  const p = createFileId(routesDir, path, 'Route');
+  equal(p, 'DocsRoute');
 });
 
 test('createFileId, Page about-us.tsx', () => {
   const path = normalizePath(join(routesDir, 'about-us', 'index.tsx'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'Aboutus');
+  const p = createFileId(routesDir, path, 'Route');
+  equal(p, 'AboutusRoute');
 });
 
 test('createFileId, Endpoint, api/[user]/index.ts', () => {
   const path = normalizePath(join(routesDir, 'api', '[user]', 'index.ts'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'ApiUser');
+  const p = createFileId(routesDir, path, 'Route');
+  equal(p, 'ApiUserRoute');
 });
 
 test('createFileId, Endpoint, data.json.ts', () => {
   const path = normalizePath(join(routesDir, 'api', 'data.json', 'index.ts'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'ApiData');
+  const p = createFileId(routesDir, path, 'Route');
+  equal(p, 'ApiDataRoute');
 });
 
 test('createFileId, Layout', () => {
   const path = normalizePath(join(routesDir, 'dashboard', 'settings', 'layout.tsx'));
   const p = createFileId(routesDir, path);
   equal(p, 'DashboardSettingsLayout');
+});
+
+test('createFileId, Menu', () => {
+  const path = normalizePath(join(routesDir, 'settings', 'menu.mdx'));
+  const p = createFileId(routesDir, path);
+  equal(p, 'SettingsMenu');
 });
 
 [
@@ -258,6 +264,7 @@ test('createFileId, Layout', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
+      platform: {},
     };
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
     equal(pathname, t.expect, t.dirPath);
@@ -357,6 +364,7 @@ test('parseRouteIndexName', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
+      platform: {},
     };
     const pathname = getMenuPathname(opts, t.filePath);
     equal(pathname, t.expect);

@@ -11,6 +11,7 @@ import {
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 import { logSuccessFooter } from '../qwik/src/cli/utils/log';
 import { updateApp } from '../qwik/src/cli/add/update-app';
+import os from 'node:os';
 
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
@@ -96,7 +97,7 @@ export async function createApp(opts: CreateAppOptions) {
     throw new Error(`outDir must be an absolute path`);
   }
   if (!fs.existsSync(opts.outDir)) {
-    fs.mkdirSync(opts.outDir, { recursive: true });
+    fs.mkdirSync(decodeURIComponent(opts.outDir), { recursive: true });
   }
 
   const result: CreateAppResult = {
@@ -176,7 +177,12 @@ function isValidOption(value: any) {
 }
 
 export function getOutDir(outDir: string) {
-  return resolve(process.cwd(), outDir);
+  // check if the outDir start with home ~
+  if (outDir.startsWith('~/')) {
+    return resolve(os.homedir(), outDir);
+  } else {
+    return resolve(process.cwd(), outDir);
+  }
 }
 
 export function writeToCwd() {

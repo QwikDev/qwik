@@ -52,7 +52,7 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
   }
 };
 
-export const createPlaygroundShareUrl = (data: PlaygroundShareUrl) => {
+export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/playground/') => {
   const params = new URLSearchParams();
   params.set('version', data.version);
   params.set('buildMode', data.buildMode);
@@ -66,7 +66,7 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl) => {
   const filesBase64 = btoa(encodedURI);
   params.set('files', filesBase64);
 
-  return `/playground#${params.toString()}`;
+  return `${pathname}#${params.toString()}`;
 };
 
 interface PlaygroundShareUrl {

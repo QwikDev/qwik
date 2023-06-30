@@ -1,56 +1,36 @@
+/* eslint-disable no-console */
 import fs from 'node:fs';
-import { relative } from 'node:path';
-import { text, select, confirm, intro, outro, cancel, spinner, isCancel } from '@clack/prompts';
-import { gray, white, green, reset, bgBlue } from 'kleur/colors';
+import { join, relative } from 'node:path';
+import {
+  text,
+  select,
+  confirm,
+  intro,
+  outro,
+  cancel,
+  spinner,
+  isCancel,
+  log,
+} from '@clack/prompts';
+import { bgBlue, red, gray } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
-import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
+import { backgroundInstallDeps, installDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
-import { getPackageManager } from '../qwik/src/cli/utils/utils';
+import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
-
-// Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts
-function ansiRegex() {
-  const pattern = [
-    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
-    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))',
-  ].join('|');
-
-  return new RegExp(pattern, 'g');
-}
-
-const bar = '│';
-const strip = (str: string) => str.replace(ansiRegex(), '');
-const note = (message = '', title = '') => {
-  const lines = `\n${message}\n`.split('\n');
-  const len =
-    lines.reduce((sum, ln) => {
-      ln = strip(ln);
-      return ln.length > sum ? ln.length : sum;
-    }, 0) + 2;
-  const msg = lines
-    .map((ln) => `${gray(bar)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(bar)}`)
-    .join('\n');
-  process.stdout.write(
-    `${gray(bar)}\n${green('○')}  ${reset(title)} ${gray(
-      '─'.repeat(len - title.length - 1) + '╮'
-    )}\n${msg}\n${gray('├' + '─'.repeat(len + 2) + '╯')}\n`
-  );
-};
-// End of used code from clack
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
+  await wait(500);
+
   const defaultProjectName = './qwik-app';
   const projectNameAnswer =
     (await text({
-      message: 'Where would you like to create your new project?',
+      message: `Where would you like to create your new project? ${gray(
+        `(Use '.' or './' for current directory)`
+      )}`,
       placeholder: defaultProjectName,
-      validate(value) {
-        if (value.trim() === '.' || value.trim() === './') {
-          return "Please don't use '.' or './' and let qwik create the directory for you.";
-        }
-      },
     })) || defaultProjectName;
 
   if (isCancel(projectNameAnswer)) {
@@ -65,21 +45,23 @@ export async function runCreateInteractiveCli() {
   const baseApp = starterApps.find((a) => a.id === 'base')!;
   const apps = starterApps.filter((a) => a.id !== baseApp!.id);
 
-  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp, true);
+  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
   const outDir: string = getOutDir(projectNameAnswer.trim());
 
-  let removeExistingOutDirPromise: Promise<void> | null = null;
+  log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
-  if (fs.existsSync(outDir)) {
+  let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
+
+  if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const existingOutDirAnswer = await select({
       message: `Directory "./${relative(
         process.cwd(),
         outDir
-      )}" already exists. What would you like to do?`,
+      )}" already exists and is not empty. What would you like to do?`,
       options: [
         { value: 'exit', label: 'Do not overwrite this directory and exit' },
-        { value: 'replace', label: 'Overwrite and replace this directory' },
+        { value: 'replace', label: 'Remove contents of this directory' },
       ],
     });
 
@@ -89,7 +71,15 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
+      removeExistingOutDirPromise = fs.promises
+        .readdir(outDir)
+        .then((filePaths) =>
+          Promise.all(
+            filePaths.map((pathToFile) =>
+              fs.promises.rm(join(outDir, pathToFile), { recursive: true })
+            )
+          )
+        );
     }
   }
 
@@ -105,23 +95,32 @@ export async function runCreateInteractiveCli() {
     process.exit(0);
   }
 
-  const starterId = starterIdAnswer;
+  const starterId = starterIdAnswer as string;
 
-  const runInstallAnswer = await confirm({
+  const runDepInstallAnswer = await confirm({
     message: `Would you like to install ${pkgManager} dependencies?`,
     initialValue: true,
   });
 
-  if (isCancel(runInstallAnswer)) {
+  if (isCancel(runDepInstallAnswer)) {
     cancel('Operation cancelled.');
     process.exit(0);
   }
+
+  const gitInitAnswer = await confirm({
+    message: `Initialize a new git repository?`,
+    initialValue: true,
+  });
 
   if (removeExistingOutDirPromise) {
     await removeExistingOutDirPromise;
   }
 
-  const runInstall: boolean = runInstallAnswer;
+  const runDepInstall: boolean = runDepInstallAnswer;
+
+  if (!runDepInstall) {
+    backgroundInstall.abort();
+  }
 
   const opts: CreateAppOptions = {
     starterId,
@@ -130,20 +129,52 @@ export async function runCreateInteractiveCli() {
 
   const s = spinner();
 
-  s.start('Creating App');
+  s.start('Creating App...');
   const result = await createApp(opts);
-  s.stop('Created App 🐰');
+  s.stop('App Created 🐰');
+
+  if (gitInitAnswer) {
+    if (fs.existsSync(join(outDir, '.git'))) {
+      log.info(`Git has already been initialized before. Skipping...`);
+    } else {
+      s.start('Git initializing...');
+
+      try {
+        const res = [];
+        res.push(await runCommand('git', ['init'], outDir).install);
+        res.push(await runCommand('git', ['add', '-A'], outDir).install);
+        res.push(await runCommand('git', ['commit', '-m', 'Initial commit ⚡️'], outDir).install);
+
+        if (res.some((r) => r === false)) {
+          throw '';
+        }
+
+        s.stop('Git initialized 🎲');
+      } catch (e) {
+        s.stop('Git failed to initialize');
+        log.error(red(`Git failed to initialize. You can do this manually by running: git init`));
+      }
+    }
+  }
 
   let successfulDepsInstall = false;
-  if (runInstall) {
-    s.start('Installing dependencies');
-    successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
-    s.stop('Installed dependencies 📋');
+  if (runDepInstall) {
+    s.start(`Installing ${pkgManager} dependencies...`);
+    successfulDepsInstall = await backgroundInstall.complete(result.outDir);
+
+    if (successfulDepsInstall) {
+      const finalInstall = installDeps(pkgManager, result.outDir);
+      successfulDepsInstall = await finalInstall.install;
+    }
+
+    s.stop(
+      `${successfulDepsInstall ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`
+    );
   }
 
   note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
 
-  outro('');
+  outro('Happy coding! 🐇');
 
   return result;
 }

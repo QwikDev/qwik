@@ -1,7 +1,7 @@
-import { BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
-import { build, BuildOptions } from 'esbuild';
+import { type BuildConfig, rollupOnWarn } from './util';
+import { build, type BuildOptions } from 'esbuild';
 import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
-import { InputOptions, OutputOptions, rollup } from 'rollup';
+import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
 import { minify } from 'terser';
 
@@ -43,45 +43,42 @@ async function submoduleCoreProd(config: BuildConfig) {
   };
 
   const esmOutput: OutputOptions = {
-    dir: join(config.distPkgDir),
+    dir: join(config.distQwikPkgDir),
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
     banner: getBanner('@builder.io/qwik', config.distVersion),
   };
 
-  const cjsIntro = [
-    ,
-    /**
-     * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
-     * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
-     */
-    injectGlobalThisPoly(),
-  ].join('');
-
   const cjsOutput: OutputOptions = {
-    dir: join(config.distPkgDir),
-    format: 'cjs',
+    dir: join(config.distQwikPkgDir),
+    format: 'umd',
     name: 'qwikCore',
     entryFileNames: 'core.cjs',
     sourcemap: true,
+    globals: {
+      '@builder.io/qwik/build': 'qwikBuild',
+    },
     banner: getBanner('@builder.io/qwik', config.distVersion),
-    intro: cjsIntro,
   };
 
   const build = await rollup(input);
 
   await Promise.all([build.write(esmOutput), build.write(cjsOutput)]);
 
-  console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
+  console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
 
+  const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
-    input: join(config.distPkgDir, 'core.mjs'),
+    input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
       {
         name: 'build',
         resolveId(id) {
+          if (id === '@index.min') {
+            return id;
+          }
           if (id === '@builder.io/qwik/build') {
             return id;
           }
@@ -100,7 +97,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   };
   const buildMin = await rollup(inputMin);
   await buildMin.write({
-    dir: join(config.distPkgDir),
+    dir: join(config.distQwikPkgDir),
     format: 'es',
     entryFileNames: 'core.min.mjs',
     plugins: [
@@ -109,11 +106,14 @@ async function submoduleCoreProd(config: BuildConfig) {
         async renderChunk(code) {
           const esmMinifyResult = await minify(code, {
             module: true,
+            toplevel: true,
             compress: {
+              module: true,
+              toplevel: true,
               global_defs: {
                 // special global that when set to false will remove all dev code entirely
                 // developer production builds could use core.min.js directly, or setup
-                // their own build tools to define the globa `qwikDev` to false
+                // their own build tools to define the global `qwikDev` to false
                 'globalThis.qDev': false,
                 'globalThis.qInspector': false,
                 'globalThis.qSerialize': false,
@@ -124,9 +124,13 @@ async function submoduleCoreProd(config: BuildConfig) {
               },
               ecma: 2020,
               passes: 3,
+              pure_getters: true,
+              unsafe_symbols: true,
+              keep_fargs: false,
             },
             mangle: {
               toplevel: true,
+              module: true,
               properties: {
                 regex: '^\\$.+\\$$',
               },
@@ -134,7 +138,6 @@ async function submoduleCoreProd(config: BuildConfig) {
             format: {
               comments: /__PURE__/,
               preserve_annotations: true,
-              preamble: getBanner('@builder.io/qwik', config.distVersion),
               ecma: 2020,
             },
           });
@@ -157,30 +160,25 @@ async function submoduleCoreProd(config: BuildConfig) {
     ],
   });
 
-  console.log('🐭 core.min.mjs:', await fileSize(join(config.distPkgDir, 'core.min.mjs')));
+  console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
-  // always set the cjs version (probably imported serverside) to dev mode
-  let esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
-  let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
-  await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
+  // always set the cjs version (probably imported server-side) to dev mode
+  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
+  let cjsCode = await readFile(join(config.distQwikPkgDir, 'core.cjs'), 'utf-8');
+  await writeFile(join(config.distQwikPkgDir, 'core.cjs'), cjsCode);
 
-  await submoduleCoreProduction(config, esmCode, join(config.distPkgDir, 'core.prod.mjs'));
-  await submoduleCoreProduction(config, cjsCode, join(config.distPkgDir, 'core.prod.cjs'));
+  await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.mjs'));
+  await submoduleCoreProduction(config, cjsCode, join(config.distQwikPkgDir, 'core.prod.cjs'));
 }
 
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
   const result = await minify(code, {
     compress: {
-      booleans: false,
-      collapse_vars: true,
-      dead_code: true,
-      inline: true,
+      pure_getters: true,
+      unsafe_symbols: true,
+      keep_fargs: false,
       join_vars: false,
-      passes: 3,
-      reduce_vars: true,
-      side_effects: true,
-      toplevel: true,
-      unused: true,
+
       global_defs: {
         'globalThis.qDev': false,
         'globalThis.qInspector': false,
@@ -192,9 +190,11 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       },
     },
     format: {
-      comments: false,
       beautify: true,
       braces: true,
+      comments: /__PURE__/,
+      preserve_annotations: true,
+      ecma: 2020,
       preamble: getBanner('@builder.io/qwik', config.distVersion),
     },
     mangle: false,
@@ -208,9 +208,9 @@ async function submoduleCoreDev(config: BuildConfig) {
   const submodule = 'core';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
     entryNames: submodule,
-    outdir: config.distPkgDir,
+    outdir: config.distQwikPkgDir,
     bundle: true,
     sourcemap: 'external',
     external: ['@builder.io/qwik/build'],
@@ -233,7 +233,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
     banner: {
-      js: `${injectGlobalThisPoly()}\nglobalThis.qwikCore = (function (module) {`,
+      js: `globalThis.qwikCore = (function (module) {`,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,

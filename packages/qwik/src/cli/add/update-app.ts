@@ -3,10 +3,11 @@ import { dirname } from 'node:path';
 import fs from 'node:fs';
 import { panic } from '../utils/utils';
 import { loadIntegrations } from '../utils/integrations';
-import { installDeps, startSpinner } from '../utils/install-deps';
+import { installDeps } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
-import { bgRed, green } from 'kleur/colors';
+import { bgRed, cyan } from 'kleur/colors';
+import { spinner, log } from '@clack/prompts';
 
 export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
@@ -18,6 +19,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const fileUpdates: FsUpdates = {
     files: [],
     installedDeps: {},
+    installedScripts: Object.keys(integration.pkgJson.scripts || {}),
   };
 
   if (opts.installDeps) {
@@ -36,9 +38,10 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const commit = async (showSpinner?: boolean) => {
     const isInstallingDeps = Object.keys(fileUpdates.installedDeps).length > 0;
 
-    const spinner = showSpinner
-      ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
-      : null;
+    const s = spinner();
+    if (showSpinner) {
+      s.start(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`);
+    }
 
     let passed = true;
     try {
@@ -63,18 +66,20 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       }
 
       await fsWrites;
-      spinner && spinner.succeed();
-      if (!passed) {
-        const errorMessage = `\n\n❌ ${bgRed(
-          `  ${pkgManager} install failed  `
-        )}\n\n   You might need to run "${green(
-          `${pkgManager} install`
-        )}" manually inside the root of the project.\n\n`;
 
-        console.error(errorMessage);
+      showSpinner && s.stop('App updated');
+
+      if (!passed) {
+        const errorMessage = `${bgRed(
+          ` ${pkgManager} install failed `
+        )}\n You might need to run "${cyan(
+          `${pkgManager} install`
+        )}" manually inside the root of the project.`;
+
+        log.error(errorMessage);
       }
     } catch (e) {
-      spinner && spinner.fail();
+      showSpinner && s.stop('App updated');
       panic(String(e));
     }
   };

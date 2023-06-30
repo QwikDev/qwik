@@ -1,5 +1,5 @@
-import { Counter } from './components/counter/counter';
-import { Logo } from './components/logo/logo';
+import { Counter } from "./components/counter/counter";
+import { Logo } from "./components/logo/logo";
 
 export default () => {
   return (

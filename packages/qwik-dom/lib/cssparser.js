@@ -3676,6 +3676,7 @@ nth
 
     appearance:
       'icon | window | desktop | workspace | document | tooltip | dialog | button | push-button | hyperlink | radio | radio-button | checkbox | menu-item | tab | menu | menubar | pull-down-menu | pop-up-menu | list-menu | radio-group | checkbox-group | outline-tree | range | field | combo-box | signature | password | normal | none | inherit',
+    'aspect-ratio': 1,
     azimuth: function (expression) {
       var simple = '<angle> | leftwards | rightwards | inherit',
         direction =

@@ -11,7 +11,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { postBuild } from './post-build';
 
 /**
- * @alpha
+ * @public
  */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikCityPlugin: QwikCityPlugin | null = null;
@@ -120,90 +120,74 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const routes = qwikCityPlugin.api.getRoutes();
           const basePathname = qwikCityPlugin.api.getBasePathname();
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
+          const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
+
           const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
-          if (renderModulePath && qwikCityPlanModulePath && clientOutDir) {
-            if (opts.staticGenerate) {
-              this.warn(`Option "staticGenerate" is deprecated. Please use "ssg" option instead.`);
-              opts.ssg = opts.ssg || {
-                include: [],
-              };
-              if (typeof opts.staticGenerate === 'object') {
-                opts.ssg = {
-                  ...opts.staticGenerate,
-                  ...opts.ssg,
-                };
-              }
+          if (renderModulePath && qwikCityPlanModulePath && clientOutDir && clientPublicOutDir) {
+            let ssgOrigin = opts.ssg?.origin ?? opts.origin;
+            if (!ssgOrigin) {
+              ssgOrigin = `https://yoursite.qwik.builder.io`;
             }
-
-            if (Array.isArray(opts.ssg?.include) && opts.ssg!.include.length > 0) {
-              let ssgOrigin = opts.origin;
-              if (!ssgOrigin) {
-                ssgOrigin = `https://yoursite.qwik.builder.io`;
-              }
-              if (
-                ssgOrigin.length > 0 &&
-                !ssgOrigin.startsWith('https://') &&
-                !ssgOrigin.startsWith('http://')
-              ) {
-                ssgOrigin = `https://${ssgOrigin}`;
-              }
-              try {
-                ssgOrigin = new URL(ssgOrigin).origin;
-              } catch (e) {
-                this.warn(
-                  `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.builder.io"`
-                );
-                ssgOrigin = `https://yoursite.qwik.builder.io`;
-              }
-
-              const staticGenerate = await import('../../../static');
-              const generateOpts: StaticGenerateOptions = {
-                maxWorkers: opts.maxWorkers,
-                basePathname,
-                outDir: clientOutDir,
-                rootDir,
-                ...opts.ssg,
-                origin: ssgOrigin,
-                renderModulePath,
-                qwikCityPlanModulePath,
-              };
-
-              const staticGenerateResult = await staticGenerate.generate(generateOpts);
-              if (staticGenerateResult.errors > 0) {
-                const err = new Error(
-                  `Error while runnning SSG from "${opts.name}" adapter. At least one path failed to render.`
-                );
-                err.stack = undefined;
-                this.error(err);
-              }
-
-              staticPaths.push(...staticGenerateResult.staticPaths);
-
-              const { staticPathsCode, notFoundPathsCode } = await postBuild(
-                clientOutDir,
-                basePathname,
-                staticPaths,
-                format,
-                !!opts.cleanStaticGenerated
+            if (
+              ssgOrigin.length > 0 &&
+              !ssgOrigin.startsWith('https://') &&
+              !ssgOrigin.startsWith('http://')
+            ) {
+              ssgOrigin = `https://${ssgOrigin}`;
+            }
+            try {
+              ssgOrigin = new URL(ssgOrigin).origin;
+            } catch (e) {
+              this.warn(
+                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.builder.io"`
               );
-
-              await Promise.all([
-                fs.promises.writeFile(
-                  join(serverOutDir, RESOLVED_STATIC_PATHS_ID),
-                  staticPathsCode
-                ),
-                fs.promises.writeFile(
-                  join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
-                  notFoundPathsCode
-                ),
-              ]);
+              ssgOrigin = `https://yoursite.qwik.builder.io`;
             }
 
+            const staticGenerate = await import('../../../static');
+            const generateOpts: StaticGenerateOptions = {
+              maxWorkers: opts.maxWorkers,
+              basePathname,
+              outDir: clientPublicOutDir,
+              rootDir,
+              ...opts.ssg,
+              origin: ssgOrigin,
+              renderModulePath,
+              qwikCityPlanModulePath,
+            };
+
+            const staticGenerateResult = await staticGenerate.generate(generateOpts);
+            if (staticGenerateResult.errors > 0) {
+              const err = new Error(
+                `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
+              );
+              err.stack = undefined;
+              this.error(err);
+            }
+
+            staticPaths.push(...staticGenerateResult.staticPaths);
+
+            const { staticPathsCode, notFoundPathsCode } = await postBuild(
+              clientPublicOutDir,
+              basePathname,
+              staticPaths,
+              format,
+              !!opts.cleanStaticGenerated
+            );
+
+            await Promise.all([
+              fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
+              fs.promises.writeFile(
+                join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
+                notFoundPathsCode
+              ),
+            ]);
             if (typeof opts.generate === 'function') {
               await opts.generate({
                 outputEntries,
                 serverOutDir,
                 clientOutDir,
+                clientPublicOutDir,
                 basePathname,
                 routes,
                 warn: (message) => this.warn(message),
@@ -220,13 +204,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 }
 
 /**
- * @alpha
- * @deprecated Please use `viteAdapter` instead.
- */
-export const viteAdaptor = viteAdapter;
-
-/**
- * @alpha
+ * @public
  */
 export function getParentDir(startDir: string, dirName: string) {
   const root = resolve('/');
@@ -244,16 +222,12 @@ export function getParentDir(startDir: string, dirName: string) {
 }
 
 /**
- * @alpha
+ * @public
  */
 interface ViteAdapterPluginOptions {
   name: string;
   origin: string;
   staticPaths?: string[];
-  /**
-   * @deprecated Please use `ssg` instead.
-   */
-  staticGenerate?: true | Omit<StaticGenerateRenderOptions, 'outDir'> | undefined;
   ssg?: AdapterSSGOptions | null;
   cleanStaticGenerated?: boolean;
   maxWorkers?: number;
@@ -261,6 +235,7 @@ interface ViteAdapterPluginOptions {
   generate?: (generateOpts: {
     outputEntries: string[];
     clientOutDir: string;
+    clientPublicOutDir: string;
     serverOutDir: string;
     basePathname: string;
     routes: BuildRoute[];
@@ -270,7 +245,7 @@ interface ViteAdapterPluginOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ServerAdapterOptions {
   /**
@@ -281,20 +256,10 @@ export interface ServerAdapterOptions {
    * pages from being statically generated.
    */
   ssg?: AdapterSSGOptions | null;
-  /**
-   * @deprecated Please use `ssg` instead.
-   */
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
 }
 
 /**
- * @alpha
- * @deprecated Please use `ServerAdapterOptions` instead.
- */
-export type ServerAdaptorOptions = ServerAdapterOptions;
-
-/**
- * @alpha
+ * @public
  */
 export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
   /**
@@ -324,27 +289,21 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'ou
 }
 
 /**
- * @alpha
- * @deprecated Please use `AdapterSSGOptions` instead.
- */
-export type AdaptorSSGOptions = AdapterSSGOptions;
-
-/**
- * @alpha
+ * @public
  */
 export const STATIC_PATHS_ID = '@qwik-city-static-paths';
 
 /**
- * @alpha
+ * @public
  */
 export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
 
 /**
- * @alpha
+ * @public
  */
 export const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
 
 /**
- * @alpha
+ * @public
  */
 export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

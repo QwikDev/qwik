@@ -1,4 +1,4 @@
-import { component$, NoSerialize, useStore } from '@builder.io/qwik';
+import { component$, type NoSerialize, useStore } from '@builder.io/qwik';
 
 interface AppStore {
   time: null | string;
@@ -11,7 +11,7 @@ export default component$(() => {
   });
   return (
     <>
-      <div>Current Time: {store.time}</div>
+      <p>Current Time: {store.time}</p>
       <button
         onClick$={() => {
           // @ts-ignore

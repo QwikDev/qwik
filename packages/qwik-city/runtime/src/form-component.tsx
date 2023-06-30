@@ -1,8 +1,16 @@
-import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
+import {
+  jsx,
+  _wrapSignal,
+  type QwikJSX,
+  type ValueOrPromise,
+  component$,
+  Slot,
+} from '@builder.io/qwik';
 import type { ActionStore } from './types';
+import { useNavigate } from './use-functions';
 
 /**
- * @alpha
+ * @public
  */
 export interface FormSubmitCompletedDetail<T> {
   status: number;
@@ -10,14 +18,14 @@ export interface FormSubmitCompletedDetail<T> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface FormProps<O, I>
   extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
   /**
    * Reference to the action returned by `action()`.
    */
-  action: ActionStore<O, I, true | false>;
+  action?: ActionStore<O, I, true | false>;
 
   /**
    * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
@@ -37,30 +45,85 @@ export interface FormProps<O, I>
   onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
 
   /**
-   * Event handler executed right after the action is executed sucesfully and returns some data.
+   * Event handler executed right after the action is executed successfully and returns some data.
    */
   onSubmitCompleted$?: (
     event: CustomEvent<FormSubmitCompletedDetail<O>>,
     form: HTMLFormElement
   ) => ValueOrPromise<void>;
+
+  key?: string | number | null;
 }
 
 /**
- * @alpha
+ * @public
  */
-export const Form = <O, I>({
-  action,
-  spaReset,
-  reloadDocument,
-  onSubmit$,
-  ...rest
-}: FormProps<O, I>) => {
-  return jsx('form', {
-    ...rest,
-    action: action.actionPath,
-    'preventdefault:submit': !reloadDocument,
-    onSubmit$: [!reloadDocument ? action.run : undefined, onSubmit$],
-    method: 'post',
-    ['data-spa-reset']: spaReset ? 'true' : undefined,
-  });
+export const Form = <O, I>(
+  { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
+  key: string | null
+) => {
+  if (action) {
+    return jsx(
+      'form',
+      {
+        ...rest,
+        action: action.actionPath,
+        'preventdefault:submit': !reloadDocument,
+        onSubmit$: [!reloadDocument ? action.submit : undefined, onSubmit$],
+        method: 'post',
+        ['data-spa-reset']: spaReset ? 'true' : undefined,
+      },
+      key
+    );
+  } else {
+    return (
+      <GetForm
+        key={key}
+        spaReset={spaReset}
+        reloadDocument={reloadDocument}
+        onSubmit$={onSubmit$}
+        {...(rest as any)}
+      />
+    );
+  }
 };
+
+export const GetForm = component$<FormProps<undefined, undefined>>(
+  ({ action, spaReset, reloadDocument, onSubmit$, ...rest }) => {
+    const nav = useNavigate();
+    return (
+      <form
+        action="get"
+        preventdefault:submit={!reloadDocument}
+        data-spa-reset={spaReset ? 'true' : undefined}
+        {...rest}
+        onSubmit$={async (_, form) => {
+          const formData = new FormData(form);
+          const params = new URLSearchParams();
+          formData.forEach((value, key) => {
+            if (typeof value === 'string') {
+              params.append(key, value);
+            }
+          });
+          nav('?' + params.toString(), { type: 'form', forceReload: true }).then(() => {
+            if (form.getAttribute('data-spa-reset') === 'true') {
+              form.reset();
+            }
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail: {
+                  status: 200,
+                },
+              })
+            );
+          });
+        }}
+      >
+        <Slot />
+      </form>
+    );
+  }
+);

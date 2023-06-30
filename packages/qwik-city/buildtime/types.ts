@@ -117,7 +117,7 @@ export interface ParsedMenuItem {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface PluginOptions {
   /**
@@ -147,6 +147,10 @@ export interface PluginOptions {
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
+  /**
+   * The platform object which can be used to mock the Cloudflare bindings.
+   */
+  platform?: Record<string, unknown>;
 }
 
 export interface MdxPlugins {

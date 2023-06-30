@@ -1,7 +1,7 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
-import { Link, useLocation } from '@builder.io/qwik-city';
-import { useUserLoader } from '../../routes/layout';
-import styles from './header.css?inline';
+import { component$, useStyles$ } from "@builder.io/qwik";
+import { Link, useLocation } from "@builder.io/qwik-city";
+import { useUserLoader } from "../../routes/layout";
+import styles from "./header.css?inline";
 
 export default component$(() => {
   const userData = useUserLoader();
@@ -13,49 +13,65 @@ export default component$(() => {
     <header>
       <div class="header-inner">
         <section class="logo">
-          <Link href="/qwikcity-test/" prefetch={true} data-test-link="header-home">
+          <Link
+            href="/qwikcity-test/"
+            prefetch={true}
+            data-test-link="header-home"
+          >
             Qwik City 🏙
           </Link>
         </section>
         <nav data-test-header-links>
           <Link
             href="/qwikcity-test/blog/"
-            class={{ active: loc.pathname.startsWith('/qwikcity-test/blog/') }}
+            class={{
+              active: loc.url.pathname.startsWith("/qwikcity-test/blog/"),
+            }}
             data-test-link="blog-home"
           >
             Blog
           </Link>
           <Link
             href="/qwikcity-test/docs/"
-            class={{ active: loc.pathname.startsWith('/qwikcity-test/docs/') }}
+            class={{
+              active: loc.url.pathname.startsWith("/qwikcity-test/docs/"),
+            }}
             data-test-link="docs-home"
           >
             Docs
           </Link>
           <Link
             href="/qwikcity-test/actions/"
-            class={{ active: loc.pathname.startsWith('/qwikcity-test/actions/') }}
+            class={{
+              active: loc.url.pathname.startsWith("/qwikcity-test/actions/"),
+            }}
             data-test-link="docs-actions"
           >
             Actions
           </Link>
           <Link
             href="/qwikcity-test/api/"
-            class={{ active: loc.pathname.startsWith('/qwikcity-test/api/') }}
+            class={{
+              active: loc.url.pathname.startsWith("/qwikcity-test/api/"),
+            }}
             data-test-link="api-home"
           >
             API
           </Link>
           <Link
             href="/qwikcity-test/products/hat/"
-            class={{ active: loc.pathname.startsWith('/qwikcity-test/products/') }}
+            class={{
+              active: loc.url.pathname.startsWith("/qwikcity-test/products/"),
+            }}
             data-test-link="products-hat"
           >
             Products
           </Link>
           <Link
             href="/qwikcity-test/about-us/"
-            class={{ active: loc.pathname.startsWith('/qwikcity-test/about-us/') }}
+            class={{
+              active: loc.url.pathname.startsWith("/qwikcity-test/about-us/"),
+            }}
             data-test-link="about-us"
           >
             About Us
@@ -68,7 +84,9 @@ export default component$(() => {
           ) : (
             <Link
               href="/qwikcity-test/sign-in/"
-              class={{ active: loc.pathname.startsWith('/qwikcity-test/sign-in/') }}
+              class={{
+                active: loc.url.pathname.startsWith("/qwikcity-test/sign-in/"),
+              }}
               data-test-link="sign-out"
             >
               Sign In

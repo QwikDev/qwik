@@ -1,6 +1,6 @@
-import { component$, useStore, useRef, useTask$ } from '@builder.io/qwik';
+import { component$, useStore, useSignal, useTask$ } from "@builder.io/qwik";
 
-import type { TodoItem, Todos } from '../../state/state';
+import type { TodoItem, Todos } from "../../state/state";
 
 /**
  * Individual items of the component.
@@ -15,10 +15,10 @@ export interface ItemProps {
 
 export const Item = component$((props: ItemProps) => {
   const state = useStore({ editing: false });
-  const editInput = useRef<HTMLInputElement>();
+  const editInput = useSignal<HTMLInputElement>();
 
   useTask$(({ track }) => {
-    const current = track(editInput, 'current');
+    const current = track(() => editInput.value);
     if (current) {
       current.focus();
       current.selectionStart = current.selectionEnd = current.value.length;
@@ -60,7 +60,7 @@ export const Item = component$((props: ItemProps) => {
           onKeyUp$={(event: any) => {
             const inputValue = (event.target as HTMLInputElement).value;
             props.item.title = inputValue;
-            if (event.key === 'Enter') {
+            if (event.key === "Enter") {
               state.editing = false;
             }
           }}

@@ -148,6 +148,7 @@ fn optimize(
         entry_strategy: optimizer_input.strategy,
         explicit_extensions: optimizer_input.explicit_extensions,
         core_module: optimizer_input.core_module,
+        root_dir: None,
 
         mode: optimizer_input.mode,
         scope: optimizer_input.scope,

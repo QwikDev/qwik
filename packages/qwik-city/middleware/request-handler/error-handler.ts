@@ -5,7 +5,7 @@ export class ErrorResponse extends Error {
 }
 
 /**
- * @alpha
+ * @public
  */
 export function getErrorHtml(status: number, e: any) {
   let message = 'Server Error';

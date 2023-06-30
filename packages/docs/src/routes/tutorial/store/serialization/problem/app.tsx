@@ -1,4 +1,4 @@
-import { component$, useStore, QRL, $ } from '@builder.io/qwik';
+import { component$, useStore, type QRL, $ } from '@builder.io/qwik';
 
 interface ParentStore {
   name: string;

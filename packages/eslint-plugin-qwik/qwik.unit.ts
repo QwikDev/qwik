@@ -24,9 +24,63 @@ const testConfig = {
 };
 
 const ruleTester = new RuleTester(testConfig as any);
-test('no-use-after-await', () => {
-  ruleTester.run('my-rule', rules['no-use-after-await'] as any, {
+test('use-method-usage', () => {
+  ruleTester.run('my-rule', rules['use-method-usage'] as any, {
     valid: [
+      `
+export function useSession1() {
+  useContext();
+}
+export function useSession2() {
+  return useContext();
+}
+export function useSession3() {
+  return useContext().value;
+}
+`,
+      `
+export const useSession1 = () => {
+  useContext();
+}
+
+export const useSession2 = () => {
+  return useContext();
+}
+
+export const useSession3 = () => useContext();
+
+export const useSession4 = () => useContext().value;
+
+export const useSession5 = () => useContext().value + 10;
+
+`,
+
+      `
+export const useSession1 = () => {
+  useContext()?.value;
+}
+
+export const useSession2 = () => {
+  return useContext()?.value;
+}
+
+export const useSession3 = () => useContext()?.value;
+
+export const useSession4 = () => useContext()?.value;
+
+export const useSession5 = () => useContext()?.value; + 10;
+
+`,
+      `
+export const HelloWorld = component$(async () => {
+  const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
+    loader: useFormLoader(),
+    action: useFormAction(),
+    validate: zodForm$(todoSchema),
+  });
+
+  });
+  `,
       `
       export const HelloWorld = component$(async () => {
           useMethod();
@@ -47,10 +101,14 @@ test('no-use-after-await', () => {
           await something();
           await stuff();
           return $(() => {
-            useHostElement();
             return <div></div>
           });
         });`,
+      `export const HelloWorld = component$(async () => {
+          const test = useFunction() as string;
+        
+          });
+          `,
     ],
     invalid: [
       {
@@ -65,7 +123,7 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
+        errors: [{ messageId: 'use-after-await' }],
       },
       {
         code: `export const HelloWorld = component$(async () => {
@@ -81,7 +139,40 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
+        errors: [{ messageId: 'use-after-await' }],
+      },
+
+      {
+        code: `export function noUseSession() {
+          useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+          useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => useContext();`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => useContext().value;`,
+        errors: [{ messageId: 'use-wrong-function' }],
+      },
+      {
+        code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+        errors: [{ messageId: 'use-wrong-function' }],
       },
     ],
   });
@@ -90,6 +181,23 @@ test('no-use-after-await', () => {
 test('valid-lexical-scope', () => {
   ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
     valid: [
+      `
+      import { component$, useTask$, useSignal } from '@builder.io/qwik';
+      enum Color {
+        Red,
+        Blue,
+        Green,
+      }
+
+      export default component$(() => {
+        const color: Color = useSignal({ color: Color.Red })
+
+        useTask$(() => {
+          color.value.color = Color.Blue
+        });
+        return <></>
+      })
+      `,
       `
       import { component$, SSRStream } from "@builder.io/qwik";
 import { Readable } from "stream";
@@ -249,11 +357,15 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
 
   export interface Props {
     method$: PropFunction<() => void>;
+    method1$: PropFunction<() => void>;
+    method2$: PropFunction<() => void> | null;
   }
 
-  export const HelloWorld = component$(({method$}: Props) => {
+  export const HelloWorld = component$(({method$, method1$, method2$, method3$}: Props) => {
     return <div
      onKeydown$={method$}
+     onKeydown1$={method1$}
+     onKeydown2$={method2$}
      onClick$={async () => {
       await method$();
     }}></div>;
@@ -370,6 +482,24 @@ export default component$(() => {
       },
       {
         code: `
+        import { component$, useTask$, useSignal } from '@builder.io/qwik';
+
+        export default component$(() => {
+          const color: Color = useSignal({ color: Color.Red })
+          enum Color {
+            Red,
+            Blue,
+            Green,
+          }
+          useTask$(() => {
+            color.value.color = Color.Blue
+          });
+          return <></>
+        })`,
+        errors: [{ messageId: 'referencesOutside' }],
+      },
+      {
+        code: `
           import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue() {
@@ -452,6 +582,34 @@ export default component$(() => {
           );
         });`,
         errors: [{ messageId: 'referencesOutside' }],
+      },
+    ],
+  });
+});
+
+test('jsx-img', () => {
+  ruleTester.run('jsx-img', rules['jsx-img'], {
+    valid: [
+      `<img width={200} height={200} />`,
+      `<img width="200" height="200" />`,
+      `<img {...props}/>`,
+    ],
+    invalid: [
+      {
+        code: `<img height={200} />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img width={200} />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img />`,
+        errors: [{ messageId: 'noWidthHeight' }],
+      },
+      {
+        code: `<img src='./file.png' />`,
+        errors: [{ messageId: 'noWidthHeight' }],
       },
     ],
   });

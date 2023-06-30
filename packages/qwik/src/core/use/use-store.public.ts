@@ -19,11 +19,6 @@ export interface UseStoreOptions {
    * Default is `true`.
    */
   reactive?: boolean;
-
-  /**
-   * @deprecated - use `deep` instead
-   */
-  recursive?: boolean;
 }
 
 // <docs markdown="../readme.md#useStore">
@@ -73,7 +68,7 @@ export interface UseStoreOptions {
  *   const counterStore = useStore({
  *     value: 0,
  *   });
- *   useBrowserVisibleTask$(() => {
+ *   useVisibleTask$(() => {
  *     // Only runs in the client
  *     const timer = setInterval(() => {
  *       counterStore.value += step;
@@ -103,7 +98,7 @@ export const useStore = <STATE extends object>(
     return value;
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const recursive = opts?.deep ?? opts?.recursive ?? false;
+    const recursive = opts?.deep ?? true;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);
     set(newStore);

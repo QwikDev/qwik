@@ -33,7 +33,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("
 /*#__PURE__*/ qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,wBAAU,gHAapB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,wBAAU,gHAapB\"}")
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
@@ -63,22 +63,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= greeter_component_1_krcndswhx4u.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxQ } from "@builder.io/qwik";
 import { hola } from "sdfds";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
     const [stuff] = useLexicalScope();
-    return /*#__PURE__*/ _jsx("div", {
+    return /*#__PURE__*/ _jsxQ("div", {
         class: {
             'foo': true,
             'bar': stuff.condition,
             'baz': hola ? 'true' : 'false'
         }
-    }, "u6_0");
+    }, null, null, 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMa;;IACL,qBACI,KAAC;QACG,OAAO;YACH,OAAO,IAAI;YACX,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS,OAAO;QAClC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMa;;IACL,qBACI,MAAC;QACG,OAAO;YACH,OAAO,IAAI;YACX,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS,OAAO;QAClC\"}")
 /*
 {
   "origin": "test.tsx",

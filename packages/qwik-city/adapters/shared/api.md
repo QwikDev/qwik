@@ -8,48 +8,37 @@ import type { Plugin as Plugin_2 } from 'vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import type { UserConfig } from 'vite';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
     exclude?: string[];
     include: string[];
     origin?: string;
 }
 
-// @alpha @deprecated (undocumented)
-export type AdaptorSSGOptions = AdapterSSGOptions;
-
-// @alpha (undocumented)
+// @public (undocumented)
 export function getParentDir(startDir: string, dirName: string): string;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const NOT_FOUND_PATHS_ID = "@qwik-city-not-found-paths";
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const RESOLVED_NOT_FOUND_PATHS_ID: string;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const RESOLVED_STATIC_PATHS_ID: string;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface ServerAdapterOptions {
     ssg?: AdapterSSGOptions | null;
-    // @deprecated (undocumented)
-    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
 }
 
-// @alpha @deprecated (undocumented)
-export type ServerAdaptorOptions = ServerAdapterOptions;
-
-// @alpha (undocumented)
+// @public (undocumented)
 export const STATIC_PATHS_ID = "@qwik-city-static-paths";
 
 // Warning: (ae-forgotten-export) The symbol "ViteAdapterPluginOptions" needs to be exported by the entry point index.d.ts
 //
-// @alpha (undocumented)
+// @public (undocumented)
 export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2;
-
-// @alpha @deprecated (undocumented)
-export const viteAdaptor: typeof viteAdapter;
 
 // (No @packageDocumentation comment for this package)
 

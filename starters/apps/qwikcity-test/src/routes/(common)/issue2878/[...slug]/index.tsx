@@ -1,5 +1,9 @@
-import { component$ } from '@builder.io/qwik';
-import { DocumentHead, StaticGenerateHandler, loader$ } from '@builder.io/qwik-city';
+import { component$ } from "@builder.io/qwik";
+import {
+  type DocumentHead,
+  type StaticGenerateHandler,
+  routeLoader$,
+} from "@builder.io/qwik-city";
 
 export default component$(() => {
   const blog = useLoader();
@@ -17,7 +21,7 @@ export interface BlogData {
   content: string;
 }
 
-export const useLoader = loader$(({ params, request }) => {
+export const useLoader = routeLoader$(({ params, request }) => {
   return {
     title: `Blog: ${params.slug}`,
     content: `${params.slug}, ${request.url}`,

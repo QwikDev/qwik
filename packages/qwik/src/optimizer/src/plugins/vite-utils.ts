@@ -37,13 +37,13 @@ export const findLocation = (e: Error): Loc | undefined => {
   if (typeof stack === 'string') {
     const lines = stack
       .split('\n')
-      .filter((l) => !l.includes('/node_modules/@builder.io/qwik') && !l.includes('(node:'));
+      .filter((l) => !l.includes('/node_modules/') && !l.includes('(node:'));
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].replace('file:///', '/');
       if (/^\s+at/.test(line)) {
         const start = line.indexOf('/');
-        const end = line.indexOf(')', start);
+        const end = line.lastIndexOf(')', start);
         if (start > 0) {
           const path = line.slice(start, end);
           const parts = path.split(':');
@@ -92,8 +92,12 @@ export function posToNumber(
   source: string,
   pos: number | { line: number; column: number; lo: number }
 ): number {
-  if (typeof pos === 'number') return pos;
-  if (pos.lo != null) return pos.lo;
+  if (typeof pos === 'number') {
+    return pos;
+  }
+  if (pos.lo != null) {
+    return pos.lo;
+  }
   const lines = source.split(splitRE);
   const { line, column } = pos;
   let start = 0;
@@ -117,7 +121,9 @@ export function generateCodeFrame(
     count += lines[i].length + 1;
     if (count >= start) {
       for (let j = i - range; j <= i + range || end > count; j++) {
-        if (j < 0 || j >= lines.length) continue;
+        if (j < 0 || j >= lines.length) {
+          continue;
+        }
         const line = j + 1;
         res.push(`${line}${' '.repeat(Math.max(3 - String(line).length, 0))}|  ${lines[j]}`);
         const lineLength = lines[j].length;

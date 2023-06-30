@@ -1,15 +1,6 @@
-import { build, BuildOptions, Plugin } from 'esbuild';
+import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import {
-  BuildConfig,
-  getBanner,
-  importPath,
-  injectGlobalThisPoly,
-  injectGlobalPoly,
-  nodeTarget,
-  target,
-  watcher,
-} from './util';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target, watcher } from './util';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson } from './package-json';
 
@@ -26,14 +17,14 @@ export async function submoduleServer(config: BuildConfig) {
   const qwikDomVersion = await getQwikDomVersion(config);
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
     entryNames: 'server',
-    outdir: config.distPkgDir,
+    outdir: config.distQwikPkgDir,
     sourcemap: config.dev,
     bundle: true,
     target,
     external: [
-      /* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom',
+      /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
       '@builder.io/qwik/build',
     ],
   };
@@ -41,7 +32,7 @@ export async function submoduleServer(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) + injectGlobalPoly() },
+    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     watch: watcher(config, submodule),
@@ -56,8 +47,6 @@ export async function submoduleServer(config: BuildConfig) {
 
   const cjsBanner = [
     getBanner('@builder.io/qwik/server', config.distVersion),
-    injectGlobalThisPoly(),
-    injectGlobalPoly(),
     `globalThis.qwikServer = (function (module) {`,
     browserCjsRequireShim,
   ].join('\n');
@@ -135,6 +124,12 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikCore;
+    }
+    if (path === '@builder.io/qwik/build') {
+      if (!self.qwikBuild) {
+        throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
+      }
+      return self.qwikBuild;
     }
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };

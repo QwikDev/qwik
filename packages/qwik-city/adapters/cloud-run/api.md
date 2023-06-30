@@ -7,18 +7,12 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function cloudRunAdapter(opts?: CloudRunAdapterOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {
 }
-
-// @alpha @deprecated (undocumented)
-export const cloudRunAdaptor: typeof cloudRunAdapter;
-
-// @alpha @deprecated (undocumented)
-export type CloudRunAdaptorOptions = CloudRunAdapterOptions;
 
 export { StaticGenerateRenderOptions }
 

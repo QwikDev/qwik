@@ -1,47 +1,55 @@
-import { build, Plugin, transform } from 'esbuild';
+import { build, type Plugin, transform } from 'esbuild';
 import { execa } from 'execa';
 import { copyFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
 import { readPackageJson, writePackageJson } from './package-json';
-import { BuildConfig, emptyDir, importPath, nodeTarget, panic, watcher } from './util';
-
-const PACKAGE = 'qwik-city';
+import {
+  type BuildConfig,
+  emptyDir,
+  importPath,
+  nodeTarget,
+  panic,
+  watcher,
+  type PackageJSON,
+} from './util';
 
 export async function buildQwikCity(config: BuildConfig) {
-  const inputDir = join(config.packagesDir, PACKAGE);
-  const outputDir = join(inputDir, 'lib');
-
   if (!config.dev) {
-    emptyDir(outputDir);
+    emptyDir(config.distQwikCityPkgDir);
   }
 
   await Promise.all([
-    buildServiceWorker(config, inputDir, outputDir),
-    buildVite(config, inputDir, outputDir),
-    buildAdapterAzureSwaVite(config, inputDir, outputDir),
-    buildAdapterCloudflarePagesVite(config, inputDir, outputDir),
-    buildAdapterCloudRunVite(config, inputDir, outputDir),
-    buildAdapterExpressVite(config, inputDir, outputDir),
-    buildAdapterNetlifyEdgeVite(config, inputDir, outputDir),
-    buildAdapterSharedVite(config, inputDir, outputDir),
-    buildAdapterStaticVite(config, inputDir, outputDir),
-    buildAdapterVercelEdgeVite(config, inputDir, outputDir),
-    buildMiddlewareCloudflarePages(config, inputDir, outputDir),
-    buildMiddlewareNetlifyEdge(config, inputDir, outputDir),
-    buildMiddlewareAzureSwa(config, inputDir, outputDir),
-    buildMiddlewareNode(config, inputDir, outputDir),
-    buildMiddlewareRequestHandler(config, inputDir, outputDir),
-    buildMiddlewareVercelEdge(config, inputDir, outputDir),
-    buildStatic(config, inputDir, outputDir),
-    buildStaticNode(config, inputDir, outputDir),
-    buildStaticDeno(config, inputDir, outputDir),
+    buildServiceWorker(config),
+    buildVite(config),
+    buildAdapterAzureSwaVite(config),
+    buildAdapterCloudflarePagesVite(config),
+    buildAdapterCloudRunVite(config),
+    buildAdapterDenoVite(config),
+    buildAdapterNodeServerVite(config),
+    buildAdapterNetlifyEdgeVite(config),
+    buildAdapterSharedVite(config),
+    buildAdapterStaticVite(config),
+    buildAdapterVercelEdgeVite(config),
+    buildMiddlewareCloudflarePages(config),
+    buildMiddlewareNetlifyEdge(config),
+    buildMiddlewareAzureSwa(config),
+    buildMiddlewareDeno(config),
+    buildMiddlewareNode(config),
+    buildMiddlewareRequestHandler(config),
+    buildMiddlewareVercelEdge(config),
+    buildStatic(config),
+    buildStaticNode(config),
+    buildStaticDeno(config),
   ]);
 
-  await buildRuntime(inputDir);
+  await buildRuntime(config);
 
-  const loaderPkg = {
-    ...(await readPackageJson(inputDir)),
+  let srcQwikCityPkg = await readPackageJson(config.srcQwikCityDir);
+
+  const diskQwikCityPkg: PackageJSON = {
+    ...srcQwikCityPkg,
+    version: config.distVersion,
     main: './index.qwik.mjs',
     qwik: './index.qwik.mjs',
     types: './index.d.ts',
@@ -67,10 +75,15 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adapters/cloud-run/vite/index.mjs',
         require: './adapters/cloud-run/vite/index.cjs',
       },
-      './adapters/express/vite': {
-        types: './adapters/express/vite/index.d.ts',
-        import: './adapters/express/vite/index.mjs',
-        require: './adapters/express/vite/index.cjs',
+      './adapters/deno-server/vite': {
+        types: './adapters/deno-server/vite/index.d.ts',
+        import: './adapters/deno-server/vite/index.mjs',
+        require: './adapters/deno-server/vite/index.cjs',
+      },
+      './adapters/node-server/vite': {
+        types: './adapters/node-server/vite/index.d.ts',
+        import: './adapters/node-server/vite/index.mjs',
+        require: './adapters/node-server/vite/index.cjs',
       },
       './adapters/netlify-edge/vite': {
         types: './adapters/netlify-edge/vite/index.d.ts',
@@ -92,49 +105,6 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adapters/vercel-edge/vite/index.mjs',
         require: './adapters/vercel-edge/vite/index.cjs',
       },
-
-      // start deprecated
-      './adaptors/azure-swa/vite': {
-        types: './adapters/azure-swa/vite/index.d.ts',
-        import: './adapters/azure-swa/vite/index.mjs',
-        require: './adapters/azure-swa/vite/index.cjs',
-      },
-      './adaptors/cloudflare-pages/vite': {
-        types: './adapters/cloudflare-pages/vite/index.d.ts',
-        import: './adapters/cloudflare-pages/vite/index.mjs',
-        require: './adapters/cloudflare-pages/vite/index.cjs',
-      },
-      './adaptors/cloud-run/vite': {
-        types: './adapters/cloud-run/vite/index.d.ts',
-        import: './adapters/cloud-run/vite/index.mjs',
-        require: './adapters/cloud-run/vite/index.cjs',
-      },
-      './adaptors/express/vite': {
-        types: './adapters/express/vite/index.d.ts',
-        import: './adapters/express/vite/index.mjs',
-        require: './adapters/express/vite/index.cjs',
-      },
-      './adaptors/netlify-edge/vite': {
-        types: './adapters/netlify-edge/vite/index.d.ts',
-        import: './adapters/netlify-edge/vite/index.mjs',
-        require: './adapters/netlify-edge/vite/index.cjs',
-      },
-      './adaptors/shared/vite': {
-        types: './adapters/shared/vite/index.d.ts',
-        import: './adapters/shared/vite/index.mjs',
-        require: './adapters/shared/vite/index.cjs',
-      },
-      './adaptors/static/vite': {
-        types: './adapters/static/vite/index.d.ts',
-        import: './adapters/static/vite/index.mjs',
-        require: './adapters/static/vite/index.cjs',
-      },
-      './adaptors/vercel-edge/vite': {
-        types: './adapters/vercel-edge/vite/index.d.ts',
-        import: './adapters/vercel-edge/vite/index.mjs',
-        require: './adapters/vercel-edge/vite/index.cjs',
-      },
-      // end deprecated
       './middleware/azure-swa': {
         types: './middleware/azure-swa/index.d.ts',
         import: './middleware/azure-swa/index.mjs',
@@ -142,6 +112,10 @@ export async function buildQwikCity(config: BuildConfig) {
       './middleware/cloudflare-pages': {
         types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
+      },
+      './middleware/deno': {
+        types: './middleware/deno/index.d.ts',
+        import: './middleware/deno/index.mjs',
       },
       './middleware/netlify-edge': {
         types: './middleware/netlify-edge/index.d.ts',
@@ -197,27 +171,27 @@ export async function buildQwikCity(config: BuildConfig) {
     devDependencies: undefined,
     scripts: undefined,
   };
-  await writePackageJson(outputDir, loaderPkg);
+  await writePackageJson(config.distQwikCityPkgDir, diskQwikCityPkg);
 
-  const srcReadmePath = join(inputDir, 'README.md');
-  const distReadmePath = join(outputDir, 'README.md');
+  const srcReadmePath = join(config.srcQwikCityDir, 'README.md');
+  const distReadmePath = join(config.distQwikCityPkgDir, 'README.md');
   await copyFile(srcReadmePath, distReadmePath);
 
-  console.log(`🏙  ${PACKAGE}`);
+  console.log(`🏙  qwik-city`);
 }
 
-async function buildRuntime(input: string) {
+async function buildRuntime(config: BuildConfig) {
   const result = await execa('pnpm', ['build'], {
     stdout: 'inherit',
-    cwd: input,
+    cwd: config.srcQwikCityDir,
   });
   if (result.failed) {
     panic(`tsc failed`);
   }
 }
 
-async function buildVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'buildtime', 'vite', 'index.ts')];
+async function buildVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'buildtime', 'vite', 'index.ts')];
 
   const external = [
     'fs',
@@ -230,11 +204,11 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'node-fetch',
     'undici',
     'typescript',
-    '@builder.io/qwik',
-    '@builder.io/qwik/optimizer',
+    'vite-imagetools',
+    'svgo',
   ];
 
-  const swRegisterPath = join(inputDir, 'runtime', 'src', 'sw-register.ts');
+  const swRegisterPath = join(config.srcQwikCityDir, 'runtime', 'src', 'sw-register.ts');
   let swRegisterCode = await readFile(swRegisterPath, 'utf-8');
 
   const swResult = await transform(swRegisterCode, { loader: 'ts', minify: true });
@@ -245,19 +219,23 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
     external,
+    alias: {
+      '@builder.io/qwik': 'noop',
+      '@builder.io/qwik/optimizer': 'noop',
+    },
     watch: watcher(config),
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -287,7 +265,7 @@ function serviceWorkerRegisterBuild(swRegisterCode: string) {
   return plugin;
 }
 
-async function buildServiceWorker(config: BuildConfig, inputDir: string, outputDir: string) {
+async function buildServiceWorker(config: BuildConfig) {
   const build = await rollup({
     input: join(
       config.tscDir,
@@ -301,24 +279,24 @@ async function buildServiceWorker(config: BuildConfig, inputDir: string, outputD
   });
 
   await build.write({
-    file: join(outputDir, 'service-worker.mjs'),
+    file: join(config.distQwikCityPkgDir, 'service-worker.mjs'),
     format: 'es',
   });
 
   await build.write({
-    file: join(outputDir, 'service-worker.cjs'),
+    file: join(config.distQwikCityPkgDir, 'service-worker.cjs'),
     format: 'cjs',
   });
 }
 
-async function buildAdapterAzureSwaVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'adapters', 'azure-swa', 'vite', 'index.ts')];
+async function buildAdapterAzureSwaVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'azure-swa', 'vite', 'index.ts')];
 
   const external = ['vite', 'fs', 'path', '@builder.io/qwik-city/static'];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'azure-swa', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'azure-swa', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -330,7 +308,7 @@ async function buildAdapterAzureSwaVite(config: BuildConfig, inputDir: string, o
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'azure-swa', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'azure-swa', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -341,16 +319,14 @@ async function buildAdapterAzureSwaVite(config: BuildConfig, inputDir: string, o
   });
 }
 
-async function buildAdapterCloudflarePagesVite(
-  config: BuildConfig,
-  inputDir: string,
-  outputDir: string
-) {
-  const entryPoints = [join(inputDir, 'adapters', 'cloudflare-pages', 'vite', 'index.ts')];
+async function buildAdapterCloudflarePagesVite(config: BuildConfig) {
+  const entryPoints = [
+    join(config.srcQwikCityDir, 'adapters', 'cloudflare-pages', 'vite', 'index.ts'),
+  ];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'cloudflare-pages', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'cloudflare-pages', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -362,7 +338,7 @@ async function buildAdapterCloudflarePagesVite(
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'cloudflare-pages', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'cloudflare-pages', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -373,12 +349,12 @@ async function buildAdapterCloudflarePagesVite(
   });
 }
 
-async function buildAdapterCloudRunVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'adapters', 'cloud-run', 'vite', 'index.ts')];
+async function buildAdapterCloudRunVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'cloud-run', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'cloud-run', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'cloud-run', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -390,7 +366,7 @@ async function buildAdapterCloudRunVite(config: BuildConfig, inputDir: string, o
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'cloud-run', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'cloud-run', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -401,12 +377,12 @@ async function buildAdapterCloudRunVite(config: BuildConfig, inputDir: string, o
   });
 }
 
-async function buildAdapterExpressVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'adapters', 'express', 'vite', 'index.ts')];
+async function buildAdapterDenoVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'deno-server', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'express', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'deno-server', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -418,39 +394,7 @@ async function buildAdapterExpressVite(config: BuildConfig, inputDir: string, ou
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'express', 'vite', 'index.cjs'),
-    bundle: true,
-    platform: 'node',
-    target: nodeTarget,
-    format: 'cjs',
-    watch: watcher(config),
-    external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
-  });
-}
-
-async function buildAdapterNetlifyEdgeVite(
-  config: BuildConfig,
-  inputDir: string,
-  outputDir: string
-) {
-  const entryPoints = [join(inputDir, 'adapters', 'netlify-edge', 'vite', 'index.ts')];
-
-  await build({
-    entryPoints,
-    outfile: join(outputDir, 'adapters', 'netlify-edge', 'vite', 'index.mjs'),
-    bundle: true,
-    platform: 'node',
-    target: nodeTarget,
-    format: 'esm',
-    watch: watcher(config),
-    external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
-  });
-
-  await build({
-    entryPoints,
-    outfile: join(outputDir, 'adapters', 'netlify-edge', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'deno-server', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -464,12 +408,71 @@ async function buildAdapterNetlifyEdgeVite(
   });
 }
 
-async function buildAdapterSharedVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'adapters', 'shared', 'vite', 'index.ts')];
+async function buildAdapterNodeServerVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'node-server', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'shared', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'node-server', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'node-server', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
+  });
+}
+
+async function buildAdapterNetlifyEdgeVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'netlify-edge', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'netlify-edge', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'netlify-edge', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [
+      resolveAdapterShared('../../shared/vite/index.cjs'),
+      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
+    ],
+  });
+}
+
+async function buildAdapterSharedVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'shared', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'shared', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -484,7 +487,7 @@ async function buildAdapterSharedVite(config: BuildConfig, inputDir: string, out
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'shared', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'shared', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -498,12 +501,12 @@ async function buildAdapterSharedVite(config: BuildConfig, inputDir: string, out
   });
 }
 
-async function buildAdapterStaticVite(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'adapters', 'static', 'vite', 'index.ts')];
+async function buildAdapterStaticVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'static', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'static', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'static', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -515,7 +518,7 @@ async function buildAdapterStaticVite(config: BuildConfig, inputDir: string, out
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'static', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'static', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -526,16 +529,12 @@ async function buildAdapterStaticVite(config: BuildConfig, inputDir: string, out
   });
 }
 
-async function buildAdapterVercelEdgeVite(
-  config: BuildConfig,
-  inputDir: string,
-  outputDir: string
-) {
-  const entryPoints = [join(inputDir, 'adapters', 'vercel-edge', 'vite', 'index.ts')];
+async function buildAdapterVercelEdgeVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'vercel-edge', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'vercel-edge', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel-edge', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -547,7 +546,7 @@ async function buildAdapterVercelEdgeVite(
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adapters', 'vercel-edge', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel-edge', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -558,12 +557,12 @@ async function buildAdapterVercelEdgeVite(
   });
 }
 
-async function buildMiddlewareAzureSwa(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'middleware', 'azure-swa', 'index.ts')];
+async function buildMiddlewareAzureSwa(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'azure-swa', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'azure-swa', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'azure-swa', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -574,16 +573,12 @@ async function buildMiddlewareAzureSwa(config: BuildConfig, inputDir: string, ou
   });
 }
 
-async function buildMiddlewareCloudflarePages(
-  config: BuildConfig,
-  inputDir: string,
-  outputDir: string
-) {
-  const entryPoints = [join(inputDir, 'middleware', 'cloudflare-pages', 'index.ts')];
+async function buildMiddlewareCloudflarePages(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'cloudflare-pages', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'cloudflare-pages', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'cloudflare-pages', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -594,16 +589,12 @@ async function buildMiddlewareCloudflarePages(
   });
 }
 
-async function buildMiddlewareNetlifyEdge(
-  config: BuildConfig,
-  inputDir: string,
-  outputDir: string
-) {
-  const entryPoints = [join(inputDir, 'middleware', 'netlify-edge', 'index.ts')];
+async function buildMiddlewareDeno(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'deno', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'netlify-edge', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'deno', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -614,14 +605,30 @@ async function buildMiddlewareNetlifyEdge(
   });
 }
 
-async function buildMiddlewareNode(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'middleware', 'node', 'index.ts')];
+async function buildMiddlewareNetlifyEdge(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'netlify-edge', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'netlify-edge', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: MIDDLEWARE_EXTERNALS,
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
+async function buildMiddlewareNode(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'node', 'index.ts')];
 
   const external = ['node-fetch', 'undici', 'path', 'os', 'fs', 'url', ...MIDDLEWARE_EXTERNALS];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'node', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'node', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -633,7 +640,7 @@ async function buildMiddlewareNode(config: BuildConfig, inputDir: string, output
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'node', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'node', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -644,16 +651,12 @@ async function buildMiddlewareNode(config: BuildConfig, inputDir: string, output
   });
 }
 
-async function buildMiddlewareRequestHandler(
-  config: BuildConfig,
-  inputDir: string,
-  outputDir: string
-) {
-  const entryPoints = [join(inputDir, 'middleware', 'request-handler', 'index.ts')];
+async function buildMiddlewareRequestHandler(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'request-handler', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'request-handler', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'request-handler', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -664,7 +667,7 @@ async function buildMiddlewareRequestHandler(
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'request-handler', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'request-handler', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -674,12 +677,12 @@ async function buildMiddlewareRequestHandler(
   });
 }
 
-async function buildMiddlewareVercelEdge(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'middleware', 'vercel-edge', 'index.ts')];
+async function buildMiddlewareVercelEdge(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'vercel-edge', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'vercel-edge', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'vercel-edge', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -690,12 +693,12 @@ async function buildMiddlewareVercelEdge(config: BuildConfig, inputDir: string, 
   });
 }
 
-async function buildStatic(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'static', 'index.ts')];
+async function buildStatic(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'static', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'static', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'static', 'index.mjs'),
     bundle: true,
     platform: 'neutral',
     format: 'esm',
@@ -704,7 +707,7 @@ async function buildStatic(config: BuildConfig, inputDir: string, outputDir: str
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'static', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'static', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -713,12 +716,12 @@ async function buildStatic(config: BuildConfig, inputDir: string, outputDir: str
   });
 }
 
-async function buildStaticDeno(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'static', 'deno', 'index.ts')];
+async function buildStaticDeno(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'static', 'deno', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'static', 'deno.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'static', 'deno.mjs'),
     bundle: true,
     platform: 'neutral',
     format: 'esm',
@@ -727,8 +730,8 @@ async function buildStaticDeno(config: BuildConfig, inputDir: string, outputDir:
   });
 }
 
-async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'static', 'node', 'index.ts')];
+async function buildStaticNode(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'static', 'node', 'index.ts')];
 
   const external = [
     '@builder.io/qwik',
@@ -749,7 +752,7 @@ async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir:
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'static', 'node.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'static', 'node.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -761,7 +764,7 @@ async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir:
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'static', 'node.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'static', 'node.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

@@ -4,7 +4,7 @@ import { appBundleClient } from './app-bundle-client';
 import { appBundleSsr } from './app-bundle-ssr';
 import { appSsrHtml } from './app-ssr-html';
 import { loadDependencies } from './repl-dependencies';
-import { sendMessageToReplServer, WindowClient } from './repl-messenger';
+import { sendMessageToReplServer, type WindowClient } from './repl-messenger';
 import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 
 export const appUpdate = async (

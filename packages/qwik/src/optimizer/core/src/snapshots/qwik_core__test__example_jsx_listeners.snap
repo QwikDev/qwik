@@ -71,7 +71,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./fo
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGA0BhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGA0BhB;IACC,SAAS;AACb,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -127,30 +127,30 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const handler = /*#__PURE__*/ qrl(()=>import("./foo_component_handler_h10xztd0e7w"), "Foo_component_handler_H10xZtD0e7w");
-    return /*#__PURE__*/ _jsx("div", {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        custom$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms"),
         "host:onClick$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey"), "Foo_component_div_host_onClick_cPEH970JbEY"),
         "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
         "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
-        onKeyup$: handler,
+        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
+        onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw"),
+        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
+        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
         "onDocument:keyup$": handler,
-        "onWindow:keyup$": handler,
-        custom$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
-    }, "u6_0");
+        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
+        onKeyup$: handler,
+        "onWindow:keyup$": handler
+    }, null, 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKa,IAAM;IACX,MAAM;IACN,qBACI,KAAC;QACG,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,UAAU;QAbd,qBAcuB;QAdvB,mBAeqB;QAEjB,OAAO;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKa,IAAM;IACX,MAAM;IACN,qBACI,MAAC;QAiBG,OAAO;QAjBX,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QAbE,WAAS;QAJT,QAAQ;QAKR,oBAAkB;QAClB,oBAAkB;QAPtB,qBAcuB;QAZnB,iBAAiB;QACjB,iBAAiB;QAUjB,UAAU;QAbd,mBAeqB;;AAK7B\"}")
 /*
 {
   "origin": "test.tsx",

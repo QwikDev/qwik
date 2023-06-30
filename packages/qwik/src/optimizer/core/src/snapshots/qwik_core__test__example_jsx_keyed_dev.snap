@@ -19,78 +19,81 @@ export const App = component$((props: Stuff) => {
     );
 });
 
-============================= test.js ==
+============================= project/index.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0", {
-    file: "/user/qwik/src/test.tsx",
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("../app_component_kglyfbhvjc0.js"), "App_component_KGLYFBhvJc0", {
+    file: "/src/project/project/index.tsx",
     lo: 90,
     hi: 348,
     displayName: "App_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
+============================= app_component_kglyfbhvjc0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-dev-runtime";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
-import { jsxDEV as _jsxDEV } from "@builder.io/qwik/jsx-dev-runtime";
-export const App_component_ckEPmXZlub0 = (props)=>{
-    return /*#__PURE__*/ _jsxDEV(_Fragment, {
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+export const App_component_KGLYFBhvJc0 = (props)=>{
+    return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
-            /*#__PURE__*/ _jsxDEV(Cmp, {}, "stuff", false, {
-                fileName: "/user/qwik/src/test.tsx",
+            /*#__PURE__*/ _jsxC(Cmp, null, 3, "stuff", {
+                fileName: "project/index.tsx",
                 lineNumber: 7,
                 columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV(Cmp, {}, "u6_0", false, {
-                fileName: "/user/qwik/src/test.tsx",
+            }),
+            /*#__PURE__*/ _jsxC(Cmp, null, 3, "Q6_0", {
+                fileName: "project/index.tsx",
                 lineNumber: 8,
                 columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV(Cmp, {
+            }),
+            /*#__PURE__*/ _jsxC(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
                     prop: _IMMUTABLE
                 }
-            }, "u6_1", false, {
-                fileName: "/user/qwik/src/test.tsx",
+            }, 3, "Q6_1", {
+                fileName: "project/index.tsx",
                 lineNumber: 9,
                 columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV(Cmp, {
+            }),
+            /*#__PURE__*/ _jsxC(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
                     prop: _IMMUTABLE
                 }
-            }, props.stuff, false, {
-                fileName: "/user/qwik/src/test.tsx",
+            }, 3, props.stuff, {
+                fileName: "project/index.tsx",
                 lineNumber: 10,
                 columnNumber: 13
-            }, this),
-            /*#__PURE__*/ _jsxDEV("p", {
-                children: "Hello Qwik"
-            }, props.stuff, false, {
-                fileName: "/user/qwik/src/test.tsx",
+            }),
+            /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff, {
+                fileName: "project/index.tsx",
                 lineNumber: 11,
                 columnNumber: 13
-            }, this)
+            })
         ]
-    }, void 0, true);
+    }, 1, "Q6_2", {
+        fileName: "project/index.tsx",
+        lineNumber: 6,
+        columnNumber: 9
+    });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,QAAC,SAAQ;;;;;0BACT,QAAC;;;;;0BACD,QAAC;gBAAI,MAAK;;oBAAL,IAAI;;;;;;;0BACT,QAAC;gBAAI,MAAK;;oBAAL,IAAI;;eAAW,MAAM,KAAK;;;;;0BAC/B,QAAC;0BAAoB;eAAb,MAAM,KAAK;;;;;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,MAAC,cAAQ;;;;;0BACT,MAAC;;;;;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;;;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;;;;;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;;AAG/B\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "project/index.tsx",
+  "name": "App_component_KGLYFBhvJc0",
   "entry": null,
   "displayName": "App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "hash": "KGLYFBhvJc0",
+  "canonicalFilename": "app_component_kglyfbhvjc0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

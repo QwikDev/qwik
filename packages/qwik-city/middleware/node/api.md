@@ -6,26 +6,25 @@
 
 /// <reference types="node" />
 
+import type { ClientConn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { IncomingMessage } from 'node:http';
-import { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {
     router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
     staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
 };
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface NodeRequestNextFunction {
     // (undocumented)
     (err?: any): void;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface PlatformNode {
     // (undocumented)
     incomingMessage?: IncomingMessage;
@@ -35,15 +34,11 @@ export interface PlatformNode {
     ssr?: true;
 }
 
-// @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions): {
-    router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
-    notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
-    staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
-};
-
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
+    // (undocumented)
+    getClientConn?: (req: IncomingMessage) => ClientConn;
+    origin?: string;
     static?: {
         root?: string;
         cacheControl?: string;

@@ -24,6 +24,7 @@ export async function generatePackageJson(config: BuildConfig) {
     peerDependencies: {
       undici: '^5.14.0',
     },
+    dependencies: rootPkg.dependencies,
     exports: {
       '.': {
         types: './core.d.ts',

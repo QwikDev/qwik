@@ -25,4 +25,23 @@ test.describe("server$", () => {
       "localhost:3301",
     ]);
   });
+
+  test("streaming", async ({ page }) => {
+    await page.goto("/qwikcity-test/server-func/");
+    const logs = page.locator(".server-streaming");
+    const button = page.locator("#server-streaming-button");
+
+    await expect(logs).toHaveText("");
+    await button.click();
+    await page.waitForTimeout(900);
+    await expect(logs).toHaveText("0");
+    await page.waitForTimeout(900);
+    await expect(logs).toHaveText("01");
+    await page.waitForTimeout(900);
+    await expect(logs).toHaveText("012");
+    await page.waitForTimeout(900);
+    await expect(logs).toHaveText("0123");
+    await page.waitForTimeout(900);
+    await expect(logs).toHaveText("01234");
+  });
 });

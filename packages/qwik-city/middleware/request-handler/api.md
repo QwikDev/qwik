@@ -110,6 +110,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly query: URLSearchParams;
     readonly request: Request;
     readonly sharedMap: Map<string, any>;
+    readonly signal: AbortSignal;
     readonly url: URL;
 }
 

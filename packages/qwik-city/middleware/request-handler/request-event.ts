@@ -125,6 +125,7 @@ export function createRequestEvent(
     headers,
     env,
     method: request.method,
+    signal: request.signal,
     params: loadedRoute?.[0] ?? {},
     pathname: url.pathname,
     platform,

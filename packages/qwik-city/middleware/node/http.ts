@@ -62,12 +62,17 @@ export async function fromNodeHttp(
   };
 
   const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+  const controller = new AbortController();
   const options = {
     method: req.method,
     headers: requestHeaders,
     body: body as any,
+    signal: controller.signal,
     duplex: 'half' as any,
   };
+  res.on('close', () => {
+    controller.abort();
+  });
   const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
     url,

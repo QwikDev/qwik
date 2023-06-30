@@ -304,12 +304,16 @@ async function pureServerFunction(ev: RequestEvent) {
         }
         if (isAsyncIterator(result)) {
           ev.headers.set('Content-Type', 'text/qwik-json-stream');
-          const stream = ev.getWritableStream().getWriter();
+          const writable = ev.getWritableStream();
+          const stream = writable.getWriter();
           for await (const item of result) {
             if (isDev) {
               verifySerializable(qwikSerializer, item, qrl);
             }
             const message = await qwikSerializer._serializeData(item, true);
+            if (ev.signal.aborted) {
+              break;
+            }
             await stream.write(encoder.encode(`${message}\n`));
           }
           stream.close();

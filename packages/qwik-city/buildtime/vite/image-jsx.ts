@@ -14,6 +14,7 @@ export function imagePlugin(): PluginOption[] {
   return [
     import('vite-imagetools').then(({ imagetools }) =>
       imagetools({
+        exclude: [],
         extendOutputFormats(builtins) {
           const jsx: OutputFormat = () => (metadatas) => {
             const srcSet = metadatas.map((meta) => `${meta.src} ${meta.width}w`).join(', ');
@@ -52,7 +53,7 @@ export function imagePlugin(): PluginOption[] {
       })
     ),
     {
-      name: 'qwik-city-image',
+      name: 'qwik-city-image-jsx',
       load: {
         order: 'pre',
         handler: async (id) => {
@@ -65,9 +66,12 @@ export function imagePlugin(): PluginOption[] {
           }
         },
       },
-      transform: (code, id) => {
+      transform(code, id) {
         id = id.toLowerCase();
         if (id.endsWith('?jsx')) {
+          if (!code.includes('srcSet')) {
+            this.error(`Image '${id}' could not be optimized to JSX`);
+          }
           if (supportedExtensions.some((ext) => id.endsWith(ext))) {
             const index = code.indexOf('export default');
             return (

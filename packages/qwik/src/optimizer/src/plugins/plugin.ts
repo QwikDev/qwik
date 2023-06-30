@@ -528,6 +528,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     ssrOpts: { ssr?: boolean } = {}
   ) {
+    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+      return;
+    }
+    const isSSR = !!ssrOpts.ssr;
+    const currentOutputs = isSSR ? ssrTransformedOutputs : transformedOutputs;
+    if (currentOutputs.has(id)) {
+      return;
+    }
     const optimizer = getOptimizer();
     const path = getPath();
 
@@ -577,7 +585,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode: mode,
         scope: opts.scope ? opts.scope : void 0,
       };
-      const isSSR = !!ssrOpts.ssr;
       if (isSSR) {
         transformOpts.entryStrategy = { type: 'hoist' };
       }
@@ -609,11 +616,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const mod of newOutput.modules) {
         if (mod.isEntry) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          if (isSSR) {
-            ssrTransformedOutputs.set(key, [mod, id]);
-          } else {
-            transformedOutputs.set(key, [mod, id]);
-          }
+          currentOutputs.set(key, [mod, id]);
           deps.add(key);
         }
       }

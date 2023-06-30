@@ -73,9 +73,7 @@ export const resolveRequestHandlers = (
       method
     );
     if (isPageRoute) {
-      if (routeLoaders.length + routeActions.length > 0) {
-        requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
-      }
+      requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
       requestHandlers.push(renderHandler);
     }
   }

@@ -150,7 +150,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
       return null;
     },
 
-    async load(id) {
+    async load(id, opts) {
       if (ctx) {
         if (id.endsWith(QWIK_CITY_ENTRIES_ID)) {
           // @qwik-city-entries
@@ -174,7 +174,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 
           if (isCityPlan) {
             // @qwik-city-plan
-            return generateQwikCityPlan(ctx, qwikPlugin!);
+            return generateQwikCityPlan(ctx, qwikPlugin!, opts?.ssr ?? false);
           }
 
           if (isSwRegister) {
@@ -187,6 +187,9 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     async transform(code, id) {
+      if (id.startsWith('\0')) {
+        return;
+      }
       const isMD = id.endsWith('.md') || id.endsWith('.mdx');
       if (ctx && isMD) {
         const fileName = basename(id);

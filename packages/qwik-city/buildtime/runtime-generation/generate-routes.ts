@@ -7,10 +7,10 @@ export function createRoutes(
   ctx: BuildContext,
   qwikPlugin: QwikVitePlugin,
   c: string[],
-  esmImports: string[]
+  esmImports: string[],
+  isSSR: boolean
 ) {
-  const isSsr = ctx.target === 'ssr';
-  const includeEndpoints = isSsr;
+  const includeEndpoints = isSSR;
   const dynamicImports = ctx.target === 'client';
 
   if (ctx.layouts.length > 0) {
@@ -56,7 +56,7 @@ export function createRoutes(
     }
 
     if (loaders.length > 0) {
-      c.push(`  ${createRouteData(qwikPlugin, route, loaders, isSsr)},`);
+      c.push(`  ${createRouteData(qwikPlugin, route, loaders, isSSR)},`);
     }
   }
 

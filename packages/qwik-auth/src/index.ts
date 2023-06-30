@@ -12,6 +12,7 @@ import {
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
+export type GetSessionResult = Promise<Session | null>;
 export type QwikAuthConfig = AuthConfig;
 
 const actions: AuthAction[] = [
@@ -24,48 +25,6 @@ const actions: AuthAction[] = [
   'verify-request',
   'error',
 ];
-
-export async function authAction(
-  body: URLSearchParams | undefined,
-  req: RequestEventCommon,
-  path: string,
-  authOptions: QwikAuthConfig
-) {
-  const request = new Request(new URL(path, req.request.url), {
-    method: req.request.method,
-    headers: req.request.headers,
-    body: body,
-  });
-  request.headers.set('content-type', 'application/x-www-form-urlencoded');
-  const res = await Auth(request, {
-    ...authOptions,
-    skipCSRFCheck,
-  });
-  res.headers.forEach((value, key) => {
-    req.headers.set(key, value);
-  });
-  fixCookies(req);
-
-  try {
-    return await res.json();
-  } catch (error) {
-    return await res.text();
-  }
-}
-
-export const fixCookies = (req: RequestEventCommon) => {
-  req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
-  const cookie = req.headers.get('set-cookie');
-  if (cookie) {
-    req.headers.delete('set-cookie');
-    splitCookiesString(cookie).forEach((cookie) => {
-      const { name, value, ...rest } = parseString(cookie);
-      req.cookie.set(name, value, rest as any);
-    });
-  }
-};
-
-export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
 
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignin = globalAction$(
@@ -160,6 +119,46 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
 export const serverAuth$ = /*#__PURE__*/ implicit$FirstArg(serverAuthQrl);
 
+async function authAction(
+  body: URLSearchParams | undefined,
+  req: RequestEventCommon,
+  path: string,
+  authOptions: QwikAuthConfig
+) {
+  const request = new Request(new URL(path, req.request.url), {
+    method: req.request.method,
+    headers: req.request.headers,
+    body: body,
+  });
+  request.headers.set('content-type', 'application/x-www-form-urlencoded');
+  const res = await Auth(request, {
+    ...authOptions,
+    skipCSRFCheck,
+  });
+  res.headers.forEach((value, key) => {
+    req.headers.set(key, value);
+  });
+  fixCookies(req);
+
+  try {
+    return await res.json();
+  } catch (error) {
+    return await res.text();
+  }
+}
+
+const fixCookies = (req: RequestEventCommon) => {
+  req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
+  const cookie = req.headers.get('set-cookie');
+  if (cookie) {
+    req.headers.delete('set-cookie');
+    splitCookiesString(cookie).forEach((cookie) => {
+      const { name, value, ...rest } = parseString(cookie);
+      req.cookie.set(name, value, rest as any);
+    });
+  }
+};
+
 export const ensureAuthMiddleware = (req: RequestEvent) => {
   const isLoggedIn = req.sharedMap.has('session');
   if (!isLoggedIn) {
@@ -167,9 +166,9 @@ export const ensureAuthMiddleware = (req: RequestEvent) => {
   }
 };
 
-export type GetSessionResult = Promise<Session | null>;
+const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
 
-export async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
+async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
   options.secret ??= process.env.AUTH_SECRET;
   options.trustHost ??= true;
 

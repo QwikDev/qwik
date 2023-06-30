@@ -8,17 +8,21 @@ import { createServerPlugins } from './generate-server-plugins';
 /**
  * Generates the Qwik City Plan runtime code
  */
-export function generateQwikCityPlan(ctx: BuildContext, qwikPlugin: QwikVitePlugin) {
+export function generateQwikCityPlan(
+  ctx: BuildContext,
+  qwikPlugin: QwikVitePlugin,
+  isSSR: boolean
+) {
   const esmImports: string[] = [];
   const c: string[] = [];
 
   c.push(`\n/** Qwik City Plan */`);
 
-  createServerPlugins(ctx, qwikPlugin, c, esmImports);
+  createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);
 
-  createRoutes(ctx, qwikPlugin, c, esmImports);
+  createRoutes(ctx, qwikPlugin, c, esmImports, isSSR);
 
-  createMenus(ctx, c, esmImports);
+  createMenus(ctx, c, esmImports, isSSR);
 
   createEntries(ctx, c);
 

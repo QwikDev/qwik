@@ -18,7 +18,7 @@ When an SSR/SSG application boots up on a client, it requires that the framework
 
 1. Listeners - locate event listeners and install them on the DOM nodes to make the application interactive.
 2. Component tree - build up an internal data structure representing the application component tree.
-3. Application state - restore the application state.
+3. Application state - restore any data that was fetched or saved in a `store` on the server.
 
 Collectively, this is known as hydration. All current generations of frameworks require this step to make the application interactive.
 
@@ -31,13 +31,13 @@ Collectively, this is known as hydration. All current generations of frameworks 
 
 Qwik is different because it does not require hydration to resume an application on the client. Not requiring hydration is what makes the Qwik application startup instantaneous.
 
-All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client.
+All other frameworks' hydration **replays** all the application logic on the client. Qwik instead pauses execution on the server, and resumes execution on the client.
 
 ## Introducing Resumability
 
-Resumability is about pausing execution in the server and resuming execution in the client without having to replay and download all of the application logic.
+Resumability is about pausing execution on the server and resuming execution on the client without having to replay and download all of the application logic.
 
-A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
+A good mental model is that Qwik applications at any point of their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
 
 In order to achieve this, Qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 
@@ -52,6 +52,7 @@ Existing frameworks solve the event listener by downloading the components and e
 3. Requires the event handler code to be downloaded eagerly (to be attached).
 
 The above approach does not scale. As the application becomes more complicated, the amount of code needed to download eagerly and execute grows proportionally with the size of the application. This negatively impacts the application startup performance and hence the user experience.
+In other frameworks, lazy-loading chunks of the application becomes a development task in itself that consumes time and effort. In Qwik, lazy-loading is a natural consequence of the resumable architecture.
 
 Qwik solves the above issue by serializing the event listeners into DOM like so:
 
@@ -61,15 +62,15 @@ Qwik solves the above issue by serializing the event listeners into DOM like so:
 
 Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click` attribute contains all of the information to resume the application without doing anything eagerly.
 
-1. Qwikloader sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
-2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk.
-3. Finally, to make all of the above possible, Qwik's event processing implementation understands asynchronicity which allows insertion of asynchronous lazy loading.
+1. [Qwikloader](https://qwik.builder.io/docs/advanced/qwikloader/) sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
+2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk and then to be executed.
+3. Finally, to make all of the above possible, Qwik's event processing implementation understands asynchronicity which allows it to lazy load closures automatically.
 
 ### Component Trees
 
 Frameworks work with component trees. To that end, frameworks need a complete understanding of the component trees to know which components need to be rerendered and when. If you look into the existing framework SSR/SSG output, the component boundary information has been destroyed. There is no way of knowing where component boundaries are by looking at the resulting HTML. To recreate this information, frameworks re-execute the component templates and memoize the component boundary location. Re-execution is what hydration is. Hydration is expensive as it requires both the download of component templates and their execution.
 
-Qwik collects component boundary information as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
+Qwik collects [component boundary information](https://qwik.builder.io/docs/cheat/serialization/) as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
 
 1. Rebuild the component hierarchy information without the component code actually being present. The component code can remain lazy.
 2. Qwik can do this lazily only for the components which need to be re-rendered rather than all upfront.
@@ -99,6 +100,8 @@ Limitations of JSON that Qwik does not solve:
 - Serialization of classes (`instanceof` and prototype)
   - Although some built-in classes, such as [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date), [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL), [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map), [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) are supported.
 - Serialization of Streams.
+
+For cases where serialization is not possible, code should run [on client only](https://qwik.builder.io/docs/components/lifecycle/#serverbrowser-only-task).
 
 ### Writing applications with serializability in mind
 

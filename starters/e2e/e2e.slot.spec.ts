@@ -329,6 +329,20 @@ test.describe("slot", () => {
         }
       );
     });
+
+    test("issue 4658", async ({ page }) => {
+      const button = page.locator("#issue-4658-toggle");
+      const inner = page.locator("#issue-4658-inner");
+      const top = page.locator("#issue-4658-top");
+
+      await expect(inner).toHaveText("DDD");
+      await expect(top).toHaveText("BBB");
+
+      await button.click();
+
+      await expect(inner).toHaveText("CCC");
+      await expect(top).toHaveText("AAA");
+    });
   }
 
   test.beforeEach(async ({ page }) => {

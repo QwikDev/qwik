@@ -193,103 +193,151 @@ export const MEDIA = mediaObj({
   blogs: [
     {
       href: 'https://tzdesign.de/en/blog/how-10-engineers-deliver-exactly-what-the-browser-wants-with-qwik',
+      imgSrc: '',
       title:
         'How 10 Engineers Deliver Exactly What the Browser Wants with Qwik - by Tobias Zimmermann',
     },
     {
       href: 'https://www.builder.io/blog/resumability-from-ground-up',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa6d8c3bacc3c4cf88446e41a71cda21c?format=webp&width=1200',
       title: 'Understanding Resumability from the Ground Up',
     },
     {
       href: 'https://www.builder.io/blog/speculative-module-fetching',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F72106cceede74975947a7686d083a38a?format=webp&width=1200',
       title: 'Speculative Module Fetching: a Modern Approach to Faster App Interactivity',
     },
     {
       href: 'https://www.builder.io/blog/wtf-is-code-extraction',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ff13459284f13474a828d6030d442c477?format=webp&width=1200',
       title: 'WTF Is Code Extraction',
     },
     {
       href: 'https://www.builder.io/blog/module-extraction-the-silent-web-revolution',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0a8170ff2659474883ee032a0129cddd?format=webp&width=1200',
       title: 'Code Extraction: The Silent Web Revolution',
     },
     {
       href: 'https://www.builder.io/blog/usesignal-is-the-future-of-web-frameworks',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0c790086a43f446a88bc03569a01bf73?format=webp&width=1200',
       title: 'useSignal() is the Future of Web Frameworks',
     },
     {
       href: 'https://www.builder.io/blog/qwik-city-server-functions',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F48d8fd6d22ae4c3b9c1ec4817ce4046d?format=webp&width=1200',
       title: 'Introducing Qwik City Server Functions',
     },
     {
       href: 'https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9071a7def0b240e5b5ca6aab756e81b8?format=webp&width=1200',
       title: 'Resumable React: How to Use React Inside Qwik',
     },
     {
       href: 'https://www.builder.io/blog/resumability-vs-hydration',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ffc214101f7ed4e2fa61fd7d93ac880b1?format=webp&width=300',
       title: 'Resumability vs Hydration',
     },
     {
       href: 'https://www.builder.io/blog/the-qase-for-qwik-love-at-first-tti',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F69e3a278f34d4bfc9deb783dc705cd9a?format=webp&width=2000',
       title: 'The Qase for Qwik: Love At First TTI',
     },
     {
       href: 'https://www.builder.io/blog/movies-app-in-7-frameworks-which-is-fastest-and-why',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fcb655f8d61654e96a8c551404a834004?format=webp&width=2000',
       title: 'Movies app in 7 frameworks - which is fastest and why?',
     },
     {
       href: 'https://www.builder.io/blog/hydration-is-pure-overhead',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa6d8c3bacc3c4cf88446e41a71cda21c?format=webp&width=2000',
       title: 'Hydration is Pure Overhead',
     },
     {
       href: 'https://www.builder.io/blog/why-progressive-hydration-is-harder-than-you-think',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F23067e673a904628bf62edb3a8ebfbd5?format=webp&width=2000',
       title: 'Why Progressive Hydration is Harder than You Think',
     },
     {
       href: 'https://www.builder.io/blog/why-is-builderio-creating-qwik-and-partytown',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F67a0b5b521fb4a5d9422d5555695c3e7?format=webp&width=2000',
       title: 'Why is Builder.io creating Qwik and Partytown?',
     },
     {
       href: 'https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0b20ce9152c143b798540cc2f61e89d1?format=webp&width=2000',
       title: "Don't blame the developer for what the frameworks did!",
     },
     {
       href: 'https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F91dd9092a56a4cbf991e1b7d4e75569e?format=webp&width=2000',
       title: 'Our current frameworks are O(n); we need O(1)',
     },
     {
       href: 'https://www.builder.io/blog/streaming-is-it-worth-it',
+      imgSrc:
+        'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbd10ac7b629341ee9526d03d000a06a8?format=webp&width=2000',
       title: 'Streaming: is it worth it?',
     },
     {
       href: 'https://dev.to/builderio/a-first-look-at-qwik-the-html-first-framework-af',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--I8Btkl4y--/c_imagga_scale,f_auto,fl_progressive,h_500,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/gl136wplgijcmgz4wly0.png',
       title: 'A first look at Qwik - the HTML first framework',
     },
     {
       href: 'https://dev.to/mhevery/death-by-closure-and-how-qwik-solves-it-44jj',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--3-Um0T29--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/tpbp3xiujhqbe9ycpti0.png',
       title: 'Death by Closure (and how Qwik solves it)',
     },
     {
       href: 'https://dev.to/builderio/html-first-javascript-last-the-secret-to-web-speed-4ic9',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--DDi82wMF--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/igcz0gwpcadh1mlrwj07.png',
       title: 'HTML-first, JavaScript last: the secret to web speed!',
     },
     {
       href: 'https://dev.to/mhevery/qwik-the-answer-to-optimal-fine-grained-lazy-loading-2hdp',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--BSSeczM_--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/tdhlus87hpih96oa0rbb.png',
       title: 'Qwik: the answer to optimal fine-grained lazy loading',
     },
     {
       href: 'https://dev.to/builderio/how-to-score-100-on-google-pagespeed-insights-on-mobile-2e0i',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--pAtgTncG--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hbv99ammwti7euofkdxn.png',
       title: 'How to score 100 on Google PageSpeed Insights on Mobile',
     },
     {
       href: 'https://dev.to/builderio/your-bundler-is-doing-it-wrong-ic0',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--MSdEMfio--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/u9weo7picbo9wg5nt61e.png',
       title: 'Your bundler is doing it wrong',
     },
     {
       href: 'https://dev.to/builderio/how-we-cut-99-of-our-javascript-with-qwik-partytown-3i3k',
+      imgSrc:
+        'https://res.cloudinary.com/practicaldev/image/fetch/s--bvLSSb4K--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9ea4nlhnx1iq4rx814gj.jpg',
       title: 'How we cut 99% of our JavaScript with Qwik + Partytown',
     },
     {
       href: 'https://dev.to/builderio/introducing-qwik-starters-get-up-and-running-with-qwik-now-3ap2',
+      imgSrc: '',
       title: 'Introducing Qwik starters - get up and running with Qwik now',
     },
   ],
@@ -329,12 +377,12 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
     <li>
       <a href={props.entry.href} target="_blank" rel="noreferrer">
         <img
-          src={props.entry.imgSrc}
+          src={props.entry.imgSrc ? props.entry.imgSrc : '/ecosystem/qwik-blog-fallback.png'}
           loading={props.imgLoading === 'eager' ? undefined : 'lazy'}
           decoding={props.imgLoading === 'eager' ? undefined : 'async'}
           aria-hidden="true"
         />
-        <p>{props.entry.title}</p>
+        <p class="text-center">{props.entry.title}</p>
       </a>
     </li>
   );
@@ -370,12 +418,10 @@ export const Section = component$(
               entriesInOtherLanguages.push(entry);
               return null;
             }
-
-            return props.listStyle === 'thumbnails' ? (
-              <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />
-            ) : (
-              <BulletLink entry={entry} />
-            );
+            if (props.listStyle === 'thumbnails') {
+              return <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />;
+            }
+            return <BulletLink entry={entry} />;
           })}
         </ul>
 
@@ -413,7 +459,7 @@ export default component$(() => {
 
       <Section id="presentations" listStyle="thumbnails" />
 
-      <Section id="blogs" listStyle="bullets" />
+      <Section id="blogs" listStyle="thumbnails" />
 
       <Section id="resources" listStyle="bullets" />
 
@@ -422,7 +468,7 @@ export default component$(() => {
         <p>This page missing any great resources or in need of an update?</p>
         <p>
           <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/media/index.tsx"
+            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
             target="_blank"
             class="edit-page"
           >
@@ -458,7 +504,7 @@ export function youtube(
   }
   return {
     href: url.href,
-    imgSrc: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
+    imgSrc: `https://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
     title,
     language,
     promoted,

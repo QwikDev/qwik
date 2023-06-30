@@ -1,22 +1,29 @@
 import type { QwikCityEnvData } from '../../runtime/src/types';
 import type { RequestEvent } from './types';
-import { getRequestAction, getRequestLoaders, getRequestRoute } from './request-event';
+import {
+  getRequestLoaders,
+  getRequestRoute,
+  RequestEvSharedActionFormData,
+  RequestEvSharedActionId,
+  RequestEvSharedNonce,
+} from './request-event';
 
 export function getQwikCityServerData(requestEv: RequestEvent) {
   const { url, params, request, status, locale } = requestEv;
   const requestHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
-  const action = getRequestAction(requestEv);
-  const formData = requestEv.sharedMap.get('actionFormData');
-  const nonce = requestEv.sharedMap.get('@nonce');
+  const action = requestEv.sharedMap.get(RequestEvSharedActionId) as string;
+  const formData = requestEv.sharedMap.get(RequestEvSharedActionFormData);
+  const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
+
   return {
     url: new URL(url.pathname + url.search, url).href,
     requestHeaders,
     locale: locale(),
     nonce,
     qwikcity: {
-      // mode: getRequestMode(requestEv),
+      ev: requestEv,
       params: { ...params },
       loadedRoute: getRequestRoute(requestEv),
       response: {

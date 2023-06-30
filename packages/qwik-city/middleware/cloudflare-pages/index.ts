@@ -9,11 +9,12 @@ import {
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   (globalThis as any).TextEncoderStream = TextEncoderStream;
@@ -22,13 +23,20 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     _serializeData,
     _verifySerializable,
   };
-  async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
+  async function onCloudflarePagesFetch(
+    request: PlatformCloudflarePages['request'],
+    env: PlatformCloudflarePages['env'] & { ASSETS: { fetch: (req: Request) => Response } },
+    ctx: PlatformCloudflarePages['ctx']
+  ) {
     try {
       const url = new URL(request.url);
 
       if (isStaticPath(request.method, url)) {
         // known static path, let cloudflare handle it
-        return next();
+        return env.ASSETS.fetch(request);
       }
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
@@ -65,7 +73,17 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           resolve(response);
           return writable;
         },
-        platform: env,
+        getClientConn: () => {
+          return {
+            ip: request.headers.get('CF-connecting-ip') || '',
+            country: request.headers.get('CF-IPCountry') || '',
+          };
+        },
+        platform: {
+          request,
+          env,
+          ctx,
+        },
       };
 
       // send request to qwik city request handler
@@ -82,7 +100,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
-            waitUntil(cache.put(cacheKey, response.clone()));
+            ctx.waitUntil(cache.put(cacheKey, response.clone()));
           }
           return response;
         }
@@ -104,29 +122,21 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     }
   }
 
-  return onCloudflarePagesRequest;
+  return onCloudflarePagesFetch;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
- */
-export interface EventPluginContext {
-  request: Request;
-  waitUntil: (promise: Promise<any>) => void;
-  next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-  env: Record<string, any>;
-}
-
-/**
- * @alpha
+ * @public
  */
 export interface PlatformCloudflarePages {
-  env?: EventPluginContext['env'];
+  request: Request;
+  env: Record<string, any>;
+  ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 
 const resolved = Promise.resolve();

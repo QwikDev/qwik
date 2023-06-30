@@ -5,8 +5,11 @@ import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
 import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
+import { QwikEslintExamples } from '../examples';
 
-const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
+const createRule = ESLintUtils.RuleCreator(
+  (name) => `https://qwik.builder.io/docs/advanced/eslint/#${name}`
+);
 
 interface DetectorOptions {
   allowAny: boolean;
@@ -163,21 +166,44 @@ export const validLexicalScope = createRule({
               const type = typeChecker.getTypeAtLocation(tsNode);
 
               if (!isTypeQRL(type)) {
-                const symbolName = type.symbol.name;
-                if (symbolName === 'PropFnInterface') {
-                  return;
+                if (type.isUnionOrIntersection()) {
+                  if (
+                    !type.types.every((t) => {
+                      if (t.symbol) {
+                        return t.symbol.name === 'PropFnInterface';
+                      }
+                      if (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+                        return true;
+                      }
+                      return false;
+                    })
+                  ) {
+                    context.report({
+                      messageId: 'invalidJsxDollar',
+                      node: firstArg.expression,
+                      data: {
+                        varName: firstArg.expression.name,
+                        solution: `Fix the type of ${firstArg.expression.name} to be PropFunction`,
+                      },
+                    });
+                  }
+                } else {
+                  const symbolName = type.symbol.name;
+                  if (symbolName === 'PropFnInterface') {
+                    return;
+                  }
+                  context.report({
+                    messageId: 'invalidJsxDollar',
+                    node: firstArg.expression,
+                    data: {
+                      varName: firstArg.expression.name,
+                      solution: `const ${firstArg.expression.name} = $(\n${getContent(
+                        type.symbol,
+                        context.getSourceCode().text
+                      )}\n);\n`,
+                    },
+                  });
                 }
-                context.report({
-                  messageId: 'invalidJsxDollar',
-                  node: firstArg.expression,
-                  data: {
-                    varName: firstArg.expression.name,
-                    solution: `const ${firstArg.expression.name} = $(\n${getContent(
-                      type.symbol,
-                      context.getSourceCode().text
-                    )}\n);\n`,
-                  },
-                });
               }
             }
           }
@@ -286,14 +312,6 @@ function _isTypeCapturable(
       reason: 'is any, which is not serializable',
     };
   }
-  const isBigInt = type.flags & ts.TypeFlags.BigIntLike;
-  if (isBigInt) {
-    return {
-      type,
-      typeStr: checker.typeToString(type),
-      reason: 'is BigInt and it is not supported yet, use a number instead',
-    };
-  }
   const isSymbol = type.flags & ts.TypeFlags.ESSymbolLike;
   if (isSymbol) {
     return {
@@ -302,7 +320,7 @@ function _isTypeCapturable(
       reason: 'is Symbol, which is not serializable',
     };
   }
-  const isEnum = type.flags & ts.TypeFlags.EnumLike;
+  const isEnum = type.flags & ts.TypeFlags.Enum;
   if (isEnum) {
     return {
       type,
@@ -317,7 +335,11 @@ function _isTypeCapturable(
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
     const symbolName = type.symbol.name;
-    if (symbolName === 'PropFnInterface') {
+    if (
+      symbolName === 'PropFnInterface' ||
+      symbolName === 'RefFnInterface' ||
+      symbolName === 'bivarianceHack'
+    ) {
       return;
     }
     let reason = 'is a function, which is not serializable';
@@ -373,7 +395,7 @@ function _isTypeCapturable(
     if (type.getProperty('activeElement')) {
       return;
     }
-    if (ALLOWED_CLASSES[symbolName]) {
+    if (symbolName in ALLOWED_CLASSES) {
       return;
     }
     if (type.isClass()) {
@@ -464,4 +486,136 @@ const ALLOWED_CLASSES = {
   FormData: true,
   URLSearchParams: true,
   Error: true,
+  Set: true,
+  Map: true,
+};
+
+const referencesOutsideGood = `
+import { component$, useTask$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = $((msg: string) => {
+    console.log(msg);
+  });
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
+
+const referencesOutsideBad = `
+import { component$, useTask$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const print = (msg: string) => {
+    console.log(msg);
+  };
+
+  useTask$(() => {
+    print("Hello World");
+  });
+
+  return <h1>Hello</h1>;
+});`.trim();
+
+const invalidJsxDollarGood = `
+import { component$, $ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = $(() => console.log());
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
+
+const invalidJsxDollarBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const click = () => console.log();
+  return (
+    <button onClick$={click}>log it</button>
+  );
+});`.trim();
+
+const mutableIdentifierGood = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  const person = { name: 'Bob' };
+
+  return (
+    <button onClick$={() => {
+      person.name = 'Alice';
+    }}>
+      {person.name}
+    </button>
+  );
+});`.trim();
+
+const mutableIdentifierBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const HelloWorld = component$(() => {
+  let personName = 'Bob';
+
+  return (
+    <button onClick$={() => {
+      personName = 'Alice';
+    }}>
+      {personName}
+    </button>
+  );
+});`.trim();
+
+export const validLexicalScopeExamples: QwikEslintExamples = {
+  referencesOutside: {
+    good: [
+      {
+        codeHighlight: `{1,4} /print/#a /$((msg: string)/#b)`,
+        code: referencesOutsideGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: `{1,4} /print/#a /(msg: string)/#b)`,
+        code: referencesOutsideBad,
+        description:
+          'Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.',
+      },
+    ],
+  },
+  invalidJsxDollar: {
+    good: [
+      {
+        codeHighlight: '{1} /click/#a',
+        code: invalidJsxDollarGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{1} /click/#a',
+        code: invalidJsxDollarBad,
+        description: 'Event handler must be wrapped with `${ ... }`.',
+      },
+    ],
+  },
+  mutableIdentifier: {
+    good: [
+      {
+        codeHighlight: '{4} /person/#a',
+        code: mutableIdentifierGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{4} /personName/#a',
+        code: mutableIdentifierBad,
+        description:
+          'Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.',
+      },
+    ],
+  },
 };

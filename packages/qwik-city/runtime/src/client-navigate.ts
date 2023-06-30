@@ -1,107 +1,47 @@
+import { isBrowser } from '@builder.io/qwik/build';
 import type { QPrefetchData } from './service-worker/types';
-import type { SimpleURL } from './types';
-import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
-import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
-import type { Signal } from '@builder.io/qwik';
+import type { NavigationType, ScrollState } from './types';
+import { isSamePath, toPath } from './utils';
 
 export const clientNavigate = (
-  win: ClientHistoryWindow,
-  newUrl: URL,
-  routeNavigate: Signal<string>
+  win: Window,
+  navType: NavigationType,
+  fromURL: URL,
+  toURL: URL,
+  replaceState = false
 ) => {
-  const currentUrl = win.location;
-  if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
-    // current browser url and route path are different
-    // see if we should scroll to the hash after the url update
-    handleScroll(win, currentUrl, newUrl);
+  if (navType !== 'popstate') {
+    const samePath = isSamePath(fromURL, toURL);
+    const sameHash = fromURL.hash === toURL.hash;
 
-    // push the new route path to the history
-    win.history.pushState('', '', toPath(newUrl));
-  }
+    // TODO Refactor, some of this is redundant now.
 
-  if (!win[CLIENT_HISTORY_INITIALIZED]) {
-    // only add event listener once
-    win[CLIENT_HISTORY_INITIALIZED] = 1;
+    if (!samePath || !sameHash) {
+      const newState = {
+        _qCityScroll: newScrollState(),
+      };
 
-    win.addEventListener('popstate', () => {
-      // history pop event has happened
-      const currentUrl = win.location;
-      const previousUrl = toUrl(routeNavigate.value, currentUrl)!;
-
-      if (isSameOriginDifferentPathname(currentUrl, previousUrl)) {
-        handleScroll(win, previousUrl, currentUrl);
-        // current browser url and route path are different
-        // update the route path
-        routeNavigate.value = toPath(currentUrl);
-      }
-    });
-
-    win.removeEventListener('popstate', win[POPSTATE_FALLBACK_INITIALIZED]!);
-  }
-};
-
-const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleURL) => {
-  const doc = win.document;
-  const newHash = newUrl.hash;
-
-  if (isSamePath(previousUrl, newUrl)) {
-    // same route after path change
-
-    if (previousUrl.hash !== newHash) {
-      // hash has changed on the same route
-
-      // wait for a moment while window gets settled
-      await domWait();
-
-      if (newHash) {
-        // hash has changed on the same route and there's a hash
-        // scroll to the element if it exists
-        scrollToHashId(doc, newHash);
+      if (replaceState) {
+        win.history.replaceState(newState, '', toPath(toURL));
       } else {
-        // hash has changed on the same route, but now there's no hash
-        win.scrollTo(0, 0);
+        // push to history for path or hash changes
+        win.history.pushState(newState, '', toPath(toURL));
       }
-    }
-  } else {
-    // different route after change
-
-    if (newHash) {
-      // different route and there's a hash
-      // content may not have finished updating yet
-      // poll the dom querying for the element for a short time
-      for (let i = 0; i < 24; i++) {
-        await domWait();
-        if (scrollToHashId(doc, newHash)) {
-          break;
-        }
-      }
-    } else {
-      // different route and there isn't a hash
-      await domWait();
-      win.scrollTo(0, 0);
     }
   }
 };
 
-const domWait = () => new Promise((resolve) => setTimeout(resolve, 12));
-
-const scrollToHashId = (doc: Document, hash: string) => {
-  const elmId = hash.slice(1);
-  const elm = doc.getElementById(elmId);
-  if (elm) {
-    // found element to scroll to
-    elm.scrollIntoView();
-  }
-  return elm;
+export const newScrollState = (): ScrollState => {
+  return {
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0,
+  };
 };
 
 export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
-  if (typeof document !== 'undefined') {
+  if (isBrowser) {
     document.dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
   }
 };
-
-export interface ClientHistoryWindow extends Window {
-  [CLIENT_HISTORY_INITIALIZED]?: 1;
-  [POPSTATE_FALLBACK_INITIALIZED]?: () => void;
-}

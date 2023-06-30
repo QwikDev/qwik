@@ -8,59 +8,33 @@ expression: output
 import { $, component$, useTask$ } from '@builder.io/qwik';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {value} = useSignal(0);
-    const {foo, ...rest} = useStore({foo: 0});
-    const {bar = 'hello', ...rest2} = useStore({foo: 0});
-    const {hello} = props;
+    const {countNested} = useStore({value:{count:0}}).value;
+    const countNested2 = countNested;
+    const {hello} = countNested2;
+    const bye = hello.bye;
+    const {ciao} = bye.italian;
+
 
     return (
-        <div hello={hello} some={value} bar={bar} rest={rest} rest2={rest2}>{foo}</div>
+        <div ciao={ciao} >{foo}</div>
     );
 });
 
-============================= test.js ==
+============================= test.jsx ==
 
-import { _restProps } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
-import { _IMMUTABLE } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    const signal = useSignal(0);
     const store = useStore({
-        foo: 0
-    });
-    const rest = _restProps(store, [
-        "foo"
-    ]);
-    const store1 = useStore({
-        foo: 0
-    });
-    const rest2 = _restProps(store1, [
-        "bar"
-    ]);
-    const props1 = props;
-    return /*#__PURE__*/ _jsx("div", {
-        get hello () {
-            return props1.hello;
-        },
-        get some () {
-            return signal.value;
-        },
-        bar: store1.bar ?? 'hello',
-        rest: rest,
-        rest2: rest2,
-        children: _wrapSignal(store, "foo"),
-        [_IMMUTABLE]: {
-            hello: _wrapSignal(props1, "hello"),
-            some: _wrapSignal(signal, "value")
+        value: {
+            count: 0
         }
-    }, "u6_0");
+    });
+    return <div ciao={store.value.countNested.hello.bye.italian.ciao}>{foo}</div>;
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,SAAU,UAAU;IAC1B,MAAM,QAAiB,SAAS;QAAC,KAAK;IAAC;;;;IACvC,MAAM,SAA4B,SAAS;QAAC,KAAK;IAAC;;;;IAClD,MAAM,SAAU;IAEhB,qBACI,KAAC;YAAI;0BAHF;;YAGgB;0BANhB;;QAM6B,GAAG,SAJhC,OAAM;QAIiC,MAAM;QAAM,OAAO;;;YAAxD,KAAK;YAAS,IAAI;;;AAE/B,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACK,IAAI,MAJM,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIgB,MAAM;AAEjC,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

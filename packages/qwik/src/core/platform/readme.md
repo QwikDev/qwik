@@ -8,7 +8,7 @@ Different platforms (browser, node, service workers) may have different ways of 
 
 This is a low-level API and there should not be a need for you to access this.
 
-@alpha
+@public
 
 # `CorePlatform.isServer`
 
@@ -20,7 +20,7 @@ True of running on the server platform.
 
 Retrieve a symbol value from QRL.
 
-Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using `importSymbol`.
+Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieve the reference using `importSymbol`.
 
 Why not use `import()`? Because `import()` is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.
 
@@ -56,7 +56,7 @@ Retrieve the `CorePlatform`.
 The `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is specific to the application currently running. On server it is possible that many different applications are running in a single server instance, and for this reason the `CorePlatform` is associated with the application document.
 
 @param docOrNode - The document (or node) of the application for which the platform is needed.
-@alpha
+@public
 
 # `setPlatform`
 
@@ -66,4 +66,4 @@ This is useful to override the platform in tests to change the behavior of, `req
 
 @param doc - The document of the application for which the platform is needed.
 @param platform - The platform to use.
-@alpha
+@public

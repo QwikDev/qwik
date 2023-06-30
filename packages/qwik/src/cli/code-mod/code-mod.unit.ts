@@ -1,7 +1,13 @@
 import { updateViteConfig } from './code-mod';
 import { test } from 'uvu';
-import { match } from 'uvu/assert';
+import { match, equal } from 'uvu/assert';
 import ts from 'typescript';
+
+const prepareOutput = (str: string) =>
+  str
+    .split('\n')
+    .map((part) => part.trim())
+    .join('\n');
 
 test('update existing qwik vite plugin config prop', () => {
   const sourceText = `
@@ -54,6 +60,20 @@ test('add qwik vite plugin config', () => {
   match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
 });
 
+test('add qwik vite plugin config for object based vite config', () => {
+  const sourceText = `
+    export default defineConfig({
+      plugins: [
+        qwikVite(),
+      ],
+    });
+  `;
+  const outputText = updateViteConfig(ts, sourceText, {
+    qwikViteConfig: { ssr: `{ outDir: 'netlify/edge-functions/entry.netlify' }` },
+  })!;
+  match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
+});
+
 test('add vite plugin', () => {
   const sourceText = `
     export default defineConfig(() => {
@@ -70,6 +90,47 @@ test('add vite plugin', () => {
   match(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
 });
 
+test('add vite plugin to object based config', () => {
+  const sourceText = `
+    export default defineConfig({
+      plugins: [
+        qwikVite(),
+      ],
+    });
+  `;
+  const outputText = updateViteConfig(ts, sourceText, {
+    vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
+  })!;
+  match(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
+});
+
+test('should not add vite plugin if it is already defined', () => {
+  const sourceText = `
+  export default defineConfig(() => {
+    return {
+      plugins: [
+        qwikVite(),
+        netlifyEdge()
+      ],
+    };
+  });
+`;
+  const outputText = updateViteConfig(ts, sourceText, {
+    vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
+  })!;
+
+  const expected = `export default defineConfig(() => {
+        return {
+          plugins: [
+            qwikVite(),
+            netlifyEdge()
+          ]
+        };
+      });
+    `;
+  equal(prepareOutput(outputText), prepareOutput(expected));
+});
+
 test('update vite config', () => {
   const sourceText = `
     export default defineConfig(() => {
@@ -79,6 +140,21 @@ test('update vite config', () => {
           qwikVite(),
         ],
       };
+    });
+  `;
+  const outputText = updateViteConfig(ts, sourceText, {
+    viteConfig: { ssr: `{ target: 'webworker', noExternal: true }` },
+  })!;
+  match(outputText, 'ssr: { target: "webworker", noExternal: true');
+});
+
+test('update object based vite config', () => {
+  const sourceText = `
+    export default defineConfig({
+      ssr: {},
+      plugins: [
+        qwikVite(),
+      ],
     });
   `;
   const outputText = updateViteConfig(ts, sourceText, {

@@ -1,7 +1,7 @@
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { Social } from './social';
-import { Vendor } from './vendor';
+import { component$ } from "@builder.io/qwik";
+import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+import { Social } from "./social";
+import { Vendor } from "./vendor";
 
 export const RouterHead = component$(() => {
   const head = useDocumentHead();
@@ -11,7 +11,7 @@ export const RouterHead = component$(() => {
   return (
     <>
       <title>{title}</title>
-      <link rel="canonical" href={loc.href} />
+      <link rel="canonical" href={loc.url.href} />
       <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       <meta name="viewport" content="width=device-width" />
 

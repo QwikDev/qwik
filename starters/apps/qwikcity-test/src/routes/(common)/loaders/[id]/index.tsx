@@ -1,33 +1,57 @@
-import { component$, Resource } from '@builder.io/qwik';
-import { action$, DocumentHead, Form, Link, loader$, z, zod$ } from '@builder.io/qwik-city';
-import { delay } from '../../actions/login';
+import { component$, Resource } from "@builder.io/qwik";
+import {
+  type DocumentHead,
+  Form,
+  Link,
+  routeLoader$,
+  routeAction$,
+  z,
+  zod$,
+} from "@builder.io/qwik-city";
+import { delay } from "../../actions/login";
 
-export const useDateLoader = loader$(() => new Date('2021-01-01T00:00:00.000Z'));
+export const useDateLoader = routeLoader$(
+  () => new Date("2021-01-01T00:00:00.000Z")
+);
 
-export const useDependencyLoader = loader$(async ({ params, redirect, json, resolveValue }) => {
-  const formData = await resolveValue(useForm);
-  await delay(100);
-  if (params.id === 'redirect') {
-    throw redirect(302, '/qwikcity-test/');
-  } else if (params.id === 'redirect-welcome') {
-    throw redirect(302, '/qwikcity-test/loaders/welcome/');
-  } else if (params.id === 'json') {
-    throw json(200, { nu: 42 });
+export const useDependencyLoader = routeLoader$(
+  async ({ params, redirect, json, resolveValue }) => {
+    const formData = await resolveValue(useForm);
+    await delay(100);
+    if (params.id === "redirect") {
+      throw redirect(302, "/qwikcity-test/");
+    } else if (params.id === "redirect-welcome") {
+      throw redirect(302, "/qwikcity-test/loaders/welcome/");
+    } else if (params.id === "json") {
+      throw json(200, { nu: 42 });
+    }
+    return {
+      nu: 42,
+      name: formData?.name ?? params.id,
+    };
   }
-  return {
-    nu: 42,
-    name: formData?.name ?? params.id,
-  };
+);
+
+const useLoader = routeLoader$(() => {
+  return [
+    {
+      id: 1,
+      product: {
+        name: "test",
+        options: [{ name: "first" }, { name: "second" }],
+      },
+    },
+  ];
 });
 
-export const useAsyncLoader = loader$(async ({ resolveValue }) => {
+export const useAsyncLoader = routeLoader$(async ({ resolveValue }) => {
   const p1 = resolveValue(useDateLoader);
   const p2 = resolveValue(useDependencyLoader);
   if (!(p1 instanceof Promise)) {
-    throw new Error('Expected date to be a promise');
+    throw new Error("Expected date to be a promise");
   }
   if (!(p2 instanceof Promise)) {
-    throw new Error('Expected dep to be a promise');
+    throw new Error("Expected dep to be a promise");
   }
 
   const date = await p1;
@@ -44,14 +68,14 @@ export const useAsyncLoader = loader$(async ({ resolveValue }) => {
   };
 });
 
-export const useSlowLoader = loader$(async () => {
+export const useSlowLoader = routeLoader$(async () => {
   await delay(500);
   return {
     foo: 123,
   };
 });
 
-export const useRealDateLoader = loader$(() => {
+export const useRealDateLoader = routeLoader$(() => {
   return [new Date().toISOString()];
 });
 
@@ -65,6 +89,15 @@ export default component$(() => {
   const slow = useSlowLoader();
   const signal = useAsyncLoader();
   const action = useForm();
+  const items = useLoader().value;
+  const items3 = items.map((item) => {
+    return {
+      ...item,
+      reversed: item.product.options.reverse(),
+    };
+  });
+  console.warn("items3", items3);
+
   return (
     <div class="loaders">
       <h1>Loaders</h1>
@@ -105,7 +138,10 @@ export default component$(() => {
           </Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/loaders/redirect-welcome/" id="link-welcome">
+          <Link
+            href="/qwikcity-test/loaders/redirect-welcome/"
+            id="link-welcome"
+          >
             To Redirect /loaders/welcome/
           </Link>
         </li>
@@ -114,7 +150,7 @@ export default component$(() => {
   );
 });
 
-export const useForm = action$(
+export const useForm = routeAction$(
   async (stuff) => {
     return stuff;
   },
@@ -123,19 +159,34 @@ export const useForm = action$(
   })
 );
 
+export const useFormWithError = routeAction$(async (stuff, { fail }) => {
+  if (Math.random() > 2) {
+    return fail(500, {
+      message: "Random error",
+    });
+  }
+  return {
+    name: stuff.name as string,
+  };
+});
+
 export const head: DocumentHead = ({ resolveValue }) => {
   const date = resolveValue(useDateLoader);
   const dep = resolveValue(useDependencyLoader);
   const action = resolveValue(useForm);
-  let title = 'Loaders';
+  const actionWithError = resolveValue(useFormWithError);
+  let title = "Loaders";
   if (action) {
     title += ` - ACTION: ${action.name}`;
+  }
+  if (actionWithError) {
+    title += ` - Error: ${actionWithError.name} ${actionWithError.message}`;
   }
   return {
     title,
     meta: [
-      { content: date.toISOString(), name: 'date' },
-      { content: `${dep.nu}`, name: 'dep' },
+      { content: date.toISOString(), name: "date" },
+      { content: `${dep.nu}`, name: "dep" },
     ],
   };
 };

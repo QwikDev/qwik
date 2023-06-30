@@ -1,0 +1,137 @@
+demo {
+  display: block;
+  padding: 0.75em;
+}
+
+demo h1 {
+  font-size: xx-large;
+  font-weight: bolder;
+}
+
+demo button,
+demo button[type='submit'] {
+  display: inline-block;
+  border: 1px solid #ccc;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  background-color: #f7f7f7;
+  color: #333;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+demo input,
+demo textarea {
+  box-sizing: border-box;
+  display: inline-block;
+  padding: 1px 2px;
+  margin: 0 4px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+
+demo label {
+  display: block;
+  font-weight: bold;
+}
+
+demo a {
+  color: #0070c9;
+  background-color: transparent;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+demo a:hover {
+  color: #003a6d;
+  background-color: transparent;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+demo a:active {
+  color: #e60000;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+demo ul {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+demo li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 0;
+  list-style-type: disc;
+  margin-left: 1em;
+}
+
+#console.console {
+  background-color: #333;
+  border-radius: 8px 8px 0 8px;
+  padding: 1em;
+  margin: 0;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: x-small;
+  overflow: scroll;
+  max-height: 85vh;
+  max-width: 75vw;
+}
+
+#console > ul {
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+#console > h1 {
+  font-size: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+#console > li {
+}
+
+#console span {
+  white-space: break-spaces;
+  padding-right: 1em;
+}
+
+#console li.debug {
+  color: #87ceeb; /* or any other light blue color */
+}
+
+#console li.error {
+  color: #ff0000; /* or any other bold red color */
+}
+
+#console li.info {
+  color: #00ff7f; /* or any other cool green color */
+}
+
+#console li.log {
+  color: #a9a9a9; /* or any other neutral grey color */
+}
+
+#console li.warn {
+  color: #ffff00; /* or any other bright yellow color */
+}

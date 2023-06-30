@@ -1,4 +1,4 @@
-import { component$, noSerialize, NoSerialize, useStore } from '@builder.io/qwik';
+import { component$, noSerialize, type NoSerialize, useStore } from '@builder.io/qwik';
 
 interface AppStore {
   time: null | string;
@@ -11,7 +11,7 @@ export default component$(() => {
   });
   return (
     <>
-      <div>Current Time: {store.time}</div>
+      <p>Current Time: {store.time}</p>
       <button
         onClick$={() => {
           const id = setInterval(() => (store.time = new Date().toString()), 1000);

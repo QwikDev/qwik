@@ -1,11 +1,62 @@
 /* eslint-disable no-console */
-import color from 'kleur';
+import { red, dim, cyan, bgMagenta } from 'kleur/colors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
-import { panic, pmRunCmd } from './utils/utils';
+import { runNewCommand } from './new/run-new-command';
+import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
+import { intro, isCancel, select, confirm } from '@clack/prompts';
+
+const SPACE_TO_HINT = 18;
+const COMMANDS = [
+  {
+    value: 'add',
+    label: 'add',
+    hint: 'Add an integration to this app',
+    run: (app: AppCommand) => runAddCommand(app),
+    showInHelp: true,
+  },
+  {
+    value: 'build',
+    label: 'build',
+    hint: 'Parallelize builds and type checking',
+    run: (app: AppCommand) => runBuildCommand(app),
+    showInHelp: true,
+  },
+  {
+    value: 'build preview',
+    label: 'build preview',
+    hint: 'Same as "build", but for preview server',
+    run: (app: AppCommand) => runBuildCommand(app),
+    showInHelp: true,
+  },
+  {
+    value: 'new',
+    label: 'new',
+    hint: 'Create a new component or route',
+    run: (app: AppCommand) => runNewCommand(app),
+    showInHelp: true,
+  },
+  {
+    value: 'help',
+    label: 'help',
+    hint: 'Show this help',
+    run: (app: AppCommand) => printHelp(app),
+    showInHelp: false,
+  },
+  {
+    value: 'version',
+    label: 'version',
+    hint: 'Show the version',
+    run: () => printVersion(),
+    showInHelp: false,
+  },
+];
 
 export async function runCli() {
+  console.clear();
+  printHeader();
+
   try {
     const app = new AppCommand({
       rootDir: '',
@@ -29,7 +80,11 @@ async function runCommand(app: AppCommand) {
       return;
     }
     case 'help': {
-      printHelp();
+      printHelp(app);
+      return;
+    }
+    case 'new': {
+      await runNewCommand(app);
       return;
     }
     case 'version': {
@@ -39,32 +94,53 @@ async function runCommand(app: AppCommand) {
   }
 
   if (typeof app.task === 'string') {
-    console.log(color.red(`Unrecognized qwik command: ${app.task}`) + '\n');
+    console.log(red(`Unrecognized qwik command: ${app.task}`) + '\n');
   }
 
-  await printHelp();
+  await printHelp(app);
   process.exit(1);
 }
 
-async function printHelp() {
+async function printHelp(app: AppCommand) {
   const pmRun = pmRunCmd();
-  console.log(``);
-  console.log(color.bgMagenta(` Qwik Help `));
-  console.log(``);
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`add`)}            ${color.dim(`Add an integration to this app`)}`
+
+  intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
+
+  note(
+    COMMANDS.filter((cmd) => cmd.showInHelp)
+      .map(
+        (cmd) =>
+          `${pmRun} qwik ${cyan(cmd.label)}` +
+          ' '.repeat(Math.max(SPACE_TO_HINT - cmd.label.length, 2)) +
+          dim(cmd.hint)
+      )
+      .join('\n'),
+    'Available commands'
   );
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`build`)}          ${color.dim(
-      `Parallelize builds and type checking`
-    )}`
-  );
-  console.log(
-    `  ${pmRun} qwik ${color.cyan(`build preview`)}  ${color.dim(
-      `Same as "build", but for preview server`
-    )}`
-  );
-  console.log(``);
+
+  const proceed = await confirm({
+    message: 'Do you want to run a command?',
+    initialValue: true,
+  });
+
+  if (isCancel(proceed) || !proceed) {
+    bye();
+  }
+
+  const command = await select({
+    message: 'Select a command',
+    options: COMMANDS.filter((cmd) => cmd.showInHelp).map((cmd) => ({
+      value: cmd.value,
+      label: `${pmRun} qwik ${cyan(cmd.label)}`,
+      hint: cmd.hint,
+    })),
+  });
+
+  if (isCancel(command)) {
+    bye();
+  }
+
+  await runCommand(Object.assign(app, { task: command as string }));
 }
 
 function printVersion() {

@@ -8,12 +8,13 @@
 
 import { component$ } from './component/component.public';
 import { qrl } from './qrl/qrl';
-import { $, QRL } from './qrl/qrl.public';
+import { $, type QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useBrowserVisibleTask$, useTask$ } from './use/use-task';
+import { useVisibleTask$, useTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
+import { isServer, isBrowser } from '../build';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -144,13 +145,13 @@ export const CmpInline = component$(() => {
       debounced: 0,
     });
 
-    // Double count watch
+    // Double count task
     useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
-    // Debouncer watch
+    // Debouncer task
     useTask$(({ track }) => {
       const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
@@ -309,7 +310,7 @@ export const CmpInline = component$(() => {
       count: 0,
     });
 
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
       // Only runs in the client
       const timer = setInterval(() => {
         store.count++;
@@ -360,7 +361,7 @@ export const CmpInline = component$(() => {
     const counterStore = useStore({
       value: 0,
     });
-    useBrowserVisibleTask$(() => {
+    useVisibleTask$(() => {
       // Only runs in the client
       const timer = setInterval(() => {
         counterStore.value += step;
@@ -381,28 +382,6 @@ export const CmpInline = component$(() => {
     return <div />;
   }
   return Stores;
-};
-
-() => {
-  // <docs anchor="use-ref">
-  const Cmp = component$(() => {
-    const input = useRef<HTMLInputElement>();
-
-    useBrowserVisibleTask$(({ track }) => {
-      const el = track(() => input.current)!;
-      el.focus();
-    });
-
-    return (
-      <div>
-        <input type="text" ref={input} />
-      </div>
-    );
-  });
-
-  // </docs>
-
-  return Cmp;
 };
 
 //
@@ -486,9 +465,7 @@ function doExtraStuff() {
 // <docs anchor="qrl-capturing-rules">
 
 import { createContextId, useContext, useContextProvider } from './use/use-context';
-import { useRef } from './use/use-ref';
 import { Resource, useResource$ } from './use/use-resource';
-import { isServer, isBrowser } from '../build';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

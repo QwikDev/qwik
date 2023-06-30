@@ -18,7 +18,7 @@ import type { ValueOrPromise } from '../util/types';
  *
  * This is a low-level API and there should not be a need for you to access this.
  *
- * @alpha
+ * @public
  */
 // </docs>
 export interface CorePlatform {

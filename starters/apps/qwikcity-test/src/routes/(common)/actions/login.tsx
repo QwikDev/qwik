@@ -1,6 +1,6 @@
-import { component$, useSignal } from '@builder.io/qwik';
-import { action$, zod$, z, Form } from '@builder.io/qwik-city';
-import styles from './actions.module.css';
+import { component$, useSignal } from "@builder.io/qwik";
+import { zod$, z, Form, globalAction$ } from "@builder.io/qwik-city";
+import styles from "./actions.module.css";
 
 export function delay(nu: number) {
   return new Promise((resolve) => {
@@ -8,32 +8,31 @@ export function delay(nu: number) {
   });
 }
 
-export const useSecretAction = action$(
+export const useSecretAction = globalAction$(
   async (payload, { fail, redirect }) => {
-    if (payload.username === 'admin' && payload.code === 123) {
+    if (payload.username === "admin" && payload.code === 123) {
       await delay(2000);
       return {
-        secret: 'this is the secret',
+        secret: "this is the secret",
         date: new Date(),
       };
-    } else if (payload.username === 'redirect' && payload.code === 123) {
-      throw redirect(302, '/qwikcity-test/');
+    } else if (payload.username === "redirect" && payload.code === 123) {
+      throw redirect(302, "/qwikcity-test/");
     }
     return fail(400, {
-      message: 'Invalid username or code',
+      message: "Invalid username or code",
     });
   },
-  {
-    validation: zod$({
-      username: z.string().min(3).max(10),
-      code: z.coerce.number(),
-    }),
-  }
+  zod$({
+    username: z.string().min(3).max(10),
+    code: z.coerce.number(),
+    button: z.string().startsWith("hello"),
+  })
 );
 
 export const SecretForm = component$(() => {
   const action = useSecretAction();
-  const message = useSignal('');
+  const message = useSignal("");
 
   return (
     <>
@@ -50,7 +49,7 @@ export const SecretForm = component$(() => {
               type="text"
               name="username"
               placeholder="admin"
-              value={action.formData?.get('username')}
+              value={action.formData?.get("username")}
             />
             {action.value?.fieldErrors?.username && (
               <p class={styles.error}>{action.value.fieldErrors.username}</p>
@@ -60,7 +59,12 @@ export const SecretForm = component$(() => {
         <div>
           <label id="label-code">
             Code:
-            <input type="text" name="code" placeholder="123" value={action.formData?.get('code')} />
+            <input
+              type="text"
+              name="code"
+              placeholder="123"
+              value={action.formData?.get("code")}
+            />
             {action.value?.fieldErrors?.code && (
               <p class={styles.error}>{action.value.fieldErrors.code}</p>
             )}
@@ -76,7 +80,12 @@ export const SecretForm = component$(() => {
             {action.value.secret}
           </p>
         )}
-        <button id="submit" disabled={action.isRunning}>
+        <button
+          value="hello"
+          name="button"
+          id="submit"
+          disabled={action.isRunning}
+        >
           Submit
         </button>
       </Form>
@@ -84,15 +93,16 @@ export const SecretForm = component$(() => {
       <button
         type="button"
         onClick$={async () => {
-          const { value } = await action.run({
-            username: 'admin',
+          const { value } = await action.submit({
+            username: "admin",
             code: 123,
+            button: "hello",
           });
           console.warn(value?.secret);
           message.value = value!.secret!;
         }}
       >
-        I dont wanna to play
+        I don't wanna to play
       </button>
     </>
   );

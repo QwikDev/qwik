@@ -1,28 +1,32 @@
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import {
+  getVirtualElement,
+  type QwikElement,
+  type VirtualElement,
+} from '../render/dom/virtual-element';
 import { isComment } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
-import { getContext, QContext } from '../state/context';
+import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
 import { invoke } from './use-core';
 
-// <docs markdown="../readme.md#Context">
+// <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#Context instead)
+// (edit ../readme.md#ContextId instead)
 /**
  * ContextId is a typesafe ID for your context.
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for
- * the context. It is not the context value itself. See `useContextProvider()` and `useContext()`
- * for the values. Qwik needs a serializable ID for the context so that the it can track context
- * providers and consumers in a way that survives resumability.
+ * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable
+ * identifier for the context. It is not the context value itself. See `useContextProvider()` and
+ * `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can
+ * track context providers and consumers in a way that survives resumability.
  *
  * ### Example
  *
@@ -63,7 +67,7 @@ import { invoke } from './use-core';
  * @public
  */
 // </docs>
-export interface ContextId<STATE extends object> {
+export interface ContextId<STATE> {
   /**
    * Design-time property to store type information for the context.
    */
@@ -74,12 +78,6 @@ export interface ContextId<STATE extends object> {
   readonly id: string;
 }
 
-/**
- * @beta
- * @deprecated Please use `ContextId` instead.
- */
-export interface Context<STATE extends object> extends ContextId<STATE> {}
-
 // <docs markdown="../readme.md#createContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#createContextId instead)
@@ -89,10 +87,10 @@ export interface Context<STATE extends object> extends ContextId<STATE> {}
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContextId()` to create a `ContextId`. `ContextId` is just a serializable identifier for
- * the context. It is not the context value itself. See `useContextProvider()` and `useContext()`
- * for the values. Qwik needs a serializable ID for the context so that the it can track context
- * providers and consumers in a way that survives resumability.
+ * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable
+ * identifier for the context. It is not the context value itself. See `useContextProvider()` and
+ * `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can
+ * track context providers and consumers in a way that survives resumability.
  *
  * ### Example
  *
@@ -134,20 +132,11 @@ export interface Context<STATE extends object> extends ContextId<STATE> {}
  * @public
  */
 // </docs>
-export const createContextId = <STATE extends object>(name: string): ContextId<STATE> => {
+export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
   assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
-};
-
-/**
- * @beta
- * @deprecated Please use `createContextId` instead.
- */
-
-export const createContext = <STATE extends object>(name: string): ContextId<STATE> => {
-  return createContextId(name);
 };
 
 // <docs markdown="../readme.md#useContextProvider">
@@ -157,7 +146,7 @@ export const createContext = <STATE extends object>(name: string): ContextId<STA
  * Assign a value to a Context.
  *
  * Use `useContextProvider()` to assign a value to a context. The assignment happens in the
- * component's function. Once assign use `useContext()` in any child component to retrieve the
+ * component's function. Once assigned, use `useContext()` in any child component to retrieve the
  * value.
  *
  * Context is a way to pass stores to the child components without prop-drilling.
@@ -218,7 +207,7 @@ export const useContextProvider = <STATE extends object>(
   if (!contexts) {
     elCtx.$contexts$ = contexts = new Map();
   }
-  if (qDev) {
+  if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
   contexts.set(context.id, newValue);
@@ -226,7 +215,7 @@ export const useContextProvider = <STATE extends object>(
 };
 
 /**
- * @alpha
+ * @public
  */
 export const useContextBoundary = (...ids: ContextId<any>[]) => {
   const { get, set, elCtx, iCtx } = useSequentialScope<boolean>();
@@ -257,7 +246,7 @@ export interface UseContext {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useContext instead)
 /**
- * Retrive Context value.
+ * Retrieve Context value.
  *
  * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a
  * parent component needs to invoke `useContextProvider()` to assign a value.

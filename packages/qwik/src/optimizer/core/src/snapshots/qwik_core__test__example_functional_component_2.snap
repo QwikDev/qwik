@@ -48,7 +48,7 @@ export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
 ============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component_div_onclick_1cgetmfzx0g",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -81,13 +81,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_div_button_onclick_f5nww9e63a4.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
+import { STEP } from "./test";
 export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
     const [btn, props, state, thing] = useLexicalScope();
-    return state.count += btn.offset + thing + 1 + 2 + props.step;
+    return state.count += btn.offset + thing + STEP + 2 + props.step;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAb5C,IAKD,IAQqE,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARrD,IAQqE,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -98,7 +99,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "app_component_div_button_onclick_f5nww9e63a4",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "event",
+  "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -109,8 +110,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useCounter } from "./test";
@@ -121,30 +122,28 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         thing: 0
     });
     const count2 = state.count * 2;
-    return /*#__PURE__*/ _jsxs("div", {
+    return /*#__PURE__*/ _jsxQ("div", {
         onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_onclick_1cgetmfzx0g"), "App_component_div_onClick_1CGetmFZx0g", [
             count2,
             state
-        ]),
-        children: [
-            /*#__PURE__*/ _jsx("span", {
-                children: _wrapSignal(state, "count")
-            }),
-            buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
-                    onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_button_onclick_f5nww9e63a4"), "App_component_div_button_onClick_f5NwW9e63a4", [
-                        btn,
-                        props,
-                        state,
-                        thing
-                    ]),
-                    children: _wrapSignal(btn, "name")
-                }, "u6_0"))
-        ]
-    }, "u6_1");
+        ])
+    }, null, [
+        /*#__PURE__*/ _jsxQ("span", null, null, _fnSignal((p0)=>p0.count, [
+            state
+        ], "p0.count"), 3, null),
+        buttons.map((btn)=>/*#__PURE__*/ _jsxQ("button", {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_button_onclick_f5nww9e63a4"), "App_component_div_button_onClick_f5NwW9e63a4", [
+                    btn,
+                    props,
+                    state,
+                    thing
+                ])
+            }, null, _wrapSignal(btn, "name"), 0, "u6_0"))
+    ], 0, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,QAAU;IACrC,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;0BACT,KAAC;sCAAM;;YACN,QAAQ,GAAG,CAAC,CAAA,oBACT,KAAC;oBACG,QAAQ;;;;;;0CAEP;;;;AAOrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,QAAU;IACrC,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;sBACT,MAAC,oCAAM,GAAM,KAAK;;;QACjB,QAAQ,GAAG,CAAC,CAAA,oBACT,MAAC;gBACG,QAAQ;;;;;;iCAEP;;AAOrB\"}")
 /*
 {
   "origin": "test.tsx",

@@ -1,17 +1,17 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { basePathname } from '@qwik-city-plan';
 
 /**
- * @alpha
+ * @public
  */
-export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
+export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'netlify-edge',
-    origin: process?.env?.URL || 'https://yoursitename.netlify.app',
-    staticGenerate: opts.staticGenerate,
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.netlify.app',
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -49,6 +49,7 @@ export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
               path: basePathname + '*',
               function: 'entry.netlify-edge',
               cache: 'manual',
+              excludedPath: opts.excludedPath || '',
             },
           ],
           version: 1,
@@ -78,13 +79,7 @@ export function netifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
 }
 
 /**
- * @alpha
- * @deprecated Use `netifyEdgeAdapter` exported from `@builder.io/qwik-city/adapters/netlify-edge/vite` instead.
- */
-export const netifyEdgeAdaptor = netifyEdgeAdapter;
-
-/**
- * @alpha
+ * @public
  */
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -101,15 +96,14 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
    * come from a static file, rather than a server-side rendered response.
    */
   staticPaths?: string[];
+  /**
+   * Manually add path pattern that should be excluded from the edge function routes
+   * that are created by the 'manifest.json' file.
+   */
+  excludedPath?: string;
 }
 
 /**
- * @alpha
- * @deprecated Use `NetlifyEdgeAdapterOptions` instead.
- */
-export type NetlifyEdgeAdaptorOptions = NetlifyEdgeAdapterOptions;
-
-/**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

@@ -1,5 +1,5 @@
 import { inflateQrl, parseQRL } from '../qrl/qrl';
-import { assertQrl, isQrl, QRLInternal } from '../qrl/qrl-class';
+import { assertQrl, isQrl, type QRLInternal } from '../qrl/qrl-class';
 import { $ } from '../qrl/qrl.public';
 import { isArray } from '../util/types';
 import { assertTrue } from '../error/assert';

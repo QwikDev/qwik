@@ -33,7 +33,7 @@ test('parse menu.md menu', ({ opts }) => {
   assert.is(i.items![0].items?.length, 2);
   assert.is(i.items![0].items![0].text, 'Text A1');
   assert.is(i.items![0].items![1].text, 'Link A1');
-  assert.is(i.items![0].items![1].href, '/link-a1');
+  assert.is(i.items![0].items![1].href, '/link-a1/');
 
   assert.is(i.items![1].text, 'Section B');
   assert.is(i.items![1].items?.length, 2);

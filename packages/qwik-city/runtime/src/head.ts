@@ -31,7 +31,7 @@ export const resolveHead = (
     }
     const data = endpoint.loaders[id];
     if (data instanceof Promise) {
-      throw new Error('Loaders returning a function can not be refered to in the head function.');
+      throw new Error('Loaders returning a function can not be referred to in the head function.');
     }
     return data;
   }) as any as ResolveSyncValue;

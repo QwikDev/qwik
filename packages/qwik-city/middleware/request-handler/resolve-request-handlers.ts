@@ -5,42 +5,57 @@ import type {
   RouteModule,
   ActionInternal,
   LoaderInternal,
+  JSONObject,
+  ValidatorReturn,
+  DataValidator,
 } from '../../runtime/src/types';
-
-import type { QwikSerializer, RequestEvent, RequestHandler } from './types';
+import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import {
-  getRequestAction,
-  getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
-  RequestEventInternal,
+  type RequestEventInternal,
   RequestEvQwikSerializer,
-  setRequestAction,
+  RequestEvSharedActionId,
 } from './request-event';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
-import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
+import { IsQData, QDATA_JSON } from './user-response';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QRL, RenderOptions, _deserializeData, _serializeData } from '@builder.io/qwik';
+import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
-import { isDev } from '@builder.io/qwik/build';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
+  checkOrigin: boolean,
   renderHandler: RequestHandler
 ) => {
-  const serverLoaders: LoaderInternal[] = [];
+  const routeLoaders: LoaderInternal[] = [];
+  const routeActions: ActionInternal[] = [];
+
   const requestHandlers: RequestHandler[] = [];
   const isPageRoute = !!(route && isLastModulePageRoute(route[1]));
   if (serverPlugins) {
-    _resolveRequestHandlers(serverLoaders, requestHandlers, serverPlugins, isPageRoute, method);
+    _resolveRequestHandlers(
+      routeLoaders,
+      routeActions,
+      requestHandlers,
+      serverPlugins,
+      isPageRoute,
+      method
+    );
   }
 
   if (route) {
+    if (
+      checkOrigin &&
+      (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
+    ) {
+      requestHandlers.unshift(csrfCheckMiddleware);
+    }
     if (isPageRoute) {
       if (method === 'POST') {
         requestHandlers.push(pureServerFunction);
@@ -48,22 +63,28 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    _resolveRequestHandlers(serverLoaders, requestHandlers, route[1], isPageRoute, method);
+    requestHandlers.push(handleRedirect);
+    _resolveRequestHandlers(
+      routeLoaders,
+      routeActions,
+      requestHandlers,
+      route[1],
+      isPageRoute,
+      method
+    );
     if (isPageRoute) {
-      if (serverLoaders.length + actionsMiddleware.length > 0) {
-        requestHandlers.push(actionsMiddleware(serverLoaders) as any);
+      if (routeLoaders.length + routeActions.length > 0) {
+        requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
       }
       requestHandlers.push(renderHandler);
     }
-  }
-  if (requestHandlers.length > 0) {
-    requestHandlers.unshift(securityMiddleware);
   }
   return requestHandlers;
 };
 
 const _resolveRequestHandlers = (
-  serverLoaders: LoaderInternal[],
+  routeLoaders: LoaderInternal[],
+  routeActions: ActionInternal[],
   requestHandlers: RequestHandler[],
   routeModules: RouteModule[],
   collectActions: boolean,
@@ -117,9 +138,13 @@ const _resolveRequestHandlers = (
     if (collectActions) {
       const loaders = Object.values(routeModule).filter((e) =>
         checkBrand(e, 'server_loader')
-      ) as any[];
+      ) as LoaderInternal[];
+      routeLoaders.push(...loaders);
 
-      serverLoaders.push(...loaders);
+      const actions = Object.values(routeModule).filter((e) =>
+        checkBrand(e, 'server_action')
+      ) as ActionInternal[];
+      routeActions.push(...actions);
     }
   }
 };
@@ -128,7 +153,7 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
+export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: ActionInternal[]) {
   return async (requestEv: RequestEventInternal) => {
     if (requestEv.headersSent) {
       requestEv.exit();
@@ -136,76 +161,78 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
+    const isDev = getRequestMode(requestEv) === 'dev';
     const qwikSerializer = requestEv[RequestEvQwikSerializer];
+    if (isDev && method === 'GET') {
+      if (requestEv.query.has(QACTION_KEY)) {
+        console.warn(
+          'Seems like you are submitting a Qwik Action via GET request. Qwik Actions should be submitted via POST request.\nMake sure your <form> has method="POST" attribute, like this: <form method="POST">'
+        );
+      }
+    }
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
-      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
-      if (selectedAction && serverActionsMap) {
-        const action = serverActionsMap.get(selectedAction);
+      if (selectedAction) {
+        const serverActionsMap = (globalThis as any)._qwikActionsMap as
+          | Map<string, ActionInternal>
+          | undefined;
+        const action =
+          routeActions.find((action) => action.__id === selectedAction) ??
+          serverActionsMap?.get(selectedAction);
         if (action) {
-          setRequestAction(requestEv, selectedAction);
-          const isForm = isFormContentType(requestEv.request.headers);
-          const req = requestEv.request.clone();
-          let data: any;
-          if (isForm) {
-            const formData = await req.formData();
-            requestEv.sharedMap.set('actionFormData', formData);
-            data = formToObj(formData);
+          requestEv.sharedMap.set(RequestEvSharedActionId, selectedAction);
+          const data = await requestEv.parseBody();
+          if (!data || typeof data !== 'object') {
+            throw new Error('Expected request data to be an object');
+          }
+          const result = await runValidators(requestEv, action.__validators, data, isDev);
+          if (!result.success) {
+            loaders[selectedAction] = requestEv.fail(result.status ?? 500, result.error);
           } else {
-            data = await req.json();
-          }
-
-          let failed = false;
-          if (action.__schema) {
-            const validator = await action.__schema;
-            const result = await validator.safeParseAsync(data);
-            if (!result.success) {
-              failed = true;
-              if ((globalThis as any).qDev) {
-                console.error(
-                  '\nVALIDATION ERROR\naction$() zod validated failed',
-                  '\n\n  - Received:',
-                  data,
-                  '\n  - Issues:',
-                  result.error.issues
-                );
-              }
-              requestEv.status(400);
-              loaders[selectedAction] = {
-                __brand: 'fail',
-                ...result.error.flatten(),
-              } as any;
-            } else {
-              data = result.data;
+            const actionResolved = isDev
+              ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
+                  action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
+                )
+              : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
+            if (isDev) {
+              verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
-          }
-          if (!failed) {
-            const actionResolved = await action.__qrl(data, requestEv);
-            verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             loaders[selectedAction] = actionResolved;
           }
         }
       }
     }
 
-    if (serverLoaders.length > 0) {
+    if (routeLoaders.length > 0) {
       await Promise.all(
-        serverLoaders.map((loader) => {
+        routeLoaders.map((loader) => {
           const loaderId = loader.__id;
-          if (isDev) {
-            if (loaders[loaderId]) {
-              throw new Error(
-                `Duplicate loader id "${loaderId}" detected. Please ensure that all loader ids are unique.`
-              );
-            }
-          }
-          return (loaders[loaderId] = Promise.resolve()
-            .then(() => loader.__qrl(requestEv as any))
+          return (loaders[loaderId] = runValidators(
+            requestEv,
+            loader.__validators,
+            undefined,
+            isDev
+          )
+            .then((res) => {
+              if (res.success) {
+                if (isDev) {
+                  return measure(requestEv, loader.__qrl.getSymbol().split('_', 1)[0], () =>
+                    loader.__qrl.call(requestEv, requestEv as any)
+                  );
+                } else {
+                  return loader.__qrl.call(requestEv, requestEv as any);
+                }
+              } else {
+                return requestEv.fail(res.status ?? 500, res.error);
+              }
+            })
             .then((loaderResolved) => {
               if (typeof loaderResolved === 'function') {
                 loaders[loaderId] = loaderResolved();
               } else {
-                verifySerializable(qwikSerializer, loaderResolved, loader.__qrl);
+                if (isDev) {
+                  verifySerializable(qwikSerializer, loaderResolved, loader.__qrl);
+                }
                 loaders[loaderId] = loaderResolved;
               }
               return loaderResolved;
@@ -216,60 +243,98 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
   };
 }
 
-const formToObj = (formData: FormData): Record<string, any> => {
-  // Convert FormData to object
-  // Handle nested form input using dot notation
-  // Handle array input using square bracket notation
-  const obj: any = {};
-  formData.forEach((value, key) => {
-    const keys = key.split('.').filter((k) => k);
-    let current = obj;
-    for (let i = 0; i < keys.length; i++) {
-      let k = keys[i];
-      // Last key
-      if (i === keys.length - 1) {
-        if (k.endsWith('[]')) {
-          k = k.slice(0, -2);
-          current[k] = current[k] || [];
-          current[k].push(value);
-        } else {
-          current[k] = value;
-        }
+async function runValidators(
+  requestEv: RequestEvent,
+  validators: DataValidator[] | undefined,
+  data: unknown,
+  isDev: boolean
+) {
+  let lastResult: ValidatorReturn = {
+    success: true,
+    data,
+  };
+  if (validators) {
+    for (const validator of validators) {
+      if (isDev) {
+        lastResult = await measure(requestEv, `validator$`, () =>
+          validator.validate(requestEv, data)
+        );
       } else {
-        current = current[k] = {};
+        lastResult = await validator.validate(requestEv, data);
+      }
+      if (!lastResult.success) {
+        return lastResult;
+      } else {
+        data = lastResult.data;
       }
     }
-  });
-  return obj;
-};
+  }
+  return lastResult;
+}
+
+function isAsyncIterator(obj: any): obj is AsyncIterable<unknown> {
+  return obj && typeof obj === 'object' && Symbol.asyncIterator in obj;
+}
 
 async function pureServerFunction(ev: RequestEvent) {
   const fn = ev.query.get(QFN_KEY);
-  if (fn && ev.request.headers.get('Content-Type') === 'application/qwik-json') {
+  if (
+    fn &&
+    ev.request.headers.get('X-QRL') === fn &&
+    ev.request.headers.get('Content-Type') === 'application/qwik-json'
+  ) {
     ev.exit();
-    const fnHeader = ev.request.headers.get('X-QRL');
-    if (fnHeader === fn) {
-      const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
-      const data = qwikSerializer._deserializeData(await ev.request.text());
-      if (Array.isArray(data)) {
-        const [qrl, ...args] = data;
-        if (isQrl(qrl) && qrl.getHash() === fn) {
-          const result = await qrl(ev, ...args);
-          verifySerializable(qwikSerializer, result, qrl);
+    const isDev = getRequestMode(ev) === 'dev';
+    const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
+    const data = await ev.parseBody();
+    if (Array.isArray(data)) {
+      const [qrl, ...args] = data;
+      if (isQrl(qrl) && qrl.getHash() === fn) {
+        let result: unknown;
+        try {
+          if (isDev) {
+            result = await measure(ev, `server_${qrl.getSymbol()}`, () => qrl.apply(ev, args));
+          } else {
+            result = await qrl.apply(ev, args);
+          }
+        } catch (err) {
           ev.headers.set('Content-Type', 'application/qwik-json');
-          ev.send(200, await qwikSerializer._serializeData(result, true));
+          ev.send(500, await qwikSerializer._serializeData(err, true));
           return;
         }
+        if (isAsyncIterator(result)) {
+          ev.headers.set('Content-Type', 'text/qwik-json-stream');
+          const writable = ev.getWritableStream();
+          const stream = writable.getWriter();
+          for await (const item of result) {
+            if (isDev) {
+              verifySerializable(qwikSerializer, item, qrl);
+            }
+            const message = await qwikSerializer._serializeData(item, true);
+            if (ev.signal.aborted) {
+              break;
+            }
+            await stream.write(encoder.encode(`${message}\n`));
+          }
+          stream.close();
+        } else {
+          verifySerializable(qwikSerializer, result, qrl);
+          ev.headers.set('Content-Type', 'application/qwik-json');
+          const message = await qwikSerializer._serializeData(result, true);
+          ev.send(200, message);
+        }
+        return;
       }
     }
     throw ev.error(500, 'Invalid request');
   }
 }
+
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const basePathname = getRequestBasePathname(ev);
-  const { pathname, url } = ev;
-  if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
+  const { basePathname, pathname, url, sharedMap } = ev;
+  const isQData = sharedMap.has(IsQData);
+  if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -288,15 +353,13 @@ function fixTrailingSlash(ev: RequestEvent) {
 }
 
 export function verifySerializable(qwikSerializer: QwikSerializer, data: any, qrl: QRL) {
-  if (isDev) {
-    try {
-      qwikSerializer._verifySerializable(data, undefined);
-    } catch (e: any) {
-      if (e instanceof Error && qrl.dev) {
-        (e as any).loc = qrl.dev;
-      }
-      throw e;
+  try {
+    qwikSerializer._verifySerializable(data, undefined);
+  } catch (e: any) {
+    if (e instanceof Error && qrl.dev) {
+      (e as any).loc = qrl.dev;
     }
+    throw e;
   }
 }
 
@@ -316,23 +379,34 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
   return url.pathname;
 }
 
-export const encoder = /*@__PURE__*/ new TextEncoder();
+export const encoder = /*#__PURE__*/ new TextEncoder();
 
-export function securityMiddleware({ method, url, request, error }: RequestEvent) {
-  const forbidden =
-    method === 'POST' &&
-    request.headers.get('origin') !== url.origin &&
-    isFormContentType(request.headers);
-  if (forbidden) {
-    throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
+function csrfCheckMiddleware(requestEv: RequestEvent) {
+  const isForm = isContentType(
+    requestEv.request.headers,
+    'application/x-www-form-urlencoded',
+    'multipart/form-data',
+    'text/plain'
+  );
+  if (isForm) {
+    const inputOrigin = requestEv.request.headers.get('origin');
+    const origin = requestEv.url.origin;
+    const forbidden = inputOrigin !== origin;
+    if (forbidden) {
+      throw requestEv.error(
+        403,
+        `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+The request origin "${inputOrigin}" does not match the server origin "${origin}".`
+      );
+    }
   }
 }
-export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
+export function renderQwikMiddleware(render: Render) {
   return async (requestEv: RequestEvent) => {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+    const isPageDataReq = requestEv.sharedMap.has(IsQData);
     if (isPageDataReq) {
       return;
     }
@@ -347,13 +421,14 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     const trailingSlash = getRequestTrailingSlash(requestEv);
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
-    const pipe = readable.pipeTo(writableStream);
+    const pipe = readable.pipeTo(writableStream, { preventClose: true });
     const stream = writable.getWriter();
     const status = requestEv.status();
     try {
       const isStatic = getRequestMode(requestEv) === 'static';
       const result = await render({
-        stream: stream,
+        base: requestEv.basePathname + 'build/',
+        stream,
         serverData: getQwikCityServerData(requestEv),
         containerAttributes: {
           ['q:render']: isStatic ? 'static' : '',
@@ -361,11 +436,11 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       });
       const qData: ClientPageData = {
         loaders: getRequestLoaders(requestEv),
-        action: getRequestAction(requestEv),
+        action: requestEv.sharedMap.get(RequestEvSharedActionId),
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url, trailingSlash),
       };
-      if ((typeof result as any as RenderToStringResult).html === 'string') {
+      if (typeof (result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
         // write the already completed html to the stream
         await stream.write((result as any as RenderToStringResult).html);
@@ -376,11 +451,13 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       await stream.close();
       await pipe;
     }
+    // On success, close the stream
+    await writableStream.close();
   };
 }
 
-export async function renderQData(requestEv: RequestEvent) {
-  const isPageDataReq = isQDataJson(requestEv.pathname);
+export async function handleRedirect(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (isPageDataReq) {
     try {
       await requestEv.next();
@@ -389,13 +466,12 @@ export async function renderQData(requestEv: RequestEvent) {
         throw err;
       }
     }
-    if (requestEv.headersSent || requestEv.exited) {
+    if (requestEv.headersSent) {
       return;
     }
 
     const status = requestEv.status();
     const location = requestEv.headers.get('Location');
-    const trailingSlash = getRequestTrailingSlash(requestEv);
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
       const adaptedLocation = makeQDataPath(location);
@@ -408,6 +484,21 @@ export async function renderQData(requestEv: RequestEvent) {
         requestEv.headers.delete('Location');
       }
     }
+  }
+}
+
+export async function renderQData(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
+  if (isPageDataReq) {
+    await requestEv.next();
+
+    if (requestEv.headersSent || requestEv.exited) {
+      return;
+    }
+
+    const status = requestEv.status();
+    const location = requestEv.headers.get('Location');
+    const trailingSlash = getRequestTrailingSlash(requestEv);
 
     const requestHeaders: Record<string, string> = {};
     requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
@@ -415,7 +506,7 @@ export async function renderQData(requestEv: RequestEvent) {
 
     const qData: ClientPageData = {
       loaders: getRequestLoaders(requestEv),
-      action: getRequestAction(requestEv),
+      action: requestEv.sharedMap.get(RequestEvSharedActionId),
       status: status !== 200 ? status : 200,
       href: getPathname(requestEv.url, trailingSlash),
       redirect: location ?? undefined,
@@ -441,4 +532,31 @@ function makeQDataPath(href: string) {
   } else {
     return undefined;
   }
+}
+
+function now() {
+  return typeof performance !== 'undefined' ? performance.now() : 0;
+}
+
+export async function measure<T>(
+  requestEv: RequestEventBase,
+  name: string,
+  fn: () => T
+): Promise<T> {
+  const start = now();
+  try {
+    return await fn();
+  } finally {
+    const duration = now() - start;
+    let measurements = requestEv.sharedMap.get('@serverTiming');
+    if (!measurements) {
+      requestEv.sharedMap.set('@serverTiming', (measurements = []));
+    }
+    measurements.push([name, duration]);
+  }
+}
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  return types.includes(type);
 }

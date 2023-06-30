@@ -4,7 +4,7 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const pages = require('./pages.json');
 
-const OUTPUT_JSON = 'src/routes/showcase/generated-pages.json';
+const OUTPUT_JSON = 'src/routes/(ecosystem)/showcase/generated-pages.json';
 async function captureMultipleScreenshots() {
   if (!fs.existsSync('public/showcases')) {
     fs.mkdirSync('public/showcases');
@@ -70,6 +70,7 @@ async function captureMultipleScreenshots() {
           .replace('.', '_')
           .toLowerCase();
 
+        await wait(5000);
         const path = `public/showcases/${filename}.webp`;
         const [pagespeedOutput, _] = await Promise.all([
           getPagespeedData(href),
@@ -148,3 +149,7 @@ async function getPagespeedData(url) {
   });
 }
 captureMultipleScreenshots();
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

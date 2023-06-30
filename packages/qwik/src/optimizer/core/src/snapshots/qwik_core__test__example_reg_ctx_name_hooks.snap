@@ -6,78 +6,43 @@ expression: output
 
 
 import { $, component$, server$ } from '@builder.io/qwik';
+import { foo } from './foo';
 export const Works = component$((props) => {
     const text = 'hola';
     return (
+        <>
         <div onClick$={server$(() => console.log('in server', text))}></div>
+        <div onClick$={() => foo()}></div>
+        </>
     );
 });
 
 ============================= test.js ==
 
+import "./foo";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./works_component_t45ql4vngv0"), "Works_component_t45qL4vNGv0"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,MAAM,sBAAQ,4GAKlB\"}")
-============================= works_component_div_onclick_server_osnoefc5sm4.js (ENTRY POINT)==
-
-export const Works_component_div_onClick_server_OsNoEFc5SM4 = ()=>console.log('in server', 'hola');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAK+B,IAAM,QAAQ,GAAG,CAAC,aAFhC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Works_component_div_onClick_server_OsNoEFc5SM4",
-  "entry": null,
-  "displayName": "Works_component_div_onClick_server",
-  "hash": "OsNoEFc5SM4",
-  "canonicalFilename": "works_component_div_onclick_server_osnoefc5sm4",
-  "extension": "js",
-  "parent": "Works_component_t45qL4vNGv0",
-  "ctxKind": "function",
-  "ctxName": "server$",
-  "captures": false,
-  "loc": [
-    175,
-    211
-  ]
-}
-*/
-============================= works_component_t45ql4vngv0.js (ENTRY POINT)==
-
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { qrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
-export const Works_component_t45qL4vNGv0 = (props)=>{
-    return /*#__PURE__*/ _jsx("div", {
-        onClick$: serverQrl(/*#__PURE__*/ qrl(()=>import("./works_component_div_onclick_server_osnoefc5sm4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
-    }, "u6_0");
-};
+import { _regSymbol } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { _noopQrl } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    return /*#__PURE__*/ _jsxC(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxQ("div", {
+                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "07DGQ0fITXs"), "Works_component__Fragment_div_onClick_server_07DGQ0fITXs"))
+            }, null, null, 2, null),
+            /*#__PURE__*/ _jsxQ("div", null, {
+                onClick$: /*#__PURE__*/ _noopQrl("Works_component__Fragment_div_onClick_YhOCqfqU0Rc")
+            }, null, 3, null)
+        ]
+    }, 1, "u6_0");
+}, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAEgC,CAAC,QAAU;IAEvC,qBACI,KAAC;QAAI,UAAU;;AAEvB\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Works_component_t45qL4vNGv0",
-  "entry": null,
-  "displayName": "Works_component",
-  "hash": "t45qL4vNGv0",
-  "canonicalFilename": "works_component_t45ql4vngv0",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    93,
-    229
-  ]
-}
-*/
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAEvC,qBACI;;0BACA,MAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,MAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,12 +1,12 @@
-import { component$ } from '@builder.io/qwik';
-import { action$, loader$, Form } from '@builder.io/qwik-city';
-import { data } from '../data';
+import { component$ } from "@builder.io/qwik";
+import { Form, routeLoader$, routeAction$ } from "@builder.io/qwik-city";
+import { data } from "../data";
 
-export const useGetData = loader$(() => {
+export const useGetData = routeLoader$(() => {
   return data;
 });
 
-export const useOtherAction = action$((form) => {
+export const useOtherAction = routeAction$((form) => {
   const name = form.name as string;
   data.push(name);
   return { success: true };

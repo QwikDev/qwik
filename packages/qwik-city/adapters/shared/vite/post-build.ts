@@ -9,13 +9,13 @@ export async function postBuild(
   format: string,
   cleanStatic: boolean
 ) {
-  const ingorePathnames = new Set([basePathname + 'build/', basePathname + 'assets/']);
+  const ignorePathnames = new Set([basePathname + 'build/', basePathname + 'assets/']);
 
   const staticPaths = new Set(userStaticPaths);
   const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
-    if (ingorePathnames.has(pathname)) {
+    if (ignorePathnames.has(pathname)) {
       return;
     }
 
@@ -64,10 +64,18 @@ export async function postBuild(
 
 function createNotFoundPathsModule(basePathname: string, notFounds: string[][], format: string) {
   notFounds.sort((a, b) => {
-    if (a[0].length > b[0].length) return -1;
-    if (a[0].length < b[0].length) return 1;
-    if (a[0] < b[0]) return -1;
-    if (a[0] > b[0]) return 1;
+    if (a[0].length > b[0].length) {
+      return -1;
+    }
+    if (a[0].length < b[0].length) {
+      return 1;
+    }
+    if (a[0] < b[0]) {
+      return -1;
+    }
+    if (a[0] > b[0]) {
+      return 1;
+    }
     return 0;
   });
 

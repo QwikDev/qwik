@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "ES2021",
+    "module": "CommonJS",
+    "lib": ["es2021", "DOM"],
+    "strict": true,
+    "declaration": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "incremental": true,
+    "isolatedModules": true,
+    "types": ["vite/client"],
+    "outDir": "vite",
+    "declarationDir": "vite"
+  },
+  "files": ["src-vite/index.ts"]
+}

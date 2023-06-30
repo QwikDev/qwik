@@ -1,45 +1,19 @@
 import { component$, useContext, useStyles$ } from '@builder.io/qwik';
-import { ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
+import { type ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
-export const SideBar = component$(() => {
+export const SideBar = component$((props: { allOpen?: boolean }) => {
   useStyles$(styles);
 
   const globalStore = useContext(GlobalStore);
   const { menu } = useContent();
-  const { pathname } = useLocation();
-  const breadcrumbs = createBreadcrumbs(menu, pathname);
-  const isQwikCity = pathname.startsWith('/qwikcity/');
+  const { url } = useLocation();
+  const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
+
   return (
     <aside class="sidebar">
-      <nav class="breadcrumbs">
-        <button
-          onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
-          type="button"
-          title="Toggle left menu"
-          aria-label="Toggle left menu"
-        >
-          <span class="sr-only">Navigation</span>
-          <svg width="24" height="24">
-            <path
-              d="M5 6h14M5 12h14M5 18h14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </button>
-        {breadcrumbs.length > 0 ? (
-          <ol>
-            {breadcrumbs.map((b) => (
-              <li>{b.text}</li>
-            ))}
-          </ol>
-        ) : null}
-      </nav>
       <nav class="menu">
         <button
           class="menu-close lg:hidden"
@@ -48,7 +22,7 @@ export const SideBar = component$(() => {
         >
           <CloseIcon width={24} height={24} />
         </button>
-        <Items items={menu?.items} pathname={pathname} allOpen={isQwikCity} />
+        <Items items={menu?.items} pathname={url.pathname} allOpen={allOpen} />
       </nav>
     </aside>
   );

@@ -9,22 +9,16 @@ import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
 export { StaticGenerateRenderOptions }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function vercelEdgeAdapter(opts?: VercelEdgeAdapterOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
     outputConfig?: boolean;
     staticPaths?: string[];
     vcConfigEntryPoint?: string;
     vcConfigEnvVarsInUse?: string[];
 }
-
-// @alpha @deprecated (undocumented)
-export const vercelEdgeAdaptor: typeof vercelEdgeAdapter;
-
-// @alpha @deprecated (undocumented)
-export type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;
 
 // (No @packageDocumentation comment for this package)
 

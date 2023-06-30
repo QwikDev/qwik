@@ -5,15 +5,24 @@
     "deploy": "vercel deploy"
   },
   "devDependencies": {
-    "vercel": "^28.4.17"
+    "vercel": "^29.1.1"
   },
   "__qwik__": {
     "priority": 30,
     "displayName": "Adapter: Vercel Edge",
     "docs": [
-      "https://qwik.builder.io/integrations/deployments/vercel-edge/",
+      "https://qwik.builder.io/deployments/vercel-edge/",
       "https://vercel.com/docs/concepts/functions/edge-functions",
       "https://vercel.com/docs"
-    ]
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build and deploy to Vercel with:",
+        "",
+        "  - pnpm run build: production build for Vercel",
+        "  - pnpm run deploy: it will use the Vercel CLI to deploy your site"
+      ]
+    }
   }
 }

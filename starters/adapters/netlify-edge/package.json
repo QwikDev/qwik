@@ -6,15 +6,24 @@
   },
   "devDependencies": {
     "@netlify/edge-functions": "^2.0.0",
-    "netlify-cli": "^12.0.11"
+    "netlify-cli": "^15.0.0"
   },
   "__qwik__": {
     "priority": 30,
     "displayName": "Adapter: Netlify Edge",
     "docs": [
-      "https://qwik.builder.io/integrations/deployments/netlify-edge/",
+      "https://qwik.builder.io/deployments/netlify-edge/",
       "https://docs.netlify.com/edge-functions/overview/",
       "https://docs.netlify.com/"
-    ]
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build and deploy to Netlify with:",
+        "",
+        "  - pnpm run build: production build for Netlify",
+        "  - pnpm run deploy: it will use the netlify CLI to deploy your site"
+      ]
+    }
   }
 }

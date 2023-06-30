@@ -35,7 +35,7 @@ export const ButtonArrow = ({text, color}) => {
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
 export const Foo_component_HTDRsvUbLiE = (props1)=>{
-    return <div >
+    return <div>
 
             <Button {...props}/>
 
@@ -45,7 +45,7 @@ export const Foo_component_HTDRsvUbLiE = (props1)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,UAAa;IACvC,QACK,KAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,UAAa;IACvC,QACK,IAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -85,7 +85,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "buttonarrow_button_onclick_9npo43figik",
   "extension": "tsx",
   "parent": null,
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -114,7 +114,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "button_button_onclick_nsm0jyv00jw",
   "extension": "tsx",
   "parent": null,
-  "ctxKind": "event",
+  "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
@@ -144,7 +144,7 @@ export const ButtonArrow = ({ text , color  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wGAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC,EAAE;IAClC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,CAAC;AAED,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC,GAAK;IAC1C,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC,EAAE;IAClC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,CAAC;AAED,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC,GAAK;IAC1C,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

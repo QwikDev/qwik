@@ -1,10 +1,13 @@
-import type { ResolvedDocumentHead, RouteLocation } from '@builder.io/qwik-city';
+import type {
+  ResolvedDocumentHead,
+  RouteLocation,
+} from "@builder.io/qwik-city";
 
 export const Social = ({ head, loc }: SocialProps) => {
   return (
     <>
       {/*  Open Graph: https://ogp.me/  */}
-      <meta property="og:url" content={loc.href} />
+      <meta property="og:url" content={loc.url.href} />
       <meta property="og:title" content={head.title} />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Qwik" />

@@ -2,14 +2,15 @@ import {
   $,
   implicit$FirstArg,
   noSerialize,
-  QRL,
+  type QRL,
   useContext,
-  ValueOrPromise,
+  type ValueOrPromise,
   _wrapSignal,
   useStore,
   _serializeData,
   _deserializeData,
   _getContextElement,
+  _getContextEvent,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -17,44 +18,40 @@ import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
-  Zod,
+  ZodConstructor,
   JSONObject,
   RouteActionResolver,
   RouteLocation,
-  Action,
-  Loader,
-  ZodReturn,
   Editable,
   ActionStore,
   RequestEvent,
   ActionInternal,
   LoaderInternal,
   RequestEventAction,
-  ActionOptionsWithValidation,
+  CommonLoaderActionOptions,
+  DataValidator,
+  ValidatorReturn,
+  LoaderConstructor,
+  ValidatorConstructor,
+  ActionConstructorQRL,
+  LoaderConstructorQRL,
+  ZodConstructorQRL,
+  ValidatorConstructorQRL,
+  ServerConstructorQRL,
 } from './types';
-import { useAction, useLocation } from './use-functions';
+import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /**
- * @alpha
+ * @public
  */
-export const actionQrl = <B, A>(
-  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<B>>,
-  options?: ActionOptionsWithValidation<ZodReturn> | ZodReturn
-): Action<B, A> => {
-  let _id: string | undefined;
-  let schema: ZodReturn | undefined;
-  if (options && typeof options === 'object') {
-    if (options instanceof Promise) {
-      schema = options;
-    } else {
-      _id = options.id;
-      schema = options.validation;
-    }
-  }
-  const id = getId(actionQrl, _id);
+export const routeActionQrl = ((
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
+  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+) => {
+  const { id, validators } = getValidators(rest, actionQrl);
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
@@ -81,7 +78,7 @@ export const actionQrl = <B, A>(
       return initialState as ActionStore<any, any>;
     });
 
-    initialState.run = $((input: any | FormData | SubmitEvent = {}) => {
+    const submit = $((input: any | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
@@ -91,6 +88,15 @@ Action.run() can only be called on the browser, for example when a user clicks a
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
         data = new FormData(form);
+        if (
+          (input.submitter instanceof HTMLInputElement ||
+            input.submitter instanceof HTMLButtonElement) &&
+          input.submitter.name
+        ) {
+          if (input.submitter.name) {
+            data.append(input.submitter.name, input.submitter.value);
+          }
+        }
       } else {
         data = input;
       }
@@ -129,127 +135,175 @@ Action.run() can only be called on the browser, for example when a user clicks a
         };
       });
     });
+    initialState.submit = submit;
+
     return state;
   }
   action.__brand = 'server_action' as const;
-  action.__schema = schema;
+  action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
-  action.use = action;
+  Object.freeze(action);
+
+  return action satisfies ActionInternal;
+}) as unknown as ActionConstructorQRL;
+
+/**
+ * @public
+ */
+export const globalActionQrl = ((
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
+  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+) => {
+  const action = (routeActionQrl as any)(actionQrl, ...rest);
   if (isServer) {
     if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
       (globalThis as any)._qwikActionsMap = new Map();
     }
-    (globalThis as any)._qwikActionsMap.set(id, action);
+    (globalThis as any)._qwikActionsMap.set(action.__id, action);
   }
-
-  return action satisfies ActionInternal;
-};
-
-/**
- * @alpha
- */
-export const action$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(actionQrl) as any;
+  return action;
+}) as ActionConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
-export interface LoaderOptions {
-  id?: string;
-}
+export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
+  routeActionQrl
+) as any;
 
 /**
- * @alpha
+ * @public
  */
-export const loaderQrl = <RETURN>(
-  loaderQrl: QRL<(event: RequestEventLoader) => RETURN>,
-  options?: LoaderOptions
-): Loader<RETURN> => {
-  const id = getId(loaderQrl, options?.id);
+export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
+  globalActionQrl
+) as any;
+
+/**
+ * @public
+ */
+export const routeLoaderQrl = ((
+  loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
+  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+): LoaderInternal => {
+  const { id, validators } = getValidators(rest, loaderQrl);
   function loader() {
     return useContext(RouteStateContext, (state) => {
       if (!(id in state)) {
-        throw new Error(`Loader (${id}) was used in a path where the 'loader$' was not declared.
-    This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
-    For more information check: https://qwik.builder.io/qwikcity/loader`);
+        throw new Error(`routeLoader (${id}) was used in a path where the 'routeLoader$' was not declared.
+    This is likely because the used routeLoader was not exported in a layout.tsx or index.tsx file of the existing route.
+    For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
       }
       return _wrapSignal(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;
+  loader.__validators = validators;
   loader.__id = id;
-  loader.use = loader;
+  Object.freeze(loader);
 
-  return loader satisfies LoaderInternal;
-};
-
-/**
- * @alpha
- */
-export const loader$ = /*#__PURE__*/ implicit$FirstArg(loaderQrl);
+  return loader;
+}) as LoaderConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
-export const zodQrl = async (
-  qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
-) => {
+export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
+
+/**
+ * @public
+ */
+export const validatorQrl = ((
+  validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
+): DataValidator => {
   if (isServer) {
-    let obj = await qrl.resolve();
-    if (typeof obj === 'function') {
-      obj = obj(z);
-    } else if (obj instanceof z.Schema) {
-      return obj;
-    }
-    return z.object(obj);
+    return {
+      validate: validator,
+    };
   }
-  return undefined;
-};
+  return undefined as any;
+}) as ValidatorConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
-export const zod$: Zod = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
+export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-export interface Server {
-  <T extends (ev: RequestEvent, ...args: any[]) => any>(fn: T): T extends (
-    ev: RequestEvent,
-    ...args: infer ARGS
-  ) => infer RETURN
-    ? QRL<(...args: ARGS) => RETURN>
-    : never;
-}
-
-export const getId = (qrl: QRL<any>, id?: string) => {
-  if (typeof id === 'string') {
-    if (isDev) {
-      if (!/^[\w/.-]+$/.test(id)) {
-        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
+/**
+ * @public
+ */
+export const zodQrl = ((
+  qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
+): DataValidator => {
+  if (isServer) {
+    const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
+      if (typeof obj === 'function') {
+        obj = obj(z);
       }
-    }
-    return `id_${id}`;
+      if (obj instanceof z.Schema) {
+        return obj;
+      } else {
+        return z.object(obj);
+      }
+    });
+    return {
+      async validate(ev, inputData) {
+        const data = inputData ?? (await ev.parseBody());
+        const result = await (await schema).safeParseAsync(data);
+        if (result.success) {
+          return result;
+        } else {
+          if (isDev) {
+            console.error(
+              '\nVALIDATION ERROR\naction$() zod validated failed',
+              '\n  - Issues:',
+              result.error.issues
+            );
+          }
+          return {
+            success: false,
+            status: 400,
+            error: result.error.flatten(),
+          };
+        }
+      },
+    };
   }
-  return qrl.getHash();
-};
+  return undefined as any;
+}) as ZodConstructorQRL;
 
 /**
- * @alpha
+ * @public
  */
-export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
+export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
+
+/**
+ * @public
+ */
+export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any>) => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
   }
-  function client() {
-    return $(async (...args: any[]) => {
+
+  function stuff() {
+    return $(async function (this: any, ...args: any[]) {
+      const signal =
+        args.length > 0 && args[0] instanceof AbortSignal
+          ? (args.shift() as AbortSignal)
+          : undefined;
       if (isServer) {
-        throw new Error(`Server functions can not be invoked within the server during SSR.`);
+        const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
+        return qrl.apply(requestEvent, args);
       } else {
+        const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
-          if (arg instanceof Event) {
+          if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+            return new FormData(arg.target);
+          } else if (arg instanceof Event) {
             return null;
           } else if (arg instanceof Node) {
             return null;
@@ -257,29 +311,109 @@ export const serverQrl = <T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T
           return arg;
         });
         const hash = qrl.getHash();
-        const path = `?qfunc=${qrl.getHash()}`;
-        const body = await _serializeData([qrl, ...filtered], false);
-        const res = await fetch(path, {
+        const res = await fetch(`?qfunc=${hash}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/qwik-json',
             'X-QRL': hash,
           },
-          body,
+          signal,
+          body: await _serializeData([qrl, ...filtered], false),
         });
-        if (!res.ok) {
-          throw new Error(`Server function failed: ${res.statusText}`);
+
+        const contentType = res.headers.get('Content-Type');
+        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+          return (async function* () {
+            try {
+              for await (const result of deserializeStream(
+                res.body!,
+                ctxElm ?? document.documentElement,
+                signal
+              )) {
+                yield result;
+              }
+            } finally {
+              if (!signal?.aborted) {
+                await res.body!.cancel();
+              }
+            }
+          })();
+        } else if (contentType === 'application/qwik-json') {
+          const str = await res.text();
+          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          if (res.status === 500) {
+            throw obj;
+          }
+          return obj;
         }
-        const str = await res.text();
-        const obj = await _deserializeData(str);
-        return obj;
       }
-    }) as QRL<T>;
+    }) as any;
   }
-  return client();
+  return stuff();
 };
 
 /**
- * @alpha
+ * @public
  */
-export const server$: Server = /*#__PURE__*/ implicit$FirstArg(serverQrl) as any;
+export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
+
+const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {
+  let id: string | undefined;
+  const validators: DataValidator[] = [];
+  if (rest.length === 1) {
+    const options = rest[0];
+    if (options && typeof options === 'object') {
+      if ('validate' in options) {
+        validators.push(options);
+      } else {
+        id = options.id;
+        if (options.validation) {
+          validators.push(...options.validation);
+        }
+      }
+    }
+  } else if (rest.length > 1) {
+    validators.push(...(rest.filter((v) => !!v) as any));
+  }
+
+  if (typeof id === 'string') {
+    if (isDev) {
+      if (!/^[\w/.-]+$/.test(id)) {
+        throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
+      }
+    }
+    id = `id_${id}`;
+  } else {
+    id = qrl.getHash();
+  }
+  return {
+    validators: validators.reverse(),
+    id,
+  };
+};
+
+const deserializeStream = async function* (
+  stream: ReadableStream<Uint8Array>,
+  ctxElm: unknown,
+  signal?: AbortSignal
+) {
+  const reader = stream.getReader();
+  try {
+    let buffer = '';
+    const decoder = new TextDecoder();
+    while (!signal?.aborted) {
+      const result = await reader.read();
+      if (result.done) {
+        break;
+      }
+      buffer += decoder.decode(result.value, { stream: true });
+      const lines = buffer.split(/\n/);
+      buffer = lines.pop()!;
+      for (const line of lines) {
+        yield await _deserializeData(line, ctxElm);
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+};

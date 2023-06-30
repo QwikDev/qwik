@@ -6,17 +6,76 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
 import { EditIcon } from '../svgs/edit-icon';
 
+const makeEditPageUrl = (url: string): string => {
+  const qwikDocsPathnames = [
+    'advanced',
+    'components',
+    'concepts',
+    'faq',
+    'getting-started',
+    'think-qwik',
+    'docs', // for docs/(qwik)/index.mdx
+  ];
+
+  const advancedQwikCityPathnames = [
+    'environment-variables',
+    'menu',
+    'request-handling',
+    'routing',
+    'speculative-module-fetching',
+    'static-assets',
+    'sitemaps',
+  ];
+
+  const whitelistedDirectories = ['integrations', 'deployments', 'community', 'labs'];
+
+  const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
+
+  if (!(urlPathnames.length >= 2)) {
+    urlPathnames.splice(1, 0, '(qwik)');
+    return urlPathnames.join('/');
+  }
+
+  const qwikDocsPathname = urlPathnames.at(1) as string;
+
+  if (
+    whitelistedDirectories.includes(urlPathnames.at(0) as string) ||
+    whitelistedDirectories.includes(qwikDocsPathname)
+  ) {
+    return urlPathnames.join('/');
+  }
+
+  if (qwikDocsPathname.includes('advanced')) {
+    // since we advanced named folder in (qwik) and (qwikcity) this will ensure both are not conflicting.
+    const advancedDocsPathname = urlPathnames.at(2) as string;
+    const isQwikCityPath = advancedQwikCityPathnames.includes(advancedDocsPathname);
+
+    !isQwikCityPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
+
+    return urlPathnames.join('/');
+  }
+
+  const isQwikPath = qwikDocsPathnames.includes(qwikDocsPathname);
+
+  isQwikPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
+
+  return urlPathnames.join('/');
+};
+
 export const OnThisPage = component$(() => {
   useStyles$(styles);
 
   const { headings } = useContent();
   const contentHeadings = headings?.filter((h) => h.level <= 3) || [];
 
-  const { pathname } = useLocation();
-  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes${pathname}index.mdx`;
+  const { url } = useLocation();
+
+  const githubEditRoute = makeEditPageUrl(url.pathname);
+
+  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   return (
-    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem] xl:top-[9rem]">
+    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem]">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>
@@ -41,7 +100,7 @@ export const OnThisPage = component$(() => {
       <h6>More</h6>
       <ul>
         <li>
-          <a href={editUrl} target="_blank">
+          <a href={editUrl} rel="noopener" target="_blank">
             <EditIcon width={22} height={22} />
             <span>Edit this page</span>
           </a>

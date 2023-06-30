@@ -1,4 +1,4 @@
-import { BuildConfig, ensureDir, PackageJSON } from './util';
+import { type BuildConfig, ensureDir, type PackageJSON } from './util';
 import { readFile, writeFile } from './util';
 import { join } from 'node:path';
 
@@ -31,12 +31,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './cli': {
@@ -48,12 +48,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './jsx-dev-runtime': {
@@ -71,9 +71,16 @@ export async function generatePackageJson(config: BuildConfig) {
         },
       },
       './build': {
-        types: './build/index.d.ts',
-        import: './build/index.mjs',
-        require: './build/index.cjs',
+        import: {
+          development: './build/index.dev.mjs',
+          production: './build/index.prod.mjs',
+          default: './build/index.mjs',
+        },
+        require: {
+          development: './build/index.dev.cjs',
+          production: './build/index.prod.cjs',
+          default: './build/index.cjs',
+        },
       },
       './loader': {
         types: './loader/index.d.ts',
@@ -116,8 +123,8 @@ export async function generatePackageJson(config: BuildConfig) {
     engines: rootPkg.engines,
   };
 
-  await writePackageJson(config.distPkgDir, distPkg);
-  console.log(config.distPkgDir);
+  await writePackageJson(config.distQwikPkgDir, distPkg);
+  console.log(config.distQwikPkgDir);
 
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');
@@ -133,8 +140,8 @@ export async function generateLegacyCjsSubmodule(
   pkgName: string,
   index = pkgName
 ) {
-  // Modern nodejs will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
-  // however, legacy nodejs still needs a directory and its own package.json
+  // Modern Node.js will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
+  // however, legacy Node.js still needs a directory and its own package.json
   // this can be removed once node12 is in the distant past
   const pkg: PackageJSON = {
     name: `@builder.io/qwik/${pkgName}`,
@@ -152,7 +159,7 @@ export async function generateLegacyCjsSubmodule(
       },
     },
   };
-  const submoduleDistDir = join(config.distPkgDir, pkgName);
+  const submoduleDistDir = join(config.distQwikPkgDir, pkgName);
   ensureDir(submoduleDistDir);
   await writePackageJson(submoduleDistDir, pkg);
 }

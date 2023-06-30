@@ -1,4 +1,9 @@
-import { getPlatformInputFiles, getSystem, loadPlatformBinding, PlatformBinding } from './platform';
+import {
+  getPlatformInputFiles,
+  getSystem,
+  loadPlatformBinding,
+  type PlatformBinding,
+} from './platform';
 import type {
   TransformModulesOptions,
   TransformFsOptions,
@@ -8,7 +13,7 @@ import type {
 } from './types';
 
 /**
- * @alpha
+ * @public
  */
 export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) => {
   const sys = optimizerOptions?.sys || (await getSystem());
@@ -69,6 +74,7 @@ const transformFsAsync = async (
     });
     const modulesOpts: Required<TransformModulesOptions> = {
       srcDir: fsOpts.srcDir,
+      rootDir: fsOpts.rootDir!,
       entryStrategy: fsOpts.entryStrategy!,
       minify: fsOpts.minify!,
       sourceMaps: fsOpts.sourceMaps!,
@@ -80,7 +86,7 @@ const transformFsAsync = async (
       scope: fsOpts.scope!,
       input,
       regCtxName: fsOpts.regCtxName!,
-      stripCtxKind: fsOpts.stripCtxKind!,
+      stripEventHandlers: fsOpts.stripEventHandlers!,
       stripCtxName: fsOpts.stripCtxName!,
       stripExports: fsOpts.stripExports!,
       isServer: fsOpts.isServer!,
@@ -103,9 +109,10 @@ const convertOptions = (opts: any) => {
     manualChunks: undefined,
     scope: undefined,
     regCtxName: undefined,
+    stripEventHandlers: false,
+    rootDir: undefined,
     stripExports: undefined,
     stripCtxName: undefined,
-    stripCtxKind: undefined,
     isServer: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {

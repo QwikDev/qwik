@@ -1,10 +1,19 @@
 import { Auth, skipCSRFCheck } from '@auth/core';
 import type { AuthAction, AuthConfig, Session } from '@auth/core/types';
-import { implicit$FirstArg, QRL } from '@builder.io/qwik';
-import { action$, loader$, RequestEvent, RequestEventCommon, z, zod$ } from '@builder.io/qwik-city';
+import { implicit$FirstArg, type QRL } from '@builder.io/qwik';
+import {
+  globalAction$,
+  routeLoader$,
+  type RequestEvent,
+  type RequestEventCommon,
+  z,
+  zod$,
+} from '@builder.io/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
-export interface QwikAuthConfig extends AuthConfig {}
+
+export type QwikAuthConfig = AuthConfig;
+
 const actions: AuthAction[] = [
   'providers',
   'session',
@@ -27,6 +36,7 @@ export async function authAction(
     headers: req.request.headers,
     body: body,
   });
+  request.headers.set('content-type', 'application/x-www-form-urlencoded');
   const res = await Auth(request, {
     ...authOptions,
     skipCSRFCheck,
@@ -36,7 +46,11 @@ export async function authAction(
   });
   fixCookies(req);
 
-  return await res.json();
+  try {
+    return await res.json();
+  } catch (error) {
+    return await res.text();
+  }
 }
 
 export const fixCookies = (req: RequestEventCommon) => {
@@ -51,31 +65,66 @@ export const fixCookies = (req: RequestEventCommon) => {
   }
 };
 
+export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
+
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
-  const useAuthSignup = action$(
-    async ({ provider, ...rest }, req) => {
+  const useAuthSignin = globalAction$(
+    async ({ providerId, callbackUrl: deprecated, options, authorizationParams }, req) => {
+      if (deprecated) {
+        console.warn(
+          '\x1b[33mWARNING: callbackUrl is deprecated - use options.callbackUrl instead\x1b[0m'
+        );
+      }
+      const { callbackUrl = deprecated ?? getCurrentPageForAction(req), ...rest } = options ?? {};
+
+      const isCredentials = providerId === 'credentials';
+
       const auth = await authOptions(req);
-      const body = new URLSearchParams();
+      const body = new URLSearchParams({ callbackUrl: callbackUrl as string });
       Object.entries(rest).forEach(([key, value]) => {
         body.set(key, String(value));
       });
-      const data = await authAction(body, req, `/api/auth/signin/${provider}`, auth);
+
+      const baseSignInUrl = `/api/auth/${isCredentials ? 'callback' : 'signin'}${
+        providerId ? `/${providerId}` : ''
+      }`;
+      const signInUrl = `${baseSignInUrl}?${new URLSearchParams(authorizationParams)}`;
+
+      const data = await authAction(body, req, signInUrl, auth);
+
       if (data.url) {
         throw req.redirect(301, data.url);
       }
     },
     zod$({
-      provider: z.string(),
+      providerId: z.string().optional(),
+      callbackUrl: z.string().optional(),
+      options: z
+        .object({
+          callbackUrl: z.string(),
+        })
+        .passthrough()
+        .partial()
+        .optional(),
+      authorizationParams: z
+        .union([z.string(), z.custom<URLSearchParams>(), z.record(z.string())])
+        .optional(),
     })
   );
 
-  const useAuthSignout = action$(async (_, req) => {
-    const auth = await authOptions(req);
-    const body = new URLSearchParams();
-    return authAction(body, req, `/api/auth/signout`, auth);
-  });
+  const useAuthSignout = globalAction$(
+    async ({ callbackUrl }, req) => {
+      callbackUrl ??= getCurrentPageForAction(req);
+      const auth = await authOptions(req);
+      const body = new URLSearchParams({ callbackUrl });
+      await authAction(body, req, `/api/auth/signout`, auth);
+    },
+    zod$({
+      callbackUrl: z.string().optional(),
+    })
+  );
 
-  const useAuthSession = loader$((req) => {
+  const useAuthSession = routeLoader$((req) => {
     return req.sharedMap.get('session') as Session | null;
   });
 
@@ -102,7 +151,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   };
 
   return {
-    useAuthSignup,
+    useAuthSignin,
     useAuthSignout,
     useAuthSession,
     onRequest,
@@ -130,7 +179,11 @@ export async function getSessionData(req: Request, options: AuthConfig): GetSess
   const { status = 200 } = response;
 
   const data = await response.json();
-  if (!data || !Object.keys(data).length) return null;
-  if (status === 200) return data;
+  if (!data || !Object.keys(data).length) {
+    return null;
+  }
+  if (status === 200) {
+    return data;
+  }
   throw new Error(data.message);
 }

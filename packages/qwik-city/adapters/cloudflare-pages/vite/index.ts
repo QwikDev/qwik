@@ -1,16 +1,17 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
+import { normalizePathSlash } from '../../../utils/fs';
 
 /**
- * @alpha
+ * @public
  */
 export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {}): any {
+  const env = process?.env;
   return viteAdapter({
     name: 'cloudflare-pages',
-    origin: process?.env?.CF_PAGES_URL || 'https://your.cloudflare.pages.dev',
-    staticGenerate: opts.staticGenerate,
+    origin: env?.CF_PAGES_URL ?? env?.ORIGIN ?? 'https://your.cloudflare.pages.dev',
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -37,7 +38,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
       };
     },
 
-    async generate({ clientOutDir, basePathname }) {
+    async generate({ clientOutDir, serverOutDir, basePathname }) {
       const routesJsonPath = join(clientOutDir, '_routes.json');
       const hasRoutesJson = fs.existsSync(routesJsonPath);
       if (!hasRoutesJson && opts.functionRoutes !== false) {
@@ -48,18 +49,22 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         };
         await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
       }
+      // https://developers.cloudflare.com/pages/platform/functions/advanced-mode/
+      const workerJsPath = join(clientOutDir, '_worker.js');
+      const hasWorkerJs = fs.existsSync(workerJsPath);
+      if (!hasWorkerJs) {
+        const importPath = relative(clientOutDir, join(serverOutDir, 'entry.cloudflare-pages'));
+        await fs.promises.writeFile(
+          workerJsPath,
+          `import { fetch } from "${normalizePathSlash(importPath)}"; export default { fetch };`
+        );
+      }
     },
   });
 }
 
 /**
- * @alpha
- * @deprecated Use `cloudflarePagesAdapter` exported from `@builder.io/qwik-city/adapters/cloudflare-pages/vite` instead.
- */
-export const cloudflarePagesAdaptor = cloudflarePagesAdapter;
-
-/**
- * @alpha
+ * @public
  */
 export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
   /**
@@ -79,12 +84,6 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
- * @deprecated Use `CloudflarePagesAdapterOptions` instead.
- */
-export type CloudflarePagesAdaptorOptions = CloudflarePagesAdapterOptions;
-
-/**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

@@ -1,60 +1,49 @@
-import type { ClientHistoryWindow } from './client-navigate';
-import { component$, Slot, QwikIntrinsicElements, $, useOnDocument } from '@builder.io/qwik';
-import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
+import { component$, Slot, type QwikIntrinsicElements, untrack, event$ } from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
 /**
- * @alpha
+ * @public
  */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;
-  const linkProps = { ...props };
-  const clientNavPath = getClientNavPath(linkProps, loc);
-  const prefetchDataset = getPrefetchDataset(props, clientNavPath, loc);
-
+  const { onClick$, reload, replaceState, scroll, ...linkProps } = (() => props)();
+  const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
+  const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
+  const onPrefetch =
+    prefetchDataset != null
+      ? event$((ev: any, elm: HTMLAnchorElement) =>
+          prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
+        )
+      : undefined;
+  const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
+    if (!elm.hasAttribute('preventdefault:click')) {
+      // Do not enter the nav pipeline if this is not a clientNavPath.
+      return;
+    }
 
-  useOnDocument(
-    'qinit',
-    $(() => {
-      if (!(window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]) {
-        (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED] = () => {
-          if (!(window as ClientHistoryWindow)[CLIENT_HISTORY_INITIALIZED]) {
-            // possible for page reload then hit back button to
-            // navigate to a client route added with history.pushState()
-            // in this scenario we need to reload the page
-            location.reload();
-          }
-        };
-
-        setTimeout(() => {
-          // this popstate listener will be removed when the client history is initialized
-          addEventListener(
-            'popstate',
-            (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]!
-          );
-        }, 0);
-      }
-    })
-  );
-
+    if (elm.hasAttribute('q:nbs')) {
+      // Allow bootstrapping into useNavigate.
+      await nav(location.href, { type: 'popstate' });
+    } else if (elm.href) {
+      elm.setAttribute('aria-pressed', 'true');
+      await nav(elm.href, { forceReload: reload, replaceState, scroll });
+      elm.removeAttribute('aria-pressed');
+    }
+  });
   return (
     <a
       {...linkProps}
-      onClick$={() => {
-        if (clientNavPath) {
-          nav(linkProps.href);
-        }
-      }}
+      onClick$={[onClick$, handleClick]}
       data-prefetch={prefetchDataset}
-      onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
-      onFocus$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
-      onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement, true)}
+      onMouseOver$={onPrefetch}
+      onFocus$={onPrefetch}
+      onQVisible$={onPrefetch}
     >
       <Slot />
     </a>
@@ -83,8 +72,11 @@ let windowInnerWidth = 0;
 type AnchorAttributes = QwikIntrinsicElements['a'];
 
 /**
- * @alpha
+ * @public
  */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
+  reload?: boolean;
+  replaceState?: boolean;
+  scroll?: boolean;
 }

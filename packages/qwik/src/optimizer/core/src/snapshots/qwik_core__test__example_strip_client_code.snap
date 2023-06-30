@@ -9,6 +9,9 @@ import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwi
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
+import { a } from './keep';
+import { b } from '../keep2';
+import { c } from '../../remove';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -18,7 +21,7 @@ export const Parent = component$(() => {
     // Double count watch
     useClientMount$(async () => {
         state.text = await mongo.users();
-        redis.set(state.text);
+        redis.set(state.text, a, b, c);
     });
 
     useTask$(() => {
@@ -26,43 +29,74 @@ export const Parent = component$(() => {
     });
 
     return (
-        <div onClick$={() => console.log('parent', state, threejs)}>
+        <div
+            shouldRemove$={() => state.text}
+            onClick$={() => console.log('parent', state, threejs)}
+        >
+            <Div
+                onClick$={() => console.log('keep')}
+                render$={() => state.text}
+            />
             {state.text}
         </div>
     );
 });
 
-============================= test.js ==
+============================= components/component.js ==
 
+import "./keep";
+import "../keep2";
 import { componentQrl } from "@builder.io/qwik";
 import { useClientMountQrl } from "@builder.io/qwik";
 import { _noopQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _fnSignal } from "@builder.io/qwik";
+import { _IMMUTABLE } from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { useStore } from '@builder.io/qwik';
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_FX2jiJMePJA", [
+    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw", [
         state
     ]));
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
     // Code
-    }, "Parent_component_useTask_gDH1EtUWqBU"));
-    return /*#__PURE__*/ _jsx("div", {
-        onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
+    }, "Parent_component_useTask_ngmvcygWux8"));
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_0PioS4FByUg", [
             state
         ]),
-        children: _wrapSignal(state, "text")
-    }, "u6_0");
-}, "Parent_component_0TaiDayHrlo"));
+        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
+            state
+        ])
+    }, [
+        /*#__PURE__*/ _jsxC(Div, {
+            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_kgowuto5dR0"),
+            render$: /*#__PURE__*/ inlinedQrl(()=>{
+                const [state] = useLexicalScope();
+                return state.text;
+            }, "Parent_component_div_Div_render_CkMybN6xzQk", [
+                state
+            ]),
+            [_IMMUTABLE]: {
+                onClick$: _IMMUTABLE,
+                render$: _IMMUTABLE
+            }
+        }, 3, "7R_0"),
+        _fnSignal((p0)=>p0.text, [
+            state
+        ], "p0.text")
+    ], 1, "7R_1");
+}, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,KAAC;QAAI,QAAQ;;;8BACR;;AAGb,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,MAAC;QAEG,QAAQ;;;QADR,aAAa;;;;sBAGb,MAAC;YACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;gBADzB,QAAQ;gBACR,OAAO;;;wBAEV,GAAM,IAAI;;;;AAGvB,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

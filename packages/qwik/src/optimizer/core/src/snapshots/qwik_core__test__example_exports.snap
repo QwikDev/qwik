@@ -29,7 +29,7 @@ export const Header = component$(() => {
 
 export const Footer = component$();
 
-============================= header_component_uvbjufyfvdo.tsx (ENTRY POINT)==
+============================= header_component_uvbjufyfvdo.jsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
@@ -46,7 +46,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header_component",
   "hash": "UVBJuFYfvDo",
   "canonicalFilename": "header_component_uvbjufyfvdo",
-  "extension": "tsx",
+  "extension": "jsx",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
@@ -57,7 +57,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= project/test.tsx ==
+============================= project/test.jsx ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
@@ -73,8 +73,8 @@ export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import(".
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,+GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
-============================= header_component_1_uwm1kg0igo0.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,+GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+============================= header_component_1_uwm1kg0igo0.jsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./project/test";
 import { Footer } from "./project/test";
@@ -84,19 +84,21 @@ import { bar } from "./project/test";
 import { c } from "./project/test";
 import { d } from "./project/test";
 import { e } from "./project/test";
+import { exp1 } from "./project/test";
 import { f } from "./project/test";
 import { foo } from "./project/test";
-export const Header_component_1_uWM1kg0IGO0 = ()=><Footer >
+import { expr2 as internal } from "./project/test";
+export const Header_component_1_uWM1kg0IGO0 = ()=><Footer>
 
-            <div >{a}{b}{c}{d}{e}{f}{1}{2}{foo}{bar}{DefaultFn}</div>
+            <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
 
-            <div >{v1}{v2}{v3}{obj}</div>
+            <div>{v1}{v2}{v3}{obj}</div>
 
         </Footer>;
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;8CAea,KACJ,QAAO;;YACJ,CAAC,MAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAZpB,GACI,GAWmC,KAAK,KAAK,YAAY,IAAI;;YAClE,CAAC,MAAK,IAAI,IAAI,IAAI,MAAM,IAAI;;QAChC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,OAAO;;YACJ,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;;YAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;;QAChC,EAAE\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -105,7 +107,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header_component_1",
   "hash": "uWM1kg0IGO0",
   "canonicalFilename": "header_component_1_uwm1kg0igo0",
-  "extension": "tsx",
+  "extension": "jsx",
   "parent": "Header_component_UVBJuFYfvDo",
   "ctxKind": "function",
   "ctxName": "$",

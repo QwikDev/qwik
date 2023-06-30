@@ -1,8 +1,8 @@
 .header-container {
-  height: calc(var(--header-height) + var(--builder-bar-height));
-  margin-bottom: 6px;
+  height: var(--header-height);
   background: var(--bg-color);
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 100;
 }
 
@@ -13,11 +13,33 @@
   }
 }
 
+.header-container.home-page-header {
+  background: transparent !important;
+  color: white;
+}
+
+.header-open .header-container.home-page-header .menu-toolkit {
+  background: #101010 !important;
+}
+
+.home-page-header .sun-and-moon:not(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #e3e2e9 !important;
+  stroke: #e3e2e9 !important;
+}
+
+.home-page-header.sun-and-moon:is(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #b9b8be !important;
+  stroke: #b9b8be !important;
+}
+
 .fixed-header .header-container {
-  position: fixed;
-  top: 0;
   width: 100%;
   z-index: 40;
+}
+
+.builder-bar {
+  position: relative;
+  z-index: 50;
 }
 
 header li {
@@ -47,9 +69,9 @@ header .mobile-menu {
   @apply p-5 lg:hidden;
 }
 
-header ul {
-  @apply hidden lg:block;
-  @apply pt-0 pb-6 lg:pt-0;
+header .menu-toolkit {
+  @apply hidden lg:flex;
+  @apply pt-0 lg:pt-0 pb-0;
   height: 100%;
   align-items: center;
 }
@@ -60,30 +82,6 @@ header .more-icon {
 
 header .close-icon {
   display: none;
-}
-
-@media (max-width: 1023px) {
-  .header-open header ul {
-    position: absolute;
-    z-index: 10;
-    display: block;
-    top: var(--header-height);
-    width: 100%;
-    background: var(--bg-color);
-    height: auto;
-  }
-
-  .header-open header .more-icon {
-    display: none;
-  }
-
-  .header-open header .close-icon {
-    display: block;
-  }
-
-  .header-open .menu-toolkit li {
-    text-align: center;
-  }
 }
 
 header .header-inner {
@@ -111,4 +109,42 @@ header .header-logo {
 
 .full-width header .header-logo {
   left: 0;
+}
+
+@media (max-width: 1023px) {
+  header .qwik-logo {
+    width: auto;
+    height: 33px;
+    @apply ml-2;
+  }
+
+  header .header-logo {
+    @apply pl-2;
+  }
+
+  header .mobile-menu {
+    padding: 0.5rem 1rem;
+  }
+
+  .header-open header ul:not([role='listbox']) {
+    position: absolute;
+    z-index: 10;
+    display: block;
+    top: var(--header-height);
+    width: 100%;
+    background: var(--bg-color);
+    height: auto;
+  }
+
+  .header-open header .more-icon {
+    display: none;
+  }
+
+  .header-open header .close-icon {
+    display: block;
+  }
+
+  .header-open .menu-toolkit li {
+    text-align: center;
+  }
 }

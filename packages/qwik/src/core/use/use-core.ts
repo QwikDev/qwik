@@ -12,7 +12,8 @@ import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
-import type { SubscriberEffect, SubscriberHost } from './use-task';
+import type { Subscriber } from '../state/common';
+import type { Signal } from '../state/signal';
 
 declare const document: QwikDocument;
 
@@ -30,7 +31,7 @@ export interface RenderInvokeContext extends InvokeContext {
   $event$: any;
   $qrl$: QRL<any>;
   $waitOn$: Promise<any>[];
-  $subscriber$: SubscriberEffect | SubscriberHost | null;
+  $subscriber$: Subscriber | null;
   $renderCtx$: RenderContext;
 }
 
@@ -44,7 +45,7 @@ export interface InvokeContext {
   $event$: any | undefined;
   $qrl$: QRL<any> | undefined;
   $waitOn$: Promise<any>[] | undefined;
-  $subscriber$: SubscriberEffect | SubscriberHost | null | undefined;
+  $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
 }
@@ -52,7 +53,7 @@ export interface InvokeContext {
 let _context: InvokeContext | undefined;
 
 /**
- * @alpha
+ * @public
  */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
@@ -100,21 +101,22 @@ export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undef
     return invoke(ctx, callback.bind(undefined, ...args));
   }) as T;
 };
-export const invoke = <ARGS extends any[] = any[], RET = any>(
+export function invoke<ARGS extends any[] = any[], RET = any>(
+  this: any,
   context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET => {
+): RET {
   const previousContext = _context;
   let returnValue: RET;
   try {
     _context = context;
-    returnValue = fn.apply(null, args);
+    returnValue = fn.apply(this, args);
   } finally {
     _context = previousContext;
   }
   return returnValue;
-};
+}
 
 export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
   const waitOn = ctx.$waitOn$;
@@ -143,18 +145,17 @@ export const newInvokeContext = (
   event?: any,
   url?: URL
 ): InvokeContext => {
-  const ctx = {
+  const ctx: InvokeContext = {
     $seq$: 0,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,
     $url$: url,
+    $locale$: locale,
     $qrl$: undefined,
-    $props$: undefined,
     $renderCtx$: undefined,
     $subscriber$: undefined,
     $waitOn$: undefined,
-    $locale$: locale,
   };
   seal(ctx);
   return ctx;
@@ -165,10 +166,25 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
 };
 
 /**
- * @alpha
+ * @public
  */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
+};
+
+const trackInvocation = /*#__PURE__*/ newInvokeContext(
+  undefined,
+  undefined,
+  undefined,
+  RenderEvent
+);
+
+/**
+ * @public
+ */
+export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
+  trackInvocation.$subscriber$ = sub;
+  return invoke(trackInvocation, () => signal.value);
 };
 
 /**
@@ -186,6 +202,16 @@ export const _getContextElement = (): unknown => {
 /**
  * @internal
  */
+export const _getContextEvent = (): unknown => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return iCtx.$event$;
+  }
+};
+
+/**
+ * @internal
+ */
 export const _jsxBranch = (input?: any) => {
   const iCtx = tryGetInvokeContext();
   if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
@@ -194,4 +220,16 @@ export const _jsxBranch = (input?: any) => {
     elCtx.$flags$ |= HOST_FLAG_DYNAMIC;
   }
   return input;
+};
+
+/**
+ * @internal
+ */
+export const _waitUntilRendered = (elm: Element) => {
+  const containerEl = getWrappingContainer(elm);
+  if (!containerEl) {
+    return Promise.resolve();
+  }
+  const containerState = _getContainerState(containerEl);
+  return containerState.$renderPromise$ ?? Promise.resolve();
 };

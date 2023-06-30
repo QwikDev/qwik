@@ -1,12 +1,12 @@
-import { useTask$ } from '@builder.io/qwik';
+import { useTask$, type Signal } from '@builder.io/qwik';
 
 interface UseTrapFocusProps {
-  containerRef: any;
+  containerRef: Signal<Element>;
 }
 
 export function useTrapFocus(props: UseTrapFocusProps) {
   useTask$(({ track }) => {
-    const container = track(props.containerRef, 'current') as HTMLElement;
+    const container = track(() => props.containerRef.value) as HTMLElement;
     if (!container) {
       return undefined;
     }

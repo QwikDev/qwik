@@ -76,8 +76,8 @@
 }
 
 .repl-commands .copy-to-playground {
-  align-items: center;
   display: flex;
+  align-items: center;
   gap: 10px;
   border: 1px solid;
   padding: 2px 8px;
@@ -104,6 +104,10 @@
   border-top-color: var(--repl-diagnostics-active-border-color);
 }
 
+.repl-tab-diagnostics.has-errors {
+  color: red;
+}
+
 .repl-tab-diagnostics:not(.active-tab):hover {
   border-top-color: var(--repl-diagnostics-hover-border-color);
 }
@@ -125,7 +129,7 @@
 .repl-output-panel .repl-tab {
   background-color: var(--bg-color);
 
-  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-family: Menlo, Monaco, 'Lucida Console', Consolas, 'Courier New', monospace;
   font-weight: normal;
   font-size: 12px;
   font-feature-settings: 'liga' 0, 'calt' 0;

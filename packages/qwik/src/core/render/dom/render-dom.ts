@@ -1,20 +1,20 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { type InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev, seal } from '../../util/qdev';
-import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
-import { domToVnode, visitJsxNode } from './visitor';
-import { SkipRender, Virtual } from '../jsx/utils.public';
-import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
+import { qDev, qInspector, seal } from '../../util/qdev';
+import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
+import { domToVnode, smartUpdateChildren } from './visitor';
+import { SkipRender } from '../jsx/utils.public';
+import { isJSXNode, SKIP_RENDER_TYPE, _jsxC, Virtual } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
-import { executeComponent, jsxToString } from '../execute-component';
+import { executeComponent, shouldWrapFunctional } from '../execute-component';
 import type { RenderContext } from '../types';
-import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
+import { type QwikElement, VIRTUAL, type VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal, Signal } from '../../state/signal';
-import { HOST_FLAG_MOUNTED, QContext } from '../../state/context';
+import { isSignal, type Signal } from '../../state/signal';
+import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
 
 export const renderComponent = (
   rCtx: RenderContext,
@@ -25,7 +25,7 @@ export const renderComponent = (
   const hostElement = elCtx.$element$;
   const containerState = rCtx.$static$.$containerState$;
   // Component is not dirty any more
-  containerState.$hostsStaging$.delete(hostElement);
+  containerState.$hostsStaging$.delete(elCtx);
   // Clean current subscription before render
   containerState.$subsManager$.$clearSub$(hostElement);
 
@@ -33,10 +33,10 @@ export const renderComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const staticCtx = rCtx.$static$;
     const newCtx = res.rCtx;
-    const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
+    const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocationContext.$subscriber$ = hostElement;
-    invocationContext.$renderCtx$ = newCtx;
+    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
         for (const style of elCtx.$appendStyles$) {
@@ -44,11 +44,13 @@ export const renderComponent = (
         }
       }
     }
-    const processedJSXNode = processData(res.node, invocationContext);
+    const processedJSXNode = processData(res.node, iCtx);
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
+      // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
-      return then(visitJsxNode(newCtx, oldVdom, newVdom, flags), () => {
+      return then(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
+        // setVdom(hostElement, newVdom);
         elCtx.$vdom$ = newVdom;
       });
     });
@@ -66,13 +68,21 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $elm$: Node | VirtualElement | null = null;
   $text$: string = '';
   $signal$: Signal<any> | null = null;
+  $id$: string;
+  $dev$: DevJSX | undefined;
 
   constructor(
     public $type$: string,
     public $props$: Record<string, any>,
+    public $immutableProps$: Record<string, any> | null,
     public $children$: ProcessedJSXNode[],
+    public $flags$: number,
     public $key$: string | null
   ) {
+    this.$id$ = $type$ + ($key$ ? ':' + $key$ : '');
+    if (qDev && qInspector) {
+      this.$dev$ = undefined;
+    }
     seal(this);
   }
 }
@@ -81,31 +91,53 @@ export const processNode = (
   node: JSXNode,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
-  const key = node.key != null ? String(node.key) : null;
-  const nodeType = node.type;
-  const props = node.props;
-  const originalChildren = props.children;
+  const { key, type, props, children, flags, immutableProps } = node;
   let textType = '';
-  if (isString(nodeType)) {
-    textType = nodeType;
-  } else if (nodeType === Virtual) {
+  if (isString(type)) {
+    textType = type;
+  } else if (type === Virtual) {
     textType = VIRTUAL;
-  } else if (isFunction(nodeType)) {
-    const res = invoke(invocationContext, nodeType, props, node.key);
-    return processData(res, invocationContext);
+  } else if (isFunction(type)) {
+    const res = invoke(invocationContext, type, props, key, flags, node.dev);
+    if (!shouldWrapFunctional(res, node)) {
+      return processData(res, invocationContext);
+    }
+    return processNode(_jsxC(Virtual, { children: res }, 0, key), invocationContext);
   } else {
-    throw qError(QError_invalidJsxNodeType, nodeType);
+    throw qError(QError_invalidJsxNodeType, type);
   }
-  let children: ProcessedJSXNode[] = EMPTY_ARRAY;
-  if (originalChildren != null) {
-    return then(processData(originalChildren, invocationContext), (result) => {
+  let convertedChildren: ProcessedJSXNode[] = EMPTY_ARRAY;
+  if (children != null) {
+    return then(processData(children, invocationContext), (result) => {
       if (result !== undefined) {
-        children = isArray(result) ? result : [result];
+        convertedChildren = isArray(result) ? result : [result];
       }
-      return new ProcessedJSXNodeImpl(textType, props, children, key);
+      const vnode = new ProcessedJSXNodeImpl(
+        textType,
+        props,
+        immutableProps,
+        convertedChildren,
+        flags,
+        key
+      );
+      if (qDev && qInspector) {
+        vnode.$dev$ = node.dev;
+      }
+      return vnode;
     });
   } else {
-    return new ProcessedJSXNodeImpl(textType, props, children, key);
+    const vnode = new ProcessedJSXNodeImpl(
+      textType,
+      props,
+      immutableProps,
+      convertedChildren,
+      flags,
+      key
+    );
+    if (qDev && qInspector) {
+      vnode.$dev$ = node.dev;
+    }
+    return vnode;
   }
 };
 
@@ -114,7 +146,7 @@ export const wrapJSX = (
   input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
 ) => {
   const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
-  const node = new ProcessedJSXNodeImpl(':virtual', {}, children, null);
+  const node = new ProcessedJSXNodeImpl(':virtual', {}, null, children, 0, null);
   node.$elm$ = element;
   return node;
 };
@@ -127,15 +159,13 @@ export const processData = (
     return undefined;
   }
   if (isPrimitive(node)) {
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
+    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$text$ = String(node);
     return newNode;
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    const value = node.value;
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
-    newNode.$text$ = jsxToString(value);
+    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
@@ -144,7 +174,7 @@ export const processData = (
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {
-    return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, EMPTY_ARRAY, null);
+    return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return undefined;
@@ -171,7 +201,10 @@ export const isPrimitive = (obj: any) => {
 
 export interface ProcessedJSXNode {
   $type$: string;
+  $id$: string;
   $props$: Record<string, any>;
+  $immutableProps$: Record<string, any> | null;
+  $flags$: number;
   $children$: ProcessedJSXNode[];
   $key$: string | null;
   $elm$: Node | VirtualElement | null;

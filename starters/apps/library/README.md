@@ -13,7 +13,7 @@
 
 ## Project Structure
 
-Inside of you project, you'll see the following directories and files:
+Inside your project, you'll see the following directories and files:
 
 ```
 ├── public/
@@ -26,11 +26,11 @@ Inside of you project, you'll see the following directories and files:
 
 - `src/components`: Recommended directory for components.
 
-- `index.ts`: This is the entry point of your component library, make sure all the public components are exported from this file.
+- `index.ts`: The entry point of your component library, make sure all the public components are exported from this file.
 
 ## Development
 
-Development mode uses [Vite's development server](https://vitejs.dev/). For Qwik during development, the `dev` command will also server-side render (SSR) the output. The client-side development modules loaded by the browser.
+Development mode uses [Vite's development server](https://vitejs.dev/). For Qwik during development, the `dev` command will also server-side render (SSR) the output. The client-side development modules are loaded by the browser.
 
 ```
 npm run dev

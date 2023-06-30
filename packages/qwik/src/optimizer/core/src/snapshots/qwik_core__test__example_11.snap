@@ -90,11 +90,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 import { Header } from "./project/test";
 import { foo } from "./state";
 export const App_component_wGkRHWXaqjs = ()=>{
-    return <Header >{foo()}</Header>;
+    return <Header>{foo()}</Header>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,SAAQ,QAAQ;AAEzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,QAAQ,QAAQ;AAEzB\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -122,7 +122,7 @@ export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import(".
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,8FAMnB;AAEH,OAAO,MAAM,oBAAM,2FAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8FAMnB;AAEH,OAAO,MAAM,oBAAM,2FAIhB\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";

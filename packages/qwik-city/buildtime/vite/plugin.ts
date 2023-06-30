@@ -1,16 +1,11 @@
-import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
+import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve } from 'node:path';
-import type { Plugin, UserConfig } from 'vite';
+import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
+import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../context';
-import {
-  getExtension,
-  isMarkdownExt,
-  isMenuFileName,
-  normalizePath,
-  removeExtension,
-} from '../../utils/fs';
+import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
@@ -18,13 +13,12 @@ import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
-import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
+import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
-import type { RollupError } from 'rollup';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -32,11 +26,16 @@ import {
   STATIC_PATHS_ID,
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
+import { imagePlugin } from './image-jsx';
 
 /**
- * @alpha
+ * @public
  */
-export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
+  return [qwikCityPlugin(userOpts), ...imagePlugin()];
+}
+
+function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
@@ -67,9 +66,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
-        base: userOpts?.basePathname,
         optimizeDeps: {
-          include: ['zod'],
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {
@@ -80,11 +77,12 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     async configResolved(config) {
+      Object.assign(process.env, loadEnv(config.mode, process.cwd(), ''));
       rootDir = resolve(config.root);
 
       const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';
 
-      ctx = createBuildContext(rootDir!, userOpts, target);
+      ctx = createBuildContext(rootDir!, config.base, userOpts, target);
 
       ctx.isDevServer = config.command === 'serve';
       ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
@@ -189,31 +187,36 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     async transform(code, id) {
-      if (ctx) {
+      const isMD = id.endsWith('.md') || id.endsWith('.mdx');
+      if (ctx && isMD) {
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {
           const menuCode = await transformMenu(ctx.opts, id, code);
           return menuCode;
         }
-
-        const ext = getExtension(fileName);
-        if (isMarkdownExt(ext) && mdxTransform) {
+        if (mdxTransform) {
           try {
             const mdxResult = await mdxTransform(code, id);
             return mdxResult;
           } catch (e: any) {
-            const column = e.position.start.column;
-            const line = e.position.start.line;
-            const err: RollupError = Object.assign(new Error(e.reason), {
-              id,
-              plugin: 'qwik-city-mdx',
-              loc: {
-                column: column,
-                line: line,
-              },
-              stack: '',
-            });
-            this.error(err);
+            if (e && typeof e == 'object' && 'position' in e && 'reason' in e) {
+              const column = (e as any).position?.start.column;
+              const line = (e as any).position?.start.line;
+              const err: Rollup.RollupError = Object.assign(new Error(e.reason), {
+                id,
+                plugin: 'qwik-city-mdx',
+                loc: {
+                  column: column,
+                  line: line,
+                },
+                stack: '',
+              });
+              this.error(err);
+            } else if (e instanceof Error) {
+              this.error(e);
+            } else {
+              this.error(String(e));
+            }
           }
         }
       }
@@ -251,16 +254,16 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
       async handler() {
         if (ctx?.target === 'ssr') {
           // ssr build
-          // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-          const manifest: QwikManifest =
-            (globalThis as any).QWIK_MANIFEST || qwikPlugin!.api.getManifest();
-          const clientOutDir: string =
-            (globalThis as any).QWIK_CLIENT_OUT_DIR || qwikPlugin!.api.getClientOutDir();
+          const manifest = qwikPlugin!.api.getManifest();
+          const clientOutDir = qwikPlugin!.api.getClientOutDir();
 
           if (manifest && clientOutDir) {
+            const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
+            const clientOutBaseDir = join(clientOutDir, basePathRelDir);
+
             for (const swEntry of ctx.serviceWorkers) {
               try {
-                const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
+                const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
                 const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
                 try {
                   const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
@@ -277,7 +280,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             }
           }
 
-          if (outDir) {
+          if (outDir && clientOutDir) {
             const { staticPathsCode, notFoundPathsCode } = await postBuild(
               clientOutDir,
               api.getBasePathname(),

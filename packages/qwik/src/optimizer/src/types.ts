@@ -1,5 +1,5 @@
 /**
- * @alpha
+ * @public
  */
 export interface Optimizer {
   /**
@@ -29,7 +29,7 @@ export interface Optimizer {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface OptimizerOptions {
   sys?: OptimizerSystem;
@@ -37,7 +37,7 @@ export interface OptimizerOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface OptimizerSystem {
   cwd: () => string;
@@ -50,27 +50,28 @@ export interface OptimizerSystem {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
 // OPTIONS ***************
 
 /**
- * @alpha
+ * @public
  */
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 /**
- * @alpha
+ * @public
  */
 export type TranspileOption = boolean | undefined | null;
 
 /**
- * @alpha
+ * @public
  */
 export interface TransformOptions {
   srcDir: string;
+  rootDir?: string;
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   sourceMaps?: boolean;
@@ -83,19 +84,19 @@ export interface TransformOptions {
   stripExports?: string[];
   regCtxName?: string[];
   stripCtxName?: string[];
-  stripCtxKind?: 'function' | 'event';
+  stripEventHandlers?: boolean;
   isServer?: boolean;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface TransformModulesOptions extends TransformOptions {
   input: TransformModuleInput[];
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface TransformFsOptions extends TransformOptions {
   vendorRoots: string[];
@@ -104,7 +105,7 @@ export interface TransformFsOptions extends TransformOptions {
 // OPTION INPUTS ***************
 
 /**
- * @alpha
+ * @public
  */
 export interface TransformModuleInput {
   path: string;
@@ -114,7 +115,7 @@ export interface TransformModuleInput {
 // RESULT ***************
 
 /**
- * @alpha
+ * @public
  */
 export interface TransformOutput {
   modules: TransformModule[];
@@ -124,7 +125,7 @@ export interface TransformOutput {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface HookAnalysis {
   origin: string;
@@ -143,7 +144,7 @@ export interface HookAnalysis {
 // RESULT OUTPUT ***************
 
 /**
- * @alpha
+ * @public
  */
 export interface TransformModule {
   path: string;
@@ -156,7 +157,7 @@ export interface TransformModule {
 // DIAGNOSTICS ***************
 
 /**
- * @alpha
+ * @public
  */
 export interface Diagnostic {
   scope: string;
@@ -169,7 +170,7 @@ export interface Diagnostic {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SourceLocation {
   hi: number;
@@ -181,14 +182,14 @@ export interface SourceLocation {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // ENTRY STRATEGY ***************
 
 /**
- * @alpha
+ * @public
  */
 export type EntryStrategy =
   | InlineEntryStrategy
@@ -199,38 +200,39 @@ export type EntryStrategy =
   | SmartEntryStrategy;
 
 /**
- * @alpha
+ * @public
  */
 export type MinifyMode = 'simplify' | 'none';
 
 /**
- * @alpha
+ * @public
  */
 export type EmitMode = 'dev' | 'prod' | 'lib';
 
 /**
- * @alpha
+ * @public
  */
 export interface InlineEntryStrategy {
   type: 'inline';
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface HoistEntryStrategy {
   type: 'hoist';
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface HookEntryStrategy {
   type: 'hook';
+  manual?: Record<string, string>;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SingleEntryStrategy {
   type: 'single';
@@ -238,7 +240,7 @@ export interface SingleEntryStrategy {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ComponentEntryStrategy {
   type: 'component';
@@ -246,7 +248,7 @@ export interface ComponentEntryStrategy {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SmartEntryStrategy {
   type: 'smart';
@@ -254,9 +256,10 @@ export interface SmartEntryStrategy {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikManifest {
+  manifestHash: string;
   symbols: { [symbolName: string]: QwikSymbol };
   mapping: { [symbolName: string]: string };
   bundles: { [fileName: string]: QwikBundle };
@@ -265,19 +268,18 @@ export interface QwikManifest {
   options?: {
     target?: string;
     buildMode?: string;
-    forceFullBuild?: boolean;
     entryStrategy?: { [key: string]: any };
   };
   platform?: { [name: string]: string };
 }
 
 /**
- * @alpha
+ * @public
  */
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
 /**
- * @alpha
+ * @public
  */
 export type SymbolMapperFn = (
   symbolName: string,
@@ -285,7 +287,7 @@ export type SymbolMapperFn = (
 ) => readonly [symbol: string, chunk: string] | undefined;
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikSymbol {
   origin: string;
@@ -299,7 +301,7 @@ export interface QwikSymbol {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikBundle {
   size: number;
@@ -310,7 +312,7 @@ export interface QwikBundle {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface GlobalInjections {
   tag: string;
@@ -331,7 +333,7 @@ export interface GeneratedOutputBundle {
 // PATH UTIL  ***************
 
 /**
- * @alpha
+ * @public
  */
 export interface Path {
   resolve(...paths: string[]): string;
@@ -360,4 +362,12 @@ export interface Path {
   readonly delimiter: string;
   readonly win32: null;
   readonly posix: Path;
+}
+
+/**
+ * @public
+ */
+export interface ResolvedManifest {
+  mapper: SymbolMapper;
+  manifest: QwikManifest;
 }

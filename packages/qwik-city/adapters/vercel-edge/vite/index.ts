@@ -1,22 +1,22 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 /**
- * @alpha
+ * @public
  */
 export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
   return viteAdapter({
     name: 'vercel-edge',
     origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
-    staticGenerate: opts.staticGenerate,
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
 
     config(config) {
-      const outDir = config.build?.outDir || '.vercel/output/functions/_qwik-city.func';
+      const outDir =
+        config.build?.outDir || join('.vercel', 'output', 'functions', '_qwik-city.func');
       return {
         resolve: {
           conditions: ['webworker', 'worker'],
@@ -39,7 +39,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       };
     },
 
-    async generate({ clientOutDir, serverOutDir, basePathname, outputEntries }) {
+    async generate({ clientPublicOutDir, serverOutDir, basePathname, outputEntries }) {
       const vercelOutputDir = getParentDir(serverOutDir, 'output');
 
       if (opts.outputConfig !== false) {
@@ -61,8 +61,6 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
         );
       }
 
-      const vcConfigPath = join(serverOutDir, '.vc-config.json');
-
       let entrypoint = opts.vcConfigEntryPoint;
       if (!entrypoint) {
         if (outputEntries.some((n) => n === 'entry.vercel-edge.mjs')) {
@@ -72,6 +70,8 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
         }
       }
 
+      // https://vercel.com/docs/build-output-api/v3#vercel-primitives/edge-functions/configuration
+      const vcConfigPath = join(serverOutDir, '.vc-config.json');
       const vcConfig = {
         runtime: 'edge',
         entrypoint,
@@ -79,25 +79,30 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       };
       await fs.promises.writeFile(vcConfigPath, JSON.stringify(vcConfig, null, 2));
 
-      const staticDir = join(vercelOutputDir, 'static');
+      // vercel places all of the static files into the .vercel/output/static directory
+      // move from the dist directory to vercel's output static directory
+      let vercelStaticDir = join(vercelOutputDir, 'static');
 
-      if (fs.existsSync(staticDir)) {
-        await fs.promises.rm(staticDir, { recursive: true });
+      const basePathnameParts = basePathname.split('/').filter((p) => p.length > 0);
+      if (basePathnameParts.length > 0) {
+        // for vercel we need to add the base path to the static dir
+        vercelStaticDir = join(vercelStaticDir, ...basePathnameParts);
       }
 
-      await fs.promises.rename(clientOutDir, staticDir);
+      // ensure we remove any existing static dir
+      await fs.promises.rm(vercelStaticDir, { recursive: true, force: true });
+
+      // ensure the containing directory exists we're moving the static dir to exists
+      await fs.promises.mkdir(dirname(vercelStaticDir), { recursive: true });
+
+      // move the dist directory to the vercel output static directory location
+      await fs.promises.rename(clientPublicOutDir, vercelStaticDir);
     },
   });
 }
 
 /**
- * @alpha
- * @deprecated Use `vercelEdgeAdapter` exported from `@builder.io/qwik-city/adapters/vercel-edge/vite` instead.
- */
-export const vercelEdgeAdaptor = vercelEdgeAdapter;
-
-/**
- * @alpha
+ * @public
  */
 export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   /**
@@ -129,12 +134,6 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /**
- * @alpha
- * @deprecated Please use `VercelEdgeAdapterOptions` instead.
- */
-export type VercelEdgeAdaptorOptions = VercelEdgeAdapterOptions;
-
-/**
- * @alpha
+ * @public
  */
 export type { StaticGenerateRenderOptions };

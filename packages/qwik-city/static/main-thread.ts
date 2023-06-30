@@ -6,7 +6,7 @@ import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { msToString } from '../utils/format';
 import { pathToFileURL } from 'node:url';
 import { relative } from 'node:path';
-import color from 'kleur';
+import { bold, green, dim, red, magenta } from 'kleur/colors';
 import { formatError } from '../buildtime/vite/format-error';
 import { buildErrorMessage } from 'vite';
 
@@ -16,7 +16,7 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess!();
   const log = await sys.createLogger();
-  log.info('\n' + color.bold().green('Starting Qwik City SSG...'));
+  log.info('\n' + bold(green('Starting Qwik City SSG...')));
 
   const qwikCityPlan: QwikCityPlan = (await import(pathToFileURL(opts.qwikCityPlanModulePath).href))
     .default;
@@ -25,7 +25,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
-  const includeRoute = createRouteTester(opts.include, opts.exclude);
+  const includeRoute = createRouteTester(opts.basePathname || '/', opts.include, opts.exclude);
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
@@ -48,21 +48,21 @@ export async function mainThread(sys: System) {
         generatorResult.duration = timer();
 
         if (generatorResult.errors === 0) {
-          log.info(`\n${color.green('SSG results')}`);
+          log.info(`\n${green('SSG results')}`);
           if (generatorResult.rendered > 0) {
             log.info(
-              `- Generated: ${color.dim(
+              `- Generated: ${dim(
                 `${generatorResult.rendered} page${generatorResult.rendered === 1 ? '' : 's'}`
               )}`
             );
           }
 
-          log.info(`- Duration: ${color.dim(msToString(generatorResult.duration))}`);
+          log.info(`- Duration: ${dim(msToString(generatorResult.duration))}`);
 
           const total = generatorResult.rendered + generatorResult.errors;
           if (total > 0) {
             log.info(
-              `- Average: ${color.dim(msToString(generatorResult.duration / total) + ' per page')}`
+              `- Average: ${dim(msToString(generatorResult.duration / total) + ' per page')}`
             );
           }
           log.info(``);
@@ -111,9 +111,9 @@ export async function mainThread(sys: System) {
           if (result.error) {
             const err = new Error(result.error.message);
             err.stack = result.error.stack;
-            log.error(`\n${color.bold().red('Error during SSG')}`);
-            log.error(color.red(err.message));
-            log.error(`  Pathname: ${color.magenta(staticRoute.pathname)}`);
+            log.error(`\n${bold(red('Error during SSG'))}`);
+            log.error(red(err.message));
+            log.error(`  Pathname: ${magenta(staticRoute.pathname)}`);
             Object.assign(formatError(err), {
               plugin: 'qwik-ssg',
             });
@@ -128,7 +128,7 @@ export async function mainThread(sys: System) {
             const base = opts.rootDir ?? opts.outDir;
             const path = relative(base, result.filePath);
             const lastSlash = path.lastIndexOf('/');
-            log.info(`${color.dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
+            log.info(`${dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
           }
 
           flushQueue();

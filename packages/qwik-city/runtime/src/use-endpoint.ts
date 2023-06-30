@@ -29,7 +29,8 @@ export const loadClientData = async (
     }
     qData = fetch(clientDataPath, options).then((rsp) => {
       const redirectedURL = new URL(rsp.url);
-      if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+      const isQData = redirectedURL.pathname.endsWith('/q-data.json');
+      if (redirectedURL.origin !== location.origin || !isQData) {
         location.href = redirectedURL.href;
         return;
       }
@@ -91,9 +92,3 @@ const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | un
     };
   }
 };
-
-export const isQDataJson = (pathname: string) => {
-  return pathname.endsWith(QDATA_JSON);
-};
-
-export const QDATA_JSON = '/q-data.json';

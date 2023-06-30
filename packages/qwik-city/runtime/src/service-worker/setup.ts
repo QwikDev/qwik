@@ -63,15 +63,19 @@ export const setupServiceWorkerScope = (
     }
   });
 
-  swScope.addEventListener('activate', async () => {
-    try {
-      const qBuildCache = await swScope.caches.open(qBuildCacheName);
-      const cachedRequestKeys = await qBuildCache.keys();
-      const cachedUrls = cachedRequestKeys.map((r) => r.url);
-      const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
-      await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
-    } catch (e) {
-      console.error(e);
-    }
+  swScope.addEventListener('activate', () => {
+    (async () => {
+      try {
+        const qBuildCache = await swScope.caches.open(qBuildCacheName);
+        const cachedRequestKeys = await qBuildCache.keys();
+        const cachedUrls = cachedRequestKeys.map((r) => r.url);
+        const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
+        await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
+      } catch (e) {
+        console.error(e);
+      }
+    })();
   });
 };
+
+declare const self: ServiceWorkerGlobalScope;

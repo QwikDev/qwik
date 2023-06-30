@@ -2,9 +2,9 @@ import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <div>
+    <main>
       <Greeter />
-    </div>
+    </main>
   );
 });
 

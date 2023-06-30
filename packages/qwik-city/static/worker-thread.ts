@@ -79,6 +79,7 @@ async function workerRender(
     error: null,
     filePath: null,
     contentType: null,
+    resourceType: null,
   };
 
   try {
@@ -101,6 +102,9 @@ async function workerRender(
         },
       },
       platform: sys.platform,
+      getClientConn: () => {
+        return {};
+      },
       getWritableStream: (status, headers, _, _r, requestEv) => {
         result.ok = status >= 200 && status < 300;
 
@@ -109,9 +113,16 @@ async function workerRender(
           return noopWritableStream;
         }
 
-        const contentType = (headers.get('Content-Type') || '').toLowerCase();
-        const isHtml = contentType.includes('text/html');
+        result.contentType = (headers.get('Content-Type') || '').toLowerCase();
+        const isHtml = result.contentType.includes('text/html');
+        const is404ErrorPage = url.pathname.endsWith('/404.html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
+
+        if (is404ErrorPage) {
+          result.resourceType = '404';
+        } else if (isHtml) {
+          result.resourceType = 'page';
+        }
 
         const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
         const writeQDataEnabled = isHtml && opts.emitData !== false;
@@ -165,7 +176,7 @@ async function workerRender(
             try {
               if (writeQDataEnabled) {
                 const qData: ClientPageData = requestEv.sharedMap.get('qData');
-                if (qData && !url.pathname.endsWith('/404.html')) {
+                if (qData && !is404ErrorPage) {
                   // write q-data.json file when enabled and qData is set
                   const qDataFilePath = sys.getDataFilePath(url.pathname);
                   const dataWriter = sys.createWriteStream(qDataFilePath);

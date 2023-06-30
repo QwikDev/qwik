@@ -14,7 +14,7 @@ import type {
 // still further optimize the priorities depending on the user/document.
 // This also helps ensure a stable q-manifest.json file.
 
-function prioritorizeSymbolNames(manifest: QwikManifest) {
+function prioritizeSymbolNames(manifest: QwikManifest) {
   const symbols = manifest.symbols;
 
   return Object.keys(symbols).sort((symbolNameA, symbolNameB) => {
@@ -35,7 +35,7 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
       const bIndex = EVENT_PRIORITY.indexOf(b.ctxName.toLowerCase());
 
       if (aIndex > -1 && bIndex > -1) {
-        // both symbols have an event with a prioritory
+        // both symbols have an event with a priority
         if (aIndex < bIndex) {
           return -1;
         }
@@ -58,7 +58,7 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
       const bIndex = FUNCTION_PRIORITY.indexOf(b.ctxName.toLowerCase());
 
       if (aIndex > -1 && bIndex > -1) {
-        // both symbols have a function with a prioritory
+        // both symbols have a function with a priority
         if (aIndex < bIndex) {
           return -1;
         }
@@ -97,81 +97,78 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
 }
 
 // User triggered events should have priority
-const EVENT_PRIORITY = [
-  // Click Events
-  'click',
-  'dblclick',
-  'contextmenu',
-  'auxclick',
+const EVENT_PRIORITY = /*#__PURE__*/ (() =>
+  [
+    // Click Events
+    'click',
+    'dblclick',
+    'contextmenu',
+    'auxclick',
 
-  // Pointer Events
-  'pointerdown',
-  'pointerup',
-  'pointermove',
-  'pointerover',
-  'pointerenter',
-  'pointerleave',
-  'pointerout',
-  'pointercancel',
-  'gotpointercapture',
-  'lostpointercapture',
+    // Pointer Events
+    'pointerdown',
+    'pointerup',
+    'pointermove',
+    'pointerover',
+    'pointerenter',
+    'pointerleave',
+    'pointerout',
+    'pointercancel',
+    'gotpointercapture',
+    'lostpointercapture',
 
-  // Touch Events
-  'touchstart',
-  'touchend',
-  'touchmove',
-  'touchcancel',
+    // Touch Events
+    'touchstart',
+    'touchend',
+    'touchmove',
+    'touchcancel',
 
-  // Mouse Events
-  'mousedown',
-  'mouseup',
-  'mousemove',
-  'mouseenter',
-  'mouseleave',
-  'mouseover',
-  'mouseout',
-  'wheel',
+    // Mouse Events
+    'mousedown',
+    'mouseup',
+    'mousemove',
+    'mouseenter',
+    'mouseleave',
+    'mouseover',
+    'mouseout',
+    'wheel',
 
-  // Gesture Events
-  'gesturestart',
-  'gesturechange',
-  'gestureend',
+    // Gesture Events
+    'gesturestart',
+    'gesturechange',
+    'gestureend',
 
-  // Keyboard Events
-  'keydown',
-  'keyup',
-  'keypress',
+    // Keyboard Events
+    'keydown',
+    'keyup',
+    'keypress',
 
-  // Input/Change Events
-  'input',
-  'change',
-  'search',
-  'invalid',
-  'beforeinput',
-  'select',
+    // Input/Change Events
+    'input',
+    'change',
+    'search',
+    'invalid',
+    'beforeinput',
+    'select',
 
-  // Focus/Blur Events
-  'focusin',
-  'focusout',
-  'focus',
-  'blur',
+    // Focus/Blur Events
+    'focusin',
+    'focusout',
+    'focus',
+    'blur',
 
-  // Form Events
-  'submit',
-  'reset',
+    // Form Events
+    'submit',
+    'reset',
 
-  // Scroll Events
-  'scroll',
-].map((n) => `on${n.toLowerCase()}$`);
+    // Scroll Events
+    'scroll',
+  ].map((n) => `on${n.toLowerCase()}$`))();
 
-const FUNCTION_PRIORITY = [
-  'useTask$',
-  'useBrowserVisibleTask$',
-  'useEffect$',
-  'component$',
-  'useStyles$',
-  'useStylesScoped$',
-].map((n) => n.toLowerCase());
+const FUNCTION_PRIORITY = /*#__PURE__*/ (() =>
+  ['useTask$', 'useVisibleTask$', 'component$', 'useStyles$', 'useStylesScoped$'].map((n) =>
+    n.toLowerCase()
+  ))();
 
 function sortBundleNames(manifest: QwikManifest) {
   // this doesn't really matter at build time
@@ -180,13 +177,13 @@ function sortBundleNames(manifest: QwikManifest) {
 }
 
 function updateSortAndPriorities(manifest: QwikManifest) {
-  const prioritorizedSymbolNames = prioritorizeSymbolNames(manifest);
-  const prioritorizedSymbols: { [symbolName: string]: QwikSymbol } = {};
-  const prioritorizedMapping: { [symbolName: string]: string } = {};
+  const prioritizedSymbolNames = prioritizeSymbolNames(manifest);
+  const prioritizedSymbols: { [symbolName: string]: QwikSymbol } = {};
+  const prioritizedMapping: { [symbolName: string]: string } = {};
 
-  for (const symbolName of prioritorizedSymbolNames) {
-    prioritorizedSymbols[symbolName] = manifest.symbols[symbolName];
-    prioritorizedMapping[symbolName] = manifest.mapping[symbolName];
+  for (const symbolName of prioritizedSymbolNames) {
+    prioritizedSymbols[symbolName] = manifest.symbols[symbolName];
+    prioritizedMapping[symbolName] = manifest.mapping[symbolName];
   }
 
   const sortedBundleNames = sortBundleNames(manifest);
@@ -201,8 +198,8 @@ function updateSortAndPriorities(manifest: QwikManifest) {
       bundle.dynamicImports.sort(sortAlphabetical);
     }
     const symbols: string[] = [];
-    for (const symbolName of prioritorizedSymbolNames) {
-      if (bundleName === prioritorizedMapping[symbolName]) {
+    for (const symbolName of prioritizedSymbolNames) {
+      if (bundleName === prioritizedMapping[symbolName]) {
         symbols.push(symbolName);
       }
     }
@@ -212,8 +209,8 @@ function updateSortAndPriorities(manifest: QwikManifest) {
     }
   }
 
-  manifest.symbols = prioritorizedSymbols;
-  manifest.mapping = prioritorizedMapping;
+  manifest.symbols = prioritizedSymbols;
+  manifest.mapping = prioritizedMapping;
   manifest.bundles = sortedBundles;
 
   return manifest;
@@ -222,8 +219,12 @@ function updateSortAndPriorities(manifest: QwikManifest) {
 function sortAlphabetical(a: string, b: string) {
   a = a.toLocaleLowerCase();
   b = b.toLocaleLowerCase();
-  if (a < b) return -1;
-  if (a > b) return 1;
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
   return 0;
 }
 
@@ -250,6 +251,7 @@ export function generateManifestFromBundles(
   opts: NormalizedQwikPluginOptions
 ) {
   const manifest: QwikManifest = {
+    manifestHash: '',
     symbols: {},
     mapping: {},
     bundles: {},
@@ -258,7 +260,6 @@ export function generateManifestFromBundles(
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
-      forceFullBuild: opts.forceFullBuild,
       entryStrategy: opts.entryStrategy,
     },
   };
@@ -325,7 +326,7 @@ function addBundleToManifest(
       bundle.dynamicImports = bundleDynamicImports;
     }
 
-    const modulePaths = Object.keys(outputBundle.modules);
+    const modulePaths = Object.keys(outputBundle.modules).filter((m) => !m.startsWith(`\u0000`));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
     }

@@ -37,7 +37,7 @@ DOMImplementation.prototype = {
     //
     // Note that the current DOMCore spec makes it impossible to
     // create an HTML document with this function, even if the
-    // namespace and doctype are propertly set.  See this thread:
+    // namespace and doctype are properly set.  See this thread:
     // http://lists.w3.org/Archives/Public/www-dom/2011AprJun/0132.html
     //
     var d = new Document(false, null);

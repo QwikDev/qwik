@@ -202,7 +202,7 @@ fn transform_todo_app(b: &mut Bencher) {
           reg_ctx_name: None,
           strip_exports: None,
           strip_ctx_name: None,
-          strip_ctx_kind: None,
+          strip_event_handlers: false,
           is_server: None,
       })
   });

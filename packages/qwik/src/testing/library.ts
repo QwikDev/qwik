@@ -12,11 +12,12 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 async function triggerUserEvent(
   root: Element,
   selector: string,
-  eventNameCamel: string
+  eventNameCamel: string,
+  eventPayload: any = {}
 ): Promise<void> {
   for (const element of Array.from(root.querySelectorAll(selector))) {
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = { type: kebabEventName };
+    const event = { type: kebabEventName, ...eventPayload };
     const attrName = 'on:' + kebabEventName;
     await dispatch(element, attrName, event);
   }
@@ -24,8 +25,8 @@ async function triggerUserEvent(
 }
 
 /**
- * CreatePlatfrom and CreateDocument
- * @alpha
+ * CreatePlatform and CreateDocument
+ * @public
  */
 export const createDOM = async function () {
   const qwik = await getQwik();
@@ -36,11 +37,16 @@ export const createDOM = async function () {
       return qwik.render(host, jsxElement);
     },
     screen: host,
-    userEvent: async function (queryOrElement: string | Element | null, eventNameCamel: string) {
-      if (typeof queryOrElement === 'string')
-        return triggerUserEvent(host, queryOrElement, eventNameCamel);
+    userEvent: async function (
+      queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
+      eventNameCamel: string | keyof WindowEventMap,
+      eventPayload: any = {}
+    ) {
+      if (typeof queryOrElement === 'string') {
+        return triggerUserEvent(host, queryOrElement, eventNameCamel, eventPayload);
+      }
       const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-      const event = { type: kebabEventName };
+      const event = { type: kebabEventName, ...eventPayload };
       const attrName = 'on:' + kebabEventName;
       await dispatch(queryOrElement, attrName, event);
       await getTestPlatform().flush();

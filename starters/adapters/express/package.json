@@ -2,7 +2,7 @@
   "description": "Express.js server",
   "scripts": {
     "build.server": "vite build -c adapters/express/vite.config.ts",
-    "deploy": "node server/entry.express"
+    "serve": "node server/entry.express"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",
@@ -12,10 +12,19 @@
   },
   "__qwik__": {
     "priority": 20,
-    "displayName": "Adapter: Nodejs Express Server",
+    "displayName": "Adapter: Node.js Express Server",
     "docs": [
-      "https://qwik.builder.io/integrations/deployments/node/",
+      "https://qwik.builder.io/deployments/node/",
       "https://expressjs.com/"
-    ]
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build a production-ready Express app:",
+        "",
+        "  - pnpm run build: production build",
+        "  - pnpm run serve: runs the production server locally"
+      ]
+    }
   }
 }

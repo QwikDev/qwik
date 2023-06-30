@@ -38,7 +38,7 @@ export interface Logger {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateRenderOptions extends RenderOptions {
   /**
@@ -96,19 +96,21 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    */
   emit404Pages?: boolean;
   /**
-   * Defines routes that should be static generated. Accepts wildcard behavior.
-   * If not provided, all routes will be static generated.
+   * Defines file system routes relative to the source `routes` directory that should be static generated.
+   * Accepts wildcard behavior. This should not include the "base" pathname.
+   * If not provided, all routes will be static generated. `exclude` always takes priority over `include`.
    */
   include?: string[];
   /**
-   * Defines routes that should not be static generated. Accepts wildcard behavior. `exclude` always
-   * take priority over include.
+   * Defines file system routes relative to the source `routes` directory that should not be static generated.
+   * Accepts wildcard behavior. This should not include the "base" pathname.
+   * `exclude` always takes priority over `include`.
    */
   exclude?: string[];
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   /**
@@ -157,10 +159,11 @@ export interface StaticWorkerRenderResult {
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
   contentType: string | null;
+  resourceType: 'page' | '404' | null;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateResult {
   duration: number;

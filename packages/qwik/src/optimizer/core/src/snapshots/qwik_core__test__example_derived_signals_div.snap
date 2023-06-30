@@ -1,0 +1,124 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore, mutable } from '@builder.io/qwik';
+
+import {dep} from './file';
+import styles from './styles.module.css';
+
+export const App = component$(() => {
+    const signal = useSignal(0);
+    const store = useStore({});
+    const count = props.counter.count;
+
+    return (
+        <div
+            class={{
+                even: count % 2 === 0,
+                odd: count % 2 === 1,
+                stable0: true,
+                hidden: false,
+            }}
+            staticClass={styles.foo}
+            staticDocument={window.document}
+            staticText="text"
+            staticText2={`text`}
+            staticNumber={1}
+            staticBoolean={true}
+            staticExpr={`text${12}`}
+            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+
+            signal={signal}
+            signalValue={signal.value}
+            signalComputedValue={12 + signal.value}
+
+            store={store.address.city.name}
+            storeComputed={store.address.city.name ? 'true' : 'false'}
+
+            dep={dep}
+            depAccess={dep.thing}
+            depComputed={dep.thing + 'stuff'}
+
+            global={globalThing}
+            globalAccess={globalThing.thing}
+            globalComputed={globalThing.thing + 'stuff'}
+
+
+            noInline={signal.value()}
+            noInline2={signal.value + unknown()}
+            noInline3={mutable(signal)}
+            noInline4={signal.value + dep}
+        />
+
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { useStore, mutable } from '@builder.io/qwik';
+import { dep } from './file';
+import styles from './styles.module.css';
+const App_component_ckEPmXZlub0 = ()=>{
+    const signal = useSignal(0);
+    const store = useStore({});
+    const count = props.counter.count;
+    return /*#__PURE__*/ _jsxQ("div", {
+        class: {
+            even: count % 2 === 0,
+            odd: count % 2 === 1,
+            stable0: true,
+            hidden: false
+        },
+        noInline3: mutable(signal),
+        noInline4: signal.value + dep
+    }, {
+        dep: dep,
+        depAccess: dep.thing,
+        depComputed: dep.thing + 'stuff',
+        global: globalThing,
+        globalAccess: globalThing.thing,
+        globalComputed: globalThing.thing + 'stuff',
+        noInline: _fnSignal((p0)=>p0.value(), [
+            signal
+        ], "p0.value()"),
+        noInline2: _fnSignal((p0)=>p0.value + unknown(), [
+            signal
+        ], "p0.value+unknown()"),
+        signal: signal,
+        signalComputedValue: _fnSignal((p0)=>12 + p0.value, [
+            signal
+        ], "12+p0.value"),
+        signalValue: _fnSignal((p0)=>p0.value, [
+            signal
+        ], "p0.value"),
+        staticBoolean: true,
+        staticClass: styles.foo,
+        staticDocument: window.document,
+        staticExpr: `text${12}`,
+        staticExpr2: typeof `text${12}` === 'string' ? 12 : 43,
+        staticNumber: 1,
+        staticText: "text",
+        staticText2: `text`,
+        store: _fnSignal((p0)=>p0.address.city.name, [
+            store
+        ], "p0.address.city.name"),
+        storeComputed: _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
+            store
+        ], 'p0.address.city.name?"true":"false"')
+    }, null, 3, "u6_0");
+};
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,OAAO,YAAY,sBAAsB;kCAEX,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,MAAM,QAAQ,MAAM,OAAO,CAAC,KAAK;IAEjC,qBACI,MAAC;QACG,OAAO;YACH,MAAM,QAAQ,MAAM;YACpB,KAAK,QAAQ,MAAM;YACnB,SAAS,IAAI;YACb,QAAQ,KAAK;QACjB;QA4BA,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QAZ1B,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAEzB,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAGpC,QAAQ,kBAAE,GAAO,KAAK;;;QACtB,SAAS,kBAAE,GAAO,KAAK,GAAG;;;QAjB1B,QAAQ;QAER,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QADtC,WAAW,kBAAE,GAAO,KAAK;;;QALzB,eAAe,IAAI;QALnB,aAAa,OAAO,GAAG;QACvB,gBAAgB,OAAO,QAAQ;QAK/B,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAHtD,cAAc;QAFd,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QAUnB,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;AAkBrE;AA7CA,OAAO,MAAM,oBAAM,+FA6ChB\"}")
+== DIAGNOSTICS ==
+
+[]

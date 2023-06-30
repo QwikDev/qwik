@@ -1,9 +1,9 @@
 {
   "description": "Use Tailwind in your Qwik app",
   "devDependencies": {
-    "autoprefixer": "^10.4.13",
-    "postcss": "^8.4.16",
-    "tailwindcss": "^3.1.8"
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.23",
+    "tailwindcss": "^3.3.1"
   },
   "__qwik__": {
     "displayName": "Integration: Tailwind (styling)",
@@ -12,17 +12,6 @@
     "docs": [
       "https://qwik.builder.io/integrations/integration/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
-    ],
-    "nextSteps": {
-      "lines": [
-        "------------------------------------------------",
-        "You must add the next lines into global.css file",
-        "global.css -------------------------------------",
-        "",
-        "@tailwind base;",
-        "@tailwind components;",
-        "@tailwind utilities;"
-      ]
-    }
+    ]
   }
 }

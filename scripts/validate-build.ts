@@ -23,6 +23,20 @@ export async function validateBuild(config: BuildConfig) {
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
   const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
 
+  const dependencies = ['csstype'];
+  const pkgDependencies = Object.keys(pkg.dependencies!);
+  if (pkgDependencies.length !== dependencies.length) {
+    errors.push(
+      `Expected ${dependencies.length} dependencies, but found ${pkgDependencies.length}.`
+    );
+  } else {
+    for (const dep of dependencies) {
+      if (!pkgDependencies.includes(dep)) {
+        errors.push(`Expected ${dep} to be a dependency.`);
+      }
+    }
+  }
+
   for (const filePath of expectedFiles) {
     try {
       // loop through each file and ensure it's built correct

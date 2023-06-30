@@ -61,9 +61,10 @@
 
 - [Overview](deployments/index.mdx)
 - [Azure SWA](deployments/azure-swa/index.mdx)
+- [AWS](deployments/aws-lambda/index.mdx)
+- [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
 - [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
 - [Deno](deployments/deno/index.mdx)
-- [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)

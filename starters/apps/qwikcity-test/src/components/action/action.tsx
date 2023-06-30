@@ -1,8 +1,7 @@
 import { component$ } from "@builder.io/qwik";
 import { Form, globalAction$ } from "@builder.io/qwik-city";
 
-export const useAction = globalAction$((data) => {
-  console.log(data);
+export const useAction = globalAction$(() => {
   return true;
 });
 

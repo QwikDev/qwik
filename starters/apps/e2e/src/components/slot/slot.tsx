@@ -64,6 +64,7 @@ export const SlotParent = component$(() => {
           <Issue4283>
             <p>index page</p>
           </Issue4283>
+          <Issue4658 />
         </>
       )}
       <div>
@@ -460,5 +461,47 @@ export const Issue4283 = component$(() => {
       <p>Content</p>
       <Slot />
     </HideUntilVisible>
+  );
+});
+
+export const Issue4658Context =
+  createContextId<Signal<boolean>>("issue-4658-context");
+export const Issue4658Inner = component$(() => {
+  const toggle = useContext(Issue4658Context);
+  return (
+    <>
+      <main>
+        <Slot />
+      </main>
+      {toggle.value ? (
+        <h3 id="issue-4658-inner">CCC</h3>
+      ) : (
+        <h3 id="issue-4658-inner">DDD</h3>
+      )}
+    </>
+  );
+});
+
+export const Issue4658 = component$(() => {
+  const toggle = useSignal(false);
+  useContextProvider(Issue4658Context, toggle);
+  return (
+    <>
+      <Issue4658Inner>
+        {toggle.value ? (
+          <h1 id="issue-4658-top">AAA</h1>
+        ) : (
+          <h1 id="issue-4658-top">BBB</h1>
+        )}
+      </Issue4658Inner>
+      <button
+        id="issue-4658-toggle"
+        onClick$={() => {
+          toggle.value = !toggle.value;
+        }}
+      >
+        Toggle
+      </button>
+    </>
   );
 });

@@ -202,7 +202,7 @@ impl<'a> QwikTransform<'a> {
                     (
                         ImportKind::Named,
                         "@builder.io/qwik",
-                        "Fragment" | "Slot" | "RenderOnce" | "HTMLFragment",
+                        "Fragment" | "RenderOnce" | "HTMLFragment",
                     ) => Some(id.clone()),
                     (ImportKind::Named, "@builder.io/qwik-city", "Link") => Some(id.clone()),
                     (_, source, _) => {

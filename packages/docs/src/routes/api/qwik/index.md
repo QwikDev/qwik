@@ -1445,6 +1445,16 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
+## ReadonlySignal
+
+```typescript
+export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
+```
+
+**References:** [Signal](#signal)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+
 ## render
 
 Render JSX.

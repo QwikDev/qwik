@@ -13,6 +13,7 @@ import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
+import type { ReadonlySignal } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventBase } from '@builder.io/qwik-city/middleware/request-handler';
@@ -121,6 +122,7 @@ export interface DocumentHeadValue {
     readonly frontmatter?: Readonly<Record<string, any>>;
     readonly links?: readonly DocumentLink[];
     readonly meta?: readonly DocumentMeta[];
+    // Warning: (ae-incompatible-release-tags) The symbol "scripts" is marked as @public, but its signature references "DocumentScript" which is marked as @alpha
     readonly scripts?: readonly DocumentScript[];
     readonly styles?: readonly DocumentStyle[];
     readonly title?: string;
@@ -269,8 +271,6 @@ export interface Loader<RETURN> {
     (): LoaderSignal<RETURN>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ReadonlySignal" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? ReadonlySignal<ValueOrPromise<B>> : ReadonlySignal<T>;
 
